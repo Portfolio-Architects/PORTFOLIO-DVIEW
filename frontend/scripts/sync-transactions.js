@@ -117,6 +117,44 @@ function normalizeAptName(name) {
     .trim();
 }
 
+/**
+ * Google Sheets 'apartments' 탭에서 아파트명 → 법정동 매핑 테이블 구축
+ * 컬럼: 아파트명, dong(법정동)
+ */
+async function fetchDongMap() {
+  const dongMap = {};
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=apartments`;
+    const res = await fetch(csvUrl);
+    if (res.ok) {
+      const csvText = await res.text();
+      const lines = csvText.split('\n').filter(l => l.trim());
+      if (lines.length < 2) return dongMap;
+      
+      const headers = parseCsvLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+      const nameIdx = headers.findIndex(h => h === '아파트명' || h === 'name' || h === '이름');
+      const dongIdx = headers.findIndex(h => h === 'dong' || h === '동');
+      
+      if (nameIdx === -1 || dongIdx === -1) {
+        console.warn('⚠️ apartments 시트에서 아파트명/dong 컬럼을 찾지 못했습니다.');
+        return dongMap;
+      }
+      
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
+        const name = cols[nameIdx];
+        const dong = cols[dongIdx];
+        if (name && dong) {
+          dongMap[normalizeAptName(name)] = dong;
+        }
+      }
+    }
+  } catch(e) {
+    console.error('⚠️ 법정동 매핑 다운로드 실패:', e.message);
+  }
+  return dongMap;
+}
+
 async function main() {
   const isFullSync = process.argv.includes('--full');
   const now = new Date();
@@ -258,6 +296,12 @@ async function main() {
 
   console.log('🔗 타입 맵 다운로드 중 (공급면적 기준 평당가 계산)...');
   const typeMap = await fetchTypeMap();
+
+  // 법정동 매핑 다운로드 (Google Sheets apartments 탭)
+  console.log('🗺️ 법정동 매핑 다운로드 중...');
+  const dongMap = await fetchDongMap();
+  console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료`);
+
 
   for (const [aptName, txs] of Object.entries(byApt)) {
     // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
@@ -431,6 +475,8 @@ async function main() {
     const avg3MDeposit = Math.round(avg3MDepositRaw / 100) * 100;
 
     summaries[aptName] = {
+      // 법정동 (Google Sheets apartments 탭 우선, 없으면 거래 데이터 폴백)
+      dong: dongMap[normalizeAptName(aptName)] || (saleTxs.length > 0 ? saleTxs[0].dong : (rentTxs.length > 0 ? rentTxs[0].dong : '')),
       // 매매 데이터
       latestPrice: latestTx ? latestTx.price : 0,
       latestPriceEok: latestTx ? latestTx.priceEok : "0",
@@ -523,6 +569,9 @@ export interface AptTxSummary {
   avg1MRentDepositEok?: string;
   avg3MRentDeposit?: number;
   avg3MRentDepositEok?: string;
+
+  // 법정동
+  dong?: string;
 }
 
 /** 아파트명 → 거래 요약 */

@@ -15,7 +15,7 @@ import { logger } from '@/lib/services/logger';
 export async function fetchApartmentNames(): Promise<string[]> {
   try {
     const response = await fetch('/api/apartments-by-dong', {
-      next: { revalidate: 86400 }, // cache 24h
+      cache: 'no-store', // force fresh data
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     

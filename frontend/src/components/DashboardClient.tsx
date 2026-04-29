@@ -28,6 +28,7 @@ import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartment
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import { type AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
+import locationScoresData from '@/lib/location-scores.json';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -205,7 +206,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             likes: 0,
             commentCount: 0,
             createdAt: null,
-            metrics: targetApt as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+            metrics: { ...targetApt, ...((locationScoresData as Record<string, any>)[targetApt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
           });
         }
       }
@@ -523,7 +524,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                                   likes: 0,
                                   commentCount: 0,
                                   createdAt: null,
-                                  metrics: apt as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+                                  metrics: { ...apt, ...((locationScoresData as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
                                 });
                               }
                               // Soft URL update for SEO capturing

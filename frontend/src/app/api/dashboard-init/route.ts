@@ -71,7 +71,7 @@ export async function GET() {
   // 2. Type map (Google Sheets CSV — no auth needed)
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 86400 } });
+    const res = await fetch(csvUrl, { cache: 'no-store' });
     if (res.ok) {
       const csvText = await res.text();
       const lines = csvText.split('\n').filter(l => l.trim());

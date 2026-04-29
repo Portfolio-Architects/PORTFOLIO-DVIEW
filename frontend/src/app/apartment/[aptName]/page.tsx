@@ -66,7 +66,7 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
   };
 }
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 async function getInitialData() {
   const result: {
@@ -101,7 +101,7 @@ async function getInitialData() {
 
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 86400 } });
+    const res = await fetch(csvUrl, { cache: 'no-store' });
     if (res.ok) {
       const csvText = await res.text();
       const lines = csvText.split('\n').filter((l: string) => l.trim());

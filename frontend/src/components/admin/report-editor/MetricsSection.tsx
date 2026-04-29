@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFormContext, Path } from 'react-hook-form';
+import { useFormContext, Path, useWatch } from 'react-hook-form';
 import { FormValues } from './types';
 
 // Export type to be used by parent
@@ -60,18 +60,28 @@ export function MetricsSection({
   apiCategories,
   setApiCategories
 }: MetricsSectionProps) {
-  const { getValues, setValue, register } = useFormContext<FormValues>();
+  const { getValues, setValue, register, control } = useFormContext<FormValues>();
+  const apartmentName = useWatch({ control, name: 'apartmentName' });
+  const [lastFetchedApt, setLastFetchedApt] = React.useState<string>('');
 
-  const handleCalculate = async () => {
+  const handleCalculate = async (silentParam: boolean | React.MouseEvent = false) => {
+    const silent = silentParam === true;
     const aptName = getValues('apartmentName');
-    if (!aptName) { alert('먼저 아파트를 선택해주세요.'); return; }
+    if (!aptName) { 
+      if (!silent) alert('먼저 아파트를 선택해주세요.'); 
+      return; 
+    }
+    
+    if (silent && aptName === lastFetchedApt) return;
+    if (silent) setLastFetchedApt(aptName);
+
     setIsCalculating(true);
     try {
       const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}&refresh=1`);
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         const available = errData.availableApartments?.join(', ') || '없음';
-        alert(`좌표 데이터를 찾을 수 없습니다.\n\n💡 ${errData.hint || ''}\n현재 좌표가 있는 아파트: ${available}`);
+        if (!silent) alert(`좌표 데이터를 찾을 수 없습니다.\n\n💡 ${errData.hint || ''}\n현재 좌표가 있는 아파트: ${available}`);
         return;
       }
       const loc = await res.json();
@@ -149,14 +159,20 @@ export function MetricsSection({
       const restMsg = restEntries.length > 0 ? `\n\n🍽️ 음식점·카페 ${loc.restaurantDensity}개 (500m)\n${restEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : '';
       const transitMsg = `\n\n🚇 교통\nGTX-A/SRT: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
       const anchorMsg = `\n\n🎯 앵커 테넌트\n스타벅스: ${loc.distanceToStarbucks ?? '-'}\n올리브영: ${loc.distanceToOliveYoung ?? '-'}\n다이소: ${loc.distanceToDaiso ?? '-'}\n이마트/노브랜드: ${loc.distanceToSupermarket ?? '-'}\n맥도날드: ${loc.distanceToMcDonalds ?? '-'}`;
-      alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}${anchorMsg}`);
+      if (!silent) alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}${anchorMsg}`);
     } catch (e) {
-      alert('자동 출력 중 오류가 발생했습니다.');
+      if (!silent) alert('자동 출력 중 오류가 발생했습니다.');
       console.error(e);
     } finally {
       setIsCalculating(false);
     }
   };
+
+  React.useEffect(() => {
+    if (apartmentName && apartmentName !== lastFetchedApt) {
+      handleCalculate(true);
+    }
+  }, [apartmentName, lastFetchedApt]);
 
   return (
     <section className="mb-12 bg-body -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-border">

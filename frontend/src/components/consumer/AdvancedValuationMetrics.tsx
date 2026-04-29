@@ -4,9 +4,11 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp, X } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from 'recharts';
 import type { FieldReportData } from '@/lib/DashboardFacade';
-import { getBrandMultiplier } from '@/lib/utils/scoring';
+import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { calculateDynamicDCF, calculateDongSpread, calculateForwardJeonseTrajectory } from '@/lib/utils/valuationEngine';
-import { MOCK_MACRO_CONFIG } from '@/lib/data/macro-config';
+import { MACRO_CONFIG } from '@/lib/macro-summary';
+import { TX_SUMMARY } from '@/lib/transaction-summary';
+import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 
 interface TxRecord {
   dealType?: string;
@@ -53,150 +55,46 @@ const GaugeBar = ({ score, max }: { score: number, max: number }) => {
 // Utility Score V2 엔진 (Max 100점)
 // --------------------------------------------------------------------------
 function calculateUtilityScoreV2(report: FieldReportData) {
-  let score = 0;
-  const breakDown = { specs: 0, infra: 0 };
-  const logs: { icon: React.ElementType; category: string; score: number; max: number; label: string; isInfra: boolean; }[] = [];
-  
-  // 1. 단지 스펙 (Max 40점)
-  let scaleScore = 5, parkScore = 0, yearScore = 0, brandScore = 0;
-  let scaleLabel = '-', parkLabel = '-', yearLabel = '-', brandLabel = '-';
+  const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics | undefined;
+  const premium = calculatePremiumScores(m);
+  const d = premium.details;
 
-  if (report.metrics) {
-    const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
-    
-    // 브랜드 파워 (Max 5점) - getBrandMultiplier 사용
-    const brandVal = m.brand || report.apartmentName || '';
-    const mu = getBrandMultiplier(brandVal);
-    // mu: 0.90 ~ 1.15. 1.09 이상이면 1군(5점), 1.05~1.08(3점), 1.02~1.04(1점), 이하 0점
-    if (mu >= 1.09) { brandScore = 5; brandLabel = '1군 하이엔드/메이저'; }
-    else if (mu >= 1.05) { brandScore = 3; brandLabel = '상위 메이저 브랜드'; }
-    else if (mu >= 1.02) { brandScore = 1; brandLabel = '인지도 보유 브랜드'; }
-    else { brandScore = 0; brandLabel = '기본 브랜드 / 정보없음'; }
-
-    // 세대수 파싱 (Max 10점)
-    if (m.householdCount) {
-      const hh = Number(m.householdCount);
-      if (hh >= 1500) { scaleScore = 10; scaleLabel = `${hh.toLocaleString()}세대 매머드급`; }
-      else if (hh >= 1000) { scaleScore = 8; scaleLabel = `${hh.toLocaleString()}세대 대단지`; }
-      else if (hh >= 500) { scaleScore = 5; scaleLabel = `${hh.toLocaleString()}세대 중형단지`; }
-      else { scaleScore = 3; scaleLabel = `${hh.toLocaleString()}세대 소형단지`; }
-    } else {
-      scaleScore = 5; scaleLabel = '세대수 데이터 없음';
-    }
-
-    // 주차대수 파싱 (Max 15점)
-    if (m.parkingPerHousehold) {
-      const p = Number(m.parkingPerHousehold);
-      if (p >= 1.6) { parkScore = 15; parkLabel = `${p.toFixed(2)}대 (매우 여유)`; }
-      else if (p >= 1.4) { parkScore = 12; parkLabel = `${p.toFixed(2)}대 (여유)`; }
-      else if (p >= 1.2) { parkScore = 8; parkLabel = `${p.toFixed(2)}대 (보통)`; }
-      else if (p >= 1.0) { parkScore = 4; parkLabel = `${p.toFixed(2)}대 (다소 혼잡)`; }
-      else { parkScore = 0; parkLabel = `${p.toFixed(2)}대 (혼잡 스트레스)`; }
-    } else {
-      parkScore = 5; parkLabel = '주차 데이터 없음';
-    }
-
-    // 연식 파싱 (Max 10점 - 선형 감가상각)
-    if (m.yearBuilt) {
-      const year = parseInt(String(m.yearBuilt).substring(0, 4));
-      const age = new Date().getFullYear() - year + 1; // n년차
-      // 선형 감가 (10년까지 매년 0.5 감가, 이후 좀더 천천히)
-      if (age <= 0) { yearScore = 10; yearLabel = '분양/입주예정'; }
-      else if (age <= 15) {
-        yearScore = Math.max(0, Math.round(10 - (age * 0.5)));
-        yearLabel = `${age}년차 (선형 감가)`;
-      } else {
-        yearScore = Math.max(0, Math.round(3 - ((age - 15) * 0.2)));
-        yearLabel = `${age}년차 구축`;
-      }
-    } else {
-      yearScore = 5; yearLabel = '연식 데이터 없음';
-    }
-  } else {
-    scaleScore = 5; parkScore = 5; yearScore = 5; brandScore = 0;
-    scaleLabel = '데이터 없음'; parkLabel = '데이터 없음'; yearLabel = '데이터 없음'; brandLabel = '데이터 없음';
-  }
-  
-  breakDown.specs = scaleScore + parkScore + yearScore + brandScore;
-  logs.push({ icon: Award, category: '브랜드 파워', score: brandScore, max: 0, label: brandLabel, isInfra: false });
-  logs.push({ icon: Users, category: '단지 규모 (세대수)', score: scaleScore, max: 0, label: scaleLabel, isInfra: false });
-  logs.push({ icon: Car, category: '주차 편의성 (세대당)', score: parkScore, max: 0, label: parkLabel, isInfra: false });
-  logs.push({ icon: Calendar, category: '건축 연식 (감가)', score: yearScore, max: 0, label: yearLabel, isInfra: false });
-
-  // 2. 외부 인프라 (Max 60점)
-  let subScore = 5, schScore = 3, storeScore = 4, parkDistScore = 5;
-  let subLabel = '1km 초과', schLabel = '800m 초과', storeLabel = '상권 빈약', parkDistLabel = '500m 초과';
-
-  if (report.metrics) {
-    const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
-    
-    // 교통 (역 거리 - 세분화) (Max 20점)
-    const getSubScore = (dist: number, weight: number) => {
-      if (dist <= 300) return 20 * weight;
-      if (dist <= 500) return 16 * weight;
-      if (dist <= 800) return 10 * weight;
-      if (dist <= 1200) return 5 * weight;
-      return 2 * weight;
+  if (!d) {
+    return {
+      total: 0,
+      breakDown: { specs: 0, infra: 0 },
+      logs: [],
+      rawScore: 0,
+      isCapped: false
     };
-    
-    const gtxScore = getSubScore(m.distanceToSubway || 9999, 3.0); // GTX 가중치 3배로 상향
-    const indkScore = getSubScore(m.distanceToIndeokwon || 9999, 0.85); // 동인선 가중치
-    const tramScore = getSubScore(m.distanceToTram || 9999, 0.6); // 트램 가중치
-    
-    subScore = Math.round(gtxScore + indkScore + tramScore);
-    
-    const distTexts = [];
-    if (m.distanceToSubway && m.distanceToSubway < 2000) distTexts.push(`GTX ${m.distanceToSubway}m`);
-    if (m.distanceToIndeokwon && m.distanceToIndeokwon < 2000) distTexts.push(`동인선 ${m.distanceToIndeokwon}m`);
-    if (m.distanceToTram && m.distanceToTram < 2000) distTexts.push(`트램 ${m.distanceToTram}m`);
-    
-    subLabel = distTexts.length > 0 ? distTexts.join(', ') : '1.2km 초과 (대중교통 환승)';
-    
-    // 학군 (학교 거리 - 초/중/고 중 최소거리) (Max 15점)
-    const minSchool = Math.min(m.distanceToElementary || 9999, m.distanceToMiddle || 9999, m.distanceToHigh || 9999);
-    if (minSchool <= 200) { schScore = 15; schLabel = '200m 이내 (초품아급 안심통학)'; }
-    else if (minSchool <= 500) { schScore = 10; schLabel = '500m 이내 (도보 통학권)'; }
-    else if (minSchool <= 800) { schScore = 6; schLabel = '800m 이내 (도보 가능)'; }
-    else { schScore = 3; schLabel = '800m 초과 (통학 불편)'; }
-    
-    // 상권 (거점 상권 / 앵커 테넌트 가산) (Max 15점)
-    const stores = (m.academyDensity || 0) + (m.restaurantDensity || 0);
-    // 스타벅스 혹은 대형마트가 500m 내에 있다면 +3점 앵커 가산점
-    const hasAnchor = ((m.distanceToStarbucks ?? Infinity) <= 500) || ((m.distanceToSupermarket ?? Infinity) <= 500);
-    if (stores >= 80) { storeScore = 15; storeLabel = '80점포 이상 (광역 상권)'; }
-    else if (stores >= 40) { storeScore = hasAnchor ? 12 : 10; storeLabel = `40점포 이상 (대형 상권${hasAnchor ? ' + 앵커테넌트' : ''})`; }
-    else if (stores >= 15) { storeScore = hasAnchor ? 8 : 6; storeLabel = `15점포 이상 (근린 상권${hasAnchor ? ' + 앵커테넌트' : ''})`; }
-    else if (stores > 0) { storeScore = 3; storeLabel = '기본 상권 존재'; }
-    else { storeScore = 0; storeLabel = '상권/학원가 정보 없음'; }
-    
-    // 자연 (공원/호수) (Max 10점)
-    const distPark = (m as Record<string, number>).distanceToPark;
-    if (distPark && distPark <= 300) { parkDistScore = 10; parkDistLabel = '300m 이내 공세권/호품아'; }
-    else if (distPark && distPark <= 600) { parkDistScore = 6; parkDistLabel = '600m 이내 쾌적한 도보 접근'; }
-    else { parkDistScore = 3; parkDistLabel = '600m 초과 제한적 뷰'; }
-  } else {
-    subScore = 10; schScore = 15; storeScore = 5; parkDistScore = 5;
-    subLabel = '정보 없음'; schLabel = '정보 없음'; storeLabel = '정보 없음'; parkDistLabel = '정보 없음';
   }
-  
-  breakDown.infra = subScore + schScore + storeScore + parkDistScore;
-  logs.push({ icon: Train, category: '핵심 궤도교통 역세권', score: subScore, max: 0, label: subLabel, isInfra: true });
-  logs.push({ icon: GraduationCap, category: '통학 학군 (초등 중심)', score: schScore, max: 0, label: schLabel, isInfra: true });
-  logs.push({ icon: Store, category: '거점 상권/학원/앵커', score: storeScore, max: 0, label: storeLabel, isInfra: true });
-  logs.push({ icon: TreePine, category: '자연 환경 (호수/상징공원)', score: parkDistScore, max: 0, label: parkDistLabel, isInfra: true });
 
-  const rawScore = breakDown.specs + breakDown.infra;
-  score = Math.max(55, rawScore);
-  const isCapped = rawScore < 55;
-  
-  return { total: score, breakDown, logs, rawScore, isCapped };
+  const logs: { icon: React.ElementType; category: string; score: number; max: number; label: string; isInfra: boolean; }[] = [
+    { icon: Award, category: '브랜드 파워', score: d.brand.score, max: d.brand.max, label: d.brand.label, isInfra: false },
+    { icon: Users, category: '단지 규모 (세대수)', score: d.scale.score, max: d.scale.max, label: d.scale.label, isInfra: false },
+    { icon: Car, category: '주차 편의성 (세대당)', score: d.parking.score, max: d.parking.max, label: d.parking.label, isInfra: false },
+    { icon: Calendar, category: '건축 연식 (감가)', score: d.year.score, max: d.year.max, label: d.year.label, isInfra: false },
+    { icon: Train, category: 'GTX/SRT 역세권', score: d.gtx.score, max: d.gtx.max, label: d.gtx.label, isInfra: true },
+    { icon: Train, category: '동인선 역세권', score: d.indeokwon.score, max: d.indeokwon.max, label: d.indeokwon.label, isInfra: true },
+    { icon: Train, category: '동탄트램 역세권', score: d.tram.score, max: d.tram.max, label: d.tram.label, isInfra: true },
+    { icon: GraduationCap, category: '통학 학군 (초등 중심)', score: d.school.score, max: d.school.max, label: d.school.label, isInfra: true },
+    { icon: Store, category: '거점 상권/학원/앵커', score: d.store.score, max: d.store.max, label: d.store.label, isInfra: true },
+    { icon: TreePine, category: '자연 환경 (호수/상징공원)', score: d.parkDist.score, max: d.parkDist.max, label: d.parkDist.label, isInfra: true },
+  ];
+
+  const breakDown = {
+    specs: d.brand.score + d.scale.score + d.parking.score + d.year.score,
+    infra: d.gtx.score + d.indeokwon.score + d.tram.score + d.school.score + d.store.score + d.parkDist.score
+  };
+
+  return { total: premium.totalScore, breakDown, logs, rawScore: premium.totalScore, isCapped: false };
 }
 
 export default function AdvancedValuationMetrics({ report, transactions }: Props) {
   const [isRatioModalOpen, setIsRatioModalOpen] = useState(false);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
-  const [macroConfig, setMacroConfig] = useState(MOCK_MACRO_CONFIG.macroEnvironment);
+  const [macroConfig, setMacroConfig] = useState(MACRO_CONFIG.macroEnvironment);
 
   useEffect(() => {
     const fetchMacroRates = async () => {
@@ -259,7 +157,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
 
   // --- 동태적 가치평가 및 거시/상대평가 모델 적용 ---
   const dongName = report.apartmentName.includes('동탄') ? '동탄2신도시' : '화성시';
-  const pipeline = MOCK_MACRO_CONFIG.supplyPipelines[dongName] || MOCK_MACRO_CONFIG.supplyPipelines['화성시'];
+  const pipeline = MACRO_CONFIG.supplyPipelines[dongName] || MACRO_CONFIG.supplyPipelines['화성시'];
   
   // 0. 전월세전환율 동적 스프레드 산출 (입지 및 주택유형 반영)
   let conversionRateSpread = 0;
@@ -297,9 +195,26 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   // 1. Dynamic DCF (거시 금리 연동 및 동적 전환율 적용)
   const utilityScoreResult = calculateUtilityScoreV2(report);
   const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScoreResult.total);
-  // 2. Dong Spread (인접 단지 상대평가) - 임시 모의 데이터 사용
-  const mockDongPERs = realEstatePER > 0 ? [realEstatePER - 0.1, realEstatePER + 0.05, realEstatePER - 0.15, realEstatePER + 0.2] : [];
-  const spreadData = calculateDongSpread(realEstatePER, mockDongPERs);
+  // 2. Dong Spread (인접 단지 상대평가) - 실제 데이터 연동
+  const targetDongMatch = report.apartmentName.match(/\[(.*?)\]/);
+  let targetDong = targetDongMatch ? targetDongMatch[1] : '';
+  
+  // [동] 접두사가 없는 경우, TX_SUMMARY에서 아파트명 매칭으로 dong 역추적
+  if (!targetDong) {
+    const norm = normalizeAptName(report.apartmentName);
+    for (const [key, tx] of Object.entries(TX_SUMMARY)) {
+      if (normalizeAptName(key) === norm && tx.dong) {
+        targetDong = tx.dong;
+        break;
+      }
+    }
+  }
+  
+  const realDongPERs = Object.values(TX_SUMMARY)
+    .filter(tx => tx.dong === targetDong && tx.dong !== '' && (tx.avg3MPrice || 0) > 0 && (tx.avg3MRentDeposit || 0) > 0)
+    .map(tx => (tx.avg3MPrice as number) / (tx.avg3MRentDeposit as number));
+
+  const spreadData = calculateDongSpread(realEstatePER, realDongPERs.length > 0 ? realDongPERs : (realEstatePER > 0 ? [realEstatePER] : []));
 
   // 3. Forward Trajectory (미래 궤적)
   const trajectory = calculateForwardJeonseTrajectory(avg3MRent, pipeline);

@@ -63,22 +63,39 @@ export interface DashboardDataStrategy {
   addUserReview?(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File): Promise<void>;
   getDongtanApartments?(): string[];
   isAdmin(email: string | null | undefined): boolean;
+  subscribeTo?(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void): () => void;
+}
+
+// --- Subscribable State Manager ---
+class Subscribable<T> {
+  private data: T;
+  private listeners = new Set<() => void>();
+  constructor(initialData: T) { this.data = initialData; }
+  get = (): T => this.data;
+  set = (newData: T) => {
+    this.data = newData;
+    this.listeners.forEach(cb => cb());
+  };
+  subscribe = (callback: () => void) => {
+    this.listeners.add(callback);
+    return () => { this.listeners.delete(callback); };
+  };
 }
 
 // --- Firebase Strategy (delegates to repositories/services) ---
 
 class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
-  private kpis: KPIData[];
-  private newsFeed: NewsItemData[] = [];
-  private fieldReports: FieldReportData[] = [];
-  private userReviews: UserReview[] = [];
-  private dongtanApartments: string[] = [];
-  private listeners: (() => void)[] = [];
+  private stores = {
+    kpis: new Subscribable<KPIData[]>(createInitialKPIs()),
+    newsFeed: new Subscribable<NewsItemData[]>([]),
+    fieldReports: new Subscribable<FieldReportData[]>([]),
+    userReviews: new Subscribable<UserReview[]>([]),
+    dongtanApartments: new Subscribable<string[]>([])
+  };
   private cleanupFns: (() => void)[] = [];
   private initialized = false;
 
   constructor() {
-    this.kpis = createInitialKPIs();
     // Only init Firestore listeners on the client side
     if (typeof window !== 'undefined') {
       this.init();
@@ -88,62 +105,46 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private init() {
     if (this.initialized) return;
     this.initialized = true;
+
     // KPI simulation
-    const stopKPI = startKPISimulation(this.kpis, () => this.notifyListeners());
+    const stopKPI = startKPISimulation(this.stores.kpis.get(), () => {
+      this.stores.kpis.set([...this.stores.kpis.get()]);
+    });
     this.cleanupFns.push(stopKPI);
 
     // Firestore listeners (delegated to repositories)
     const stopPosts = PostRepo.listenToPosts((posts) => {
-      this.newsFeed = posts;
-      this.notifyListeners();
+      this.stores.newsFeed.set(posts);
     });
     this.cleanupFns.push(stopPosts);
 
     const stopReports = ReportRepo.listenToReports((reports) => {
-      this.fieldReports = reports;
-      this.notifyListeners();
+      this.stores.fieldReports.set(reports);
     });
     this.cleanupFns.push(stopReports);
 
     const stopReviews = ReviewRepo.listenToReviews((reviews) => {
-      this.userReviews = reviews;
-      this.notifyListeners();
+      this.stores.userReviews.set(reviews);
     });
     this.cleanupFns.push(stopReviews);
 
     // External API
     ApartmentRepo.fetchApartmentNames().then((apts) => {
-      this.dongtanApartments = apts;
-      this.notifyListeners();
+      this.stores.dongtanApartments.set(apts);
     });
   }
 
-  subscribe(callback: () => void) {
-    // Lazy init: if not yet initialized (e.g. SSR), start now
+  subscribeTo(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void) {
     if (!this.initialized && typeof window !== 'undefined') {
       this.init();
     }
-    this.listeners.push(callback);
-    return () => {
-      this.listeners = this.listeners.filter(cb => cb !== callback);
-    };
+    return this.stores[key].subscribe(callback);
   }
 
-  private notifyListeners() {
-    this.listeners.forEach(cb => cb());
-  }
-
-  getKPIs(): KPIData[] { return this.kpis; }
-
-  getNewsFeed(): NewsItemData[] {
-    return this.newsFeed;
-  }
-
-  getFieldReports(): FieldReportData[] {
-    return this.fieldReports;
-  }
-
-  getUserReviews(): UserReview[] { return this.userReviews; }
+  getKPIs(): KPIData[] { return this.stores.kpis.get(); }
+  getNewsFeed(): NewsItemData[] { return this.stores.newsFeed.get(); }
+  getFieldReports(): FieldReportData[] { return this.stores.fieldReports.get(); }
+  getUserReviews(): UserReview[] { return this.stores.userReviews.get(); }
 
   async getFullReport(reportId: string): Promise<FieldReportData | null> {
     return ReportRepo.getFullReport(reportId);
@@ -152,8 +153,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
     return ReportRepo.getFullReportByApartmentName(apartmentName);
   }
-
-  getDongtanApartments(): string[] { return this.dongtanApartments; }
+  getDongtanApartments(): string[] { return this.stores.dongtanApartments.get(); }
 
   getAdBanner(): AdBannerData {
     return {
@@ -336,7 +336,9 @@ export class DashboardFacade {
   }
 
   public setStrategy(strategy: DashboardDataStrategy) { this.strategy = strategy; }
-  public subscribe(callback: () => void) { return this.strategy.subscribe ? this.strategy.subscribe(callback) : () => {}; }
+  public subscribeTo(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void) {
+    return this.strategy.subscribeTo ? this.strategy.subscribeTo(key, callback) : () => {};
+  }
   public getKPIs(): KPIData[] { return this.strategy.getKPIs(); }
   public getNewsFeed(): NewsItemData[] { return this.strategy.getNewsFeed(); }
   public getFieldReports(): FieldReportData[] { return this.strategy.getFieldReports ? this.strategy.getFieldReports() : []; }
@@ -375,58 +377,53 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // --- React Hook (re-exported for backward compatibility) ---
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore, useCallback } from 'react';
 
 /**
- * React hook providing reactive dashboard data.
- * Subscribes to the facade's listener pattern and re-renders on data changes.
+ * React hook providing reactive dashboard data via useSyncExternalStore.
+ * Avoids global array spread deep-copies and triggers re-renders ONLY when specific data references change.
  */
 export function useDashboardData() {
-  // To avoid hydration mismatch, initialize with perfectly empty/default arrays 
-  // exactly as the server would see them before any singleton effects run.
-  const [data, setData] = useState<{
-    kpis: KPIData[];
-    newsFeed: NewsItemData[];
-    fieldReports: FieldReportData[];
-    userReviews: UserReview[];
-    dongtanApartments: string[];
-    adBanner: AdBannerData;
-  }>({
-    kpis: [],
-    newsFeed: [],
-    fieldReports: [],
-    userReviews: [],
-    dongtanApartments: [],
-    adBanner: { title: '', description: '', buttonText: '' },
-  });
-
   const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => setIsHydrated(true), []);
 
-  useEffect(() => {
-    setIsHydrated(true);
-    
-    // Immediate sync to catch data that arrived before/during mount
-    setData({
-      kpis: [...dashboardFacade.getKPIs()],
-      newsFeed: [...dashboardFacade.getNewsFeed()],
-      fieldReports: [...dashboardFacade.getFieldReports()],
-      userReviews: [...dashboardFacade.getUserReviews()],
-      dongtanApartments: [...dashboardFacade.getDongtanApartments()],
-      adBanner: dashboardFacade.getAdBanner(),
-    });
+  const kpis = useSyncExternalStore(
+    useCallback((cb) => dashboardFacade.subscribeTo('kpis', cb), []),
+    () => dashboardFacade.getKPIs(),
+    () => []
+  );
 
-    const unsubscribe = dashboardFacade.subscribe(() => {
-      setData({
-        kpis: [...dashboardFacade.getKPIs()],
-        newsFeed: [...dashboardFacade.getNewsFeed()],
-        fieldReports: [...dashboardFacade.getFieldReports()],
-        userReviews: [...dashboardFacade.getUserReviews()],
-        dongtanApartments: [...dashboardFacade.getDongtanApartments()],
-        adBanner: dashboardFacade.getAdBanner(),
-      });
-    });
-    return () => unsubscribe();
-  }, []);
+  const newsFeed = useSyncExternalStore(
+    useCallback((cb) => dashboardFacade.subscribeTo('newsFeed', cb), []),
+    () => dashboardFacade.getNewsFeed(),
+    () => []
+  );
 
-  return { ...data, isHydrated };
+  const fieldReports = useSyncExternalStore(
+    useCallback((cb) => dashboardFacade.subscribeTo('fieldReports', cb), []),
+    () => dashboardFacade.getFieldReports(),
+    () => []
+  );
+
+  const userReviews = useSyncExternalStore(
+    useCallback((cb) => dashboardFacade.subscribeTo('userReviews', cb), []),
+    () => dashboardFacade.getUserReviews(),
+    () => []
+  );
+
+  const dongtanApartments = useSyncExternalStore(
+    useCallback((cb) => dashboardFacade.subscribeTo('dongtanApartments', cb), []),
+    () => dashboardFacade.getDongtanApartments(),
+    () => []
+  );
+
+  return { 
+    kpis, 
+    newsFeed, 
+    fieldReports, 
+    userReviews, 
+    dongtanApartments, 
+    adBanner: dashboardFacade.getAdBanner(), 
+    isHydrated 
+  };
 }

@@ -1,7 +1,7 @@
 import { adminDb } from '@/lib/firebaseAdmin';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
 
-export const revalidate = 30; // 30초 주기 ISR 재생성 (TTFB 0ms 목표)
+export const dynamic = 'force-dynamic';
 
 export default async function LoungePage() {
   let posts: Record<string, unknown>[] = [];

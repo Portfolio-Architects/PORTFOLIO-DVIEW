@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { MOCK_MACRO_CONFIG } from '@/lib/data/macro-config';
+import { MACRO_CONFIG } from '@/lib/macro-summary';
 
 // ECOS API: 시장금리(일일) - 817Y002 (국고채 3년: 010200000)
 // ECOS API: 예금은행 대출금리(신규취급액 기준, 월별) - 121Y006 (주택담보대출: BECBLA0302)
 
 export async function GET() {
   const ECOS_API_KEY = process.env.ECOS_API_KEY;
-  const FALLBACK_RISK_FREE_RATE = MOCK_MACRO_CONFIG.macroEnvironment.riskFreeRate;
-  const FALLBACK_FUNDING_COST = MOCK_MACRO_CONFIG.macroEnvironment.fundingCost;
+  const FALLBACK_RISK_FREE_RATE = MACRO_CONFIG.macroEnvironment.riskFreeRate;
+  const FALLBACK_FUNDING_COST = MACRO_CONFIG.macroEnvironment.fundingCost;
 
   // 1. API 키가 없으면 바로 Fallback 반환
   if (!ECOS_API_KEY || ECOS_API_KEY === 'pending') {
@@ -17,7 +17,7 @@ export async function GET() {
         riskFreeRate: FALLBACK_RISK_FREE_RATE,
         fundingCost: FALLBACK_FUNDING_COST,
         source: 'fallback_no_key',
-        date: MOCK_MACRO_CONFIG.macroEnvironment.baseDate
+        date: MACRO_CONFIG.macroEnvironment.baseDate
       }
     });
   }
@@ -56,13 +56,13 @@ export async function GET() {
 
     // 병렬로 API 호출 (24시간 동안 Next.js 자체 Data Cache 유지)
     const [riskFreeRes, fundingCostRes] = await Promise.all([
-      fetch(riskFreeUrl, { next: { revalidate: 86400 } }),
-      fetch(fundingCostUrl, { next: { revalidate: 86400 } })
+      fetch(riskFreeUrl, { cache: 'no-store' }),
+      fetch(fundingCostUrl, { cache: 'no-store' })
     ]);
 
     let riskFreeRate = FALLBACK_RISK_FREE_RATE;
     let fundingCost = FALLBACK_FUNDING_COST;
-    let riskFreeDateStr = MOCK_MACRO_CONFIG.macroEnvironment.baseDate.replace(/-/g, '');
+    let riskFreeDateStr = MACRO_CONFIG.macroEnvironment.baseDate.replace(/-/g, '');
     let isLive = false;
 
     if (riskFreeRes.ok) {
@@ -92,7 +92,7 @@ export async function GET() {
         source: isLive ? 'ecos_live' : 'fallback_error',
         date: riskFreeDateStr.length >= 8 
           ? `${riskFreeDateStr.substring(0,4)}-${riskFreeDateStr.substring(4,6)}-${riskFreeDateStr.substring(6,8)}`
-          : MOCK_MACRO_CONFIG.macroEnvironment.baseDate
+          : MACRO_CONFIG.macroEnvironment.baseDate
       }
     });
 
@@ -105,7 +105,7 @@ export async function GET() {
         riskFreeRate: FALLBACK_RISK_FREE_RATE,
         fundingCost: FALLBACK_FUNDING_COST,
         source: 'fallback_error',
-        date: MOCK_MACRO_CONFIG.macroEnvironment.baseDate
+        date: MACRO_CONFIG.macroEnvironment.baseDate
       }
     });
   }

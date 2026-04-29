@@ -4,7 +4,7 @@ export const runtime = 'edge';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { Coord, haversineDistance, findNearest, countWithinRadius, parseCoordString } from '@/lib/utils/haversine';
 
-export const revalidate = 86400; // ISR: 24 hours (coordinate data rarely changes)
+export const revalidate = 0; // force-dynamic
 
 import { loadAllCached, resolveApartment, filterByBBox, clearCache, StationPOI } from '@/lib/services/locationService';
 
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800' },
+      headers: { 'Cache-Control': 'no-store' },
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? (error as Error).message : 'Unknown error';

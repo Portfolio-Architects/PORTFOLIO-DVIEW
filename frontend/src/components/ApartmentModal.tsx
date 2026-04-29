@@ -495,10 +495,10 @@ export function FieldReportModal({
                       ].filter(s => s.dist && s.dist > 0).map(school => {
                         const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
-                          excellent: { dot: 'bg-toss-blue', badge: 'bg-body text-secondary' },
-                          good: { dot: 'bg-[#22c55e]', badge: 'bg-body text-secondary' },
-                          average: { dot: 'bg-[#f59e0b]', badge: 'bg-body text-secondary' },
-                          far: { dot: 'bg-[#ef4444]', badge: 'bg-body text-secondary' },
+                          excellent: { dot: 'bg-toss-blue', timeBadge: 'bg-blue-50 text-toss-blue font-bold', linkBadge: 'bg-blue-50/50 text-secondary hover:text-toss-blue hover:bg-blue-50 hover:-translate-y-0.5 transition-all' },
+                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-green-50 text-green-600 font-bold', linkBadge: 'bg-green-50/50 text-secondary hover:text-green-600 hover:bg-green-50 hover:-translate-y-0.5 transition-all' },
+                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-yellow-50 text-yellow-600 font-bold', linkBadge: 'bg-yellow-50/50 text-secondary hover:text-yellow-600 hover:bg-yellow-50 hover:-translate-y-0.5 transition-all' },
+                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-red-50 text-red-600 font-bold', linkBadge: 'bg-red-50/50 text-secondary hover:text-red-600 hover:bg-red-50 hover:-translate-y-0.5 transition-all' },
                         };
                         const s = gradeStyles[grade];
                         return (
@@ -512,15 +512,15 @@ export function FieldReportModal({
                             <div className="flex flex-col lg:flex-row lg:items-baseline gap-1 lg:gap-1.5 mt-0.5 lg:mt-0">
                               <div className="flex items-baseline gap-0.5">
                                 <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
-                                <span className="text-[10px] md:text-[13px] font-medium text-tertiary mt-auto">km</span>
+                                <span className="text-[10px] md:text-[13px] font-medium text-secondary mt-auto">km</span>
                               </div>
-                              <span className="text-[10px] md:text-[12px] font-medium text-secondary bg-body px-1.5 py-0.5 rounded-md w-fit whitespace-nowrap">도보 {Math.ceil(school.dist! / 80)}분</span>
+                              <span className={`text-[10px] md:text-[12px] px-1.5 py-0.5 rounded-md w-fit whitespace-nowrap ${s.timeBadge}`}>도보 {Math.ceil(school.dist! / 80)}분</span>
                             </div>
                             {school.name && (
                               <a 
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className={`text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 ${s.badge} rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center hover:opacity-80 transition-opacity`}
+                                className={`text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 ${s.linkBadge} rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center`}
                                 title={`${school.name} 구글 지도에서 보기`}
                               >
                                 <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
@@ -558,15 +558,31 @@ export function FieldReportModal({
                           <div className="flex flex-col lg:flex-row lg:items-baseline gap-1 lg:gap-1.5 mt-0.5 lg:mt-0">
                             <div className="flex items-baseline gap-0.5">
                               <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
-                              <span className="text-[10px] md:text-[13px] font-medium text-tertiary mt-auto">km</span>
+                              <span className="text-[10px] md:text-[13px] font-medium text-secondary mt-auto">km</span>
                             </div>
-                            <span className="text-[10px] md:text-[12px] font-medium text-secondary bg-body px-1.5 py-0.5 rounded-md w-fit whitespace-nowrap">도보 {Math.ceil(station.dist! / 80)}분</span>
+                            <span 
+                              className="text-[10px] md:text-[12px] px-1.5 py-0.5 rounded-md w-fit whitespace-nowrap font-bold"
+                              style={{ backgroundColor: station.bgFrom, color: station.color }}
+                            >
+                              도보 {Math.ceil(station.dist! / 80)}분
+                            </span>
                           </div>
                           {station.name && (
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center bg-body text-secondary hover:opacity-80 transition-opacity"
+                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center text-secondary transition-all"
+                              style={{ backgroundColor: station.bgFrom + '80' }} // adding transparency for linkBadge
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = station.bgFrom;
+                                e.currentTarget.style.color = station.color;
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = station.bgFrom + '80';
+                                e.currentTarget.style.color = '';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }}
                               title={`${station.name} 구글 지도에서 보기`}
                             >
                               <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
@@ -599,7 +615,7 @@ export function FieldReportModal({
                           </div>
                           <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
                             <span className="text-[22px] md:text-[30px] font-bold text-primary tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
-                            <span className="text-[11px] md:text-[13px] font-medium text-tertiary ml-0.5">개</span>
+                            <span className="text-[11px] md:text-[13px] font-medium text-secondary ml-0.5">개</span>
                           </div>
                           {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -627,7 +643,7 @@ export function FieldReportModal({
                           </div>
                           <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
                             <span className="text-[22px] md:text-[30px] font-bold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                            <span className="text-[11px] md:text-[13px] font-medium text-tertiary ml-0.5">개</span>
+                            <span className="text-[11px] md:text-[13px] font-medium text-secondary ml-0.5">개</span>
                           </div>
                           {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">

@@ -57,6 +57,7 @@ export interface ObjectiveMetrics {
   supermarketName?: string;
   supermarketAddress?: string;
   supermarketCoordinates?: string;
+  distanceToPark?: number;
   nearestSchoolNames?: {
     elementary?: string;
     middle?: string;

@@ -9,8 +9,10 @@
     "lint": "eslint",
     "sync-apartments": "node scripts/sync-apartments.js",
     "sync-transactions": "node scripts/sync-transactions.js",
+    "sync-macro": "node scripts/sync-macro.js",
+    "sync-location-scores": "node scripts/sync-location-scores.js",
     "import-csv": "node scripts/import-csv.js",
-    "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js",
+    "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js",
     "test": "jest",
     "test:e2e": "playwright test"
   },

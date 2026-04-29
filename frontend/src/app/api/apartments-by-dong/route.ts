@@ -50,7 +50,7 @@ export interface SheetApartment {
 
 async function fetchCsv(sheetName: string): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1`;
-  const res = await fetch(csvUrl, { next: { revalidate: 60 } });
+  const res = await fetch(csvUrl, { cache: 'no-store' });
   if (!res.ok) return [];
   const text = await res.text();
   return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
