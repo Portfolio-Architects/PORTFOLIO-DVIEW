@@ -71,7 +71,7 @@ export function filterByBBox<T extends Coord>(origin: Coord, pois: T[]): T[] {
 // ── Google Sheet Loaders ───────────────────────────
 
 async function fetchSheetCSV(tabName: string, forceRefresh = false): Promise<string[][]> {
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_t=${Date.now()}`;
   const fetchOptions: RequestInit = forceRefresh 
     ? { cache: 'no-store' } 
     : { next: { revalidate: 86400 } };

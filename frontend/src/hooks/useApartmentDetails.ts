@@ -78,7 +78,8 @@ export function useApartmentDetails(
     setIsTxLoading(true);
     const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
     const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
-    const txKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
@@ -171,7 +172,8 @@ export function useApartmentDetails(
     if (!selectedReport) return undefined;
     const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
     const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
-    const txKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
     return txSummaryData[fileKey];
   }, [selectedReport, sheetApartments, nameMapping, txSummaryData]);

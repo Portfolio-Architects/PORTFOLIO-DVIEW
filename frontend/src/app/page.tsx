@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import DashboardClient from '@/components/DashboardClient';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
+import { fetchSheetApartmentsByDong } from '@/lib/services/googleSheets';
 
 import { redis } from '@/lib/redis';
 
@@ -12,6 +13,7 @@ async function getInitialData() {
     favoriteCounts: Record<string, number>;
     typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
     apartmentMeta: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+    sheetApartments?: Record<string, any[]>;
   } = {
     favoriteCounts: {},
     typeMap: [],
@@ -55,7 +57,7 @@ async function getInitialData() {
   }
 
   try {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}`;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
     const res = await fetch(csvUrl, { cache: 'no-store' });
     if (res.ok) {
       const csvText = await res.text();
@@ -74,6 +76,15 @@ async function getInitialData() {
     }
   } catch (e) {
     console.warn('[Server] typeMap error:', e);
+  }
+
+  try {
+    const aptData = await fetchSheetApartmentsByDong();
+    if (aptData && aptData.byDong) {
+      result.sheetApartments = aptData.byDong;
+    }
+  } catch (e) {
+    console.warn('[Server] sheetApartments error:', e);
   }
 
   return result;

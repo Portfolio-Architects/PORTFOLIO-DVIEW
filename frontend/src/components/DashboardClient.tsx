@@ -489,7 +489,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
                       const apt = sortedApts[index];
                       const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
-                      const txKey = overrideKey || apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
+                      const rawKey = overrideKey || apt.txKey || apt.name;
+                      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
                       const txSummary = txKey ? txSummaryData[txKey] : undefined;
                       const report = fieldReportsMap.get(apt.name);
                       return (

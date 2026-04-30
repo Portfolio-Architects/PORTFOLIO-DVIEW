@@ -12,7 +12,7 @@ interface Props {
 }
 
 const FUTURE_EVENTS = [
-  { id: 'gtx', label: 'GTX-A 개통', icon: Train, boost: { transport: 15 } },
+  { id: 'gtx', label: 'GTX-A 개통', icon: Train, boost: { transport: 75 } },
   { id: 'indeokwon', label: '인덕원선 완공', icon: Train, boost: { transport: 10 } },
   { id: 'edu', label: '학군 특구 지정', icon: GraduationCap, boost: { education: 12 } },
 ] as const;

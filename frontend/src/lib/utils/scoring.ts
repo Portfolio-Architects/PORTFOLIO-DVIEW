@@ -137,7 +137,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   const indkPct = interpolateScore(metrics.distanceToIndeokwon || 9999, DISTANCE_CURVE);
   const tramPct = interpolateScore(metrics.distanceToTram || 9999, DISTANCE_CURVE);
   
-  const gtxScore = Math.round(gtxPct * 15);
+  const gtxScore = Math.round(gtxPct * 75);
   const indkScore = Math.round(indkPct * 6);
   const tramScore = Math.round(tramPct * 4);
   const transport = gtxScore + indkScore + tramScore;
@@ -236,7 +236,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
     eduTimePremium: education, stressFreeParking: livingComfort, commuteFrictional: transport,
     megaScaleLiquidity: complex, totalPremiumScore: totalScore,
     details: {
-      gtx: { score: gtxScore, max: 15, label: getDistLabel(metrics.distanceToSubway, 'GTX/SRT') },
+      gtx: { score: gtxScore, max: 75, label: getDistLabel(metrics.distanceToSubway, 'GTX/SRT') },
       indeokwon: { score: indkScore, max: 6, label: getDistLabel(metrics.distanceToIndeokwon, '동인선') },
       tram: { score: tramScore, max: 4, label: getDistLabel(metrics.distanceToTram, '동탄트램') },
       school: { score: schScore, max: 15, label: schLabel },

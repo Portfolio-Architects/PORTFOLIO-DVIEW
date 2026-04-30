@@ -18,7 +18,7 @@ export interface TypeMapEntry {
 
 export async function GET() {
   try {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}`;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}&_t=${Date.now()}`;
     const res = await fetch(csvUrl, { cache: 'no-store' });
 
     if (!res.ok) {
