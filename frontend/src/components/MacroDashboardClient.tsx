@@ -12,7 +12,7 @@ interface MacroDashboardProps {
   publicRentalSet: Set<string>;
 }
 
-const COLORS = ['#3182f6', '#4196f7', '#00a261', '#8dc63f', '#f9a825', '#f04452', '#b0b8c1'];
+const COLORS = ['#3182f6', '#4196f7', '#00a261', '#f9a825', '#f04452', '#b0b8c1'];
 
 export default function MacroDashboardClient({ sheetApartments, txSummaryData, publicRentalSet }: MacroDashboardProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -24,9 +24,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
       { name: '15억 이상', min: 150000, max: Infinity, count: 0 },
       { name: '12억~15억', min: 120000, max: 150000, count: 0 },
       { name: '10억~12억', min: 100000, max: 120000, count: 0 },
-      { name: '9억~10억', min: 90000, max: 100000, count: 0 },
-      { name: '7.5억~9억', min: 75000, max: 90000, count: 0 },
-      { name: '6억~7.5억', min: 60000, max: 75000, count: 0 },
+      { name: '8억~10억', min: 80000, max: 100000, count: 0 },
+      { name: '6억~8억', min: 60000, max: 80000, count: 0 },
       { name: '6억 미만', min: 0, max: 60000, count: 0 }
     ];
 
@@ -36,8 +35,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
       { name: '3,000~3,500만', min: 3000, max: 3500, count: 0 },
       { name: '2,500~3,000만', min: 2500, max: 3000, count: 0 },
       { name: '2,000~2,500만', min: 2000, max: 2500, count: 0 },
-      { name: '1,500~2,000만', min: 1500, max: 2000, count: 0 },
-      { name: '1,500만 미만', min: 0, max: 1500, count: 0 }
+      { name: '2,000만 미만', min: 0, max: 2000, count: 0 }
     ];
 
     const tiers = chartMode === 'price' ? priceTiers : pyeongTiers;
