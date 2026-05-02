@@ -7,10 +7,11 @@ import { db } from '@/lib/firebaseConfig';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { UserProfile, VerificationLevel } from '@/lib/types/user.types';
-import { generateRandomNickname, DEFAULT_FRONT_NAME } from '@/lib/services/nickname.service';
+import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
+import { getRandomDefaultAvatar } from '@/lib/types/user.types';
 
 /**
- * Gets or creates a user profile. On first login, a random nickname is generated.
+ * Gets or creates a user profile. On first login, a default nickname is assigned.
  * @param uid - Firebase Auth UID
  * @returns The user's profile
  */
@@ -20,9 +21,14 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
 
   if (userSnap.exists()) {
     const data = userSnap.data();
+    // If an existing user somehow doesn't have a photoURL, assign one and save it.
+    if (!data.photoURL) {
+      const randomAvatar = getRandomDefaultAvatar();
+      await updateDoc(userRef, { photoURL: randomAvatar });
+      data.photoURL = randomAvatar;
+    }
     return {
-      frontName: data.frontName || DEFAULT_FRONT_NAME,
-      nickname: data.nickname,
+      nickname: data.nickname || DEFAULT_NICKNAME,
       photoURL: data.photoURL,
       verifiedApartment: data.verifiedApartment,
       verificationLevel: data.verificationLevel,
@@ -32,13 +38,13 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
 
   // First login — generate a profile
   const newProfile: UserProfile = {
-    frontName: DEFAULT_FRONT_NAME,
-    nickname: generateRandomNickname(),
+    nickname: DEFAULT_NICKNAME,
+    photoURL: getRandomDefaultAvatar(),
     createdAt: serverTimestamp(),
   };
   await setDoc(userRef, newProfile);
   logger.info('UserRepository.getOrCreateProfile', 'New user profile created', { uid, nickname: newProfile.nickname });
-  return { frontName: newProfile.frontName, nickname: newProfile.nickname };
+  return { nickname: newProfile.nickname, photoURL: newProfile.photoURL };
 }
 
 
@@ -57,21 +63,12 @@ export async function setApartmentVerification(
 }
 
 /**
- * Updates the user's last name (nickname, 3 chars).
+ * Updates the user's nickname.
  */
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
   const userRef = doc(db, 'users', uid);
   await updateDoc(userRef, { nickname });
   logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
-}
-
-/**
- * Updates the user's front name (4 chars).
- */
-export async function updateFrontName(uid: string, frontName: string): Promise<void> {
-  const userRef = doc(db, 'users', uid);
-  await updateDoc(userRef, { frontName });
-  logger.info('UserRepository.updateFrontName', 'Front name updated', { uid, frontName });
 }
 
 /**

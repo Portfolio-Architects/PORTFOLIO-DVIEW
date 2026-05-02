@@ -33,29 +33,32 @@ const CATEGORY_MAP: Record<string, string[]> = {
 };
 
 export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<Post[]>(initialPosts || []);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialPosts.length === 50); // Because SSR requested limit 50
+  const [hasMore, setHasMore] = useState(initialPosts && initialPosts.length > 0 ? initialPosts.length === 50 : true);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Reset from SSR initially.
-    setPosts(initialPosts);
-    setHasMore(initialPosts.length === 50);
-  }, [initialPosts, currentTab]);
-
   const loadMorePosts = useCallback(async () => {
-    if (isLoadingMore || !hasMore || posts.length === 0) return;
+    if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
 
     try {
-      const lastPost = posts[posts.length - 1];
-      const q = query(
-        collection(db, 'posts'),
-        orderBy('createdAt', 'desc'),
-        startAfter(new Date(lastPost.createdAt)), // assumes createdAt on lastPost is millis, Wait! We need firestore serverTimestamp. But since we use millis, lets fetch by orderBy createdAt instead.
-        limit(20)
-      );
+      let q;
+      if (posts.length > 0) {
+        const lastPost = posts[posts.length - 1];
+        q = query(
+          collection(db, 'posts'),
+          orderBy('createdAt', 'desc'),
+          startAfter(new Date(lastPost.createdAt)),
+          limit(20)
+        );
+      } else {
+        q = query(
+          collection(db, 'posts'),
+          orderBy('createdAt', 'desc'),
+          limit(20)
+        );
+      }
 
       // We actually need the document snapshot to use startAfter safely in Firebase, but passing milliseconds might work if createdAt is a Timestamp. Wait, if we use a raw date or milliseconds on a Firestore Timestamp field, it might error.
       // A safer client approach is to fetch again, but this will duplicate code. Let's just fetch everything limit(20) and filter on client like the server did, or use where() for category.
@@ -115,17 +118,25 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     ? posts
     : posts.filter((p) => (CATEGORY_MAP[currentTab] || [currentTab]).includes(p.category));
 
-  if (filteredPosts.length === 0) {
-    return (
-      <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
-        <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
-        <p className="text-[15px] font-bold text-secondary">아직 '{currentTab}' 관련 글이 없습니다</p>
-      </div>
-    );
-  }
+  // Auto-fetch if the current category has no posts but there are more posts in the DB
+  useEffect(() => {
+    if (filteredPosts.length === 0 && hasMore && !isLoadingMore) {
+      const timer = setTimeout(() => {
+        loadMorePosts();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [filteredPosts.length, hasMore, isLoadingMore, loadMorePosts]);
 
   return (
     <div className="flex flex-col gap-3">
+      {filteredPosts.length === 0 && !hasMore && (
+        <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
+          <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
+          <p className="text-[15px] font-bold text-secondary">아직 '{currentTab}' 관련 글이 없습니다</p>
+        </div>
+      )}
+
       {filteredPosts.map((news) => {
         return (
           <Link key={news.id} href={`/lounge/${news.id}`} scroll={false} className="bg-surface rounded-2xl border border-border px-5 pt-4 pb-0 hover:bg-body transition-colors cursor-pointer block overflow-hidden">

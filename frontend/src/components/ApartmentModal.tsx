@@ -22,6 +22,7 @@ import { TransactionChartSection } from './apartment-modal/TransactionChartSecti
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';
+import { useSettings } from '@/lib/contexts/SettingsContext';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -62,8 +63,6 @@ export function FieldReportModal({
   isAdmin,
   onPurchaseComplete,
   inline,
-  areaUnit = 'm2',
-  setAreaUnit,
   txSummary
 }: { 
   report: FieldReportData;
@@ -80,11 +79,10 @@ export function FieldReportModal({
   isAdmin?: boolean;
   onPurchaseComplete?: () => void;
   inline?: boolean;
-  areaUnit?: 'm2' | 'pyeong';
-  setAreaUnit?: (unit: 'm2' | 'pyeong') => void;
   txSummary?: any;
 }) {
   useSwipeNavigation({ onBack: onClose });
+  const { areaUnit, setAreaUnit } = useSettings();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
@@ -336,7 +334,6 @@ export function FieldReportModal({
               <TransactionTable 
                 transactions={transactions} 
                 typeMap={typeMap} 
-                areaUnit={areaUnit} 
                 chartType={chartType} 
                 normalizeAptName={normalizeAptName} 
               />
@@ -349,8 +346,6 @@ export function FieldReportModal({
               displayAptName={displayAptName} 
               dong={report.dong || ''} 
               typeMap={typeMap} 
-              areaUnit={areaUnit || 'm2'} 
-              setAreaUnit={setAreaUnit}
               normalizeAptName={normalizeAptName} 
               txSummary={txSummary}
             />
@@ -362,7 +357,6 @@ export function FieldReportModal({
             transactions={transactions} 
             apartmentName={report.apartmentName}
             typeMap={typeMap}
-            areaUnit={areaUnit || 'm2'}
           />
 
           {/* Sticky Section Nav */}

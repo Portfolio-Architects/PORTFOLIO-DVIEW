@@ -3,24 +3,22 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
-import { UserCircle, Edit3, X, Camera, Moon, Sun } from 'lucide-react';
+import { UserCircle, Edit3, X, Camera } from 'lucide-react';
 import { uploadImage } from '@/lib/services/reportService';
+import { DEFAULT_AVATARS } from '@/lib/types/user.types';
 
 export default function FloatingUserBar() {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
 
   // Profile modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [editFrontName, setEditFrontName] = useState('');
   const [editNickname, setEditNickname] = useState('');
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
@@ -31,7 +29,20 @@ export default function FloatingUserBar() {
       setUser(currentUser);
       if (currentUser) {
         const profile = await dashboardFacade.getUserProfile(currentUser.uid);
-        if (profile) setAnonProfile(profile);
+        if (profile) {
+          if (isAdmin(currentUser.email)) {
+            if (profile.nickname !== '매니저') {
+              dashboardFacade.updateNickname(currentUser.uid, '매니저');
+            }
+            profile.nickname = '매니저';
+          }
+          if (profile.photoURL && profile.photoURL.includes('api.dicebear.com')) {
+            profile.photoURL = DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)];
+            // Optionally update it in backend right away
+            dashboardFacade.updatePhotoURL(currentUser.uid, profile.photoURL);
+          }
+          setAnonProfile(profile);
+        }
         if (isAdmin(currentUser.email)) {
           localStorage.setItem('dview_is_admin', 'true');
         } else {
@@ -56,36 +67,23 @@ export default function FloatingUserBar() {
   return (
     <>
       {/* User Bar — Embeddable */}
-      <div className="animate-in fade-in duration-300 flex items-center gap-2">
-        {/* Theme Toggle Button */}
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-1.5 sm:p-2 rounded-full bg-surface border border-border shadow-sm text-secondary hover:opacity-80 transition-opacity"
-        >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
-
-        {user ? (
-          <div className="flex items-center gap-1 sm:gap-2 bg-surface/90 rounded-full pl-2 sm:pl-3 pr-2 sm:pr-4 py-1 sm:py-1.5 border border-border shadow-sm">
+      <div className="animate-in fade-in duration-300 flex items-center gap-2">        {user ? (
+          <div className="flex items-center gap-1 sm:gap-2">
             <button onClick={() => {
-              setEditFrontName(anonProfile?.frontName || '동탄사는');
-              setEditNickname(anonProfile?.nickname || '');
+              setEditNickname(anonProfile?.nickname || '매니저');
               setProfilePhotoPreview(anonProfile?.photoURL || null);
               setProfilePhotoFile(null);
               setShowProfileModal(true);
-            }} className="flex items-center gap-1 hover:opacity-70 transition-opacity">
-              <div className="w-7 h-7 sm:w-6 sm:h-6 rounded-full bg-toss-blue-light dark:bg-toss-blue-light/20 flex items-center justify-center text-toss-blue overflow-hidden border border-toss-blue/20">
+            }} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-toss-blue-light dark:bg-toss-blue-light/20 flex items-center justify-center text-toss-blue overflow-hidden border border-toss-blue/20 shadow-sm">
                 {(anonProfile?.photoURL || user.photoURL) ? (
                   <img src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[12px] font-extrabold">
+                  <span className="text-[14px] md:text-[16px] font-extrabold">
                     {(anonProfile?.nickname || user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
-              <span className="text-[12px] font-bold text-primary hidden sm:inline tracking-tight">
-                {anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}
-              </span>
             </button>
           </div>
         ) : (
@@ -139,50 +137,57 @@ export default function FloatingUserBar() {
             <div className="bg-body border border-border rounded-2xl p-4 mb-5 text-center">
               <p className="text-[11px] text-tertiary font-bold mb-1.5">다른 사용자에게 보이는 이름</p>
               <p className="text-[22px] font-extrabold text-primary tracking-wide">
-                <span className="text-toss-blue">{editFrontName}</span> {editNickname}
+                {isAdmin(user.email) ? '매니저' : editNickname}
               </p>
-              <p className="text-[11px] text-tertiary mt-1">총 {editFrontName.length + editNickname.length}/7글자</p>
+              <p className="text-[11px] text-tertiary mt-1">총 {isAdmin(user.email) ? 3 : editNickname.length}글자</p>
             </div>
 
             <div className="space-y-4">
-              {/* FrontName (4자) */}
+              {/* Nickname (2~10자) */}
               <div>
                 <label className="text-[12px] font-bold text-secondary mb-1.5 flex items-center justify-between">
-                  <span>프론트 네임 (4글자)</span>
-                  <span className={`text-[11px] ${editFrontName.length === 4 ? 'text-toss-green' : 'text-toss-red'}`}>{editFrontName.length}/4</span>
+                  <span>닉네임 (2~10글자)</span>
+                  <span className={`text-[11px] ${isAdmin(user.email) || (editNickname.length >= 2 && editNickname.length <= 10) ? 'text-toss-green' : 'text-toss-red'}`}>
+                    {isAdmin(user.email) ? '3/10 (고정)' : `${editNickname.length}/10`}
+                  </span>
                 </label>
                 <input
                   type="text"
-                  value={editFrontName}
-                  onChange={(e) => { if (e.target.value.length <= 4) setEditFrontName(e.target.value); }}
-                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] font-bold text-primary focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue outline-none text-center tracking-widest"
-                  placeholder="동탄사는"
-                  maxLength={4}
+                  value={isAdmin(user.email) ? '매니저' : editNickname}
+                  onChange={(e) => { if (e.target.value.length <= 10) setEditNickname(e.target.value); }}
+                  disabled={isAdmin(user.email)}
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] font-bold text-primary focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue outline-none text-center tracking-widest disabled:opacity-70 disabled:cursor-not-allowed"
+                  placeholder="매니저"
+                  maxLength={10}
                 />
               </div>
 
-              {/* Nickname (3자) */}
+              {/* Default Avatar Selection */}
               <div>
-                <label className="text-[12px] font-bold text-secondary mb-1.5 flex items-center justify-between">
-                  <span>닉네임 (3글자)</span>
-                  <span className={`text-[11px] ${editNickname.length === 3 ? 'text-toss-green' : 'text-toss-red'}`}>{editNickname.length}/3</span>
-                </label>
-                <input
-                  type="text"
-                  value={editNickname}
-                  onChange={(e) => { if (e.target.value.length <= 3) setEditNickname(e.target.value); }}
-                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] font-bold text-primary focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue outline-none text-center tracking-widest"
-                  placeholder="랑독이"
-                  maxLength={3}
-                />
+                <label className="text-[12px] font-bold text-secondary mb-2 block">기본 프로필 선택</label>
+                <div className="flex gap-2 flex-wrap justify-center py-2">
+                  {DEFAULT_AVATARS.map((avatar, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setProfilePhotoPreview(avatar);
+                        setProfilePhotoFile(null);
+                      }}
+                      className={`w-12 h-12 rounded-full shrink-0 border-2 transition-all ${
+                        profilePhotoPreview === avatar ? 'border-toss-blue scale-110 shadow-md' : 'border-transparent hover:scale-105 opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={avatar} alt={`기본 프로필 ${idx + 1}`} className="w-full h-full rounded-full" />
+                    </button>
+                  ))}
+                </div>
               </div>
-
               
               <div className="flex gap-2">
                 <button
                   onClick={async () => {
-                    if (editFrontName.length !== 4 || editNickname.length !== 3) {
-                      alert('프론트 네임 4글자, 닉네임 3글자를 정확히 입력해주세요.');
+                    if (editNickname.length < 2 || editNickname.length > 10) {
+                      alert('닉네임은 2~10글자로 입력해주세요.');
                       return;
                     }
                     setIsSavingProfile(true);
@@ -191,10 +196,12 @@ export default function FloatingUserBar() {
                       if (profilePhotoFile) {
                         photoURL = await uploadImage(profilePhotoFile, `profiles/${user.uid}`);
                         await dashboardFacade.updatePhotoURL(user.uid, photoURL);
+                      } else if (profilePhotoPreview && profilePhotoPreview !== anonProfile?.photoURL) {
+                        photoURL = profilePhotoPreview;
+                        await dashboardFacade.updatePhotoURL(user.uid, photoURL);
                       }
-                      await dashboardFacade.updateFrontName(user.uid, editFrontName);
                       await dashboardFacade.updateNickname(user.uid, editNickname);
-                      setAnonProfile({ frontName: editFrontName, nickname: editNickname, photoURL });
+                      setAnonProfile({ nickname: editNickname, photoURL });
                       setShowProfileModal(false);
                     } catch (err) {
                       console.error('Profile update failed:', err);
@@ -203,7 +210,7 @@ export default function FloatingUserBar() {
                       setIsSavingProfile(false);
                     }
                   }}
-                  disabled={isSavingProfile || editFrontName.length !== 4 || editNickname.length !== 3}
+                  disabled={isSavingProfile || editNickname.length < 2 || editNickname.length > 10}
                   className="flex-1 py-3 bg-toss-blue hover:bg-[#2b72d6] text-surface font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSavingProfile ? (

@@ -1,9 +1,12 @@
 'use client';
 
+import React, { memo } from 'react';
+
 import { FileText, Heart } from 'lucide-react';
 import { normalize84Price } from '@/lib/utils/valuation';
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import type { FieldReportData } from '@/lib/DashboardFacade';
+import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface StaticApartment {
   name: string;
@@ -18,18 +21,18 @@ interface ApartmentCardProps {
   txSummary?: AptTxSummary;
   report?: FieldReportData;
   isPublicRental: boolean;
-  onClick: () => void;
+  onClick: (apt: StaticApartment) => void;
   rank?: number;
   isSelected?: boolean;
   isFavorited?: boolean;
   favoriteCount?: number;
-  onToggleFavorite?: () => void;
+  onToggleFavorite?: (aptName: string) => void;
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
-  areaUnit?: 'm2' | 'pyeong';
   listSort?: string;
 }
 
-export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, areaUnit = 'm2', listSort }: ApartmentCardProps) {
+const ApartmentCard = memo(function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, listSort }: ApartmentCardProps) {
+  const { areaUnit } = useSettings();
   // 사진 갯수 계산
   let photoCount = 0;
   if (report?.images?.length) {
@@ -73,7 +76,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
 
   return (
     <div
-      onClick={onClick}
+      onClick={() => onClick(apt)}
       className={`relative flex items-center gap-3 px-4 py-3.5 transition-all duration-150 cursor-pointer hover:bg-body active:bg-body border-b border-body last:border-b-0 group ${
         !hasAnalysis && !hasPhotos && !txSummary ? 'opacity-60' : ''
       } ${
@@ -210,7 +213,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       {onToggleFavorite && (
         <div className="flex flex-col items-center justify-center shrink-0 ml-1.5">
           <button
-            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(apt.name); }}
             className={`w-10 h-10 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all ${
               isFavorited 
                 ? 'bg-[#fff0f0] text-[#ff3b30]' 
@@ -231,4 +234,6 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       )}
     </div>
   );
-}
+});
+
+export default ApartmentCard;

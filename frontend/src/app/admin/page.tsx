@@ -430,7 +430,8 @@ export default function AdminDashboard() {
     for (const name of allAptNames) {
       const m = meta[name];
       if (m?.isPublicRental) publicR++;
-      if (m?.txKey && TX_SUMMARY[m.txKey as keyof typeof TX_SUMMARY]) mapped++;
+      const resolvedTxKey = m?.txKey ? (findTxKey(m.txKey, TX_SUMMARY) || m.txKey) : null;
+      if (resolvedTxKey && TX_SUMMARY[resolvedTxKey as keyof typeof TX_SUMMARY]) mapped++;
       else unmapped++;
       if (verifiedApts.has(name)) verified++;
       if (analyzedApts.has(name)) analyzed++;
@@ -641,21 +642,7 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* Orphaned TX Keys */}
-      <div className="mt-8 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 bg-body border-b border-border">
-          <h3 className="font-bold text-[14px] text-primary">매핑되지 않은 TX 키</h3>
-          <p className="text-[11px] text-tertiary">실거래 데이터에 있지만 아파트 목록에 연결 안 된 키</p>
-        </div>
-        <div className="px-4 sm:px-6 py-4 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto">
-          {(() => {
-            const used = new Set(Object.values(meta).map(m => m.txKey).filter(Boolean));
-            return txKeys.filter(k => !used.has(k)).map(k => (
-              <span key={k} className="bg-body text-secondary text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
-              ));
-            })()}
-        </div>
-      </div>
+
 
       {/* Floating Save Bar */}
       {activeAdminTab === 'apartments' && (

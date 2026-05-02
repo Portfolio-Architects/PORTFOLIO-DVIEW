@@ -7,7 +7,8 @@ import { createInitialKPIs } from '@/lib/services/kpi.service';
 
 import { redis } from '@/lib/redis';
 
-export const dynamic = 'force-dynamic';
+// Use Incremental Static Regeneration (ISR) to eliminate TTFB bottlenecks
+export const revalidate = 3600;
 
 async function getInitialData() {
   const result: {
@@ -31,81 +32,77 @@ async function getInitialData() {
       new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
     ]);
 
-  try {
+  const fetchFavCounts = async () => {
     if (redis) {
       const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
       if (cachedCounts && Object.keys(cachedCounts).length > 0) {
         result.favoriteCounts = cachedCounts as Record<string, number>;
-      } else if (adminDb) {
-        const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
-        snap.docs.forEach((doc) => {
-          const data = doc.data();
-          if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
-        });
+        return;
       }
-    } else if (adminDb) {
+    }
+    if (adminDb) {
       const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
     }
+  };
 
+  const fetchMeta = async () => {
     if (adminDb) {
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
         result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
       }
-      
-      try {
-        const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
-        result.fieldReports = snap.docs.map(doc => {
-          const data = doc.data();
-          let createdAtStr = '방금 전';
-          let rawTimestamp = 0;
-          if (data.createdAt) {
-            if (typeof data.createdAt.toDate === 'function') {
-              const d = data.createdAt.toDate();
-              createdAtStr = d.toLocaleDateString('ko-KR');
-              rawTimestamp = d.getTime();
-            } else if (data.createdAt.seconds) {
-              const d = new Date(data.createdAt.seconds * 1000);
-              createdAtStr = d.toLocaleDateString('ko-KR');
-              rawTimestamp = d.getTime();
-            }
-          }
-          return {
-            id: doc.id,
-            dong: data.dong || '오산동 (동탄역)',
-            apartmentName: data.apartmentName,
-            premiumScores: data.premiumScores,
-            premiumContent: data.premiumContent,
-            pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
-            cons: '',
-            rating: 5,
-            author: '데이터 랩스',
-            likes: data.likes || 0,
-            viewCount: data.viewCount || 0,
-            commentCount: data.commentCount || 0,
-            imageUrl: data.thumbnailUrl || data.imageUrl,
-            images: data.images || [],
-            metrics: data.metrics,
-            scoutingDate: data.scoutingDate || '',
-            createdAt: createdAtStr,
-            _rawTimestamp: rawTimestamp
-          };
-        });
-      } catch (e) {
-        console.warn('[Server] fieldReports fetch error:', e);
-      }
     }
-  } catch (e) {
-    console.warn('[Server] Firebase init error:', e);
-  }
+  };
 
-  try {
+  const fetchReports = async () => {
+    if (adminDb) {
+      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
+      result.fieldReports = snap.docs.map(doc => {
+        const data = doc.data();
+        let createdAtStr = '방금 전';
+        let rawTimestamp = 0;
+        if (data.createdAt) {
+          if (typeof data.createdAt.toDate === 'function') {
+            const d = data.createdAt.toDate();
+            createdAtStr = d.toLocaleDateString('ko-KR');
+            rawTimestamp = d.getTime();
+          } else if (data.createdAt.seconds) {
+            const d = new Date(data.createdAt.seconds * 1000);
+            createdAtStr = d.toLocaleDateString('ko-KR');
+            rawTimestamp = d.getTime();
+          }
+        }
+        return {
+          id: doc.id,
+          dong: data.dong || '오산동 (동탄역)',
+          apartmentName: data.apartmentName,
+          premiumScores: data.premiumScores,
+          premiumContent: data.premiumContent,
+          pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
+          cons: '',
+          rating: 5,
+          author: '데이터 랩스',
+          likes: data.likes || 0,
+          viewCount: data.viewCount || 0,
+          commentCount: data.commentCount || 0,
+          imageUrl: data.thumbnailUrl || data.imageUrl,
+          images: data.images || [],
+          metrics: data.metrics,
+          scoutingDate: data.scoutingDate || '',
+          createdAt: createdAtStr,
+          _rawTimestamp: rawTimestamp
+        };
+      });
+    }
+  };
+
+  const fetchTypeMap = async () => {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
-    const res = await fetch(csvUrl, { cache: 'no-store' });
+    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
     if (res.ok) {
       const csvText = await res.text();
       const lines = csvText.split('\n').filter((l: string) => l.trim());
@@ -121,18 +118,22 @@ async function getInitialData() {
         }
       }
     }
-  } catch (e) {
-    console.warn('[Server] typeMap error:', e);
-  }
+  };
 
-  try {
+  const fetchApts = async () => {
     const aptData = await fetchSheetApartmentsByDong();
     if (aptData && aptData.byDong) {
       result.sheetApartments = aptData.byDong;
     }
-  } catch (e) {
-    console.warn('[Server] sheetApartments error:', e);
-  }
+  };
+
+  await Promise.allSettled([
+    fetchFavCounts().catch(e => console.warn('[Server] favCounts error:', e)),
+    fetchMeta().catch(e => console.warn('[Server] meta error:', e)),
+    fetchReports().catch(e => console.warn('[Server] reports error:', e)),
+    fetchTypeMap().catch(e => console.warn('[Server] typeMap error:', e)),
+    fetchApts().catch(e => console.warn('[Server] apts error:', e)),
+  ]);
 
   return result;
 }

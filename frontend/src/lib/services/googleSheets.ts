@@ -63,7 +63,12 @@ function findColIndex(headers: string[], possibleNames: string[]): number {
 }
 
 export async function fetchSheetApartmentsByDong() {
-  const aptRows = await fetchCsv(SHEET_TABS.APARTMENTS);
+  const [aptRows, sboydsRows, restRows] = await Promise.all([
+    fetchCsv(SHEET_TABS.APARTMENTS),
+    fetchCsv(SHEET_TABS.SBOYDS),
+    fetchCsv(SHEET_TABS.RESTAURANTS)
+  ]);
+
   if (aptRows.length < 2) throw new Error(`Sheet tab '${SHEET_TABS.APARTMENTS}' not found or empty`);
 
   const aptHeaders = aptRows[0];
@@ -118,7 +123,6 @@ export async function fetchSheetApartmentsByDong() {
     });
   }
 
-  const sboydsRows = await fetchCsv(SHEET_TABS.SBOYDS);
   const tenants: Record<string, { name: string, lat: number, lng: number, address: string }[]> = {
     starbucks: [], oliveyoung: [], daiso: [], mcdonalds: [], supermarket: []
   };
@@ -146,7 +150,6 @@ export async function fetchSheetApartmentsByDong() {
     }
   }
 
-  const restRows = await fetchCsv(SHEET_TABS.RESTAURANTS);
   if (restRows.length > 1) {
     const h = restRows[0];
     const nIdx = findColIndex(h, ['상호명']);

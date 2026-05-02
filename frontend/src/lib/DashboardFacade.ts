@@ -58,7 +58,7 @@ export interface DashboardDataStrategy {
   deleteReview?(reviewId: string): Promise<void>;
   deletePost?(postId: string): Promise<void>;
   listenToComments?(reportId: string, callback: (comments: CommentData[]) => void): () => void;
-  getUserProfile?(uid: string): Promise<{ nickname: string }>;
+  getUserProfile?(uid: string): Promise<import('@/lib/types/user.types').UserProfile>;
   getUserReviews?(): UserReview[];
   addUserReview?(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File): Promise<void>;
   getDongtanApartments?(): string[];
@@ -268,7 +268,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     return CommentRepo.listenToComments(reportId, callback);
   }
 
-  async getUserProfile(uid: string) {
+  async getUserProfile(uid: string): Promise<import('@/lib/types/user.types').UserProfile> {
     return UserRepo.getOrCreateProfile(uid);
   }
 
@@ -295,9 +295,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
     try {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
-      const displayName = profile.frontName && profile.nickname
-        ? `${profile.frontName} ${profile.nickname}`
-        : profile.nickname || '익명';
+      const displayName = profile.nickname || '익명';
       await ReviewRepo.addReview(
         apartmentName, rating, content, displayName, authorUid,
         profile.verifiedApartment, profile.verificationLevel, imageFile
@@ -356,7 +354,6 @@ export class DashboardFacade {
   public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }
   public async getUserProfile(uid: string) { return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null; }
   public async updateNickname(uid: string, nickname: string) { await UserRepo.updateNickname(uid, nickname); }
-  public async updateFrontName(uid: string, frontName: string) { await UserRepo.updateFrontName(uid, frontName); }
   public async updatePhotoURL(uid: string, photoURL: string) { await UserRepo.updatePhotoURL(uid, photoURL); }
   public async incrementLike(postId: string) { if (this.strategy.incrementLike) await this.strategy.incrementLike(postId); }
   public async incrementPostView(postId: string, title?: string) { if (this.strategy.incrementPostView) await this.strategy.incrementPostView(postId, title); }

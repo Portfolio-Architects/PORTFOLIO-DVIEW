@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
+import { useSettings } from '@/lib/contexts/SettingsContext';
 
 export interface TransactionRecord {
   dong?: string;
@@ -24,7 +25,6 @@ export interface TransactionRecord {
 interface TransactionTableProps {
   transactions: TransactionRecord[];
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
-  areaUnit: 'm2' | 'pyeong';
   chartType: 'sale' | 'jeonse';
   normalizeAptName: (name: string) => string;
 }
@@ -32,10 +32,10 @@ interface TransactionTableProps {
 export function TransactionTable({
   transactions,
   typeMap,
-  areaUnit,
   chartType,
   normalizeAptName
 }: TransactionTableProps) {
+  const { areaUnit } = useSettings();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');

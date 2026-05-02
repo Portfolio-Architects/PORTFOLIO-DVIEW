@@ -45,7 +45,7 @@ export async function createPost(
 
     // 3. Persist to Firestore (include apartment verification if present)
     const isUserAdmin = isAdmin(authorEmail);
-    const displayName = isUserAdmin ? '매니저' : `${profile.frontName || '동탄사는'} ${profile.nickname}`;
+    const displayName = isUserAdmin ? '매니저' : (profile.nickname || '매니저');
     const verifiedApartment = isUserAdmin ? '마스터' : profile.verifiedApartment;
     const verificationLevel = isUserAdmin ? 'registry_verified' : profile.verificationLevel;
 

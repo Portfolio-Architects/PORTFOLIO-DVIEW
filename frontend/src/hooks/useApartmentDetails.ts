@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import useSWR from 'swr';
 import { User } from 'firebase/auth';
 import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
@@ -48,6 +49,8 @@ interface RawTransactionRecord {
   rnuYn?: string;
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : []);
+
 export function useApartmentDetails(
   selectedReport: FieldReportData | null,
   sheetApartments: Record<string, DongApartment[]>,
@@ -56,9 +59,7 @@ export function useApartmentDetails(
 ) {
   const txSummaryData: Record<string, AptTxSummary> = TX_SUMMARY;
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
-  const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [isTxLoading, setIsTxLoading] = useState(false);
 
   const formatPriceEok = (priceMan: number) => {
     const eok = Math.floor(priceMan / 10000);
@@ -68,49 +69,56 @@ export function useApartmentDetails(
     return `${eok}억${remainder.toLocaleString()}`;
   };
 
+  const fileKey = useMemo(() => {
+    if (!selectedReport) return null;
+    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
+    const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
+    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
+    return txKey || normalizeAptName(selectedReport.apartmentName);
+  }, [selectedReport, sheetApartments, txSummaryData, nameMapping]);
+
+  const { data: records, isLoading: isTxLoading } = useSWR<RawTransactionRecord[]>(
+    fileKey ? `/tx-data/${encodeURIComponent(fileKey)}.json` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 3600000, // 1 hour cache
+    }
+  );
+
+  const modalTransactions = useMemo(() => {
+    if (!records) return [];
+    return records.map((r, i) => {
+      let eokStr = '';
+      if (r.dealType === '전세' || r.dealType === '월세') {
+         eokStr = formatPriceEok(r.deposit || 0);
+         if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
+      } else {
+         eokStr = formatPriceEok(r.price);
+      }
+      return {
+        no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
+        area: r.area, areaPyeong: r.areaPyeong,
+        contractYm: r.contractYm, contractDay: String(r.contractDay),
+        contractDate: `${r.contractYm}${String(r.contractDay).padStart(2, '0')}`,
+        price: r.price, priceEok: eokStr,
+        deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
+        floor: r.floor, buyer: '', seller: '', buildYear: 0, roadName: '',
+        cancelDate: r.cancelDate || '', dealType: r.dealType || '',
+        agentLocation: '', registrationDate: '-', housingType: '',
+        reqGb: r.reqGb || '', rnuYn: r.rnuYn || ''
+      };
+    });
+  }, [records, fileKey]);
+
   useEffect(() => {
-    if (!selectedReport) { setModalTransactions([]); return; }
+    if (!selectedReport) { return; }
     
     // Clear stale fullReportData from previous selection immediately
     setFullReportData(null);
 
     let unmounted = false;
-    setIsTxLoading(true);
-    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
-    const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
-    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
-
-    fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
-      .then(res => res.ok ? res.json() : [])
-      .then(records => {
-        if (unmounted) return;
-        const mapped: TransactionRecord[] = records.map((r: RawTransactionRecord, i: number) => {
-          let eokStr = '';
-          if (r.dealType === '전세' || r.dealType === '월세') {
-             eokStr = formatPriceEok(r.deposit || 0);
-             if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
-          } else {
-             eokStr = formatPriceEok(r.price);
-          }
-          return {
-            no: i + 1, sigungu: '', dong: '', aptName: fileKey,
-            area: r.area, areaPyeong: r.areaPyeong,
-            contractYm: r.contractYm, contractDay: String(r.contractDay),
-            contractDate: `${r.contractYm}${String(r.contractDay).padStart(2, '0')}`,
-            price: r.price, priceEok: eokStr,
-            deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
-            floor: r.floor, buyer: '', seller: '', buildYear: 0, roadName: '',
-            cancelDate: r.cancelDate || '', dealType: r.dealType || '',
-            agentLocation: '', registrationDate: '-', housingType: '',
-            reqGb: r.reqGb || '', rnuYn: r.rnuYn || ''
-          };
-        });
-        setModalTransactions(mapped);
-      })
-      .catch(err => console.warn('TX fetch err:', err))
-      .finally(() => { if (!unmounted) setIsTxLoading(false); });
 
     // Fetch Full Report & View count
     const isStubReport = selectedReport.id.startsWith('stub-');

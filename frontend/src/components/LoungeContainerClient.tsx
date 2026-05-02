@@ -47,11 +47,27 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
 
       {/* CENTER COLUMN: Main Feed */}
       <section className="md:col-span-9 lg:col-span-6 w-full max-w-[600px] mx-auto md:mx-0">
-        <div className="mb-6 md:hidden">
-          <h1 className="text-[24px] font-extrabold tracking-tight text-primary mb-1">실시간 동탄 커뮤니티</h1>
-          <p className="text-[14px] text-tertiary font-medium mb-4">동탄 주민들의 솔직한 이야기</p>
+        
+        {/* Universal Top Header - Matches MacroDashboardClient */}
+        <div className="flex flex-col mb-6 md:mb-8 px-1 md:px-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white border border-[#e5e8eb] flex items-center justify-center shadow-sm shrink-0">
+              <img src="/d-view-icon.png" alt="Icon" className="w-6 h-6 md:w-7 md:h-7 object-contain" />
+            </div>
+            <h1 className="text-[24px] md:text-[32px] font-extrabold text-[#191f28] tracking-tight leading-none">
+              실시간 동탄 커뮤니티
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-2 mt-4 md:mt-5 mb-4 md:mb-0">
+            <div className="w-[3px] h-[14px] bg-[#3182f6] rounded-full" />
+            <p className="text-[13px] md:text-[15px] font-semibold text-[#4e5968] tracking-tight">
+              LOUNGE — <span className="font-normal text-[#8b95a1]">동탄 주민들의 솔직한 이야기, 실시간 정보 공유</span>
+            </p>
+          </div>
+
           {/* Mobile Horizontal Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex md:hidden gap-2 overflow-x-auto pb-2 pt-2 scrollbar-hide">
             {categories.map((cat) => (
               <button 
                 key={cat} 

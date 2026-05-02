@@ -12,6 +12,7 @@ import {
   Customized
 } from 'recharts';
 import { TransactionRecord } from './TransactionTable';
+import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface TransactionChartSectionProps {
   transactions: TransactionRecord[];
@@ -20,8 +21,6 @@ interface TransactionChartSectionProps {
   displayAptName: string;
   dong: string;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
-  areaUnit: 'm2' | 'pyeong';
-  setAreaUnit?: (unit: 'm2' | 'pyeong') => void;
   normalizeAptName: (name: string) => string;
   txSummary?: any;
 }
@@ -33,11 +32,10 @@ export function TransactionChartSection({
   displayAptName,
   dong,
   typeMap,
-  areaUnit,
-  setAreaUnit,
   normalizeAptName,
   txSummary
 }: TransactionChartSectionProps) {
+  const { areaUnit, setAreaUnit } = useSettings();
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
     rawArea: number; floor: number; priceEok: string; dealType: string; fullDate: string; isOutlier: boolean;

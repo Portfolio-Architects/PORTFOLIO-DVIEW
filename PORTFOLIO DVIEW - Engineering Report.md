@@ -5,6 +5,7 @@
 
 ## 1. Executive Summary (프로젝트 요약)
 - **비즈니스 목적 함수 (Core KPI)**: 30~40대 동탄 실수요자 및 매수 대기자에게 특정 아파트 단지의 합리적인 매매가(적정 가치 평가) 정보를 제공하고, 최적화된 **구글 애드센스(Google AdSense) 연동을 통한 광고 수익(Monetization)** 창출.
+- **디자인 목적 함수 (Design Concept)**: 무겁고 딱딱할 수 있는 부동산/금융 데이터를 사용자가 거부감 없이 친근하게 탐색할 수 있도록, 플랫폼 전반의 UI/UX 시각적 언어를 **'파스텔톤 기반의 귀여운(Cute) 컨셉'**으로 선언하고 이를 설계 지표로 삼음.
 - **부동산 임장 및 밸류에이션 리포팅 허브**: 동탄 지역을 중심으로 실거래가, 아파트 단지 정보, 유저의 현장 검증(임장) 데이터를 통합하는 종합 부동산 인텔리전스 플랫폼.
 - **실시간 데이터 동기화 파이프라인**: Google Sheets(마스터 데이터) 및 Firebase Firestore 이중 사용.
 - **Facade 및 Repository 패턴**: Data Layer, Service Layer, 비즈니스 로직(Facade) 분리 아키텍처.
@@ -204,6 +205,7 @@ API 권한 제약 우회 및 로컬 캐시 과부하 방지를 위해 국토부 
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-05-02 | **Toss-style 아파트 탐색 UI 개편 및 글로벌 스크롤 최적화** | 대시보드의 강제 높이 제한(`h-[100dvh] overflow-hidden`)을 `min-h-screen` 기반 네이티브 스크롤로 전환하여 이중 스크롤 및 화면 짤림 현상 완전 해소. Toss 증권 스타일의 실시간 단지명 검색창(Regex 필터) 도입 및 대장주 3대장 선차트 고대비(High-Contrast) 색상 동적 렌더링 최적화 |
 | 2026-04-25 | **보안 감사 및 시스템 취약점 전면 패치 (Security Remediation)** | `npm audit fix` 및 Next.js 수동 버전업(16.2.4)을 통한 HTTP Request Smuggling 및 DoS 방어. `verifyAdmin` 관리자 우회 로직 하드닝(`MOCK_ADMIN_UID`) 및 Firebase IaC(`firestore.rules`, `storage.rules`) 도입으로 인프라 무결성 확보 |
 | 2026-04-25 | **과거 15년 전월세 소급 동기화 완료** | `sync-transactions.js --full` 실행으로 2011년~2015년 누락 실거래 데이터 20만여 건 JSON 캐시 병합 완료. 프론트엔드 차트의 풀 타임라인 복원 |
 | 2026-04-25 | **동적 Open Graph 썸네일 생성 및 SEO 고도화** | Next.js `ImageResponse`를 이용한 `/api/og` 동적 생성기 구축 및 카카오톡 공유 프리미엄 썸네일 연동. 롱테일 검색어 메타 태그 삽입 |

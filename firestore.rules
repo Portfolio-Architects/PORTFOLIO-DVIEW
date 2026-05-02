@@ -2,15 +2,50 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default rule: Allow public read, restrict writes to authenticated admins
+    // Users can only write to their own profile.
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
+    }
+    
+    // Field Reports: Read public, create authenticated, update/delete owner or admin
+    match /field_reports/{reportId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
+      
+      // Nested Comments: Read public, create authenticated, update/delete owner or admin
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
+      }
+    }
+    
+    // Reviews: Read public, create authenticated, update/delete owner or admin
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
+    }
+    
+    // Posts: Read public, create authenticated, update/delete owner or admin
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
+    }
+
+    // Ad Inquiries: Public create, admin read/write
+    match /ad_inquiries/{inquiryId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Default rule for all other collections: Read public, restrict writes to admins
     match /{document=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.token.admin == true;
-    }
-    
-    // Allow users to read their own profile (if applicable)
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

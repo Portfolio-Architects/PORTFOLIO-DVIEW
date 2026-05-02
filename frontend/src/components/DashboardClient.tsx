@@ -13,9 +13,10 @@ import DongFilterBar from '@/components/DongFilterBar';
 import { TrendingTicker } from '@/components/ui/TrendingTicker';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
-import Footer from '@/components/Footer';
+
 import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
+import { useSettings } from '@/lib/contexts/SettingsContext';
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').then(m => ({ default: m.FieldReportModal })), { ssr: false });
@@ -23,6 +24,8 @@ const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), 
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
 const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDiscoveryClient'), { ssr: false });
 const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
+const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
+const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -32,7 +35,7 @@ import { type AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import locationScoresData from '@/lib/location-scores.json';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
-import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
 import { FixedSizeList } from 'react-window';
@@ -225,6 +228,36 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     return () => window.removeEventListener('popstate', handlePopState);
   }, [setSelectedReport]);
 
+  const handleAptClick = useCallback((apt: StaticApartment) => {
+    userHasSelected.current = true;
+    const report = fieldReportsMap.get(apt.name);
+    if (report) {
+      setSelectedReport(report);
+    } else {
+      setSelectedReport({
+        id: `stub-${normalizeAptName(apt.name)}`,
+        apartmentName: apt.name,
+        dong: apt.dong,
+        author: '',
+        likes: 0,
+        commentCount: 0,
+        createdAt: null,
+        metrics: { ...apt, ...((locationScoresData as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+      });
+    }
+    window.history.pushState(null, '', `/apartment/${encodeURIComponent(apt.name)}`);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setMobileModalOpen(true);
+    }
+  }, [fieldReportsMap, setSelectedReport]);
+
+  const handleAptToggleFavorite = useCallback((aptName: string) => {
+    handleToggleFavorite(aptName, handleLogin);
+    if (!userFavorites.has(aptName)) {
+      triggerCustomA2HSModal();
+    }
+  }, [handleToggleFavorite, handleLogin, userFavorites, triggerCustomA2HSModal]);
+
   const dongAptCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     Object.entries(sheetApartments).forEach(([dong, apts]) => { 
@@ -250,11 +283,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     return [...fieldReports];
   }, [fieldReports, selectedDong]);
 
-  const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
+  const { areaUnit } = useSettings();
 
-  const rawApts = selectedDong 
-    ? (sheetApartments[selectedDong] || [])
-    : Object.values(sheetApartments).flat();
+  const rawApts = useMemo(() => {
+    return selectedDong 
+      ? (sheetApartments[selectedDong] || [])
+      : Object.values(sheetApartments).flat();
+  }, [sheetApartments, selectedDong]);
     
   const allApts = useMemo(() => rawApts.filter(a => !publicRentalSet.has(a.name)), [rawApts, publicRentalSet]);
 
@@ -281,15 +316,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     });
   }, [allApts, txSummaryData, nameMapping]);
 
-  const sortedApts = useMemo(() => {
+  const baseSortedApts = useMemo(() => {
     let filteredApts = enrichedApts;
     if (listSort === 'valuation') {
       filteredApts = enrichedApts.filter(e => e.hasTx);
-    }
-
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase().replace(/\s+/g, '');
-      filteredApts = filteredApts.filter(e => e.apt.name.toLowerCase().replace(/\s+/g, '').includes(q));
     }
 
     return [...filteredApts].sort((a, b) => {
@@ -317,11 +347,19 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       }
       return a.apt.name.localeCompare(b.apt.name, 'ko');
     }).map(e => e.apt);
-  }, [enrichedApts, listSort, fieldReportsMap, favoriteCounts, searchQuery]);
+  }, [enrichedApts, listSort, fieldReportsMap, favoriteCounts]);
+
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  const sortedApts = useMemo(() => {
+    if (deferredSearchQuery.trim() === '') return baseSortedApts;
+    const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
+    return baseSortedApts.filter(apt => apt.name.toLowerCase().replace(/\s+/g, '').includes(q) || (apt.brand && apt.brand.toLowerCase().replace(/\s+/g, '').includes(q)));
+  }, [baseSortedApts, deferredSearchQuery]);
 
   return (
     <PullToRefresh scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}>
-      <div className="flex flex-col h-[100dvh] overflow-hidden bg-surface font-sans selection:bg-toss-blue/20">
+      <div className="flex flex-col min-h-screen bg-surface font-sans selection:bg-toss-blue/20">
         
         {/* a11y: Skip to Content */}
         <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
@@ -329,9 +367,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       
       {/* Main Header — Logo + Nav integrated */}
-      <header className="shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border relative z-40" role="banner">
+      <header className="hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border sticky top-0 z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-2.5 gap-2 md:gap-0">
             
             {/* Mobile: Top Bar */}
             <div className="md:hidden flex items-center justify-end w-full">
@@ -342,19 +380,19 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
                 onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'overview'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5'
                 }`}
               >
                 <LayoutDashboard size={16} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>데이터랩</span>
+                <span>데이터 랩</span>
               </button>
               
               <button
                 onClick={() => startTransition(() => { setActiveTab('imjang'); window.location.hash = 'imjang'; })}
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'imjang'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5'
@@ -366,7 +404,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               
               <button
                 onClick={() => startTransition(() => { setActiveTab('discover'); window.location.hash = 'discover'; })}
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'discover'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5'
@@ -376,18 +414,22 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 <span>골라보기</span>
               </button>
 
-              <Link
-                href="/lounge"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
+              <button
+                onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
+                  activeTab === 'lounge'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                }`}
               >
-                <MessageSquare size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                <MessageSquare size={16} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>커뮤니티</span>
-              </Link>
+              </button>
               
               {dashboardFacade.isAdmin(user?.email) && (
                 <Link
                   href="/admin"
-                  className="flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-[#ef4444] hover:bg-black/5"
+                  className="flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] text-[#ef4444] hover:bg-black/5"
                 >
                   <ShieldCheck size={16} className="text-[#ef4444] transition-transform duration-200" />
                   <span>관리자</span>
@@ -405,221 +447,64 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className={`flex-1 overflow-hidden w-full max-w-[2000px] mx-auto animate-in fade-in duration-500 ${activeTab === 'overview' ? '' : 'px-3 sm:px-6 md:px-10 lg:px-16'}`}>
+      <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto animate-in fade-in duration-500">
 
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         {mounted && activeTab === 'overview' && (
-          <section className="h-full w-full bg-surface pb-[100px] md:pb-0 overflow-y-auto">
+          <section className="w-full bg-surface pb-[100px] md:pb-0">
             <MacroDashboardClient 
               sheetApartments={sheetApartments} 
               txSummaryData={txSummaryData} 
               publicRentalSet={publicRentalSet}
+              userFavorites={userFavorites}
             />
           </section>
         )}
 
-        {/* ═══ TAB 1: 단지 분석 ═══ */}
+        {/* ═══ TAB 1: 아파트 탐색 (Toss-style 골라보기 테이블) ═══ */}
         {mounted && activeTab === 'imjang' && (
-        <section className="h-full">
-          {/* ── 마스터-디테일 레이아웃 ── */}
-          <div className="flex flex-col md:flex-row h-full rounded-none md:rounded-[20px] md:border md:border-border md:shadow-[0_2px_20px_rgba(0,0,0,0.04)] overflow-hidden">
-            {/* LEFT: 아파트 리스트 (1/3) */}
-            <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[420px] lg:w-[460px] md:shrink-0 h-full overflow-hidden md:border-r md:border-border flex flex-col bg-surface pb-[100px] md:pb-0 relative">
-          {(() => {
-            return (
-              <>
-                {/* 리스트 패널 타이틀 & 검색창 */}
-                <div className="bg-surface px-5 py-3 min-h-[54px] flex items-center justify-between w-full border-b border-border shrink-0 gap-3">
-                  <span className="text-[16px] font-black text-primary tracking-tight whitespace-nowrap">아파트 단지 목록</span>
-                  <DebouncedSearchInput value={searchQuery} onChange={setSearchQuery} />
-                </div>
-
-                {/* 아파트 리스트 */}
-                <div className="bg-surface flex-1 flex flex-col">
-                  {/* 통합 필터 바 — 리스트 상단에 고정 */}
-                  <div className="sticky top-0 z-30 bg-surface/95 backdrop-blur-sm border-b border-body px-3 py-2.5">
-                    <DongFilterBar
-                      selectedDong={selectedDong}
-                      onSelectDong={setSelectedDong}
-                      totalAptCount={Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name)).length}
-                      dongAptCounts={dongAptCounts}
-                      dongReportCounts={dongReportCounts}
-                      listSort={listSort}
-                      onSortChange={setListSort}
-                    />
-                    
-                    {/* 정렬 배너 제거됨 */}
-                  </div>
-                  <FixedSizeList
-                    className="custom-scrollbar"
-                    height={listHeight}
-                    itemCount={sortedApts.length + (isDesktop ? 0 : 4)} // Reserve 4 items (328px) for the Footer on mobile
-                    itemSize={82}
-                    width="100%"
-                    overscanCount={5}
-                    // @ts-expect-error react-window types missing outerProps
-                    outerProps={{ id: 'apartment-list-scroll' }}
-                  >
-                    {({ index, style }: { index: number; style: React.CSSProperties }) => {
-                      if (index === sortedApts.length) {
-                        return (
-                          <div style={style} className="relative z-0">
-                            <div className="absolute top-0 w-full md:hidden">
-                              <Footer />
-                            </div>
-                          </div>
-                        );
-                      }
-                      if (index > sortedApts.length) {
-                        return <div style={style} />;
-                      }
-
-                      const apt = sortedApts[index];
-                      const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
-                      const rawKey = overrideKey || apt.txKey || apt.name;
-                      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-                      const txSummary = txKey ? txSummaryData[txKey] : undefined;
-                      const report = fieldReportsMap.get(apt.name);
-                      return (
-                        <div style={style}>
-                          <ApartmentCard
-                            key={apt.name}
-                            apt={apt}
-                            txSummary={txSummary}
-                            report={report}
-                            listSort={listSort}
-                            isPublicRental={publicRentalSet.has(apt.name)}
-                            rank={index + 1}
-                            isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name, nameMapping))}
-                            isFavorited={userFavorites.has(apt.name)}
-                            favoriteCount={Math.max(userFavorites.has(apt.name) ? 1 : 0, favoriteCounts[apt.name] || 0)}
-                              onToggleFavorite={() => {
-                                handleToggleFavorite(apt.name, handleLogin);
-                              if (!userFavorites.has(apt.name)) {
-                                triggerCustomA2HSModal();
-                              }
-                            }}
-                            onClick={() => {
-                              userHasSelected.current = true;
-                              if (report) {
-                                setSelectedReport(report);
-                              } else {
-                                setSelectedReport({
-                                  id: `stub-${normalizeAptName(apt.name)}`,
-                                  apartmentName: apt.name,
-                                  dong: apt.dong,
-                                  author: '',
-                                  likes: 0,
-                                  commentCount: 0,
-                                  createdAt: null,
-                                  metrics: { ...apt, ...((locationScoresData as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
-                                });
-                              }
-                              // Soft URL update for SEO capturing
-                              window.history.pushState(null, '', `/apartment/${encodeURIComponent(apt.name)}`);
-
-                              // Open mobile modal on explicit tap
-                              if (typeof window !== 'undefined' && window.innerWidth < 768) {
-                                setMobileModalOpen(true);
-                              }
-                            }}
-                            typeMap={typeMap}
-                            areaUnit={areaUnit}
-                          />
-                        </div>
-                      );
-                    }}
-                  </FixedSizeList>
-                </div>
-              </>
-            );
-          })()}
-            </div>
-
-            {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
-            <div className={`hidden md:flex flex-col flex-1 h-full ${resolvedReport ? 'overflow-y-auto' : 'overflow-hidden'} overflow-x-hidden bg-body custom-scrollbar relative`}>
-              {resolvedReport ? (
-                <>
-                  <div className="flex-1 flex flex-col bg-surface">
-                    <FieldReportModal 
-                      report={resolvedReport} 
-                      onClose={() => {
-                        setSelectedReport(null);
-                        window.history.pushState(null, '', '/');
-                      }} 
-                      comments={commentsData[resolvedReport.id] || []}
-                      commentInput={commentInput[resolvedReport.id] || ''}
-                      onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
-                      onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
-                      user={user}
-                      transactions={modalTransactions}
-                      typeMap={typeMap}
-                      areaUnit={areaUnit}
-                      setAreaUnit={setAreaUnit}
-                      isLoadingDetail={isLoadingDetail}
-                      isPurchased={purchasedReportIds.includes(resolvedReport.id)}
-                      isAdmin={dashboardFacade.isAdmin(user?.email)}
-                      txSummary={aptTxSummary}
-                      onPurchaseComplete={() => {
-                        if (user) {
-                          refreshPurchasedReports();
-                        }
-                      }}
-                      inline
-                    />
-                  </div>
-                  <div className="mt-auto bg-surface w-full">
-                    <Footer />
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col h-full bg-body">
-                  <div className="flex-1 w-full bg-gradient-to-br from-[#191f28] to-[#222a35] relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
-                      {/* Background noise/pattern */}
-                      <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-[#ffffff] rounded-full mix-blend-overlay filter blur-[80px] opacity-10 transform translate-x-1/2 -translate-y-1/2"></div>
-                      
-                      {/* AD Badge */}
-                      <div className="absolute top-5 right-5 bg-surface/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-surface/90 font-extrabold uppercase tracking-widest border border-white/20">
-                        AD
-                      </div>
-                      
-                      <div className="relative z-10 w-full max-w-[280px]">
-                        <div className="w-16 h-16 bg-surface/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                          <Building2 className="text-surface drop-shadow-sm" size={32} strokeWidth={1.5} />
-                        </div>
-                        
-                        <h3 className="text-[22px] font-extrabold text-surface tracking-tight mb-3 leading-snug">
-                          동탄 부동산 핵심 타겟<br/>프리미엄 광고 파트너 모집
-                        </h3>
-                        
-                        <p className="text-[14.5px] text-blue-100/90 font-medium leading-[1.6] mb-8">
-                          실거주와 투자를 준비하는 진성 유저들에게<br/>
-                          귀사의 브랜드를 가장 효과적으로 각인시키세요.
-                        </p>
-                        
-                        <button 
-                          onClick={() => setIsAdModalOpen(true)}
-                          className="w-full bg-surface text-primary text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-body hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
-                          광고/제휴 문의하기
-                        </button>
-                      </div>
-                  </div>
-                  <div className="mt-auto">
-                    <Footer />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-        </section>
+          <section className="w-full bg-surface">
+            <TossApartmentExploreClient
+              sheetApartments={sheetApartments}
+              txSummaryData={txSummaryData}
+              nameMapping={nameMapping || {}}
+              fieldReportsMap={fieldReportsMap}
+              publicRentalSet={publicRentalSet}
+              userFavorites={userFavorites}
+              favoriteCounts={favoriteCounts}
+              typeMap={typeMap}
+              handleSelectApt={(name: string) => {
+                const report = fieldReportsMap.get(name);
+                if (report) {
+                  setSelectedReport(report);
+                  setMobileModalOpen(true);
+                } else {
+                  // Fallback for apartments without reports, we still want to show the modal with basic transaction data
+                  setSelectedReport({
+                    id: `temp-${name}`,
+                    apartmentName: name,
+                    title: `${name} 정보`,
+                    content: '아직 작성된 현장 임장기가 없습니다.',
+                    createdAt: Date.now(),
+                    dong: DONGS.find(d => sheetApartments[d.name]?.some(a => a.name === name))?.name || '',
+                    author: '',
+                    authorName: '',
+                    viewCount: 0,
+                    likeCount: 0,
+                  } as any);
+                  setMobileModalOpen(true);
+                }
+              }}
+              onToggleFavorite={(name: string) => handleToggleFavorite(name, handleLogin)}
+            />
+          </section>
         )}
 
-        {/* 모바일 풀스크린 모달 (md 미만에서만 표시, 사용자 클릭 시에만) */}
+        {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {resolvedReport && mobileModalOpen && (
-          <div className="md:hidden">
-            <FieldReportModal
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="w-full h-full md:max-w-[700px] md:max-h-[90vh] md:h-auto bg-surface md:rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+              <FieldReportModal
               report={resolvedReport}
               onClose={() => {
                 setSelectedReport(null);
@@ -633,8 +518,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               user={user}
               transactions={modalTransactions}
               typeMap={typeMap}
-              areaUnit={areaUnit}
-              setAreaUnit={setAreaUnit}
+              inline={false}
               isLoadingDetail={isLoadingDetail}
               isPurchased={purchasedReportIds.includes(resolvedReport.id)}
               isAdmin={dashboardFacade.isAdmin(user?.email)}
@@ -645,14 +529,20 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 }
               }}
             />
+            </div>
           </div>
         )}
 
-        {/* ═══ TAB 2: 라운지 제거됨 (별도 페이지로 이동) ═══ */}
+        {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
+        {mounted && activeTab === 'lounge' && (
+          <section className="w-full bg-surface pb-[100px] md:pb-0 pt-6 px-3 sm:px-6 md:px-10 lg:px-16">
+            <LoungeContainerClient initialPosts={[]} />
+          </section>
+        )}
 
         {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
         {mounted && activeTab === 'discover' && (
-          <section className="h-full">
+          <section className="w-full">
             <ApartmentDiscoveryClient
               sheetApartments={sheetApartments}
               fieldReports={fieldReports}
@@ -664,12 +554,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
               onSelectReport={setSelectedReport as any}
               typeMap={typeMap}
-              areaUnit={areaUnit}
             />
           </section>
         )}
-        
-        <Footer />
       </main>
 
 
@@ -695,9 +582,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       <MobileDock 
         activeTab={activeTab} 
-        areaUnit={areaUnit} 
-        setAreaUnit={setAreaUnit} 
-        onTabClick={(tab) => startTransition(() => setActiveTab(tab))} 
+        onTabClick={setActiveTab}
       />
 
       </div>
