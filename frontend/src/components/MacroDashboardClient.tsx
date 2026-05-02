@@ -255,8 +255,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                 domain={['auto', 'auto']}
               />
               <RechartsTooltip 
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold' }}
-                formatter={(value: number) => [`${value}억`, '평균가']}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: '10px 14px', fontWeight: 'bold' }}
+                formatter={(value: any) => [`${value || 0}억`, '평균가']}
                 labelStyle={{ color: '#8b95a1', marginBottom: '4px' }}
               />
               <Legend 
