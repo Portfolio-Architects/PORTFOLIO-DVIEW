@@ -1377,7 +1377,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "dong": "여울동",
     "latestPrice": 62500,
     "latestPriceEok": "6억2,500",
-    "latestArea": 34.19521105,
+    "latestArea": 32.67,
     "latestFloor": 4,
     "latestDate": "20260420",
     "maxPrice": 86000,
@@ -1387,38 +1387,38 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "txCount": 248,
     "avg1MPrice": 64600,
     "avg1MPriceEok": "6억4,600",
-    "avg1MPerPyeong": 1922,
+    "avg1MPerPyeong": 2009,
     "avg1MTxCount": 14,
     "avg3MPrice": 64000,
     "avg3MPriceEok": "6억4,000",
-    "avg3MPerPyeong": 1922,
+    "avg3MPerPyeong": 2008,
     "avg3MTxCount": 27,
     "recent": [
       {
         "date": "04.20",
         "priceEok": "6억2,500",
-        "areaPyeong": 34.19521105,
+        "areaPyeong": 32.67,
         "floor": 4,
         "area": 84.994
       },
       {
         "date": "04.18",
         "priceEok": "7억900",
-        "areaPyeong": 34.19521105,
+        "areaPyeong": 32.67,
         "floor": 15,
         "area": 84.994
       },
       {
         "date": "04.18",
         "priceEok": "6억9,500",
-        "areaPyeong": 34.19521105,
+        "areaPyeong": 32.67,
         "floor": 9,
         "area": 84.994
       },
       {
         "date": "04.18",
         "priceEok": "6억3,000",
-        "areaPyeong": 34.113860935,
+        "areaPyeong": 32.67,
         "floor": 1,
         "area": 84.7918
       }
@@ -4230,7 +4230,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "dong": "청계동",
     "latestPrice": 75000,
     "latestPriceEok": "7억5,000",
-    "latestArea": 34.190141755,
+    "latestArea": 33.5775,
     "latestFloor": 18,
     "latestDate": "20260424",
     "maxPrice": 97000,
@@ -4240,38 +4240,38 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "txCount": 423,
     "avg1MPrice": 75800,
     "avg1MPriceEok": "7억5,800",
-    "avg1MPerPyeong": 2116,
+    "avg1MPerPyeong": 2160,
     "avg1MTxCount": 4,
     "avg3MPrice": 76000,
     "avg3MPriceEok": "7억6,000",
-    "avg3MPerPyeong": 2064,
+    "avg3MPerPyeong": 2112,
     "avg3MTxCount": 10,
     "recent": [
       {
         "date": "04.24",
         "priceEok": "7억5,000",
-        "areaPyeong": 34.190141755,
+        "areaPyeong": 33.5775,
         "floor": 18,
         "area": 84.9814
       },
       {
         "date": "04.15",
         "priceEok": "7억1,800",
-        "areaPyeong": 34.190141755,
+        "areaPyeong": 33.5775,
         "floor": 5,
         "area": 84.9814
       },
       {
         "date": "04.04",
         "priceEok": "8억3,000",
-        "areaPyeong": 41.0370293025,
+        "areaPyeong": 39.93,
         "floor": 22,
         "area": 101.9997
       },
       {
         "date": "04.03",
         "priceEok": "7억3,500",
-        "areaPyeong": 34.190141755,
+        "areaPyeong": 33.5775,
         "floor": 15,
         "area": 84.9814
       }
@@ -5885,7 +5885,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "dong": "여울동",
     "latestPrice": 136000,
     "latestPriceEok": "13억6,000",
-    "latestArea": 35.2296288575,
+    "latestArea": 34.1825,
     "latestFloor": 22,
     "latestDate": "20260408",
     "maxPrice": 150000,
@@ -5895,38 +5895,38 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "txCount": 56,
     "avg1MPrice": 143000,
     "avg1MPriceEok": "14억3,000",
-    "avg1MPerPyeong": 3761,
+    "avg1MPerPyeong": 3882,
     "avg1MTxCount": 2,
     "avg3MPrice": 142800,
     "avg3MPriceEok": "14억2,800",
-    "avg3MPerPyeong": 3687,
+    "avg3MPerPyeong": 3802,
     "avg3MTxCount": 6,
     "recent": [
       {
         "date": "04.08",
         "priceEok": "13억6,000",
-        "areaPyeong": 35.2296288575,
+        "areaPyeong": 34.1825,
         "floor": 22,
         "area": 87.5651
       },
       {
         "date": "04.03",
         "priceEok": "15억",
-        "areaPyeong": 40.96585801,
+        "areaPyeong": 39.6275,
         "floor": 34,
         "area": 101.8228
       },
       {
         "date": "03.08",
         "priceEok": "13억3,000",
-        "areaPyeong": 34.052667302500005,
+        "areaPyeong": 33.275,
         "floor": 18,
         "area": 84.6397
       },
       {
         "date": "02.28",
         "priceEok": "15억",
-        "areaPyeong": 40.96585801,
+        "areaPyeong": 39.6275,
         "floor": 24,
         "area": 101.8228
       }
@@ -6051,7 +6051,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 84.8688
       }
     ],
-    "rentTxCount": 350,
+    "rentTxCount": 351,
     "latestRentDeposit": 35000,
     "latestRentDepositEok": "3억5,000",
     "latestRentMonthly": 0,
@@ -7302,7 +7302,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "dong": "여울동",
     "latestPrice": 157000,
     "latestPriceEok": "15억7,000",
-    "latestArea": 38.8582784975,
+    "latestArea": 39.324999999999996,
     "latestFloor": 42,
     "latestDate": "20260407",
     "maxPrice": 160000,
@@ -7312,38 +7312,38 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "txCount": 47,
     "avg1MPrice": 136000,
     "avg1MPriceEok": "13억6,000",
-    "avg1MPerPyeong": 3806,
+    "avg1MPerPyeong": 3757,
     "avg1MTxCount": 3,
     "avg3MPrice": 132300,
     "avg3MPriceEok": "13억2,300",
-    "avg3MPerPyeong": 3778,
+    "avg3MPerPyeong": 3720,
     "avg3MTxCount": 10,
     "recent": [
       {
         "date": "04.07",
         "priceEok": "15억7,000",
-        "areaPyeong": 38.8582784975,
+        "areaPyeong": 39.324999999999996,
         "floor": 42,
         "area": 96.5843
       },
       {
         "date": "04.04",
         "priceEok": "11억6,500",
-        "areaPyeong": 33.995859012500006,
+        "areaPyeong": 34.485,
         "floor": 9,
         "area": 84.4985
       },
       {
         "date": "04.04",
         "priceEok": "13억4,500",
-        "areaPyeong": 34.0393101125,
+        "areaPyeong": 34.485,
         "floor": 42,
         "area": 84.6065
       },
       {
         "date": "03.28",
         "priceEok": "13억1,500",
-        "areaPyeong": 34.0393101125,
+        "areaPyeong": 34.485,
         "floor": 17,
         "area": 84.6065
       }
@@ -7602,7 +7602,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "dong": "청계동",
     "latestPrice": 74500,
     "latestPriceEok": "7억4,500",
-    "latestArea": 24.1266256,
+    "latestArea": 24.805,
     "latestFloor": 19,
     "latestDate": "20260422",
     "maxPrice": 95000,
@@ -7612,38 +7612,38 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "txCount": 493,
     "avg1MPrice": 81400,
     "avg1MPriceEok": "8억1,400",
-    "avg1MPerPyeong": 2931,
+    "avg1MPerPyeong": 2871,
     "avg1MTxCount": 5,
     "avg3MPrice": 77000,
     "avg3MPriceEok": "7억7,000",
-    "avg3MPerPyeong": 2807,
+    "avg3MPerPyeong": 2756,
     "avg3MTxCount": 19,
     "recent": [
       {
         "date": "04.22",
         "priceEok": "7억4,500",
-        "areaPyeong": 24.1266256,
+        "areaPyeong": 24.805,
         "floor": 19,
         "area": 59.968
       },
       {
         "date": "04.21",
         "priceEok": "7억6,700",
-        "areaPyeong": 24.1266256,
+        "areaPyeong": 24.805,
         "floor": 15,
         "area": 59.968
       },
       {
         "date": "04.17",
         "priceEok": "9억4,000",
-        "areaPyeong": 34.19344082,
+        "areaPyeong": 34.485,
         "floor": 20,
         "area": 84.9896
       },
       {
         "date": "04.10",
         "priceEok": "7억4,000",
-        "areaPyeong": 24.1266256,
+        "areaPyeong": 24.805,
         "floor": 11,
         "area": 59.968
       }
