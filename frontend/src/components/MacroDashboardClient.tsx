@@ -153,7 +153,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
           </div>
         </div>
         
-        <div className="flex-1 flex flex-col xl:flex-row items-center justify-around xl:justify-between px-2 xl:px-6 gap-6 relative mt-3">
+        <div className="flex-1 flex flex-col xl:flex-row items-center justify-center px-2 xl:px-4 gap-6 xl:gap-12 relative mt-3">
           <div className="w-[220px] h-[220px] relative shrink-0">
             {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
