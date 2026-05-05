@@ -2918,6 +2918,13 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 99.6918
       },
       {
+        "date": "04.29",
+        "priceEok": "8억5,000",
+        "areaPyeong": 40.108503435,
+        "floor": 8,
+        "area": 99.6918
+      },
+      {
         "date": "04.24",
         "priceEok": "8억5,000",
         "areaPyeong": 41.607727315,
@@ -3323,6 +3330,27 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg3MPerPyeong": 2468,
     "avg3MTxCount": 47,
     "recent": [
+      {
+        "date": "05.04",
+        "priceEok": "3억8,200",
+        "areaPyeong": 26.9225,
+        "floor": 1,
+        "area": 72.5957
+      },
+      {
+        "date": "04.30",
+        "priceEok": "4억2,200",
+        "areaPyeong": 26.9225,
+        "floor": 12,
+        "area": 72.5957
+      },
+      {
+        "date": "04.30",
+        "priceEok": "4억2,000",
+        "areaPyeong": 26.9225,
+        "floor": 7,
+        "area": 72.5957
+      },
       {
         "date": "04.27",
         "priceEok": "8억7,200",
@@ -4351,6 +4379,13 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 128.4145
       },
       {
+        "date": "04.23",
+        "priceEok": "4억4,300",
+        "areaPyeong": 20.91687675,
+        "floor": 7,
+        "area": 51.99
+      },
+      {
         "date": "04.18",
         "priceEok": "9억5,250",
         "areaPyeong": 51.6643637125,
@@ -5183,6 +5218,13 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg3MPerPyeong": 1676,
     "avg3MTxCount": 17,
     "recent": [
+      {
+        "date": "05.01",
+        "priceEok": "8억4,800",
+        "areaPyeong": 29.645,
+        "floor": 19,
+        "area": 72.9996
+      },
       {
         "date": "04.22",
         "priceEok": "4억8,700",
