@@ -21,39 +21,89 @@ const LINE_COLORS = ['#b0b8c1', '#0d9488', '#f04452', '#00a261', '#f9a825'];
 
 const InfoBox = ({ title, value, unit, progress, badge, color = "#0d9488" }: any) => {
   return (
-    <div className="bg-[#f4f5f6] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-[#e5e8eb]">
-      <div className="flex flex-col pr-2 min-w-0 z-10">
-        <div className="text-[14px] font-bold text-[#8b95a1] mb-1 tracking-tight whitespace-nowrap">{title}</div>
-        <div className="flex items-baseline gap-1 truncate">
-          <span className="text-[18px] md:text-[20px] font-extrabold text-[#191f28] truncate">{value}</span>
-          {unit && <span className="text-[13px] font-bold text-[#4e5968] shrink-0">{unit}</span>}
+    <div className="bg-[#f4f5f6] rounded-2xl p-3.5 sm:p-4 flex flex-col gap-2 sm:gap-2.5 shadow-sm border border-[#e5e8eb] h-full">
+      <div className="flex flex-col min-w-0 z-10 w-full">
+        <div className="text-[12px] sm:text-[14px] font-bold text-[#8b95a1] mb-0.5 tracking-tight min-w-0 w-full">{title}</div>
+        <div className="flex items-baseline gap-1 w-full">
+          <span className="text-[16px] sm:text-[18px] lg:text-[20px] font-extrabold text-[#191f28] truncate">{value}</span>
+          {unit && <span className="text-[12px] sm:text-[13px] font-bold text-[#4e5968] shrink-0">{unit}</span>}
         </div>
       </div>
-      {progress !== undefined && (
-        <div className="relative flex items-center justify-center shrink-0">
-          <svg width="32" height="32" viewBox="0 0 32 32" className="transform -rotate-90">
-            <circle cx="16" cy="16" r="12" fill="transparent" stroke="#e5e8eb" strokeWidth="4" />
-            <circle cx="16" cy="16" r="12" fill="transparent" stroke={color} strokeWidth="4"
-              strokeDasharray={2 * Math.PI * 12}
-              strokeDashoffset={(2 * Math.PI * 12) * (1 - progress / 100)}
-              strokeLinecap="round" className="transition-all duration-1000 ease-out" />
-          </svg>
-        </div>
-      )}
-      {badge && (
-        <div className="bg-white border border-[#e5e8eb] px-3 py-1.5 rounded-lg shadow-sm shrink-0">
-          <span className="text-[15px] font-extrabold text-[#0d9488]">{badge}</span>
+
+      {(progress !== undefined || badge) && (
+        <div className="flex items-center justify-between w-full mt-auto pt-1">
+          {badge && (
+            <div className="bg-white border border-[#e5e8eb] px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg shadow-sm shrink-0">
+              <span className="text-[12px] sm:text-[15px] font-extrabold text-[#0d9488] whitespace-nowrap">{badge}</span>
+            </div>
+          )}
+          {progress !== undefined && (
+            <div className="relative flex items-center justify-center shrink-0 ml-auto">
+              <svg width="28" height="28" viewBox="0 0 32 32" className="transform -rotate-90 sm:w-[32px] sm:h-[32px]">
+                <circle cx="16" cy="16" r="12" fill="transparent" stroke="#e5e8eb" strokeWidth="4" />
+                <circle cx="16" cy="16" r="12" fill="transparent" stroke={color} strokeWidth="4"
+                  strokeDasharray={2 * Math.PI * 12}
+                  strokeDashoffset={(2 * Math.PI * 12) * (1 - progress / 100)}
+                  strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+              </svg>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const saleData = payload.find((p: any) => p.dataKey === '동탄 아파트 전체' || p.name === '평균 매매가');
+    const rentData = payload.find((p: any) => p.dataKey === '동탄 아파트 전세 평균' || p.name === '평균 전월세가');
+
+    const salePrice = saleData?.value || 0;
+    const rentPrice = rentData?.value || 0;
+
+    let ratio = 0;
+    if (salePrice > 0 && rentPrice > 0) {
+      ratio = (rentPrice / salePrice) * 100;
+    }
+
+    return (
+      <div className="bg-white p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e5e8eb] flex flex-col gap-2 min-w-[150px]">
+        <div className="text-[13.5px] font-bold text-[#8b95a1] mb-1">{label}</div>
+        {payload.map((entry: any, index: number) => {
+          const isRent = entry.dataKey === '동탄 아파트 전세 평균' || entry.name === '평균 전월세가';
+          return (
+            <div key={index} className="flex items-center justify-between gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="text-[14px] font-bold text-[#4e5968]">
+                  {isRent ? '전세가' : '매매가'}
+                </span>
+              </div>
+              <span className="text-[14px] font-extrabold text-[#191f28]">{entry.value}억</span>
+            </div>
+          );
+        })}
+        {ratio > 0 && (
+          <>
+            <div className="w-full h-[1px] bg-[#f2f4f6] my-1" />
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-[13px] font-bold text-[#8b95a1] pl-4">전세가율</span>
+              <span className="text-[14.5px] font-extrabold text-[#0d9488] tracking-tight">{ratio.toFixed(1)}%</span>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function MacroDashboardClient({ sheetApartments, txSummaryData, publicRentalSet, userFavorites }: MacroDashboardProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<'price' | 'pyeong'>('price');
   const [timeframe, setTimeframe] = useState<'3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL'>('1Y');
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({ '동탄역세권': true });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [isScrolled, setIsScrolled] = useState(false);
   const [newsData, setNewsData] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -445,10 +495,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
 
         {/* Top Header - Main Title */}
         <div className="flex flex-col gap-3 sm:gap-4 md:mb-8 px-4 sm:px-6 md:px-2 py-3 md:py-0 relative md:static md:bg-transparent border-b border-border md:border-none">
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden flex items-center justify-end">
-            <FloatingUserBar />
-          </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-[#e5e8eb] flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm">
                 <img src="/d-view-icon.png" alt="Icon" className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] object-contain" />
@@ -457,14 +504,18 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                 D-VIEW 아파트 가격 분석
               </h1>
             </div>
+            <div className="md:hidden flex items-center justify-end">
+              <FloatingUserBar />
+            </div>
           </div>
           <div className="flex flex-col justify-end mb-0 sm:mb-0">
             <div className="flex w-full py-1">
               <div className="w-[3px] rounded-full mr-4 shrink-0 bg-[#0d9488]" />
-              <div className="flex-1">
-                <p className="text-[#8b95a1] font-normal text-[13px] sm:text-[15px] leading-snug line-clamp-2 sm:line-clamp-none">
-                  <strong className="text-[#191f28]">데이터 기반 동탄 아파트 가치 분석</strong> — 실거래가 데이터, 통계 기반의 정교하고 직관적인 동탄 부동산 인사이트 제공
-                </p>
+              <div className="flex flex-col justify-center flex-1 gap-0.5">
+                <strong className="text-[#191f28] text-[13.5px] sm:text-[15.5px]">데이터 기반 동탄 아파트 가치 분석</strong>
+                <span className="text-[#8b95a1] font-normal text-[12.5px] sm:text-[14px] leading-snug">
+                  실거래가 데이터, 통계 기반의 동탄 부동산 인사이트 제공
+                </span>
               </div>
             </div>
           </div>
@@ -513,7 +564,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                     </span>
                   </div>
 
-                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} className="relative z-10">
+                  <ResponsiveContainer width="100%" height={240} className="relative z-10">
                     <PieChart>
                       <Pie
                         data={donutData}
@@ -582,9 +633,9 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
               <InfoBox title="최고 평당가 단지" value={maxPyeongAptName} badge={<>{maxPyeongPrice.toLocaleString()}만원<span className="text-[#4e5968] ml-0.5 font-bold">/평</span></>} />
               <InfoBox
                 title={
-                  <div className="relative group flex items-center gap-1 w-max">
-                    동탄 아파트 평균 매매/평당가
-                    <Info className="w-3.5 h-3.5 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+                  <div className="relative group flex items-center gap-1 w-full">
+                    <span className="truncate">동탄 아파트 평균 매매/평당가</span>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
 
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
@@ -599,9 +650,9 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
               />
               <InfoBox
                 title={
-                  <div className="relative group flex items-center gap-1 w-max">
-                    전월 대비 가격 변동
-                    <Info className="w-3.5 h-3.5 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+                  <div className="relative group flex items-center gap-1 w-full">
+                    <span className="truncate">전월 대비 가격 변동</span>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
 
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
@@ -618,8 +669,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
           </div>
 
           {/* Right Panel: Line Chart */}
-          <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
-            <div className="flex justify-between items-center mb-4">
+          <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-4 sm:p-5 min-h-[300px]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <div className="flex flex-col">
                 <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">동탄 아파트 전체 가격 변화 추이</h2>
                 <span className="text-[13px] text-[#8b95a1] font-medium mt-1">
@@ -643,8 +694,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
               </div>
             </div>
 
-            <div className="flex-1 w-full h-[230px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+            <div className="flex-1 w-full min-h-[230px]">
+              <ResponsiveContainer width="100%" height={230}>
                 <LineChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
                   <XAxis
@@ -674,17 +725,15 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                     domain={['auto', 'auto']}
                     width={40}
                   />
-                  <RechartsTooltip
-                    contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '12px 18px', fontWeight: 'bold', fontSize: '14px' }}
-                    formatter={(value: any, name: any) => {
-                      if (name === '동탄 아파트 전세 평균') return [`${value || 0}억`, '전세가'];
-                      return [`${value || 0}억`, '매매가'];
-                    }}
-                    labelStyle={{ color: '#8b95a1', marginBottom: '6px', fontSize: '13px' }}
-                  />
+                  <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: '#e5e8eb', strokeWidth: 2, strokeDasharray: '3 3' }} />
                   <Legend
                     iconType="circle"
-                    wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 'bold', color: '#4e5968' }}
+                    wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 'bold' }}
+                    formatter={(value, entry: any) => (
+                      <span style={{ color: entry.color, marginLeft: '4px', marginRight: '24px' }}>
+                        {value}
+                      </span>
+                    )}
                   />
                   <Line
                     yAxisId="left"
@@ -694,7 +743,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                     dataKey="동탄 아파트 전체"
                     stroke="#0d9488"
                     strokeWidth={4}
-                    dot={timeframe === 'ALL' || timeframe === '5Y' || timeframe === '3Y' ? false : { r: 5, strokeWidth: 2 }}
+                    animationDuration={300}
+                    dot={timeframe === 'ALL' || timeframe === '5Y' ? false : { r: 5, strokeWidth: 2 }}
                     activeDot={{ r: 7 }}
                   />
                   <Line
@@ -703,9 +753,10 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                     type="monotone"
                     name="평균 전월세가"
                     dataKey="동탄 아파트 전세 평균"
-                    stroke="#9ca3af"
+                    stroke="#f9a825"
                     strokeWidth={2}
-                    dot={timeframe === 'ALL' || timeframe === '5Y' || timeframe === '3Y' ? false : { r: 3, strokeWidth: 2 }}
+                    animationDuration={300}
+                    dot={timeframe === 'ALL' || timeframe === '5Y' ? false : { r: 3, strokeWidth: 2 }}
                     activeDot={{ r: 5 }}
                   />
                 </LineChart>
@@ -715,14 +766,14 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
         </div>
 
         {/* Detailed Real Estate Portfolio Section */}
-        <div className="mt-12 mb-6 flex items-center justify-between">
+        <div className="mt-12 mb-6 flex items-center justify-between px-3 sm:px-6 md:px-0">
           <div className="flex items-center gap-2">
             <div className="w-[3px] h-[16px] bg-[#0d9488] rounded-full" />
             <h2 className="text-[22px] font-bold text-[#191f28]">지역별 분류</h2>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pb-10">
+        <div className="flex flex-col gap-4 pb-10 px-3 sm:px-6 md:px-0">
           {accordionData.map((group) => {
             const isExpanded = expandedGroups[group.title];
             return (
