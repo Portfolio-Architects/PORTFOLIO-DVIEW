@@ -358,8 +358,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   }, [baseSortedApts, deferredSearchQuery]);
 
   return (
-    <PullToRefresh scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}>
-      <div className="flex flex-col min-h-screen bg-surface font-sans selection:bg-toss-blue/20">
+    <PullToRefresh 
+      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}
+      disabled={mobileModalOpen || !!selectedReport}
+    >
+      <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)] overflow-x-hidden">
         
         {/* a11y: Skip to Content */}
         <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
@@ -448,6 +451,27 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               txSummaryData={txSummaryData} 
               publicRentalSet={publicRentalSet}
               userFavorites={userFavorites}
+              onSelectApt={(name: string) => {
+                userHasSelected.current = true;
+                const report = fieldReportsMap.get(name);
+                if (report) {
+                  setSelectedReport(report);
+                } else {
+                  const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                  setSelectedReport({
+                    id: `stub-${name.replace(/\s+/g, '')}`,
+                    apartmentName: name,
+                    dong: targetApt.dong,
+                    author: '',
+                    likes: 0,
+                    commentCount: 0,
+                    createdAt: null,
+                    metrics: { ...targetApt } as any,
+                  });
+                }
+                window.history.pushState(null, '', `/apartment/${encodeURIComponent(name)}`);
+                setMobileModalOpen(true);
+              }}
             />
           </section>
         )}

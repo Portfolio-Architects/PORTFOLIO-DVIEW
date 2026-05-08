@@ -9,13 +9,15 @@ interface PullToRefreshProps {
   onRefresh?: () => Promise<void>;
   pullThreshold?: number;
   scrollContainerId?: string;
+  disabled?: boolean;
 }
 
 export default function PullToRefresh({ 
   children, 
   onRefresh,
   pullThreshold = 80,
-  scrollContainerId
+  scrollContainerId,
+  disabled = false
 }: PullToRefreshProps) {
   const router = useRouter();
   const [isPulling, setIsPulling] = useState(false);
@@ -41,7 +43,7 @@ export default function PullToRefresh({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (startY.current === null || isRefreshing) return;
+      if (disabled || startY.current === null || isRefreshing) return;
       
       const y = e.touches[0].clientY;
       const deltaY = y - startY.current;
