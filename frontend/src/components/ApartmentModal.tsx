@@ -524,8 +524,8 @@ function FieldReportModal({
                 {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
-
                       <span className="text-[15px] font-extrabold text-primary tracking-wide">학군</span>
+                    </div>
                     <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
                       {[
                         { label: '초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
@@ -577,8 +577,8 @@ function FieldReportModal({
                 {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
-
                       <span className="text-[15px] font-extrabold text-primary tracking-wide">교통</span>
+                    </div>
                     <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
                       {[
                         { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#0d9488', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
@@ -626,8 +626,8 @@ function FieldReportModal({
                 {(report.metrics.academyDensity > 0 || (report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0)) && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-
                       <span className="text-[15px] font-extrabold text-primary tracking-wide">생활 인프라</span>
+                    </div>
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2.5">
                       {/* Academy Density */}
                       {report.metrics.academyDensity > 0 && (
