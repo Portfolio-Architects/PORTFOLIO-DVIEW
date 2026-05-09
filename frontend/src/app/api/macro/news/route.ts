@@ -11,8 +11,8 @@ export async function GET() {
     const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
     const feed = await parser.parseURL(feedUrl);
 
-    // Get the top 6 news items
-    const rawItems = feed.items.slice(0, 6);
+    // Get up to 100 news items
+    const rawItems = feed.items.slice(0, 100);
 
     const newsItems = rawItems.map((item, index) => {
       let title = item.title || '';

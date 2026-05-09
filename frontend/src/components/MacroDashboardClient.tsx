@@ -201,6 +201,7 @@ export default function MacroDashboardClient({
   const [isScrolled, setIsScrolled] = useState(false);
   const [newsData, setNewsData] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [visibleNewsCount, setVisibleNewsCount] = useState(6);
 
   React.useEffect(() => {
     async function fetchNews() {
@@ -1231,7 +1232,7 @@ export default function MacroDashboardClient({
                   </div>
                 ))
               : (newsData.length > 0
-                  ? newsData
+                  ? newsData.slice(0, visibleNewsCount)
                   : [
                       {
                         id: 1,
@@ -1311,14 +1312,24 @@ export default function MacroDashboardClient({
                 ))}
           </div>
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-col gap-3 justify-center items-center">
+            {newsData.length > visibleNewsCount && (
+              <button 
+                onClick={() => setVisibleNewsCount(prev => prev + 6)}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+              >
+                더보기 ({visibleNewsCount} / {newsData.length})
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            )}
+            
             <button 
               onClick={() => {
                 window.location.hash = 'lounge-news';
               }}
               className="flex items-center gap-1.5 px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-full transition-colors"
             >
-              Read Full Insights
+              Read Full Insights in Lounge
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

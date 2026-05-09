@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Eye, Heart, Loader2 } from 'lucide-react';
+import { MessageSquare, Eye, Heart, Loader2, ChevronDown } from 'lucide-react';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 
@@ -40,6 +40,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
   const [newsData, setNewsData] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
+  const [visibleNewsCount, setVisibleNewsCount] = useState(10);
 
   useEffect(() => {
     if (currentTab === '부동산 뉴스' && newsData.length === 0) {
@@ -161,71 +162,84 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             </div>
           ))
         ) : (
-          (newsData.length > 0 ? newsData : [
-            {
-              id: 1,
-              category: "INFRASTRUCTURE",
-              sub: "Transportation",
-              title: "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
-              link: "#",
-            },
-            {
-              id: 2,
-              category: "MARKET",
-              sub: "Supply & Demand",
-              title: "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
-              link: "#",
-            },
-            {
-              id: 3,
-              category: "POLICY",
-              sub: "Urban Development",
-              title: "동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
-              link: "#",
-            },
-            {
-              id: 4,
-              category: "COMMERCIAL",
-              sub: "Anchor Tenant",
-              title: "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
-              link: "#",
-            },
-            {
-              id: 5,
-              category: "MACRO",
-              sub: "Liquidity",
-              title: "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
-              link: "#",
-            },
-            {
-              id: 6,
-              category: "COMMUNITY",
-              sub: "Education",
-              title: "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
-              link: "#",
-            },
-          ]).map((news) => (
-            <div
-              key={news.id}
-              onClick={() => news.link !== "#" && window.open(news.link, "_blank")}
-              className="flex gap-4 p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group"
-            >
-              <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#0d9488] font-bold text-[13px] shadow-sm group-hover:bg-[#0d9488] group-hover:text-white transition-colors">
-                {news.id}
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[11px] font-extrabold text-[#0d9488] tracking-wide">{news.category}</span>
-                  <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-[#8b95a1]">{news.sub}</span>
+            (newsData.length > 0 ? newsData.slice(0, visibleNewsCount) : [
+              {
+                id: 1,
+                category: "INFRASTRUCTURE",
+                sub: "Transportation",
+                title: "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
+                link: "#",
+              },
+              {
+                id: 2,
+                category: "MARKET",
+                sub: "Supply & Demand",
+                title: "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
+                link: "#",
+              },
+              {
+                id: 3,
+                category: "POLICY",
+                sub: "Urban Development",
+                title: "동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
+                link: "#",
+              },
+              {
+                id: 4,
+                category: "COMMERCIAL",
+                sub: "Anchor Tenant",
+                title: "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
+                link: "#",
+              },
+              {
+                id: 5,
+                category: "MACRO",
+                sub: "Liquidity",
+                title: "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
+                link: "#",
+              },
+              {
+                id: 6,
+                category: "COMMUNITY",
+                sub: "Education",
+                title: "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
+                link: "#",
+              },
+            ]).map((news) => (
+              <div
+                key={news.id}
+                onClick={() => news.link !== "#" && window.open(news.link, "_blank")}
+                className="flex gap-4 p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group"
+              >
+                <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#0d9488] font-bold text-[13px] shadow-sm group-hover:bg-[#0d9488] group-hover:text-white transition-colors">
+                  {news.id}
                 </div>
-                <p className="text-[14.5px] font-bold text-primary leading-[1.6] group-hover:text-toss-blue transition-colors">
-                  {news.title}
-                </p>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-extrabold text-[#0d9488] tracking-wide">{news.category}</span>
+                    <span className="text-[11px] text-gray-300">|</span>
+                    <span className="text-[11px] font-semibold text-[#8b95a1]">{news.sub}</span>
+                  </div>
+                  <p className="text-[14.5px] font-bold text-primary leading-[1.6] group-hover:text-toss-blue transition-colors">
+                    {news.title}
+                  </p>
+                </div>
               </div>
+            ))
+          )}
+          
+          {newsData.length > visibleNewsCount && (
+            <div className="mt-4 flex justify-center pb-8">
+              <button 
+                onClick={() => setVisibleNewsCount(prev => prev + 10)}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+              >
+                더보기 ({visibleNewsCount} / {newsData.length})
+                <ChevronDown className="w-4 h-4" />
+              </button>
             </div>
-          ))
-        )}
+          )}
+        </div>
       </div>
     );
   }
