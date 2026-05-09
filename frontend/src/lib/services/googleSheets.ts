@@ -1,4 +1,6 @@
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
@@ -7,50 +9,60 @@ function parseCoordString(s: string): { lat: number; lng: number } | null {
   return { lat: parts[0], lng: parts[1] };
 }
 
-export interface SheetApartment {
-  ticker?: string;
-  name: string;
-  dong: string;
-  lat: number;
-  lng: number;
-  householdCount?: number;
-  yearBuilt?: string;
-  far?: number;
-  bcr?: number;
-  parkingCount?: number;
-  brand?: string;
-  maxFloor?: number;
-  minFloor?: number;
-  txKey?: string;
-  isPublicRental?: boolean;
-  starbucksName?: string;
-  starbucksAddress?: string;
-  starbucksCoordinates?: string;
-  distanceToStarbucks?: number;
-  mcdonaldsName?: string;
-  mcdonaldsAddress?: string;
-  mcdonaldsCoordinates?: string;
-  distanceToMcDonalds?: number;
-  oliveYoungName?: string;
-  oliveYoungAddress?: string;
-  oliveYoungCoordinates?: string;
-  distanceToOliveYoung?: number;
-  daisoName?: string;
-  daisoAddress?: string;
-  daisoCoordinates?: string;
-  distanceToDaiso?: number;
-  supermarketName?: string;
-  supermarketAddress?: string;
-  supermarketCoordinates?: string;
-  distanceToSupermarket?: number;
-}
+export const SheetApartmentSchema = z.object({
+  ticker: z.string().optional(),
+  name: z.string(),
+  dong: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  householdCount: z.number().optional(),
+  yearBuilt: z.string().optional(),
+  far: z.number().optional(),
+  bcr: z.number().optional(),
+  parkingCount: z.number().optional(),
+  brand: z.string().optional(),
+  maxFloor: z.number().optional(),
+  minFloor: z.number().optional(),
+  txKey: z.string().optional(),
+  isPublicRental: z.boolean().optional(),
+  starbucksName: z.string().optional(),
+  starbucksAddress: z.string().optional(),
+  starbucksCoordinates: z.string().optional(),
+  distanceToStarbucks: z.number().optional(),
+  mcdonaldsName: z.string().optional(),
+  mcdonaldsAddress: z.string().optional(),
+  mcdonaldsCoordinates: z.string().optional(),
+  distanceToMcDonalds: z.number().optional(),
+  oliveYoungName: z.string().optional(),
+  oliveYoungAddress: z.string().optional(),
+  oliveYoungCoordinates: z.string().optional(),
+  distanceToOliveYoung: z.number().optional(),
+  daisoName: z.string().optional(),
+  daisoAddress: z.string().optional(),
+  daisoCoordinates: z.string().optional(),
+  distanceToDaiso: z.number().optional(),
+  supermarketName: z.string().optional(),
+  supermarketAddress: z.string().optional(),
+  supermarketCoordinates: z.string().optional(),
+  distanceToSupermarket: z.number().optional(),
+});
+
+export type SheetApartment = z.infer<typeof SheetApartmentSchema>;
 
 async function fetchCsv(sheetName: string): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1&_t=${Date.now()}`;
-  const res = await fetch(csvUrl, { cache: 'no-store' });
-  if (!res.ok) return [];
-  const text = await res.text();
-  return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
+  try {
+    const res = await fetch(csvUrl, { cache: 'no-store' });
+    if (!res.ok) {
+      logger.error('fetchCsv', `Failed to fetch sheet: ${sheetName}, Status: ${res.status}`);
+      throw new Error(`Failed to fetch sheet: ${sheetName}`);
+    }
+    const text = await res.text();
+    return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
+  } catch (e) {
+    logger.error('fetchCsv', `Network error fetching sheet: ${sheetName}`, undefined, e);
+    throw e;
+  }
 }
 
 function findColIndex(headers: string[], possibleNames: string[]): number {
@@ -106,7 +118,7 @@ export async function fetchSheetApartmentsByDong() {
     const maxFloor = floorStr ? parseInt(floorStr.replace(/,/g, '')) : undefined;
     const minFloor = minFloorStr ? parseInt(minFloorStr.replace(/,/g, '')) : undefined;
 
-    apartments.push({
+    const rawApt = {
       ticker, name, dong,
       lat: coord?.lat || 0,
       lng: coord?.lng || 0,
@@ -120,7 +132,14 @@ export async function fetchSheetApartmentsByDong() {
       minFloor: isNaN(minFloor as number) ? undefined : minFloor,
       txKey,
       isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((rentalStr || '').toLowerCase()),
-    });
+    };
+
+    const parsed = SheetApartmentSchema.safeParse(rawApt);
+    if (parsed.success) {
+      apartments.push(parsed.data);
+    } else {
+      logger.warn('fetchSheetApartmentsByDong', 'Skipped invalid apartment row', { name, issues: parsed.error.issues });
+    }
   }
 
   const tenants: Record<string, { name: string, lat: number, lng: number, address: string }[]> = {

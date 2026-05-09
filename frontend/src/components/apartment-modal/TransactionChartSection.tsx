@@ -9,6 +9,7 @@ import {
   Tooltip as RechartsTooltip,
   Bar,
   Line,
+  Area,
   Customized
 } from 'recharts';
 import { TransactionRecord } from './TransactionTable';
@@ -52,28 +53,8 @@ export function TransactionChartSection({
 
   if (relevantTxs.length === 0) {
     return (
-      <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
-        <div className="flex items-center justify-between mb-3 w-full">
-          <div className="flex items-center gap-2">
-            <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {setAreaUnit && (
-              <div className="bg-body p-0.5 rounded-xl hidden md:flex items-center shadow-inner">
-                <button onClick={() => setAreaUnit('m2')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'm2' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>m²</button>
-                <button onClick={() => setAreaUnit('pyeong')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'pyeong' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>평</button>
-              </div>
-            )}
-            <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
-              <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-              <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
-            </div>
-          </div>
-        </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-primary flex items-center gap-2 w-full min-w-0">
-          <span className="truncate">{displayAptName}</span>
-        </h1>
-        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
+      <div className="w-full flex flex-col">
+        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 min-h-[300px]">
           <span className="text-[40px] mb-2">🤫</span>
           <span className="text-tertiary text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
           <span className="text-tertiary text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
@@ -177,38 +158,9 @@ export function TransactionChartSection({
   };
 
   return (
-    <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
-      <div className="flex items-center justify-between mb-3 w-full">
-        <div className="flex items-center gap-2">
-          <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {setAreaUnit && (
-            <div className="bg-body p-0.5 rounded-xl hidden md:flex items-center shadow-inner">
-              <button onClick={() => setAreaUnit('m2')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'm2' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>m²</button>
-              <button onClick={() => setAreaUnit('pyeong')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'pyeong' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>평</button>
-            </div>
-          )}
-          <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
-            <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
-          </div>
-        </div>
-      </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-primary flex items-center gap-2 w-full min-w-0">
-        <span className="truncate">{displayAptName}</span>
-        <a 
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
-          target="_blank" rel="noopener noreferrer"
-          className="text-toss-blue hover:bg-toss-blue-light p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
-          title="구글 지도에서 아파트 위치 보기"
-        >
-          <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
-        </a>
-      </h1>
-
-      <div className="mt-4 bg-surface rounded-2xl p-5 ring-1 ring-black/5 flex-1">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 w-full gap-3">
+    <div className="w-full flex flex-col h-full">
+      <div className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 flex-1 flex flex-col h-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 w-full gap-3">
           <div className="flex flex-col gap-2 w-full md:w-1/2">
             <h4 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 shrink-0">
               <TrendingUp size={15} className="text-toss-blue" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
@@ -254,16 +206,16 @@ export function TransactionChartSection({
           </div>
         </div>
         
-        <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-body py-3 rounded-xl border border-border overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
-          {[{label: '1개월 평균', val: momentum.m1}, {label: '3개월 평균', val: momentum.m3}, {label: '6개월 평균', val: momentum.m6}, {label: '1년 평균', val: momentum.y1}, {label: '3년 평균', val: momentum.y3}].map((item, idx) => {
-            const isTarget = item.label === '3개월 평균';
+        <div className="flex w-full gap-2 md:gap-3 mb-5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x pb-2">
+          {[{label: '1개월', val: momentum.m1}, {label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}, {label: '3년', val: momentum.y3}].map((item, idx) => {
+            const isTarget = item.label === '3개월';
             return (
-              <div key={item.label} className={`flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center relative ${idx === 4 ? 'border-r-0' : ''}`}>
-                <span className={`text-[10px] sm:text-[11px] font-bold mb-0.5 whitespace-nowrap flex items-center gap-1 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
-                  {isTarget && <div className="absolute top-1 right-2 sm:right-3 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-toss-blue rounded-full animate-pulse" />}
-                  {item.label}
+              <div key={item.label} className={`flex flex-col px-3 py-2.5 sm:px-4 sm:py-3 shrink-0 min-w-[80px] sm:min-w-[95px] flex-1 snap-center relative rounded-xl border transition-all duration-200 ${isTarget ? 'bg-surface border-toss-blue shadow-[0_4px_16px_rgba(49,130,246,0.15)] ring-1 ring-toss-blue/20 z-10' : 'bg-body border-transparent hover:bg-[#e5e8eb]'}`}>
+                <span className={`text-[10px] sm:text-[11px] font-bold mb-1 flex items-center justify-between w-full ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
+                  {item.label} 평균
+                  {isTarget && <div className="w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse shadow-[0_0_8px_rgba(49,130,246,0.5)]" />}
                 </span>
-                <span className={`text-[13px] sm:text-[16px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : (idx < 2 ? 'text-primary font-bold sm:font-extrabold' : 'text-secondary font-bold sm:font-extrabold')}`}>
+                <span className={`text-[14px] sm:text-[16px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
@@ -274,6 +226,12 @@ export function TransactionChartSection({
         <div className="h-[300px] relative">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+              <defs>
+                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0d9488" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
               <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
                 tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: '#e5e8eb' }}
@@ -294,19 +252,31 @@ export function TransactionChartSection({
                   const item = payload[0]?.payload;
                   const vol = item?.volume;
                   return (
-                    <div style={{ background: '#ffffff', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid #f2f4f6' }}>
-                      <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.95)', borderRadius: 16, padding: '12px 16px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(229, 232, 235, 0.8)', backdropFilter: 'blur(12px)' }}>
+                      <div style={{ color: '#8b95a1', fontSize: 12, marginBottom: 8, fontWeight: 700 }}>
                         {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                       </div>
-                      {item?.monthAvg && <div style={{ color: '#191f28', fontSize: 12, fontWeight: 700 }}>평균 {item.monthAvg.toFixed(2)}억</div>}
-                      {vol != null && <div style={{ color: '#8b95a1', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {item?.monthAvg && (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                            <span style={{ color: '#8b95a1', fontSize: 13, fontWeight: 600 }}>평균가</span>
+                            <span style={{ color: '#0d9488', fontSize: 15, fontWeight: 800 }}>{item.monthAvg.toFixed(2)}억</span>
+                          </div>
+                        )}
+                        {vol != null && (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                            <span style={{ color: '#8b95a1', fontSize: 13, fontWeight: 600 }}>거래량</span>
+                            <span style={{ color: '#333d4b', fontSize: 14, fontWeight: 700 }}>{vol}건</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 }}
-                cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
+                cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
-              <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
-              <Line type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#0d9488" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+              <Bar dataKey="volume" yAxisId="volume" fill="#0d9488" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
+              <Area type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#0d9488" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
               <Customized
                 component={(rechartProps: Record<string, unknown>) => {
                   const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };

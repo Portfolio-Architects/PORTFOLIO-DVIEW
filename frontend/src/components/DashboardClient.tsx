@@ -19,7 +19,7 @@ import PullToRefresh from '@/components/pwa/PullToRefresh';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').then(m => ({ default: m.FieldReportModal })), { ssr: false });
+const FieldReportModal = dynamic(() => import('@/components/ApartmentModal'), { ssr: false });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
 const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDiscoveryClient'), { ssr: false });
@@ -218,9 +218,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   // Handle Browser Back Button for soft-navigation URL routing
   useEffect(() => {
     const handlePopState = () => {
-      // If we go back to the root, clear selection (soft close)
-      if (window.location.pathname === '/' || window.location.pathname === '') {
+      // If we go back to the root (no hash), clear selection (soft close)
+      if (!window.location.hash && (window.location.pathname === '/' || window.location.pathname === '')) {
         setSelectedReport(null);
+        setMobileModalOpen(false);
         userHasSelected.current = true;
       }
     };
@@ -245,7 +246,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         metrics: { ...apt, ...((locationScoresData as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
       });
     }
-    window.history.pushState(null, '', `/apartment/${encodeURIComponent(apt.name)}`);
+    // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
+    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setMobileModalOpen(true);
     }
@@ -469,7 +471,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     metrics: { ...targetApt } as any,
                   });
                 }
-                window.history.pushState(null, '', `/apartment/${encodeURIComponent(name)}`);
+                // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
+                History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                 setMobileModalOpen(true);
               }}
             />
@@ -493,6 +496,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 if (report) {
                   setSelectedReport(report);
                   setMobileModalOpen(true);
+                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                 } else {
                   // Fallback for apartments without reports, we still want to show the modal with basic transaction data
                   setSelectedReport({
@@ -508,6 +512,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     likeCount: 0,
                   } as any);
                   setMobileModalOpen(true);
+                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                 }
               }}
               onToggleFavorite={(name: string) => handleToggleFavorite(name, handleLogin)}
@@ -524,7 +529,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               onClose={() => {
                 setSelectedReport(null);
                 setMobileModalOpen(false);
-                window.history.pushState(null, '', '/');
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
               }}
               comments={commentsData[resolvedReport.id] || []}
               commentInput={commentInput[resolvedReport.id] || ''}

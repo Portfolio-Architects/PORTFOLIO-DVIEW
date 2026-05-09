@@ -48,7 +48,7 @@ interface TransactionRecord {
 }
 
 
-export function FieldReportModal({ 
+function FieldReportModal({ 
   report, 
   onClose,
   comments,
@@ -163,6 +163,17 @@ export function FieldReportModal({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (!inline && mounted) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [inline, mounted]);
 
 
   // TODO: 유료 모델 전환 시 아래 라인 복원
@@ -326,31 +337,64 @@ export function FieldReportModal({
 
   const content = (
     <>
-      {/* Hero Section — Layout: 40% table / 60% chart */}
-          <div className={`bg-surface w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-body' : 'border-b border-border'}`}>
-            
-            {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
-            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col self-start md:self-stretch">
-              <TransactionTable 
-                transactions={transactions} 
-                typeMap={typeMap} 
-                chartType={chartType} 
-                normalizeAptName={normalizeAptName} 
-              />
-            </div>
-
-            <TransactionChartSection 
-              transactions={transactions} 
-              chartType={chartType} 
-              setChartType={setChartType} 
-              displayAptName={displayAptName} 
-              dong={report.dong || ''} 
-              typeMap={typeMap} 
-              normalizeAptName={normalizeAptName} 
-              txSummary={txSummary}
-            />
-
+      {/* ── Unified Header ── */}
+      <div className="w-full bg-surface pt-6 pb-2 px-4 md:px-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0">
+            <span className="truncate">{displayAptName}</span>
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
+              target="_blank" rel="noopener noreferrer"
+              className="text-toss-blue hover:bg-toss-blue-light p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
+              title="구글 지도에서 아파트 위치 보기"
+            >
+              <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
+            </a>
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          {setAreaUnit && (
+            <div className="bg-body p-0.5 rounded-xl hidden md:flex items-center shadow-inner">
+              <button onClick={() => setAreaUnit('m2')} className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'm2' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>m²</button>
+              <button onClick={() => setAreaUnit('pyeong')} className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'pyeong' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>평</button>
+            </div>
+          )}
+          <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
+            <button onClick={() => setChartType('sale')} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Section — Layout: 35% table / 65% chart */}
+      <div className={`bg-surface w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:px-10 md:py-6'} gap-4 md:gap-8 shrink-0 ${inline ? 'border-b border-body' : 'border-b border-border'}`}>
+        
+        {/* Left: 실거래가 전체 리스트 (35%) */}
+        <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch">
+          <TransactionTable 
+            transactions={transactions} 
+            typeMap={typeMap} 
+            chartType={chartType} 
+            normalizeAptName={normalizeAptName} 
+          />
+        </div>
+
+        {/* Right: 실거래가 차트 (65%) */}
+        <div className="w-full md:w-[65%] flex flex-col">
+          <TransactionChartSection 
+            transactions={transactions} 
+            chartType={chartType} 
+            displayAptName={displayAptName} 
+            typeMap={typeMap} 
+            normalizeAptName={normalizeAptName} 
+            txSummary={txSummary}
+          />
+        </div>
+      </div>
 
           {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
           <TransactionSummaryMetrics 
@@ -1031,7 +1075,7 @@ export function FieldReportModal({
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
-      <div ref={modalRef} onScroll={handleScroll} className="bg-surface h-full flex flex-col overflow-y-auto overflow-x-hidden">
+      <div ref={modalRef} onScroll={handleScroll} className="bg-surface h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar">
         {content}
         <FullscreenOverlay />
         
@@ -1057,15 +1101,17 @@ export function FieldReportModal({
       <div className="fixed inset-0 z-[100] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[100dvh] md:h-auto md:max-h-[90vh] rounded-none md:rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ring-1 ring-black/5 pb-24 md:pb-0 slide-in-from-bottom`}>
+        <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[100dvh] md:h-auto md:max-h-[90vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 slide-in-from-bottom overflow-hidden`}>
 
-          <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
+          <button onClick={onClose} className="absolute top-4 right-4 z-[100] bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
             <X size={20} />
           </button>
           
-          {content}
-          {/* 하단 고정 버튼 영역 침범 방지용 여백 (모바일 전용) */}
-          <div className="h-28 md:hidden shrink-0" />
+          <div ref={modalRef} onScroll={handleScroll} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
+            {content}
+            {/* 하단 고정 버튼 영역 침범 방지용 여백 (모바일 전용) */}
+            <div className="h-28 md:hidden shrink-0" />
+          </div>
 
           {/* Mobile Sticky CTA (공유하기) */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100]">
@@ -1115,3 +1161,5 @@ export function FieldReportModal({
     document.getElementById('modal-root') || document.body
   );
 }
+
+export default FieldReportModal;

@@ -126,8 +126,8 @@ export function TransactionTable({
   };
 
   return (
-    <div className="flex flex-col bg-surface rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-surface border-b border-border w-full">
+    <div className="flex flex-col bg-[#F9FAFB] rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full shadow-inner">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-[#F9FAFB] border-b border-border w-full">
         <h4 className="text-[14px] font-bold text-secondary shrink-0">
           실거래가 <span className="text-toss-blue ml-1">{filteredTransactions.length}</span>건
         </h4>
@@ -215,7 +215,7 @@ export function TransactionTable({
           const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
           return (
-            <div key={i} className={`flex items-center justify-between p-4 border-b border-body hover:bg-body transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
+            <div key={i} className={`flex items-center justify-between p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
               
               {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
               <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0 pr-2">

@@ -719,7 +719,7 @@ export default function MacroDashboardClient({
           <div className="flex flex-col justify-end mb-0 sm:mb-0">
             <div className="flex w-full py-1">
               <div className="w-[3px] rounded-full mr-4 shrink-0 bg-[#0d9488]" />
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-center flex-1 gap-0.5 sm:gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-0.5 sm:gap-1.5">
                 <strong className="text-[#191f28] text-[13.5px] sm:text-[15.5px] whitespace-nowrap">
                   데이터 기반 동탄 아파트 가치 분석
                 </strong>
@@ -783,6 +783,7 @@ export default function MacroDashboardClient({
 
                   <ResponsiveContainer
                     width="100%"
+                    minWidth={1}
                     height={240}
                     className="relative z-10"
                   >

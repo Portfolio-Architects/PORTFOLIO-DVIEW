@@ -34,7 +34,7 @@ export async function hasPurchased(userId: string, reportId: string): Promise<bo
     return !snap.empty;
   } catch (e) {
     logger.error('PurchaseRepo.hasPurchased', 'Query failed', { userId, reportId }, e);
-    return false;
+    throw e;
   }
 }
 
@@ -72,6 +72,6 @@ export async function getUserPurchasedReportIds(userId: string): Promise<string[
       .map(result => result.data.reportId);
   } catch (e) {
     logger.error('PurchaseRepo.getUserPurchasedReportIds', 'Query failed', { userId }, e);
-    return [];
+    throw e;
   }
 }
