@@ -343,7 +343,7 @@ function FieldReportModal({
           <div className="flex items-center gap-2">
             <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0">
+          <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0">
             <span className="truncate">{displayAptName}</span>
             <a 
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
@@ -1101,7 +1101,7 @@ function FieldReportModal({
       <div className="fixed inset-0 z-[100] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[100dvh] md:h-auto md:max-h-[90vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 slide-in-from-bottom overflow-hidden`}>
+        <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1340px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 slide-in-from-bottom overflow-hidden`}>
 
           <button onClick={onClose} className="absolute top-4 right-4 z-[100] bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
             <X size={20} />

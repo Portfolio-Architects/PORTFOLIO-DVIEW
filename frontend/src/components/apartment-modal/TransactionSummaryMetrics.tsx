@@ -156,16 +156,16 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       <div className="pt-4">
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
           <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
-            <h5 className="text-[15px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
+            <h5 className="text-[16px] md:text-[18px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
               <button
                 onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev) => !prev); }}
-                className="w-4 h-4 rounded-full bg-toss-gray hover:bg-[#8b95a1] text-[10px] font-extrabold text-surface inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
+                className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-toss-gray hover:bg-[#8b95a1] text-[10px] md:text-[11px] font-extrabold text-surface inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
                 aria-label="기준 설명"
               >?</button>
             </h5>
             <div className="bg-body p-1 rounded-lg flex items-center shadow-inner ml-2">
-              <button onClick={() => setPeriodDealType('sale')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-              <button onClick={() => setPeriodDealType('jeonse')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+              <button onClick={() => setPeriodDealType('sale')} className={`px-3.5 py-1.5 rounded-md text-[13px] md:text-[14px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+              <button onClick={() => setPeriodDealType('jeonse')} className={`px-3.5 py-1.5 rounded-md text-[13px] md:text-[14px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
             </div>
           </div>
           {showPriceHelp && (
@@ -185,7 +185,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
             const isActive = priceTypeFilter === f.key;
             return (
               <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
-                className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                className={`shrink-0 px-3.5 py-2 rounded-[10px] text-[12px] md:text-[13px] font-bold transition-all ${
                   isActive
                     ? 'bg-primary text-surface shadow-sm'
                     : 'bg-body text-tertiary hover:bg-[#e5e8eb]'
@@ -197,53 +197,53 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
         <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
           <table className="w-full text-sm min-w-[600px] border-t border-body">
             <thead>
-              <tr className="border-b border-border text-tertiary text-[12px] font-bold bg-body">
-                <th className="py-2.5 px-2 text-center w-[52px] min-w-[52px] shrink-0">구분</th>
+              <tr className="border-b border-border text-tertiary text-[13px] md:text-[14px] font-bold bg-body">
+                <th className="py-3 px-2 text-center w-[56px] min-w-[56px] shrink-0">구분</th>
                 {periodData.map(p => (
-                  <th key={`th-${p.key}`} className="py-2.5 px-3 text-center whitespace-nowrap">{p.label}</th>
+                  <th key={`th-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">{p.label}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
-                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-secondary bg-body/50 align-middle">
+                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-body/50 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>평균</span>
                     <span>가격</span>
                   </div>
                 </td>
                 {periodData.map(p => (
-                  <td key={`price-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
-                    <span className="text-[13px] md:text-[14px] font-bold md:font-extrabold text-primary">{p.avgPriceEok}</span>
+                  <td key={`price-${p.key}`} className="py-3.5 px-3 text-center whitespace-nowrap">
+                    <span className="text-[14px] md:text-[16px] font-bold md:font-extrabold text-primary tracking-tight">{p.avgPriceEok}</span>
                   </td>
                 ))}
               </tr>
               <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
-                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-secondary bg-body/50 align-middle">
+                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-body/50 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>평당</span>
                     <span>가격</span>
                   </div>
                 </td>
                 {periodData.map(p => (
-                  <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-center">
+                  <td key={`perpyeong-${p.key}`} className="py-3.5 px-3 text-center">
                     <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
-                      <span className="text-[12px] md:text-[13px] font-bold text-secondary">{p.perPyeongEok}</span>
-                      <span className="text-[10px] md:text-[11px] text-tertiary font-medium tracking-tight">/평</span>
+                      <span className="text-[13px] md:text-[14px] font-bold text-secondary tracking-tight">{p.perPyeongEok}</span>
+                      <span className="text-[11px] md:text-[12px] text-tertiary font-medium tracking-tight">/평</span>
                     </div>
                   </td>
                 ))}
               </tr>
               <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
-                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-secondary bg-body/50 align-middle">
+                <td className="py-3.5 px-2 text-[13px] md:text-[14px] font-bold text-secondary bg-body/50 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>거래</span>
                     <span>건수</span>
                   </div>
                 </td>
                 {periodData.map(p => (
-                  <td key={`count-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
-                    <span className="text-[12px] md:text-[13px] font-medium text-tertiary">{p.count}건</span>
+                  <td key={`count-${p.key}`} className="py-3.5 px-3 text-center whitespace-nowrap">
+                    <span className="text-[13px] md:text-[14px] font-medium text-tertiary">{p.count}건</span>
                   </td>
                 ))}
               </tr>

@@ -221,7 +221,7 @@ export function TransactionTable({
               <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0 pr-2">
                 {/* 1. 날짜 */}
                 <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
-                  <div className={`text-[13px] md:text-[14px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                  <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
                     {tx.contractYm.substring(2, 4)}. {m}. {d}.
                   </div>
                   {isCancelled && (
@@ -233,14 +233,14 @@ export function TransactionTable({
                 
                 {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
                 <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
-                  <span className={`w-full text-center text-[13px] md:text-[14px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-[#333d4b]'}`} title={typeLabel}>
+                  <span className={`w-full text-center text-[14px] md:text-[15px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-[#333d4b]'}`} title={typeLabel}>
                     {typeLabel}
                   </span>
                 </div>
 
                 {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
                 <div className="w-[36px] md:w-[48px] shrink-0 text-center">
-                  <span className={`text-[13px] md:text-[14px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
+                  <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
                     {tx.floor}층
                   </span>
                 </div>
@@ -271,19 +271,19 @@ export function TransactionTable({
                   
                   {/* 가격 위계 분리 (억 단위 강조, 만 단위 고정폭 정렬) */}
                   <div className={`flex items-baseline justify-end shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] decoration-2' : ''}`}>
-                    {eok > 0 && <span className={`text-[15px] font-black mr-[2px] ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>{eok}억</span>}
+                    {eok > 0 && <span className={`text-[16px] md:text-[17px] font-black mr-[2px] ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>{eok}억</span>}
                     
                     {eok > 0 ? (
-                      <span className={`inline-block text-left tabular-nums text-[14px] font-bold ${!(tx.isOutlier || isCancelled) ? 'text-secondary' : ''} ${displayMonthly > 0 ? '' : 'w-[38px]'}`}>
+                      <span className={`inline-block text-left tabular-nums text-[15px] md:text-[16px] font-bold ${!(tx.isOutlier || isCancelled) ? 'text-secondary' : ''} ${displayMonthly > 0 ? '' : 'w-[40px]'}`}>
                         {rem > 0 ? rem.toLocaleString() : ''}
                       </span>
                     ) : (
-                      <span className={`text-[14px] font-black tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>
+                      <span className={`text-[15px] md:text-[16px] font-black tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>
                         {rem > 0 ? (displayMonthly > 0 ? rem.toLocaleString() : `${rem.toLocaleString()}만`) : '0'}
                       </span>
                     )}
 
-                    {displayMonthly > 0 && <span className={`text-[14px] font-bold ml-0.5 tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-tertiary' : ''}`}>/ {displayMonthly.toLocaleString()}</span>}
+                    {displayMonthly > 0 && <span className={`text-[15px] md:text-[16px] font-bold ml-0.5 tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-tertiary' : ''}`}>/ {displayMonthly.toLocaleString()}</span>}
                   </div>
                 </div>
               </div>
