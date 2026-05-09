@@ -210,12 +210,12 @@ export function TransactionChartSection({
           {[{label: '1개월', val: momentum.m1}, {label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}, {label: '3년', val: momentum.y3}].map((item, idx) => {
             const isTarget = item.label === '3개월';
             return (
-              <div key={item.label} className={`flex flex-col px-4 py-3 sm:px-5 sm:py-4 shrink-0 min-w-[90px] sm:min-w-[110px] flex-1 snap-center relative rounded-2xl border transition-all duration-200 ${isTarget ? 'bg-surface border-toss-blue shadow-[0_4px_16px_rgba(49,130,246,0.15)] ring-1 ring-toss-blue/20 z-10' : 'bg-body border-transparent hover:bg-[#e5e8eb]'}`}>
-                <span className={`text-[12px] sm:text-[13px] font-bold mb-1.5 flex items-center justify-between w-full ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
-                  {item.label} 평균
-                  {isTarget && <div className="w-2 h-2 bg-toss-blue rounded-full animate-pulse shadow-[0_0_8px_rgba(49,130,246,0.5)]" />}
-                </span>
-                <span className={`text-[16px] sm:text-[18px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+              <div key={item.label} className={`flex flex-col px-3 py-2.5 sm:px-5 sm:py-4 shrink-0 min-w-[95px] sm:min-w-[120px] flex-1 snap-center relative rounded-xl sm:rounded-2xl border transition-all duration-200 ${isTarget ? 'bg-surface border-toss-blue shadow-[0_4px_16px_rgba(49,130,246,0.15)] ring-1 ring-toss-blue/20 z-10' : 'bg-body border-transparent hover:bg-[#e5e8eb]'}`}>
+                <div className={`text-[11px] sm:text-[13px] font-bold mb-1 sm:mb-1.5 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
+                  <span>{item.label} 평균</span>
+                  {isTarget && <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 shrink-0 bg-toss-blue rounded-full animate-pulse shadow-[0_0_8px_rgba(49,130,246,0.5)]" />}
+                </div>
+                <span className={`text-[14.5px] sm:text-[18px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
