@@ -586,17 +586,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
 
       
-      {/* Scroll to Top Button */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed z-50 bottom-24 sm:bottom-8 right-4 sm:right-8 bg-surface text-primary shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border w-[46px] h-[46px] rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#f8f9fa] hover:scale-105 active:scale-95 ${
-          isScrolled ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-10 opacity-0 pointer-events-none'
-        }`}
-        aria-label="맨 위로 이동"
-        title="맨 위로 이동"
-      >
-        <ArrowUp size={22} strokeWidth={2.5} />
-      </button>
 
       {showReviewModal && user && (
         <WriteReviewModal onClose={() => setShowReviewModal(false)} userUid={user.uid} />

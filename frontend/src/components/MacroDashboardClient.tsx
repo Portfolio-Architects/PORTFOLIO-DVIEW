@@ -677,26 +677,6 @@ export default function MacroDashboardClient({
     <div className="w-full flex flex-col bg-surface relative">
       <div className="flex flex-col md:px-10 lg:px-16 py-0 md:py-6 lg:py-8 w-full">
         {/* Compact Dynamic Sticky Header (Mobile Only) */}
-        <div
-          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
-            isScrolled
-              ? "translate-y-0 opacity-100 shadow-sm"
-              : "-translate-y-full opacity-0 pointer-events-none"
-          }`}
-        >
-          <h1 className="text-[16px] font-extrabold text-[#191f28] tracking-tight">
-            D-VIEW 아파트 가격 분석
-          </h1>
-          <div className="flex items-center gap-3">
-            <FloatingUserBar />
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="p-1 -mr-1 rounded-full hover:bg-body transition-colors"
-            >
-              <ArrowUp className="w-5 h-5 text-tertiary" />
-            </button>
-          </div>
-        </div>
 
         {/* Top Header - Main Title */}
         <div className="flex flex-col gap-3 sm:gap-4 md:mb-8 px-4 sm:px-6 md:px-2 py-3 md:py-0 relative md:static md:bg-transparent border-b border-border md:border-none">
