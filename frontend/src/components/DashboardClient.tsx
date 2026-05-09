@@ -127,11 +127,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     if (typeof window !== 'undefined') {
       if (window.location.hash === '#imjang') {
         setActiveTab('imjang');
+      } else if (window.location.hash.startsWith('#lounge')) {
+        setActiveTab('lounge');
       }
 
       const handleHashChange = () => {
         startTransition(() => {
-          if (window.location.hash === '#lounge') setActiveTab('lounge');
+          if (window.location.hash.startsWith('#lounge')) setActiveTab('lounge');
           else if (window.location.hash === '#discover') setActiveTab('discover');
           else if (window.location.hash === '#imjang') setActiveTab('imjang');
           else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');

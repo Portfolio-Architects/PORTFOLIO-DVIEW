@@ -1312,7 +1312,12 @@ export default function MacroDashboardClient({
           </div>
 
           <div className="mt-6 flex justify-center">
-            <button className="flex items-center gap-1.5 px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-full transition-colors">
+            <button 
+              onClick={() => {
+                window.location.hash = 'lounge-news';
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-full transition-colors"
+            >
               Read Full Insights
               <ChevronRight className="w-4 h-4" />
             </button>

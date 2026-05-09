@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LoungeFeedClient from '@/components/LoungeFeedClient';
 import LoungeComposeClient from '@/components/LoungeComposeClient';
 
@@ -21,7 +21,22 @@ interface Post {
 export default function LoungeContainerClient({ initialPosts }: { initialPosts: Post[] }) {
   const [currentTab, setCurrentTab] = useState('전체');
 
-  const categories = ['전체', '동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'];
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleHashChange = () => {
+        if (window.location.hash === '#lounge-news') {
+          setCurrentTab('부동산 뉴스');
+        }
+      };
+      
+      handleHashChange(); // Run once on mount
+      
+      window.addEventListener('hashchange', handleHashChange);
+      return () => window.removeEventListener('hashchange', handleHashChange);
+    }
+  }, []);
+
+  const categories = ['전체', '부동산 뉴스', '동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
