@@ -39,7 +39,7 @@ const db = admin.firestore();
 
 const API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
 const LAWD_CD = '41590'; // 화성시 전체
-const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동'];
+const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
 
 // Sleep helper
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

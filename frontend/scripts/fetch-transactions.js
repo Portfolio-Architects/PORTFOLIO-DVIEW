@@ -18,7 +18,7 @@ const { HttpsProxyAgent } = require('https-proxy-agent');
 const axios = require('axios');
 
 const API_KEY = process.env.BUILDING_API_KEY || '';
-const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동'];
+const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 
 function formatPriceEok(priceMan) {

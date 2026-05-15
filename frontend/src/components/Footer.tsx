@@ -35,8 +35,8 @@ export default function Footer() {
           
           <p className="text-left lg:text-right w-full tracking-tight text-[11.5px]">
             <strong className="text-secondary font-bold mr-1">면책 조항:</strong>
-            D-VIEW가 제공하는 부동산 데이터 및 분석 리포트는 객관적인 정보 제공을 목적으로 하며, 단순 참고용입니다.<br />
-            당사는 본 정보를 바탕으로 한 어떠한 투자 결과에 대해서도 법적 책임을 지지 않습니다.
+            D-VIEW에서 제공하는 적정가 및 분석 지표는 공공데이터를 기반으로 한 통계/알고리즘적 추정치로, 실제 시장 가격과 다를 수 있습니다.<br />
+            부동산 거래에 대한 최종 판단과 책임은 사용자 본인에게 있습니다.
           </p>
         </div>
 

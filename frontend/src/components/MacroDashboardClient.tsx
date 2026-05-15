@@ -1374,7 +1374,7 @@ export default function MacroDashboardClient({
                                       {apt.name}
                                     </span>
                                     {apt.distToDongtan !== null && (
-                                      <span className="text-[13px] font-semibold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-[6px] ml-2 group-hover/apt:bg-[#e5e8eb] transition-colors">
+                                      <span className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2.5 py-1 rounded-[6px] ml-2 group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10">
                                         동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
                                       </span>
                                     )}
