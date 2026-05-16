@@ -788,8 +788,8 @@ export default function MacroDashboardClient({
   return (
     <div className="w-full flex flex-col bg-surface relative">
       <PageHeroHeader 
-        title="D-VIEW 아파트 가격 분석"
-        compactTitle="D-VIEW 아파트 가격 분석"
+        title="D-VIEW 데이터 랩"
+        compactTitle="D-VIEW 데이터 랩"
         subtitleStrong="데이터 기반 동탄 아파트 가치 분석"
         subtitleLight="실거래가 데이터, 통계 기반의 동탄 부동산 인사이트 제공"
         rightContent={
