@@ -30,7 +30,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
     <>
       {/* Dynamic Minimal Sticky Header */}
       <div 
-        className={`flex fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md border-b border-border shadow-sm z-50 transition-transform duration-300 items-center justify-between px-3 md:px-10 lg:px-16 h-[68px] ${
+        className={`flex fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 items-center justify-between px-3 md:px-10 lg:px-16 h-[68px] ${
           isScrolled ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
