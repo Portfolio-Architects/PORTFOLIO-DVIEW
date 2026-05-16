@@ -19,7 +19,7 @@ import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transacti
 import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
 import FloatingUserBar from "@/components/FloatingUserBar";
-import PageHeroHeader from "@/components/PageHeroHeader";
+import PageHeroHeader from "./PageHeroHeader";
 import {
   ArrowUp,
   Info,

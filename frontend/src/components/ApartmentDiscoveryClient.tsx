@@ -112,7 +112,7 @@ export default function ApartmentDiscoveryClient({
   }, [fieldReportsMap, onSelectReport]);
 
   return (
-    <div className="flex flex-col h-full bg-[#f8f9fa] overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col bg-transparent">
       {/* Hero Header */}
       <PageHeroHeader 
         title="D-VIEW 골라보기"
@@ -137,9 +137,6 @@ export default function ApartmentDiscoveryClient({
           />
         );
       })}
-      
-      {/* Bottom Padding */}
-      <div className="h-[80px] shrink-0 bg-transparent" />
     </div>
   );
 }
@@ -226,15 +223,15 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
   });
 
   return (
-    <div ref={ref} className="py-6 mb-4 min-h-[350px] bg-white">
-      <div className="px-4 sm:px-6 md:px-10 lg:px-16 mb-5 flex flex-col">
+    <div ref={ref} className="pt-6 pb-6 bg-transparent">
+      <div className="mb-4 flex flex-col">
          <h3 className="text-[22px] md:text-[26px] font-extrabold text-[#191f28] tracking-tight">
            {cat.label}
          </h3>
       </div>
       
       {inView && (
-        <div className="flex items-stretch gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-8 pt-2">
+        <div className="flex items-stretch gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-5 pt-2">
           {apts.map((apt: any, rankIndex: number) => {
              const rawKey = apt.txKey || apt.name;
              const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
