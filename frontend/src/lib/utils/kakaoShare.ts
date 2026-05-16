@@ -86,7 +86,7 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: `${aptName}, 지금 팔면 호구일까? (AI 가치분석)`,
+        title: `${aptName}, 지금 사면 호구일까? (AI 가치분석)`,
         description: description,
         imageUrl: finalImageUrl,
         link: {
