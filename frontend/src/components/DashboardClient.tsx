@@ -130,6 +130,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     if (typeof window !== 'undefined') {
       if (window.location.hash === '#imjang') {
         setActiveTab('imjang');
+      } else if (window.location.hash === '#discover') {
+        setActiveTab('discover');
       } else if (window.location.hash.startsWith('#lounge')) {
         setActiveTab('lounge');
       }

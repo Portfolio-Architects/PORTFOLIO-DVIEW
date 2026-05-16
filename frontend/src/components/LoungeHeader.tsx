@@ -56,7 +56,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
-              <Link
+              <a
                 href="/#overview"
                 onClick={() => {
                   if (onTabChange) onTabChange('overview');
@@ -70,23 +70,23 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               >
                 <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-toss-blue' : ''} />
                 데이터 랩
-              </Link>
+              </a>
               
-              <Link
+              <a
                 href="/#imjang"
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
               >
                 <Home size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                 <span>아파트 탐색</span>
-              </Link>
+              </a>
               
-              <Link
+              <a
                 href="/#discover"
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
               >
                 <Compass size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                 <span>골라보기</span>
-              </Link>
+              </a>
 
               <Link
                 href="/lounge"
