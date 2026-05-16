@@ -23,6 +23,7 @@ import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryM
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import { shareAptToKakao } from '@/lib/utils/kakaoShare';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -333,6 +334,31 @@ function FieldReportModal({
     active ? 'bg-toss-blue-light text-toss-blue' : 'bg-transparent text-secondary hover:bg-body'
   }`;
 
+  const handleKakaoShare = () => {
+    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const latestSale = saleTxs[0];
+    const latestJeonse = jeonseTxs[0];
+
+    const price = latestSale ? latestSale.price : 0;
+    const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+    
+    const priceEok = Math.floor(price / 10000);
+    const priceMan = price % 10000;
+    const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+
+    const encodedTitle = encodeURIComponent(`${displayAptName} 가치분석`);
+    const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
+
+    shareAptToKakao({
+      aptName: displayAptName,
+      priceEok,
+      priceMan,
+      ratio,
+      imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`
+    });
+  };
+
 
 
   const content = (
@@ -353,6 +379,13 @@ function FieldReportModal({
             >
               <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
             </a>
+            <button
+              onClick={handleKakaoShare}
+              className="text-[#FFE812] hover:bg-[#FFE812]/10 p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center"
+              title="카카오톡으로 단지 공유하기"
+            >
+              <Share className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform text-[#3C1E1E]" fill="#FFE812" strokeWidth={1.5} />
+            </button>
           </h1>
         </div>
 

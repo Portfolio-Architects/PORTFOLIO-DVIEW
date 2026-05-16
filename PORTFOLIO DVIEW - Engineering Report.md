@@ -97,6 +97,7 @@ src/
 | **Valuation**| 상대가치 평가 | /components/consumer | Utility Score 및 실거주 PER 대시보드 |
 | **Validation** | 임장 리포트 | scoutingReports | 현장 팩트체크 |
 | **Community** | 댓글/리뷰 | comments, reviews | 유저 피드백 |
+| **Growth** | 카카오톡 공유 | kakaoShare | 동적 OG 이미지 및 커스텀 공유 템플릿(Viral/바이럴) 연동 |
 | **Admin** | Sheets 동기화 | /api/admin/* | 일괄 업데이트 |
 | **Admin** | 종합 보고서 | /admin/report | SSOT 리포트 |
 | **Admin** | 트래픽 분석 및 제외 | scoutingReports | 방문자 트래픽 집계 및 Admin(개발자) 제외 로직 |

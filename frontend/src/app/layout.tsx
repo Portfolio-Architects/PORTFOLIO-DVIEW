@@ -7,6 +7,7 @@ import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import NextTopLoader from 'nextjs-toploader';
+import Script from 'next/script';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import SettingsModal from '@/components/SettingsModal';
@@ -64,7 +65,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+      </head>
       <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200">
+        <Script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" strategy="lazyOnload" />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SettingsProvider>
             {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
