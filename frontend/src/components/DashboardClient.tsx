@@ -497,10 +497,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       {/* Main Container */}
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto animate-in fade-in duration-500">
-
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
-        {mounted && activeTab === 'overview' && (
-          <section className="w-full bg-surface pb-8 md:pb-0 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0">
+        {mounted && (
+          <section className={`w-full bg-surface pb-8 md:pb-0 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
             <MacroDashboardClient 
               sheetApartments={sheetApartments} 
               txSummaryData={txSummaryData}
@@ -536,8 +535,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         )}
 
         {/* ═══ TAB 1: 아파트 탐색 (Toss-style 골라보기 테이블) ═══ */}
-        {mounted && activeTab === 'imjang' && (
-          <section className="w-full bg-surface">
+        {mounted && (
+          <section className={`w-full bg-surface ${activeTab === 'imjang' ? 'block' : 'hidden'}`}>
             <TossApartmentExploreClient
               sheetApartments={sheetApartments}
               txSummaryData={txSummaryData}
@@ -573,9 +572,31 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               }}
               onToggleFavorite={(name: string) => handleToggleFavorite(name, handleLogin)}
             />
+        {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
+        {mounted && (
+          <section className={`w-full bg-surface ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
+            <LoungeContainerClient initialPosts={[]} />
           </section>
         )}
 
+        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
+        {mounted && (
+          <section className={`w-full ${activeTab === 'discover' ? 'block' : 'hidden'}`}>
+            <ApartmentDiscoveryClient
+              sheetApartments={sheetApartments}
+              fieldReports={fieldReports}
+              userFavorites={userFavorites}
+              nameMapping={nameMapping || {}}
+              publicRentalSet={publicRentalSet}
+              txSummaryData={txSummaryData}
+              favoriteCounts={favoriteCounts}
+              onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
+              onSelectReport={setSelectedReport as any}
+              typeMap={typeMap}
+            />
+          </section>
+        )}
+        
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {resolvedReport && mobileModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -608,38 +629,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </div>
           </div>
         )}
-
-        {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
-        {mounted && activeTab === 'lounge' && (
-          <section className="w-full bg-surface">
-            <LoungeContainerClient initialPosts={[]} />
-          </section>
-        )}
-
-        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
-        {mounted && activeTab === 'discover' && (
-          <section className="w-full">
-            <ApartmentDiscoveryClient
-              sheetApartments={sheetApartments}
-              fieldReports={fieldReports}
-              userFavorites={userFavorites}
-              nameMapping={nameMapping || {}}
-              publicRentalSet={publicRentalSet}
-              txSummaryData={txSummaryData}
-              favoriteCounts={favoriteCounts}
-              onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
-              onSelectReport={setSelectedReport as any}
-              typeMap={typeMap}
-            />
-          </section>
-        )}
       </main>
-
-
-
-
-
-      
 
       {showReviewModal && user && (
         <WriteReviewModal onClose={() => setShowReviewModal(false)} userUid={user.uid} />

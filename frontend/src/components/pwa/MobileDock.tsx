@@ -45,7 +45,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
 
           // Lounge or cross-page links
           return (
-            <a
+            <Link
               key={tab.id}
               href={tab.href}
               className={`flex flex-col items-center justify-center w-full min-h-[44px] rounded-[20px] transition-all duration-300 relative ${
@@ -57,7 +57,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
               )}
               <tab.icon size={20} strokeWidth={isActive ? 2.5 : 2} className="mb-0.5 relative z-10" />
               <span className="text-[10px] font-bold tracking-wide relative z-10">{tab.label}</span>
-            </a>
+            </Link>
           );
         })}
       </div>
