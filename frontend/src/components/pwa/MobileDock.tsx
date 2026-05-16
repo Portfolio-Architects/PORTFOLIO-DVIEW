@@ -6,7 +6,7 @@ import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
   activeTab: 'imjang' | 'lounge' | 'discover' | 'overview';
-  onTabClick?: (tab: 'imjang' | 'discover' | 'overview') => void;
+  onTabClick?: (tab: 'imjang' | 'lounge' | 'discover' | 'overview') => void;
 }
 
 export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
@@ -24,12 +24,12 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
         ].map(tab => {
           const isActive = activeTab === tab.id;
           
-          if (onTabClick && tab.id !== 'lounge') {
+          if (onTabClick) {
              // Dashboard usage
              return (
                <button
                  key={tab.id}
-                 onClick={() => onTabClick(tab.id as 'imjang' | 'discover' | 'overview')}
+                 onClick={() => onTabClick(tab.id as 'imjang' | 'lounge' | 'discover' | 'overview')}
                  className={`flex flex-col items-center justify-center w-full min-h-[44px] rounded-[20px] transition-all duration-300 relative ${
                    isActive ? 'text-toss-blue' : 'text-tertiary hover:text-secondary'
                  }`}
