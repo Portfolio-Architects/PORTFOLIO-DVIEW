@@ -35,9 +35,9 @@ export default function PageHeroHeader({
     <>
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
       <div
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-all duration-300 ${
           isScrolled
-            ? "translate-y-0 opacity-100 shadow-sm"
+            ? "translate-y-0 opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
