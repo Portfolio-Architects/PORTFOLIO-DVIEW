@@ -153,6 +153,45 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
   }, []);
 
+  // Handle #apt= hash to open modal automatically (e.g. from Kakao Share)
+  useEffect(() => {
+    if (!mounted || !sheetApartments) return;
+    
+    const checkHashForApt = () => {
+      if (window.location.hash.startsWith('#apt=')) {
+        const aptName = decodeURIComponent(window.location.hash.replace('#apt=', ''));
+        const allApts = Object.values(sheetApartments).flat();
+        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, nameMapping));
+        
+        if (targetApt) {
+          userHasSelected.current = true;
+          const report = fieldReportsMap.get(targetApt.name);
+          if (report) {
+            setSelectedReport(report);
+          } else {
+            setSelectedReport({
+              id: `stub-${normalizeAptName(targetApt.name)}`,
+              apartmentName: targetApt.name,
+              dong: targetApt.dong,
+              author: '',
+              likes: 0,
+              commentCount: 0,
+              createdAt: null,
+              metrics: { ...targetApt, ...((locationScoresData as Record<string, any>)[targetApt.name] || {}) } as any,
+            });
+          }
+          setMobileModalOpen(true);
+        }
+      }
+    };
+
+    // Check once on mount/data-load
+    checkHashForApt();
+    
+    window.addEventListener('hashchange', checkHashForApt);
+    return () => window.removeEventListener('hashchange', checkHashForApt);
+  }, [mounted, sheetApartments, fieldReportsMap, nameMapping]);
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
