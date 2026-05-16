@@ -50,7 +50,7 @@ export default function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[29px] md:pt-11 lg:pt-14 pb-5 md:pb-8 w-full bg-white border-b border-[#f2f4f6] shrink-0 z-20 relative">
+      <div className="flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[38px] md:pt-11 lg:pt-14 pb-5 md:pb-8 w-full bg-white border-b border-[#f2f4f6] shrink-0 z-20 relative">
         <div className="flex items-start justify-between w-full">
           <div className="flex flex-col gap-[19px] sm:gap-[23px]">
             <div className="flex items-center gap-3 sm:gap-4">
@@ -67,7 +67,7 @@ export default function PageHeroHeader({
               {rightContent}
             </div>
             
-            <div className="md:hidden flex items-center justify-end absolute right-4 top-[26px]">
+            <div className="md:hidden flex items-center justify-end absolute right-4 top-[34px]">
               <FloatingUserBar />
             </div>
 
