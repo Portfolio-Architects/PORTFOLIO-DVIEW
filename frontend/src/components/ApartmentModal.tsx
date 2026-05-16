@@ -369,6 +369,42 @@ function FieldReportModal({
     });
   };
 
+  const handleNativeShare = async () => {
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(report.apartmentName)}`;
+    const title = `${displayAptName} 가치분석 리포트`;
+    
+    // Extract price and jeonse logic identical to kakao share
+    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const latestSale = saleTxs[0];
+    const latestJeonse = jeonseTxs[0];
+
+    const price = latestSale ? latestSale.price : 0;
+    const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+    
+    const priceEok = Math.floor(price / 10000);
+    const priceMan = price % 10000;
+    const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+
+    const desc = `실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%\nDVIEW에서 ${displayAptName} 단지의 입지, 학군, 실거래가 밸류에이션 리포트를 지금 확인해보세요.`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: desc,
+          url: shareUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error("Native share failed:", err);
+          handleCopyLink();
+        }
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
 
 
   const content = (
@@ -1156,7 +1192,7 @@ function FieldReportModal({
           </div>
 
           {/* Mobile Sticky CTA (공유하기) */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] pb-safe">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
             <div className="flex items-center gap-2 w-full">
               <button
                 onClick={onClose}
@@ -1167,21 +1203,11 @@ function FieldReportModal({
               </button>
               
               <button
-                onClick={handleKakaoShare}
-                className="flex-1 h-[56px] bg-[#FEE500] active:bg-[#FEE500]/80 text-[#3A1D1D] font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-sm transition-colors"
+                onClick={handleNativeShare}
+                className="flex-1 h-[56px] bg-toss-blue active:bg-toss-blue/90 text-white font-extrabold text-[15px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_16px_rgba(49,130,246,0.2)] hover:shadow-[0_10px_20px_rgba(49,130,246,0.3)] transition-all transform hover:-translate-y-0.5"
               >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                </svg>
-                카톡 공유
-              </button>
-
-              <button
-                onClick={handleCopyLink}
-                className="w-[56px] h-[56px] bg-white active:bg-gray-50 text-[#4e5968] rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0 transition-colors"
-                title="링크 복사"
-              >
-                <Link2 size={24} strokeWidth={2.5} />
+                <Share size={20} strokeWidth={2.5} className="mr-0.5" />
+                이 아파트 분석 리포트 공유하기
               </button>
             </div>
           </div>
