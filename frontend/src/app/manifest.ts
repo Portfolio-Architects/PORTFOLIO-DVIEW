@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#ffffff',
+    background_color: '#f2f4f6',
+    theme_color: '#00d29d',
     icons: [
       {
         src: '/icon-192x192.png?v=8',
