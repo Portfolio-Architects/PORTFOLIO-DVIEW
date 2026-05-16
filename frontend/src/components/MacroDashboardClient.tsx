@@ -55,27 +55,33 @@ const InfoBox = ({
   color = "#00d29d",
 }: any) => {
   return (
-    <div className="bg-[#f4f5f6] rounded-xl p-2.5 sm:px-4 sm:py-3.5 flex flex-col gap-1.5 sm:gap-1.5 shadow-sm border border-[#e5e8eb] h-full justify-center">
-      <div className="text-[11px] sm:text-[13px] font-bold text-[#8b95a1] tracking-tight min-w-0 w-full break-keep leading-tight">
+    <div className="bg-[#f4f5f6] rounded-[14px] p-3 md:px-4 md:py-4 flex flex-col gap-1.5 md:gap-1.5 shadow-sm border border-[#e5e8eb] h-full justify-center">
+      {/* Title Area */}
+      <div className="text-[12px] md:text-[13px] font-bold text-[#8b95a1] tracking-tight min-w-0 w-full break-keep leading-snug">
         {title}
       </div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1.5 sm:gap-2 mt-0.5 sm:mt-0">
-        <div className="flex items-baseline gap-1 min-w-0">
-          <span className="text-[13.5px] sm:text-[17px] lg:text-[18px] font-extrabold text-[#191f28] break-keep leading-tight">
+
+      {/* Content Area */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-1.5 md:gap-2 mt-0.5 md:mt-0">
+
+        {/* Value & Unit */}
+        <div className="flex items-baseline gap-1 min-w-0 flex-wrap">
+          <span className="text-[15px] md:text-[18px] lg:text-[19px] font-extrabold text-[#191f28] tracking-tight break-keep leading-tight">
             {value}
           </span>
           {unit && (
-            <span className="text-[10px] sm:text-[12px] font-bold text-[#4e5968] shrink-0">
+            <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968] tracking-tight shrink-0">
               {unit}
             </span>
           )}
         </div>
 
+        {/* Badges / Progress */}
         {(progress !== undefined || badge) && (
-          <div className="flex items-center shrink-0 self-start sm:self-auto sm:ml-auto gap-2">
+          <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-2">
             {badge && (
-              <div className="bg-white border border-[#e5e8eb] px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-sm">
-                <span className="text-[11px] sm:text-[13.5px] font-extrabold text-[#00d29d] whitespace-nowrap">
+              <div className="bg-white border border-[#e5e8eb] px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md shadow-sm">
+                <span className="text-[11.5px] md:text-[13.5px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
                   {badge}
                 </span>
               </div>
@@ -83,10 +89,10 @@ const InfoBox = ({
             {progress !== undefined && (
               <div className="relative flex items-center justify-center">
                 <svg
-                  width="24"
-                  height="24"
+                  width="20"
+                  height="20"
                   viewBox="0 0 32 32"
-                  className="transform -rotate-90"
+                  className="transform -rotate-90 md:w-6 md:h-6"
                 >
                   <circle
                     cx="16"
@@ -149,7 +155,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <div
               key={index}
               className="flex items-center justify-between gap-6"
-              >
+            >
               <div className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
@@ -399,8 +405,8 @@ export default function MacroDashboardClient({
   const topTierRatio =
     totalHouseholds > 0
       ? (((donutData[0]?.value || 0) + (donutData[1]?.value || 0)) /
-          totalHouseholds) *
-        100
+        totalHouseholds) *
+      100
       : 0;
   const topTierLabel =
     chartMode === "price" ? "PREMIUM (1급지+)" : "NEW APT (10년내)";
@@ -574,6 +580,46 @@ export default function MacroDashboardClient({
     setExpandedGroups((prev) => ({ ...prev, [title]: !prev[title] }));
   };
 
+  const isPointInPolygon = (point: { lat: number; lng: number }, vs: { lat: number; lng: number }[]) => {
+    let x = point.lng, y = point.lat;
+    let inside = false;
+    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+      let xi = vs[i].lng, yi = vs[i].lat;
+      let xj = vs[j].lng, yj = vs[j].lat;
+      let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+
+  const sibumPolygon = [
+    { lat: 37.204400, lng: 127.099303 },
+    { lat: 37.194603, lng: 127.099151 },
+    { lat: 37.199094, lng: 127.115916 },
+    { lat: 37.203404, lng: 127.112905 }
+  ];
+
+  const culturePolygon = [
+    { lat: 37.194037, lng: 127.082630 },
+    { lat: 37.193915, lng: 127.099012 },
+    { lat: 37.178302, lng: 127.103808 },
+    { lat: 37.188171, lng: 127.083393 }
+  ];
+
+  const waterfrontPolygon = [
+    { lat: 37.172228, lng: 127.094673 },
+    { lat: 37.171307, lng: 127.118744 },
+    { lat: 37.165758, lng: 127.114791 },
+    { lat: 37.165082, lng: 127.091299 }
+  ];
+
+  const gwangBizPolygon = [
+    { lat: 37.204512, lng: 127.085889 },
+    { lat: 37.194624, lng: 127.083147 },
+    { lat: 37.194700, lng: 127.098262 },
+    { lat: 37.204544, lng: 127.098434 }
+  ];
+
   const accordionData = useMemo(() => {
     if (!sheetApartments || !txSummaryData) return [];
 
@@ -589,65 +635,50 @@ export default function MacroDashboardClient({
         const distToDongtan =
           lat && lng
             ? haversineDistance(
-                { lat: Number(lat), lng: Number(lng) },
-                dongtanCoord
-              )
+              { lat: Number(lat), lng: Number(lng) },
+              dongtanCoord
+            )
             : null;
 
         let themeTitles: string[] = [];
 
         // ==========================================
-        // [TODO] 아래 좌표 기준(Bounding Box)을 자유롭게 수정하여 아파트를 편입시키세요.
-        // ==========================================
-        const isSibumName = apt.name.includes("시범");
+        const isSibumArea = lat !== 0 && lng !== 0 && isPointInPolygon({ lat: Number(lat), lng: Number(lng) }, sibumPolygon);
+        const isCultureArea = lat !== 0 && lng !== 0 && isPointInPolygon({ lat: Number(lat), lng: Number(lng) }, culturePolygon);
+        const isLakeArea = lat !== 0 && lng !== 0 && isPointInPolygon({ lat: Number(lat), lng: Number(lng) }, waterfrontPolygon);
+        const isGwangBizArea = lat !== 0 && lng !== 0 && isPointInPolygon({ lat: Number(lat), lng: Number(lng) }, gwangBizPolygon);
         const isDongtanName = apt.name.includes("동탄역");
 
         let isDongtanArea = false;
         if (distToDongtan !== null) {
-            isDongtanArea = distToDongtan <= 1500;
+          isDongtanArea = distToDongtan <= 1500;
         } else {
-            isDongtanArea = isDongtanName || apt.dong === "오산동" || apt.dong === "여울동";
+          isDongtanArea = isDongtanName || apt.dong === "오산동" || apt.dong === "여울동";
         }
 
-        if (isDongtanArea && isSibumName) {
-          themeTitles.push("동탄역세권", "시범 단지");
-        } else if (isDongtanArea) {
+        const is1Dongtan = apt.dong === "반송동" || apt.dong === "능동" || apt.dong === "석우동";
+
+        // 동탄역세권은 중복 편입을 허용하므로 독립적으로 push
+        if (isDongtanArea) {
           themeTitles.push("동탄역세권");
-        } else if (isSibumName) {
-          themeTitles.push("시범 단지");
-        } else if (lat !== 0 && lng !== 0) {
-          if (lng < 127.085) {
-            themeTitles.push("1동탄");
-          } else if (lat > 37.205) {
-            themeTitles.push("테크노밸리");
-          } else if (lat < 37.175) {
-            themeTitles.push("호수공원");
-          } else if (
-            lat >= 37.195 &&
-            lat <= 37.205 &&
-            lng >= 127.1 &&
-            lng <= 127.115
-          ) {
-            themeTitles.push("시범 단지");
-          } else {
-            themeTitles.push("문화디자인밸리");
-          }
-        } else {
-          // 좌표가 누락된 데이터에 대한 예외 처리 (수동 매핑)
-          if (apt.dong === "청계동") themeTitles.push("시범 단지");
-          else if (apt.dong === "영천동") themeTitles.push("테크노밸리");
-          else if (apt.dong === "산척동" || apt.dong === "송동")
-            themeTitles.push("호수공원");
-          else if (
-            apt.dong === "반송동" ||
-            apt.dong === "능동" ||
-            apt.dong === "석우동"
-          )
-            themeTitles.push("1동탄");
-          else themeTitles.push("문화디자인밸리");
         }
 
-        if (themeTitles.length === 0) themeTitles.push("기타 권역");
+        // 나머지 권역들은 Mutually Exclusive
+        if (isGwangBizArea) {
+          themeTitles.push("광역비지니스컴플렉스");
+        } else if (isSibumArea) {
+          themeTitles.push("커뮤니티시범단지");
+        } else if (isCultureArea) {
+          themeTitles.push("문화디자인밸리");
+        } else if (isLakeArea) {
+          themeTitles.push("워터프론트컴플렉스");
+        } else if (is1Dongtan) {
+          themeTitles.push("1동탄");
+        }
+
+        if (themeTitles.length === 0) {
+          themeTitles.push("기타 권역");
+        }
 
         if (publicRentalSet.has(apt.name)) return;
         const rawTxKey =
@@ -719,12 +750,12 @@ export default function MacroDashboardClient({
 
     const themeOrder = [
       "동탄역세권",
-      "시범 단지",
-      "시범 커뮤니티",
-      "호수공원",
+      "광역비지니스컴플렉스",
+      "커뮤니티시범단지",
+      "워터프론트컴플렉스",
       "문화디자인밸리",
-      "테크노밸리",
       "1동탄",
+      "기타 권역",
     ];
 
     const result = Object.values(grouped)
@@ -752,11 +783,10 @@ export default function MacroDashboardClient({
       <div className="flex flex-col md:px-10 lg:px-16 pt-[22px] md:pt-12 lg:pt-16 pb-0 md:pb-12 lg:pb-16 w-full">
         {/* Compact Dynamic Sticky Header (Mobile Only) */}
         <div
-          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
-            isScrolled
-              ? "translate-y-0 opacity-100 shadow-sm"
-              : "-translate-y-full opacity-0 pointer-events-none"
-          }`}
+          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${isScrolled
+            ? "translate-y-0 opacity-100 shadow-sm"
+            : "-translate-y-full opacity-0 pointer-events-none"
+            }`}
         >
           <h1 className="text-[16px] font-extrabold text-[#191f28] tracking-tight">
             D-VIEW 아파트 가격 분석
@@ -818,21 +848,19 @@ export default function MacroDashboardClient({
                 <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
                   <button
                     onClick={() => setChartMode("price")}
-                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
-                      chartMode === "price"
-                        ? "bg-white text-[#191f28] shadow-sm"
-                        : "text-[#8b95a1] hover:text-[#4e5968]"
-                    }`}
+                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === "price"
+                      ? "bg-white text-[#191f28] shadow-sm"
+                      : "text-[#8b95a1] hover:text-[#4e5968]"
+                      }`}
                   >
                     매매가
                   </button>
                   <button
                     onClick={() => setChartMode("pyeong")}
-                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
-                      chartMode === "pyeong"
-                        ? "bg-white text-[#191f28] shadow-sm"
-                        : "text-[#8b95a1] hover:text-[#4e5968]"
-                    }`}
+                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === "pyeong"
+                      ? "bg-white text-[#191f28] shadow-sm"
+                      : "text-[#8b95a1] hover:text-[#4e5968]"
+                      }`}
                   >
                     평당가
                   </button>
@@ -857,6 +885,7 @@ export default function MacroDashboardClient({
                   <ResponsiveContainer
                     width="100%"
                     minWidth={1}
+                    minHeight={1}
                     height={240}
                     className="relative z-10"
                   >
@@ -974,8 +1003,8 @@ export default function MacroDashboardClient({
               <InfoBox
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
-                    <span className="break-keep">
-                      동탄 아파트 평균 매매/평당가
+                    <span className="break-keep whitespace-nowrap tracking-tight">
+                      평균 매매/평당가
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
 
@@ -1000,7 +1029,7 @@ export default function MacroDashboardClient({
               <InfoBox
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
-                    <span className="break-keep">전월 대비 가격 변동</span>
+                    <span className="break-keep whitespace-nowrap tracking-tight">전월 대비 가격 변동</span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
 
                     {/* Tooltip */}
@@ -1057,11 +1086,10 @@ export default function MacroDashboardClient({
                   <button
                     key={tf}
                     onClick={() => setTimeframe(tf as any)}
-                    className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${
-                      timeframe === tf
-                        ? "bg-white text-[#191f28] shadow-sm"
-                        : "text-[#8b95a1] hover:text-[#4e5968]"
-                    }`}
+                    className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${timeframe === tf
+                      ? "bg-white text-[#191f28] shadow-sm"
+                      : "text-[#8b95a1] hover:text-[#4e5968]"
+                      }`}
                   >
                     {tf}
                   </button>
@@ -1071,7 +1099,7 @@ export default function MacroDashboardClient({
 
             <div className="flex-1 w-full min-h-[230px] relative">
               <div className="absolute inset-0">
-                <ResponsiveContainer width="100%" height="100%" minHeight={230}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <LineChart
                     data={lineData}
                     margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
@@ -1183,45 +1211,43 @@ export default function MacroDashboardClient({
           <div className="flex items-center gap-2">
             <div className="w-[3px] h-[16px] bg-[#00d29d] rounded-full" />
             <h2 className="text-[22px] font-bold text-[#191f28]">
-              지역별 분류
+              권역별 단지 분류
             </h2>
           </div>
-          
+
           {/* Toss Style Segmented Control for Accordion */}
           <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
             <button
               onClick={() => setAccordionMode("price")}
-              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
-                accordionMode === "price"
-                  ? "bg-white text-[#191f28] shadow-sm"
-                  : "text-[#8b95a1] hover:text-[#4e5968]"
-              }`}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "price"
+                ? "bg-white text-[#191f28] shadow-sm"
+                : "text-[#8b95a1] hover:text-[#4e5968]"
+                }`}
             >
               매매가
             </button>
             <button
               onClick={() => setAccordionMode("pyeong")}
-              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
-                accordionMode === "pyeong"
-                  ? "bg-white text-[#191f28] shadow-sm"
-                  : "text-[#8b95a1] hover:text-[#4e5968]"
-              }`}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "pyeong"
+                ? "bg-white text-[#191f28] shadow-sm"
+                : "text-[#8b95a1] hover:text-[#4e5968]"
+                }`}
             >
               평단가
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pb-10 px-3 sm:px-6 md:px-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-10 px-3 sm:px-6 md:px-0 items-start">
           {accordionData.map((group) => {
             const isExpanded = expandedGroups[group.title];
-            
+
             const themeColors: Record<string, string> = {
               "동탄역세권": "#3182f6",
-              "시범 커뮤니티": "#af52de",
-              "호수공원": "#00d29d",
+              "광역비지니스컴플렉스": "#ff9f0a",
+              "커뮤니티시범단지": "#af52de",
+              "워터프론트컴플렉스": "#00d29d",
               "문화디자인밸리": "#f04452",
-              "테크노밸리": "#ff9f28",
               "1동탄": "#4e5968",
             };
             const themeColor = themeColors[group.title] || "#00d29d";
@@ -1237,37 +1263,38 @@ export default function MacroDashboardClient({
                   onClick={() => toggleGroup(group.title)}
                 >
                   <div className="flex items-center gap-3.5">
-                    <div 
-                      className="w-[12px] h-[12px] rounded-full shadow-sm" 
+                    <div
+                      className="w-[12px] h-[12px] rounded-full shadow-sm"
                       style={{ backgroundColor: themeColor }}
                     />
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
+                        <span className="text-[16px] md:text-[18px] font-extrabold text-[#191f28] tracking-tight">
                           {group.title}
                         </span>
                         {group.title === "동탄역세권" && (
                           <div className="relative group/info flex items-center">
                             <Info className="w-4 h-4 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
-                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-[#191f28] text-white text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[10px] shadow-lg z-50 pointer-events-none flex flex-col gap-3 text-left">
-                              <span className="font-bold text-[#3182f6] text-[15px]">동탄역세권 설정 기준의 다차원적 분석</span>
+                            <div className="absolute left-0 bottom-full mb-3 w-max max-w-[280px] sm:max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-white text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 z-50 pointer-events-none flex flex-col gap-3 text-left">
+                              <span className="font-bold text-[#3182f6] text-[15px]">동탄역세권 설정 기준</span>
                               <div>
-                                <span className="font-bold text-white/90">1. 공간적·물리적 기준</span><br />
-                                <span className="text-white/70">1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)<br />
-                                2차: 반경 1km 이내 (경부고속도로 지하화에 따른 광비콤 서측 동서 단절 해소 반영)</span>
+                                <span className="font-bold text-[#191f28]">1. 공간적·물리적 기준</span><br />
+                                <span className="text-[#4e5968]">1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)<br />
+                                  2차: 반경 1km 이내 (경부 지하화로 인한 광비콤 서측 동서 단절 해소)</span>
                               </div>
-                              <div className="pt-1.5 border-t border-white/10">
-                                <span className="font-bold text-white/90">2. 시간 및 교통 연계적 기준</span><br />
-                                <span className="text-white/70">복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경(Equivalent Radius) 적용.<br />
-                                ➡ <span className="text-white/90">1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류.</span></span>
+                              <div className="pt-2 border-t border-gray-100">
+                                <span className="font-bold text-[#191f28]">2. 시간 및 교통 연계적 기준</span><br />
+                                <span className="text-[#4e5968]">복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경 적용.<br />
+                                  ➡ <span className="font-bold text-[#3182f6]">1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류.</span></span>
                               </div>
-                              <div className="mt-1 bg-[#3182f6]/20 text-[#3182f6] px-2 py-1 rounded-[4px] text-center font-bold">
-                                * 현재 물리+시간적 1.5km 통합 기준 적용 중
+                              <div className="mt-1 bg-[#3182f6]/10 text-[#3182f6] px-2 py-1.5 rounded-[6px] text-center font-bold">
+                                물리+시간적 1.5km 통합 기준 적용
                               </div>
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-[#191f28]" />
+                              <div className="absolute top-full left-3 border-[6px] border-transparent border-t-white" />
                             </div>
                           </div>
                         )}
+
                       </div>
                     </div>
                   </div>
@@ -1279,7 +1306,7 @@ export default function MacroDashboardClient({
                           return (
                             <>
                               <div className="flex items-baseline gap-1">
-                                <span className="text-[20px] font-extrabold text-[#191f28]">
+                                <span className="text-[16px] md:text-[20px] font-extrabold text-[#191f28]">
                                   {value}
                                 </span>
                                 <span className="text-[12px] font-bold text-[#8b95a1]">
@@ -1295,7 +1322,7 @@ export default function MacroDashboardClient({
                       ) : (
                         <>
                           <div className="flex items-baseline gap-1">
-                            <span className="text-[20px] font-extrabold text-[#191f28]">
+                            <span className="text-[16px] md:text-[20px] font-extrabold text-[#191f28]">
                               {Math.round(group.avgPyeongPrice).toLocaleString()}
                             </span>
                             <span className="text-[12px] font-bold text-[#8b95a1]">
@@ -1325,20 +1352,20 @@ export default function MacroDashboardClient({
                       {(() => {
                         const TIERS = accordionMode === "price"
                           ? [
-                              { name: "15억원 이상", min: 150000, max: Infinity },
-                              { name: "10억~15억원", min: 100000, max: 150000 },
-                              { name: "8억~10억원", min: 80000, max: 100000 },
-                              { name: "6억~8억원", min: 60000, max: 80000 },
-                              { name: "6억원 미만", min: 0, max: 60000 },
-                            ]
+                            { name: "15억원 이상", min: 150000, max: Infinity },
+                            { name: "10억~15억원", min: 100000, max: 150000 },
+                            { name: "8억~10억원", min: 80000, max: 100000 },
+                            { name: "6억~8억원", min: 60000, max: 80000 },
+                            { name: "6억원 미만", min: 0, max: 60000 },
+                          ]
                           : [
-                              { name: "4,000만원 이상", min: 4000, max: Infinity },
-                              { name: "3,000~4,000만원", min: 3000, max: 4000 },
-                              { name: "2,500~3,000만원", min: 2500, max: 3000 },
-                              { name: "2,000~2,500만원", min: 2000, max: 2500 },
-                              { name: "2,000만원 미만", min: 0, max: 2000 },
-                            ];
-                        
+                            { name: "4,000만원 이상", min: 4000, max: Infinity },
+                            { name: "3,000~4,000만원", min: 3000, max: 4000 },
+                            { name: "2,500~3,000만원", min: 2500, max: 3000 },
+                            { name: "2,000~2,500만원", min: 2000, max: 2500 },
+                            { name: "2,000만원 미만", min: 0, max: 2000 },
+                          ];
+
                         // Compute which tiers have apartments
                         const availableTiers = TIERS.map((tier, idx) => {
                           const apts = group.apartments.filter((apt: any) => {
@@ -1369,11 +1396,10 @@ export default function MacroDashboardClient({
                                       e.stopPropagation();
                                       setSelectedTiers(prev => ({ ...prev, [group.title]: t.originalIndex }));
                                     }}
-                                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${
-                                      isActive
-                                        ? "bg-[#333d4b] text-white shadow-sm"
-                                        : "bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb] hover:text-[#4e5968]"
-                                    }`}
+                                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive
+                                      ? "bg-[#333d4b] text-white shadow-sm"
+                                      : "bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb] hover:text-[#4e5968]"
+                                      }`}
                                   >
                                     {t.name}
                                     <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-[#e5e8eb] text-[#8b95a1]'}`}>
@@ -1470,101 +1496,101 @@ export default function MacroDashboardClient({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {newsLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] animate-pulse"
-                  >
-                    <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
-                    <div className="flex flex-col w-full">
-                      <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
-                      <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
-                      <div className="w-2/3 h-4 bg-gray-200 rounded" />
-                    </div>
+                <div
+                  key={i}
+                  className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] animate-pulse"
+                >
+                  <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
+                  <div className="flex flex-col w-full">
+                    <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
+                    <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
+                    <div className="w-2/3 h-4 bg-gray-200 rounded" />
                   </div>
-                ))
+                </div>
+              ))
               : (newsData.length > 0
-                  ? newsData.slice(0, visibleNewsCount)
-                  : [
-                      {
-                        id: 1,
-                        category: "INFRASTRUCTURE",
-                        sub: "Transportation",
-                        title:
-                          "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
-                        link: "#",
-                      },
-                      {
-                        id: 2,
-                        category: "MARKET",
-                        sub: "Supply & Demand",
-                        title:
-                          "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
-                        link: "#",
-                      },
-                      {
-                        id: 3,
-                        category: "POLICY",
-                        sub: "Urban Development",
-                        title:
-                          "동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
-                        link: "#",
-                      },
-                      {
-                        id: 4,
-                        category: "COMMERCIAL",
-                        sub: "Anchor Tenant",
-                        title:
-                          "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
-                        link: "#",
-                      },
-                      {
-                        id: 5,
-                        category: "MACRO",
-                        sub: "Liquidity",
-                        title:
-                          "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
-                        link: "#",
-                      },
-                      {
-                        id: 6,
-                        category: "COMMUNITY",
-                        sub: "Education",
-                        title:
-                          "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
-                        link: "#",
-                      },
-                    ]
-                ).map((news) => (
-                  <div
-                    key={news.id}
-                    onClick={() =>
-                      news.link !== "#" && window.open(news.link, "_blank")
-                    }
-                    className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#00d29d]/30 transition-all cursor-pointer group"
-                  >
-                    <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
-                      {news.id}
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">
-                          {news.category}
-                        </span>
-                        <span className="text-[11px] text-gray-300">|</span>
-                        <span className="text-[11px] font-semibold text-[#8b95a1]">
-                          {news.sub}
-                        </span>
-                      </div>
-                      <p className="text-[13px] font-semibold text-[#4e5968] leading-snug group-hover:text-[#191f28] transition-colors line-clamp-2">
-                        {news.title}
-                      </p>
-                    </div>
+                ? newsData.slice(0, visibleNewsCount)
+                : [
+                  {
+                    id: 1,
+                    category: "INFRASTRUCTURE",
+                    sub: "Transportation",
+                    title:
+                      "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
+                    link: "#",
+                  },
+                  {
+                    id: 2,
+                    category: "MARKET",
+                    sub: "Supply & Demand",
+                    title:
+                      "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
+                    link: "#",
+                  },
+                  {
+                    id: 3,
+                    category: "POLICY",
+                    sub: "Urban Development",
+                    title:
+                      "동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
+                    link: "#",
+                  },
+                  {
+                    id: 4,
+                    category: "COMMERCIAL",
+                    sub: "Anchor Tenant",
+                    title:
+                      "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
+                    link: "#",
+                  },
+                  {
+                    id: 5,
+                    category: "MACRO",
+                    sub: "Liquidity",
+                    title:
+                      "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
+                    link: "#",
+                  },
+                  {
+                    id: 6,
+                    category: "COMMUNITY",
+                    sub: "Education",
+                    title:
+                      "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
+                    link: "#",
+                  },
+                ]
+              ).map((news) => (
+                <div
+                  key={news.id}
+                  onClick={() =>
+                    news.link !== "#" && window.open(news.link, "_blank")
+                  }
+                  className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#00d29d]/30 transition-all cursor-pointer group"
+                >
+                  <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                    {news.id}
                   </div>
-                ))}
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">
+                        {news.category}
+                      </span>
+                      <span className="text-[11px] text-gray-300">|</span>
+                      <span className="text-[11px] font-semibold text-[#8b95a1]">
+                        {news.sub}
+                      </span>
+                    </div>
+                    <p className="text-[13px] font-semibold text-[#4e5968] leading-snug group-hover:text-[#191f28] transition-colors line-clamp-2">
+                      {news.title}
+                    </p>
+                  </div>
+                </div>
+              ))}
           </div>
 
           <div className="mt-6 flex flex-col gap-3 justify-center items-center">
-            <button 
+            <button
               onClick={() => {
                 window.location.hash = 'lounge-news';
               }}

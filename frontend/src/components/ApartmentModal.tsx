@@ -3,7 +3,7 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share, Link2
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -359,6 +359,16 @@ function FieldReportModal({
     });
   };
 
+  const handleCopyLink = () => {
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(report.apartmentName)}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert("단지 링크가 복사되었습니다. 원하는 곳에 붙여넣기 하세요!");
+    }).catch((err) => {
+      console.error("Link copy failed:", err);
+      alert("링크 복사에 실패했습니다.");
+    });
+  };
+
 
 
   const content = (
@@ -379,13 +389,6 @@ function FieldReportModal({
             >
               <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
             </a>
-            <button
-              onClick={handleKakaoShare}
-              className="text-[#FFE812] hover:bg-[#FFE812]/10 p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center"
-              title="카카오톡으로 단지 공유하기"
-            >
-              <Share className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform text-[#3C1E1E]" fill="#FFE812" strokeWidth={1.5} />
-            </button>
           </h1>
         </div>
 
@@ -1122,9 +1125,29 @@ function FieldReportModal({
         
         <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1340px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 slide-in-from-bottom overflow-hidden`}>
 
-          <button onClick={onClose} className="absolute top-4 right-4 z-[100] bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
-            <X size={20} />
-          </button>
+          <div className="absolute top-4 right-4 z-[100] hidden md:flex items-center gap-3">
+            <button
+              onClick={handleCopyLink}
+              className="bg-white/90 hover:bg-white text-[#4e5968] px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
+              title="일반 링크 복사"
+            >
+              <Link2 size={16} className="group-hover:scale-110 transition-transform" />
+              링크 복사
+            </button>
+            <button
+              onClick={handleKakaoShare}
+              className="bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
+              title="카카오톡으로 단지 공유하기"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 group-hover:scale-110 transition-transform">
+                <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+              </svg>
+              카톡 공유
+            </button>
+            <button onClick={onClose} className="bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 group">
+              <X size={20} className="group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
           
           <div ref={modalRef} onScroll={handleScroll} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
             {content}
@@ -1133,31 +1156,32 @@ function FieldReportModal({
           </div>
 
           {/* Mobile Sticky CTA (공유하기) */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100]">
-            <div className="flex items-center gap-3 w-full">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] pb-safe">
+            <div className="flex items-center gap-2 w-full">
               <button
                 onClick={onClose}
-                className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0"
+                className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm"
                 title="뒤로가기"
               >
                 <ArrowLeft size={24} strokeWidth={2.5} />
               </button>
-              <button 
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: `[D-VIEW] ${displayAptName}`,
-                      text: `이 단지의 가치를 뜯어보세요! 실거래가 및 인프라 분석`,
-                      url: window.location.href,
-                    }).catch(console.error);
-                  } else {
-                    alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
-                  }
-                }}
-                className="flex-1 h-[56px] bg-toss-blue hover:bg-[#00b386] text-surface font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(49,130,246,0.2)] transition-colors"
+              
+              <button
+                onClick={handleKakaoShare}
+                className="flex-1 h-[56px] bg-[#FEE500] active:bg-[#FEE500]/80 text-[#3A1D1D] font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-sm transition-colors"
               >
-                <Share size={20} strokeWidth={2.5} />
-                공유하기
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                </svg>
+                카톡 공유
+              </button>
+
+              <button
+                onClick={handleCopyLink}
+                className="w-[56px] h-[56px] bg-white active:bg-gray-50 text-[#4e5968] rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 shrink-0 transition-colors"
+                title="링크 복사"
+              >
+                <Link2 size={24} strokeWidth={2.5} />
               </button>
             </div>
           </div>
