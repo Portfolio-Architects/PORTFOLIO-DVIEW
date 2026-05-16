@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { MapPin, TrendingUp } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { MapPin, TrendingUp, Camera } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -44,6 +45,7 @@ export function TransactionChartSection({
 
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const relevantTxs = transactions.filter(tx => 
     chartType === 'sale' 
@@ -157,9 +159,42 @@ export function TransactionChartSection({
     return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
   };
 
+  const handleCaptureChart = async () => {
+    if (!chartRef.current) return;
+    try {
+      const canvas = await html2canvas(chartRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        onclone: (clonedDoc) => {
+          // You can modify cloned DOM here if needed
+          const watermark = clonedDoc.getElementById('dview-watermark');
+          if (watermark) {
+            watermark.style.opacity = '1';
+            watermark.style.color = '#8b95a1';
+          }
+        }
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `DVIEW_${displayAptName}_${chartType === 'sale' ? '매매' : '전월세'}_차트.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to capture chart:", err);
+      alert("차트 이미지 저장에 실패했습니다.");
+    }
+  };
+
   return (
     <div className="w-full flex flex-col h-full">
-      <div className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 flex-1 flex flex-col h-full">
+      <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 flex-1 flex flex-col h-full relative overflow-hidden">
+        {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
+        <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
+          <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>
+          <span className="text-[10px] md:text-[12px] font-bold text-tertiary">dview.kr</span>
+        </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 w-full gap-3">
           <div className="flex flex-col gap-2 w-full md:w-1/2">
             <h4 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 shrink-0">
@@ -194,11 +229,19 @@ export function TransactionChartSection({
             })()}
           </div>
           
-          <div className="flex items-center gap-3 md:ml-auto">
-            <div className="flex items-center gap-1 bg-body p-1 rounded-[10px] shadow-inner">
+          <div className="flex items-center gap-2 md:gap-3 md:ml-auto">
+            <button 
+              onClick={handleCaptureChart}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-body hover:bg-[#e5e8eb] text-secondary rounded-[10px] text-[12px] sm:text-[13px] font-bold transition-colors shadow-sm shrink-0"
+              title="차트 이미지로 저장"
+            >
+              <Camera size={14} strokeWidth={2.5} />
+              <span className="hidden sm:inline">저장</span>
+            </button>
+            <div className="flex items-center gap-1 bg-body p-1 rounded-[10px] shadow-inner shrink-0 overflow-x-auto scrollbar-hide">
               {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                 <button key={tf} onClick={() => setChartTimeframe(tf)}
-                  className={`px-3 py-1.5 rounded-md text-[12px] sm:text-[13px] font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-md text-[12px] sm:text-[13px] font-bold transition-all whitespace-nowrap ${
                     chartTimeframe === tf ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:bg-[#e5e8eb]'
                   }`}>{tf}</button>
               ))}
