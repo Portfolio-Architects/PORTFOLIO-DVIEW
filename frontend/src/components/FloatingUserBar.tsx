@@ -90,7 +90,7 @@ export default function FloatingUserBar() {
             }} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-toss-blue-light dark:bg-toss-blue-light/20 flex items-center justify-center text-toss-blue overflow-hidden border border-toss-blue/20 shadow-sm relative">
                 {(anonProfile?.photoURL || user.photoURL) ? (
-                  <Image src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" fill className="object-cover" />
+                  <Image src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" fill sizes="40px" className="object-cover" />
                 ) : (
                   <span className="text-[14px] md:text-[16px] font-extrabold">
                     {(anonProfile?.nickname || user.displayName || user.email || 'U').charAt(0).toUpperCase()}

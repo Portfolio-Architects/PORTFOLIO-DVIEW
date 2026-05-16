@@ -1076,10 +1076,9 @@ export default function MacroDashboardClient({
               </div>
             </div>
 
-            <div className="flex-1 w-full min-h-[230px] relative">
-              <div className="absolute inset-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <LineChart
+            <div className="w-full h-[230px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
                     data={lineData}
                     margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                   >
@@ -1180,7 +1179,6 @@ export default function MacroDashboardClient({
                     />
                   </LineChart>
                 </ResponsiveContainer>
-              </div>
             </div>
           </div>
         </div>
