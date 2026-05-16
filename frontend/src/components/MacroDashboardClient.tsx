@@ -1390,48 +1390,54 @@ export default function MacroDashboardClient({
                                 <div
                                   key={apt.name}
                                   onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
-                                  className="flex items-center justify-between p-3.5 rounded-[12px] border border-gray-100 bg-white hover:border-[#00d29d]/30 hover:bg-[#f9fafb] cursor-pointer transition-all shadow-sm group/apt"
+                                  className="flex flex-row items-center justify-between p-3.5 sm:p-4 rounded-[14px] border border-gray-100 bg-white hover:border-[#00d29d]/30 hover:bg-[#f9fafb] cursor-pointer transition-all shadow-sm group/apt gap-3 sm:gap-4"
                                 >
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full group-hover/apt:bg-[#00d29d] transition-colors" />
-                                    <span className="text-[15px] font-extrabold text-[#333d4b]">
-                                      {apt.name}
-                                    </span>
-                                    {apt.distToDongtan !== null && (
-                                      <span className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2.5 py-1 rounded-[6px] ml-2 group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10">
-                                        동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                                  {/* Left: Name and Distance */}
+                                  <div className="flex flex-col items-start gap-1.5 flex-1 min-w-0">
+                                    <div className="flex items-start gap-2.5 w-full">
+                                      <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors mt-[7px]" />
+                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-[#333d4b] leading-snug break-keep">
+                                        {apt.name}
                                       </span>
+                                    </div>
+                                    {apt.distToDongtan !== null && (
+                                      <div className="pl-4">
+                                        <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
+                                          동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                                        </span>
+                                      </div>
                                     )}
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    {accordionMode === "price" ? (
-                                      (() => {
-                                        // Try to parse the unit from apt.latestPriceEok if it's pre-formatted string or just use '원'
-                                        // Wait, the apt items are rendered with latestPriceEok which could just be a string.
-                                        // Let's use formatEokWithUnit on apt.latestPrice instead.
-                                        const { value, unit } = formatEokWithUnit(apt.latestPrice);
-                                        return (
-                                          <>
-                                            <span className="text-[16px] font-extrabold text-[#191f28]">
-                                              {value}
-                                            </span>
-                                            <span className="text-[11px] font-bold text-[#8b95a1]">
-                                              {unit}
-                                            </span>
-                                          </>
-                                        );
-                                      })()
-                                    ) : (
-                                      <>
-                                        <span className="text-[16px] font-extrabold text-[#191f28]">
-                                          {Math.round(apt.pyeongPrice).toLocaleString()}
-                                        </span>
-                                        <span className="text-[11px] font-bold text-[#8b95a1]">
-                                          만원/평
-                                        </span>
-                                      </>
-                                    )}
-                                    <ChevronRight className="w-4 h-4 text-[#b0b8c1] ml-1" />
+
+                                  {/* Right: Price */}
+                                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                    <div className="flex flex-col sm:flex-row items-end sm:items-baseline gap-0 sm:gap-1 text-right">
+                                      {accordionMode === "price" ? (
+                                        (() => {
+                                          const { value, unit } = formatEokWithUnit(apt.latestPrice);
+                                          return (
+                                            <>
+                                              <span className="text-[15px] sm:text-[17px] font-extrabold text-[#191f28] whitespace-nowrap">
+                                                {value}
+                                              </span>
+                                              <span className="text-[11px] sm:text-[12px] font-bold text-[#8b95a1] whitespace-nowrap">
+                                                {unit}
+                                              </span>
+                                            </>
+                                          );
+                                        })()
+                                      ) : (
+                                        <>
+                                          <span className="text-[15px] sm:text-[17px] font-extrabold text-[#191f28] whitespace-nowrap">
+                                            {Math.round(apt.pyeongPrice).toLocaleString()}
+                                          </span>
+                                          <span className="text-[11px] sm:text-[12px] font-bold text-[#8b95a1] whitespace-nowrap">
+                                            만원/평
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <ChevronRight className="w-4 h-4 text-[#b0b8c1] shrink-0" />
                                   </div>
                                 </div>
                               ))}

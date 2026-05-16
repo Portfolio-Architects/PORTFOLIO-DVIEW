@@ -21,10 +21,21 @@ export const loadKakaoSdk = (): Promise<void> => {
       return;
     }
     
+    // 만약 이미 DOM에 카카오 스크립트가 존재하는지 확인 (layout.tsx에서 주입한 경우)
+    const existingScript = document.querySelector('script[src*="kakao.min.js"]');
+    if (existingScript) {
+      // 스크립트가 로드되는 중일 수 있으므로 약간 대기
+      setTimeout(() => {
+        if (window.Kakao) resolve();
+        else reject(new Error("Kakao SDK 스크립트는 존재하나 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요."));
+      }, 1000);
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Kakao SDK 로드 실패"));
+    script.onerror = () => reject(new Error("Kakao SDK 로드 실패 (브라우저 광고 차단기, 혹은 네트워크 환경을 확인해주세요)"));
     document.head.appendChild(script);
   });
 };
