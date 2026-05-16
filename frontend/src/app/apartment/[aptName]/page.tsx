@@ -4,6 +4,54 @@ import DashboardClient from '@/components/DashboardClient';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 const TX_SUMMARY = (txSummaryDataRaw as any).summary;
+
+// Helper for AI Briefing Text Generation (SEO Optimization)
+function generateAiBriefing(aptName: string, aptSummary: any) {
+  const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
+  const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+
+  if (!aptSummary) {
+    return `동탄 ${aptName}${titlePyeong} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  }
+
+  const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
+
+  let jeonseRatioStr = '';
+  if (aptSummary.avg1MRentDeposit && aptSummary.avg1MPrice) {
+    const ratio = Math.round((aptSummary.avg1MRentDeposit / aptSummary.avg1MPrice) * 100);
+    jeonseRatioStr = `전세가율은 약 ${ratio}% 수준을 형성하고 있습니다.`;
+  } else if (aptSummary.latestRentDeposit && aptSummary.latestPrice) {
+    const ratio = Math.round((aptSummary.latestRentDeposit / aptSummary.latestPrice) * 100);
+    jeonseRatioStr = `전세가율은 약 ${ratio}% 수준을 형성하고 있습니다.`;
+  }
+
+  let trendStr = '';
+  if (aptSummary.avg1MTxCount !== undefined && aptSummary.avg3MTxCount !== undefined) {
+    const avg3MMonthly = Math.round(aptSummary.avg3MTxCount / 3);
+    const avg1M = aptSummary.avg1MTxCount;
+    if (avg1M > avg3MMonthly * 1.3) {
+      trendStr = '최근 1개월간 거래량이 평균 대비 크게 증가하며 시장의 매수세가 유입되고 있습니다.';
+    } else if (avg1M < avg3MMonthly * 0.7) {
+      trendStr = '최근 거래량은 다소 관망세를 보이고 있습니다.';
+    } else {
+      trendStr = '최근 꾸준한 실거래가 이어지며 안정적인 시장 흐름을 보이고 있습니다.';
+    }
+  }
+
+  let priceTrendStr = '';
+  if (aptSummary.avg1MPrice && aptSummary.avg3MPrice) {
+    if (aptSummary.avg1MPrice > aptSummary.avg3MPrice * 1.015) {
+      priceTrendStr = '최근 3개월 대비 실거래가가 상승 추세에 있으며,';
+    } else if (aptSummary.avg1MPrice < aptSummary.avg3MPrice * 0.985) {
+      priceTrendStr = '최근 3개월 대비 실거래가는 약보합 흐름을 보이며,';
+    } else {
+      priceTrendStr = '최근 3개월 실거래가는 안정적인 보합세를 유지 중이며,';
+    }
+  }
+
+  return `${aptName}${titlePyeong}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, ${jeonseRatioStr} ${priceTrendStr} ${trendStr} D-VIEW에서 실제 데이터에 기반한 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+}
+
 // --- SEO: Dynamic Metadata Generator ---
 // Await the params Promise for Next.js 15+
 export async function generateMetadata(props: { params: Promise<{ aptName: string }> }): Promise<Metadata> {
@@ -41,7 +89,7 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
   const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
   
   const seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
-  const seoDescription = `동탄 ${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  const seoDescription = generateAiBriefing(decodedName, aptSummary);
 
   return {
     title: seoTitle,
@@ -225,6 +273,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   
   const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
   const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+  
+  const aiBriefing = generateAiBriefing(decodedName, aptSummary);
 
   return (
     <>
@@ -236,11 +286,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       {/* Search Engine Optimization (SSR Content) */}
       <div className="sr-only" aria-hidden="true">
         <h1>{decodedName}{titlePyeong} 실거래가 및 학군 가치 분석</h1>
-        <p>
-          동탄 {decodedName} 아파트의 최근 실거래가는 {latestPrice}이며, 최근 3개월 평균 매매가는 {avg3MPrice}입니다.
-          가장 최근 전세 실거래가는 {jeonsePrice}입니다. 
-          {jsonLd.description}
-        </p>
+        <p>{aiBriefing}</p>
         <ul>
           <li>최근 매매가: {latestPrice}</li>
           <li>최근 3개월 평균가: {avg3MPrice}</li>
