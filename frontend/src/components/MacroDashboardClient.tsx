@@ -812,9 +812,9 @@ export default function MacroDashboardClient({
           </div>
         }
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
 
-        <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-4 md:mt-0">
+        <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-0">
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4">
             {/* Donut Chart Card */}
