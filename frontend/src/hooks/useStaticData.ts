@@ -1,13 +1,25 @@
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/lib/types/transaction';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export function useTxData() {
+  const [shouldFetch, setShouldFetch] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 2000 });
+    } else {
+      setTimeout(() => setShouldFetch(true), 500);
+    }
+  }, []);
+
   const { data, error, isLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
     macroTrend: DongtanMacroTrendPoint[];
-  }>('/data/tx-summary.json', fetcher, {
+  }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     revalidateOnReconnect: false,
@@ -17,13 +29,24 @@ export function useTxData() {
   return {
     txSummary: data?.summary,
     macroTrend: data?.macroTrend,
-    isLoading,
+    isLoading: !shouldFetch || isLoading,
     error
   };
 }
 
 export function useLocationScores() {
-  const { data, error, isLoading } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher, {
+  const [shouldFetch, setShouldFetch] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 2000 });
+    } else {
+      setTimeout(() => setShouldFetch(true), 500);
+    }
+  }, []);
+
+  const { data, error, isLoading } = useSWR<Record<string, any>>(shouldFetch ? '/data/location-scores.json' : null, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     revalidateOnReconnect: false,
@@ -32,7 +55,7 @@ export function useLocationScores() {
   
   return {
     locationScores: data,
-    isLoading,
+    isLoading: !shouldFetch || isLoading,
     error
   };
 }

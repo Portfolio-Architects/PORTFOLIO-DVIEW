@@ -7,6 +7,10 @@ import { normalize84Price } from '@/lib/utils/valuation';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import { preload } from 'swr';
+import { normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
+
+const fetcher = (url: string) => fetch(url).then(r => r.ok ? r.json() : []);
 
 interface StaticApartment {
   name: string;
@@ -74,9 +78,18 @@ const ApartmentCard = memo(function ApartmentCard({ apt, txSummary, report, isPu
     return `${eok > 0 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : ''}`;
   })();
 
+  // Prefetch detailed transaction JSON on user interaction to avoid LCP delay
+  const handlePrefetch = () => {
+    const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
+    const fileKey = overrideKey ? normalizeAptName(overrideKey) : normalizeAptName(apt.name);
+    preload(`/tx-data/${encodeURIComponent(fileKey)}.json`, fetcher);
+  };
+
   return (
     <div
       onClick={() => onClick(apt)}
+      onMouseEnter={handlePrefetch}
+      onTouchStart={handlePrefetch}
       className={`relative flex items-center gap-3 px-4 py-3.5 transition-all duration-150 cursor-pointer hover:bg-body active:bg-body border-b border-body last:border-b-0 group ${
         !hasAnalysis && !hasPhotos && !txSummary ? 'opacity-60' : ''
       } ${
