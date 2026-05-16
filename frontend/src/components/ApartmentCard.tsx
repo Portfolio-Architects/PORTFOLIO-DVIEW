@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 
 import { FileText, Heart } from 'lucide-react';
 import { normalize84Price } from '@/lib/utils/valuation';
-import type { AptTxSummary } from '@/lib/transaction-summary';
+import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 

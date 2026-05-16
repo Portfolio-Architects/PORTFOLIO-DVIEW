@@ -7,7 +7,7 @@ import type { FieldReportData } from '@/lib/DashboardFacade';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { calculateDynamicDCF, calculateDongSpread, calculateForwardJeonseTrajectory } from '@/lib/utils/valuationEngine';
 import { MACRO_CONFIG } from '@/lib/macro-summary';
-import { TX_SUMMARY } from '@/lib/transaction-summary';
+import type { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 
 interface TxRecord {
@@ -23,6 +23,7 @@ interface TxRecord {
 interface Props {
   report: FieldReportData;
   transactions: TxRecord[];
+  txSummaryData?: Record<string, AptTxSummary>;
 }
 
 // --------------------------------------------------------------------------
@@ -93,7 +94,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
   return { total: premium.totalScore, breakDown, logs, rawScore: premium.totalScore, isCapped: false, maxTotal };
 }
 
-export default function AdvancedValuationMetrics({ report, transactions }: Props) {
+export default function AdvancedValuationMetrics({ report, transactions, txSummaryData = {} }: Props) {
   const [isRatioModalOpen, setIsRatioModalOpen] = useState(false);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
@@ -202,10 +203,10 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   const targetDongMatch = report.apartmentName.match(/\[(.*?)\]/);
   let targetDong = targetDongMatch ? targetDongMatch[1] : '';
   
-  // [동] 접두사가 없는 경우, TX_SUMMARY에서 아파트명 매칭으로 dong 역추적
+  // [동] 접두사가 없는 경우, txSummaryData에서 아파트명 매칭으로 dong 역추적
   if (!targetDong) {
     const norm = normalizeAptName(report.apartmentName);
-    for (const [key, tx] of Object.entries(TX_SUMMARY)) {
+    for (const [key, tx] of Object.entries(txSummaryData)) {
       if (normalizeAptName(key) === norm && tx.dong) {
         targetDong = tx.dong;
         break;
@@ -213,7 +214,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
     }
   }
   
-  const realDongPERs = Object.values(TX_SUMMARY)
+  const realDongPERs = Object.values(txSummaryData)
     .filter(tx => tx.dong === targetDong && tx.dong !== '' && (tx.avg3MPrice || 0) > 0 && (tx.avg3MRentDeposit || 0) > 0)
     .map(tx => (tx.avg3MPrice as number) / (tx.avg3MRentDeposit as number));
 

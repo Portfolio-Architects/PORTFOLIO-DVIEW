@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-
-import { TX_SUMMARY } from '@/lib/transaction-summary';
-
+import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
+const TX_SUMMARY = (txSummaryDataRaw as any).summary;
 export const dynamic = 'force-static';
 
 export async function GET() {

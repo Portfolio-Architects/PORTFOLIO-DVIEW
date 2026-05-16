@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import { User } from 'firebase/auth';
-import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
+import type { AptTxSummary } from '@/lib/types/transaction';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
@@ -55,9 +55,9 @@ export function useApartmentDetails(
   selectedReport: FieldReportData | null,
   sheetApartments: Record<string, DongApartment[]>,
   nameMapping: Record<string, string> | undefined,
-  user: User | null
+  user: User | null,
+  txSummaryData: Record<string, AptTxSummary> = {}
 ) {
-  const txSummaryData: Record<string, AptTxSummary> = TX_SUMMARY;
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 

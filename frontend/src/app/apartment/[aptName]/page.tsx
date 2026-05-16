@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
-import { TX_SUMMARY } from '@/lib/transaction-summary';
-
+import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
+const TX_SUMMARY = (txSummaryDataRaw as any).summary;
 // --- SEO: Dynamic Metadata Generator ---
 // Await the params Promise for Next.js 15+
 export async function generateMetadata(props: { params: Promise<{ aptName: string }> }): Promise<Metadata> {

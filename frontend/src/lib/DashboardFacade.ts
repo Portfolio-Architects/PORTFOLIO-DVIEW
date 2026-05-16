@@ -12,8 +12,7 @@
  * This facade preserves the same public API for backward compatibility
  * while delegating all operations to the appropriate layer.
  */
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/lib/firebaseConfig';
+// Removed static Firebase Storage imports to defer loading
 import { compressImage } from '@/lib/utils/imageCompression';
 
 // Types (re-export for backward compatibility)
@@ -190,6 +189,9 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         const batch = imageEntries.slice(i, i + BATCH_SIZE);
         const results = await Promise.all(batch.map(async ({ file, category }) => {
           try {
+            const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+            const { storage } = await import('@/lib/firebaseConfig');
+            
             const compressed = await compressImage(file);
             const storageRef = ref(storage, `field_reports/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${file.name}`);
             const snapshot = await uploadBytes(storageRef, compressed);

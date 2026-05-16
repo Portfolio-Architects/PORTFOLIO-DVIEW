@@ -11,7 +11,6 @@ import Script from 'next/script';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import SettingsModal from '@/components/SettingsModal';
-import FloatingSettingsDock from '@/components/FloatingSettingsDock';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
@@ -101,7 +100,6 @@ export default function RootLayout({
             </PWAProvider>
             <div id="modal-root" />
             <SettingsModal />
-            <FloatingSettingsDock />
             
             {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
             {process.env.NEXT_PUBLIC_GA_ID && (

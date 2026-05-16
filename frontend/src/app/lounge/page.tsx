@@ -55,7 +55,7 @@ export default async function LoungePage() {
   }
 
   return (
-    <main id="main-content" className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 pt-6 pb-[100px] sm:pb-12 animate-in fade-in duration-500">
+    <main id="main-content" className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-[100px] sm:pb-12 animate-in fade-in duration-500">
       {errorMessage && (
         <div className="bg-red-50 text-red-500 p-4 rounded-xl mb-4 text-sm font-bold border border-red-200">
           🚧 Server Error: {errorMessage}

@@ -1,7 +1,15 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin');
+
+  if (isAdmin) return null;
+
   return (
     <footer className="w-full bg-transparent py-8 sm:py-10 mt-2 sm:mt-6 pb-32 sm:pb-12 border-t border-body md:border-0">
       <div className="max-w-[2000px] mx-auto px-5 sm:px-8 flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12">
@@ -33,11 +41,13 @@ export default function Footer() {
             <span className="w-full sm:w-auto">© {new Date().getFullYear()} D-VIEW. All rights reserved.</span>
           </div>
           
-          <p className="text-left lg:text-right w-full tracking-tight text-[11.5px]">
-            <strong className="text-secondary font-bold mr-1">면책 조항:</strong>
-            D-VIEW에서 제공하는 적정가 및 분석 지표는 공공데이터를 기반으로 한 통계/알고리즘적 추정치로, 실제 시장 가격과 다를 수 있습니다.<br />
-            부동산 거래에 대한 최종 판단과 책임은 사용자 본인에게 있습니다.
-          </p>
+          {!isAdmin && (
+            <p className="text-left lg:text-right w-full tracking-tight text-[11.5px]">
+              <strong className="text-secondary font-bold mr-1">면책 조항:</strong>
+              D-VIEW에서 제공하는 적정가 및 분석 지표는 공공데이터를 기반으로 한 통계/알고리즘적 추정치로, 실제 시장 가격과 다를 수 있습니다.<br />
+              부동산 거래에 대한 최종 판단과 책임은 사용자 본인에게 있습니다.
+            </p>
+          )}
         </div>
 
       </div>

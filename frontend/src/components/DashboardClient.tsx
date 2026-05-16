@@ -31,9 +31,8 @@ import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import { type AptTxSummary } from '@/lib/transaction-summary';
+import { type AptTxSummary } from '@/lib/types/transaction';
 import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
-import locationScoresData from '@/lib/location-scores.json';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
@@ -45,6 +44,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 
 const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
   const [localValue, setLocalValue] = useState(value);
@@ -96,8 +96,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   
+  const { txSummary = {}, macroTrend = [], isLoading: isStaticDataLoading } = useTxData();
+  const { locationScores = {} } = useLocationScores();
+  
   const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary } = useApartmentDetails(
-    selectedReport, sheetApartments, nameMapping, user
+    selectedReport, sheetApartments, nameMapping, user, txSummary
   );
   
   const { commentsData, commentInput, setCommentInput, handleSubmitComment } = useComments(
@@ -177,7 +180,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               likes: 0,
               commentCount: 0,
               createdAt: null,
-              metrics: { ...targetApt, ...((locationScoresData as Record<string, any>)[targetApt.name] || {}) } as any,
+              metrics: { ...targetApt, ...((locationScores as Record<string, any>)[targetApt.name] || {}) } as any,
             });
           }
           setMobileModalOpen(true);
@@ -218,6 +221,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
   }, [mounted, activeTab]);
 
+  // Scroll to top when tab changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]);
+
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const userHasSelected = useRef(false);
 
@@ -245,7 +255,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             likes: 0,
             commentCount: 0,
             createdAt: null,
-            metrics: { ...targetApt, ...((locationScoresData as Record<string, any>)[targetApt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+            metrics: { ...targetApt, ...((locationScores as Record<string, any>)[targetApt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
           });
         }
       }
@@ -284,7 +294,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         likes: 0,
         commentCount: 0,
         createdAt: null,
-        metrics: { ...apt, ...((locationScoresData as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+        metrics: { ...apt, ...((locationScores as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
       });
     }
     // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
@@ -491,10 +501,12 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           <section className="w-full bg-surface pb-8 md:pb-0 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0">
             <MacroDashboardClient 
               sheetApartments={sheetApartments} 
-              txSummaryData={txSummaryData} 
+              txSummaryData={txSummaryData}
+              macroTrendData={macroTrend}
               nameMapping={nameMapping || {}}
               publicRentalSet={publicRentalSet}
               userFavorites={userFavorites}
+              onOpenAdModal={() => setIsAdModalOpen(true)}
               onSelectApt={(name: string) => {
                 userHasSelected.current = true;
                 const report = fieldReportsMap.get(name);
@@ -597,7 +609,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         {mounted && activeTab === 'lounge' && (
-          <section className="w-full bg-surface pb-8 md:pb-0 pt-6 px-3 sm:px-6 md:px-10 lg:px-16 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0">
+          <section className="w-full bg-surface">
             <LoungeContainerClient initialPosts={[]} />
           </section>
         )}

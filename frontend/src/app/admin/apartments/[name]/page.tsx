@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
-import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
+import type { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { DONGS } from '@/lib/dongs';
 import { Building, Save, Home, Link2, ChevronLeft, MapPin, Trash2 } from 'lucide-react';
@@ -17,7 +17,7 @@ import { ImageUploader } from '@/components/admin/apartment-editor/ImageUploader
 
 const FIRESTORE_DOC = 'settings/apartmentMeta';
 const dongNames = DONGS.map(d => d.name).sort((a, b) => a.localeCompare(b, 'ko'));
-const txKeys = Object.keys(TX_SUMMARY).sort();
+
 
 // ── Image Category Groups (from ReportEditorForm) ──
 const IMAGE_CATEGORY_GROUPS: { group: string; items: string[] }[] = [
@@ -33,8 +33,7 @@ const IMAGE_CATEGORY_GROUPS: { group: string; items: string[] }[] = [
 
 import { autoSuggest } from '@/lib/utils/autoSuggest';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
-
-
+import { useTxData } from '@/hooks/useStaticData';
 // ── Types ──
 interface AptMeta {
   dong: string;
@@ -139,9 +138,12 @@ export default function ApartmentInfoPage() {
     nearestTramCoords?: string;
   }>({});
 
+  const { txSummary: TX_SUMMARY = {} } = useTxData();
+  const txKeys = useMemo(() => Object.keys(TX_SUMMARY).sort(), [TX_SUMMARY]);
+
   const suggestedTxKey = useMemo(() => {
-    return !meta?.txKey ? autoSuggest(originalName) : null;
-  }, [meta?.txKey, originalName]);
+    return !meta?.txKey ? autoSuggest(originalName, TX_SUMMARY) : null;
+  }, [meta?.txKey, originalName, TX_SUMMARY]);
 
   const existingReport = reports.length > 0 ? reports[0] : null;
 
@@ -155,7 +157,7 @@ export default function ApartmentInfoPage() {
         const m = allMeta[originalName] as Record<string, unknown> | undefined;
         if (m && typeof m === 'object' && m.dong) {
           foundMeta = {
-            dong: m.dong as string, txKey: (m.txKey as string) || autoSuggest(originalName) || undefined,
+            dong: m.dong as string, txKey: (m.txKey as string) || autoSuggest(originalName, TX_SUMMARY) || undefined,
             minFloor: m.minFloor as number | undefined, maxFloor: m.maxFloor as number | undefined, isPublicRental: (m.isPublicRental as boolean) || false,
             householdCount: m.householdCount as number | undefined, yearBuilt: m.yearBuilt as string | undefined,
             brand: m.brand as string | undefined, ticker: m.ticker as string | undefined,
@@ -750,7 +752,7 @@ export default function ApartmentInfoPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-primary tracking-tight">{originalName}</h1>
-            <p className="text-secondary text-[14px] mt-2">단지 기본정보 · 가치평가 · 현장 사진을 통합 관리합니다.</p>
+            <p className="text-secondary text-[14px] mt-2">단지 기본정보 · 현장 사진을 통합 관리합니다.</p>
           </div>
           <button onClick={handleAutoFetch} disabled={isCalculating}
             className="px-5 py-2.5 bg-toss-blue-light hover:bg-[#d0e8ff] text-toss-blue font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 shrink-0">

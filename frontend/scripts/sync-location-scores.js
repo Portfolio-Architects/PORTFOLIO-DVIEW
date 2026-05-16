@@ -180,9 +180,9 @@ async function main() {
      };
   }
 
-  const outputPath = path.resolve(__dirname, '../src/lib/location-scores.json');
+  const outputPath = path.resolve(__dirname, '../public/data/location-scores.json');
   fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
-  console.log(`✅ Synced location scores for ${Object.keys(results).length} apartments to src/lib/location-scores.json`);
+  console.log(`✅ Synced location scores for ${Object.keys(results).length} apartments to public/data/location-scores.json`);
 }
 
 main().catch(console.error);

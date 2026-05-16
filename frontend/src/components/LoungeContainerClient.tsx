@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import PageHeroHeader from './PageHeroHeader';
 import LoungeFeedClient from '@/components/LoungeFeedClient';
 import LoungeComposeClient from '@/components/LoungeComposeClient';
 
@@ -39,7 +40,15 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
   const categories = ['동탄 부동산 뉴스', '우리동네 이야기', '매니저 임장기'];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full">
+    <div className="flex flex-col w-full bg-surface">
+      {/* Standardized Hero Header */}
+      <PageHeroHeader 
+        title="D-VIEW 라운지"
+        subtitleStrong="동탄 지역 부동산 커뮤니티"
+        subtitleLight="현장 임장기, 부동산 뉴스, 우리 동네 이야기를 자유롭게 나누세요"
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-16">
       {/* LEFT SIDEBAR: Categories */}
       <aside className="md:col-span-3 lg:col-span-3 hidden md:block">
         <div className="sticky top-[100px]">
@@ -67,7 +76,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
         <div className="flex flex-col mb-6 md:mb-8 px-1 md:px-2">
           <div className="flex items-center gap-3 mb-4 md:mb-0">
             <h1 className="text-[24px] md:text-[32px] font-extrabold text-[#191f28] tracking-tight leading-none">
-              실시간 동탄 커뮤니티
+              {currentTab}
             </h1>
           </div>
 
@@ -92,7 +101,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
         <LoungeComposeClient currentCategory={currentTab === '동탄 부동산 뉴스' ? '우리동네 이야기' : currentTab} />
       </section>
 
-
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { findTxKey, normalizeAptName } from './apartmentMapping';
 
 const LOCATION_PREFIXES = [
@@ -35,12 +34,12 @@ export function editDistance(a: string, b: string): number {
   return dp[m][n];
 }
 
-export function autoSuggest(aptName: string): string | null {
-  const exactOrHardcoded = findTxKey(aptName, TX_SUMMARY);
+export function autoSuggest(aptName: string, txSummaryData: Record<string, any>): string | null {
+  const exactOrHardcoded = findTxKey(aptName, txSummaryData);
   if (exactOrHardcoded) return exactOrHardcoded;
 
   const norm = normalizeAptName(aptName);
-  const keys = Object.keys(TX_SUMMARY);
+  const keys = Object.keys(txSummaryData);
   if (!norm || norm.length < 2) return null;
   if (keys.includes(norm)) return norm;
   const stripped = stripPrefix(norm);

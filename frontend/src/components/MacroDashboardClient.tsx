@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useDeferredValue } from "react";
 import {
   PieChart,
   Pie,
@@ -15,26 +15,29 @@ import {
   Legend,
 } from "recharts";
 import type { DongApartment } from "@/lib/dong-apartments";
-import type { AptTxSummary } from "@/lib/transaction-summary";
-import { DONGTAN_MACRO_TREND } from "@/lib/transaction-summary";
+import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
 import FloatingUserBar from "@/components/FloatingUserBar";
+import PageHeroHeader from "@/components/PageHeroHeader";
 import {
   ArrowUp,
   Info,
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
+  macroTrendData: DongtanMacroTrendPoint[];
   nameMapping?: Record<string, string>;
   publicRentalSet: Set<string>;
   userFavorites?: Set<string>;
   onSelectApt?: (name: string) => void;
+  onOpenAdModal?: () => void;
 }
 
 const COLORS = [
@@ -209,6 +212,8 @@ export default function MacroDashboardClient({
   publicRentalSet,
   userFavorites,
   onSelectApt,
+  macroTrendData,
+  onOpenAdModal,
 }: MacroDashboardProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<"price" | "pyeong">("price");
@@ -349,9 +354,11 @@ export default function MacroDashboardClient({
     return ["동탄 아파트 전체"];
   }, []);
 
+  const deferredMacroTrendData = useDeferredValue(macroTrendData);
+
   const lineData = useMemo(() => {
-    if (!DONGTAN_MACRO_TREND) return [];
-    let count = DONGTAN_MACRO_TREND.length;
+    if (!deferredMacroTrendData) return [];
+    let count = deferredMacroTrendData.length;
     switch (timeframe) {
       case "3M":
         count = 3;
@@ -369,13 +376,13 @@ export default function MacroDashboardClient({
         count = 60;
         break;
       case "ALL":
-        count = DONGTAN_MACRO_TREND.length;
+        count = deferredMacroTrendData.length;
         break;
     }
-    return DONGTAN_MACRO_TREND.slice(
-      -Math.min(count, DONGTAN_MACRO_TREND.length),
+    return deferredMacroTrendData.slice(
+      -Math.min(count, deferredMacroTrendData.length),
     );
-  }, [timeframe]);
+  }, [timeframe, deferredMacroTrendData]);
 
   const xTicks = useMemo(() => {
     if (lineData.length === 0) return [];
@@ -415,8 +422,8 @@ export default function MacroDashboardClient({
     totalHouseholds > 0 ? (publicRentalHouseholds / totalHouseholds) * 100 : 0;
 
   const latestAvgPrice =
-    DONGTAN_MACRO_TREND && DONGTAN_MACRO_TREND.length > 0
-      ? DONGTAN_MACRO_TREND[DONGTAN_MACRO_TREND.length - 1]["동탄 아파트 전체"]
+    macroTrendData && macroTrendData.length > 0
+      ? macroTrendData[macroTrendData.length - 1]["동탄 아파트 전체"]
       : 0;
   const avgPriceProgress = Math.min((latestAvgPrice / 15) * 100, 100);
 
@@ -431,7 +438,7 @@ export default function MacroDashboardClient({
   }, [latestAvgPrice]);
 
   const momStats = useMemo(() => {
-    if (!DONGTAN_MACRO_TREND || DONGTAN_MACRO_TREND.length < 2)
+    if (!macroTrendData || macroTrendData.length < 2)
       return {
         change: 0,
         changeText: "0원",
@@ -440,9 +447,9 @@ export default function MacroDashboardClient({
         color: "#b0b8c1",
       };
     const current =
-      DONGTAN_MACRO_TREND[DONGTAN_MACRO_TREND.length - 1]["동탄 아파트 전체"];
+      macroTrendData[macroTrendData.length - 1]["동탄 아파트 전체"];
     const prev =
-      DONGTAN_MACRO_TREND[DONGTAN_MACRO_TREND.length - 2]["동탄 아파트 전체"];
+      macroTrendData[macroTrendData.length - 2]["동탄 아파트 전체"];
     if (prev === 0)
       return {
         change: 0,
@@ -780,60 +787,32 @@ export default function MacroDashboardClient({
 
   return (
     <div className="w-full flex flex-col bg-surface relative">
-      <div className="flex flex-col md:px-10 lg:px-16 pt-[22px] md:pt-12 lg:pt-16 pb-0 md:pb-12 lg:pb-16 w-full">
-        {/* Compact Dynamic Sticky Header (Mobile Only) */}
-        <div
-          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${isScrolled
-            ? "translate-y-0 opacity-100 shadow-sm"
-            : "-translate-y-full opacity-0 pointer-events-none"
-            }`}
-        >
-          <h1 className="text-[16px] font-extrabold text-[#191f28] tracking-tight">
-            D-VIEW 아파트 가격 분석
-          </h1>
-          <div className="flex items-center gap-3">
-            <FloatingUserBar />
-
-          </div>
-        </div>
-
-        {/* Top Header - Main Title */}
-        <div className="flex flex-col gap-[21px] sm:gap-[29px] md:mb-10 px-4 sm:px-6 md:px-2 py-5 md:py-0 relative md:static md:bg-transparent border-b border-[#f2f4f6] md:border-none">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-[#e5e8eb] flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm">
-                <img
-                  src="/d-view-icon.png"
-                  alt="Icon"
-                  className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] object-contain"
-                />
-              </div>
-              <h1 className="font-extrabold text-[#191f28] tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
-                D-VIEW 아파트 가격 분석
-              </h1>
-            </div>
-            <div className="md:hidden flex items-center justify-end">
-              <FloatingUserBar />
+      <PageHeroHeader 
+        title="D-VIEW 아파트 가격 분석"
+        compactTitle="D-VIEW 아파트 가격 분석"
+        subtitleStrong="데이터 기반 동탄 아파트 가치 분석"
+        subtitleLight="실거래가 데이터, 통계 기반의 동탄 부동산 인사이트 제공"
+        rightContent={
+          onOpenAdModal && (
+            <button
+              onClick={onOpenAdModal}
+              className="hidden md:flex ml-4 px-3 py-1.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5"
+            >
+              <MessageSquare size={14} />
+              광고/제휴 문의
+            </button>
+          )
+        }
+        rightSideContent={
+          <div className="flex items-center justify-center shrink-0 w-[320px] h-[80px] bg-[#f8f9fa] border border-[#e5e8eb] rounded-[12px] border-dashed cursor-pointer hover:bg-[#f2f4f6] transition-colors group" onClick={onOpenAdModal}>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-[14px] font-bold text-[#8b95a1] group-hover:text-primary transition-colors">광고 구좌 (배너) 영역</span>
+              <span className="text-[12px] text-[#b0b8c1] group-hover:text-secondary transition-colors">이곳을 클릭하여 제휴 문의를 남겨주세요</span>
             </div>
           </div>
-          <div className="flex flex-col justify-end mb-0 sm:mb-0">
-            <div className="flex w-full">
-              <div className="w-[2px] rounded-full mr-4 shrink-0 bg-[#00d29d]" />
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2">
-                <strong className="text-[#191f28] text-[14px] sm:text-[16px] whitespace-nowrap">
-                  데이터 기반 동탄 아파트 가치 분석
-                </strong>
-                <span className="text-[#8b95a1] font-normal text-[13px] sm:text-[14.5px] leading-snug break-keep">
-                  <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
-                  실거래가 데이터, 통계 기반의 동탄 부동산 인사이트 제공
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Divider (Similar to Portfolio Asset) */}
-        <div className="hidden md:block w-full h-[1px] bg-[#f2f4f6] mb-8" />
+        }
+      />
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
 
         <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-4 md:mt-0">
           {/* Left Column Container */}
@@ -1477,6 +1456,24 @@ export default function MacroDashboardClient({
               </div>
             );
           })}
+
+          {/* Ad Banner Placeholder (8th Slot) */}
+          <div
+            className="bg-[#f8f9fa] rounded-[20px] border border-[#e5e8eb] border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-[#f2f4f6] transition-colors group h-full min-h-[104px]"
+            onClick={onOpenAdModal}
+          >
+            <div className="flex flex-col items-center gap-1.5 p-5">
+              <div className="flex items-center gap-1.5">
+                <MessageSquare size={16} className="text-[#8b95a1] group-hover:text-primary transition-colors" />
+                <span className="text-[16px] md:text-[18px] font-extrabold text-[#8b95a1] group-hover:text-primary tracking-tight transition-colors">
+                  광고 구좌 (배너) 영역
+                </span>
+              </div>
+              <span className="text-[13px] text-[#b0b8c1] group-hover:text-secondary transition-colors font-medium">
+                이곳을 클릭하여 제휴 문의를 남겨주세요
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Dongtan Market Insights (News Section) */}

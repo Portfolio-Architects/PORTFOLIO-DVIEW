@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown } from 'lucide-react';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import LoungeDetailClient from '@/components/LoungeDetailClient';
+import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 
 interface Post {
   id: string;
@@ -38,6 +40,24 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [newsData, setNewsData] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [visibleNewsCount, setVisibleNewsCount] = useState(10);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkHash = () => {
+      const match = window.location.hash.match(/#post=([^&]+)/);
+      if (match) {
+        setSelectedPostId(decodeURIComponent(match[1]));
+      } else {
+        setSelectedPostId(null);
+      }
+    };
+    
+    // Initial check
+    checkHash();
+    
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
 
   useEffect(() => {
     if (currentTab === '동탄 부동산 뉴스' && newsData.length === 0) {
@@ -275,7 +295,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
       {filteredPosts.map((news) => {
         return (
-          <Link key={news.id} href={`/lounge/${news.id}`} scroll={false} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group w-full">
+          <div 
+            key={news.id} 
+            onClick={() => { window.location.hash = `post=${news.id}`; }} 
+            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
+          >
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-0 shrink-0">
               <div className="flex items-center gap-3 sm:gap-0">
                 <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-tertiary font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-toss-blue group-hover:text-white transition-colors">
@@ -346,7 +370,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               </div>
             </div>
 
-          </Link>
+          </div>
         );
       })}
 
@@ -354,6 +378,13 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         <div ref={observerTarget} className="py-8 flex justify-center text-tertiary">
           {isLoadingMore ? <Loader2 className="animate-spin w-6 h-6" /> : "스크롤하여 더 보기"}
         </div>
+      )}
+
+      {/* Post Detail Modal */}
+      {selectedPostId && (
+        <LoungeModalBackdrop onClose={() => { window.location.hash = ''; }}>
+          <LoungeDetailClient postId={selectedPostId} isModal={true} />
+        </LoungeModalBackdrop>
       )}
     </div>
   );

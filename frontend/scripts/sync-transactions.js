@@ -16,7 +16,7 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/transaction-summary.ts');
+const OUTPUT_PATH = path.resolve(__dirname, '../public/data/tx-summary.json');
 
 const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 let serviceAccount;
@@ -607,74 +607,17 @@ async function main() {
     };
   });
 
-  // TypeScript 파일 생성
-  let ts = `/**
- * 실거래가 및 전월세 요약 데이터 — 빌드 타임에 포함, API 호출 0
- * 
- * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
- * 동기화: npm run sync-transactions
- * 마지막 동기화: ${new Date().toISOString().slice(0, 10)}
- */
+  const outputData = {
+    macroTrend: dongtanMacroTrend,
+    summary: summaries
+  };
 
-export interface RecentTx {
-  date: string;
-  priceEok: string;
-  areaPyeong: number;
-  floor: number;
-  area: number;
-}
+  const outputDir = path.dirname(OUTPUT_PATH);
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
 
-export interface AptTxSummary {
-  // 매매 (Sale)
-  latestPrice: number;
-  latestPriceEok: string;
-  latestArea: number;
-  latestFloor: number;
-  latestDate: string;
-  maxPrice: number;
-  maxPriceEok: string;
-  minPrice: number;
-  minPriceEok: string;
-  txCount: number;
-  avg1MPrice: number;
-  avg1MPriceEok: string;
-  avg1MPerPyeong?: number;
-  avg1MTxCount?: number;
-  avg3MPrice?: number;
-  avg3MPriceEok?: string;
-  avg3MPerPyeong?: number;
-  avg3MTxCount?: number;
-  recent: RecentTx[];
-  
-  // 전월세 (Rent/Jeonse)
-  rentTxCount?: number;
-  latestRentDeposit?: number;
-  latestRentDepositEok?: string;
-  latestRentMonthly?: number;
-  latestRentDate?: string;
-  avg1MRentDeposit?: number;
-  avg1MRentDepositEok?: string;
-  avg3MRentDeposit?: number;
-  avg3MRentDepositEok?: string;
-
-  // 법정동
-  dong?: string;
-}
-
-export interface DongtanMacroTrendPoint {
-  name: string;
-  '동탄 아파트 전체': number;
-  '동탄 아파트 전세 평균': number;
-}
-
-export const DONGTAN_MACRO_TREND: DongtanMacroTrendPoint[] = ${JSON.stringify(dongtanMacroTrend, null, 2)};
-
-/** 아파트명 → 거래 요약 */
-export const TX_SUMMARY: Record<string, AptTxSummary> = `;
-
-  ts += JSON.stringify(summaries, null, 2) + ';\n';
-
-  fs.writeFileSync(OUTPUT_PATH, ts, 'utf-8');
+  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(outputData, null, 2), 'utf-8');
   console.log(`📁 파일 생성: ${OUTPUT_PATH}`);
   console.log(`🎉 동기화 완료!`);
   

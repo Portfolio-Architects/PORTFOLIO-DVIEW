@@ -2,11 +2,12 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Flame, Heart, Clock, MapPin, Building2, TrendingUp, Sparkles } from 'lucide-react';
+import PageHeroHeader from './PageHeroHeader';
 import { useInView } from 'react-intersection-observer';
 import ApartmentCard from './ApartmentCard';
 import { FieldReportData } from '@/lib/DashboardFacade';
 import type { DongApartment } from '@/lib/dong-apartments';
-import type { AptTxSummary } from '@/lib/transaction-summary';
+import type { AptTxSummary } from '@/lib/types/transaction';
 import { isSameApartment, findTxKey, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
@@ -45,15 +46,9 @@ export default function ApartmentDiscoveryClient({
   typeMap
 }: DiscoveryProps) {
   const { areaUnit } = useSettings();
-  // Discovery Categories (Extended for Real Estate)
+  // Discovery Categories
   const CATEGORIES = [
-    { id: 'price-rank', label: '평당가 랭킹', icon: TrendingUp, color: '#8b5cf6', desc: '최근 1개월 평균 평당가 랭킹 최상위' },
-    { id: 'jeonse-gap', label: '전세가율 높은', icon: Sparkles, color: '#059669', desc: '실투자금이 적게 드는 갭투자 추천 단지' },
-    { id: 'mega-scale', label: '대단지 프리미엄', icon: Building2, color: '#d97706', desc: '1,500세대 이상 초대형 매머드급 단지' },
-    { id: 'new-built', label: '신축 아파트', icon: MapPin, color: '#2563eb', desc: '준공 5년 이내의 쾌적한 신축 아파트' },
-    { id: 'popular', label: '인기 단지', icon: Flame, color: '#f04452', desc: '현재 D-VIEW에서 가장 많이 조회된 단지' },
-    { id: 'favorites', label: '내 관심 단지', icon: Heart, color: '#ff3b30', desc: '내가 하트를 눌러 찜한 단지들' },
-    { id: 'recent', label: '최신 업데이트', icon: Clock, color: '#00d29d', desc: '가장 최근에 현장 임장기가 올라온 단지' },
+    { id: 'over-15-eok', label: '15억 이상 아파트', icon: Sparkles, color: '#eab308', desc: '동탄을 대표하는 하이엔드 랜드마크 아파트 컬렉션' },
   ];
 
   // Flatten apartments
@@ -76,64 +71,21 @@ export default function ApartmentDiscoveryClient({
 
     CATEGORIES.forEach(cat => {
       let list = [...allApts];
-      if (cat.id === 'price-rank') {
-        list = list.sort((a, b) => {
-          const rawKeyA = (a as any).txKey || a.name;
-          const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
-          const pyeongA = txSummaryData[txKeyA]?.avg1MPerPyeong || 0;
-          const rawKeyB = (b as any).txKey || b.name;
-          const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
-          const pyeongB = txSummaryData[txKeyB]?.avg1MPerPyeong || 0;
-          const diff = pyeongB - pyeongA;
-          return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-        }).slice(0, 15);
-      } else if (cat.id === 'jeonse-gap') {
+      if (cat.id === 'over-15-eok') {
         list = list.filter(a => {
           const rawKey = (a as any).txKey || a.name;
           const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
           const summary = txSummaryData[txKey];
-          return summary && (summary.avg1MRentDeposit || 0) > 0 && (summary.avg1MPrice || 0) > 0;
+          return summary && (summary.avg1MPrice || 0) >= 150000;
         }).sort((a, b) => {
-          const getRate = (apt: any) => {
-            const rawKey = apt.txKey || apt.name;
-            const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-            const summary = txSummaryData[txKey];
-            return (summary?.avg1MRentDeposit || 0) / (summary?.avg1MPrice || 1);
-          };
-          return getRate(b) - getRate(a);
-        }).slice(0, 15);
-      } else if (cat.id === 'mega-scale') {
-        list = list.filter(a => (a.householdCount || 0) >= 1500)
-          .sort((a, b) => (b.householdCount || 0) - (a.householdCount || 0))
-          .slice(0, 15);
-      } else if (cat.id === 'new-built') {
-        const currentYear = new Date().getFullYear();
-        list = list.filter(a => {
-          const yb = parseInt(a.yearBuilt?.substring(0, 4) || '0');
-          return yb > 0 && (currentYear - yb) <= 5;
-        }).sort((a, b) => {
-          const yA = parseInt(a.yearBuilt?.substring(0, 4) || '0');
-          const yB = parseInt(b.yearBuilt?.substring(0, 4) || '0');
-          return yB - yA;
-        }).slice(0, 15);
-      } else if (cat.id === 'popular') {
-        list = list.sort((a, b) => {
-          const rA = fieldReportsMap.get(a.name);
-          const rB = fieldReportsMap.get(b.name);
-          const diff = (rB?.viewCount || 0) - (rA?.viewCount || 0);
-          return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-        }).slice(0, 15);
-      } else if (cat.id === 'favorites') {
-        list = list.filter(a => userFavorites.has(a.name));
-      } else if (cat.id === 'recent') {
-        const reportedApts = list.filter(a => fieldReportsMap.has(a.name));
-        list = reportedApts.sort((a, b) => {
-          const rA = fieldReportsMap.get(a.name);
-          const rB = fieldReportsMap.get(b.name);
-          const tA = rA?.createdAt ? new Date(rA.createdAt as string | number).getTime() : 0;
-          const tB = rB?.createdAt ? new Date(rB.createdAt as string | number).getTime() : 0;
-          return tB - tA;
-        }).slice(0, 15);
+          const rawKeyA = (a as any).txKey || a.name;
+          const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
+          const priceA = txSummaryData[txKeyA]?.avg1MPrice || 0;
+          const rawKeyB = (b as any).txKey || b.name;
+          const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
+          const priceB = txSummaryData[txKeyB]?.avg1MPrice || 0;
+          return priceB - priceA;
+        });
       }
       lists[cat.id] = list as DongApartment[];
     });
@@ -160,19 +112,20 @@ export default function ApartmentDiscoveryClient({
   }, [fieldReportsMap, onSelectReport]);
 
   return (
-    <div className="flex flex-col h-full bg-body overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full bg-[#f8f9fa] overflow-y-auto custom-scrollbar">
       {/* Hero Header */}
-      <div className="bg-surface px-3 sm:px-6 md:px-10 lg:px-16 py-6 md:py-10 mb-2 shrink-0">
-        <h2 className="text-[26px] md:text-[32px] font-extrabold text-[#191f28] mb-2 tracking-tight">골라보기</h2>
-        <p className="text-[15px] md:text-[17px] text-[#4e5968] font-medium">당신의 투자 전략에 딱 맞는 단지를 둘러보세요.</p>
-      </div>
+      <PageHeroHeader 
+        title="D-VIEW 골라보기"
+        subtitleStrong="프리미엄 랜드마크 단지 큐레이션"
+        subtitleLight="당신의 투자 전략에 딱 맞는 랜드마크 단지를 둘러보세요"
+      />
 
       {CATEGORIES.map((cat, index) => {
         const apts = categoryLists[cat.id];
         if (!apts || apts.length === 0) return null;
 
         return (
-          <CategoryRow 
+          <NetflixCategoryRow 
             key={cat.id}
             cat={cat}
             index={index}
@@ -180,12 +133,7 @@ export default function ApartmentDiscoveryClient({
             txSummaryData={txSummaryData}
             nameMapping={nameMapping}
             fieldReportsMap={fieldReportsMap}
-            publicRentalSet={publicRentalSet}
-            userFavorites={userFavorites}
-            favoriteCounts={favoriteCounts}
-            typeMap={typeMap}
             handleSelectApt={handleSelectApt}
-            onToggleFavorite={onToggleFavorite}
           />
         );
       })}
@@ -196,53 +144,114 @@ export default function ApartmentDiscoveryClient({
   );
 }
 
-const CategoryRow = React.memo(({ cat, index, apts, txSummaryData, nameMapping, fieldReportsMap, publicRentalSet, userFavorites, favoriteCounts, typeMap, handleSelectApt, onToggleFavorite }: any) => {
+const NetflixCard = ({ apt, txSummary, report, rank, onClick }: any) => {
+  const imageUrl = 
+    report?.thumbnail ||
+    report?.imageUrl ||
+    report?.images?.[0] || 
+    report?.sections?.infra?.gateImg || 
+    report?.sections?.infra?.gateImgs?.[0] || 
+    report?.sections?.infra?.landscapeImg || 
+    report?.sections?.infra?.landscapeImgs?.[0] ||
+    report?.sections?.ecosystem?.communityImg ||
+    report?.sections?.ecosystem?.communityImgs?.[0];
+  
+  const priceMan = txSummary?.avg1MPrice || 0;
+  const eok = Math.floor(priceMan / 10000);
+  const remainder = Math.floor(priceMan % 10000);
+  const priceText = priceMan > 0 ? `${eok}억${remainder > 0 ? ` ${remainder.toLocaleString()}` : ''}` : '가격 정보 없음';
+
+  const isHero = rank === 1;
+  const hasImage = !!imageUrl;
+
+  const titleColor = hasImage ? 'text-white' : 'text-[#191f28]';
+  const priceColor = hasImage ? 'text-[#60a5fa]' : 'text-[#3182f6]'; // Lighter blue for dark overlay
+  const dongColor = hasImage ? 'text-[#e5e8eb]' : 'text-[#8b95a1]';
+  const descColor = hasImage ? 'text-[#d1d6db]' : 'text-[#4e5968]';
+
+  return (
+    <div 
+      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-transform duration-300 hover:scale-[1.03] hover:z-20 ${
+        isHero ? 'w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] self-stretch' : 'w-[140px] sm:w-[160px] md:w-[180px] lg:w-[220px] aspect-[2/3]'
+      }`}
+      onClick={() => onClick(apt)}
+    >
+      {/* Background Image */}
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={apt.name} 
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 bg-white"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      ) : null}
+      
+      {/* Dark Gradient Overlay for Readability (Only if Image exists) */}
+      {hasImage && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+      )}
+      
+      {/* Top Left Rank (Only for non-hero) */}
+      {!isHero && rank != null && (
+        <div className="absolute top-0 left-0 text-[#f2f4f6] font-black text-[80px] md:text-[120px] leading-none z-10 -translate-x-2 -translate-y-4" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.1)", WebkitTextStroke: "1px #d1d6db" }}>
+          {rank}
+        </div>
+      )}
+      
+      {/* Base Content */}
+      <div className={`absolute bottom-0 left-0 right-0 z-10 flex flex-col ${isHero ? 'p-5 md:p-8 gap-2' : 'p-3 md:p-5 gap-1'}`}>
+        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 ${isHero ? 'text-[22px] md:text-[28px]' : 'text-[16px] md:text-[18px]'}`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
+          {apt.name}
+        </h4>
+        <div className="flex items-center gap-2">
+          <span className={`${priceColor} font-extrabold ${isHero ? 'text-[18px] md:text-[20px]' : 'text-[15px]'}`}>{priceText}</span>
+          <span className={`${dongColor} font-medium ${isHero ? 'text-[15px]' : 'text-[13px]'}`}>{apt.dong}</span>
+        </div>
+        {isHero && (
+           <p className={`${descColor} text-[13px] md:text-[15px] font-medium mt-1 line-clamp-2 w-[80%]`}>
+             동탄을 대표하는 최고의 하이엔드 아파트입니다. 현재 가장 높은 시세를 형성하고 있습니다.
+           </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, fieldReportsMap, handleSelectApt }: any) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
     rootMargin: '200px 0px',
   });
 
-  const isOdd = index % 2 === 1;
-  const bgColor = isOdd ? 'bg-body' : 'bg-surface';
-
   return (
-    <div ref={ref} className={`${bgColor} py-6 mb-2 min-h-[220px]`}>
-      <div className="px-3 sm:px-6 md:px-10 lg:px-16 mb-5 flex flex-col">
-         <div className="flex items-center gap-2 mb-1.5">
-           <div className="p-1.5 rounded-lg shadow-sm bg-surface" style={{ color: cat.color }}>
-             <cat.icon size={22} />
-           </div>
-           <h3 className="text-[20px] md:text-[22px] font-extrabold text-[#191f28] tracking-tight">{cat.label}</h3>
-         </div>
-         <p className="text-[14px] text-[#8b95a1] ml-[38px] font-medium">{cat.desc}</p>
+    <div ref={ref} className="py-6 mb-4 min-h-[350px] bg-white">
+      <div className="px-4 sm:px-6 md:px-10 lg:px-16 mb-5 flex flex-col">
+         <h3 className="text-[22px] md:text-[26px] font-extrabold text-[#191f28] tracking-tight">
+           {cat.label}
+         </h3>
       </div>
       
       {inView && (
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar px-3 sm:px-6 md:px-10 lg:px-16 pb-4">
+        <div className="flex items-stretch gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-8 pt-2">
           {apts.map((apt: any, rankIndex: number) => {
              const rawKey = apt.txKey || apt.name;
              const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
              const matchedSummary = txKey ? txSummaryData[txKey] : undefined;
              const matchedReport = fieldReportsMap.get(apt.name);
              return (
-               <div key={apt.name} className="w-[300px] shrink-0 snap-start bg-surface rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-border overflow-hidden transform transition-transform hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)]">
-                 <ApartmentCard
-                   apt={apt}
-                   txSummary={matchedSummary}
-                   report={matchedReport}
-                   isPublicRental={publicRentalSet.has(apt.name)}
-                   onClick={handleSelectApt}
-                   rank={cat.id === 'price-rank' || cat.id === 'popular' || cat.id === 'jeonse-gap' ? rankIndex + 1 : undefined}
-                   isFavorited={userFavorites.has(apt.name)}
-                   favoriteCount={favoriteCounts[apt.name] || 0}
-                   onToggleFavorite={onToggleFavorite}
-                   typeMap={typeMap}
-                   listSort={cat.id}
-                 />
-               </div>
+               <NetflixCard
+                 key={apt.name}
+                 apt={apt}
+                 txSummary={matchedSummary}
+                 report={matchedReport}
+                 rank={rankIndex + 1}
+                 onClick={handleSelectApt}
+               />
              );
           })}
-          <div className="w-[16px] shrink-0" />
+          <div className="w-[16px] md:w-[32px] shrink-0" />
         </div>
       )}
     </div>

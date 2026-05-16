@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X } from 'lucide-react';
+import PageHeroHeader from './PageHeroHeader';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
@@ -158,10 +159,18 @@ export default function TossApartmentExploreClient({
   }, [enrichedApts, currentCategory, searchQuery]);
 
   return (
-    <div className="flex w-full min-h-[calc(100vh-80px)] bg-surface items-stretch">
-      {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border custom-scrollbar py-6 sticky top-[60px] h-[calc(100vh-60px)] overflow-y-auto">
-        <div className="px-5 mb-6">
+    <div className="flex flex-col w-full bg-surface">
+      {/* Standardized Hero Header */}
+      <PageHeroHeader 
+        title="D-VIEW 아파트 탐색"
+        subtitleStrong="동탄 전역 아파트 비교 분석"
+        subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
+      />
+
+      {/* Main Content Area */}
+      <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-16 min-h-[calc(100vh-220px)] bg-surface items-stretch">
+      <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
+        <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1">
             <SidebarItem 
@@ -192,7 +201,7 @@ export default function TossApartmentExploreClient({
           </div>
         </div>
 
-        <div className="px-5 mb-6">
+        <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">법정동별 보기</h2>
           <div className="flex flex-col gap-1">
             {DONGS.map(dong => (
@@ -237,7 +246,7 @@ export default function TossApartmentExploreClient({
 
       {/* Main Table Area */}
       <div className="flex-1 flex flex-col bg-white min-w-0">
-        <div className="px-5 py-3 md:px-6 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white md:sticky md:top-[60px] md:z-10">
+        <div className="px-5 py-3 md:px-0 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white md:sticky md:top-[60px] md:z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
@@ -270,7 +279,7 @@ export default function TossApartmentExploreClient({
 
         <div className="flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-white items-center px-6 py-3 border-b border-border text-[14px] font-bold text-tertiary shrink-0">
+          <div className="hidden md:flex sticky top-[60px] z-10 bg-white items-center md:px-0 py-3 border-b border-border text-[14px] font-bold text-tertiary shrink-0">
             <div className="w-[40px] text-center"></div>
             <div className="w-[80px] text-center">순위</div>
             <div className="flex-1 min-w-[180px] ml-2">단지명</div>
@@ -289,7 +298,7 @@ export default function TossApartmentExploreClient({
                   {/* Desktop View (Hidden on Mobile) */}
                   <div 
                     onClick={() => handleSelectApt(item.apt.name)}
-                    className="hidden md:flex items-center px-6 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
+                    className="hidden md:flex items-center md:px-0 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
                   >
                     {/* Heart */}
                     <div 
@@ -483,6 +492,7 @@ export default function TossApartmentExploreClient({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

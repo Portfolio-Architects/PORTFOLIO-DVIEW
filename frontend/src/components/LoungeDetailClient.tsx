@@ -262,7 +262,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         {/* Header - Only render if not modal, Modal has its own header */}
         {!isModal && (
           <header className="bg-surface sticky top-0 z-10 border-b border-border px-4 py-3.5 flex items-center gap-3">
-        <button onClick={() => router.push('/lounge')} className="text-primary hover:bg-body p-1.5 rounded-full transition-colors">
+        <button onClick={() => window.history.length > 2 ? router.back() : router.push('/#lounge')} className="text-primary hover:bg-body p-1.5 rounded-full transition-colors">
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-[17px] font-bold text-primary flex-1 line-clamp-1">

@@ -7,11 +7,14 @@ import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/aut
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
-import { UserCircle, Edit3, X, Camera } from 'lucide-react';
+import { Settings, UserCircle, Edit3, X, Camera } from 'lucide-react';
 import { uploadImage } from '@/lib/services/reportService';
 import { DEFAULT_AVATARS } from '@/lib/types/user.types';
+import { useSettings } from '@/lib/contexts/SettingsContext';
+import Image from 'next/image';
 
 export default function FloatingUserBar() {
+  const { setIsSettingsModalOpen } = useSettings();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -67,7 +70,17 @@ export default function FloatingUserBar() {
   return (
     <>
       {/* User Bar — Embeddable */}
-      <div className="animate-in fade-in duration-300 flex items-center gap-2">        {user ? (
+      <div className="animate-in fade-in duration-300 flex items-center gap-2 sm:gap-3">
+        {/* 데스크탑 전용 설정 버튼 (모바일은 MobileDock 사용) */}
+        <button 
+          onClick={() => setIsSettingsModalOpen(true)}
+          className="hidden md:flex w-10 h-10 md:w-12 md:h-12 bg-surface rounded-full border border-border items-center justify-center text-secondary hover:text-toss-blue hover:shadow-sm transition-all duration-200"
+          aria-label="설정"
+        >
+          <Settings size={22} className="transition-transform duration-300 hover:rotate-45" />
+        </button>
+
+        {user ? (
           <div className="flex items-center gap-1 sm:gap-2">
             <button onClick={() => {
               setEditNickname(anonProfile?.nickname || '매니저');
@@ -75,9 +88,9 @@ export default function FloatingUserBar() {
               setProfilePhotoFile(null);
               setShowProfileModal(true);
             }} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-toss-blue-light dark:bg-toss-blue-light/20 flex items-center justify-center text-toss-blue overflow-hidden border border-toss-blue/20 shadow-sm">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-toss-blue-light dark:bg-toss-blue-light/20 flex items-center justify-center text-toss-blue overflow-hidden border border-toss-blue/20 shadow-sm relative">
                 {(anonProfile?.photoURL || user.photoURL) ? (
-                  <img src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" className="w-full h-full object-cover" />
+                  <Image src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" fill className="object-cover" />
                 ) : (
                   <span className="text-[14px] md:text-[16px] font-extrabold">
                     {(anonProfile?.nickname || user.displayName || user.email || 'U').charAt(0).toUpperCase()}
