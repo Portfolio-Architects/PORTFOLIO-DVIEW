@@ -594,7 +594,28 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               txSummaryData={txSummaryData}
               favoriteCounts={favoriteCounts}
               onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
-              onSelectReport={setSelectedReport as any}
+              onSelectReport={(report: any) => {
+                if (report.id && !report.id.startsWith('stub-')) {
+                  setSelectedReport(report);
+                  setMobileModalOpen(true);
+                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(report.apartmentName)}`);
+                } else {
+                  setSelectedReport({
+                    id: `temp-${report.apartmentName}`,
+                    apartmentName: report.apartmentName,
+                    title: `${report.apartmentName} 정보`,
+                    content: '아직 작성된 현장 임장기가 없습니다.',
+                    createdAt: Date.now(),
+                    dong: report.dong,
+                    author: '',
+                    authorName: '',
+                    viewCount: 0,
+                    likeCount: 0,
+                  } as any);
+                  setMobileModalOpen(true);
+                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(report.apartmentName)}`);
+                }
+              }}
               typeMap={typeMap}
             />
           </section>

@@ -874,7 +874,31 @@ function FieldReportModal({
               </div>
             )}
 
-            {!s ? null : (
+            {!s ? null : (() => {
+              const renderWatermark = () => {
+                let dateStr = '';
+                if (report.scoutingDate) {
+                  dateStr = report.scoutingDate.replace(/-/g, '.');
+                } else if (report.createdAt) {
+                  const date = report.createdAt instanceof Date ? report.createdAt : new Date(typeof report.createdAt === 'object' && (report.createdAt as any).seconds ? (report.createdAt as any).seconds * 1000 : report.createdAt as string);
+                  if (!isNaN(date.getTime())) {
+                    dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+                  }
+                }
+                
+                return (
+                  <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
+                    <div className="px-2.5 py-1 bg-black/40 backdrop-blur-md rounded border border-white/20 text-white/90 text-[10px] md:text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+                      <span>{dateStr}</span>
+                    </div>
+                    <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
+                      D-VIEW
+                    </span>
+                  </div>
+                );
+              };
+
+              return (
               // Advanced Template Render (요약은 위로 이동됨)
               <>
 
@@ -908,7 +932,7 @@ function FieldReportModal({
                       {/* Gate */}
                       {(s.infra.gateText || s.infra.gateImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
+                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
                             <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
@@ -918,7 +942,7 @@ function FieldReportModal({
                       {/* Landscaping */}
                       {(s.infra.landscapeText || s.infra.landscapeImg) && (
                         <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
-                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
+                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
                             <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
@@ -928,7 +952,7 @@ function FieldReportModal({
                       {/* Parking & Maintenance ... (Skip strict layout for brevity, just render them similarly) */}
                        {(s.infra.parkingText || s.infra.parkingImg) && (
                         <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-body">
-                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
+                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
                             <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
@@ -944,7 +968,7 @@ function FieldReportModal({
                    <div className="flex flex-col gap-8">
                       {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
+                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
                             <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
@@ -953,7 +977,7 @@ function FieldReportModal({
                       )}
                       {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
                         <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
-                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
+                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">동네 상권</h4>
                             <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
@@ -989,7 +1013,7 @@ function FieldReportModal({
                    </div>
                 </div>
               </>
-            )}
+            )})()}
 
             {/* Comments Section */}
             <div id="sec-comments">

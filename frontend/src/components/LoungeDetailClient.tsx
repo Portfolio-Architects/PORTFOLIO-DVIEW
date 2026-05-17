@@ -470,8 +470,11 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                     components={{
                       img: ({node, ...props}) => {
                         if (!props.src) return null;
+                        
+                        const isManagerReport = post?.category === '동탄 임장/분석' || post?.category === '임장기' || String(post?.title || '').includes('매니저') || String(post?.title || '').includes('임장기') || String(post?.content || '').includes('매니저 임장기') || String(post?.author || '').includes('매니저') || String(post?.author || '').includes('D-VIEW') || String(post?.author || '').toLowerCase().includes('admin');
+                        
                         return (
-                          <span className="block relative w-full rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px]">
+                          <span className="block relative w-full rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px] group">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                               src={props.src} 
@@ -482,6 +485,17 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                               className="w-full h-auto object-contain max-h-[70vh]"
                               loading="eager"
                             />
+                            {/* 매니저 임장기 워터마크 & 촬영 날짜 */}
+                            {isManagerReport && (
+                              <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
+                                <div className="px-2.5 py-1 bg-black/40 backdrop-blur-md rounded border border-white/20 text-white/90 text-[10px] md:text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+                                  <span>{String(post?.createdAt || '').replace(/\.\s*/g, '.').replace(/\.$/, '')}</span>
+                                </div>
+                                <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
+                                  D-VIEW
+                                </span>
+                              </div>
+                            )}
                           </span>
                         );
                       }
