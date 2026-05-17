@@ -36,9 +36,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
       return () => window.removeEventListener('hashchange', handleHashChange);
     }
   }, []);
-
-  const categories = ['동탄 부동산 뉴스', '우리동네 이야기', '매니저 임장기'];
-
+  const categories = ['동탄 부동산 뉴스', '매니저 임장기', '우리동네 이야기'];
   return (
     <div className="flex flex-col w-full bg-surface">
       {/* Standardized Hero Header */}
@@ -81,7 +79,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
           </div>
 
           {/* Mobile Horizontal Tabs */}
-          <div className="flex md:hidden gap-2 overflow-x-auto pb-2 pt-2 scrollbar-hide">
+          <div className="flex md:hidden gap-2 overflow-x-auto pb-2 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {categories.map((cat) => (
               <button 
                 key={cat} 

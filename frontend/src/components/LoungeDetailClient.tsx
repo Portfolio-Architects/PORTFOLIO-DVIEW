@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X } from 'lucide-react';
+import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -45,6 +45,16 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(!initialPost);
+
+  const [dongtanApartments, setDongtanApartments] = useState<string[]>([]);
+  
+  useEffect(() => {
+    setDongtanApartments(dashboardFacade.getDongtanApartments());
+    const unsub = dashboardFacade.subscribeTo('dongtanApartments', () => {
+      setDongtanApartments(dashboardFacade.getDongtanApartments());
+    });
+    return unsub;
+  }, []);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -250,11 +260,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   return (
     <>
       <div className={`w-full ${isModal ? 'h-full bg-surface relative' : 'min-h-screen bg-body pb-[100px]'} font-sans`}>
-        {/* Modal Close Button */}
+        {/* Modal Controls */}
         {isModal && (
           <button 
             onClick={() => router.back()} 
-            className="absolute top-4 right-4 z-50 p-2 bg-body text-tertiary rounded-full hover:bg-[#e5e8eb] hover:text-primary transition-colors"
+            className="absolute top-4 right-4 z-50 p-2 bg-body text-tertiary rounded-full hover:bg-[#e5e8eb] hover:text-primary transition-colors shadow-sm border border-border/50"
+            title="닫기"
           >
             <X size={20} />
           </button>
@@ -308,7 +319,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       </header>
         )}
 
-      <main className={`max-w-2xl mx-auto w-full ${isModal ? 'pb-[100px] pt-4 px-4' : 'pb-[100px] sm:pb-8 pt-4 sm:pt-6'} flex flex-col gap-4 px-4 animate-in fade-in duration-500`}>
+      <main className={`max-w-4xl mx-auto w-full ${isModal ? 'pb-12 pt-14 px-4 sm:px-6' : 'pb-12 sm:pb-16 pt-4 sm:pt-6'} flex flex-col gap-4 px-4 animate-in fade-in duration-500`}>
         <div className="bg-surface rounded-2xl border border-border p-6 mb-6 shadow-sm">
           {isEditing ? (
             <div className="mt-4 flex flex-col gap-3">
@@ -372,9 +383,85 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                    post?.category === '인프라' ? '동탄 교통/상권' : 
                    String(post?.category || "자유")}
                 </span>
-                <span className="text-[13px] text-tertiary ml-auto">{String(post?.createdAt || "")}</span>
+                <div className="ml-auto flex items-center gap-3">
+                  <span className="text-[13px] text-tertiary">{String(post?.createdAt || "")}</span>
+                  {isModal && (user?.uid === post?.authorUid || checkAdmin(user?.email)) && !isEditing && (
+                    <div className="flex items-center gap-2 border-l border-border pl-3">
+                      <button
+                        onClick={() => {
+                          setEditTitle((post?.title as string) || '');
+                          setEditContent((post?.content as string) || '');
+                          setEditCategory((post?.category as string) || '동탄 임장/분석');
+                          setIsEditing(true);
+                        }}
+                        className="flex items-center gap-1 text-[13px] font-semibold text-tertiary hover:text-toss-blue transition-colors"
+                        title="수정"
+                      >
+                        <Edit2 size={13} /> 수정
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!confirm('이 글을 삭제하시겠습니까?')) return;
+                          try {
+                            await deleteDoc(doc(db, 'posts', postId));
+                            router.back();
+                          } catch {
+                            alert('삭제에 실패했습니다.');
+                          }
+                        }}
+                        className="flex items-center gap-1 text-[13px] font-semibold text-tertiary hover:text-toss-red transition-colors"
+                        title="삭제"
+                      >
+                        <Trash2 size={13} /> 삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <h1 className="text-[20px] font-extrabold text-primary leading-snug mt-2 mb-4">{String(post?.title || "")}</h1>
+
+              {(() => {
+                const cleanTitle = String(post?.title || '');
+                const cleanContent = String(post?.content || '');
+                
+                const scoredApts = dongtanApartments.map(apt => {
+                  const shortName = apt.replace(/\[.*?\]\s*/, '');
+                  if (!shortName) return { apt, shortName, score: 0 };
+                  
+                  const titleMatches = cleanTitle.split(shortName).length - 1;
+                  const contentMatches = cleanContent.split(shortName).length - 1;
+                  const score = (titleMatches * 10) + contentMatches;
+                  
+                  return { apt, shortName, score };
+                }).filter(a => a.score > 0)
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 5);
+
+                if (scoredApts.length === 0) return null;
+
+                return (
+                  <div className="mb-6">
+                    <span className="text-[13px] font-bold text-tertiary mb-2.5 block px-1">이 글에서 언급된 아파트</span>
+                    <div className="flex items-center gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                      {scoredApts.map(({ shortName }) => (
+                        <button
+                          key={shortName}
+                          onClick={() => {
+                            // Bypass Next.js router for instant hash update and modal rendering
+                            window.location.hash = `apt=${encodeURIComponent(shortName)}`;
+                          }}
+                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-toss-blue/20"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0 shadow-sm border border-border">
+                            <Building2 size={15} className="text-toss-blue" />
+                          </div>
+                          <span className="text-[14px] font-bold text-primary group-hover:text-toss-blue transition-colors whitespace-nowrap">{shortName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               
               {post?.content && (
                 <article className="text-secondary text-[15px] leading-[1.65] break-keep [&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-primary [&>h2]:mt-7 [&>h2]:mb-2.5 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-primary [&>h3]:mt-5 [&>h3]:mb-1.5 [&>p]:mb-1 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-2 [&_li]:pl-1 [&_li]:mb-0.5 [&_li>p]:inline [&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap marker:text-tertiary [&_img]:rounded-xl [&_img]:border [&_img]:border-border [&_img]:my-3">
@@ -432,21 +519,43 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         {/* Comments Section */}
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-body flex items-center gap-2">
-            <MessageSquare size={16} className="text-toss-blue" />
-            <span className="text-[15px] font-bold text-primary">댓글 {comments.length}</span>
+            <MessageSquare size={18} className="text-toss-blue" />
+            <span className="text-[16px] font-bold text-primary">댓글 {comments.length}</span>
           </div>
 
+          {/* Integrated Comment Input */}
+          {user && (
+            <div className="px-5 py-4 bg-body border-b border-border">
+              <div className="flex items-center gap-3">
+                <input
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
+                  placeholder="댓글을 남겨 이웃과 소통해보세요..."
+                  className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:border-toss-blue transition-colors focus:ring-2 focus:ring-toss-blue/20"
+                />
+                <button
+                  onClick={handleComment}
+                  disabled={isSending || !commentText.trim()}
+                  className="w-[46px] h-[46px] bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#00d29d]/20"
+                >
+                  <Send size={18} className="ml-1" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {comments.length === 0 ? (
-            <div className="px-5 py-8 text-center bg-body">
-              <p className="text-[14px] text-tertiary">이웃의 첫 번째 댓글을 기다리고 있어요!</p>
+            <div className="px-5 py-12 text-center bg-surface">
+              <p className="text-[14px] text-tertiary">가장 먼저 댓글을 남겨보세요!</p>
             </div>
           ) : (
-            <ul>
+            <ul className="divide-y divide-body">
               {comments.map((c) => (
-                <li key={c.id} className="px-5 py-4 border-b border-body last:border-0 hover:bg-body transition-colors">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[13px] font-bold text-primary">{c.authorName}</span>
-                    <span className="text-[11px] text-tertiary">{c.createdAt}</span>
+                <li key={c.id} className="px-5 py-5 hover:bg-[#f9fafb] transition-colors">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[14px] font-bold text-primary">{c.authorName}</span>
+                    <span className="text-[12px] text-tertiary">{c.createdAt}</span>
                   </div>
                   <p className="text-[14px] text-secondary leading-relaxed">{c.text}</p>
                 </li>
@@ -456,27 +565,6 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         </div>
       </main>
       </div>
-      {/* Comment Input Bar */}
-      {user && (
-        <div className={isModal ? "sticky bottom-0 bg-surface border-t border-border px-4 py-3 z-20 w-full" : "fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-3 z-20"}>
-          <div className="max-w-2xl mx-auto flex items-center gap-3">
-            <input
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
-              placeholder="따뜻한 댓글을 남겨주세요..."
-              className="flex-1 bg-body rounded-xl px-4 py-3 text-[14px] outline-none focus:bg-[#e5e8eb] transition-colors focus:ring-2 focus:ring-toss-blue/20"
-            />
-            <button
-              onClick={handleComment}
-              disabled={isSending || !commentText.trim()}
-              className="w-10 h-10 bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-colors active:scale-95 shadow-md shadow-[#00d29d]/20"
-            >
-              <Send size={16} />
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

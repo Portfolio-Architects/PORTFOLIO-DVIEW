@@ -29,7 +29,7 @@ export default function LoungeModalBackdrop({ children, onClose }: { children: R
       onClick={handleClose}
     >
       <div 
-        className="w-full max-w-[800px] h-fit bg-surface rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 relative"
+        className="w-full max-w-[1040px] h-fit bg-surface rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

@@ -11,7 +11,7 @@ export default function Footer() {
   if (isAdmin) return null;
 
   return (
-    <footer className="w-full bg-transparent py-8 sm:py-10 mt-2 sm:mt-6 pb-32 sm:pb-12 border-t border-body md:border-0">
+    <footer className="w-full bg-body relative z-30 py-8 sm:py-10 mt-2 sm:mt-6 pb-32 sm:pb-12 border-t border-border md:border-0">
       <div className="max-w-[2000px] mx-auto px-5 sm:px-8 flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12">
         
         {/* 좌측: 로고 및 링크 */}
