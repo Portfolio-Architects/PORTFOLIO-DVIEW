@@ -171,23 +171,25 @@ export default function ApartmentDiscoveryClient({
         subtitleLight="당신의 투자 전략에 딱 맞는 랜드마크 단지를 둘러보세요"
       />
 
-      {CATEGORIES.map((cat, index) => {
-        const apts = categoryLists[cat.id];
-        if (!apts || apts.length === 0) return null;
+      <div className="pt-6">
+        {CATEGORIES.map((cat, index) => {
+          const apts = categoryLists[cat.id];
+          if (!apts || apts.length === 0) return null;
 
-        return (
-          <NetflixCategoryRow 
-            key={cat.id}
-            cat={cat}
-            index={index}
-            apts={apts}
-            txSummaryData={txSummaryData}
-            nameMapping={nameMapping}
-            fieldReportsMap={fieldReportsMap}
-            handleSelectApt={handleSelectApt}
-          />
-        );
-      })}
+          return (
+            <NetflixCategoryRow 
+              key={cat.id}
+              cat={cat}
+              index={index}
+              apts={apts}
+              txSummaryData={txSummaryData}
+              nameMapping={nameMapping}
+              fieldReportsMap={fieldReportsMap}
+              handleSelectApt={handleSelectApt}
+            />
+          );
+        })}
+      </div>
       
       {/* Bottom Padding */}
       <div className="h-[80px] shrink-0 bg-transparent" />
