@@ -80,6 +80,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     { icon: Train, category: '동인선 역세권', score: d.indeokwon.score, max: d.indeokwon.max, label: d.indeokwon.label, isInfra: true, data: d.indeokwon.data },
     { icon: Train, category: '동탄트램 역세권', score: d.tram.score, max: d.tram.max, label: d.tram.label, isInfra: true, data: d.tram.data },
     { icon: GraduationCap, category: '통학 학군 (초등 중심)', score: d.school.score, max: d.school.max, label: d.school.label, isInfra: true, data: d.school.data },
+    { icon: GraduationCap, category: '사교육 학군 (학원가)', score: d.academy.score, max: d.academy.max, label: d.academy.label, isInfra: true, data: d.academy.data },
     { icon: Store, category: '거점 상권/학원/앵커', score: d.store.score, max: d.store.max, label: d.store.label, isInfra: true, data: d.store.data },
     { icon: TreePine, category: '자연 환경 (호수/상징공원)', score: d.parkDist.score, max: d.parkDist.max, label: d.parkDist.label, isInfra: true, data: d.parkDist.data },
   ];
@@ -402,7 +403,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                         onClick={() => setIsScoreModalOpen(true)}
                         className="text-[11px] text-[#8b95a1] flex items-center gap-1 hover:text-toss-blue transition-colors cursor-pointer text-left"
                       >
-                        물가(2.0%) ± 단지 가치평가(Max 1.5%p)
+                        물가(2.0%) ± 단지 가치평가(Max 2.0%p)
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -689,8 +690,8 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                 <span className="text-[14px] text-tertiary font-bold mb-1">/ {utilityScoreResult.maxTotal}점</span>
               </div>
               <p className="text-[13px] text-secondary leading-relaxed font-medium">
-                {utilityScoreResult.total >= 70 ? '뛰어난 상품성과 인프라를 갖춰 평균(2.0%)보다 높은 성장률 프리미엄이 부여됩니다.' : 
-                 utilityScoreResult.total >= 50 ? '표준적인 상품성과 인프라를 갖춰 물가상승률(2.0%) 수준의 성장률이 적용됩니다.' : 
+                {utilityScoreResult.total >= 130 ? '뛰어난 상품성과 인프라를 갖춰 평균(2.0%)보다 높은 성장률 프리미엄이 부여됩니다.' : 
+                 utilityScoreResult.total >= 100 ? '표준적인 상품성과 인프라를 갖춰 물가상승률(2.0%) 수준의 성장률이 적용됩니다.' : 
                  '단지 스펙 및 인프라 한계로 인해 평균보다 다소 낮은 성장률이 적용됩니다.'}
               </p>
             </div>

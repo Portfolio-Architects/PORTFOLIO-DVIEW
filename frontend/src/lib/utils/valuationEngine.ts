@@ -19,15 +19,15 @@ export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironme
   const discountRate = (macro.riskFreeRate + riskPremium + fundingSpread) / 100; // e.g. (3.25 + 1.5 + 0.05) / 100 = 0.048
 
   // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 + 유틸리티 점수 기반 성장 프리미엄
-  // 평균 점수 50점 기준을 인플레이션(2%)으로 설정, 10점당 0.2%p 프리미엄 부여
-  // (예: 80점 = +0.6%p = 2.6%, 30점 = -0.4%p = 1.6%)
-  // 제한: 최소 0.5%, 최대 3.5%
-  const growthPremium = (utilityScore - 50) * 0.0002;
-  const growthRate = Math.max(0.005, Math.min(0.035, macro.baseInflationRate + growthPremium));
+  // 0점 = 0.0%p, 200점 = +2.0%p 프리미엄 부여
+  // (예: 180점 = +1.8%p = 3.8%, 200점 = +2.0%p = 4.0%)
+  // 제한: 최소 0.0%, 최대 4.0%
+  const growthPremium = utilityScore * 0.0001;
+  const growthRate = Math.max(0.000, Math.min(0.040, macro.baseInflationRate + growthPremium));
 
   // 3. Cap Rate (자본환원율) 산출: r - g
-  // 이론적으로 무한대 방지를 위해 최소 Cap Rate 2.0% 설정
-  const capRate = Math.max(0.02, discountRate - growthRate);
+  // 최고 등급 단지의 성장 프리미엄을 온전히 반영하기 위해 최소 1.0% 하한선 설정 (기존 2.0%에서 완화)
+  const capRate = Math.max(0.01, discountRate - growthRate);
 
   // 4. Implied Annual Rent (연간 예상 환산 임대료)
   const annualRent = currentJeonse * macro.jeonseConversionRate;

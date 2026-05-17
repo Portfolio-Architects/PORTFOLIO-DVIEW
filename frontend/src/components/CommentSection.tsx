@@ -1,9 +1,10 @@
 'use client';
 
-import { MessageSquare, UserCircle } from 'lucide-react';
+import { MessageSquare, UserCircle, Crown } from 'lucide-react';
 import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import ReactMarkdown from 'react-markdown';
 
 interface CommentSectionProps {
   comments: CommentData[];
@@ -12,6 +13,7 @@ interface CommentSectionProps {
   onSubmitComment: () => void;
   user: User | null;
   isUnlocked: boolean;
+  premiumContent?: string;
 }
 
 export default function CommentSection({
@@ -21,6 +23,7 @@ export default function CommentSection({
   onSubmitComment,
   user,
   isUnlocked,
+  premiumContent,
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
 
@@ -32,6 +35,26 @@ export default function CommentSection({
 
   return (
     <div id="sec-comments" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+      {premiumContent && (
+        <div className="mb-10">
+          <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+            <Crown size={20} className="text-[#FBBF24] fill-[#FBBF24]" /> 
+            매니저 임장기
+          </h2>
+          <div className="bg-[#fdfdfd] border border-border p-6 rounded-2xl">
+            <article className="prose prose-sm md:prose-base prose-slate max-w-none 
+              prose-headings:text-primary prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg 
+              prose-p:text-secondary prose-p:leading-relaxed 
+              prose-a:text-toss-blue prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-primary prose-strong:font-bold
+              prose-ul:list-disc prose-ol:list-decimal prose-li:text-secondary
+              prose-blockquote:border-l-4 prose-blockquote:border-toss-blue prose-blockquote:bg-toss-blue-light/30 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:not-italic prose-blockquote:rounded-r-lg prose-blockquote:text-secondary">
+              <ReactMarkdown>{premiumContent}</ReactMarkdown>
+            </article>
+          </div>
+        </div>
+      )}
+
       <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
         <MessageSquare size={20} className="text-toss-blue"/> 
         아파트 이야기 <span className="text-toss-blue text-[16px] ml-1">{comments.length}</span>

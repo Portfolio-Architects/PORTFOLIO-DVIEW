@@ -38,6 +38,7 @@ export interface ScoreBreakdown {
   indeokwon: ScoreDetail;
   tram: ScoreDetail;
   school: ScoreDetail;
+  academy: ScoreDetail;
   store: ScoreDetail;
   parkDist: ScoreDetail;
   brand: ScoreDetail;
@@ -123,7 +124,7 @@ const DISTANCE_CURVE = [
 export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): PremiumScores {
   const zeroDetail = { score: 0, max: 0, label: '데이터 없음' };
   const zeroBreakdown: ScoreBreakdown = {
-    gtx: zeroDetail, indeokwon: zeroDetail, tram: zeroDetail, school: zeroDetail, store: zeroDetail,
+    gtx: zeroDetail, indeokwon: zeroDetail, tram: zeroDetail, school: zeroDetail, academy: zeroDetail, store: zeroDetail,
     parkDist: zeroDetail, brand: zeroDetail, scale: zeroDetail, parking: zeroDetail, year: zeroDetail
   };
   const zero: PremiumScores = {
@@ -142,14 +143,14 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
     return `${name} 거리 1.2km 초과 (환승 필요)`;
   };
 
-  // 1. 🚇 교통 (Max 25)
+  // 1. 🚇 교통 (Max 125)
   const gtxPct = interpolateScore(metrics.distanceToSubway || 9999, DISTANCE_CURVE);
   const indkPct = interpolateScore(metrics.distanceToIndeokwon || 9999, DISTANCE_CURVE);
   const tramPct = interpolateScore(metrics.distanceToTram || 9999, DISTANCE_CURVE);
   
   const gtxScore = Math.round(gtxPct * 75);
-  const indkScore = Math.round(indkPct * 6);
-  const tramScore = Math.round(tramPct * 4);
+  const indkScore = Math.round(indkPct * 26);
+  const tramScore = Math.round(tramPct * 24);
   const transport = gtxScore + indkScore + tramScore;
 
   // 2. 🎓 학군 (Max 25)
@@ -221,7 +222,11 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   else if (mu >= 1.02) { brandScore = 2; brandLabel = '인지도 보유 브랜드'; }
 
   const currentYear = new Date().getFullYear();
-  const age = currentYear - (metrics.yearBuilt || currentYear);
+  let parsedYear = metrics.yearBuilt || currentYear;
+  if (parsedYear > 9999) {
+    parsedYear = Math.floor(parsedYear / 100);
+  }
+  const age = currentYear - parsedYear;
   // 연식 감가상각 U-Curve: 0년(1.0) -> 15년(0.3) -> 25년(0.1) -> 35년(0.4)
   let agePct = 0;
   if (age <= 3) agePct = 1.0;
@@ -256,15 +261,16 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
     megaScaleLiquidity: complex, totalPremiumScore: totalScore,
     details: {
       gtx: { score: gtxScore, max: 75, label: getDistLabel(metrics.distanceToSubway, 'GTX/SRT'), data: metrics.distanceToSubway ? `실거리 ${metrics.distanceToSubway}m` : undefined },
-      indeokwon: { score: indkScore, max: 6, label: getDistLabel(metrics.distanceToIndeokwon, '동인선'), data: metrics.distanceToIndeokwon ? `실거리 ${metrics.distanceToIndeokwon}m` : undefined },
-      tram: { score: tramScore, max: 4, label: getDistLabel(metrics.distanceToTram, '동탄트램'), data: metrics.distanceToTram ? `실거리 ${metrics.distanceToTram}m` : undefined },
+      indeokwon: { score: indkScore, max: 26, label: getDistLabel(metrics.distanceToIndeokwon, '동인선'), data: metrics.distanceToIndeokwon ? `실거리 ${metrics.distanceToIndeokwon}m` : undefined },
+      tram: { score: tramScore, max: 24, label: getDistLabel(metrics.distanceToTram, '동탄트램'), data: metrics.distanceToTram ? `실거리 ${metrics.distanceToTram}m` : undefined },
       school: { score: schScore, max: 15, label: schLabel, data: `초등 ${metrics.distanceToElementary || '-'}m, 중등 ${metrics.distanceToMiddle || '-'}m` },
+      academy: { score: Math.round(academyPct * 10), max: 10, label: (metrics.academyDensity || 0) > 40 ? '우수 학원가 인접' : ((metrics.academyDensity || 0) > 15 ? '학원가 도보권' : '학원가 부족'), data: metrics.academyDensity ? `반경 내 학원 ${metrics.academyDensity}곳` : undefined },
       store: { score: storeScore, max: 15, label: storeLabel, data: `상가 ${stores}곳 (스타벅스 ${metrics.distanceToStarbucks ? metrics.distanceToStarbucks+'m' : '없음'})` },
       parkDist: { score: parkDistScore, max: 8, label: parkDistLabel, data: metrics.distanceToPark ? `${nearestParkStr}까지 ${metrics.distanceToPark}m` : undefined },
       brand: { score: brandScore, max: 4, label: brandLabel, data: brandVal ? `적용 브랜드: ${brandVal}` : undefined },
       scale: { score: scaleScore, max: 6, label: scaleLabel, data: metrics.householdCount ? `총 ${metrics.householdCount.toLocaleString()}세대` : undefined },
       parking: { score: parkScore, max: 12, label: parkLabel, data: metrics.parkingPerHousehold ? `세대당 ${metrics.parkingPerHousehold.toFixed(2)}대` : undefined },
-      year: { score: yearScore, max: 5, label: yearLabel, data: metrics.yearBuilt ? `${metrics.yearBuilt}년 준공 (${age}년차)` : undefined }
+      year: { score: yearScore, max: 5, label: yearLabel, data: metrics.yearBuilt ? `${metrics.yearBuilt > 9999 ? `${Math.floor(metrics.yearBuilt/100)}년 ${metrics.yearBuilt%100}월` : `${metrics.yearBuilt}년`} 준공 (${age}년차)` : undefined }
     }
   };
 }

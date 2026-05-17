@@ -132,6 +132,7 @@ export async function GET(request: NextRequest) {
         yearBuilt: apt.yearBuilt ?? null,
         far: apt.far ?? null,
         bcr: apt.bcr ?? null,
+        parkingCount: apt.parkingCount ?? null,
         parkingPerHousehold,
         brand: apt.brand ?? null,
       },

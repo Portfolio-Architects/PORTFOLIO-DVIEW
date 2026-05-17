@@ -1012,6 +1012,7 @@ function FieldReportModal({
                 onSubmitComment={onSubmitComment}
                 user={user}
                 isUnlocked={isUnlocked}
+                premiumContent={report.premiumContent}
               />
             </div>
 
