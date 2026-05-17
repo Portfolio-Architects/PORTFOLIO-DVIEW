@@ -224,7 +224,7 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
 
   return (
     <div 
-      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-all duration-300 hover:scale-[1.05] hover:!z-50 hover:shadow-2xl w-[224px] sm:w-[288px] md:w-[352px] lg:w-[416px] aspect-[4/3] snap-center ${
+      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-all duration-300 hover:scale-[1.05] hover:!z-[999] hover:shadow-2xl w-[224px] sm:w-[288px] md:w-[352px] lg:w-[416px] aspect-[4/3] snap-center ${
         rank > 1 ? '-ml-[45px] sm:-ml-[58px] md:-ml-[70px] lg:-ml-[83px]' : ''
       }`}
       style={{ zIndex: 100 - rank }}
