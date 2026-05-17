@@ -143,63 +143,6 @@ export default function ApartmentDiscoveryClient({
     return lists;
   }, [allApts, fieldReportsMap, userFavorites, txSummaryData, nameMapping]);
 
-  // Quick Filters State & Logic
-  const QUICK_FILTERS = [
-    { id: 'under-10-eok', label: '10억 미만 가성비' },
-    { id: 'gap-under-3-eok', label: '갭투자 3억 이하' },
-    { id: 'high-trade', label: '최근 거래 활발' },
-    { id: 'drop-20-percent', label: '고점대비 20% 하락' },
-  ];
-
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
-
-  const handleFilterToggle = useCallback((id: string) => {
-    setActiveFilters(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  }, []);
-
-  const filteredApts = useMemo(() => {
-    if (activeFilters.size === 0) return [];
-    
-    return allApts.filter(apt => {
-      const rawKey = (apt as any).txKey || apt.name;
-      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-      const summary = txSummaryData[txKey];
-      if (!summary) return false;
-
-      let pass = true;
-      if (activeFilters.has('under-10-eok')) {
-        pass = pass && (summary.avg1MPrice || 0) < 100000 && (summary.avg1MPrice || 0) > 0;
-      }
-      if (activeFilters.has('gap-under-3-eok')) {
-        const gap = (summary.avg1MPrice || 0) - (summary.avg1MRentDeposit || 0);
-        pass = pass && gap <= 30000 && gap > 0 && (summary.avg1MRentDeposit || 0) > 0;
-      }
-      if (activeFilters.has('high-trade')) {
-        pass = pass && (summary.avg3MTxCount || 0) >= 5;
-      }
-      if (activeFilters.has('drop-20-percent')) {
-        const drop = summary.maxPrice && summary.avg1MPrice ? (summary.maxPrice - summary.avg1MPrice) / summary.maxPrice : 0;
-        pass = pass && drop >= 0.2;
-      }
-      return pass;
-    }).sort((a, b) => {
-       const txKeyA = findTxKey((a as any).txKey || a.name, txSummaryData, nameMapping) || (a as any).txKey || a.name;
-       const txKeyB = findTxKey((b as any).txKey || b.name, txSummaryData, nameMapping) || (b as any).txKey || b.name;
-       const countA = txSummaryData[txKeyA]?.avg3MTxCount || 0;
-       const countB = txSummaryData[txKeyB]?.avg3MTxCount || 0;
-       if (countA !== countB) return countB - countA;
-       
-       const priceA = txSummaryData[txKeyA]?.avg1MPrice || 0;
-       const priceB = txSummaryData[txKeyB]?.avg1MPrice || 0;
-       return priceB - priceA;
-    });
-  }, [allApts, activeFilters, txSummaryData, nameMapping]);
-
 
   const handleSelectApt = useCallback((apt: { name: string; dong: string; }) => {
     const report = fieldReportsMap.get(apt.name);
@@ -228,83 +171,23 @@ export default function ApartmentDiscoveryClient({
         subtitleLight="당신의 투자 전략에 딱 맞는 랜드마크 단지를 둘러보세요"
       />
 
-      {/* Quick Filters */}
-      <div className="px-4 sm:px-6 md:px-10 lg:px-16 pt-4 pb-2">
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x">
-          {QUICK_FILTERS.map(filter => {
-            const isActive = activeFilters.has(filter.id);
-            return (
-              <button
-                key={filter.id}
-                onClick={() => handleFilterToggle(filter.id)}
-                className={`shrink-0 snap-start px-4 py-2 rounded-full text-[13px] font-bold transition-colors duration-200 border ${
-                  isActive 
-                    ? 'bg-[#3182f6] text-white border-[#3182f6]' 
-                    : 'bg-white text-[#4e5968] border-[#e5e8eb] hover:bg-black/5'
-                }`}
-              >
-                {filter.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
+      {CATEGORIES.map((cat, index) => {
+        const apts = categoryLists[cat.id];
+        if (!apts || apts.length === 0) return null;
 
-      {activeFilters.size > 0 ? (
-        <div className="px-4 sm:px-6 md:px-10 lg:px-16 pb-8">
-          <div className="mb-4">
-            <h3 className="text-[18px] font-extrabold text-[#191f28]">
-              필터 결과 <span className="text-[#3182f6]">{filteredApts.length}</span>건
-            </h3>
-          </div>
-          {filteredApts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-              {filteredApts.map((apt: any) => {
-                 const rawKey = apt.txKey || apt.name;
-                 const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-                 const matchedSummary = txKey ? txSummaryData[txKey] : undefined;
-                 const matchedReport = fieldReportsMap.get(apt.name);
-                 return (
-                   <NetflixCard
-                     key={apt.name}
-                     apt={apt}
-                     txSummary={matchedSummary}
-                     report={matchedReport}
-                     rank={null}
-                     onClick={handleSelectApt}
-                   />
-                 );
-              })}
-            </div>
-          ) : (
-             <div className="flex flex-col items-center justify-center py-20 text-center">
-               <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mb-4">
-                 <MapPin className="w-8 h-8 text-[#8b95a1]" />
-               </div>
-               <p className="text-[16px] font-bold text-[#4e5968] mb-1">조건에 맞는 아파트가 없습니다</p>
-               <p className="text-[14px] text-[#8b95a1]">필터 조건을 변경해보세요</p>
-             </div>
-          )}
-        </div>
-      ) : (
-        CATEGORIES.map((cat, index) => {
-          const apts = categoryLists[cat.id];
-          if (!apts || apts.length === 0) return null;
-
-          return (
-            <NetflixCategoryRow 
-              key={cat.id}
-              cat={cat}
-              index={index}
-              apts={apts}
-              txSummaryData={txSummaryData}
-              nameMapping={nameMapping}
-              fieldReportsMap={fieldReportsMap}
-              handleSelectApt={handleSelectApt}
-            />
-          );
-        })
-      )}
+        return (
+          <NetflixCategoryRow 
+            key={cat.id}
+            cat={cat}
+            index={index}
+            apts={apts}
+            txSummaryData={txSummaryData}
+            nameMapping={nameMapping}
+            fieldReportsMap={fieldReportsMap}
+            handleSelectApt={handleSelectApt}
+          />
+        );
+      })}
       
       {/* Bottom Padding */}
       <div className="h-[80px] shrink-0 bg-transparent" />
