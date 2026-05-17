@@ -311,7 +311,7 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
         <div className="relative">
           <button 
             onClick={() => handleScroll('left')}
-            className="absolute left-0 top-0 bottom-0 z-30 w-16 bg-gradient-to-r from-white via-white/80 to-transparent flex items-center justify-start pl-2 sm:pl-4 md:pl-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
+            className="absolute left-0 top-0 bottom-0 z-[1000] w-16 bg-gradient-to-r from-white via-white/80 to-transparent flex items-center justify-start pl-2 sm:pl-4 md:pl-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
             aria-label="이전"
           >
             <div className="bg-white rounded-full p-2 shadow-md border border-gray-100 text-gray-700 hover:text-black hover:scale-110 transition-transform flex items-center justify-center -ml-2">
@@ -321,7 +321,7 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
           
           <button 
             onClick={() => handleScroll('right')}
-            className="absolute right-0 top-0 bottom-0 z-30 w-16 bg-gradient-to-l from-white via-white/80 to-transparent flex items-center justify-end pr-2 sm:pr-4 md:pr-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
+            className="absolute right-0 top-0 bottom-0 z-[1000] w-16 bg-gradient-to-l from-white via-white/80 to-transparent flex items-center justify-end pr-2 sm:pr-4 md:pr-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
             aria-label="다음"
           >
             <div className="bg-white rounded-full p-2 shadow-md border border-gray-100 text-gray-700 hover:text-black hover:scale-110 transition-transform flex items-center justify-center -mr-2">
