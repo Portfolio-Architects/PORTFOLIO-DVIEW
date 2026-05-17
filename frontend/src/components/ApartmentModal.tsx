@@ -847,10 +847,10 @@ function FieldReportModal({
                     <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
                   </div>
                   
-                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center">
+                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
                     데이터가 담지 못하는 우리 단지의 진정한 가치
                   </h3>
-                  <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center">
+                  <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
                     매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
                     입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
                   </p>
