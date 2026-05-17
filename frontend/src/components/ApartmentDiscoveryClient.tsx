@@ -264,7 +264,9 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
           <span className={`${dongColor} font-medium text-[12px] md:text-[13px]`}>{apt.dong}</span>
         </div>
         <p className={`${descColor} text-[11px] md:text-[12px] font-medium mt-0.5 md:mt-1 line-clamp-1 w-[90%] opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
-          {cat?.desc || '동탄을 대표하는 프리미엄 아파트입니다.'}
+          {txSummary?.maxPriceEok && txSummary?.latestPriceEok 
+            ? `최고가 ${txSummary.maxPriceEok} · 최근 실거래 ${txSummary.latestPriceEok}`
+            : (cat?.desc || '동탄을 대표하는 프리미엄 아파트입니다.')}
         </p>
       </div>
     </div>
