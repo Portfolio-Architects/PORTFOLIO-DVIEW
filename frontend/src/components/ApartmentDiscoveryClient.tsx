@@ -224,8 +224,8 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
 
   return (
     <div 
-      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-all duration-300 hover:scale-[1.05] hover:!z-50 hover:shadow-2xl w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] aspect-[4/3] snap-center ${
-        rank > 1 ? '-ml-[150px] sm:-ml-[200px] md:-ml-[240px] lg:-ml-[280px]' : ''
+      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-all duration-300 hover:scale-[1.05] hover:!z-50 hover:shadow-2xl w-[224px] sm:w-[288px] md:w-[352px] lg:w-[416px] aspect-[4/3] snap-center ${
+        rank > 1 ? '-ml-[45px] sm:-ml-[58px] md:-ml-[70px] lg:-ml-[83px]' : ''
       }`}
       style={{ zIndex: 100 - rank }}
       onClick={() => onClick(apt)}
@@ -249,21 +249,21 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
       
       {/* Top Left Rank */}
       {rank != null && (
-        <div className="absolute top-4 left-4 md:top-6 md:left-6 bg-black/60 backdrop-blur-md rounded-full px-4 py-1 z-10 border border-white/10 shadow-lg">
-          <span className="text-white font-extrabold text-[16px] md:text-[20px] italic">{rank}위</span>
+        <div className="absolute top-3 left-3 md:top-4 md:left-4 bg-black/60 backdrop-blur-md rounded-full px-3 py-1 z-10 border border-white/10 shadow-lg">
+          <span className="text-white font-extrabold text-[14px] md:text-[16px] italic">{rank}위</span>
         </div>
       )}
       
       {/* Base Content */}
-      <div className={`absolute bottom-0 left-0 right-0 z-10 flex flex-col p-5 md:p-8 gap-2 transition-transform duration-300 group-hover:-translate-y-2`}>
-        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 break-keep text-[22px] md:text-[28px]`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
+      <div className={`absolute bottom-0 left-0 right-0 z-10 flex flex-col p-4 md:p-6 gap-1 md:gap-2 transition-transform duration-300 group-hover:-translate-y-2`}>
+        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 break-keep text-[18px] md:text-[24px]`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
           {apt.name}
         </h4>
         <div className="flex items-center gap-2">
-          <span className={`${priceColor} font-extrabold text-[18px] md:text-[20px]`}>{priceText}</span>
-          <span className={`${dongColor} font-medium text-[15px]`}>{apt.dong}</span>
+          <span className={`${priceColor} font-extrabold text-[16px] md:text-[18px]`}>{priceText}</span>
+          <span className={`${dongColor} font-medium text-[13px] md:text-[14px]`}>{apt.dong}</span>
         </div>
-        <p className={`${descColor} text-[13px] md:text-[15px] font-medium mt-1 line-clamp-2 w-[90%] opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+        <p className={`${descColor} text-[12px] md:text-[14px] font-medium mt-1 line-clamp-2 w-[90%] opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
           {cat?.desc || '동탄을 대표하는 프리미엄 아파트입니다.'}
         </p>
       </div>
