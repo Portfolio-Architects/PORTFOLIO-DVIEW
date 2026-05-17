@@ -263,7 +263,14 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         {/* Modal Controls */}
         {isModal && (
           <button 
-            onClick={() => router.back()} 
+            onClick={() => {
+              if (window.location.hash.includes('post=')) {
+                // If it was a hash-based modal (LoungeFeedClient)
+                window.history.back(); // Standard way to pop the hash
+              } else {
+                router.back();
+              }
+            }} 
             className="absolute top-4 right-4 z-50 p-2 bg-body text-tertiary rounded-full hover:bg-[#e5e8eb] hover:text-primary transition-colors shadow-sm border border-border/50"
             title="닫기"
           >
@@ -448,7 +455,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                           key={shortName}
                           onClick={() => {
                             // Bypass Next.js router for instant hash update and modal rendering
-                            window.location.hash = `apt=${encodeURIComponent(shortName)}`;
+                            window.location.hash = `post=${postId}&apt=${encodeURIComponent(shortName)}`;
                           }}
                           className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-toss-blue/20"
                         >

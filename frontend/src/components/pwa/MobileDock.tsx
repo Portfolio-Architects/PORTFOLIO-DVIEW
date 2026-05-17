@@ -29,7 +29,14 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
              return (
                <button
                  key={tab.id}
-                 onClick={() => onTabClick(tab.id as 'imjang' | 'lounge' | 'discover' | 'overview')}
+                 onClick={() => {
+                   onTabClick(tab.id as 'imjang' | 'lounge' | 'discover' | 'overview');
+                   if (tab.id === 'overview') {
+                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                   } else {
+                     window.history.replaceState(null, '', window.location.pathname + window.location.search + `#${tab.id}`);
+                   }
+                 }}
                  className={`flex flex-col items-center justify-center w-full min-h-[44px] rounded-[20px] transition-all duration-300 relative ${
                    isActive ? 'text-toss-blue' : 'text-tertiary hover:text-secondary'
                  }`}

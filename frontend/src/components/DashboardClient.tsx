@@ -132,13 +132,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         setActiveTab('imjang');
       } else if (window.location.hash === '#discover') {
         setActiveTab('discover');
-      } else if (window.location.hash.startsWith('#lounge')) {
+      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) {
         setActiveTab('lounge');
       }
 
       const handleHashChange = () => {
         startTransition(() => {
-          if (window.location.hash.startsWith('#lounge')) setActiveTab('lounge');
+          if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) setActiveTab('lounge');
           else if (window.location.hash === '#discover') setActiveTab('discover');
           else if (window.location.hash === '#imjang') setActiveTab('imjang');
           else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');
@@ -163,8 +163,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     if (!mounted || !sheetApartments) return;
     
     const checkHashForApt = () => {
-      if (window.location.hash.startsWith('#apt=')) {
-        const aptName = decodeURIComponent(window.location.hash.replace('#apt=', ''));
+      const match = window.location.hash.match(/[#&]apt=([^&]+)/);
+      if (match) {
+        const aptName = decodeURIComponent(match[1]);
         const allApts = Object.values(sheetApartments).flat();
         const targetApt = allApts.find(a => isSameApartment(a.name, aptName, nameMapping));
         
@@ -630,6 +631,16 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               onClose={() => {
                 setSelectedReport(null);
                 setMobileModalOpen(false);
+                
+                const currentHash = window.location.hash;
+                if (currentHash.includes('post=')) {
+                  const postMatch = currentHash.match(/#post=([^&]+)/);
+                  if (postMatch) {
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search + `#post=${postMatch[1]}`);
+                    return;
+                  }
+                }
+                
                 window.history.replaceState(null, '', window.location.pathname + window.location.search);
               }}
               comments={commentsData[resolvedReport.id] || []}
