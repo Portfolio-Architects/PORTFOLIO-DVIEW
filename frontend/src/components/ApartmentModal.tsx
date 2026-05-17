@@ -1092,9 +1092,13 @@ function FieldReportModal({
             onClick={async (e) => { 
               e.stopPropagation(); 
               if (!currentImgData?.url || !report?.id) return;
+              if (report.id.startsWith('stub-')) {
+                alert('해당 아파트의 리포트가 아직 생성되지 않았습니다.');
+                return;
+              }
               if (!confirm('이 사진을 아파트 카드의 대표 썸네일로 설정하시겠습니까?')) return;
               try {
-                await updateDoc(doc(db, 'field_reports', report.id), {
+                await updateDoc(doc(db, 'scoutingReports', report.id), {
                   thumbnail: currentImgData.url
                 });
                 alert('대표 썸네일이 변경되었습니다. 새로고침 시 반영됩니다.');
