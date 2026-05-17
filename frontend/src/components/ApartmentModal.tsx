@@ -876,21 +876,8 @@ function FieldReportModal({
 
             {!s ? null : (() => {
               const renderWatermark = () => {
-                let dateStr = '';
-                if (report.scoutingDate) {
-                  dateStr = report.scoutingDate.replace(/-/g, '.');
-                } else if (report.createdAt) {
-                  const date = report.createdAt instanceof Date ? report.createdAt : new Date(typeof report.createdAt === 'object' && (report.createdAt as any).seconds ? (report.createdAt as any).seconds * 1000 : report.createdAt as string);
-                  if (!isNaN(date.getTime())) {
-                    dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
-                  }
-                }
-                
                 return (
                   <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
-                    <div className="px-2.5 py-1 bg-black/40 backdrop-blur-md rounded border border-white/20 text-white/90 text-[10px] md:text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
-                      <span>{dateStr}</span>
-                    </div>
                     <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
                       D-VIEW
                     </span>
