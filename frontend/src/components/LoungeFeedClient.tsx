@@ -31,6 +31,32 @@ const CATEGORY_MAP: Record<string, string[]> = {
   '매니저 임장기': ['매니저 임장기']
 };
 
+export function formatRelativeTime(dateInput: number | string | Date | undefined): string {
+  if (!dateInput) return '방금 전';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '방금 전';
+  
+  const now = new Date();
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
+  const diffMin = Math.floor(diffMs / (1000 * 60));
+  const diffHour = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDay = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMin < 1) return '방금 전';
+  if (diffMin < 60) return `${diffMin}분 전`;
+  if (diffHour < 24) return `${diffHour}시간 전`;
+  if (diffDay < 7) return `${diffDay}일 전`;
+  
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  if (year === now.getFullYear()) {
+    return `${month}.${day}`;
+  }
+  return `${year}.${month}.${day}`;
+}
+
 export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts || []);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -324,7 +350,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   <span className="text-[11px] text-gray-300">|</span>
                   <span className="text-[11px] font-semibold text-[#8b95a1] truncate max-w-[80px]">{news.author || '매니저'}</span>
                   <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-[#8b95a1] shrink-0">{news.meta?.split('·')[0]?.trim() || '방금 전'}</span>
+                  <span className="text-[11px] font-semibold text-[#8b95a1] shrink-0">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
                 </div>
               </div>
               
@@ -362,7 +388,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
               {/* Desktop Right Meta: Date, Views, Likes */}
               <div className="hidden sm:flex items-center gap-4 shrink-0 pl-2">
-                <span className="text-[13px] font-medium text-[#8b95a1] w-[50px] text-right">{news.meta?.split('·')[0]?.trim() || '방금 전'}</span>
+                <span className="text-[13px] font-medium text-[#8b95a1] w-[50px] text-right">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
                 <div className="flex items-center gap-3 text-[13px] font-semibold text-[#8b95a1] w-[80px] justify-end">
                   <span className="flex items-center gap-1"><Eye size={14}/> {news.views || 0}</span>
                   <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={14} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>

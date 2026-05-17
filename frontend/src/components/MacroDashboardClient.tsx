@@ -1,6 +1,5 @@
-"use client";
-
 import React, { useMemo, useState, useDeferredValue } from "react";
+import useSWR from "swr";
 import {
   PieChart,
   Pie,
@@ -39,6 +38,8 @@ interface MacroDashboardProps {
   onSelectApt?: (name: string) => void;
   onOpenAdModal?: () => void;
 }
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const COLORS = [
   "#00d29d",
@@ -208,13 +209,19 @@ export const formatEokWithUnit = (priceMan: number) => {
 export default function MacroDashboardClient({
   sheetApartments,
   txSummaryData,
+  macroTrendData,
   nameMapping,
   publicRentalSet,
   userFavorites,
   onSelectApt,
-  macroTrendData,
   onOpenAdModal,
 }: MacroDashboardProps) {
+  const { data: gaData } = useSWR('/api/public/analytics', fetcher, { 
+    revalidateOnFocus: false,
+    dedupingInterval: 60000 
+  });
+  
+  const formatNum = (num?: number) => typeof num === 'number' ? num.toLocaleString() : '-';
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<"price" | "pyeong">("price");
   const [accordionMode, setAccordionMode] = useState<"price" | "pyeong">("price");
@@ -443,7 +450,7 @@ export default function MacroDashboardClient({
         change: 0,
         changeText: "0원",
         rate: 0,
-        text: "보합장",
+        text: "보합 상태",
         color: "#b0b8c1",
       };
     const current =
@@ -455,7 +462,7 @@ export default function MacroDashboardClient({
         change: 0,
         changeText: "0원",
         rate: 0,
-        text: "보합장",
+        text: "보합 상태",
         color: "#b0b8c1",
       };
 
@@ -478,7 +485,7 @@ export default function MacroDashboardClient({
         change: absChange,
         changeText,
         rate: Math.abs(rate),
-        text: "상승장",
+        text: "상승 중",
         color: "#f04452",
       };
     if (change < 0)
@@ -486,14 +493,14 @@ export default function MacroDashboardClient({
         change: absChange,
         changeText,
         rate: Math.abs(rate),
-        text: "하락장",
+        text: "하락 중",
         color: "#3182f6",
       };
     return {
       change: 0,
       changeText: "0원",
       rate: 0,
-      text: "보합장",
+      text: "보합 상태",
       color: "#b0b8c1",
     };
   }, [lineData]);
@@ -790,8 +797,51 @@ export default function MacroDashboardClient({
       <PageHeroHeader 
         title="D-VIEW 데이터 랩"
         compactTitle="D-VIEW 데이터 랩"
-        subtitleStrong="데이터 기반 동탄 아파트 가치 분석"
-        subtitleLight="실거래가 데이터, 통계 기반의 동탄 부동산 인사이트 제공"
+        subtitleStrong={
+          <>
+            데이터 기반 <span className="text-[#00d29d] font-extrabold px-0.5">동탄 아파트</span> 가치 분석
+          </>
+        }
+        subtitleLight={
+          <div className="flex flex-nowrap overflow-x-auto sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center gap-2 sm:gap-3 ml-0 sm:ml-1 mt-1 sm:mt-0 max-w-[calc(100vw-32px)] md:max-w-none pb-1 md:pb-0">
+            <span className="hidden sm:inline text-[#d1d6db] mr-0.5 shrink-0">—</span>
+            <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
+              <span className="bg-[#f2f4f6] border border-[#e5e8eb] px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-[#4e5968] font-bold tracking-tight">MAU</span>
+              <span className="text-[#333d4b] font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.mau) : '...'}</span>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+                최근 30일 동안의 월간 순 방문자 수
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
+              </div>
+            </div>
+            <div className="w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
+            <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
+              <span className="bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-toss-blue font-bold tracking-tight">DAU</span>
+              <span className="text-toss-blue font-extrabold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.dau) : '...'}</span>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+                오늘 하루 동안의 일간 순 방문자 수
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
+              </div>
+            </div>
+            <div className="w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
+            <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
+              <span className="bg-[#f2f4f6] border border-[#e5e8eb] px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-[#4e5968] font-bold tracking-tight">VIEW</span>
+              <span className="text-[#333d4b] font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.totalViews) : '...'}</span>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+                누적 페이지 뷰 (조회수) 총합
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
+              </div>
+            </div>
+            <div className="hidden sm:block w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
+            <div className="group relative flex items-center gap-1.5 shrink-0 pr-4 sm:pr-0 cursor-help">
+              <span className="bg-[#f2f4f6] border border-[#e5e8eb] px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-[#4e5968] font-bold tracking-tight">AVG. TIME</span>
+              <span className="text-[#333d4b] font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? gaData.avgSessionDuration : '...'}</span>
+              <div className="absolute right-0 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+                방문자 1인당 평균 체류 시간
+                <div className="absolute bottom-full right-6 border-4 border-transparent border-b-[#191f28]" />
+              </div>
+            </div>
+          </div>
+        }
         rightContent={
           onOpenAdModal && (
             <button
@@ -816,7 +866,7 @@ export default function MacroDashboardClient({
 
         <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-0">
           {/* Left Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4">
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
             {/* Donut Chart Card */}
             <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] px-5 py-7 min-h-[350px]">
               <div className="flex justify-between items-center mb-4">
@@ -1024,17 +1074,17 @@ export default function MacroDashboardClient({
                 }
                 badge={
                   <>
-                    {momStats.text === "상승장"
+                    {momStats.text === "상승 중"
                       ? "+"
-                      : momStats.text === "하락장"
+                      : momStats.text === "하락 중"
                         ? "-"
                         : ""}
                     {momStats.changeText}{" "}
                     <span className="text-[#4e5968] ml-0.5 font-bold">
                       (
-                      {momStats.text === "상승장"
+                      {momStats.text === "상승 중"
                         ? "+"
-                        : momStats.text === "하락장"
+                        : momStats.text === "하락 중"
                           ? "-"
                           : ""}
                       {momStats.rate.toFixed(1)}%)
@@ -1047,7 +1097,7 @@ export default function MacroDashboardClient({
           </div>
 
           {/* Right Panel: Line Chart */}
-          <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-4 sm:p-5 min-h-[300px]">
+          <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-4 sm:p-5 min-h-[300px] min-w-0">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <div className="flex flex-col">
                 <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
@@ -1060,7 +1110,7 @@ export default function MacroDashboardClient({
                   국민평형(30~36평형) 실거래가 변동
                 </span>
               </div>
-              <div className="flex bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
+              <div className="flex bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner self-end sm:self-auto">
                 {["3M", "6M", "1Y", "3Y", "5Y", "ALL"].map((tf) => (
                   <button
                     key={tf}
@@ -1076,8 +1126,8 @@ export default function MacroDashboardClient({
               </div>
             </div>
 
-            <div className="w-full mt-2 sm:mt-0">
-              <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
+            <div className="w-full h-[250px] md:h-auto md:flex-1 mt-2 sm:mt-0 min-h-[250px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <LineChart
                     data={lineData}
                     margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
@@ -1127,6 +1177,8 @@ export default function MacroDashboardClient({
                       }}
                     />
                     <Legend
+                      align="center"
+                      verticalAlign="bottom"
                       iconType="circle"
                       wrapperStyle={{
                         paddingTop: "20px",
@@ -1138,7 +1190,6 @@ export default function MacroDashboardClient({
                           style={{
                             color: entry.color,
                             marginLeft: "4px",
-                            marginRight: "24px",
                           }}
                         >
                           {value}

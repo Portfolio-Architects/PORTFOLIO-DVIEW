@@ -6,8 +6,8 @@ import { MessageSquare } from "lucide-react";
 
 export interface PageHeroHeaderProps {
   title: string;
-  subtitleStrong: string;
-  subtitleLight: string;
+  subtitleStrong: string | React.ReactNode;
+  subtitleLight: string | React.ReactNode;
   rightContent?: React.ReactNode;
   rightSideContent?: React.ReactNode;
   compactTitle?: string;
@@ -79,10 +79,16 @@ export default function PageHeroHeader({
                   <strong className="text-[#191f28] text-[14px] sm:text-[16px] whitespace-nowrap">
                     {subtitleStrong}
                   </strong>
-                  <span className="text-[#8b95a1] font-normal text-[13px] sm:text-[14.5px] leading-snug break-keep">
-                    <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
-                    {subtitleLight}
-                  </span>
+                  <div className="text-[#8b95a1] font-normal text-[13px] sm:text-[14.5px] leading-snug break-keep flex items-center flex-wrap gap-1 sm:gap-0 mt-0.5 sm:mt-0">
+                    {typeof subtitleLight === 'string' ? (
+                      <>
+                        <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
+                        {subtitleLight}
+                      </>
+                    ) : (
+                      subtitleLight
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
