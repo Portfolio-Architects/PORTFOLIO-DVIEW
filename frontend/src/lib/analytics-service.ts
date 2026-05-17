@@ -73,7 +73,7 @@ export async function getPublicAnalyticsLKG() {
         if (isStale) {
           // Stale-while-revalidate: Fetch in background
           fetchPublicAnalyticsFromGA().then(freshData => {
-            redis.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+            redis?.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
           }).catch(console.error);
         }
         return cached.data;
@@ -145,7 +145,7 @@ export async function getAdminAnalyticsLKG() {
         if (isStale) {
           // Stale-while-revalidate: Fetch in background
           fetchAdminAnalyticsFromGA().then(freshData => {
-            redis.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+            redis?.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
           }).catch(console.error);
         }
         return cached.data;
