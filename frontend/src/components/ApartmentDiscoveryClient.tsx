@@ -370,7 +370,7 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
       
       {/* Base Content */}
       <div className={`absolute bottom-0 left-0 right-0 z-10 flex flex-col ${isHero ? 'p-5 md:p-8 gap-2' : 'p-3 md:p-5 gap-1'}`}>
-        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 ${isHero ? 'text-[22px] md:text-[28px]' : 'text-[16px] md:text-[18px]'}`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
+        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 break-keep ${isHero ? 'text-[22px] md:text-[28px]' : 'text-[16px] md:text-[18px]'}`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
           {apt.name}
         </h4>
         <div className="flex items-center gap-2">
