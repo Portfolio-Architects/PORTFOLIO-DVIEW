@@ -48,7 +48,7 @@ const formatYearBuilt = (yearStr?: string | number) => {
   } else if (diffYears === 0 && diffMonths === 0) {
     ageStr = '신축';
   } else {
-    ageStr = `${diffYears}년 ${diffMonths}월차`;
+    ageStr = diffMonths === 0 ? `${diffYears}년 차` : `${diffYears > 0 ? diffYears + '년 ' : ''}${diffMonths}개월 차`;
   }
   
   if (str.length >= 6) {
@@ -136,6 +136,9 @@ export default function TossApartmentExploreClient({
       if (currentCategory === 'rank-price' || currentCategory.startsWith('dong-')) {
         return b.pyeongPrice - a.pyeongPrice;
       }
+      if (currentCategory === 'rank-abs-price') {
+        return b.totalPrice - a.totalPrice;
+      }
       if (currentCategory === 'rank-jeonse') {
         return b.ratio - a.ratio;
       }
@@ -173,6 +176,11 @@ export default function TossApartmentExploreClient({
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1">
+            <SidebarItem 
+              label="가격 높은 순" 
+              active={currentCategory === 'rank-abs-price'} 
+              onClick={() => setCurrentCategory('rank-abs-price')} 
+            />
             <SidebarItem 
               label="내 관심 단지" 
               active={currentCategory === 'favorites'} 
@@ -229,6 +237,7 @@ export default function TossApartmentExploreClient({
           <h2 className="text-[16px] font-extrabold text-primary tracking-tight">
             {currentCategory === 'favorites' ? '내 관심 단지' : 
              currentCategory === 'rank-price' ? '평당가 높은 순' :
+             currentCategory === 'rank-abs-price' ? '가격 높은 순' :
              currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
              currentCategory === 'rank-volume' ? '최근 거래량 많은 순' :
              currentCategory === 'rank-views' ? '조회수 많은 순' :
@@ -255,6 +264,7 @@ export default function TossApartmentExploreClient({
               <h1 className="text-[20px] md:text-[28px] font-extrabold text-primary tracking-tight">
                 {currentCategory === 'favorites' ? '내 관심 단지' : 
                  currentCategory === 'rank-price' ? '평당가 높은 순' :
+                 currentCategory === 'rank-abs-price' ? '가격 높은 순' :
                  currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
                  currentCategory === 'rank-volume' ? '최근 거래량 많은 순' :
                  currentCategory === 'rank-views' ? '조회수 많은 순' :
@@ -374,32 +384,43 @@ export default function TossApartmentExploreClient({
                     onClick={() => handleSelectApt(item.apt.name)}
                     className="flex md:hidden flex-row items-center justify-between px-5 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5">
+                    <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
+                      <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
                         <span className="text-[15px] font-bold text-secondary mb-1">{index + 1}</span>
                         <div onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}>
                           <Heart size={16} className={item.isFavorited ? "text-toss-red fill-current" : "text-tertiary"} />
                         </div>
                       </div>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <span className="text-[16px] font-extrabold text-primary leading-tight">{item.apt.name}</span>
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <div className="mb-1.5">
+                          <span className="text-[16px] font-extrabold text-primary leading-tight break-keep">
+                            {item.apt.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-0.5 text-[13px] text-tertiary font-medium">
                           {item.photoCount > 0 && (
-                            <span className="px-1.5 py-[2px] bg-[#e0fbf4] text-[#00b386] text-[10px] font-bold rounded flex items-center">
+                            <span className="px-1.5 py-[2px] bg-[#e0fbf4] text-[#00b386] text-[10px] font-bold rounded flex items-center shrink-0">
                               <Camera className="w-2.5 h-2.5 mr-0.5 inline-block" />{item.photoCount}
                             </span>
                           )}
+                          <span>{item.apt.dong}</span>
                         </div>
-                        <span className="text-[13px] text-tertiary font-medium mb-1">
-                          {item.apt.dong} · {formatYearBuilt(item.apt.yearBuilt).split(' / ').pop()} · {item.apt.householdCount ? `${item.apt.householdCount}세대` : ''}
-                        </span>
-                        <span className="text-[12px] text-secondary">
+                        <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-1.5 text-[13px] text-tertiary font-medium">
+                          <span>{formatYearBuilt(item.apt.yearBuilt).split(' / ').pop()}</span>
+                          {item.apt.householdCount && (
+                            <>
+                              <span className="text-[#d1d6db]">·</span>
+                              <span>{item.apt.householdCount}세대</span>
+                            </>
+                          )}
+                        </div>
+                        <span className="text-[12px] text-secondary truncate">
                           {item.jeonsePrice > 0 ? `전세 ${formatPrice(item.jeonsePrice)} (${(item.ratio * 100).toFixed(1)}%)` : '전세 없음'}
                         </span>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col items-end text-right">
+                    <div className="flex flex-col items-end text-right shrink-0">
                       <span className="text-[16px] font-bold text-primary mb-1">
                         {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
                       </span>
@@ -446,6 +467,11 @@ export default function TossApartmentExploreClient({
               <div className="py-3">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
                 <div className="flex flex-col gap-1">
+                  <MobileSidebarItem 
+                    label="가격 높은 순" 
+                    active={currentCategory === 'rank-abs-price'} 
+                    onClick={() => { setCurrentCategory('rank-abs-price'); setIsMobileMenuOpen(false); }} 
+                  />
                   <MobileSidebarItem 
                     label="내 관심 단지" 
                     active={currentCategory === 'favorites'} 

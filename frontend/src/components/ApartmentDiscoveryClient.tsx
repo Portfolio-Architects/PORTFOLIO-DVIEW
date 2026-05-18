@@ -333,7 +333,7 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
 
           <div 
             ref={scrollContainerRef}
-            className="flex items-stretch overflow-x-auto snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-6 pt-4 scroll-smooth"
+            className="flex items-stretch overflow-x-auto overflow-y-hidden touch-pan-x snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-6 pt-4 scroll-smooth"
           >
             {apts.map((apt: any, rankIndex: number) => {
                const rawKey = apt.txKey || apt.name;

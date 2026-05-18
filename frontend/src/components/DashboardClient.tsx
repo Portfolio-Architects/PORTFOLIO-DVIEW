@@ -414,6 +414,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   }, [baseSortedApts, deferredSearchQuery]);
 
   return (
+    <>
     <PullToRefresh 
       scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}
       disabled={mobileModalOpen || !!selectedReport}
@@ -670,15 +671,17 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         <WriteReviewModal onClose={() => setShowReviewModal(false)} userUid={user.uid} />
       )}
 
-      <MobileDock 
-        activeTab={activeTab} 
-        onTabClick={setActiveTab}
-      />
-
       </div>
-      {isAdModalOpen && (
-        <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
-      )}
     </PullToRefresh>
+
+    <MobileDock 
+      activeTab={activeTab} 
+      onTabClick={setActiveTab}
+    />
+
+    {isAdModalOpen && (
+      <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
+    )}
+    </>
   );
 }

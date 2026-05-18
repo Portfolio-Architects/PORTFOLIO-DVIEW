@@ -258,7 +258,7 @@ export function TransactionChartSection({
           </div>
         </div>
         
-        <div className="flex w-full gap-2 md:gap-3 mb-5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x pb-2">
+        <div className="flex w-full gap-2 md:gap-3 mb-5 overflow-x-auto overflow-y-hidden touch-pan-x scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x pb-2">
           {[{label: '1개월', val: momentum.m1}, {label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}, {label: '3년', val: momentum.y3}].map((item, idx) => {
             const isTarget = item.label === '3개월';
             return (
@@ -276,7 +276,7 @@ export function TransactionChartSection({
         </div>
         
         <div className="flex-1 min-h-[300px] w-full relative">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
             <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
