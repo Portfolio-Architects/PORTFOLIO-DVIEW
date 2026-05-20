@@ -34,10 +34,10 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
           isScrolled ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <span className="font-extrabold text-[#191f28] tracking-tight text-[15px] flex items-center gap-2">
+        <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
            <span className="text-toss-blue">PORTFOLIO</span>
-           <span className="text-[#8b95a1] font-normal text-[13px]">|</span>
-           <span className="text-[#4e5968] font-semibold text-[14px]">D-VIEW</span>
+           <span className="text-tertiary font-normal text-[13px]">|</span>
+           <span className="text-secondary font-semibold text-[14px]">D-VIEW</span>
         </span>
         <div className="flex items-center -mr-1">
           <FloatingUserBar />
@@ -64,8 +64,8 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
                 }}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-[15px] font-bold transition-all whitespace-nowrap ${
                   activeTab === 'overview'
-                    ? 'bg-white text-primary shadow-sm ring-1 ring-black/5'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                    ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
                 <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-toss-blue' : ''} />
@@ -74,7 +74,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               
               <Link
                 href="/#imjang"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
               >
                 <Home size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                 <span>아파트 탐색</span>
@@ -82,7 +82,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               
               <Link
                 href="/#discover"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
               >
                 <Compass size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                 <span>골라보기</span>
@@ -90,7 +90,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
 
               <Link
                 href="/#lounge"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5`}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10`}
               >
                 <MessageSquare size={16} className="text-primary group-hover:scale-110 transition-transform duration-200" />
                 <span>커뮤니티</span>

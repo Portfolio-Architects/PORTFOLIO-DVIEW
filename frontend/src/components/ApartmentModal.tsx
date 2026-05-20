@@ -609,14 +609,14 @@ function FieldReportModal({
                       ].filter(s => s.dist && s.dist > 0).map(school => {
                         const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
-                          excellent: { dot: 'bg-toss-blue', timeBadge: 'bg-blue-50 text-toss-blue', linkBadge: 'bg-white border border-[#e5e8eb] text-secondary hover:text-toss-blue hover:border-toss-blue/30 shadow-sm' },
-                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-green-50 text-green-600', linkBadge: 'bg-white border border-[#e5e8eb] text-secondary hover:text-green-600 hover:border-green-600/30 shadow-sm' },
-                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-yellow-50 text-yellow-600', linkBadge: 'bg-white border border-[#e5e8eb] text-secondary hover:text-yellow-600 hover:border-yellow-600/30 shadow-sm' },
-                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-red-50 text-red-600', linkBadge: 'bg-white border border-[#e5e8eb] text-secondary hover:text-red-600 hover:border-red-600/30 shadow-sm' },
+                          excellent: { dot: 'bg-toss-blue', timeBadge: 'bg-blue-50 text-toss-blue', linkBadge: 'bg-surface border border-border text-secondary hover:text-toss-blue hover:border-toss-blue/30 shadow-sm' },
+                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-green-50 text-green-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-green-600 hover:border-green-600/30 shadow-sm' },
+                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-yellow-50 text-yellow-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-yellow-600 hover:border-yellow-600/30 shadow-sm' },
+                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-red-50 text-red-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-red-600 hover:border-red-600/30 shadow-sm' },
                         };
                         const s = gradeStyles[grade];
                         return (
-                          <div key={school.label} className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5">
+                          <div key={school.label} className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                             <div className="flex items-center justify-between mb-2 md:mb-3">
                               <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                                 {school.label}
@@ -660,7 +660,7 @@ function FieldReportModal({
                         { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
-                        <div key={station.label} className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5">
+                        <div key={station.label} className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
                             <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                               {station.label}
@@ -683,7 +683,7 @@ function FieldReportModal({
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="text-[11px] md:text-[13px] flex items-center justify-center gap-1 font-semibold mt-3 md:mt-4 rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-center text-secondary transition-all bg-white border border-[#e5e8eb] shadow-sm hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)]"
+                              className="text-[11px] md:text-[13px] flex items-center justify-center gap-1 font-semibold mt-3 md:mt-4 rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-center text-secondary transition-all bg-surface border border-border shadow-sm hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)]"
                               style={{ '--hover-color': station.color } as React.CSSProperties}
                               title={`${station.name} 구글 지도에서 보기`}
                             >
@@ -706,7 +706,7 @@ function FieldReportModal({
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2.5">
                       {/* Academy Density */}
                       {report.metrics.academyDensity > 0 && (
-                        <div className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5">
+                        <div className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
                             <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                               학원 · 500m 반경
@@ -723,7 +723,7 @@ function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-white border border-[#e5e8eb] shadow-sm rounded-lg px-2.5 py-1.5 md:px-3 md:py-2">
+                                  <div key={cat} className="flex justify-between items-center bg-surface border border-border shadow-sm rounded-lg px-2.5 py-1.5 md:px-3 md:py-2">
                                     <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
                                     <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
@@ -734,7 +734,7 @@ function FieldReportModal({
                       )}
                       {/* Restaurant/Cafe Density */}
                       {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                        <div className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col hover:bg-white hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5">
+                        <div className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
                             <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                               음식점·카페·500m
@@ -751,7 +751,7 @@ function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-white border border-[#e5e8eb] shadow-sm rounded-lg px-2.5 py-1.5 md:px-3 md:py-2">
+                                  <div key={cat} className="flex justify-between items-center bg-surface border border-border shadow-sm rounded-lg px-2.5 py-1.5 md:px-3 md:py-2">
                                     <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
                                     <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
@@ -1199,12 +1199,12 @@ function FieldReportModal({
       <div className="fixed inset-0 z-[9999] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1340px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 slide-in-from-bottom overflow-hidden`}>
+        <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1340px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
 
           <div className="absolute top-4 right-4 z-[100] hidden md:flex items-center gap-3">
             <button
               onClick={handleCopyLink}
-              className="bg-white/90 hover:bg-white text-[#4e5968] px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
+              className="bg-surface/90 hover:bg-surface text-secondary px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
               title="일반 링크 복사"
             >
               <Link2 size={16} className="group-hover:scale-110 transition-transform" />

@@ -457,7 +457,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                             // Bypass Next.js router for instant hash update and modal rendering
                             window.location.hash = `post=${postId}&apt=${encodeURIComponent(shortName)}`;
                           }}
-                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-toss-blue/20"
+                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-toss-blue/20"
                         >
                           <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0 shadow-sm border border-border">
                             <Building2 size={15} className="text-toss-blue" />
@@ -494,11 +494,11 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                             />
                             {/* 매니저 임장기 워터마크 & 촬영 날짜 */}
                             {isManagerReport && (
-                              <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
+                              <span className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
                                 <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
                                   D-VIEW
                                 </span>
-                              </div>
+                              </span>
                             )}
                           </span>
                         );
@@ -570,7 +570,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           ) : (
             <ul className="divide-y divide-body">
               {comments.map((c) => (
-                <li key={c.id} className="px-5 py-5 hover:bg-[#f9fafb] transition-colors">
+                <li key={c.id} className="px-5 py-5 hover:bg-body transition-colors">
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-[14px] font-bold text-primary">{c.authorName}</span>
                     <span className="text-[12px] text-tertiary">{c.createdAt}</span>

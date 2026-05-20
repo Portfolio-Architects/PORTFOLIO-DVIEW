@@ -11,6 +11,7 @@
  *   BUILDING_API_KEY — 공공데이터포털 인증키
  */
 
+require('dotenv').config({ path: '.env.local' });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');

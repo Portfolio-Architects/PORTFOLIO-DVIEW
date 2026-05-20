@@ -76,7 +76,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
       <div className="flex flex-col items-center justify-center shrink-0 pr-1">
         <button
           onClick={() => setIsSettingsModalOpen(true)}
-          className="flex flex-col items-center justify-center w-12 h-[44px] rounded-[20px] transition-all duration-300 relative text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5"
+          className="flex flex-col items-center justify-center w-12 h-[44px] rounded-[20px] transition-all duration-300 relative text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5 dark:hover:bg-surface/5"
           aria-label="설정"
         >
           <Settings size={22} strokeWidth={2} className="mb-0.5 relative z-10" />

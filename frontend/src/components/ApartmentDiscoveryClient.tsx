@@ -10,6 +10,7 @@ import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import { isSameApartment, findTxKey, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import GapInvestmentExplorer from './GapInvestmentExplorer';
 
 interface DiscoveryProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -76,29 +77,29 @@ export default function ApartmentDiscoveryClient({
       let list = [...allApts];
       if (cat.id === 'over-12-eok') {
         list = list.filter(a => {
-          const rawKey = (a as any).txKey || a.name;
+          const rawKey = a.txKey || a.name;
           const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
           const summary = txSummaryData[txKey];
           return summary && (summary.avg1MPrice || 0) >= 120000;
         }).sort((a, b) => {
-          const txKeyA = findTxKey((a as any).txKey || a.name, txSummaryData, nameMapping) || (a as any).txKey || a.name;
+          const txKeyA = findTxKey(a.txKey || a.name, txSummaryData, nameMapping) || a.txKey || a.name;
           const priceA = txSummaryData[txKeyA]?.avg1MPrice || 0;
-          const txKeyB = findTxKey((b as any).txKey || b.name, txSummaryData, nameMapping) || (b as any).txKey || b.name;
+          const txKeyB = findTxKey(b.txKey || b.name, txSummaryData, nameMapping) || b.txKey || b.name;
           const priceB = txSummaryData[txKeyB]?.avg1MPrice || 0;
           return priceB - priceA;
         }).slice(0, 15);
       } else if (cat.id === 'biggest-drop') {
         list = list.filter(a => {
-          const rawKey = (a as any).txKey || a.name;
+          const rawKey = a.txKey || a.name;
           const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
           const summary = txSummaryData[txKey];
           return summary && summary.maxPrice && summary.avg1MPrice && summary.maxPrice > summary.avg1MPrice;
         }).sort((a, b) => {
-          const txKeyA = findTxKey((a as any).txKey || a.name, txSummaryData, nameMapping) || (a as any).txKey || a.name;
+          const txKeyA = findTxKey(a.txKey || a.name, txSummaryData, nameMapping) || a.txKey || a.name;
           const summaryA = txSummaryData[txKeyA];
           const dropA = summaryA ? (summaryA.maxPrice - summaryA.avg1MPrice) / summaryA.maxPrice : 0;
           
-          const txKeyB = findTxKey((b as any).txKey || b.name, txSummaryData, nameMapping) || (b as any).txKey || b.name;
+          const txKeyB = findTxKey(b.txKey || b.name, txSummaryData, nameMapping) || b.txKey || b.name;
           const summaryB = txSummaryData[txKeyB];
           const dropB = summaryB ? (summaryB.maxPrice - summaryB.avg1MPrice) / summaryB.maxPrice : 0;
           
@@ -106,16 +107,16 @@ export default function ApartmentDiscoveryClient({
         }).slice(0, 15);
       } else if (cat.id === 'high-jeonse-rate') {
         list = list.filter(a => {
-          const rawKey = (a as any).txKey || a.name;
+          const rawKey = a.txKey || a.name;
           const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
           const summary = txSummaryData[txKey];
           return summary && summary.avg1MPrice && summary.avg1MRentDeposit && (summary.avg1MRentDeposit / summary.avg1MPrice) >= 0.6;
         }).sort((a, b) => {
-          const txKeyA = findTxKey((a as any).txKey || a.name, txSummaryData, nameMapping) || (a as any).txKey || a.name;
+          const txKeyA = findTxKey(a.txKey || a.name, txSummaryData, nameMapping) || a.txKey || a.name;
           const summaryA = txSummaryData[txKeyA];
           const rateA = summaryA ? summaryA.avg1MRentDeposit! / summaryA.avg1MPrice! : 0;
           
-          const txKeyB = findTxKey((b as any).txKey || b.name, txSummaryData, nameMapping) || (b as any).txKey || b.name;
+          const txKeyB = findTxKey(b.txKey || b.name, txSummaryData, nameMapping) || b.txKey || b.name;
           const summaryB = txSummaryData[txKeyB];
           const rateB = summaryB ? summaryB.avg1MRentDeposit! / summaryB.avg1MPrice! : 0;
           
@@ -123,15 +124,15 @@ export default function ApartmentDiscoveryClient({
         }).slice(0, 15);
       } else if (cat.id === 'most-traded') {
         list = list.filter(a => {
-          const rawKey = (a as any).txKey || a.name;
+          const rawKey = a.txKey || a.name;
           const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
           const summary = txSummaryData[txKey];
           return summary && summary.avg3MTxCount && summary.avg3MTxCount > 0;
         }).sort((a, b) => {
-          const txKeyA = findTxKey((a as any).txKey || a.name, txSummaryData, nameMapping) || (a as any).txKey || a.name;
+          const txKeyA = findTxKey(a.txKey || a.name, txSummaryData, nameMapping) || a.txKey || a.name;
           const countA = txSummaryData[txKeyA]?.avg3MTxCount || 0;
           
-          const txKeyB = findTxKey((b as any).txKey || b.name, txSummaryData, nameMapping) || (b as any).txKey || b.name;
+          const txKeyB = findTxKey(b.txKey || b.name, txSummaryData, nameMapping) || b.txKey || b.name;
           const countB = txSummaryData[txKeyB]?.avg3MTxCount || 0;
           
           return countB - countA;
@@ -163,7 +164,7 @@ export default function ApartmentDiscoveryClient({
   }, [fieldReportsMap, onSelectReport]);
 
   return (
-    <div className="flex flex-col h-full bg-[#f8f9fa] overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full bg-body overflow-y-auto custom-scrollbar">
       {/* Hero Header */}
       <PageHeroHeader 
         title="D-VIEW 골라보기"
@@ -172,6 +173,22 @@ export default function ApartmentDiscoveryClient({
       />
 
       <div className="pt-6">
+        {/* Gap Investment Explorer Section */}
+        <div className="px-4 sm:px-6 md:px-10 lg:px-16 mb-8">
+          <GapInvestmentExplorer
+            sheetApartments={sheetApartments}
+            txSummaryData={txSummaryData}
+            nameMapping={nameMapping}
+            publicRentalSet={publicRentalSet}
+            onSelectApt={(name) => {
+              const apt = Object.values(sheetApartments).flat().find(a => a.name === name);
+              if (apt) {
+                handleSelectApt(apt);
+              }
+            }}
+          />
+        </div>
+
         {CATEGORIES.map((cat, index) => {
           const apts = categoryLists[cat.id];
           if (!apts || apts.length === 0) return null;
@@ -180,7 +197,6 @@ export default function ApartmentDiscoveryClient({
             <NetflixCategoryRow 
               key={cat.id}
               cat={cat}
-              index={index}
               apts={apts}
               txSummaryData={txSummaryData}
               nameMapping={nameMapping}
@@ -197,7 +213,24 @@ export default function ApartmentDiscoveryClient({
   );
 }
 
-const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
+interface CategoryItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<any>;
+  color: string;
+  desc: string;
+}
+
+interface NetflixCardProps {
+  cat: CategoryItem;
+  apt: DongApartment;
+  txSummary?: AptTxSummary;
+  report?: FieldReportData;
+  rank?: number;
+  onClick: (apt: DongApartment) => void;
+}
+
+const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: NetflixCardProps) => {
   const imageUrl = 
     report?.thumbnail ||
     report?.imageUrl ||
@@ -217,17 +250,14 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
   const isHero = rank === 1;
   const hasImage = !!imageUrl;
 
-  const titleColor = hasImage ? 'text-white' : 'text-[#191f28]';
+  const titleColor = hasImage ? 'text-white' : 'text-primary';
   const priceColor = hasImage ? 'text-[#60a5fa]' : 'text-[#3182f6]'; // Lighter blue for dark overlay
-  const dongColor = hasImage ? 'text-[#e5e8eb]' : 'text-[#8b95a1]';
-  const descColor = hasImage ? 'text-[#d1d6db]' : 'text-[#4e5968]';
+  const dongColor = hasImage ? 'text-[#e5e8eb]' : 'text-tertiary';
+  const descColor = hasImage ? 'text-[#d1d6db]' : 'text-secondary';
 
   return (
     <div 
-      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-all duration-300 hover:scale-[1.05] hover:!z-[999] hover:shadow-2xl w-[200px] sm:w-[260px] md:w-[316px] lg:w-[374px] aspect-[3/2] snap-center ${
-        rank > 1 ? '-ml-[20px] sm:-ml-[26px] md:-ml-[32px] lg:-ml-[37px]' : ''
-      }`}
-      style={{ zIndex: 100 - rank }}
+      className="relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border bg-surface transition-all duration-300 hover:scale-[1.05] hover:!z-[999] hover:shadow-2xl w-[200px] sm:w-[260px] md:w-[316px] lg:w-[374px] aspect-[3/2] snap-center"
       onClick={() => onClick(apt)}
     >
       {/* Background Image */}
@@ -235,7 +265,7 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
         <img 
           src={imageUrl} 
           alt={apt.name} 
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 bg-white"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 bg-surface"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
@@ -273,7 +303,16 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
   );
 };
 
-const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, fieldReportsMap, handleSelectApt }: any) => {
+interface NetflixCategoryRowProps {
+  cat: CategoryItem;
+  apts: DongApartment[];
+  txSummaryData: Record<string, AptTxSummary>;
+  nameMapping: Record<string, string>;
+  fieldReportsMap: Map<string, FieldReportData>;
+  handleSelectApt: (apt: DongApartment) => void;
+}
+
+const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, fieldReportsMap, handleSelectApt }: NetflixCategoryRowProps) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
     rootMargin: '200px 0px',
@@ -290,8 +329,7 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
         : scrollContainerRef.current.firstElementChild) as HTMLElement;
       
       const cardWidth = targetElement.offsetWidth;
-      // md:gap-4 is 16px
-      const gap = 16;
+      const gap = typeof window !== 'undefined' && window.innerWidth >= 768 ? 24 : 16;
       const scrollAmount = (cardWidth + gap) * 2;
       
       scrollContainerRef.current.scrollTo({
@@ -304,7 +342,7 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
   return (
     <div ref={ref} className="py-2 mb-2 bg-transparent relative group">
       <div className="px-4 sm:px-6 md:px-10 lg:px-16 mb-2 flex flex-col">
-         <h3 className="text-[22px] md:text-[26px] font-extrabold text-[#191f28] tracking-tight">
+         <h3 className="text-[22px] md:text-[26px] font-extrabold text-primary tracking-tight">
            {cat.label}
          </h3>
       </div>
@@ -313,29 +351,29 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
         <div className="relative">
           <button 
             onClick={() => handleScroll('left')}
-            className="absolute left-0 top-0 bottom-0 z-[1000] w-16 bg-gradient-to-r from-white via-white/80 to-transparent flex items-center justify-start pl-2 sm:pl-4 md:pl-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
+            className="absolute left-0 top-0 bottom-0 z-[1000] w-16 bg-gradient-to-r from-body via-body/80 to-transparent flex items-center justify-start pl-2 sm:pl-4 md:pl-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
             aria-label="이전"
           >
-            <div className="bg-white rounded-full p-2 shadow-md border border-gray-100 text-gray-700 hover:text-black hover:scale-110 transition-transform flex items-center justify-center -ml-2">
+            <div className="bg-surface rounded-full p-2 shadow-md border border-border text-secondary hover:text-black hover:scale-110 transition-transform flex items-center justify-center -ml-2">
               <ChevronLeft className="w-6 h-6" />
             </div>
           </button>
           
           <button 
             onClick={() => handleScroll('right')}
-            className="absolute right-0 top-0 bottom-0 z-[1000] w-16 bg-gradient-to-l from-white via-white/80 to-transparent flex items-center justify-end pr-2 sm:pr-4 md:pr-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
+            className="absolute right-0 top-0 bottom-0 z-[1000] w-16 bg-gradient-to-l from-body via-body/80 to-transparent flex items-center justify-end pr-2 sm:pr-4 md:pr-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
             aria-label="다음"
           >
-            <div className="bg-white rounded-full p-2 shadow-md border border-gray-100 text-gray-700 hover:text-black hover:scale-110 transition-transform flex items-center justify-center -mr-2">
+            <div className="bg-surface rounded-full p-2 shadow-md border border-border text-secondary hover:text-black hover:scale-110 transition-transform flex items-center justify-center -mr-2">
               <ChevronRight className="w-6 h-6" />
             </div>
           </button>
-
+ 
           <div 
             ref={scrollContainerRef}
-            className="flex items-stretch overflow-x-auto overflow-y-hidden touch-pan-x snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-6 pt-4 scroll-smooth"
+            className="flex items-stretch overflow-x-auto overflow-y-hidden touch-pan-x snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-6 pt-4 scroll-smooth gap-4 md:gap-6"
           >
-            {apts.map((apt: any, rankIndex: number) => {
+            {apts.map((apt: DongApartment, rankIndex: number) => {
                const rawKey = apt.txKey || apt.name;
                const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
                const matchedSummary = txKey ? txSummaryData[txKey] : undefined;

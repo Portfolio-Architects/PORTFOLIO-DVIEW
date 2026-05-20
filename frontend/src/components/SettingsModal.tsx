@@ -30,7 +30,7 @@ export default function SettingsModal() {
           </h2>
           <button 
             onClick={() => setIsSettingsModalOpen(false)}
-            className="p-2 -mr-2 text-tertiary hover:text-primary transition-colors rounded-full hover:bg-black/5"
+            className="p-2 -mr-2 text-tertiary hover:text-primary transition-colors rounded-full hover:bg-black/5 dark:bg-surface/5"
           >
             <X size={20} />
           </button>

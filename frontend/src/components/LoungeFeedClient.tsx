@@ -258,10 +258,10 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               <div
                 key={news.id}
                 onClick={() => news.link !== "#" && window.open(news.link, "_blank")}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
               >
                 <div className="flex items-center gap-3 sm:gap-0 shrink-0">
-                  <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                  <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
                     {news.id}
                   </div>
                   
@@ -269,7 +269,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   <div className="flex sm:hidden items-center gap-2">
                     <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">{news.category}</span>
                     <span className="text-[11px] text-gray-300">|</span>
-                    <span className="text-[11px] font-semibold text-[#8b95a1] truncate max-w-[100px]">{news.sub}</span>
+                    <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{news.sub}</span>
                   </div>
                 </div>
 
@@ -277,7 +277,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   {/* Desktop Meta */}
                   <div className="hidden sm:flex items-center gap-4 shrink-0">
                     <span className="w-[115px] text-[13px] font-extrabold text-[#00a06c] tracking-wide text-center bg-[#e8f8f0] px-2 py-1.5 rounded-lg truncate">{news.category}</span>
-                    <span className="w-[80px] text-[14px] font-semibold text-[#8b95a1] truncate text-center">{news.sub}</span>
+                    <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{news.sub}</span>
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -299,7 +299,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             <div className="mt-4 flex justify-center pb-8">
               <button 
                 onClick={() => setVisibleNewsCount(prev => prev + 10)}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
               >
                 더보기 ({visibleNewsCount} {"/"} {newsData.length})
                 <ChevronDown className="w-4 h-4" />
@@ -324,11 +324,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
           <div 
             key={news.id} 
             onClick={() => { window.location.hash = `post=${news.id}`; }} 
-            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
+            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
           >
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-0 shrink-0">
               <div className="flex items-center gap-3 sm:gap-0">
-                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-tertiary font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-toss-blue group-hover:text-white transition-colors">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-tertiary font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-toss-blue group-hover:text-white transition-colors">
                   <MessageSquare size={16} />
                 </div>
                 
@@ -348,14 +348,14 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                        (news.category || '기타')}
                   </span>
                   <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-[#8b95a1] truncate max-w-[80px]">{news.author || '매니저'}</span>
+                  <span className="text-[11px] font-semibold text-tertiary truncate max-w-[80px]">{news.author || '매니저'}</span>
                   <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-[#8b95a1] shrink-0">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
+                  <span className="text-[11px] font-semibold text-tertiary shrink-0">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
                 </div>
               </div>
               
               {/* Mobile Top Right Meta: Views, Likes */}
-              <div className="flex sm:hidden items-center gap-2.5 text-[11px] font-semibold text-[#8b95a1]">
+              <div className="flex sm:hidden items-center gap-2.5 text-[11px] font-semibold text-tertiary">
                 <span className="flex items-center gap-1"><Eye size={12}/> {news.views || 0}</span>
                 <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={12} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
               </div>
@@ -377,7 +377,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                      news.category === '인프라' ? '동탄 교통/상권' : 
                      (news.category || '기타')}
                 </span>
-                <span className="w-[80px] text-[14px] font-semibold text-[#8b95a1] truncate text-center">{news.author || '매니저'}</span>
+                <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{news.author || '매니저'}</span>
               </div>
               
               <div className="flex-1 min-w-0">
@@ -388,8 +388,8 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
               {/* Desktop Right Meta: Date, Views, Likes */}
               <div className="hidden sm:flex items-center gap-4 shrink-0 pl-2">
-                <span className="text-[13px] font-medium text-[#8b95a1] w-[50px] text-right">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
-                <div className="flex items-center gap-3 text-[13px] font-semibold text-[#8b95a1] w-[80px] justify-end">
+                <span className="text-[13px] font-medium text-tertiary w-[50px] text-right">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
+                <div className="flex items-center gap-3 text-[13px] font-semibold text-tertiary w-[80px] justify-end">
                   <span className="flex items-center gap-1"><Eye size={14}/> {news.views || 0}</span>
                   <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={14} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
                 </div>

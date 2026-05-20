@@ -47,8 +47,8 @@ export default function DongFilterBar({
       <div className="relative shrink-0" ref={dropdownRef}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-border bg-surface hover:border-toss-gray shadow-sm"
-          style={dongInfo ? { borderColor: dongInfo.color, color: dongInfo.color } : { color: '#191f28' }}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-border bg-surface hover:border-toss-gray shadow-sm text-primary"
+          style={dongInfo ? { borderColor: dongInfo.color, color: dongInfo.color } : {}}
         >
           {dongInfo && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: dongInfo.color }} />}
           {currentLabel}
@@ -62,7 +62,7 @@ export default function DongFilterBar({
             <button
               onClick={() => { onSelectDong(null); setOpen(false); }}
               className={`w-full text-left px-4 py-2.5 text-[13px] font-bold transition-colors flex items-center justify-between ${
-                !selectedDong ? 'bg-body text-primary' : 'text-secondary hover:bg-[#f8f9fa]'
+                !selectedDong ? 'bg-body text-primary' : 'text-secondary hover:bg-body'
               }`}
             >
               <span>전체</span>
@@ -77,7 +77,7 @@ export default function DongFilterBar({
                   key={dong.id}
                   onClick={() => { onSelectDong(isActive ? null : dong.name); setOpen(false); }}
                   className={`w-full text-left px-4 py-2.5 text-[13px] font-bold transition-colors flex items-center justify-between ${
-                    isActive ? 'text-surface' : 'text-secondary hover:bg-[#f8f9fa]'
+                    isActive ? 'text-surface' : 'text-secondary hover:bg-body'
                   }`}
                   style={isActive ? { backgroundColor: dong.color } : {}}
                 >

@@ -76,6 +76,8 @@ export interface FieldReportData {
   comments?: CommentData[];
   /** 대표 이미지 URL (Legacy) */
   imageUrl?: string;
+  /** 썸네일 이미지 URL */
+  thumbnail?: string;
   /** 이미지 배열 (New Schema) */
   images?: { url: string; caption: string; locationTag: string; isPremium: boolean; uploaderName?: string }[];
   /** 현장 촬영/임장 일자 (YYYY-MM-DD) */

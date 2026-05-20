@@ -143,7 +143,7 @@ export default function ZoneDetailPage() {
                      <div>
                        <div className="flex justify-between items-start mb-2">
                          <h3 className="text-[18px] font-bold text-primary tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
-                         <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
+                         <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 dark:bg-surface/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
                            평점 {rating}점
                          </div>
                        </div>

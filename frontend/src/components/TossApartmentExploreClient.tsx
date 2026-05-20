@@ -6,6 +6,9 @@ import PageHeroHeader from './PageHeroHeader';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
+import { DongApartment } from '@/lib/dong-apartments';
+import { AptTxSummary } from '@/lib/types/transaction';
+import { FieldReportData } from '@/lib/types/report.types';
 
 const formatPrice = (priceMan: number) => {
   const { value, unit } = formatEokWithUnit(priceMan);
@@ -58,6 +61,19 @@ const formatYearBuilt = (yearStr?: string | number) => {
   }
 };
 
+interface TossApartmentExploreClientProps {
+  sheetApartments: Record<string, DongApartment[]>;
+  txSummaryData: Record<string, AptTxSummary>;
+  nameMapping: Record<string, string>;
+  fieldReportsMap: Map<string, FieldReportData>;
+  publicRentalSet: Set<string>;
+  userFavorites: Set<string>;
+  favoriteCounts: Record<string, number>;
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  handleSelectApt: (name: string) => void;
+  onToggleFavorite: (name: string) => void;
+}
+
 // Using similar props to what was passed to the left panel before
 export default function TossApartmentExploreClient({
   sheetApartments,
@@ -70,7 +86,7 @@ export default function TossApartmentExploreClient({
   typeMap,
   handleSelectApt,
   onToggleFavorite,
-}: any) {
+}: TossApartmentExploreClientProps) {
   const [currentCategory, setCurrentCategory] = useState<string>('rank-price');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -86,12 +102,12 @@ export default function TossApartmentExploreClient({
   
   // Flatten and filter public rentals
   const allApts = useMemo(() => {
-    return Object.values(sheetApartments).flat().filter((a: any) => !publicRentalSet.has(a.name));
+    return Object.values(sheetApartments).flat().filter((a: DongApartment) => !publicRentalSet.has(a.name));
   }, [sheetApartments, publicRentalSet]);
 
   // Enrich with data
   const enrichedApts = useMemo(() => {
-    return allApts.map((apt: any) => {
+    return allApts.map((apt: DongApartment) => {
       const rawKey = apt.txKey || apt.name;
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
 
@@ -226,7 +242,7 @@ export default function TossApartmentExploreClient({
 
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
       <div 
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-all duration-300 ${
           isScrolled ? 'translate-y-0 opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -254,8 +270,8 @@ export default function TossApartmentExploreClient({
       </div>
 
       {/* Main Table Area */}
-      <div className="flex-1 flex flex-col bg-white min-w-0 md:pl-8 lg:pl-10">
-        <div className="px-5 py-3 md:px-0 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white md:sticky md:top-[60px] md:z-10">
+      <div className="flex-1 flex flex-col bg-surface min-w-0 md:pl-8 lg:pl-10">
+        <div className="px-5 py-3 md:px-0 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface md:sticky md:top-[60px] md:z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
@@ -282,14 +298,14 @@ export default function TossApartmentExploreClient({
               placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f2f4f6] border border-transparent focus:border-[#00d29d] focus:bg-white focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-[14px] font-medium text-[#191f28] outline-none transition-all placeholder:text-[#8b95a1]"
+              className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
             />
           </div>
         </div>
 
         <div className="flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-white items-center md:px-0 py-3 border-b border-border text-[14px] font-bold text-tertiary shrink-0">
+          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-0 py-3 border-b border-border text-[14px] font-bold text-tertiary shrink-0">
             <div className="w-[40px] text-center"></div>
             <div className="w-[80px] text-center">순위</div>
             <div className="flex-1 min-w-[180px] ml-2">단지명</div>
@@ -450,7 +466,7 @@ export default function TossApartmentExploreClient({
           />
           
           {/* Sheet */}
-          <div className="relative w-full bg-white rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300">
+          <div className="relative w-full bg-surface rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-border shrink-0">
               <h2 className="text-[18px] font-extrabold text-primary">단지 보기 방식</h2>

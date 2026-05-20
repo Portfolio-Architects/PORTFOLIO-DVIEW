@@ -26,6 +26,7 @@ const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDis
 const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
+const NotificationBanner = dynamic(() => import('@/components/NotificationBanner'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -70,7 +71,7 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
         placeholder="아파트 검색"
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
-        className="w-full bg-[#f2f4f6] text-[13px] text-primary placeholder:text-tertiary rounded-[8px] pl-8 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-toss-blue transition-all"
+        className="w-full bg-body text-[13px] text-primary placeholder:text-tertiary rounded-[8px] pl-8 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-toss-blue transition-all"
       />
       {localValue && (
         <button 
@@ -442,8 +443,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
                 className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'overview'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
                 <LayoutDashboard size={16} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
@@ -454,8 +455,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 onClick={() => startTransition(() => { setActiveTab('imjang'); window.location.hash = 'imjang'; })}
                 className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'imjang'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
                 <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
@@ -466,8 +467,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 onClick={() => startTransition(() => { setActiveTab('discover'); window.location.hash = 'discover'; })}
                 className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'discover'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
                 <Compass size={16} className={activeTab === 'discover' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
@@ -478,8 +479,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
                 className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'lounge'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
                 <MessageSquare size={16} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
@@ -509,6 +510,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               nameMapping={nameMapping || {}}
               publicRentalSet={publicRentalSet}
               userFavorites={userFavorites}
+              fieldReportsMap={fieldReportsMap}
+              favoriteCounts={favoriteCounts}
               onOpenAdModal={() => setIsAdModalOpen(true)}
               onSelectApt={(name: string) => {
                 userHasSelected.current = true;
@@ -663,6 +666,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               }}
             />
             </div>
+          </div>
+        )}
+
+        {/* Notification Alert & PWA Installer Banner (DAU/MAU Growth Loop) */}
+        {mounted && (
+          <div className="px-4 sm:px-6 md:px-10 lg:px-16 pb-8 md:pb-12 max-w-[2000px] w-full mx-auto">
+            <NotificationBanner />
           </div>
         )}
       </main>

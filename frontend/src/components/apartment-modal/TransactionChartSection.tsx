@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { TransactionRecord } from './TransactionTable';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import { AptTxSummary } from '@/lib/types/transaction';
 
 interface TransactionChartSectionProps {
   transactions: TransactionRecord[];
@@ -24,7 +25,7 @@ interface TransactionChartSectionProps {
   dong: string;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   normalizeAptName: (name: string) => string;
-  txSummary?: any;
+  txSummary?: AptTxSummary;
 }
 
 export function TransactionChartSection({
@@ -56,7 +57,7 @@ export function TransactionChartSection({
   if (relevantTxs.length === 0) {
     return (
       <div className="w-full flex flex-col">
-        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 min-h-[300px]">
+        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 dark:ring-white/10 min-h-[300px]">
           <span className="text-[40px] mb-2">🤫</span>
           <span className="text-tertiary text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
           <span className="text-tertiary text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
@@ -198,7 +199,7 @@ export function TransactionChartSection({
 
   return (
     <div className="w-full flex flex-col h-full">
-      <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 flex-1 flex flex-col h-full relative overflow-hidden">
+      <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 dark:ring-white/10 flex-1 flex flex-col h-full relative overflow-hidden">
         {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
         <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
           <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>
@@ -284,14 +285,14 @@ export function TransactionChartSection({
                   <stop offset="95%" stopColor="#00d29d" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
               <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
-                tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: '#e5e8eb' }}
+                tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
                 tickLine={false} tickMargin={6}
                 tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
               />
               <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
-                tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
+                tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
                 width={48} dx={-3}
                 tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
               />
@@ -304,28 +305,28 @@ export function TransactionChartSection({
                   const item = payload[0]?.payload;
                   const vol = item?.volume;
                   return (
-                    <div style={{ background: 'rgba(255, 255, 255, 0.95)', borderRadius: 16, padding: '12px 16px', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(229, 232, 235, 0.8)', backdropFilter: 'blur(12px)' }}>
-                      <div style={{ color: '#8b95a1', fontSize: 12, marginBottom: 8, fontWeight: 700 }}>
+                    <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
+                      <div className="text-tertiary text-[12px] font-bold mb-2">
                         {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div className="flex flex-col gap-1.5">
                         {item?.monthAvg && (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                            <span style={{ color: '#8b95a1', fontSize: 13, fontWeight: 600 }}>평균가</span>
-                            <span style={{ color: '#00d29d', fontSize: 15, fontWeight: 800 }}>{item.monthAvg.toFixed(2)}억</span>
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-tertiary text-[13px] font-bold">평균가</span>
+                            <span className="text-[#00d29d] text-[15px] font-extrabold">{item.monthAvg.toFixed(2)}억</span>
                           </div>
                         )}
                         {vol != null && (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                            <span style={{ color: '#8b95a1', fontSize: 13, fontWeight: 600 }}>거래량</span>
-                            <span style={{ color: '#333d4b', fontSize: 14, fontWeight: 700 }}>{vol}건</span>
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-tertiary text-[13px] font-bold">거래량</span>
+                            <span className="text-primary text-[14px] font-extrabold">{vol}건</span>
                           </div>
                         )}
                       </div>
                     </div>
                   );
                 }}
-                cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{ stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
               <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
               <Area type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
@@ -368,19 +369,19 @@ export function TransactionChartSection({
             const typeData = typeMap[aptKey]?.[String(d.rawArea)];
             const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
             return (
-              <div style={{
-                position: 'absolute', left: hoveredDot.x + 48, top: hoveredDot.y + 10,
-                transform: 'translate(-50%, -100%) translateY(-12px)',
-                background: '#ffffff', borderRadius: 10, padding: '10px 14px', border: '1px solid #f2f4f6',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                pointerEvents: 'none', zIndex: 10, whiteSpace: 'nowrap',
-              }}>
-                <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>{d.fullDate}</div>
-                <div style={{ color: '#191f28', fontSize: 16, fontWeight: 800, marginBottom: 3 }}>
+              <div 
+                className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-10 whitespace-nowrap text-left"
+                style={{
+                  left: hoveredDot.x + 48, top: hoveredDot.y + 10,
+                  transform: 'translate(-50%, -100%) translateY(-12px)',
+                }}
+              >
+                <div className="text-tertiary text-[11px] mb-1">{d.fullDate}</div>
+                <div className="text-primary text-[16px] font-extrabold mb-1">
                   {d.priceEok || `${d.price.toFixed(2)}억`}
                 </div>
-                <div style={{ color: '#8b95a1', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
-                  {typeName ? <span style={{ color: '#00d29d', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
+                <div className="text-tertiary text-[11px] flex gap-1.5 items-center">
+                  {typeName ? <span className="text-[#00d29d] font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
                   <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>

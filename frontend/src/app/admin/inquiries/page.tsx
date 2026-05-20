@@ -87,7 +87,7 @@ export default function InquiriesPage() {
                     </button>
                   </div>
                 </div>
-                <div className="bg-surface border border-border p-4 rounded-xl text-[14px] text-[#333d4b] whitespace-pre-wrap leading-relaxed">
+                <div className="bg-surface border border-border p-4 rounded-xl text-[14px] text-primary whitespace-pre-wrap leading-relaxed">
                   {inquiry.message}
                 </div>
               </div>

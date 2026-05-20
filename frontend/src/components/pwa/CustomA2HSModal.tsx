@@ -33,20 +33,20 @@ export default function CustomA2HSModal() {
                 <ArrowDownToLine size={24} strokeWidth={2.5} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">D-VIEW 앱 설치하기</h3>
-                <p className="text-sm text-gray-500 mt-0.5">바탕화면에서 실거래가를 더 빠르게 확인하세요.</p>
+                <h3 className="text-lg font-bold text-primary">D-VIEW 앱 설치하기</h3>
+                <p className="text-sm text-tertiary mt-0.5">바탕화면에서 실거래가를 더 빠르게 확인하세요.</p>
               </div>
             </div>
             <button 
               onClick={() => setShowCustomA2HSModal(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 text-tertiary hover:text-secondary hover:bg-body rounded-full transition-colors"
             >
               <X size={20} />
             </button>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <ul className="space-y-2 text-sm text-gray-600">
+          <div className="bg-body rounded-xl p-4 mb-6">
+            <ul className="space-y-2 text-sm text-secondary">
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
                 브라우저 주소창 없이 전체화면으로 넓게 보기
@@ -65,7 +65,7 @@ export default function CustomA2HSModal() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowCustomA2HSModal(false)}
-              className="flex-1 py-3.5 px-4 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+              className="flex-1 py-3.5 px-4 bg-body text-secondary font-semibold rounded-xl hover:bg-gray-200 transition-colors"
             >
               나중에 할게요
             </button>

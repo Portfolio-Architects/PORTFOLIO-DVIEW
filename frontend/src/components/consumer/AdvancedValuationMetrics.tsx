@@ -387,7 +387,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                       <span className="text-[13px] text-tertiary font-medium">기본 투자 요구 이자율 (할인율 r)</span>
                       <span className="text-[13px] font-bold text-primary">{dcf.discountRate.toFixed(2)}%</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-[#8b95a1] bg-[#f9fafb] px-2 py-1.5 rounded-md mt-0.5 border border-[#e5e8eb]/50">
+                    <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1.5 rounded-md mt-0.5 border border-border/50">
                       <span>국고채 {macroConfig.riskFreeRate.toFixed(2)}%</span>
                       <span className="text-[#d1d6db]">+</span>
                       <span>리스크 1.50%</span>
@@ -401,7 +401,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                       <span className="text-[13px] text-tertiary font-medium">장기 집값 상승 기대치 (성장률 g)</span>
                       <button 
                         onClick={() => setIsScoreModalOpen(true)}
-                        className="text-[11px] text-[#8b95a1] flex items-center gap-1 hover:text-toss-blue transition-colors cursor-pointer text-left"
+                        className="text-[11px] text-tertiary flex items-center gap-1 hover:text-toss-blue transition-colors cursor-pointer text-left"
                       >
                         물가(2.0%) ± 단지 가치평가(Max 2.0%p)
                         <Info className="w-3.5 h-3.5" />
@@ -422,7 +422,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   <div className="flex items-start justify-between mt-2 pt-2 border-t border-border">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-[13px] text-tertiary font-medium">1년 치 월세 가치 (환산 임대료)</span>
-                      <span className="text-[11px] text-[#8b95a1] break-keep">
+                      <span className="text-[11px] text-tertiary break-keep">
                         최근 3개월 평균 전세가 × 전환율 {(dynamicConversionRate * 100).toFixed(1)}% 
                         {spreadReasons.length > 0 ? (
                           <> (기본 5.0% + {spreadReasons.map((r, i) => (
@@ -439,7 +439,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   <div className="flex items-start justify-between">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-[13px] text-tertiary font-medium">수익률 기준 적정 전세가율</span>
-                      <span className="text-[11px] text-[#8b95a1] break-keep">
+                      <span className="text-[11px] text-tertiary break-keep">
                         Cap Rate({dcf.capRate.toFixed(2)}%) ÷ 전환율({(dynamicConversionRate * 100).toFixed(1)}%)
                       </span>
                     </div>
@@ -483,7 +483,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
               {/* Status Alert / Brief formula explanation */}
               <button 
                 onClick={() => setIsFormulaModalOpen(true)}
-                className="mt-auto w-full p-4 rounded-xl border flex items-center justify-between bg-body hover:bg-[#f9fafb] border-border transition-all active:scale-[0.99] group"
+                className="mt-auto w-full p-4 rounded-xl border flex items-center justify-between bg-body hover:bg-body border-border transition-all active:scale-[0.99] group"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-toss-blue/10 flex items-center justify-center group-hover:bg-toss-blue/20 transition-colors">
@@ -577,10 +577,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   주의해야 할 숨은 위험
                 </div>
                 <div className="flex flex-col gap-3">
-                  <div className="text-[13px] text-[#4e5968] leading-relaxed">
+                  <div className="text-[13px] text-secondary leading-relaxed">
                     <b className="text-toss-red font-bold">안전구간의 함정:</b> 경제 상황이 나빠져 전세가가 떨어지면, 갭투자한 집주인들이 돈을 돌려주지 못해 헐값에 집을 넘기면서 가격이 무너질 위험이 있습니다.
                   </div>
-                  <div className="text-[13px] text-[#4e5968] leading-relaxed">
+                  <div className="text-[13px] text-secondary leading-relaxed">
                     <b className="text-toss-red font-bold">투자집중구간의 함정:</b> 은행 금리가 크게 오르면, 빚을 낸 투자자들의 이자 부담이 커지고 미리 반영되어 있던 기대감(거품)이 사라지면서 집값이 가장 가파르게 떨어질 수 있습니다.
                   </div>
                 </div>

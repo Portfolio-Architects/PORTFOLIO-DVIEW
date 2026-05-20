@@ -100,7 +100,7 @@ export default function FloatingUserBar() {
             </button>
           </div>
         ) : (
-          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-surface text-primary text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full border border-border shadow-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-surface text-primary text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full border border-border shadow-sm transition-colors hover:bg-body dark:hover:bg-gray-800">
             로그인
           </button>
         )}

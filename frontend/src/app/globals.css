@@ -2,6 +2,9 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Define class-based dark mode variant for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --color-background: var(--bg-body);
   --color-foreground: var(--text-primary);

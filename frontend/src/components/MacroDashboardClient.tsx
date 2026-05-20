@@ -15,6 +15,8 @@ import {
 } from "recharts";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
+import HotComplexRanking from "./HotComplexRanking";
+import type { FieldReportData } from "@/lib/types/report.types";
 import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
 import FloatingUserBar from "@/components/FloatingUserBar";
@@ -28,6 +30,14 @@ import {
   MessageSquare,
 } from "lucide-react";
 
+interface MacroNewsItem {
+  id: number | string;
+  category: string;
+  sub: string;
+  title: string;
+  link: string;
+}
+
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
@@ -35,6 +45,8 @@ interface MacroDashboardProps {
   nameMapping?: Record<string, string>;
   publicRentalSet: Set<string>;
   userFavorites?: Set<string>;
+  fieldReportsMap: Map<string, FieldReportData>;
+  favoriteCounts: Record<string, number>;
   onSelectApt?: (name: string) => void;
   onOpenAdModal?: () => void;
 }
@@ -50,6 +62,15 @@ const COLORS = [
 ];
 const LINE_COLORS = ["#b0b8c1", "#00d29d", "#f04452", "#00a261", "#f9a825"];
 
+interface InfoBoxProps {
+  title: React.ReactNode;
+  value: React.ReactNode;
+  unit?: string;
+  progress?: number;
+  badge?: React.ReactNode;
+  color?: string;
+}
+
 const InfoBox = ({
   title,
   value,
@@ -57,11 +78,11 @@ const InfoBox = ({
   progress,
   badge,
   color = "#00d29d",
-}: any) => {
+}: InfoBoxProps) => {
   return (
-    <div className="bg-[#f4f5f6] rounded-[14px] p-3 md:px-4 md:py-4 flex flex-col gap-1.5 md:gap-1.5 shadow-sm border border-[#e5e8eb] h-full justify-center">
+    <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] p-3 md:px-4 md:py-4 flex flex-col gap-1.5 md:gap-1.5 shadow-sm border border-border h-full justify-center">
       {/* Title Area */}
-      <div className="text-[12px] md:text-[13px] font-bold text-[#8b95a1] tracking-tight min-w-0 w-full break-keep leading-snug">
+      <div className="text-[12px] md:text-[13px] font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
         {title}
       </div>
 
@@ -70,11 +91,11 @@ const InfoBox = ({
 
         {/* Value & Unit */}
         <div className="flex items-baseline gap-1 min-w-0 flex-wrap">
-          <span className="text-[15px] md:text-[18px] lg:text-[19px] font-extrabold text-[#191f28] tracking-tight break-keep leading-tight">
+          <span className="text-[15px] md:text-[18px] lg:text-[19px] font-extrabold text-primary tracking-tight break-keep leading-tight">
             {value}
           </span>
           {unit && (
-            <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968] tracking-tight shrink-0">
+            <span className="text-[12px] md:text-[13px] font-bold text-secondary tracking-tight shrink-0">
               {unit}
             </span>
           )}
@@ -84,7 +105,7 @@ const InfoBox = ({
         {(progress !== undefined || badge) && (
           <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-2">
             {badge && (
-              <div className="bg-white border border-[#e5e8eb] px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md shadow-sm">
+              <div className="bg-surface border border-border px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md shadow-sm">
                 <span className="text-[11.5px] md:text-[13.5px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
                   {badge}
                 </span>
@@ -128,13 +149,27 @@ const InfoBox = ({
   );
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  dataKey?: string | number;
+  name?: string;
+  value: number;
+  color?: string;
+  payload?: any;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const saleData = payload.find(
-      (p: any) => p.dataKey === "동탄 아파트 전체" || p.name === "평균 매매가",
+      (p) => p.dataKey === "동탄 아파트 전체" || p.name === "평균 매매가",
     );
     const rentData = payload.find(
-      (p: any) =>
+      (p) =>
         p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전월세가",
     );
 
@@ -147,11 +182,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     }
 
     return (
-      <div className="bg-white p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e5e8eb] flex flex-col gap-2 min-w-[150px]">
-        <div className="text-[13.5px] font-bold text-[#8b95a1] mb-1">
+      <div className="bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[150px]">
+        <div className="text-[13.5px] font-bold text-tertiary mb-1">
           {label}
         </div>
-        {payload.map((entry: any, index: number) => {
+        {payload.map((entry, index: number) => {
           const isRent =
             entry.dataKey === "동탄 아파트 전세 평균" ||
             entry.name === "평균 전월세가";
@@ -165,11 +200,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-[14px] font-bold text-[#4e5968]">
+                <span className="text-[14px] font-bold text-secondary">
                   {isRent ? "전세가" : "매매가"}
                 </span>
               </div>
-              <span className="text-[14px] font-extrabold text-[#191f28]">
+              <span className="text-[14px] font-extrabold text-primary">
                 {entry.value}억
               </span>
             </div>
@@ -177,9 +212,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         })}
         {ratio > 0 && (
           <>
-            <div className="w-full h-[1px] bg-[#f2f4f6] my-1" />
+            <div className="w-full h-[1px] bg-body my-1" />
             <div className="flex items-center justify-between gap-4">
-              <span className="text-[13px] font-bold text-[#8b95a1] pl-4">
+              <span className="text-[13px] font-bold text-tertiary pl-4">
                 전세가율
               </span>
               <span className="text-[14.5px] font-extrabold text-[#00d29d] tracking-tight">
@@ -213,6 +248,8 @@ export default function MacroDashboardClient({
   nameMapping,
   publicRentalSet,
   userFavorites,
+  fieldReportsMap,
+  favoriteCounts,
   onSelectApt,
   onOpenAdModal,
 }: MacroDashboardProps) {
@@ -233,7 +270,7 @@ export default function MacroDashboardClient({
   );
   const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
   const [isScrolled, setIsScrolled] = useState(false);
-  const [newsData, setNewsData] = useState<any[]>([]);
+  const [newsData, setNewsData] = useState<MacroNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const [visibleNewsCount, setVisibleNewsCount] = useState(6);
 
@@ -307,7 +344,7 @@ export default function MacroDashboardClient({
       const validApts = apts.filter((a) => !publicRentalSet.has(a.name));
 
       validApts.forEach((a) => {
-        const rawTxKey = (a as any).txKey || findTxKey(a.name, txSummaryData, nameMapping);
+        const rawTxKey = a.txKey || findTxKey(a.name, txSummaryData, nameMapping);
         const key = rawTxKey ? normalizeAptName(rawTxKey) : null;
         const tx = key ? txSummaryData[key] : undefined;
         if (tx && a.householdCount) {
@@ -515,7 +552,7 @@ export default function MacroDashboardClient({
       .forEach((apt) => {
         if (publicRentalSet.has(apt.name)) return;
         const rawTxKey =
-          (apt as any).txKey || findTxKey(apt.name, txSummaryData, nameMapping);
+          apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
         const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
         const tx = txKey ? txSummaryData[txKey] : undefined;
 
@@ -634,10 +671,34 @@ export default function MacroDashboardClient({
     { lat: 37.204544, lng: 127.098434 }
   ];
 
+interface GroupedApartment {
+  name: string;
+  latestPrice: number;
+  latestPriceEok: string;
+  pyeongPrice: number;
+  mdd: number;
+  gap: number;
+  liquid: number;
+  householdCount: number;
+  yearBuilt: string;
+  distToDongtan: number | null;
+}
+
+interface GroupedCategory {
+  title: string;
+  dong: string;
+  totalValue: number;
+  totalPyeongValue: number;
+  count: number;
+  apartments: GroupedApartment[];
+  avgPrice?: number;
+  avgPyeongPrice?: number;
+}
+
   const accordionData = useMemo(() => {
     if (!sheetApartments || !txSummaryData) return [];
 
-    const grouped: Record<string, any> = {};
+    const grouped: Record<string, GroupedCategory> = {};
 
     Object.values(sheetApartments)
       .flat()
@@ -696,7 +757,7 @@ export default function MacroDashboardClient({
 
         if (publicRentalSet.has(apt.name)) return;
         const rawTxKey =
-          (apt as any).txKey || findTxKey(apt.name, txSummaryData, nameMapping);
+          apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
         const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
         const tx = txKey ? txSummaryData[txKey] : undefined;
 
@@ -777,7 +838,7 @@ export default function MacroDashboardClient({
       .map((g) => {
         g.avgPrice = g.totalValue / g.count;
         g.avgPyeongPrice = g.totalPyeongValue / g.count;
-        g.apartments.sort((a: any, b: any) => b.latestPrice - a.latestPrice);
+        g.apartments.sort((a, b) => b.latestPrice - a.latestPrice);
         return g;
       })
       .sort((a, b) => {
@@ -786,7 +847,7 @@ export default function MacroDashboardClient({
         const orderA = indexA === -1 ? 999 : indexA;
         const orderB = indexB === -1 ? 999 : indexB;
         if (orderA !== orderB) return orderA - orderB;
-        return b.avgPrice - a.avgPrice;
+        return (b.avgPrice || 0) - (a.avgPrice || 0);
       });
 
     return result;
@@ -806,8 +867,8 @@ export default function MacroDashboardClient({
           <div className="flex flex-nowrap overflow-x-auto sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center gap-2 sm:gap-3 ml-0 sm:ml-1 mt-1 sm:mt-0 max-w-[calc(100vw-32px)] md:max-w-none pb-1 md:pb-0">
             <span className="hidden sm:inline text-[#d1d6db] mr-0.5 shrink-0">—</span>
             <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
-              <span className="bg-[#f2f4f6] border border-[#e5e8eb] px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-[#4e5968] font-bold tracking-tight">MAU</span>
-              <span className="text-[#333d4b] font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.mau) : '...'}</span>
+              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">MAU</span>
+              <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.mau) : '...'}</span>
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 최근 30일 동안의 월간 순 방문자 수
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
@@ -824,8 +885,8 @@ export default function MacroDashboardClient({
             </div>
             <div className="w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
             <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
-              <span className="bg-[#f2f4f6] border border-[#e5e8eb] px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-[#4e5968] font-bold tracking-tight">VIEW</span>
-              <span className="text-[#333d4b] font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.totalViews) : '...'}</span>
+              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">VIEW</span>
+              <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.totalViews) : '...'}</span>
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 누적 페이지 뷰 (조회수) 총합
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
@@ -833,8 +894,8 @@ export default function MacroDashboardClient({
             </div>
             <div className="hidden sm:block w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
             <div className="group relative flex items-center gap-1.5 shrink-0 pr-4 sm:pr-0 cursor-help">
-              <span className="bg-[#f2f4f6] border border-[#e5e8eb] px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-[#4e5968] font-bold tracking-tight">AVG. TIME</span>
-              <span className="text-[#333d4b] font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? gaData.avgSessionDuration : '...'}</span>
+              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">AVG. TIME</span>
+              <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? gaData.avgSessionDuration : '...'}</span>
               <div className="absolute right-0 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 방문자 1인당 평균 체류 시간
                 <div className="absolute bottom-full right-6 border-4 border-transparent border-b-[#191f28]" />
@@ -846,7 +907,7 @@ export default function MacroDashboardClient({
           onOpenAdModal && (
             <button
               onClick={onOpenAdModal}
-              className="hidden md:flex ml-4 px-3 py-1.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5"
+              className="hidden md:flex ml-4 px-3 py-1.5 bg-body hover:bg-body/80 text-secondary text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5"
             >
               <MessageSquare size={14} />
               광고/제휴 문의
@@ -854,32 +915,42 @@ export default function MacroDashboardClient({
           )
         }
         rightSideContent={
-          <div className="flex items-center justify-center shrink-0 w-[320px] h-[80px] bg-[#f8f9fa] border border-[#e5e8eb] rounded-[12px] border-dashed cursor-pointer hover:bg-[#f2f4f6] transition-colors group" onClick={onOpenAdModal}>
+          <div className="flex items-center justify-center shrink-0 w-[320px] h-[80px] bg-body border border-border rounded-[12px] border-dashed cursor-pointer hover:bg-body/60 transition-colors group" onClick={onOpenAdModal}>
             <div className="flex flex-col items-center gap-1">
-              <span className="text-[14px] font-bold text-[#8b95a1] group-hover:text-primary transition-colors">광고 구좌 (배너) 영역</span>
-              <span className="text-[12px] text-[#b0b8c1] group-hover:text-secondary transition-colors">이곳을 클릭하여 제휴 문의를 남겨주세요</span>
+              <span className="text-[14px] font-bold text-tertiary group-hover:text-primary transition-colors">광고 구좌 (배너) 영역</span>
+              <span className="text-[12px] text-tertiary group-hover:text-secondary transition-colors">이곳을 클릭하여 제휴 문의를 남겨주세요</span>
             </div>
           </div>
         }
       />
       <div className="flex flex-col px-2 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
 
+        {/* Real-time Hot Complex Ranking Card */}
+        <div className="mb-6 px-3 sm:px-6 md:px-0">
+          <HotComplexRanking
+            sheetApartments={sheetApartments}
+            fieldReportsMap={fieldReportsMap}
+            favoriteCounts={favoriteCounts}
+            onSelectApt={onSelectApt || (() => {})}
+          />
+        </div>
+
         <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-0">
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
             {/* Donut Chart Card */}
-            <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] px-5 py-7 min-h-[350px]">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-7 min-h-[350px]">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
+                <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
                   아파트 {chartMode === "price" ? "실거래가" : "평단가"} 분포도
                 </h2>
                 {/* Toss Style Segmented Control */}
-                <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
+                <div className="flex bg-body p-1 rounded-lg">
                   <button
                     onClick={() => setChartMode("price")}
                     className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === "price"
-                      ? "bg-white text-[#191f28] shadow-sm"
-                      : "text-[#8b95a1] hover:text-[#4e5968]"
+                      ? "bg-surface text-primary shadow-sm"
+                      : "text-tertiary hover:text-secondary"
                       }`}
                   >
                     매매가
@@ -887,8 +958,8 @@ export default function MacroDashboardClient({
                   <button
                     onClick={() => setChartMode("pyeong")}
                     className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === "pyeong"
-                      ? "bg-white text-[#191f28] shadow-sm"
-                      : "text-[#8b95a1] hover:text-[#4e5968]"
+                      ? "bg-surface text-primary shadow-sm"
+                      : "text-tertiary hover:text-secondary"
                       }`}
                   >
                     평당가
@@ -900,12 +971,12 @@ export default function MacroDashboardClient({
                 <div className="w-[240px] h-[240px] relative shrink-0">
                   {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <span className="text-[13px] font-bold text-[#8b95a1] mb-1">
+                    <span className="text-[13px] font-bold text-tertiary mb-1">
                       분석 세대수
                     </span>
-                    <span className="text-[26px] font-extrabold text-[#191f28] leading-none tracking-tight">
+                    <span className="text-[26px] font-extrabold text-primary leading-none tracking-tight">
                       {totalHouseholds.toLocaleString()}
-                      <span className="text-[15px] font-bold text-[#8b95a1] ml-1">
+                      <span className="text-[15px] font-bold text-tertiary ml-1">
                         세대
                       </span>
                     </span>
@@ -951,7 +1022,7 @@ export default function MacroDashboardClient({
                           if (active && payload && payload.length && activeIndex !== null) {
                             const color = payload[0].payload?.fill || payload[0].color || "#4e5968";
                             return (
-                              <div className="bg-white py-2 px-3 rounded-[10px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#e5e8eb]">
+                              <div className="bg-surface py-2 px-3 rounded-[10px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-border">
                                 <span className="text-[14.5px] font-bold" style={{ color }}>
                                   세대수 : {(payload[0].value || 0).toLocaleString()} 세대
                                 </span>
@@ -982,7 +1053,7 @@ export default function MacroDashboardClient({
                     return (
                       <div
                         key={entry.name}
-                        className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? "bg-[#f2f4f6] scale-[1.02]" : "hover:bg-[#f9fafb]"}`}
+                        className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? "bg-body scale-[1.02]" : "hover:bg-body"}`}
                         onMouseEnter={() => setActiveIndex(index)}
                         onMouseLeave={() => setActiveIndex(null)}
                       >
@@ -993,15 +1064,15 @@ export default function MacroDashboardClient({
                               backgroundColor: COLORS[index % COLORS.length],
                             }}
                           />
-                          <span className="text-[14px] font-bold text-[#4e5968] tracking-tight">
+                          <span className="text-[14px] font-bold text-secondary tracking-tight">
                             {entry.name}
                           </span>
                         </div>
                         <div className="text-right flex flex-col items-end">
-                          <span className="text-[15.5px] font-extrabold text-[#191f28] leading-none mb-1">
+                          <span className="text-[15.5px] font-extrabold text-primary leading-none mb-1">
                             {percentage}%
                           </span>
-                          <span className="text-[12px] font-semibold text-[#8b95a1] leading-none">
+                          <span className="text-[12px] font-semibold text-tertiary leading-none">
                             {entry.value.toLocaleString()} 세대
                           </span>
                         </div>
@@ -1025,7 +1096,7 @@ export default function MacroDashboardClient({
                 badge={
                   <>
                     {maxPyeongPrice.toLocaleString()}만원
-                    <span className="text-[#4e5968] ml-0.5 font-bold">/평</span>
+                    <span className="text-secondary ml-0.5 font-bold">/평</span>
                   </>
                 }
               />
@@ -1035,7 +1106,7 @@ export default function MacroDashboardClient({
                     <span className="break-keep whitespace-nowrap tracking-tight">
                       평균 매매/평당가
                     </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
 
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
@@ -1051,7 +1122,7 @@ export default function MacroDashboardClient({
                 badge={
                   <>
                     {dongtanAvgPyeongPrice.toLocaleString()}만원
-                    <span className="text-[#4e5968] ml-0.5 font-bold">/평</span>
+                    <span className="text-secondary ml-0.5 font-bold">/평</span>
                   </>
                 }
               />
@@ -1059,7 +1130,7 @@ export default function MacroDashboardClient({
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">전월 대비 가격 변동</span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
 
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
@@ -1080,7 +1151,7 @@ export default function MacroDashboardClient({
                         ? "-"
                         : ""}
                     {momStats.changeText}{" "}
-                    <span className="text-[#4e5968] ml-0.5 font-bold">
+                    <span className="text-secondary ml-0.5 font-bold">
                       (
                       {momStats.text === "상승 중"
                         ? "+"
@@ -1097,27 +1168,27 @@ export default function MacroDashboardClient({
           </div>
 
           {/* Right Panel: Line Chart */}
-          <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-4 sm:p-5 min-h-[300px] min-w-0">
+          <div className="w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[300px] min-w-0">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <div className="flex flex-col">
-                <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
+                <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
                   동탄 아파트 대표 가격 변화 추이
                 </h2>
-                <span className="text-[13px] text-[#8b95a1] font-medium mt-1">
+                <span className="text-[13px] text-tertiary font-medium mt-1">
                   {timeframe === "ALL"
                     ? "전체 기간 "
                     : `최근 ${timeframe.replace("M", "개월").replace("Y", "년")} `}
                   국민평형(30~36평형) 실거래가 변동
                 </span>
               </div>
-              <div className="flex bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner self-end sm:self-auto">
-                {["3M", "6M", "1Y", "3Y", "5Y", "ALL"].map((tf) => (
+              <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto">
+                {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
                   <button
                     key={tf}
-                    onClick={() => setTimeframe(tf as any)}
+                    onClick={() => setTimeframe(tf)}
                     className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${timeframe === tf
-                      ? "bg-white text-[#191f28] shadow-sm"
-                      : "text-[#8b95a1] hover:text-[#4e5968]"
+                      ? "bg-surface text-primary shadow-sm"
+                      : "text-tertiary hover:text-secondary"
                       }`}
                   >
                     {tf}
@@ -1135,13 +1206,13 @@ export default function MacroDashboardClient({
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
-                      stroke="#f2f4f6"
+                      stroke="var(--border-color)"
                     />
                     <XAxis
                       dataKey="name"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "#8b95a1", fontSize: 12, fontWeight: 600 }}
+                      tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
                       dy={10}
                       ticks={xTicks}
                     />
@@ -1149,7 +1220,7 @@ export default function MacroDashboardClient({
                       yAxisId="left"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "#8b95a1", fontSize: 12, fontWeight: 600 }}
+                      tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
                       tickFormatter={(value: number) =>
                         `${Number.isInteger(value) ? value : value.toFixed(1)}억`
                       }
@@ -1161,7 +1232,7 @@ export default function MacroDashboardClient({
                       orientation="right"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "#8b95a1", fontSize: 12, fontWeight: 600 }}
+                      tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
                       tickFormatter={(value: number) =>
                         `${Number.isInteger(value) ? value : value.toFixed(1)}억`
                       }
@@ -1171,7 +1242,7 @@ export default function MacroDashboardClient({
                     <RechartsTooltip
                       content={<CustomTooltip />}
                       cursor={{
-                        stroke: "#e5e8eb",
+                        stroke: "var(--border-color)",
                         strokeWidth: 2,
                         strokeDasharray: "3 3",
                       }}
@@ -1185,7 +1256,7 @@ export default function MacroDashboardClient({
                         fontSize: "13px",
                         fontWeight: "bold",
                       }}
-                      formatter={(value, entry: any) => (
+                      formatter={(value, entry: { color?: string }) => (
                         <span
                           style={{
                             color: entry.color,
@@ -1238,18 +1309,18 @@ export default function MacroDashboardClient({
         <div className="mt-12 mb-6 flex items-center justify-between px-3 sm:px-6 md:px-0">
           <div className="flex items-center gap-2">
             <div className="w-[3px] h-[16px] bg-[#00d29d] rounded-full" />
-            <h2 className="text-[22px] font-bold text-[#191f28]">
+            <h2 className="text-[22px] font-bold text-primary">
               권역별 단지 분류
             </h2>
           </div>
 
           {/* Toss Style Segmented Control for Accordion */}
-          <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
+          <div className="flex bg-body p-1 rounded-lg">
             <button
               onClick={() => setAccordionMode("price")}
               className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "price"
-                ? "bg-white text-[#191f28] shadow-sm"
-                : "text-[#8b95a1] hover:text-[#4e5968]"
+                ? "bg-surface text-primary shadow-sm"
+                : "text-tertiary hover:text-secondary"
                 }`}
             >
               매매가
@@ -1257,8 +1328,8 @@ export default function MacroDashboardClient({
             <button
               onClick={() => setAccordionMode("pyeong")}
               className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "pyeong"
-                ? "bg-white text-[#191f28] shadow-sm"
-                : "text-[#8b95a1] hover:text-[#4e5968]"
+                ? "bg-surface text-primary shadow-sm"
+                : "text-tertiary hover:text-secondary"
                 }`}
             >
               평단가
@@ -1283,11 +1354,11 @@ export default function MacroDashboardClient({
             return (
               <div
                 key={group.title}
-                className="bg-white rounded-[20px] shadow-sm border border-gray-100 transition-all duration-300 relative"
+                className="bg-surface rounded-[20px] shadow-sm border border-border transition-all duration-300 relative"
               >
                 {/* Group Header */}
                 <div
-                  className={`p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 rounded-t-[20px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
+                  className={`p-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
                   onClick={() => toggleGroup(group.title)}
                 >
                   <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
@@ -1297,22 +1368,22 @@ export default function MacroDashboardClient({
                     />
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[15px] md:text-[18px] font-extrabold text-[#191f28] tracking-tight break-keep">
+                        <span className="text-[15px] md:text-[18px] font-extrabold text-primary tracking-tight break-keep">
                           {group.title}
                         </span>
                         {group.title === "동탄역세권" && (
                           <div className="relative group/info flex items-center">
-                            <Info className="w-4 h-4 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
-                            <div className="absolute left-0 bottom-full mb-3 w-max max-w-[280px] sm:max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-white text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 z-50 pointer-events-none flex flex-col gap-3 text-left">
+                            <Info className="w-4 h-4 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                            <div className="absolute left-0 bottom-full mb-3 w-max max-w-[280px] sm:max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-surface text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-border z-50 pointer-events-none flex flex-col gap-3 text-left">
                               <span className="font-bold text-[#3182f6] text-[15px]">동탄역세권 설정 기준</span>
                               <div>
-                                <span className="font-bold text-[#191f28]">1. 공간적·물리적 기준</span><br />
-                                <span className="text-[#4e5968]">1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)<br />
+                                <span className="font-bold text-primary">1. 공간적·물리적 기준</span><br />
+                                <span className="text-secondary">1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)<br />
                                   2차: 반경 1km 이내 (경부 지하화로 인한 광비콤 서측 동서 단절 해소)</span>
                               </div>
-                              <div className="pt-2 border-t border-gray-100">
-                                <span className="font-bold text-[#191f28]">2. 시간 및 교통 연계적 기준</span><br />
-                                <span className="text-[#4e5968]">복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경 적용.<br />
+                              <div className="pt-2 border-t border-border">
+                                <span className="font-bold text-primary">2. 시간 및 교통 연계적 기준</span><br />
+                                <span className="text-secondary">복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경 적용.<br />
                                   ➡ <span className="font-bold text-[#3182f6]">1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류.</span></span>
                               </div>
                               <div className="mt-1 bg-[#3182f6]/10 text-[#3182f6] px-2 py-1.5 rounded-[6px] text-center font-bold">
@@ -1330,18 +1401,18 @@ export default function MacroDashboardClient({
                     <div className="flex flex-col items-end shrink-0">
                       {accordionMode === "price" ? (
                         (() => {
-                          const { value, unit } = formatEokWithUnit(group.avgPrice);
+                          const { value, unit } = formatEokWithUnit(group.avgPrice || 0);
                           return (
                             <>
                               <div className="flex items-baseline gap-1 whitespace-nowrap">
-                                <span className="text-[15px] md:text-[20px] font-extrabold text-[#191f28] tracking-tighter">
+                                <span className="text-[15px] md:text-[20px] font-extrabold text-primary tracking-tighter">
                                   {value}
                                 </span>
-                                <span className="text-[11px] md:text-[12px] font-bold text-[#8b95a1]">
+                                <span className="text-[11px] md:text-[12px] font-bold text-tertiary">
                                   {unit}
                                 </span>
                               </div>
-                              <span className="text-[11px] md:text-[12px] font-medium text-[#8b95a1] mt-0.5 whitespace-nowrap">
+                              <span className="text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap">
                                 평균 실거래가
                               </span>
                             </>
@@ -1350,23 +1421,23 @@ export default function MacroDashboardClient({
                       ) : (
                         <>
                           <div className="flex items-baseline gap-1 whitespace-nowrap">
-                            <span className="text-[15px] md:text-[20px] font-extrabold text-[#191f28] tracking-tighter">
-                              {Math.round(group.avgPyeongPrice).toLocaleString()}
+                            <span className="text-[15px] md:text-[20px] font-extrabold text-primary tracking-tighter">
+                              {Math.round(group.avgPyeongPrice || 0).toLocaleString()}
                             </span>
-                            <span className="text-[11px] md:text-[12px] font-bold text-[#8b95a1]">
+                            <span className="text-[11px] md:text-[12px] font-bold text-tertiary">
                               만원/평
                             </span>
                           </div>
-                          <span className="text-[11px] md:text-[12px] font-medium text-[#8b95a1] mt-0.5 whitespace-nowrap">
+                          <span className="text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap">
                             평균 평단가
                           </span>
                         </>
                       )}
                     </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-[#8b95a1]" />
+                      <ChevronUp className="w-5 h-5 text-tertiary" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-[#8b95a1]" />
+                      <ChevronDown className="w-5 h-5 text-tertiary" />
                     )}
                   </div>
                 </div>
@@ -1374,7 +1445,7 @@ export default function MacroDashboardClient({
                 {/* Expanded Content */}
                 {isExpanded && (
                   <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="w-full h-[1px] bg-gray-100 mb-4" />
+                    <div className="w-full h-[1px] bg-body mb-4" />
 
                     <div className="flex flex-col gap-4">
                       {(() => {
@@ -1396,10 +1467,10 @@ export default function MacroDashboardClient({
 
                         // Compute which tiers have apartments
                         const availableTiers = TIERS.map((tier, idx) => {
-                          const apts = group.apartments.filter((apt: any) => {
+                          const apts = group.apartments.filter((apt) => {
                             const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
                             return val >= tier.min && val < tier.max;
-                          }).sort((a: any, b: any) => {
+                          }).sort((a, b) => {
                             return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
                           });
                           return { ...tier, originalIndex: idx, apts };
@@ -1426,11 +1497,11 @@ export default function MacroDashboardClient({
                                     }}
                                     className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive
                                       ? "bg-[#333d4b] text-white shadow-sm"
-                                      : "bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb] hover:text-[#4e5968]"
+                                      : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
                                       }`}
                                   >
                                     {t.name}
-                                    <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-[#e5e8eb] text-[#8b95a1]'}`}>
+                                    <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
                                       {t.apts.length}
                                     </span>
                                   </button>
@@ -1440,21 +1511,21 @@ export default function MacroDashboardClient({
 
                             {/* Active Tier Apartments List */}
                             <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
-                              {activeTier.apts.map((apt: any) => (
+                              {activeTier.apts.map((apt) => (
                                 <div
                                   key={apt.name}
                                   onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
-                                  className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-gray-100 bg-white hover:border-[#00d29d]/30 hover:bg-[#f9fafb] cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
+                                  className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
                                 >
                                   {/* Top Row: Name and Chevron */}
                                   <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
                                       <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors" />
-                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-[#333d4b] truncate">
+                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
                                         {apt.name}
                                       </span>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-[#b0b8c1] shrink-0" />
+                                    <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
                                   </div>
 
                                   {/* Bottom Row: Distance and Price */}
@@ -1473,10 +1544,10 @@ export default function MacroDashboardClient({
                                           const { value, unit } = formatEokWithUnit(apt.latestPrice);
                                           return (
                                             <>
-                                              <span className="text-[15px] sm:text-[17px] font-extrabold text-[#191f28] whitespace-nowrap">
+                                              <span className="text-[15px] sm:text-[17px] font-extrabold text-primary whitespace-nowrap">
                                                 {value}
                                               </span>
-                                              <span className="text-[11px] sm:text-[12px] font-bold text-[#8b95a1] whitespace-nowrap">
+                                              <span className="text-[11px] sm:text-[12px] font-bold text-tertiary whitespace-nowrap">
                                                 {unit}
                                               </span>
                                             </>
@@ -1484,10 +1555,10 @@ export default function MacroDashboardClient({
                                         })()
                                       ) : (
                                         <>
-                                          <span className="text-[15px] sm:text-[17px] font-extrabold text-[#191f28] whitespace-nowrap">
+                                          <span className="text-[15px] sm:text-[17px] font-extrabold text-primary whitespace-nowrap">
                                             {Math.round(apt.pyeongPrice).toLocaleString()}
                                           </span>
-                                          <span className="text-[11px] sm:text-[12px] font-bold text-[#8b95a1] whitespace-nowrap">
+                                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary whitespace-nowrap">
                                             만원/평
                                           </span>
                                         </>
@@ -1509,17 +1580,17 @@ export default function MacroDashboardClient({
 
           {/* Ad Banner Placeholder (8th Slot) */}
           <div
-            className="bg-[#f8f9fa] rounded-[20px] border border-[#e5e8eb] border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-[#f2f4f6] transition-colors group h-full min-h-[104px]"
+            className="bg-body rounded-[20px] border border-border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-body/60 transition-colors group h-full min-h-[104px]"
             onClick={onOpenAdModal}
           >
             <div className="flex flex-col items-center gap-1.5 p-5">
               <div className="flex items-center gap-1.5">
-                <MessageSquare size={16} className="text-[#8b95a1] group-hover:text-primary transition-colors" />
-                <span className="text-[16px] md:text-[18px] font-extrabold text-[#8b95a1] group-hover:text-primary tracking-tight transition-colors">
+                <MessageSquare size={16} className="text-tertiary group-hover:text-primary transition-colors" />
+                <span className="text-[16px] md:text-[18px] font-extrabold text-tertiary group-hover:text-primary tracking-tight transition-colors">
                   광고 구좌 (배너) 영역
                 </span>
               </div>
-              <span className="text-[13px] text-[#b0b8c1] group-hover:text-secondary transition-colors font-medium">
+              <span className="text-[13px] text-tertiary group-hover:text-secondary transition-colors font-medium">
                 이곳을 클릭하여 제휴 문의를 남겨주세요
               </span>
             </div>
@@ -1527,15 +1598,15 @@ export default function MacroDashboardClient({
         </div>
 
         {/* Dongtan Market Insights (News Section) */}
-        <div className="mt-12 mb-8 bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-8">
+        <div className="mt-12 mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8">
           <div className="mb-6">
-            <h2 className="text-[24px] font-extrabold text-[#191f28] tracking-tight">
+            <h2 className="text-[24px] font-extrabold text-primary tracking-tight">
               동탄 부동산 인사이트{" "}
-              <span className="text-[16px] font-semibold text-[#8b95a1] ml-2 font-normal">
+              <span className="text-[16px] font-semibold text-tertiary ml-2 font-normal">
                 최신 뉴스 피드
               </span>
             </h2>
-            <p className="text-[13px] font-medium text-[#8b95a1] mt-1 italic">
+            <p className="text-[13px] font-medium text-tertiary mt-1 italic">
               Dongtan real estate market latest news
             </p>
           </div>
@@ -1545,7 +1616,7 @@ export default function MacroDashboardClient({
               ? Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] animate-pulse"
+                  className="flex gap-4 p-5 rounded-xl border border-border bg-body animate-pulse"
                 >
                   <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
                   <div className="flex flex-col w-full">
@@ -1613,9 +1684,9 @@ export default function MacroDashboardClient({
                   onClick={() =>
                     news.link !== "#" && window.open(news.link, "_blank")
                   }
-                  className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#00d29d]/30 transition-all cursor-pointer group"
+                  className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"
                 >
-                  <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                  <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
                     {news.id}
                   </div>
                   <div className="flex flex-col justify-center">
@@ -1624,11 +1695,11 @@ export default function MacroDashboardClient({
                         {news.category}
                       </span>
                       <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
-                      <span className="text-[11px] md:text-[12px] font-semibold text-[#8b95a1]">
+                      <span className="text-[11px] md:text-[12px] font-semibold text-tertiary">
                         {news.sub}
                       </span>
                     </div>
-                    <p className="text-[13px] md:text-[15px] font-semibold text-[#4e5968] leading-snug md:leading-[1.5] group-hover:text-[#191f28] transition-colors line-clamp-2">
+                    <p className="text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2">
                       {news.title}
                     </p>
                   </div>
@@ -1641,7 +1712,7 @@ export default function MacroDashboardClient({
               onClick={() => {
                 window.location.hash = 'lounge-news';
               }}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
             >
               더보기 ({visibleNewsCount} {"/"} {newsData.length || 100})
               <ChevronRight className="w-4 h-4" />

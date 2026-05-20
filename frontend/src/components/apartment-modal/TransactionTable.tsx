@@ -233,7 +233,7 @@ export function TransactionTable({
                 
                 {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
                 <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
-                  <span className={`w-full text-center text-[14px] md:text-[15px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-[#333d4b]'}`} title={typeLabel}>
+                  <span className={`w-full text-center text-[14px] md:text-[15px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-primary'}`} title={typeLabel}>
                     {typeLabel}
                   </span>
                 </div>

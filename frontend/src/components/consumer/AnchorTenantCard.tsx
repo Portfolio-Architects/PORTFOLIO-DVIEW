@@ -110,7 +110,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
           const walkingTime = Math.ceil(anchor.distance / 80);
           
           return (
-            <div key={anchor.id} className="group flex items-center justify-between gap-3 md:gap-4 py-4 md:py-5 border-b border-border last:border-0 hover:bg-[#f9fafb] transition-all duration-200 -mx-6 px-6 md:-mx-8 md:px-8 rounded-none first:mt-3 last:mb-0">
+            <div key={anchor.id} className="group flex items-center justify-between gap-3 md:gap-4 py-4 md:py-5 border-b border-border last:border-0 hover:bg-body transition-all duration-200 -mx-6 px-6 md:-mx-8 md:px-8 rounded-none first:mt-3 last:mb-0">
               
               {/* Left: Category & Name */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -152,7 +152,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
                     href={`https://www.google.com/maps/search/?api=1&query=${anchor.metaCoordinates}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="shrink-0 text-secondary bg-white border border-border shadow-sm hover:bg-gray-50 hover:border-gray-300 hover:text-primary p-2 md:px-3 md:py-2 rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    className="shrink-0 text-secondary bg-surface border border-border shadow-sm hover:bg-body hover:border-gray-300 hover:text-primary p-2 md:px-3 md:py-2 rounded-lg transition-all flex items-center justify-center gap-1.5"
                     title={`${anchor.metaName} 지도에서 보기`}
                   >
                     <MapPin size={14} strokeWidth={2.5} className="md:w-4 md:h-4" />
