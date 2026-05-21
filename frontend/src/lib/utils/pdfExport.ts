@@ -15,6 +15,16 @@ export async function exportToPDF(elementId: string, filename: string = 'DVIEW_R
       useCORS: true, // 외부 이미지(Firebase Storage 등) 허용
       logging: false,
       backgroundColor: '#f8fafc', // D-VIEW bg-body 색상 (투명 배경 방지)
+      onclone: (clonedDoc) => {
+        // Fix for html2canvas crash on Tailwind v4 oklab/color-mix box-shadows
+        const allElements = clonedDoc.getElementsByTagName('*');
+        for (let i = 0; i < allElements.length; i++) {
+          const el = allElements[i] as HTMLElement;
+          if (el.style) {
+            el.style.boxShadow = 'none';
+          }
+        }
+      }
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
