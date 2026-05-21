@@ -5,6 +5,7 @@ import { FileText, Hexagon, LayoutDashboard, Home, Compass, MessageSquare, Searc
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
+import PageHeroHeader from '@/components/PageHeroHeader';
 import { useDashboardData } from '@/lib/DashboardFacade';
 
 export default function ReportPage() {
@@ -17,28 +18,17 @@ export default function ReportPage() {
   }, []);
 
   // Filter apartments that have field reports or are just top tier
-  // For now, let's display all apartments that have field reports, plus a few top ones if empty
   const reportApts = Object.values(dongtanApartments)
     .flat()
     .filter(apt => {
-      // Show if it has a field report, or if it's one of the top ones (price > 12억)
       const hasReport = fieldReports.some(r => r.apartmentName === apt.name);
       return hasReport || apt.salePrice >= 120000; 
     })
     .filter(apt => apt.name.includes(searchQuery) || apt.dong.includes(searchQuery))
-    .sort((a, b) => b.salePrice - a.salePrice); // Sort by price descending
+    .sort((a, b) => b.salePrice - a.salePrice); 
 
   return (
-    <div className="min-h-screen bg-body text-primary pb-28 md:pb-12">
-      {/* Mobile Top Header (only visible on mobile) */}
-      <header className="md:hidden sticky top-0 z-40 bg-surface/80 backdrop-blur-xl border-b border-border/50 px-5 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-toss-blue" />
-          <h1 className="text-lg font-bold tracking-tight">인사이트 리포트</h1>
-        </div>
-        <FloatingUserBar />
-      </header>
-
+    <div className="min-h-screen bg-body text-primary pb-28 md:pb-12 flex flex-col">
       {/* Main Header — Logo + Nav integrated (Desktop) */}
       <header className="hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border sticky top-0 z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
@@ -100,21 +90,17 @@ export default function ReportPage() {
         </div>
       </header>
 
-      <main className="max-w-[1200px] mx-auto px-5 md:px-8 py-8 md:py-10 space-y-10">
+      {/* Standardized Hero Header */}
+      <PageHeroHeader 
+        title="D-VIEW 아파트 리포트"
+        subtitleStrong="데이터 기반 동탄 아파트 가치 분석"
+        subtitleLight="단지별 평당가, 전세가율, 인프라 심층 리포트"
+      />
+
+      <main className="w-full max-w-[1200px] mx-auto px-5 md:px-8 py-8 md:py-10 flex-1 flex flex-col gap-6">
         
-        {/* Main Title Section - matches DashboardClient context */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-col items-start gap-2">
-            <h2 className="text-2xl md:text-3xl font-extrabold flex items-center gap-2 tracking-tight">
-              <Hexagon className="text-toss-blue fill-toss-blue/20" size={32} />
-              D-VIEW 아파트 리포트
-            </h2>
-            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 text-[12px] md:text-[14px] font-bold">
-              <span className="text-[#00d29d] border-l-2 border-[#00d29d] pl-2 hidden sm:inline">데이터 기반 동탄 아파트 가치 분석</span>
-              <span className="text-tertiary">단지별 평당가, 전세가율, 인프라 심층 리포트</span>
-            </div>
-          </div>
-          
+        {/* Search Bar only (Title removed since it's in PageHeroHeader) */}
+        <div className="flex justify-end w-full">
           <div className="w-full md:w-[320px] relative shrink-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
             <input 
