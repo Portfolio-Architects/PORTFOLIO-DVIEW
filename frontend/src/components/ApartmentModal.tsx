@@ -3,7 +3,7 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share, Link2
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share, Link2, FileDown, Loader2
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -91,6 +91,23 @@ function FieldReportModal({
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    setIsGeneratingPDF(true);
+    // 상태 업데이트가 DOM에 반영될 때까지 대기
+    setTimeout(async () => {
+      try {
+        const { exportToPDF } = await import('@/lib/utils/pdfExport');
+        await exportToPDF('pdf-report-content', `DVIEW_Report_${displayAptName}.pdf`);
+      } catch (err) {
+        console.error(err);
+        alert('PDF 생성 중 오류가 발생했습니다.');
+      } finally {
+        setIsGeneratingPDF(false);
+      }
+    }, 150);
+  };
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
@@ -486,8 +503,8 @@ function FieldReportModal({
                   { id: 'sec-summary', label: '단지 기본정보', show: true },
                   { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
                   { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
-                  { id: 'sec-photos', label: '우리 단지 갤러리', show: true },
-                  { id: 'sec-comments', label: '아파트 이야기', show: true },
+                  { id: 'sec-photos', label: '우리 단지 갤러리', show: !isGeneratingPDF },
+                  { id: 'sec-comments', label: '아파트 이야기', show: !isGeneratingPDF },
                 ].filter(t => t.show);
 
                 return tabs.map((tab) => {
@@ -802,77 +819,79 @@ function FieldReportModal({
             )}
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}
-            {report.images && report.images.length > 0 ? (() => {
-              const IMAGE_TAG_LABELS: Record<string, string> = {
-                'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
-                'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
-              };
-              const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
-              return (
-                <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative">
-                  <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
-                    <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+            {!isGeneratingPDF && (
+              report.images && report.images.length > 0 ? (() => {
+                const IMAGE_TAG_LABELS: Record<string, string> = {
+                  'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
+                  'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
+                };
+                const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
+                return (
+                  <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative">
+                    <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
+                      <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsUploadModalOpen(true);
+                        }}
+                        className="text-[13px] font-bold text-toss-blue bg-toss-blue-light px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                      >
+                        + 사진 추가
+                      </button>
+                    </div>
+                    <details open>
+                      <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
+                        <Camera size={20} className="text-toss-blue"/>
+                        우리 단지 갤러리
+                      </summary>
+
+                      {/* Category Filter Chips */}
+                      <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
+                    </details>
+                  </div>
+                );
+              })() : (
+                <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group">
+                  <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                    <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
+                  </h2>
+                  <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                    {/* Glassmorphism subtle background effects */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
+                    
+                    <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
+                      <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
+                    </div>
+                    
+                    <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
+                      데이터가 담지 못하는 우리 단지의 진정한 가치
+                    </h3>
+                    <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
+                      매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
+                      입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                    </p>
+                    
                     <button 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="text-[13px] font-bold text-toss-blue bg-toss-blue-light px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-toss-blue hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
                     >
-                      + 사진 추가
+                      <span>우리 단지 첫 번째 앰배서더 되기</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-toss-blue group-hover:bg-surface animate-pulse" />
                     </button>
+                    
+                    <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
+                      * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
+                    </p>
                   </div>
-                  <details open>
-                    <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                      <Camera size={20} className="text-toss-blue"/>
-                      우리 단지 갤러리
-                    </summary>
-
-                    {/* Category Filter Chips */}
-                    <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
-                  </details>
                 </div>
-              );
-            })() : (
-              <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group">
-                <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                  <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
-                </h2>
-                <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
-                  {/* Glassmorphism subtle background effects */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
-                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
-                  
-                  <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
-                    <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
-                  </div>
-                  
-                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
-                    데이터가 담지 못하는 우리 단지의 진정한 가치
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
-                    매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                    입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
-                  </p>
-                  
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsUploadModalOpen(true);
-                    }}
-                    className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-toss-blue hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
-                  >
-                    <span>우리 단지 첫 번째 앰배서더 되기</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-toss-blue group-hover:bg-surface animate-pulse" />
-                  </button>
-                  
-                  <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
-                    * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
-                  </p>
-                </div>
-              </div>
+              )
             )}
 
             {!s ? null : (() => {
@@ -1004,17 +1023,27 @@ function FieldReportModal({
             )})()}
 
             {/* Comments Section */}
-            <div id="sec-comments">
-              <CommentSection
-                comments={comments}
-                commentInput={commentInput}
-                onCommentChange={onCommentChange}
-                onSubmitComment={onSubmitComment}
-                user={user}
-                isUnlocked={isUnlocked}
-                premiumContent={report.premiumContent}
-              />
-            </div>
+            {!isGeneratingPDF && (
+              <div id="sec-comments">
+                <CommentSection
+                  comments={comments}
+                  commentInput={commentInput}
+                  onCommentChange={onCommentChange}
+                  onSubmitComment={onSubmitComment}
+                  user={user}
+                  isUnlocked={isUnlocked}
+                  premiumContent={report.premiumContent}
+                />
+              </div>
+            )}
+
+            {/* PDF 전용 푸터 */}
+            {isGeneratingPDF && (
+              <div className="mt-8 pt-8 border-t border-border flex flex-col items-center justify-center text-center gap-2 pb-12">
+                <p className="text-secondary font-bold">더 많은 단지 사진과 이야기는 D-VIEW 앱에서 확인하세요.</p>
+                <p className="text-tertiary text-sm">dongtanview.com</p>
+              </div>
+            )}
 
           </div>
     </>
@@ -1202,6 +1231,17 @@ function FieldReportModal({
         <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1340px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
 
           <div className="absolute top-4 right-4 z-[100] hidden md:flex items-center gap-3">
+            {isAdmin && (
+              <button
+                onClick={handleExportPDF}
+                disabled={isGeneratingPDF}
+                className={`bg-surface/90 hover:bg-surface text-secondary px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px] ${isGeneratingPDF ? 'opacity-70 cursor-not-allowed' : ''}`}
+                title="PDF로 리포트 다운로드 (관리자 전용)"
+              >
+                {isGeneratingPDF ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} className="group-hover:scale-110 transition-transform" />}
+                {isGeneratingPDF ? '생성 중...' : 'PDF 출력'}
+              </button>
+            )}
             <button
               onClick={handleCopyLink}
               className="bg-surface/90 hover:bg-surface text-secondary px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
@@ -1226,7 +1266,9 @@ function FieldReportModal({
           </div>
           
           <div ref={modalRef} onScroll={handleScroll} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
-            {content}
+            <div id="pdf-report-content" className="flex flex-col bg-body w-full">
+              {content}
+            </div>
             {/* 하단 고정 버튼 영역 침범 방지용 여백 (모바일 전용) */}
             <div className="h-28 md:hidden shrink-0" />
           </div>

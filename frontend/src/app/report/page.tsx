@@ -154,10 +154,10 @@ export default function ReportPage() {
                 <p className="text-[13px] text-secondary line-clamp-3 mb-5 flex-grow">
                   {report.summary}
                 </p>
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
+                <Link href={report.id === 1 ? '/#apt=동탄역 롯데캐슬' : '#'} className="flex items-center justify-between mt-auto pt-4 border-t border-border w-full">
                   <span className="text-[12px] font-bold text-primary">자세히 보기</span>
                   <ChevronRight size={16} className="text-tertiary group-hover:translate-x-1 group-hover:text-toss-blue transition-all" />
-                </div>
+                </Link>
               </div>
             ))}
           </div>
