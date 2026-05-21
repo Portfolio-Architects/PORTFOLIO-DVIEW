@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge' | 'overview' | 'report';
-  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'report') => void;
+  activeTab: 'imjang' | 'lounge' | 'overview';
+  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview') => void;
 }
 
 export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
