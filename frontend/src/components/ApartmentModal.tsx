@@ -30,6 +30,7 @@ const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/Adv
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
 // PaymentButton 비활성화 (Vercel Hobby Plan 호환성 — 추후 유료 모델 전환 시 복원)
 // const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr: false });
+import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface TransactionRecord {
   dong: string;
@@ -1021,6 +1022,34 @@ function FieldReportModal({
                 </div>
               </>
             )})()}
+
+            {/* In-content Viral CTA & AdSense Placeholder */}
+            {!isGeneratingPDF && (
+              <div className="flex flex-col gap-6 mt-8 mb-4">
+                {/* 1. Viral Share CTA (Desktop/Mobile In-content) */}
+                <div 
+                  onClick={handleKakaoShare}
+                  className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-colors shadow-sm group"
+                >
+                  <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
+                    <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
+                      가장 빠른 동탄 소식
+                    </span>
+                    <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
+                      이 아파트 분석 리포트 카톡으로 지인에게 공유하기
+                    </span>
+                  </div>
+                  <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                      <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* 2. Native Ad Placeholder (AdSense Test) */}
+                <NativeAdPlaceholder location="단지 리포트 모달" />
+              </div>
+            )}
 
             {/* Comments Section */}
             {!isGeneratingPDF && (

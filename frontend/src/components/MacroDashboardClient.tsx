@@ -28,6 +28,7 @@ import {
   ChevronRight,
   MessageSquare,
 } from "lucide-react";
+import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
 interface MacroNewsItem {
   id: number | string;
@@ -1568,22 +1569,7 @@ interface GroupedCategory {
           })}
 
           {/* Ad Banner Placeholder (8th Slot) */}
-          <div
-            className="bg-body rounded-[20px] border border-border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-body/60 transition-colors group h-full min-h-[104px]"
-            onClick={onOpenAdModal}
-          >
-            <div className="flex flex-col items-center gap-1.5 p-5">
-              <div className="flex items-center gap-1.5">
-                <MessageSquare size={16} className="text-tertiary group-hover:text-primary transition-colors" />
-                <span className="text-[16px] md:text-[18px] font-extrabold text-tertiary group-hover:text-primary tracking-tight transition-colors">
-                  광고 구좌 (배너) 영역
-                </span>
-              </div>
-              <span className="text-[13px] text-tertiary group-hover:text-secondary transition-colors font-medium">
-                이곳을 클릭하여 제휴 문의를 남겨주세요
-              </span>
-            </div>
-          </div>
+          <NativeAdPlaceholder location="매크로 대시보드 하단" onClick={onOpenAdModal} />
         </div>
 
         {/* Dongtan Market Insights (News Section) */}

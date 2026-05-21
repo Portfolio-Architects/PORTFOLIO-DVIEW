@@ -205,9 +205,10 @@ Golden ratio established from Splash Screen parameters on a standard `200x200` v
   - **Port Allocations**: 개발 서버 포트를 명시적으로 분리합니다 (DTDLS는 `5000`, ASSET은 `3000`).
 - **Automated Context Loading**: AI 세션 시작 시 `ai_development_harness` 지식 베이스를 자동 주입하여 DTDLS 고유의 도메인 룰과 격리 정책을 1순위로 인지시킵니다.
 
-### 9-3. AI Agent Operating Guidelines (DoD)
-코드의 무결성과 모바일 Zero-Jank UX를 사수하기 위해, AI 에이전트와 개발자는 다음의 "Definition of Done"을 준수합니다:
+### 9-3. AI Agent Operating Guidelines (DoD) & Growth Hacker Role
+코드의 무결성과 모바일 Zero-Jank UX를 사수함과 동시에, **트래픽 폭발 및 광고주 유치(Monetization)**를 위한 재귀적 자기개선(Recursive Self-Improvement)을 수행하기 위해, AI 에이전트는 다음을 준수합니다:
 
+- **Growth Hacker Co-Founder**: AI 에이전트는 수동적 보조 도구가 아니라, 최상위 디렉토리의 **[`AGENT.md`](./AGENT.md)**에 명시된 4단계 자기 검증 알고리즘을 매 세션 무한 반복 실행합니다.
 - **Core Principles**: 영리함보다는 정확성을 우선합니다. 부작용을 최소화하기 위해 작업을 원자 단위(Thin Vertical Slices)로 분할합니다.
 - **Workflow Verification**: 작업을 완료 처리하기 전 `tsc --noEmit`, ESLint, 그리고 UI 수동 검증이 **반드시** 통과되어야 합니다. 단 하나의 Regression이라도 발견되면 즉시 "Stop-the-Line" 룰이 가동됩니다.
 - **Planning Mode**: 아키텍처 변경이나 타 프로젝트 경계에 영향을 줄 수 있는 작업은 반드시 사전에 Plan 모드를 가동하여 설계도를 승인받아야 합니다.
