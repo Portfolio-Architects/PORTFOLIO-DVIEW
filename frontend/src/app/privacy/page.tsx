@@ -28,26 +28,24 @@ export default function PrivacyPage() {
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제2조 (수집하는 개인정보 항목 및 수집 방법)</h2>
           <ul className="list-disc pl-5 space-y-2">
-            <li><strong>수집 항목 (구글 소셜 로그인 기반):</strong> 이메일 주소, 이름(닉네임), 프로필 사진, 암호화된 식별자(UID)</li>
-            <li><strong>결제 시 수집 항목 (Toss Payments 연동):</strong> 결제 기록 (결제 수단, 결제 금액, 거래 일시 등). 단, 카드번호 등 민감한 금융 정보는 당사 서버에 저장되지 않으며 PG사(Toss)에서 직접 처리합니다.</li>
-            <li><strong>자동 수집 항목:</strong> IP 주소, 쿠키, 방문 일시, 서비스 이용 기록(즐겨찾기, 조회 기록 등), 기기 정보</li>
-            <li><strong>수집 방법:</strong> 소셜 로그인(Google Auth) 회원가입, 서비스 이용 시 자동 수집</li>
+            <li><strong>수집 항목 (이메일 및 소셜 로그인):</strong> 이메일 주소, 이름(닉네임), 프로필 사진, 암호화된 식별자(UID)</li>
+            <li><strong>자동 수집 항목 (Google Analytics 4 등):</strong> IP 주소, 쿠키, 기기 정보, 위치 정보(대략적인 지역), 서비스 이용 기록(방문 페이지, 체류 시간, 즐겨찾기 클릭 등 트래픽 데이터)</li>
+            <li><strong>수집 방법:</strong> 서비스 가입 및 이용 시 수집, 생성정보 수집 툴(Google Analytics)을 통한 자동 수집</li>
           </ul>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제3조 (개인정보의 수집 및 이용 목적)</h2>
           <p>회사는 수집한 개인정보를 다음의 목적을 위해 활용합니다.</p>
           <ul className="list-disc pl-5 space-y-2 mt-2">
-            <li><strong>서비스 제공:</strong> 콘텐츠(부동산 분석 리포트) 제공, 맞춤형 추천 서비스, 특정 콘텐츠 열람 권한 확인</li>
+            <li><strong>서비스 제공:</strong> 부동산 분석 데이터 및 리포트 제공, 개인화된 맞춤형 단지 추천 및 즐겨찾기 연동</li>
             <li><strong>회원 관리:</strong> 본인 확인, 개인 식별, 불량 회원의 부정 이용 방지, 가입 의사 확인, 고객 상담(CS)</li>
-            <li><strong>유료 서비스 결제:</strong> 서비스 이용에 따른 결제 처리 및 내역 관리</li>
+            <li><strong>서비스 분석 및 고도화:</strong> 사용자 행동 패턴(페이지 조회수, 체류 시간 등) 및 트래픽 분석을 통한 UI/UX 개선 및 서비스 최적화</li>
           </ul>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제4조 (개인정보의 보유 및 이용 기간)</h2>
           <p>원칙적으로, 개인정보 수집 및 이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 단, 관련 법령의 규정에 의하여 보존할 필요가 있는 경우 다음과 같이 일정한 기간 동안 보존합니다.</p>
           <ul className="list-disc pl-5 space-y-2 mt-2">
-            <li>대금결제 및 재화 등의 공급에 관한 기록: 5년 (전자상거래 등에서의 소비자보호에 관한 법률)</li>
             <li>소비자의 불만 또는 분쟁처리에 관한 기록: 3년 (전자상거래 등에서의 소비자보호에 관한 법률)</li>
-            <li>웹사이트 방문 기록: 3개월 (통신비밀보호법)</li>
+            <li>웹사이트 방문 기록 및 트래픽 분석 로그: 3개월 (통신비밀보호법)</li>
           </ul>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제5조 (개인정보의 파기절차 및 방법)</h2>
@@ -70,8 +68,8 @@ export default function PrivacyPage() {
           </div>
 
           <div className="mt-12 text-sm text-tertiary">
-            <p>공고일자: 2026년 4월 18일</p>
-            <p>시행일자: 2026년 4월 18일</p>
+            <p>공고일자: 2026년 5월 21일</p>
+            <p>시행일자: 2026년 5월 21일</p>
           </div>
         </article>
       </main>

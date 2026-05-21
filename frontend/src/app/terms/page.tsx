@@ -49,19 +49,15 @@ export default function TermsPage() {
             <li>기타 불법적이거나 부당한 행위</li>
           </ul>
 
-          <h2 className="text-xl font-bold text-primary mt-8 mb-4">제5조 (결제 및 환불)</h2>
-          <p>본 서비스의 일부 프리미엄 기능(리포트 열람 등)은 유료로 제공될 수 있으며 전자결제대행사(Toss Payments)를 통해 결제가 진행됩니다.</p>
-          <ol className="list-decimal pl-5 space-y-2 mt-2">
-            <li>결제된 디지털 콘텐츠(분석 리포트)는 열람 즉시 가치가 훼손되는 상품으로, 원칙적으로 결제 후 환불이 불가합니다. 단, 시스템 오류 등으로 리포트가 정상적으로 제공되지 않은 경우에는 전액 환불합니다.</li>
-            <li>환불과 관련된 세부 규정은 「전자상거래 등에서의 소비자보호에 관한 법률」을 준수합니다.</li>
-          </ol>
+          <h2 className="text-xl font-bold text-primary mt-8 mb-4">제5조 (서비스 요금 및 결제)</h2>
+          <p>본 서비스는 현재 모든 이용자에게 전면 무료로 제공되고 있습니다. 향후 프리미엄 기능(리포트 등)이 추가되어 유료 서비스로 전환되거나 일부 기능이 유료화될 경우, 사전에 이용자에게 요금 및 결제 방식, 환불 규정 등을 공지하고 별도의 유료 서비스 이용약관 동의 절차를 거치게 됩니다.</p>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제6조 (관할법원)</h2>
           <p>서비스 이용과 관련하여 회사와 회원 간에 발생한 분쟁에 대해서는 회사의 본점 소재지를 관할하는 법원을 합의관할로 합니다.</p>
 
           <div className="mt-12 text-sm text-tertiary">
-            <p>공고일자: 2026년 4월 18일</p>
-            <p>시행일자: 2026년 4월 18일</p>
+            <p>공고일자: 2026년 5월 21일</p>
+            <p>시행일자: 2026년 5월 21일</p>
             <p className="mt-2">상호: D-VIEW | 이메일: ocs5672@gmail.com</p>
           </div>
         </article>

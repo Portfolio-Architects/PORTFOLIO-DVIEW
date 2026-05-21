@@ -204,14 +204,14 @@ export default function TossApartmentExploreClient({
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1">
             <SidebarItem 
-              label="가격 높은 순" 
-              active={currentCategory === 'rank-abs-price'} 
-              onClick={() => setCurrentCategory('rank-abs-price')} 
-            />
-            <SidebarItem 
               label="내 관심 단지" 
               active={currentCategory === 'favorites'} 
               onClick={() => setCurrentCategory('favorites')} 
+            />
+            <SidebarItem 
+              label="가격 높은 순" 
+              active={currentCategory === 'rank-abs-price'} 
+              onClick={() => setCurrentCategory('rank-abs-price')} 
             />
             <SidebarItem 
               label="평당가 높은 순" 
@@ -495,14 +495,14 @@ export default function TossApartmentExploreClient({
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
                 <div className="flex flex-col gap-1">
                   <MobileSidebarItem 
-                    label="가격 높은 순" 
-                    active={currentCategory === 'rank-abs-price'} 
-                    onClick={() => { setCurrentCategory('rank-abs-price'); setIsMobileMenuOpen(false); }} 
-                  />
-                  <MobileSidebarItem 
                     label="내 관심 단지" 
                     active={currentCategory === 'favorites'} 
                     onClick={() => { setCurrentCategory('favorites'); setIsMobileMenuOpen(false); }} 
+                  />
+                  <MobileSidebarItem 
+                    label="가격 높은 순" 
+                    active={currentCategory === 'rank-abs-price'} 
+                    onClick={() => { setCurrentCategory('rank-abs-price'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
                     label="평당가 높은 순" 

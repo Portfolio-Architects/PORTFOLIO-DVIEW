@@ -118,15 +118,20 @@ export default function FloatingUserBar() {
       {showProfileModal && user && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-primary/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
-          <div className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[540px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col">
-            <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-tertiary hover:text-primary p-1 rounded-full transition-colors">
-              <X size={18} />
+          <div className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[640px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col">
+            <button 
+              onClick={() => setShowProfileModal(false)} 
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 bg-surface/80 backdrop-blur-md border border-border text-secondary hover:text-primary hover:bg-body flex items-center justify-center rounded-full shadow-sm hover:shadow-md transition-all z-50"
+              aria-label="닫기"
+            >
+              <X size={22} strokeWidth={2.5} />
             </button>
 
-            {/* Profile Photo */}
-            <div className="flex flex-col items-center mb-6">
-              <div className="relative group cursor-pointer mb-3" onClick={() => document.getElementById('floating-profile-photo-input')?.click()}>
-                <div className="w-20 h-20 rounded-full bg-toss-blue-light flex items-center justify-center overflow-hidden ring-4 ring-toss-blue-light">
+            {/* Profile Header Card */}
+            <div className="bg-body border border-border rounded-2xl p-5 mb-5 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+              {/* Profile Photo */}
+              <div className="relative group cursor-pointer shrink-0" onClick={() => document.getElementById('floating-profile-photo-input')?.click()}>
+                <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center overflow-hidden ring-4 ring-toss-blue/10 shadow-sm">
                   {profilePhotoPreview ? (
                     <img src={profilePhotoPreview} alt="프로필" className="w-full h-full object-cover" />
                   ) : (
@@ -150,17 +155,15 @@ export default function FloatingUserBar() {
                   }}
                 />
               </div>
-              <h3 className="text-[18px] font-extrabold text-primary">프로필 수정</h3>
-              <p className="text-[13px] text-tertiary mt-1">{user.email}</p>
-            </div>
 
-            {/* Nickname Preview */}
-            <div className="bg-body border border-border rounded-2xl p-4 mb-5 text-center">
-              <p className="text-[11px] text-tertiary font-bold mb-1.5">다른 사용자에게 보이는 이름</p>
-              <p className="text-[22px] font-extrabold text-primary tracking-wide">
-                {isAdmin(user.email) ? '매니저' : editNickname}
-              </p>
-              <p className="text-[11px] text-tertiary mt-1">총 {isAdmin(user.email) ? 3 : editNickname.length}글자</p>
+              {/* Profile Info */}
+              <div className="flex-1 text-center sm:text-left pt-1 flex flex-col justify-center h-20">
+                <p className="text-[11px] text-tertiary font-bold mb-1">다른 사용자에게 보이는 이름</p>
+                <p className="text-[24px] font-extrabold text-primary tracking-wide mb-1 leading-none">
+                  {isAdmin(user.email) ? '매니저' : editNickname}
+                </p>
+                <p className="text-[12px] text-secondary font-medium">{user.email}</p>
+              </div>
             </div>
 
             <div className="space-y-4">

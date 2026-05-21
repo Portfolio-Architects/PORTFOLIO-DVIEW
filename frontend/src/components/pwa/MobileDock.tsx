@@ -1,11 +1,11 @@
 'use client';
 
-import { Compass, MessageSquare, Home, Settings, LayoutDashboard } from 'lucide-react';
+import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge' | 'discover' | 'overview';
+  activeTab: 'imjang' | 'lounge' | 'discover' | 'overview' | 'report';
   onTabClick?: (tab: 'imjang' | 'lounge' | 'discover' | 'overview') => void;
 }
 
@@ -72,16 +72,18 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
       {/* 구분선 */}
       <div className="w-[1px] h-8 bg-[#e5e8eb] mx-3 shrink-0 dark:bg-border" />
 
-      {/* 설정 토글 (우측) */}
+      {/* 리포트 탭 (우측) */}
       <div className="flex flex-col items-center justify-center shrink-0 pr-1">
-        <button
-          onClick={() => setIsSettingsModalOpen(true)}
-          className="flex flex-col items-center justify-center w-12 h-[44px] rounded-[20px] transition-all duration-300 relative text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5 dark:hover:bg-surface/5"
-          aria-label="설정"
+        <Link
+          href="/report"
+          className={`flex flex-col items-center justify-center w-12 h-[44px] rounded-[20px] transition-all duration-300 relative ${
+            activeTab === 'report' ? 'text-toss-blue bg-toss-blue/10' : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5'
+          }`}
+          aria-label="리포트"
         >
-          <Settings size={22} strokeWidth={2} className="mb-0.5 relative z-10" />
-          <span className="text-[10px] font-bold tracking-wide relative z-10">설정</span>
-        </button>
+          <FileText size={20} strokeWidth={activeTab === 'report' ? 2.5 : 2} className="mb-0.5 relative z-10" />
+          <span className="text-[10px] font-bold tracking-wide relative z-10">리포트</span>
+        </Link>
       </div>
     </nav>
   );

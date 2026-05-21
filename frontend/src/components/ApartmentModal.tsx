@@ -601,7 +601,7 @@ function FieldReportModal({
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-[15px] font-extrabold text-primary tracking-wide">학군</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
+                    <div className="flex overflow-x-auto custom-scrollbar gap-2.5 pb-2 sm:grid sm:grid-cols-3 md:gap-2.5">
                       {[
                         { label: '초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
                         { label: '중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
@@ -616,7 +616,7 @@ function FieldReportModal({
                         };
                         const s = gradeStyles[grade];
                         return (
-                          <div key={school.label} className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                          <div key={school.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                             <div className="flex items-center justify-between mb-2 md:mb-3">
                               <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                                 {school.label}
@@ -654,13 +654,13 @@ function FieldReportModal({
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-[15px] font-extrabold text-primary tracking-wide">교통</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
+                    <div className="flex overflow-x-auto custom-scrollbar gap-2.5 pb-2 sm:grid sm:grid-cols-3 md:gap-2.5">
                       {[
                         { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#00d29d', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                         { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
-                        <div key={station.label} className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                        <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
                             <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                               {station.label}
@@ -703,10 +703,10 @@ function FieldReportModal({
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-[15px] font-extrabold text-primary tracking-wide">생활 인프라</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5 md:gap-2.5">
+                    <div className="flex overflow-x-auto custom-scrollbar gap-2.5 pb-2 sm:grid sm:grid-cols-2 md:gap-2.5">
                       {/* Academy Density */}
                       {report.metrics.academyDensity > 0 && (
-                        <div className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                        <div className="w-[200px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
                             <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                               학원 · 500m 반경
@@ -734,7 +734,7 @@ function FieldReportModal({
                       )}
                       {/* Restaurant/Cafe Density */}
                       {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                        <div className="bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                        <div className="w-[200px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
                             <span className="text-[13px] md:text-[14px] font-bold text-tertiary truncate pr-1">
                               음식점·카페·500m

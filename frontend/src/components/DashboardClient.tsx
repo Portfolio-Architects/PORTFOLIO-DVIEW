@@ -489,8 +489,17 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               
             </nav>
 
-            {/* Right: Desktop User Bar */}
-            <div className="hidden md:flex items-center justify-end">
+            {/* Right: Desktop Extra Nav & User Bar */}
+            <div className="hidden md:flex items-center justify-end gap-4">
+              <nav className="flex shrink-0 items-center bg-body/80 p-1.5 rounded-[16px]" aria-label="추가 메뉴">
+                <Link
+                  href="/report"
+                  className="flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5 group"
+                >
+                  <FileText size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                  <span>리포트</span>
+                </Link>
+              </nav>
               <FloatingUserBar />
             </div>
             
