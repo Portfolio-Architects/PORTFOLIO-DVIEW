@@ -12,6 +12,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { id } = params;
   let title = '동탄 라운지 게시글 | D-VIEW';
   let description = '동탄 주민들의 솔직한 리얼 실거래가 라운지 이야기입니다.';
+  let imageUrl: string | undefined = undefined;
+  let keywords = ['동탄', 'D-VIEW', '라운지', '실거래가', '부동산', '아파트'];
 
   if (!id) return { title, description };
 
@@ -22,12 +24,23 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
         const data = docSnap.data();
         if (data) {
           title = `${data.title} | D-VIEW 라운지`;
-          // Use 'content' if it exists, clean markdown symbols, otherwise fallback to description
+          
+          if (data.category) keywords.push(data.category);
+          if (data.verifiedApartment) keywords.push(data.verifiedApartment);
+          
           if (data.content) {
-            const cleanContent = data.content.replace(/[#*`~_\-]/g, '').replace(/\n+/g, ' ').trim();
-            description = cleanContent.length > 100 ? cleanContent.substring(0, 100) + '...' : cleanContent;
-          } else {
-            description = '동탄 주민들의 솔직한 리얼 실거래가 라운지 이야기입니다.';
+            // Extract the first image URL from markdown
+            const imageMatch = data.content.match(/!\[.*?\]\((.*?)\)/);
+            if (imageMatch && imageMatch[1]) {
+              imageUrl = imageMatch[1];
+            }
+
+            // Remove image markdown completely before generating description
+            const contentWithoutImages = data.content.replace(/!\[.*?\]\(.*?\)/g, '');
+            // Clean other markdown symbols and normalize spaces
+            const cleanContent = contentWithoutImages.replace(/[#*`~_\->]/g, '').replace(/\s+/g, ' ').trim();
+            // SEO optimal description length is around 155-160 characters
+            description = cleanContent.length > 155 ? cleanContent.substring(0, 155) + '...' : cleanContent;
           }
         }
       }
@@ -36,20 +49,25 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     }
   }
 
+  const ogImages = imageUrl ? [{ url: imageUrl, alt: title }] : undefined;
+
   return {
     title,
     description,
+    keywords: keywords.join(', '),
     openGraph: {
       title,
       description,
       siteName: 'D-VIEW',
       locale: 'ko_KR',
       type: 'article',
+      ...(ogImages && { images: ogImages }),
     },
     twitter: {
-      card: 'summary',
+      card: imageUrl ? 'summary_large_image' : 'summary',
       title,
       description,
+      ...(imageUrl && { images: [imageUrl] }),
     },
   };
 }

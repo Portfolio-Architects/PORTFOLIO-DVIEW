@@ -21,44 +21,28 @@ export default function HotComplexRanking({
   // Compute top 5 hot complexes based on traffic and interest
   const hotList = useMemo(() => {
     const allApts = Object.values(sheetApartments).flat();
-    
-    // Hash function to get a stable pseudo-random value for rank fluctuation
-    const getHash = (str: string) => {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      return Math.abs(hash);
-    };
 
     const enriched = allApts.map((apt) => {
       const report = fieldReportsMap.get(apt.name);
       const views = report?.viewCount || 0;
       const likes = favoriteCounts[apt.name] || 0;
       
-      // Calculate popularity score
-      // We add a hash-based offset to ensure a robust initial list even if firestore counts are cold
-      const hashOffset = (getHash(apt.name) % 45);
-      const score = (likes * 15) + (views * 2) + hashOffset;
-      
-      // Rank change: stable over the day (using date-based seed or name hash)
-      const changeVal = (getHash(apt.name) % 5) - 2; // -2, -1, 0, 1, 2
-      const changeType = changeVal > 0 ? 'up' : changeVal < 0 ? 'down' : 'same';
+      // Calculate popularity score based purely on actual data
+      const score = (likes * 15) + (views * 2);
 
       return {
         apt,
         score,
-        views,
         likes,
-        changeType,
-        changeAmt: Math.abs(changeVal),
-        isNew: (getHash(apt.name) % 17) === 3,
       };
     });
 
-    // Sort by popularity score descending and take top 5
+    // Sort by popularity score descending, fallback to name for stability, and take top 5
     return enriched
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => {
+        if (b.score === a.score) return a.apt.name.localeCompare(b.apt.name);
+        return b.score - a.score;
+      })
       .slice(0, 5);
   }, [sheetApartments, fieldReportsMap, favoriteCounts]);
 
@@ -107,24 +91,7 @@ export default function HotComplexRanking({
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[12px] font-black shrink-0 ${rankBadgeStyle}`}>
                     {rank}
                   </div>
-                  {/* Fluctuation Indicator */}
-                  <div className="flex items-center shrink-0">
-                    {item.isNew ? (
-                      <span className="text-[9px] font-black text-toss-red tracking-tighter">NEW</span>
-                    ) : item.changeType === 'up' ? (
-                      <div className="flex items-center text-toss-red">
-                        <TrendingUp className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-bold ml-0.5">{item.changeAmt}</span>
-                      </div>
-                    ) : item.changeType === 'down' ? (
-                      <div className="flex items-center text-toss-blue">
-                        <TrendingDown className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-bold ml-0.5">{item.changeAmt}</span>
-                      </div>
-                    ) : (
-                      <Minus className="w-3 h-3 text-tertiary" />
-                    )}
-                  </div>
+                  {/* Fluctuation indicator removed as per actual data requirement */}
                 </div>
 
                 {/* Complex Info */}
@@ -141,13 +108,8 @@ export default function HotComplexRanking({
               {/* Stats Footer (Horizontal on Desktop, Hidden on Mobile or simplified) */}
               <div className="flex items-center gap-2 mt-0 md:mt-3.5 text-[11px] font-semibold text-tertiary shrink-0">
                 <span className="flex items-center gap-0.5">
-                  <Eye className="w-3 h-3 text-tertiary/75" />
-                  {(item.views + (item.score % 20) * 15 + 120).toLocaleString()}
-                </span>
-                <span className="text-border">·</span>
-                <span className="flex items-center gap-0.5">
                   <Heart className="w-3 h-3 text-toss-red/75 fill-toss-red/10" />
-                  {item.likes || (item.score % 5) + 3}
+                  {item.likes}
                 </span>
               </div>
             </div>

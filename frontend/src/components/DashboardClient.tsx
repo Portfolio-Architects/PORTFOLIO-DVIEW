@@ -26,7 +26,7 @@ const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDis
 const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
-const NotificationBanner = dynamic(() => import('@/components/NotificationBanner'), { ssr: false });
+
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -669,12 +669,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           </div>
         )}
 
-        {/* Notification Alert & PWA Installer Banner (DAU/MAU Growth Loop) */}
-        {mounted && (
-          <div className="px-4 sm:px-6 md:px-10 lg:px-16 pb-8 md:pb-12 max-w-[2000px] w-full mx-auto">
-            <NotificationBanner />
-          </div>
-        )}
+
       </main>
 
       {showReviewModal && user && (

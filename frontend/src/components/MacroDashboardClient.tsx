@@ -15,7 +15,6 @@ import {
 } from "recharts";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
-import HotComplexRanking from "./HotComplexRanking";
 import type { FieldReportData } from "@/lib/types/report.types";
 import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
@@ -924,16 +923,6 @@ interface GroupedCategory {
         }
       />
       <div className="flex flex-col px-2 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
-
-        {/* Real-time Hot Complex Ranking Card */}
-        <div className="mb-6 px-3 sm:px-6 md:px-0">
-          <HotComplexRanking
-            sheetApartments={sheetApartments}
-            fieldReportsMap={fieldReportsMap}
-            favoriteCounts={favoriteCounts}
-            onSelectApt={onSelectApt || (() => {})}
-          />
-        </div>
 
         <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-0">
           {/* Left Column Container */}

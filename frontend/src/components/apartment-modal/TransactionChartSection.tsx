@@ -115,21 +115,90 @@ export function TransactionChartSection({
     const bucket = byMonthTier.get(d.yearMonth)!;
     bucket.all.push(d.price);
   });
+  
+  // Calculate secondary line data (Jeonse if chart is Sale, Sale if chart is Jeonse)
+  const secondaryTxs = transactions.filter(tx => 
+    chartType === 'sale' 
+      ? (tx.dealType === '전세' || tx.dealType === '월세') 
+      : (tx.dealType !== '전세' && tx.dealType !== '월세')
+  );
+  
+  const secondaryByMonth = new Map<number, number[]>();
+  secondaryTxs.forEach(tx => {
+    let rawPrice = tx.price;
+    if (chartType === 'sale') { // secondary is jeonse
+      rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+    }
+    let priceEokNum = rawPrice / 10000;
+    if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
+    const price = Math.round(priceEokNum * 1000) / 1000;
+    
+    const ym = parseInt(tx.contractYm);
+    if (ym >= cutoffYm) {
+      if (!secondaryByMonth.has(ym)) secondaryByMonth.set(ym, []);
+      secondaryByMonth.get(ym)!.push(price);
+    }
+  });
+
+  const secondaryMonthly = new Map<number, number>();
+  secondaryByMonth.forEach((prices, ym) => {
+    if (prices.length > 0) {
+      const sorted = [...prices].sort((a,b)=>a-b);
+      const q1 = sorted[Math.floor(sorted.length * 0.1)] || 0;
+      const q3 = sorted[Math.floor(sorted.length * 0.9)] || 10;
+      const filtered = prices.filter(p => p >= q1 * 0.8 && p <= q3 * 1.2);
+      const valid = filtered.length > 0 ? filtered : prices;
+      secondaryMonthly.set(ym, Math.round((valid.reduce((a, b) => a + b, 0) / valid.length) * 1000) / 1000);
+    }
+  });
+
   const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
-  const monthlyData = Array.from(byMonthTier.entries())
-    .map(([ym, buckets]) => ({
-      ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
-      monthAvg: avg(buckets.all)!,
-      volume: buckets.all.length, ym,
-      bandHigh, bandLow,
-    }))
+  
+  const allYms = Array.from(new Set([...byMonthTier.keys(), ...secondaryMonthly.keys()]));
+  
+  const monthlyData = allYms
+    .map(ym => {
+      const buckets = byMonthTier.get(ym);
+      return {
+        ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
+        monthAvg: buckets ? avg(buckets.all) : undefined,
+        secondaryAvg: secondaryMonthly.get(ym),
+        saleAvg: chartType === 'sale' ? (buckets ? avg(buckets.all) : undefined) : secondaryMonthly.get(ym),
+        jeonseAvg: chartType === 'sale' ? secondaryMonthly.get(ym) : (buckets ? avg(buckets.all) : undefined),
+        volume: buckets ? buckets.all.length : 0, 
+        ym,
+        bandHigh, bandLow,
+      };
+    })
     .sort((a, b) => a.ts - b.ts);
 
-  const prices = scatterData.map(d => d.price);
+  // Compute global stable minP/maxP across BOTH sale and jeonse to keep Y-axis identical
+  const getEokPrice = (tx: any, isJeonse: boolean) => {
+    let rawPrice = tx.price;
+    if (isJeonse) rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+    let priceEokNum = rawPrice / 10000;
+    if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
+    return Math.round(priceEokNum * 1000) / 1000;
+  };
+  const sPrices = transactions.filter(tx => parseInt(tx.contractYm) >= cutoffYm && tx.dealType !== '전세' && tx.dealType !== '월세').map(tx => getEokPrice(tx, false)).sort((a,b)=>a-b);
+  const jPrices = transactions.filter(tx => parseInt(tx.contractYm) >= cutoffYm && (tx.dealType === '전세' || tx.dealType === '월세')).map(tx => getEokPrice(tx, true)).sort((a,b)=>a-b);
+  
+  const getValid = (arr: number[]) => {
+    if (!arr.length) return [];
+    const q1 = arr[Math.floor(arr.length * 0.05)] || 0;
+    const q3 = arr[Math.floor(arr.length * 0.95)] || 10;
+    const iqr = q3 - q1;
+    return arr.filter(p => p >= q1 - iqr * 3 && p <= q3 + iqr * 3);
+  };
+  
+  const allValidPrices = [...getValid(sPrices), ...getValid(jPrices)];
   let minP = Infinity, maxP = -Infinity;
-  for (const p of prices) { if (p < minP) minP = p; if (p > maxP) maxP = p; }
-  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
-  const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
+  for (const p of allValidPrices) { if (p < minP) minP = p; if (p > maxP) maxP = p; }
+  
+  const prices = scatterData.map(d => d.price);
+
+  const domainMin = minP !== Infinity ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
+  const domainMax = maxP !== -Infinity ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
   const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
 
   const getRecentAvgByMonths = (months: number) => {
@@ -214,7 +283,8 @@ export function TransactionChartSection({
             {/* 최고 평균가 대비 현재 평균가 게이지 바 */}
             {(() => {
               if (prices.length > 0) {
-                const maxPrice = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.monthAvg).filter(Boolean)) : Math.max(...prices);
+                const validAvgs = monthlyData.map(d => d.monthAvg).filter(v => v != null) as number[];
+                const maxPrice = validAvgs.length > 0 ? Math.max(...validAvgs) : Math.max(...prices);
                 const currentPrice = momentum.m1 || prices[0];
                 if (maxPrice > 0 && currentPrice > 0) {
                   const dropRatio = ((maxPrice - currentPrice) / maxPrice) * 100;
@@ -310,13 +380,19 @@ export function TransactionChartSection({
                         {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        {item?.monthAvg && (
+                        {item?.saleAvg != null && (
                           <div className="flex items-center justify-between gap-4">
-                            <span className="text-tertiary text-[13px] font-bold">평균가</span>
-                            <span className="text-[#00d29d] text-[15px] font-extrabold">{item.monthAvg.toFixed(2)}억</span>
+                            <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
+                            <span className="text-[#00d29d] text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
                           </div>
                         )}
-                        {vol != null && (
+                        {item?.jeonseAvg != null && (
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
+                            <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
+                          </div>
+                        )}
+                        {vol != null && vol > 0 && (
                           <div className="flex items-center justify-between gap-4">
                             <span className="text-tertiary text-[13px] font-bold">거래량</span>
                             <span className="text-primary text-[14px] font-extrabold">{vol}건</span>
@@ -329,7 +405,8 @@ export function TransactionChartSection({
                 cursor={{ stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
               <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-              <Area type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+              <Area type="monotone" dataKey="saleAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+              <Line type="monotone" dataKey="jeonseAvg" yAxisId="price" stroke="#f9a825" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
               <Customized
                 component={(rechartProps: Record<string, unknown>) => {
                   const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
@@ -390,8 +467,9 @@ export function TransactionChartSection({
           })()}
         </div>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-tertiary">
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-toss-blue rounded"/>평균가</span>
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-[#00d29d] rounded"/>매매 평균</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-[#f9a825] rounded"/>전월세 평균</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>{chartType === 'sale' ? '매매 거래량' : '전월세 거래량'}</span>
         </div>
       </div>
     </div>

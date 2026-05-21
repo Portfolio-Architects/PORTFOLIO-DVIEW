@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
+import HotComplexRanking from './HotComplexRanking';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
@@ -185,6 +186,16 @@ export default function TossApartmentExploreClient({
         subtitleStrong="동탄 전역 아파트 비교 분석"
         subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
       />
+
+      {/* Real-time Hot Complex Ranking Card */}
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 shrink-0 bg-surface">
+        <HotComplexRanking
+          sheetApartments={sheetApartments}
+          fieldReportsMap={fieldReportsMap}
+          favoriteCounts={favoriteCounts}
+          onSelectApt={handleSelectApt}
+        />
+      </div>
 
       {/* Main Content Area */}
       <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-16 min-h-[calc(100vh-220px)] bg-surface items-stretch">

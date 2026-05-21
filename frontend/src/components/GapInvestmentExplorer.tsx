@@ -88,10 +88,10 @@ export default function GapInvestmentExplorer({
             <Coins className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-[16px] md:text-[18px] font-extrabold text-primary tracking-tight">
+            <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
               소액 갭투자 탐색기
             </h3>
-            <p className="text-[11px] md:text-[12px] font-medium text-tertiary">
+            <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
               실거래가 기준 투자금별 동탄 아파트 매칭
             </p>
           </div>
@@ -119,7 +119,7 @@ export default function GapInvestmentExplorer({
       </div>
 
       {/* Info Warning */}
-      <div className="flex items-start gap-2 bg-body p-3.5 rounded-2xl mb-6 text-[12px] text-secondary font-medium">
+      <div className="flex items-start gap-2 bg-body p-3.5 rounded-2xl mb-6 text-[13px] text-secondary font-medium">
         <HelpCircle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
         <p className="leading-relaxed break-keep">
           최근 3개월 실거래가(매매 및 전세) 평균을 기초로 계산한 투자금액(갭) 정보입니다. 직거래나 비정상 거래는 제외될 수 있으며 실제 매물 가격과는 차이가 있을 수 있습니다.
@@ -146,43 +146,43 @@ export default function GapInvestmentExplorer({
                 >
                   <div className="flex justify-between items-start gap-2 mb-3">
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[14px] md:text-[15px] font-extrabold text-primary truncate group-hover:text-toss-blue transition-colors">
+                      <span className="text-[16px] md:text-[18px] font-extrabold text-primary truncate group-hover:text-toss-blue transition-colors">
                         {item.apt.name}
                       </span>
-                      <span className="text-[11px] md:text-[12px] font-semibold text-tertiary mt-0.5">
+                      <span className="text-[12px] md:text-[13px] font-semibold text-tertiary mt-0.5">
                         {item.apt.dong} · {item.apt.householdCount || '-'}세대
                       </span>
                     </div>
                     {jeonseRatePercent >= 70 && (
-                      <span className="px-2 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[10px] font-black rounded-md shrink-0">
-                        전세율 우수
+                      <span className="px-2 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-black rounded-md shrink-0">
+                        저평가 단지
                       </span>
                     )}
                   </div>
 
                   <div className="flex justify-between items-center bg-surface/50 border border-border/20 rounded-xl p-3 mb-3">
                     <div className="flex flex-col items-center flex-1">
-                      <span className="text-[10px] font-bold text-tertiary mb-0.5">매매 평균</span>
-                      <span className="text-[12px] md:text-[13px] font-bold text-primary">{formatPrice(item.sales)}</span>
+                      <span className="text-[11px] font-bold text-tertiary mb-0.5">매매 평균</span>
+                      <span className="text-[16px] md:text-[18px] font-bold text-primary">{formatPrice(item.sales)}</span>
                     </div>
                     <div className="w-[1px] h-6 bg-border/40" />
                     <div className="flex flex-col items-center flex-1">
-                      <span className="text-[10px] font-bold text-tertiary mb-0.5">전세 평균</span>
-                      <span className="text-[12px] md:text-[13px] font-bold text-primary">{formatPrice(item.jeonse)}</span>
+                      <span className="text-[11px] font-bold text-tertiary mb-0.5">전세 평균</span>
+                      <span className="text-[16px] md:text-[18px] font-bold text-primary">{formatPrice(item.jeonse)}</span>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center mt-auto">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-tertiary">필요 투자금 (갭)</span>
-                      <span className="text-[15px] md:text-[16px] font-black text-toss-blue tracking-tight">
+                      <span className="text-[11px] font-bold text-tertiary">필요 투자금 (갭)</span>
+                      <span className="text-[17px] md:text-[19px] font-black text-toss-blue tracking-tight">
                         {formatPrice(item.gap)}
                       </span>
                     </div>
                     
                     {/* Jeonse Rate horizontal visual bar */}
                     <div className="flex flex-col items-end">
-                      <span className="text-[10px] font-bold text-tertiary">전세율 {jeonseRatePercent}%</span>
+                      <span className="text-[11px] md:text-[12px] font-bold text-tertiary">전세율 {jeonseRatePercent}%</span>
                       <div className="w-16 h-1.5 bg-border/50 rounded-full mt-1.5 overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-blue-400 to-toss-blue rounded-full" 
@@ -200,7 +200,7 @@ export default function GapInvestmentExplorer({
           {gapList.length > 6 && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="w-full py-3.5 border border-border border-dashed hover:border-secondary/40 hover:bg-body/30 rounded-2xl text-[13px] font-extrabold text-secondary hover:text-primary flex items-center justify-center gap-1.5 transition-all mt-2"
+              className="w-full py-3.5 border border-border border-dashed hover:border-secondary/40 hover:bg-body/30 rounded-2xl text-[14px] font-extrabold text-secondary hover:text-primary flex items-center justify-center gap-1.5 transition-all mt-2"
             >
               <span>{showAll ? '접기' : `단지 더 보기 (+${gapList.length - 6}개)`}</span>
               <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${showAll ? '-rotate-90' : ''}`} />

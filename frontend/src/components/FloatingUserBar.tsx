@@ -7,14 +7,16 @@ import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/aut
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
-import { Settings, UserCircle, Edit3, X, Camera } from 'lucide-react';
+import { Settings, UserCircle, Edit3, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
 import { uploadImage } from '@/lib/services/reportService';
 import { DEFAULT_AVATARS } from '@/lib/types/user.types';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 export default function FloatingUserBar() {
-  const { setIsSettingsModalOpen } = useSettings();
+  const { setIsSettingsModalOpen, areaUnit, setAreaUnit } = useSettings();
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -70,24 +72,20 @@ export default function FloatingUserBar() {
   return (
     <>
       {/* User Bar — Embeddable */}
-      <div className="animate-in fade-in duration-300 flex items-center gap-2 sm:gap-3">
-        {/* 데스크탑 전용 설정 버튼 (모바일은 MobileDock 사용) */}
-        <button 
-          onClick={() => setIsSettingsModalOpen(true)}
-          className="hidden md:flex w-10 h-10 md:w-12 md:h-12 bg-surface rounded-full border border-border items-center justify-center text-secondary hover:text-toss-blue hover:shadow-sm transition-all duration-200"
-          aria-label="설정"
-        >
-          <Settings size={22} className="transition-transform duration-300 hover:rotate-45" />
-        </button>
-
+      <div className="animate-in fade-in duration-300 flex items-center gap-2">
         {user ? (
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button onClick={() => {
-              setEditNickname(anonProfile?.nickname || '매니저');
-              setProfilePhotoPreview(anonProfile?.photoURL || null);
-              setProfilePhotoFile(null);
-              setShowProfileModal(true);
-            }} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+          <div className="relative">
+            {/* Profile Avatar Button */}
+            <button 
+              onClick={() => {
+                setEditNickname(anonProfile?.nickname || '매니저');
+                setProfilePhotoPreview(anonProfile?.photoURL || null);
+                setProfilePhotoFile(null);
+                setShowProfileModal(true);
+              }} 
+              className="flex items-center hover:opacity-85 transition-opacity"
+              aria-label="프로필 수정"
+            >
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-toss-blue-light dark:bg-toss-blue-light/20 flex items-center justify-center text-toss-blue overflow-hidden border border-toss-blue/20 shadow-sm relative">
                 {(anonProfile?.photoURL || user.photoURL) ? (
                   <Image src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" fill sizes="40px" className="object-cover" priority={true} />
@@ -98,11 +96,21 @@ export default function FloatingUserBar() {
                 )}
               </div>
             </button>
+
           </div>
         ) : (
-          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-surface text-primary text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full border border-border shadow-sm transition-colors hover:bg-body dark:hover:bg-gray-800">
-            로그인
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={handleLogin} className="flex items-center gap-1.5 bg-surface text-primary text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full border border-border shadow-sm transition-colors hover:bg-body dark:hover:bg-gray-800">
+              로그인
+            </button>
+            <button 
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-surface rounded-full border border-border flex items-center justify-center text-secondary hover:text-toss-blue hover:shadow-sm transition-all duration-200"
+              aria-label="설정"
+            >
+              <Settings size={18} className="transition-transform duration-300 hover:rotate-45" />
+            </button>
+          </div>
         )}
       </div>
 
@@ -110,7 +118,7 @@ export default function FloatingUserBar() {
       {showProfileModal && user && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-primary/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
-          <div className="relative bg-surface rounded-3xl p-8 w-full max-w-[420px] shadow-2xl">
+          <div className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[540px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col">
             <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-tertiary hover:text-primary p-1 rounded-full transition-colors">
               <X size={18} />
             </button>
@@ -195,8 +203,69 @@ export default function FloatingUserBar() {
                   ))}
                 </div>
               </div>
+
+              {/* Theme & Area Unit Settings */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                {/* Theme Settings */}
+                <div className="bg-body border border-border rounded-2xl p-4 flex flex-col justify-between gap-3">
+                  <h3 className="text-[12px] font-bold text-secondary flex items-center gap-1.5">
+                    <Sun size={14} /> 화면 모드
+                  </h3>
+                  <div className="grid grid-cols-3 gap-1 bg-surface p-1 rounded-xl border border-border h-full">
+                    {[
+                      { id: 'light', label: '라이트', icon: Sun },
+                      { id: 'dark', label: '다크', icon: Moon },
+                      { id: 'system', label: '시스템', icon: Monitor },
+                    ].map(opt => {
+                      const isActive = theme === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => setTheme(opt.id)}
+                          className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all duration-200 ${
+                            isActive 
+                              ? 'bg-toss-blue text-white shadow-sm font-bold' 
+                              : 'text-tertiary hover:text-secondary font-medium'
+                          }`}
+                        >
+                          <opt.icon size={14} strokeWidth={isActive ? 2.5 : 2} />
+                          <span className="text-[10px]">{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Area Unit Settings */}
+                <div className="bg-body border border-border rounded-2xl p-4 flex flex-col justify-between gap-3">
+                  <h3 className="text-[12px] font-bold text-secondary flex items-center gap-1.5">
+                    <Scaling size={14} /> 면적 표시 기준
+                  </h3>
+                  <div className="grid grid-cols-2 gap-1 bg-surface p-1 rounded-xl border border-border h-full">
+                    {[
+                      { id: 'm2', label: '제곱미터 (m²)' },
+                      { id: 'pyeong', label: '평' },
+                    ].map(opt => {
+                      const isActive = areaUnit === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => setAreaUnit(opt.id as 'm2' | 'pyeong')}
+                          className={`py-2 rounded-lg transition-all duration-200 text-[11px] h-full ${
+                            isActive 
+                              ? 'bg-toss-blue text-white shadow-sm font-bold' 
+                              : 'text-tertiary hover:text-secondary font-medium'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-4">
                 <button
                   onClick={async () => {
                     if (editNickname.length < 2 || editNickname.length > 10) {

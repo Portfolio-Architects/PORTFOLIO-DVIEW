@@ -8,7 +8,7 @@ import ApartmentCard from './ApartmentCard';
 import { FieldReportData } from '@/lib/DashboardFacade';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/types/transaction';
-import { isSameApartment, findTxKey, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, findTxKey, getDisplayAptName, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import GapInvestmentExplorer from './GapInvestmentExplorer';
 
@@ -202,6 +202,7 @@ export default function ApartmentDiscoveryClient({
               nameMapping={nameMapping}
               fieldReportsMap={fieldReportsMap}
               handleSelectApt={handleSelectApt}
+              typeMap={typeMap}
             />
           );
         })}
@@ -228,9 +229,11 @@ interface NetflixCardProps {
   report?: FieldReportData;
   rank?: number;
   onClick: (apt: DongApartment) => void;
+  typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  nameMapping?: Record<string, string>;
 }
 
-const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: NetflixCardProps) => {
+const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick, typeMap, nameMapping }: NetflixCardProps) => {
   const imageUrl = 
     report?.thumbnail ||
     report?.imageUrl ||
@@ -249,6 +252,12 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: NetflixCard
 
   const isHero = rank === 1;
   const hasImage = !!imageUrl;
+
+  const normApt = normalizeAptName(apt.name);
+  const area = txSummary?.latestArea;
+  const pyeongObj = area && typeMap && typeMap[normApt] ? typeMap[normApt][String(area)] : undefined;
+  const pyeongType = pyeongObj ? (pyeongObj.typePyeong || pyeongObj.typeM2) : '';
+  const typeSuffix = pyeongType ? ` (${pyeongType})` : '';
 
   const titleColor = hasImage ? 'text-white' : 'text-primary';
   const priceColor = hasImage ? 'text-[#60a5fa]' : 'text-[#3182f6]'; // Lighter blue for dark overlay
@@ -295,7 +304,7 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: NetflixCard
         </div>
         <p className={`${descColor} text-[11px] md:text-[12px] font-medium mt-0.5 md:mt-1 line-clamp-1 w-[90%] opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
           {txSummary?.maxPriceEok && txSummary?.latestPriceEok 
-            ? `최고가 ${txSummary.maxPriceEok} · 최근 실거래 ${txSummary.latestPriceEok}`
+            ? `최고가 ${txSummary.maxPriceEok} · 최근 실거래 ${txSummary.latestPriceEok}${typeSuffix}`
             : (cat?.desc || '동탄을 대표하는 프리미엄 아파트입니다.')}
         </p>
       </div>
@@ -310,9 +319,10 @@ interface NetflixCategoryRowProps {
   nameMapping: Record<string, string>;
   fieldReportsMap: Map<string, FieldReportData>;
   handleSelectApt: (apt: DongApartment) => void;
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
 }
 
-const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, fieldReportsMap, handleSelectApt }: NetflixCategoryRowProps) => {
+const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, fieldReportsMap, handleSelectApt, typeMap }: NetflixCategoryRowProps) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
     rootMargin: '200px 0px',
@@ -387,6 +397,8 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
                    report={matchedReport}
                    rank={rankIndex + 1}
                    onClick={handleSelectApt}
+                   typeMap={typeMap}
+                   nameMapping={nameMapping}
                  />
                );
             })}
