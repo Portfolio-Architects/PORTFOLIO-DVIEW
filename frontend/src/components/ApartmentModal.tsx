@@ -626,10 +626,10 @@ function FieldReportModal({
                       ].filter(s => s.dist && s.dist > 0).map(school => {
                         const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
-                          excellent: { dot: 'bg-toss-blue', timeBadge: 'bg-blue-50 text-toss-blue', linkBadge: 'bg-surface border border-border text-secondary hover:text-toss-blue hover:border-toss-blue/30 shadow-sm' },
-                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-green-50 text-green-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-green-600 hover:border-green-600/30 shadow-sm' },
-                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-yellow-50 text-yellow-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-yellow-600 hover:border-yellow-600/30 shadow-sm' },
-                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-red-50 text-red-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-red-600 hover:border-red-600/30 shadow-sm' },
+                          excellent: { dot: 'bg-toss-blue', timeBadge: 'bg-[#eff6ff] text-[#3182f6]', linkBadge: 'bg-surface border border-border text-secondary hover:text-toss-blue hover:border-toss-blue/30 shadow-sm' },
+                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-[#f0fdf4] text-[#16a34a]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#16a34a] hover:border-[#16a34a]/30 shadow-sm' },
+                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-[#fefce8] text-[#ca8a04]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#ca8a04] hover:border-[#ca8a04]/30 shadow-sm' },
+                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-[#fef2f2] text-[#dc2626]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#dc2626] hover:border-[#dc2626]/30 shadow-sm' },
                         };
                         const s = gradeStyles[grade];
                         return (

@@ -23,6 +23,10 @@ export async function exportToPDF(elementId: string, filename: string = 'DVIEW_R
           if (el.style) {
             el.style.boxShadow = 'none';
           }
+          // Remove tailwind shadow and ring classes which compute to oklab
+          if (el.className && typeof el.className === 'string') {
+            el.className = el.className.replace(/\b(shadow|ring)[^\s]*\b/g, '');
+          }
         }
       }
     });
