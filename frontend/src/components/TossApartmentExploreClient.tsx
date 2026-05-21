@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X } from 'lucide-react';
+import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles, Coins, Activity } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
 import HotComplexRanking from './HotComplexRanking';
+import GapInvestmentExplorer from './GapInvestmentExplorer';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
@@ -92,6 +93,7 @@ export default function TossApartmentExploreClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -100,6 +102,10 @@ export default function TossApartmentExploreClient({
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  React.useEffect(() => {
+    setVisibleCount(10);
+  }, [currentCategory, searchQuery]);
   
   // Flatten and filter public rentals
   const allApts = useMemo(() => {
@@ -118,6 +124,7 @@ export default function TossApartmentExploreClient({
       const sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
       const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
+      const dropRatio = sum && sum.maxPrice && sum.avg1MPrice && sum.maxPrice > sum.avg1MPrice ? (sum.maxPrice - sum.avg1MPrice) / sum.maxPrice : 0;
       
       return {
         apt,
@@ -125,6 +132,9 @@ export default function TossApartmentExploreClient({
         totalPrice: sales,
         jeonsePrice: jeonse,
         ratio,
+        dropRatio,
+        maxPrice: sum?.maxPrice || 0,
+        avg1MPrice: sum?.avg1MPrice || 0,
         volume3M: sum?.avg3MTxCount || 0,
         volume1M: sum?.avg1MTxCount || 0,
         turnoverRate: apt.householdCount && sum?.avg3MTxCount ? (sum.avg3MTxCount / apt.householdCount) * 100 : 0,
@@ -146,10 +156,23 @@ export default function TossApartmentExploreClient({
     } else if (currentCategory.startsWith('dong-')) {
       const dongName = currentCategory.replace('dong-', '');
       filtered = filtered.filter(a => a.apt.dong === dongName);
+    } else if (currentCategory === 'theme-over-12') {
+      filtered = filtered.filter(a => a.avg1MPrice >= 120000);
+    } else if (currentCategory === 'theme-biggest-drop') {
+      filtered = filtered.filter(a => a.maxPrice > 0 && a.avg1MPrice > 0 && a.maxPrice > a.avg1MPrice);
+    } else if (currentCategory === 'theme-high-jeonse') {
+      filtered = filtered.filter(a => a.ratio >= 0.6);
+    } else if (currentCategory === 'theme-most-traded') {
+      filtered = filtered.filter(a => a.volume3M > 0);
     }
 
     // Sort logic
     filtered.sort((a, b) => {
+      if (currentCategory === 'theme-over-12') return b.avg1MPrice - a.avg1MPrice;
+      if (currentCategory === 'theme-biggest-drop') return b.dropRatio - a.dropRatio;
+      if (currentCategory === 'theme-high-jeonse') return b.ratio - a.ratio;
+      if (currentCategory === 'theme-most-traded') return b.volume3M - a.volume3M;
+
       if (currentCategory === 'rank-price' || currentCategory.startsWith('dong-')) {
         return b.pyeongPrice - a.pyeongPrice;
       }
@@ -197,9 +220,11 @@ export default function TossApartmentExploreClient({
         />
       </div>
 
+
       {/* Main Content Area */}
-      <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-16 min-h-[calc(100vh-220px)] bg-surface items-stretch">
+      <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-4 md:pb-8 bg-surface items-stretch">
       <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
+
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1">
@@ -329,8 +354,8 @@ export default function TossApartmentExploreClient({
           </div>
 
           {/* Table Body */}
-          <div className="pb-20">
-              {sortedApts.map((item, index) => (
+          <div className="pb-4">
+              {sortedApts.slice(0, visibleCount).map((item, index) => (
                 <React.Fragment key={item.apt.name}>
                   {/* Desktop View (Hidden on Mobile) */}
                   <div 
@@ -463,6 +488,17 @@ export default function TossApartmentExploreClient({
                   </div>
                 </React.Fragment>
               ))}
+
+              {visibleCount < sortedApts.length && (
+                <div className="pt-4 pb-8 flex justify-center">
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + 10)}
+                    className="px-8 py-3 bg-surface border border-border text-primary text-[14px] font-bold rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:bg-body transition-all active:scale-95"
+                  >
+                    더보기 ({visibleCount} / {sortedApts.length})
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -491,7 +527,7 @@ export default function TossApartmentExploreClient({
             
             {/* Scrollable Content */}
             <div className="flex-1 px-5 py-2">
-              <div className="py-3">
+              <div className="py-3 mt-1">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
                 <div className="flex flex-col gap-1">
                   <MobileSidebarItem 
@@ -544,6 +580,17 @@ export default function TossApartmentExploreClient({
           </div>
         </div>
       )}
+      </div>
+
+      {/* Gap Investment Explorer Moved to Bottom */}
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-10 pb-16 shrink-0 bg-surface border-t border-border mt-4">
+        <GapInvestmentExplorer
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummaryData}
+          nameMapping={nameMapping}
+          publicRentalSet={publicRentalSet}
+          onSelectApt={handleSelectApt}
+        />
       </div>
     </div>
   );

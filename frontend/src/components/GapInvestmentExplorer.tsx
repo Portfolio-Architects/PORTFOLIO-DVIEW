@@ -21,19 +21,17 @@ export default function GapInvestmentExplorer({
   publicRentalSet,
   onSelectApt,
 }: GapInvestmentExplorerProps) {
-  const [maxGap, setMaxGap] = useState<number>(20000); // Default max gap: 2억원 (in 만원)
+  const [selectedIndex, setSelectedIndex] = useState<number>(1); // Default to '1.5억~2억'
   const [showAll, setShowAll] = useState<boolean>(false);
 
   // Available gap filter steps (in 만원)
   const GAP_STEPS = [
-    { label: '5천만', value: 5000 },
-    { label: '1억', value: 10000 },
-    { label: '1.5억', value: 15000 },
-    { label: '2억', value: 20000 },
-    { label: '2.5억', value: 25000 },
-    { label: '3억', value: 30000 },
-    { label: '4억', value: 40000 },
-    { label: '5억', value: 50000 },
+    { label: '1.5억 미만', min: 0, max: 15000 },
+    { label: '1.5억~2억', min: 15000, max: 20000 },
+    { label: '2억~2.5억', min: 20000, max: 25000 },
+    { label: '2.5억~3억', min: 25000, max: 30000 },
+    { label: '3억~4억', min: 30000, max: 40000 },
+    { label: '4억~6억', min: 40000, max: 60000 },
   ];
 
   // format price helper
@@ -49,6 +47,7 @@ export default function GapInvestmentExplorer({
   // Find all complexes and compute their gap info
   const gapList = useMemo(() => {
     const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
+    const selectedStep = GAP_STEPS[selectedIndex];
     
     const enriched = allApts.map(apt => {
       const rawKey = apt.txKey || apt.name;
@@ -70,12 +69,12 @@ export default function GapInvestmentExplorer({
       };
     });
 
-    // Filter complexes that have valid transactions, positive gap, and gap <= selected maxGap
+    // Filter complexes that have valid transactions, positive gap, and fall within the selected gap range
     // Sort by jeonse rate descending (highest rate first = best gap candidates)
     return enriched
-      .filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > 0 && item.gap <= maxGap)
+      .filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > selectedStep.min && item.gap <= selectedStep.max)
       .sort((a, b) => b.ratio - a.ratio);
-  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, maxGap]);
+  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, selectedIndex]);
 
   const visibleList = showAll ? gapList : gapList.slice(0, 6);
 
@@ -99,15 +98,15 @@ export default function GapInvestmentExplorer({
         
         {/* Step Selector */}
         <div className="flex bg-body/80 p-1 rounded-xl items-center gap-0.5 self-start sm:self-center overflow-x-auto no-scrollbar max-w-full">
-          {GAP_STEPS.map(step => (
+          {GAP_STEPS.map((step, idx) => (
             <button
-              key={step.value}
+              key={step.label}
               onClick={() => {
-                setMaxGap(step.value);
+                setSelectedIndex(idx);
                 setShowAll(false);
               }}
               className={`px-2.5 py-1 text-[11px] md:text-[12px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
-                maxGap === step.value
+                selectedIndex === idx
                   ? 'bg-surface text-toss-blue shadow-sm'
                   : 'text-tertiary hover:text-secondary'
               }`}

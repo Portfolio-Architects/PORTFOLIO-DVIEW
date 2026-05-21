@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge' | 'discover' | 'overview' | 'report';
-  onTabClick?: (tab: 'imjang' | 'lounge' | 'discover' | 'overview') => void;
+  activeTab: 'imjang' | 'lounge' | 'overview' | 'report';
+  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'report') => void;
 }
 
 export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
@@ -19,7 +19,6 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
           { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/#imjang' },
-          { id: 'discover' as const, label: '골라보기', icon: Compass, href: '/#discover' },
           { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/#lounge' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
@@ -30,7 +29,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
                <button
                  key={tab.id}
                  onClick={() => {
-                   onTabClick(tab.id as 'imjang' | 'lounge' | 'discover' | 'overview');
+                   onTabClick(tab.id as 'imjang' | 'lounge' | 'overview');
                    if (tab.id === 'overview') {
                      window.history.replaceState(null, '', window.location.pathname + window.location.search);
                    } else {
@@ -67,23 +66,6 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
             </Link>
           );
         })}
-      </div>
-
-      {/* 구분선 */}
-      <div className="w-[1px] h-8 bg-[#e5e8eb] mx-3 shrink-0 dark:bg-border" />
-
-      {/* 리포트 탭 (우측) */}
-      <div className="flex flex-col items-center justify-center shrink-0 pr-1">
-        <Link
-          href="/report"
-          className={`flex flex-col items-center justify-center w-12 h-[44px] rounded-[20px] transition-all duration-300 relative ${
-            activeTab === 'report' ? 'text-toss-blue bg-toss-blue/10' : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5'
-          }`}
-          aria-label="리포트"
-        >
-          <FileText size={20} strokeWidth={activeTab === 'report' ? 2.5 : 2} className="mb-0.5 relative z-10" />
-          <span className="text-[10px] font-bold tracking-wide relative z-10">리포트</span>
-        </Link>
       </div>
     </nav>
   );

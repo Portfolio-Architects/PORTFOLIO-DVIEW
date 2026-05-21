@@ -15,9 +15,6 @@ export function NativeAdPlaceholder({ location, onClick }: NativeAdPlaceholderPr
       <div className="absolute top-2 right-3 text-[10px] font-bold text-tertiary/60 uppercase tracking-widest">
         Sponsored
       </div>
-      <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-        <Sparkles className="w-6 h-6 text-toss-blue" />
-      </div>
       <h4 className="text-[15px] md:text-[16px] font-extrabold text-primary mb-1 group-hover:text-toss-blue transition-colors">
         D-VIEW 프리미엄 파트너 공간
       </h4>

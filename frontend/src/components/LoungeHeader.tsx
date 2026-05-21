@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, MessageSquare, Home, ShieldCheck, LayoutDashboard, Compass } from 'lucide-react';
+import { TrendingUp, MessageSquare, Home, ShieldCheck, LayoutDashboard, Compass, FileText } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useState, useEffect } from 'react';
@@ -74,26 +74,38 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               
               <Link
                 href="/#imjang"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'imjang'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                }`}
               >
-                <Home size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
               </Link>
               
               <Link
-                href="/#discover"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+                href="/#lounge"
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'lounge'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                }`}
               >
-                <Compass size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>골라보기</span>
+                <MessageSquare size={16} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>커뮤니티</span>
               </Link>
 
               <Link
-                href="/#lounge"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10`}
+                href="/#report"
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'report'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                }`}
               >
-                <MessageSquare size={16} className="text-primary group-hover:scale-110 transition-transform duration-200" />
-                <span>커뮤니티</span>
+                <FileText size={16} className={activeTab === 'report' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>리포트</span>
               </Link>
 
             </nav>

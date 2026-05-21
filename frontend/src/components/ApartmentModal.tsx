@@ -83,6 +83,7 @@ function FieldReportModal({
   onPurchaseComplete?: () => void;
   inline?: boolean;
   txSummary?: any;
+  hidePdfExport?: boolean;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();

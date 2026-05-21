@@ -2,7 +2,7 @@
 
 import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut, TrendingUp, ShieldAlert,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye, Search } from 'lucide-react';
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye, Search, ArrowLeft } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,10 +22,10 @@ import { useSettings } from '@/lib/contexts/SettingsContext';
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal'), { ssr: false });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
-const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDiscoveryClient'), { ssr: false });
 const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
+
 
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
@@ -110,7 +110,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge' | 'discover'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge'>('overview');
   const [isPending, startTransition] = useTransition();
 
   const fieldReportsMap = useMemo(() => {
@@ -131,8 +131,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     if (typeof window !== 'undefined') {
       if (window.location.hash === '#imjang') {
         setActiveTab('imjang');
-      } else if (window.location.hash === '#discover') {
-        setActiveTab('discover');
       } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) {
         setActiveTab('lounge');
       }
@@ -140,7 +138,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       const handleHashChange = () => {
         startTransition(() => {
           if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) setActiveTab('lounge');
-          else if (window.location.hash === '#discover') setActiveTab('discover');
           else if (window.location.hash === '#imjang') setActiveTab('imjang');
           else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');
         });
@@ -462,18 +459,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
               </button>
-              
-              <button
-                onClick={() => startTransition(() => { setActiveTab('discover'); window.location.hash = 'discover'; })}
-                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
-                  activeTab === 'discover'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                }`}
-              >
-                <Compass size={16} className={activeTab === 'discover' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>골라보기</span>
-              </button>
 
               <button
                 onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
@@ -491,15 +476,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
             {/* Right: Desktop Extra Nav & User Bar */}
             <div className="hidden md:flex items-center justify-end gap-4">
-              <nav className="flex shrink-0 items-center bg-body/80 p-1.5 rounded-[16px]" aria-label="추가 메뉴">
-                <Link
-                  href="/report"
-                  className="flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5 group"
-                >
-                  <FileText size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                  <span>리포트</span>
-                </Link>
-              </nav>
               <FloatingUserBar />
             </div>
             
@@ -596,44 +572,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           </section>
         )}
 
-        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
-        {mounted && (
-          <section className={`w-full ${activeTab === 'discover' ? 'block' : 'hidden'}`}>
-            <ApartmentDiscoveryClient
-              sheetApartments={sheetApartments}
-              fieldReports={fieldReports}
-              userFavorites={userFavorites}
-              nameMapping={nameMapping || {}}
-              publicRentalSet={publicRentalSet}
-              txSummaryData={txSummaryData}
-              favoriteCounts={favoriteCounts}
-              onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
-              onSelectReport={(report: any) => {
-                if (report.id && !report.id.startsWith('stub-')) {
-                  setSelectedReport(report);
-                  setMobileModalOpen(true);
-                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(report.apartmentName)}`);
-                } else {
-                  setSelectedReport({
-                    id: `temp-${report.apartmentName}`,
-                    apartmentName: report.apartmentName,
-                    title: `${report.apartmentName} 정보`,
-                    content: '아직 작성된 현장 임장기가 없습니다.',
-                    createdAt: Date.now(),
-                    dong: report.dong,
-                    author: '',
-                    authorName: '',
-                    viewCount: 0,
-                    likeCount: 0,
-                  } as any);
-                  setMobileModalOpen(true);
-                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(report.apartmentName)}`);
-                }
-              }}
-              typeMap={typeMap}
-            />
-          </section>
-        )}
+
         
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {resolvedReport && mobileModalOpen && (

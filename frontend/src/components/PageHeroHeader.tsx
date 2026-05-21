@@ -11,6 +11,7 @@ export interface PageHeroHeaderProps {
   rightContent?: React.ReactNode;
   rightSideContent?: React.ReactNode;
   compactTitle?: string;
+  bottomContent?: React.ReactNode;
 }
 
 export default function PageHeroHeader({
@@ -20,6 +21,7 @@ export default function PageHeroHeader({
   rightContent,
   rightSideContent,
   compactTitle,
+  bottomContent,
 }: PageHeroHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -92,6 +94,12 @@ export default function PageHeroHeader({
                 </div>
               </div>
             </div>
+
+            {bottomContent && (
+              <div className="mt-2 sm:mt-4">
+                {bottomContent}
+              </div>
+            )}
           </div>
 
           {/* Right Side Content (e.g. Ad Banner) */}

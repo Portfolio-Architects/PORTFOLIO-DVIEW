@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { href: '/admin', label: '아파트 대시보드', icon: LayoutDashboard, section: 'Reports' },
+    { href: '/admin/reports', label: '리포트', icon: FileText, section: 'Reports' },
     { href: '/admin/inquiries', label: '광고/제휴 문의 관리', icon: MessageSquare, section: 'Reports' },
     { href: '/admin/pending-photos', label: '사진 등록 관리', icon: Camera, section: 'Photos' },
   ];
