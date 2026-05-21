@@ -1,38 +1,32 @@
 'use client';
 
-import React from 'react';
-import { FileText, TrendingUp, BarChart3, ChevronRight, Lock, BellRing, Hexagon, LayoutDashboard, Home, Compass, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Hexagon, LayoutDashboard, Home, Compass, MessageSquare, Search, TrendingUp, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
+import { useDashboardData } from '@/lib/DashboardFacade';
 
 export default function ReportPage() {
-  const WEEKLY_REPORTS = [
-    {
-      id: 1,
-      title: '동탄역세권 대장주 시세 동향 및 분석',
-      date: '2026.05.15',
-      summary: '동탄역 롯데캐슬 등 시범단지 위주의 갭 투자 동향과 주간 매매가 상승 흐름을 분석합니다.',
-      category: '시장 동향',
-      isPremium: false,
-    },
-    {
-      id: 2,
-      title: '남동탄 학군지 (호수공원) 실거래가 분석',
-      date: '2026.05.08',
-      summary: '주요 학원가 형성에 따른 학군지 프리미엄 변화와 남동탄 대장단지들의 실거래가를 짚어봅니다.',
-      category: '학군/상권',
-      isPremium: true,
-    },
-    {
-      id: 3,
-      title: 'GTX-A 완전 개통이 미치는 파급 효과',
-      date: '2026.05.01',
-      summary: '전 구간 개통 이후 출퇴근 시간 단축이 아파트 가치에 미치는 실제 데이터를 분석한 특집 리포트입니다.',
-      category: '교통/호재',
-      isPremium: true,
-    }
-  ];
+  const { dongtanApartments, fieldReports } = useDashboardData();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Filter apartments that have field reports or are just top tier
+  // For now, let's display all apartments that have field reports, plus a few top ones if empty
+  const reportApts = Object.values(dongtanApartments)
+    .flat()
+    .filter(apt => {
+      // Show if it has a field report, or if it's one of the top ones (price > 12억)
+      const hasReport = fieldReports.some(r => r.apartmentName === apt.name);
+      return hasReport || apt.salePrice >= 120000; 
+    })
+    .filter(apt => apt.name.includes(searchQuery) || apt.dong.includes(searchQuery))
+    .sort((a, b) => b.salePrice - a.salePrice); // Sort by price descending
 
   return (
     <div className="min-h-screen bg-body text-primary pb-28 md:pb-12">
@@ -50,7 +44,6 @@ export default function ReportPage() {
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-2.5 gap-2 md:gap-0">
             
-            {/* Mobile: Top Bar placeholder to maintain justify-between balance if needed, but not strictly necessary as DashboardClient uses md:hidden */}
             <div className="md:hidden flex items-center justify-end w-full">
               <FloatingUserBar />
             </div>
@@ -107,88 +100,94 @@ export default function ReportPage() {
         </div>
       </header>
 
-      <main className="max-w-[1000px] mx-auto px-5 md:px-8 py-8 space-y-12">
-        {/* Banner Section */}
-        <section className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-lg">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <div className="inline-flex items-center gap-1.5 bg-toss-blue-light/20 px-3 py-1 rounded-full text-[12px] font-bold text-toss-blue mb-3">
-                <BellRing size={14} /> D-VIEW 리포트 알림
-              </div>
-              <h2 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight mb-2">
-                최신 부동산 트렌드를<br />가장 빠르게 받아보세요
-              </h2>
-              <p className="text-slate-300 text-sm font-medium">동탄 아파트 실거래 및 심층 분석 리포트 매주 금요일 발행</p>
+      <main className="max-w-[1200px] mx-auto px-5 md:px-8 py-8 md:py-10 space-y-10">
+        
+        {/* Main Title Section - matches DashboardClient context */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col items-start gap-2">
+            <h2 className="text-2xl md:text-3xl font-extrabold flex items-center gap-2 tracking-tight">
+              <Hexagon className="text-toss-blue fill-toss-blue/20" size={32} />
+              D-VIEW 아파트 리포트
+            </h2>
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 text-[12px] md:text-[14px] font-bold">
+              <span className="text-[#00d29d] border-l-2 border-[#00d29d] pl-2 hidden sm:inline">데이터 기반 동탄 아파트 가치 분석</span>
+              <span className="text-tertiary">단지별 평당가, 전세가율, 인프라 심층 리포트</span>
             </div>
-            <button className="bg-toss-blue hover:bg-[#2b72d6] text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all shrink-0">
-              구독하기
-            </button>
           </div>
-        </section>
+          
+          <div className="w-full md:w-[320px] relative shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
+            <input 
+              type="text" 
+              placeholder="단지명 또는 동 검색" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface border border-border rounded-xl pl-10 pr-4 py-3 text-[14px] font-bold focus:outline-none focus:ring-2 focus:ring-toss-blue/30 focus:border-toss-blue transition-all"
+            />
+          </div>
+        </div>
 
-        {/* Weekly Reports Section */}
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[20px] font-black flex items-center gap-2">
-              <TrendingUp className="text-toss-blue" size={20} />
-              주간 동탄 시장 리포트
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {WEEKLY_REPORTS.map((report) => (
-              <div key={report.id} className="group bg-surface border border-border rounded-2xl p-5 hover:border-toss-blue/30 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-bold text-toss-blue bg-toss-blue-light dark:bg-toss-blue/10 px-2.5 py-1 rounded-lg">
-                    {report.category}
-                  </span>
-                  {report.isPremium ? (
-                    <Lock size={14} className="text-tertiary group-hover:text-toss-blue transition-colors" />
-                  ) : (
-                    <span className="text-[11px] text-tertiary">{report.date}</span>
-                  )}
-                </div>
-                <h4 className="text-[16px] font-bold text-primary mb-2 line-clamp-2 leading-snug group-hover:text-toss-blue transition-colors">
-                  {report.title}
-                </h4>
-                <p className="text-[13px] text-secondary line-clamp-3 mb-5 flex-grow">
-                  {report.summary}
-                </p>
-                <Link href={report.id === 1 ? '/#apt=동탄역 롯데캐슬' : '#'} className="flex items-center justify-between mt-auto pt-4 border-t border-border w-full">
-                  <span className="text-[12px] font-bold text-primary">자세히 보기</span>
-                  <ChevronRight size={16} className="text-tertiary group-hover:translate-x-1 group-hover:text-toss-blue transition-all" />
+        {/* Reports Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+          {!mounted ? (
+            // Skeleton loader for SSR
+            Array(6).fill(0).map((_, i) => (
+              <div key={i} className="bg-surface border border-border rounded-2xl p-6 h-[220px] animate-pulse"></div>
+            ))
+          ) : reportApts.length === 0 ? (
+            <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-surface rounded-3xl border border-border border-dashed">
+              <Search className="text-tertiary mb-3 opacity-50" size={48} />
+              <h3 className="text-lg font-bold text-secondary mb-1">검색 결과가 없습니다</h3>
+              <p className="text-tertiary text-sm">다른 단지명이나 키워드로 검색해 보세요.</p>
+            </div>
+          ) : (
+            reportApts.map((apt) => {
+              const hasReport = fieldReports.some(r => r.apartmentName === apt.name);
+              
+              return (
+                <Link 
+                  key={apt.name} 
+                  href={`/#apt=${encodeURIComponent(apt.name)}`}
+                  className="group bg-surface border border-border rounded-2xl p-5 md:p-6 hover:border-toss-blue/50 hover:shadow-[0_12px_30px_rgba(49,130,246,0.1)] transition-all duration-300 flex flex-col h-full transform hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[11px] font-extrabold text-toss-blue bg-[#eff6ff] px-2.5 py-1 rounded-lg w-fit">
+                        {apt.dong}
+                      </span>
+                      <h3 className="text-[18px] md:text-[20px] font-black text-primary leading-tight group-hover:text-toss-blue transition-colors">
+                        {apt.name}
+                      </h3>
+                    </div>
+                    {hasReport && (
+                      <div className="shrink-0 bg-toss-blue-light/30 text-toss-blue text-[10px] font-extrabold px-2 py-1 rounded-md border border-toss-blue/20">
+                        임장기 포함
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-2 mt-auto">
+                    <div className="flex items-center gap-2 text-[13px] font-bold text-secondary">
+                      <TrendingUp size={16} className="text-[#00d29d]" />
+                      매매가: {Math.floor(apt.salePrice / 10000)}억 {(apt.salePrice % 10000).toLocaleString() !== '0' ? `${(apt.salePrice % 10000).toLocaleString()}` : ''} 
+                      <span className="text-tertiary text-[12px] font-medium ml-1">({apt.pyeongPrice.toLocaleString()}만/평)</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-4 border-t border-border">
+                      <span className="text-[13px] font-extrabold text-toss-blue flex items-center gap-1.5">
+                        <FileText size={16} /> 심층 분석 리포트 보기
+                      </span>
+                    </div>
+                  </div>
                 </Link>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Data Analysis Deep Dive */}
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[20px] font-black flex items-center gap-2">
-              <BarChart3 className="text-toss-green" size={20} />
-              심층 데이터 랩
-            </h3>
-          </div>
-          <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-8">
-            <div className="flex-1">
-              <h4 className="text-xl font-bold mb-3">단지별 평당가 & 전세가율 비교 분석기</h4>
-              <p className="text-secondary text-sm mb-5 leading-relaxed">
-                단순 실거래가를 넘어선 입지적 프리미엄 가치를 수치화하여 비교합니다. 연식, 학군, 교통 등 다양한 요소를 반영한 자체 스코어링 데이터를 확인하세요.
-              </p>
-              <button className="bg-body border border-border text-primary font-bold py-2.5 px-5 rounded-xl hover:bg-toss-blue-light dark:hover:bg-toss-blue/10 hover:text-toss-blue transition-all">
-                데이터 보러가기
-              </button>
-            </div>
-            <div className="w-full md:w-1/3 aspect-video bg-body rounded-xl border border-border flex items-center justify-center">
-              <BarChart3 size={40} className="text-tertiary/50" />
-            </div>
-          </div>
-        </section>
+              );
+            })
+          )}
+        </div>
+        
       </main>
 
       <MobileDock activeTab="report" />
     </div>
   );
 }
+
