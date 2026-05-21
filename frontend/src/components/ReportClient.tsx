@@ -58,6 +58,8 @@ export default function ReportClient() {
       {/* Standardized Hero Header */}
       <PageHeroHeader 
         title="리포트"
+        subtitleStrong="엔지니어링 리포트"
+        subtitleLight="포트폴리오 패치 노트"
         rightSideContent={
           engReportData ? (
             <div className="flex flex-col items-end gap-3">
