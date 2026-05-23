@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v4';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v4';
+const CACHE_NAME = 'dview-cache-v5';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v5';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -55,9 +55,23 @@ self.addEventListener('fetch', (event) => {
   }
 
 
-  // Default: Network First, Fallback to Cache
+  // Default: Network First, Fallback to Cache (and save to Dynamic Cache on success)
   event.respondWith(
-    fetch(req).catch(() => caches.match(req))
+    fetch(req)
+      .then((networkRes) => {
+        // Cache successful GET requests for same origin, excluding admin pages/APIs
+        if (
+          req.method === 'GET' && 
+          networkRes.status === 200 && 
+          url.origin === location.origin &&
+          !url.pathname.includes('/admin')
+        ) {
+          const clone = networkRes.clone();
+          caches.open(DYNAMIC_CACHE_NAME).then((cache) => cache.put(req, clone));
+        }
+        return networkRes;
+      })
+      .catch(() => caches.match(req))
   );
 });
 

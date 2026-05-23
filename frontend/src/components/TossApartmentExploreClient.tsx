@@ -307,7 +307,7 @@ export default function TossApartmentExploreClient({
 
       {/* Main Table Area */}
       <div className="flex-1 flex flex-col bg-surface min-w-0 md:pl-8 lg:pl-10">
-        <div className="px-5 py-3 md:px-0 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface md:sticky md:top-[60px] md:z-10">
+        <div className="px-0 py-3 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface md:sticky md:top-[60px] md:z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
@@ -434,7 +434,7 @@ export default function TossApartmentExploreClient({
                   {/* Mobile View (Hidden on Desktop) */}
                   <div 
                     onClick={() => handleSelectApt(item.apt.name)}
-                    className="flex md:hidden flex-row items-center justify-between px-5 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
+                    className="flex md:hidden flex-row items-center justify-between px-0 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
                   >
                     <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
                       <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
