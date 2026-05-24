@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles, Coins, Activity } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
 import HotComplexRanking from './HotComplexRanking';
-import GapInvestmentExplorer from './GapInvestmentExplorer';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
@@ -582,16 +581,6 @@ export default function TossApartmentExploreClient({
       )}
       </div>
 
-      {/* Gap Investment Explorer Moved to Bottom */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-10 pb-16 shrink-0 bg-surface border-t border-border mt-4">
-        <GapInvestmentExplorer
-          sheetApartments={sheetApartments}
-          txSummaryData={txSummaryData}
-          nameMapping={nameMapping}
-          publicRentalSet={publicRentalSet}
-          onSelectApt={handleSelectApt}
-        />
-      </div>
     </div>
   );
 }
