@@ -61,19 +61,14 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
-      # Step 3: Commit & Push if changes exist
-      - name: Commit and push changes
+      # Step 3: Create Pull Request if changes exist
+      - name: Create Pull Request
         if: github.event_name != 'push'
-        run: |
-          cd ..
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --staged --quiet; then
-            echo "✅ No changes to commit"
-          else
-            TODAY=$(date +%Y-%m-%d)
-            git commit -m "data: auto-sync transactions via github actions ($TODAY)"
-            git push
-            echo "🚀 Changes pushed — Vercel will auto-deploy"
-          fi
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "data: auto-sync transactions via github actions"
+          title: "data: auto-sync transactions"
+          body: "Auto-synced transaction data from Molit API."
+          branch: "data/sync-transactions"
+          base: "master"

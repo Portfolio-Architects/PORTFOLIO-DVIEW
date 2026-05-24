@@ -864,12 +864,12 @@ interface GroupedCategory {
           </>
         }
         subtitleLight={
-          <div className="flex flex-nowrap overflow-x-auto sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center gap-2 sm:gap-3 ml-0 sm:ml-1 mt-1 sm:mt-0 max-w-[calc(100vw-32px)] md:max-w-none pb-1 md:pb-0">
+          <div className="flex flex-nowrap overflow-x-auto overflow-y-hidden touch-pan-x sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center gap-2 sm:gap-3 ml-0 sm:ml-1 mt-1 sm:mt-0 max-w-[calc(100vw-32px)] md:max-w-none h-7 md:h-auto py-1 md:py-0">
             <span className="hidden sm:inline text-[#d1d6db] mr-0.5 shrink-0">—</span>
             <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
               <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">MAU</span>
               <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.mau) : '...'}</span>
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+              <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 최근 30일 동안의 월간 순 방문자 수
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
               </div>
@@ -878,7 +878,7 @@ interface GroupedCategory {
             <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
               <span className="bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-toss-blue font-bold tracking-tight">DAU</span>
               <span className="text-toss-blue font-extrabold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.dau) : '...'}</span>
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+              <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 오늘 하루 동안의 일간 순 방문자 수
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
               </div>
@@ -887,7 +887,7 @@ interface GroupedCategory {
             <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
               <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">VIEW</span>
               <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.totalViews) : '...'}</span>
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+              <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 누적 페이지 뷰 (조회수) 총합
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
               </div>
@@ -896,7 +896,7 @@ interface GroupedCategory {
             <div className="group relative flex items-center gap-1.5 shrink-0 pr-4 sm:pr-0 cursor-help">
               <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">AVG. TIME</span>
               <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? gaData.avgSessionDuration : '...'}</span>
-              <div className="absolute right-0 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
+              <div className="hidden sm:block absolute right-0 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
                 방문자 1인당 평균 체류 시간
                 <div className="absolute bottom-full right-6 border-4 border-transparent border-b-[#191f28]" />
               </div>
@@ -923,16 +923,16 @@ interface GroupedCategory {
           </div>
         }
       />
-      <div className="flex flex-col px-2 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
 
-        <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-0">
+        <div className="flex flex-col md:flex-row gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
             {/* Donut Chart Card */}
             <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-7 min-h-[350px]">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
-                  아파트 {chartMode === "price" ? "실거래가" : "평단가"} 분포도
+                  동탄 아파트 {chartMode === "price" ? "가격" : "평단가"} 현황
                 </h2>
                 {/* Toss Style Segmented Control */}
                 <div className="flex bg-body p-1 rounded-lg">
@@ -1296,7 +1296,7 @@ interface GroupedCategory {
         </div>
 
         {/* Detailed Real Estate Portfolio Section */}
-        <div className="mt-12 mb-6 flex items-center justify-between px-3 sm:px-6 md:px-0">
+        <div className="mt-12 mb-6 flex items-center justify-between px-0">
           <div className="flex items-center gap-2">
             <div className="w-[3px] h-[16px] bg-[#00d29d] rounded-full" />
             <h2 className="text-[22px] font-bold text-primary">
@@ -1327,7 +1327,7 @@ interface GroupedCategory {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-10 px-3 sm:px-6 md:px-0 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-10 px-0 items-start">
           {accordionData.map((group) => {
             const isExpanded = expandedGroups[group.title];
 
@@ -1348,7 +1348,7 @@ interface GroupedCategory {
               >
                 {/* Group Header */}
                 <div
-                  className={`p-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
+                  className={`px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
                   onClick={() => toggleGroup(group.title)}
                 >
                   <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">

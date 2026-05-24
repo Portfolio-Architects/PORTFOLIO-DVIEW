@@ -43,10 +43,10 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
       <PageHeroHeader 
         title="D-VIEW 라운지"
         subtitleStrong="동탄 지역 부동산 커뮤니티"
-        subtitleLight="현장 임장기, 부동산 뉴스, 우리 동네 이야기를 자유롭게 나누세요"
+        subtitleLight="현장 임장기, 부동산 뉴스, 우리 동네 이야기"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-16">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16">
       {/* LEFT SIDEBAR: Categories */}
       <aside className="md:col-span-3 lg:col-span-3 hidden md:block">
         <div className="sticky top-[100px]">

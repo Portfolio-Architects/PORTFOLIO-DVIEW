@@ -88,7 +88,7 @@ export default function GapInvestmentExplorer({
           </div>
           <div>
             <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
-              소액 갭투자 탐색기
+              갭투자 탐색기
             </h3>
             <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
               실거래가 기준 투자금별 동탄 아파트 매칭
@@ -97,7 +97,7 @@ export default function GapInvestmentExplorer({
         </div>
         
         {/* Step Selector */}
-        <div className="flex bg-body/80 p-1 rounded-xl items-center gap-0.5 self-start sm:self-center overflow-x-auto no-scrollbar max-w-full">
+        <div className="flex bg-body p-1 rounded-xl items-center gap-0.5 self-start sm:self-center overflow-x-auto no-scrollbar max-w-full shadow-inner border border-border/10">
           {GAP_STEPS.map((step, idx) => (
             <button
               key={step.label}
@@ -105,7 +105,7 @@ export default function GapInvestmentExplorer({
                 setSelectedIndex(idx);
                 setShowAll(false);
               }}
-              className={`px-2.5 py-1 text-[11px] md:text-[12px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
+              className={`px-3.5 py-1.5 text-[12px] sm:text-[13px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
                 selectedIndex === idx
                   ? 'bg-surface text-toss-blue shadow-sm'
                   : 'text-tertiary hover:text-secondary'
@@ -118,7 +118,7 @@ export default function GapInvestmentExplorer({
       </div>
 
       {/* Info Warning */}
-      <div className="flex items-start gap-2 bg-body p-3.5 rounded-2xl mb-6 text-[13px] text-secondary font-medium">
+      <div className="flex items-start gap-2.5 bg-body/60 dark:bg-slate-900/40 p-4 rounded-2xl mb-6 text-[12px] sm:text-[13px] text-secondary border border-border/30">
         <HelpCircle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
         <p className="leading-relaxed break-keep">
           최근 3개월 실거래가(매매 및 전세) 평균을 기초로 계산한 투자금액(갭) 정보입니다. 직거래나 비정상 거래는 제외될 수 있으며 실제 매물 가격과는 차이가 있을 수 있습니다.
@@ -135,16 +135,16 @@ export default function GapInvestmentExplorer({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleList.map(item => {
+            {visibleList.map((item, idx) => {
               const jeonseRatePercent = Math.round(item.ratio * 100);
               return (
                 <div
                   key={item.apt.name}
                   onClick={() => onSelectApt(item.apt.name)}
-                  className="flex flex-col bg-body/30 hover:bg-body border border-border/40 hover:border-border rounded-2xl p-4 cursor-pointer transition-all duration-300 group"
+                  className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#3182f6]/40 hover:-translate-y-1 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
                 >
-                  <div className="flex justify-between items-start gap-2 mb-3">
-                    <div className="flex flex-col min-w-0">
+                  <div className="flex justify-between items-start gap-2 mb-4">
+                    <div className="flex flex-col min-w-0 pr-1">
                       <span className="text-[16px] md:text-[18px] font-extrabold text-primary truncate group-hover:text-toss-blue transition-colors">
                         {item.apt.name}
                       </span>
@@ -152,43 +152,50 @@ export default function GapInvestmentExplorer({
                         {item.apt.dong} · {item.apt.householdCount || '-'}세대
                       </span>
                     </div>
-                    {jeonseRatePercent >= 70 && (
-                      <span className="px-2 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-black rounded-md shrink-0">
-                        저평가 단지
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between items-center bg-surface/50 border border-border/20 rounded-xl p-3 mb-3">
-                    <div className="flex flex-col items-center flex-1">
-                      <span className="text-[11px] font-bold text-tertiary mb-0.5">매매 평균</span>
-                      <span className="text-[16px] md:text-[18px] font-bold text-primary">{formatPrice(item.sales)}</span>
-                    </div>
-                    <div className="w-[1px] h-6 bg-border/40" />
-                    <div className="flex flex-col items-center flex-1">
-                      <span className="text-[11px] font-bold text-tertiary mb-0.5">전세 평균</span>
-                      <span className="text-[16px] md:text-[18px] font-bold text-primary">{formatPrice(item.jeonse)}</span>
+                    <div className="flex flex-col gap-1 items-end shrink-0">
+                      {jeonseRatePercent >= 70 && (
+                        <span className="px-2 py-0.5 bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#00b386]/20">
+                          저평가 단지
+                        </span>
+                      )}
+                      {idx === 0 && (
+                        <span className="px-2 py-0.5 bg-[#e8f3ff] dark:bg-[#3182f6]/10 text-[#3182f6] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#3182f6]/20">
+                          최선호 단지
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center mt-auto">
+                  {/* Highlight box for Required Budget & Jeonse Rate */}
+                  <div className="flex justify-between items-center bg-[#f2f8ff] dark:bg-[#1a2b4c]/30 rounded-xl p-3.5 border border-[#3182f6]/10 mb-4">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-tertiary">필요 투자금 (갭)</span>
-                      <span className="text-[17px] md:text-[19px] font-black text-toss-blue tracking-tight">
+                      <span className="text-[11px] font-bold text-[#3182f6]/80 dark:text-[#3182f6]">필요 투자금 (갭)</span>
+                      <span className="text-[18px] md:text-[20px] font-black text-[#3182f6] tracking-tight">
                         {formatPrice(item.gap)}
                       </span>
                     </div>
                     
-                    {/* Jeonse Rate horizontal visual bar */}
                     <div className="flex flex-col items-end">
-                      <span className="text-[11px] md:text-[12px] font-bold text-tertiary">전세율 {jeonseRatePercent}%</span>
-                      <div className="w-16 h-1.5 bg-border/50 rounded-full mt-1.5 overflow-hidden">
+                      <span className="text-[11px] md:text-[12px] font-bold text-[#3182f6]/80 dark:text-[#3182f6]">전세율 {jeonseRatePercent}%</span>
+                      <div className="w-16 h-1.5 bg-border/50 dark:bg-[#3182f6]/10 rounded-full mt-1.5 overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-blue-400 to-toss-blue rounded-full" 
+                          className="h-full bg-gradient-to-r from-blue-400 to-[#3182f6] rounded-full" 
                           style={{ width: `${Math.min(jeonseRatePercent, 100)}%` }}
                         />
                       </div>
                     </div>
+                  </div>
+
+                  {/* Horizontal compare list for sales & rent averages */}
+                  <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary font-medium mt-auto border-t border-border/20 pt-3 px-0.5">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
+                      매매 평균 <strong className="text-primary font-bold">{formatPrice(item.sales)}</strong>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
+                      전세 평균 <strong className="text-primary font-bold">{formatPrice(item.jeonse)}</strong>
+                    </span>
                   </div>
                 </div>
               );
