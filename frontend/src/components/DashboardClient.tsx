@@ -27,6 +27,7 @@ const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardCl
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer'), { ssr: false });
+const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration'), { ssr: false });
 
 
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
@@ -474,7 +475,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 }`}
               >
                 <Coins size={16} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>갭투자 탐색</span>
+                <span>큐레이션</span>
               </button>
 
               <button
@@ -585,11 +586,40 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         {mounted && (
           <section className={`w-full bg-surface ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
             <PageHeroHeader 
-              title="D-VIEW 갭투자 탐색"
-              subtitleStrong="실거래가 기준 투자금별 아파트 매칭"
-              subtitleLight="관심 있는 예산 한도 내에서 최적의 갭투자 단지를 찾아보세요"
+              title="D-VIEW 단지 큐레이션"
+              subtitleStrong="입지 및 가치 기준 테마별 단지 추천"
+              subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
             />
-            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16">
+            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
+              <ChopoomaCuration
+                sheetApartments={sheetApartments}
+                txSummaryData={txSummary}
+                nameMapping={nameMapping || {}}
+                publicRentalSet={publicRentalSet}
+                locationScores={locationScores}
+                onSelectApt={(name: string) => {
+                  userHasSelected.current = true;
+                  const report = fieldReportsMap.get(name);
+                  if (report) {
+                    setSelectedReport(report);
+                  } else {
+                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                    setSelectedReport({
+                      id: `stub-${name.replace(/\s+/g, '')}`,
+                      apartmentName: name,
+                      dong: targetApt.dong,
+                      author: '',
+                      likes: 0,
+                      commentCount: 0,
+                      createdAt: null,
+                      metrics: { ...targetApt } as any,
+                    });
+                  }
+                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                  setMobileModalOpen(true);
+                }}
+              />
+
               <GapInvestmentExplorer
                 sheetApartments={sheetApartments}
                 txSummaryData={txSummary}

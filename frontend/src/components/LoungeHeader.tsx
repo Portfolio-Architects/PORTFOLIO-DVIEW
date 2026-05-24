@@ -93,7 +93,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
                 }`}
               >
                 <Coins size={16} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>갭투자 탐색</span>
+                <span>큐레이션</span>
               </Link>
               
               <Link

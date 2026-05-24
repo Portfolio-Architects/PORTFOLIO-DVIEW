@@ -91,10 +91,10 @@ export default function GapInvestmentExplorer({
           </div>
           <div>
             <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
-              갭투자 탐색기
+              갭투자 큐레이션
             </h3>
             <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
-              실거래가 기준 투자금별 동탄 아파트 매칭
+              실거래가 기준 투자금별 동탄 아파트 큐레이션
             </p>
           </div>
         </div>
