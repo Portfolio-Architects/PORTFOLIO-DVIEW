@@ -97,8 +97,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
 
 export default function AdvancedValuationMetrics({ report, transactions, txSummaryData = {} }: Props) {
   const [isRatioModalOpen, setIsRatioModalOpen] = useState(false);
-  const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
-  const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isScoreAccordionOpen, setIsScoreAccordionOpen] = useState(false);
   const [macroConfig, setMacroConfig] = useState(MACRO_CONFIG.macroEnvironment);
 
@@ -415,7 +414,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex flex-col gap-0.5">
                       <span className="text-[13px] text-tertiary font-medium">장기 집값 상승 기대치 (성장률 g)</span>
                       <button 
-                        onClick={() => setIsScoreModalOpen(true)}
+                        onClick={() => setIsDetailModalOpen(true)}
                         className="text-[11px] text-tertiary flex items-center gap-1 hover:text-toss-blue transition-colors cursor-pointer text-left"
                       >
                         물가(2.0%) ± 단지 가치평가(Max 2.0%p)
@@ -497,7 +496,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
               {/* Status Alert / Brief formula explanation */}
               <button 
-                onClick={() => setIsFormulaModalOpen(true)}
+                onClick={() => setIsDetailModalOpen(true)}
                 className="mt-auto w-full p-4 rounded-xl border flex items-center justify-between bg-body hover:bg-body border-border transition-all active:scale-[0.99] group"
               >
                 <div className="flex items-center gap-3">
@@ -752,144 +751,146 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
           </div>
         </div>
       )}
-      {/* Formula Modal */}
-      {isFormulaModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 sm:p-0" onClick={() => setIsFormulaModalOpen(false)}>
-          <div 
-            className="relative w-full sm:w-[500px] bg-surface rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[85vh] hide-scrollbar"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-toss-blue/10 flex items-center justify-center">
-                  <Info size={18} className="text-toss-blue" />
-                </div>
-                <h3 className="text-[18px] font-extrabold text-primary tracking-tight">어떻게 계산했나요?</h3>
-              </div>
-              <button onClick={() => setIsFormulaModalOpen(false)} className="p-2 hover:bg-body rounded-full transition-colors active:scale-95">
-                <X size={20} className="text-tertiary" />
-              </button>
-            </div>
-            
-            <div className="bg-body rounded-2xl p-4 border border-border mb-6">
-              <div className="text-[14px] font-extrabold text-primary mb-2 flex items-center gap-1.5">
-                적정 집값 = 1년 예상 월세 ÷ 은행 예금이자
-              </div>
-              <p className="text-[13px] text-secondary leading-relaxed font-medium">
-                이 아파트를 매수하는 대신 그 돈을 은행에 넣었을 때 받을 수 있는 이자와, 이 아파트에서 나오는 월세 수익을 비교하여 거꾸로 적정 가격을 계산한 결과입니다.
-              </p>
-            </div>
-            
-            <div className="flex flex-col gap-6 px-1">
-              <div className="flex gap-4 items-start">
-                <div className="w-6 h-6 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[12px] font-black shrink-0 mt-0.5 shadow-sm">1</div>
-                <div className="flex flex-col gap-1.5 pt-0.5">
-                  <span className="text-[14px] font-extrabold text-primary tracking-tight">목표수익 기준 설정</span>
-                  <span className="text-[13px] text-secondary font-medium leading-relaxed">
-                    은행 금리({macroConfig.riskFreeRate.toFixed(2)}%)만큼은 기본으로 깔고, 부동산 투자의 위험성(1.50%)을 더해 <strong>"최소 이 정도 수익은 나야 해"</strong>라는 기준을 세웁니다.
-                  </span>
-                  <div className="text-[12px] text-tertiary bg-body p-3 rounded-lg border border-border mt-1 leading-relaxed">
-                    ※ 현재 주담대 금리({macroConfig.fundingCost.toFixed(2)}%)가 높아 투자 매력도가 떨어지는 만큼, 기준 수익률을 더 높게 잡았습니다.
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 items-start">
-                <div className="w-6 h-6 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[12px] font-black shrink-0 mt-0.5 shadow-sm">2</div>
-                <div className="flex flex-col gap-1.5 pt-0.5">
-                  <span className="text-[14px] font-extrabold text-primary tracking-tight">예상 월세 도출</span>
-                  <span className="text-[13px] text-secondary font-medium leading-relaxed">
-                    최근 전세금을 바탕으로, <strong>"만약 이 집을 전부 월세로 돌린다면 1년에 얼마를 받을 수 있을까?"</strong>를 법정 기준({(dynamicConversionRate * 100).toFixed(1)}%)으로 계산합니다.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-4 items-start">
-                <div className="w-6 h-6 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[12px] font-black shrink-0 mt-0.5 shadow-sm">3</div>
-                <div className="flex flex-col gap-1.5 pt-0.5">
-                  <span className="text-[14px] font-extrabold text-primary tracking-tight">적정 집값 역산</span>
-                  <span className="text-[13px] text-secondary font-medium leading-relaxed">
-                    매년 꾸준한 월세가 들어오고 집값도 단지 가치에 비례해 매년 오를({dcf.growthRate.toFixed(2)}%) 것이라 가정했을 때, 1단계에서 세운 목표 수익률을 맞추려면 <strong>"지금 당장 얼마에 사야 할까?"</strong>를 계산한 값입니다.
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <button 
-              onClick={() => setIsFormulaModalOpen(false)}
-              className="w-full mt-8 py-4 rounded-2xl font-extrabold text-[15px] bg-primary text-surface hover:bg-[#191f28] active:scale-[0.98] transition-all"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Score Modal */}
-      {isScoreModalOpen && (
+      {/* Detail Modal (Formula + Score Details Unified) */}
+      {isDetailModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm"
-          onClick={() => setIsScoreModalOpen(false)}
+          className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200" 
+          onClick={() => setIsDetailModalOpen(false)}
         >
           <div 
-            className="bg-surface w-full sm:w-[560px] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
+            className="relative w-full sm:w-[580px] bg-surface rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[90vh] hide-scrollbar flex flex-col gap-6 animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-body pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#f59e0b]/10 flex items-center justify-center">
-                  <Award size={18} className="text-[#f59e0b]" />
+                <div className="w-8 h-8 rounded-full bg-toss-blue/10 flex items-center justify-center">
+                  <Award size={18} className="text-toss-blue" />
                 </div>
-                <h3 className="text-[18px] font-extrabold text-primary tracking-tight">단지 가치평가 상세</h3>
+                <h3 className="text-[18px] font-extrabold text-primary tracking-tight">적정가 계산법 & 가치평가 상세</h3>
               </div>
-              <button onClick={() => setIsScoreModalOpen(false)} className="p-2 hover:bg-body rounded-full transition-colors active:scale-95">
+              <button onClick={() => setIsDetailModalOpen(false)} className="p-2 hover:bg-body rounded-full transition-colors active:scale-95">
                 <X size={20} className="text-tertiary" />
               </button>
             </div>
-            
-            <div className="bg-body rounded-2xl p-5 border border-border mb-6">
-              <div className="flex items-end gap-2 mb-2">
-                <span className="text-[32px] font-extrabold text-primary leading-none">{utilityScoreResult.total}</span>
-                <span className="text-[14px] text-tertiary font-bold mb-1">/ {utilityScoreResult.maxTotal}점</span>
+
+            {/* Part 1: DCF Formula */}
+            <div className="flex flex-col gap-4">
+              <h4 className="text-[14px] font-extrabold text-secondary flex items-center gap-1.5">
+                <Info size={16} className="text-toss-blue" />
+                1. 적정 집값 계산법 (수익환원법)
+              </h4>
+              
+              <div className="bg-body rounded-2xl p-4 border border-border">
+                <div className="text-[14px] font-extrabold text-primary mb-2">
+                  적정 집값 = 1년 예상 월세 ÷ 은행 예금이자
+                </div>
+                <p className="text-[13px] text-secondary leading-relaxed font-medium">
+                  이 아파트를 매수하는 대신 그 돈을 은행에 넣었을 때 받을 수 있는 이자와, 이 아파트에서 발생하는 임대 가치(전세 기반 가상 월세)를 비교해 적정 가격을 계산합니다.
+                </p>
               </div>
-              <p className="text-[13px] text-secondary leading-relaxed font-medium">
-                {utilityScoreResult.total >= 130 ? '뛰어난 상품성과 인프라를 갖춰 평균(2.0%)보다 높은 성장률 프리미엄이 부여됩니다.' : 
-                 utilityScoreResult.total >= 100 ? '표준적인 상품성과 인프라를 갖춰 물가상승률(2.0%) 수준의 성장률이 적용됩니다.' : 
-                 '단지 스펙 및 인프라 한계로 인해 평균보다 다소 낮은 성장률이 적용됩니다.'}
-              </p>
-            </div>
-            
-            <div className="flex flex-col gap-5 px-1">
-              {utilityScoreResult.logs.map((log, i) => {
-                const Icon = log.icon;
-                return (
-                  <div key={i} className="flex gap-4 items-start">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${log.isInfra ? 'bg-toss-blue/10 text-toss-blue' : 'bg-[#f59e0b]/10 text-[#f59e0b]'}`}>
-                      <Icon size={20} />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full pt-0.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[14px] font-bold text-primary">{log.category}</span>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-[14px] font-extrabold text-secondary">{log.score}</span>
-                          <span className="text-[11px] text-tertiary font-medium">/ {log.max}점</span>
-                        </div>
-                      </div>
-                      <span className="text-[13px] text-secondary font-medium">{log.label}</span>
-                      {log.data && (
-                        <span className="text-[12px] text-toss-blue font-semibold mt-1 px-2.5 py-1 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit">
-                          실데이터: {log.data}
-                        </span>
-                      )}
-                    </div>
+
+              {/* 3 Steps */}
+              <div className="flex flex-col gap-4 bg-body/30 rounded-2xl p-4 border border-border/60">
+                <div className="flex gap-3 items-start">
+                  <div className="w-5 h-5 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">1</div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[13px] font-extrabold text-primary">목표수익 기준 설정 (할인율 r: {dcf.discountRate.toFixed(2)}%)</span>
+                    <span className="text-[12px] text-secondary font-medium leading-relaxed">
+                      은행 예금 금리({macroConfig.riskFreeRate.toFixed(2)}%)에 부동산 투자 위험 리스크(1.50%) 및 조달 페널티를 더해 최소한의 이율 기준을 수립합니다.
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+
+                <div className="flex gap-3 items-start">
+                  <div className="w-5 h-5 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">2</div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[13px] font-extrabold text-primary">예상 월세 도출 (전환율: {(dynamicConversionRate * 100).toFixed(1)}%)</span>
+                    <span className="text-[12px] text-secondary font-medium leading-relaxed">
+                      최근 3개월 평균 전세가({formatPrice(avg3MRent)})에 입지 특성이 반영된 전월세 전환율을 적용하여 1년간 얻을 수 있는 가치로 환산합니다.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 items-start">
+                  <div className="w-5 h-5 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">3</div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[13px] font-extrabold text-primary">적정가 산정 및 성장률 반영 (장기 성장률 g: {dcf.growthRate.toFixed(2)}%)</span>
+                    <span className="text-[12px] text-secondary font-medium leading-relaxed">
+                      물가상승률(2.0%)에 아래 **단지 가치평가(Utility Score)** 점수에 따른 가산율을 조합하여 매년 집값의 장기 가치 성장 잠재력을 산정합니다.
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            
+
+            <hr className="border-border" />
+
+            {/* Part 2: Utility Score Details */}
+            <div className="flex flex-col gap-4">
+              <h4 className="text-[14px] font-extrabold text-secondary flex items-center gap-1.5">
+                <Award size={16} className="text-[#f59e0b]" />
+                2. 단지 상품성 & 인프라 가치평가 (Utility Score)
+              </h4>
+              
+              {/* Score Summary Banner */}
+              <div className="bg-body rounded-2xl p-4 border border-border flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1 shrink-0">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[28px] font-black text-toss-blue leading-none">{utilityScoreResult.total}</span>
+                    <span className="text-[12px] text-tertiary font-bold">/ {utilityScoreResult.maxTotal}점</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold w-fit shadow-sm ${
+                    utilityScoreResult.total >= 130 
+                      ? 'bg-[#e0fbf4] text-[#00b386]' 
+                      : utilityScoreResult.total >= 100 
+                        ? 'bg-[#e8f3ff] text-toss-blue' 
+                        : 'bg-orange-50 text-orange-500'
+                  }`}>
+                    {utilityScoreResult.total >= 130 ? '최우수 단지' : utilityScoreResult.total >= 100 ? '우수 단지' : '표준 단지'}
+                  </span>
+                </div>
+                <p className="text-[12.5px] text-secondary leading-relaxed font-semibold">
+                  {utilityScoreResult.total >= 130 ? '동탄 내 최상위권의 상품성과 초역세권 입지로 장기 성장률 프리미엄이 반영됩니다.' : 
+                   utilityScoreResult.total >= 100 ? '준수한 스펙과 생활 인프라로 시장 평균 수준의 성장률이 안정적으로 적용됩니다.' : 
+                   '단지 규모나 연식 등의 제한으로 평균보다 다소 보수적인 성장률이 적용됩니다.'}
+                </p>
+              </div>
+
+              {/* 11 Metric Items */}
+              <div className="flex flex-col gap-3.5 max-h-[35vh] overflow-y-auto pr-1">
+                {utilityScoreResult.logs.map((log, i) => {
+                  const Icon = log.icon;
+                  return (
+                    <div key={i} className="flex gap-3.5 items-start p-3 bg-body/20 hover:bg-body/40 rounded-xl border border-border/40 transition-colors">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${log.isInfra ? 'bg-toss-blue/10 text-toss-blue' : 'bg-[#f59e0b]/10 text-[#f59e0b]'}`}>
+                        <Icon size={16} />
+                      </div>
+                      <div className="flex flex-col gap-1 w-full">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[13px] font-bold text-primary">{log.category}</span>
+                          <div className="flex items-baseline gap-0.5">
+                            <span className="text-[13px] font-extrabold text-secondary">{log.score}</span>
+                            <span className="text-[10px] text-tertiary font-medium">/ {log.max}점</span>
+                          </div>
+                        </div>
+                        <span className="text-[12px] text-secondary font-medium pl-0.5">{log.label}</span>
+                        {log.data && (
+                          <span className="text-[11px] text-toss-blue font-semibold mt-1 px-2.5 py-0.5 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit ml-0.5">
+                            실데이터: {log.data}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Bottom Button */}
             <button 
-              onClick={() => setIsScoreModalOpen(false)}
-              className="w-full mt-8 py-4 rounded-2xl font-extrabold text-[15px] bg-primary text-surface hover:bg-[#191f28] active:scale-[0.98] transition-all"
+              onClick={() => setIsDetailModalOpen(false)}
+              className="w-full mt-2 py-4 rounded-2xl font-extrabold text-[15px] bg-primary text-surface hover:bg-[#191f28] active:scale-[0.98] transition-all"
             >
               확인
             </button>
