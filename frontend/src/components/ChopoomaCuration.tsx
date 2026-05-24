@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { GraduationCap, MapPin, HelpCircle, ArrowRight, BookOpen } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
-import { findTxKey } from '@/lib/utils/apartmentMapping';
+import { findTxKey, isSameApartment } from '@/lib/utils/apartmentMapping';
 
 interface ChopoomaCurationProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -50,7 +50,8 @@ export default function ChopoomaCuration({
     const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
     
     const enriched = allApts.map(apt => {
-      const scoreData = locationScores[apt.name];
+      const scoreKey = Object.keys(locationScores).find(k => isSameApartment(k, apt.name, nameMapping)) || apt.name;
+      const scoreData = locationScores[scoreKey];
       const dist = scoreData?.distanceToElementary;
       
       const rawKey = apt.txKey || apt.name;
@@ -109,8 +110,8 @@ export default function ChopoomaCuration({
         </div>
         
         {/* Distance Selector & Match Count */}
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
-          <div className="flex bg-body p-1 rounded-xl items-center gap-0.5 overflow-x-auto no-scrollbar max-w-full shadow-inner border border-border/10">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex bg-body p-1 rounded-xl items-center gap-0.5 overflow-x-auto no-scrollbar w-full sm:w-auto shadow-inner border border-border/10 max-w-full">
             {DISTANCE_STEPS.map((step, idx) => (
               <button
                 key={step.label}
@@ -118,7 +119,7 @@ export default function ChopoomaCuration({
                   setSelectedStepIndex(idx);
                   setShowAll(false);
                 }}
-                className={`px-3 py-1.5 text-[11px] sm:text-[12px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
+                className={`flex-1 sm:flex-none px-2.5 py-1.5 text-[11px] sm:text-[12px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
                   selectedStepIndex === idx
                     ? 'bg-surface text-toss-green shadow-sm'
                     : 'text-tertiary hover:text-secondary'
@@ -129,7 +130,7 @@ export default function ChopoomaCuration({
             ))}
           </div>
 
-          <div className="bg-[#e0fbf4] text-[#00b386] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#00b386]/10 shrink-0">
+          <div className="bg-[#e0fbf4] text-[#00b386] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#00b386]/10 shrink-0 self-start sm:self-auto">
             총 {chopoomaList.length}개 매칭
           </div>
         </div>

@@ -79,29 +79,44 @@ export function isSameApartment(reportName: string, txName: string, manualMappin
  * 
  * ⚠️ 긴 접두사가 먼저 오도록 정렬 — 가장 구체적인 것부터 매칭
  */
+// 아파트명에서 지역, 역명, 법정동, 마을명 접두사를 제거하기 위한 목록 (가장 긴 패턴부터 내림차순 정렬)
 const LOCATION_PREFIXES = [
-  // 마을명+동탄 조합 (앱에서 "숲속마을 동탄 X" 형태로 사용)
-  '숲속마을동탄', '푸른마을동탄', '나루마을동탄',
-  // 시범+마을 조합
-  '동탄역시범', '동탄시범다은마을', '동탄시범한빛마을', '동탄시범나루마을',
-  '시범다은마을', '시범한빛마을', '시범나루마을', '시범',
-  // 마을명 접두사 (앱에서 "예당마을 X", "솔빛마을 X" 형태로 사용)
-  '반탄솔빛마을', '솔빛마을', '예당마을', '새강마을',
-  // 동탄+위치 조합
-  '동탄2신도시', '동탄신도시', '동탄숲속마을', '동탄푸른마을', '동탄나루마을',
-  '동탄호수공원역', '동탄호수공원', '동탄호수', '동탄역',
-  // 기타
-  '화성동탄2', '능동역', '호수공원역',
-  '동탄2', '동탄',
+  // 9글자
+  '동탄시범다은마을', '동탄시범한빛마을', '동탄시범나루마을',
+  // 8글자
+  '동탄호수공원역',
+  // 7글자
+  '동탄호수공원', '동탄2신도시', '동탄숲속마을', '동탄푸른마을', '동탄나루마을', '반탄솔빛마을',
+  // 6글자
+  '숲속마을동탄', '푸른마을동탄', '나루마을동탄', '시범다은마을', '시범한빛마을', '시범나루마을', '동탄신도시',
+  // 5글자
+  '화성동탄2', '호수공원역', '솔빛마을', '예당마을', '새강마을', '동탄역시범', '한빛마을', '다은마을', '나루마을', '숲속마을', '푸른마을',
+  // 4글자
+  '동탄호수', '동탄역', '능동역', '반송동', '석우동', '청계동', '영천동', '오산동', '산척동', '장지동', '방교동', '금곡동',
+  // 3글자
+  '동탄2', '능동', '신동', '목동', '송동', '시범', '한빛', '다은', '나루', '숲속', '푸른', '예당', '솔빛', '새강',
+  // 2글자
+  '동탄',
 ];
 
+/**
+ * 아파트명 접두사(동명, 마을명, 지역명 등)를 반복적으로 제거하여 순수 단지명만 추출합니다.
+ * (예: "반송동시범한빛마을KCC스위첸" -> "반송동" 제거 -> "시범한빛마을KCC스위첸" -> "시범한빛마을" 제거 -> "KCC스위첸")
+ */
 function stripLocationPrefix(normalized: string): string {
-  for (const prefix of LOCATION_PREFIXES) {
-    if (normalized.startsWith(prefix) && normalized.length > prefix.length) {
-      return normalized.slice(prefix.length);
+  let current = normalized;
+  let replaced = true;
+  while (replaced) {
+    replaced = false;
+    for (const prefix of LOCATION_PREFIXES) {
+      if (current.startsWith(prefix) && current.length > prefix.length) {
+        current = current.slice(prefix.length);
+        replaced = true;
+        break; // 루프를 다시 처음부터 돌며 또 다른 접두사가 더 있는지 체크
+      }
     }
   }
-  return normalized;
+  return current;
 }
 
 /**

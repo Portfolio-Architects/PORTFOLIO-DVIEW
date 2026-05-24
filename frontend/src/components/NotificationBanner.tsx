@@ -9,16 +9,46 @@ export default function NotificationBanner() {
   const [showPwaGuide, setShowPwaGuide] = useState(false);
   const [types, setTypes] = useState({
     realtime: true,
-    weekly: false,
+    weekly: true,
   });
+  const [loading, setLoading] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       alert('올바른 이메일 주소를 입력해주세요.');
       return;
     }
-    setSubscribed(true);
+    
+    setLoading(true);
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          types: {
+            realtime: types.realtime,
+            weekly: types.weekly,
+          },
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSubscribed(true);
+      } else {
+        alert(data.error || '구독 신청 중 오류가 발생했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('서버와 통신하는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -27,12 +57,11 @@ export default function NotificationBanner() {
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-toss-blue/5 dark:bg-toss-blue/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-[#00d29d]/5 dark:bg-[#00d29d]/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch justify-between relative z-10">
+      <div className="max-w-[1000px] mx-auto w-full flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between relative z-10">
         
         {/* Left Section: Info */}
-        <div className="flex-1 flex flex-col justify-between">
+        <div className="flex-1 flex flex-col justify-start gap-4 w-full">
           <div>
-
             <h3 className="text-[18px] md:text-[20px] font-black leading-tight tracking-tight text-primary dark:text-white">
               실시간 거래가 & 주간 리포트 알림 받기
             </h3>
@@ -40,9 +69,9 @@ export default function NotificationBanner() {
               관심 단지의 신규 실거래가 등록 소식과 동탄 부동산 시장 트렌드 리포트를 놓치지 말고 받아보세요.
             </p>
           </div>
-
+ 
           {/* Interactive Checkboxes */}
-          <div className="flex flex-wrap gap-4 mt-4">
+          <div className="flex flex-wrap gap-4 mt-2">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -96,12 +125,30 @@ export default function NotificationBanner() {
                 />
                 <button
                   type="submit"
-                  className="bg-toss-blue hover:opacity-90 text-white font-extrabold text-[12px] rounded-xl px-4 py-2 flex items-center gap-1.5 transition-all shrink-0 shadow-lg shadow-toss-blue/10 dark:shadow-toss-blue/20"
+                  disabled={loading || !agreePrivacy}
+                  className="bg-toss-blue hover:opacity-90 disabled:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-[12px] rounded-xl px-4 py-2 flex items-center gap-1.5 transition-all shrink-0 shadow-lg shadow-toss-blue/10 dark:shadow-toss-blue/20"
                 >
                   <Bell className="w-3.5 h-3.5" />
-                  <span>구독</span>
+                  <span>{loading ? '구독 중...' : '구독'}</span>
                 </button>
               </div>
+
+              {/* 개인정보 수집 및 이용 동의 */}
+              <label className="flex items-start gap-2 mt-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreePrivacy}
+                  onChange={(e) => setAgreePrivacy(e.target.checked)}
+                  className="w-4 h-4 rounded border-border bg-body text-toss-blue focus:ring-toss-blue focus:ring-offset-background dark:border-slate-700 dark:bg-slate-800 mt-0.5"
+                />
+                <span className="text-[11px] font-semibold text-secondary leading-normal dark:text-slate-300">
+                  개인정보 수집 및 이용에 동의합니다 (필수)
+                  <span className="block text-[9.5px] text-tertiary dark:text-slate-400 font-medium">
+                    수집항목: 이메일 주소 | 보유기간: 알림 해지 시 즉시 파기
+                  </span>
+                </span>
+              </label>
               
               <div className="w-full h-[1px] bg-border dark:bg-slate-800 my-1" />
 

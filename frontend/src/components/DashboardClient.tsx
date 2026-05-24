@@ -103,6 +103,12 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { txSummary = {}, macroTrend = [], isLoading: isStaticDataLoading } = useTxData();
   const { locationScores = {} } = useLocationScores();
   
+  const getLocScore = (aptName: string) => {
+    if (!aptName || !locationScores) return {};
+    const matchKey = Object.keys(locationScores).find(k => isSameApartment(k, aptName, nameMapping));
+    return matchKey ? locationScores[matchKey] : {};
+  };
+  
   const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary } = useApartmentDetails(
     selectedReport, sheetApartments, nameMapping, user, txSummary
   );
@@ -187,7 +193,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               likes: 0,
               commentCount: 0,
               createdAt: null,
-              metrics: { ...targetApt, ...((locationScores as Record<string, any>)[targetApt.name] || {}) } as any,
+              metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as any,
             });
           }
           setMobileModalOpen(true);
@@ -262,7 +268,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             likes: 0,
             commentCount: 0,
             createdAt: null,
-            metrics: { ...targetApt, ...((locationScores as Record<string, any>)[targetApt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+            metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
           });
         }
       }
@@ -301,7 +307,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         likes: 0,
         commentCount: 0,
         createdAt: null,
-        metrics: { ...apt, ...((locationScores as Record<string, any>)[apt.name] || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+        metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
       });
     }
     // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp, where, limit, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
@@ -187,9 +187,44 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         category: editCategory,
         updatedAt: serverTimestamp(),
       });
+
+      // Sync edited manager report to scoutingReports.premiumContent
+      const cleanTitle = editTitle.trim();
+      const cleanContent = editContent.trim();
+      const isManagerReport = editCategory === '동탄 임장/분석' || editCategory === '임장기' || 
+                              cleanTitle.includes('매니저') || cleanTitle.includes('임장기') || 
+                              cleanContent.includes('매니저 임장기');
+      
+      if (isManagerReport && dongtanApartments.length > 0) {
+        const scoredApts = dongtanApartments.map(apt => {
+          const shortName = apt.replace(/\[.*?\]\s*/, '');
+          if (!shortName) return { apt, score: 0 };
+          const titleMatches = cleanTitle.split(shortName).length - 1;
+          const contentMatches = cleanContent.split(shortName).length - 1;
+          const score = (titleMatches * 10) + contentMatches;
+          return { apt, score };
+        }).filter(a => a.score > 0)
+          .sort((a, b) => b.score - a.score);
+
+        if (scoredApts.length > 0) {
+          const targetAptName = scoredApts[0].apt;
+          const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', targetAptName), limit(1));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const reportDoc = querySnapshot.docs[0];
+            await updateDoc(doc(db, 'scoutingReports', reportDoc.id), {
+              premiumContent: cleanContent,
+              updatedAt: serverTimestamp()
+            });
+            console.log(`[Sync] Updated scoutingReports premiumContent for ${targetAptName}`);
+          }
+        }
+      }
+
       setPost((prev) => prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev);
       setIsEditing(false);
     } catch (e) {
+      console.error(e);
       alert('수정에 실패했습니다.');
     }
   };

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp, X } from 'lucide-react';
+import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp, X, MapPin } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from 'recharts';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
@@ -99,6 +99,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const [isRatioModalOpen, setIsRatioModalOpen] = useState(false);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
+  const [isScoreAccordionOpen, setIsScoreAccordionOpen] = useState(false);
   const [macroConfig, setMacroConfig] = useState(MACRO_CONFIG.macroEnvironment);
 
   useEffect(() => {
@@ -289,82 +290,96 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
       </h2>
 
       {/* Unified Valuation Card */}
-      <div className="bg-surface border border-border p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between border-b border-body pb-4 mb-5">
-          <h3 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
-            매매가/전세가
-          </h3>
-        </div>
-        
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left: Data Components (Previously Right) */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-5 h-full">
-              <h4 className="text-[13px] font-bold text-secondary">기준 실거래 데이터</h4>
-              
-              <div className="flex flex-col gap-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
-                    3개월 평균 매매가
-                  </span>
-                  <span className="text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
-                </div>
+      {realEstatePER > 0 ? (
+        <div className="bg-surface border border-border p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between border-b border-body pb-4 mb-5">
+            <h3 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
+              매매가/전세가
+            </h3>
+          </div>
+          
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left: Data Components (Previously Right) */}
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-5 h-full">
+                <h4 className="text-[13px] font-bold text-secondary">기준 실거래 데이터</h4>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
-                    3개월 평균 전세가
-                  </span>
-                  <span className="text-[15px] font-extrabold text-toss-blue">{formatPrice(avg3MRent)}</span>
-                </div>
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
+                      3개월 평균 매매가
+                    </span>
+                    <span className="text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
+                      3개월 평균 전세가
+                    </span>
+                    <span className="text-[15px] font-extrabold text-toss-blue">{formatPrice(avg3MRent)}</span>
+                  </div>
 
-                <div className="h-px w-full bg-[#e5e8eb] my-1" />
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-tertiary font-bold">도출된 전세가율</span>
-                  <span className="text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
-                    {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
-                  </span>
+                  <div className="h-px w-full bg-[#e5e8eb] my-1" />
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-tertiary font-bold">도출된 전세가율</span>
+                    <span className="text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
+                      {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Right: Main PER Metric Box (Previously Left) */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="flex flex-col items-center justify-center pb-6">
-              <div className="flex items-center justify-center gap-1.5 text-[12px] font-bold text-tertiary mb-1 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsRatioModalOpen(true)}>
-                매매가 ÷ 전세가 배수 
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-body border border-border text-secondary shadow-sm transition-transform hover:scale-105">
-                  <Info size={14} strokeWidth={2.5} />
-                </span>
-              </div>
-              {realEstatePER > 0 ? (
-                <div className="flex items-end gap-1.5">
-                  <span className="text-[56px] font-black text-primary leading-none tracking-tighter">
-                    {realEstatePER.toFixed(2)}
+            {/* Right: Main PER Metric Box (Previously Left) */}
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="flex flex-col items-center justify-center pb-6">
+                <div className="flex items-center justify-center gap-1.5 text-[12px] font-bold text-tertiary mb-1 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsRatioModalOpen(true)}>
+                  매매가 ÷ 전세가 배수 
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-body border border-border text-secondary shadow-sm transition-transform hover:scale-105">
+                    <Info size={14} strokeWidth={2.5} />
                   </span>
-                  <span className="text-[18px] font-extrabold text-tertiary mb-2">배</span>
                 </div>
-              ) : (
-                <div className="text-[24px] font-bold text-tertiary my-4">N/A</div>
+                {realEstatePER > 0 ? (
+                  <div className="flex items-end gap-1.5">
+                    <span className="text-[56px] font-black text-primary leading-none tracking-tighter">
+                      {realEstatePER.toFixed(2)}
+                    </span>
+                    <span className="text-[18px] font-extrabold text-tertiary mb-2">배</span>
+                  </div>
+                ) : (
+                  <div className="text-[24px] font-bold text-tertiary my-4">N/A</div>
+                )}
+              </div>
+
+              {/* Status Alert */}
+              {realEstatePER > 0 && (
+                <div className={`p-4 rounded-xl border flex gap-3 items-start ${statusBg}`}>
+                  <StatusIcon size={20} className={`${statusColor} shrink-0 mt-0.5`} />
+                  <div className="flex flex-col gap-1.5">
+                    <h4 className={`text-[14px] font-extrabold ${statusColor}`}>{statusText}</h4>
+                    <p className="text-[12.5px] text-secondary leading-relaxed font-medium whitespace-pre-line">
+                      {descriptionText}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
-
-            {/* Status Alert */}
-            {realEstatePER > 0 && (
-              <div className={`p-4 rounded-xl border flex gap-3 items-start ${statusBg}`}>
-                <StatusIcon size={20} className={`${statusColor} shrink-0 mt-0.5`} />
-                <div className="flex flex-col gap-1.5">
-                  <h4 className={`text-[14px] font-extrabold ${statusColor}`}>{statusText}</h4>
-                  <p className="text-[12.5px] text-secondary leading-relaxed font-medium whitespace-pre-line">
-                    {descriptionText}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-surface border border-border p-6 py-10 rounded-3xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center text-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-body border border-border flex items-center justify-center text-tertiary">
+            <Info size={24} className="text-tertiary" />
+          </div>
+          <div className="flex flex-col gap-1 max-w-sm">
+            <h4 className="text-[16px] font-extrabold text-primary">실거래 데이터 부족</h4>
+            <p className="text-[13px] text-tertiary leading-relaxed font-medium">
+              최근 3개월 내 매매 또는 전세 실거래 이력이 없어 정량적 밸류에이션(PER/DCF 적정가) 분석을 제공하기 어렵습니다.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Dynamic DCF Valuation Card */}
       {realEstatePER > 0 && (
@@ -495,6 +510,154 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 단지 상품성 & 인프라 가치평가 카드 */}
+      {utilityScoreResult.total > 0 && (
+        <div className="bg-surface border border-border p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between border-b border-body pb-4 mb-5">
+            <h3 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
+              <Award size={18} className="text-[#f59e0b]" />
+              단지 상품성 & 인프라 가치평가 (Utility Score)
+            </h3>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-stretch gap-6">
+            {/* Left: Big Score & Progress Bar */}
+            <div className="flex-1 flex flex-col justify-center items-center md:items-start bg-body border border-border rounded-2xl p-5 text-center md:text-left min-w-0">
+              <span className="text-[11px] font-bold text-tertiary uppercase tracking-wider">종합 가치평가 점수</span>
+              <div className="flex items-baseline gap-1 mt-2">
+                <span className="text-[52px] font-black text-toss-blue leading-none tracking-tight">
+                  {utilityScoreResult.total}
+                </span>
+                <span className="text-[15px] font-bold text-tertiary">/ {utilityScoreResult.maxTotal}점</span>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="w-full bg-[#e5e8eb] h-2.5 rounded-full mt-4 overflow-hidden">
+                <div 
+                  className="bg-toss-blue h-full rounded-full transition-all duration-1000 ease-out" 
+                  style={{ width: `${(utilityScoreResult.total / utilityScoreResult.maxTotal) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Right: Explanation & Accordion Toggle */}
+            <div className="flex-1 flex flex-col justify-between min-w-0">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-lg text-[12px] font-extrabold shadow-sm ${
+                    utilityScoreResult.total >= 130 
+                      ? 'bg-[#e0fbf4] text-[#00b386]' 
+                      : utilityScoreResult.total >= 100 
+                        ? 'bg-[#e8f3ff] text-toss-blue' 
+                        : 'bg-orange-50 text-orange-500'
+                  }`}>
+                    {utilityScoreResult.total >= 130 ? '최우수 단지' : utilityScoreResult.total >= 100 ? '우수 단지' : '표준 단지'}
+                  </span>
+                </div>
+                <p className="text-[13.5px] text-secondary leading-relaxed font-semibold mt-1">
+                  {utilityScoreResult.total >= 130 ? '동탄 내 최상위권의 상품성과 초역세권 입지를 갖추어, 평균(2.0%)보다 높은 장기 성장률 프리미엄이 반영됩니다.' : 
+                   utilityScoreResult.total >= 100 ? '준수한 단지 스펙과 생활 인프라를 갖추어, 시장 평균 수준의 성장률이 안정적으로 적용됩니다.' : 
+                   '단지 규모나 연식, 역세권 접근성 등의 제한으로 인해 평균보다 다소 보수적인 성장률이 적용됩니다.'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsScoreAccordionOpen(!isScoreAccordionOpen)}
+                className="mt-6 w-full p-4 rounded-xl border flex items-center justify-between bg-body hover:bg-body border-border transition-all active:scale-[0.99] group"
+              >
+                <span className="text-[14px] font-extrabold text-secondary flex items-center gap-2">
+                  <Info size={16} className="text-toss-blue" />
+                  세부 가치평가 내역 {isScoreAccordionOpen ? '접기' : '펼치기'} (11개 항목)
+                </span>
+                <ChevronDown 
+                  size={16} 
+                  className={`text-tertiary transition-transform duration-300 ${isScoreAccordionOpen ? 'rotate-180' : ''}`} 
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Accordion Content: 11 Items Detailed List */}
+          {isScoreAccordionOpen && (
+            <div className="mt-6 border-t border-border pt-6 animate-in slide-in-from-top-4 duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Section 1: 단지 기본 스펙 (Specs) */}
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-[14px] font-extrabold text-[#f59e0b] border-b border-border pb-2 flex items-center gap-1.5">
+                    <Building size={16} />
+                    단지 상품성 & 스펙 (4개 지표)
+                  </h4>
+                  <div className="flex flex-col gap-4">
+                    {utilityScoreResult.logs.filter(log => !log.isInfra).map((log, i) => {
+                      const Icon = log.icon;
+                      return (
+                        <div key={i} className="bg-body/40 border border-border/60 rounded-2xl p-4 flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-[#f59e0b]/10 text-[#f59e0b] flex items-center justify-center shrink-0">
+                                <Icon size={16} />
+                              </div>
+                              <span className="text-[13.5px] font-bold text-primary">{log.category}</span>
+                            </div>
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="text-[14px] font-black text-secondary">{log.score}</span>
+                              <span className="text-[11px] text-tertiary">/ {log.max}점</span>
+                            </div>
+                          </div>
+                          <span className="text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
+                          {log.data && (
+                            <span className="text-[11px] text-toss-blue font-bold mt-1 px-2.5 py-1 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit ml-1">
+                              실데이터: {log.data}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 2: 주변 인프라 & 입지 (Infra) */}
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-[14px] font-extrabold text-toss-blue border-b border-border pb-2 flex items-center gap-1.5">
+                    <MapPin size={16} />
+                    주변 인프라 & 교통 입지 (7개 지표)
+                  </h4>
+                  <div className="flex flex-col gap-4">
+                    {utilityScoreResult.logs.filter(log => log.isInfra).map((log, i) => {
+                      const Icon = log.icon;
+                      return (
+                        <div key={i} className="bg-body/40 border border-border/60 rounded-2xl p-4 flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-toss-blue/10 text-toss-blue flex items-center justify-center shrink-0">
+                                <Icon size={16} />
+                              </div>
+                              <span className="text-[13.5px] font-bold text-primary">{log.category}</span>
+                            </div>
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="text-[14px] font-black text-secondary">{log.score}</span>
+                              <span className="text-[11px] text-tertiary">/ {log.max}점</span>
+                            </div>
+                          </div>
+                          <span className="text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
+                          {log.data && (
+                            <span className="text-[11px] text-toss-blue font-bold mt-1 px-2.5 py-1 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit ml-1">
+                              실데이터: {log.data}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
         </div>
       )}
 

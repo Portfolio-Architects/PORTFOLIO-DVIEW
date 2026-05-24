@@ -39,6 +39,11 @@ export function TransactionChartSection({
   txSummary
 }: TransactionChartSectionProps) {
   const { areaUnit, setAreaUnit } = useSettings();
+  const [isMounted, setIsMounted] = useState(false);
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
     rawArea: number; floor: number; priceEok: string; dealType: string; fullDate: string; isOutlier: boolean;
@@ -293,7 +298,7 @@ export function TransactionChartSection({
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                        <span className="text-toss-blue">현재 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
+                        <span className="text-toss-blue">최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
                       </div>
                       <div className="w-full h-1.5 bg-body rounded-full overflow-hidden">
                         <div 
@@ -347,99 +352,105 @@ export function TransactionChartSection({
         </div>
         
         <div className="flex-1 min-h-[300px] w-full relative">
-          <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
-            <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-              <defs>
-                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#00d29d" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-              <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
-                tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
-                tickLine={false} tickMargin={6}
-                tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
-              />
-              <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
-                tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
-                width={48} dx={-3}
-                tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
-              />
-              <YAxis yAxisId="volume" orientation="right" domain={[0, maxVol * 4]}
-                tick={false} axisLine={false} tickLine={false} width={0}
-              />
-              <RechartsTooltip
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const item = payload[0]?.payload;
-                  const vol = item?.volume;
-                  return (
-                    <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
-                      <div className="text-tertiary text-[12px] font-bold mb-2">
-                        {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
+          {isMounted ? (
+            <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
+              <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#00d29d" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
+                  tickLine={false} tickMargin={6}
+                  tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
+                />
+                <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
+                  width={48} dx={-3}
+                  tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
+                />
+                <YAxis yAxisId="volume" orientation="right" domain={[0, maxVol * 4]}
+                  tick={false} axisLine={false} tickLine={false} width={0}
+                />
+                <RechartsTooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const item = payload[0]?.payload;
+                    const vol = item?.volume;
+                    return (
+                      <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
+                        <div className="text-tertiary text-[12px] font-bold mb-2">
+                          {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {item?.saleAvg != null && (
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
+                              <span className="text-[#00d29d] text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
+                            </div>
+                          )}
+                          {item?.jeonseAvg != null && (
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
+                              <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
+                            </div>
+                          )}
+                          {vol != null && vol > 0 && (
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-tertiary text-[13px] font-bold">거래량</span>
+                              <span className="text-primary text-[14px] font-extrabold">{vol}건</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1.5">
-                        {item?.saleAvg != null && (
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
-                            <span className="text-[#00d29d] text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
-                          </div>
-                        )}
-                        {item?.jeonseAvg != null && (
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
-                            <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
-                          </div>
-                        )}
-                        {vol != null && vol > 0 && (
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-tertiary text-[13px] font-bold">거래량</span>
-                            <span className="text-primary text-[14px] font-extrabold">{vol}건</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }}
-                cursor={{ stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' }}
-              />
-              <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-              <Area type="monotone" dataKey="saleAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
-              <Line type="monotone" dataKey="jeonseAvg" yAxisId="price" stroke="#f9a825" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
-              <Customized
-                component={(rechartProps: Record<string, unknown>) => {
-                  const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
-                  if (!xAxisMap || !yAxisMap) return null;
-                  const xAx = Object.values(xAxisMap)[0];
-                  const yAx = Object.values(yAxisMap)[0];
-                  if (!xAx?.scale || !yAx?.scale) return null;
-                  return (
-                    <g>
-                      {scatterData.map((d, i) => {
-                        const cx = xAx.scale ? xAx.scale(d.ts) : 0;
-                        const cy = yAx.scale ? yAx.scale(d.price) : 0;
-                        if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-                        const isHov = hoveredDot?.data === d;
-                        const floorColor = getFloorColor(d.floor);
-                        return (
-                          <circle key={i} cx={cx} cy={cy}
-                            r={isHov ? 5 : 3} fill={floorColor}
-                            opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
-                            stroke={isHov ? '#fbbf24' : 'none'}
-                            strokeWidth={isHov ? 2 : 0}
-                            style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
-                            onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
-                            onMouseLeave={() => setHoveredDot(null)}
-                          />
-                        );
-                      })}
-                    </g>
-                  );
-                }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+                    );
+                  }}
+                  cursor={{ stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+                <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
+                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="#f9a825" strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} />
+                <Customized
+                  component={(rechartProps: Record<string, unknown>) => {
+                    const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
+                    if (!xAxisMap || !yAxisMap) return null;
+                    const xAx = Object.values(xAxisMap)[0];
+                    const yAx = Object.values(yAxisMap)[0];
+                    if (!xAx?.scale || !yAx?.scale) return null;
+                    return (
+                      <g>
+                        {scatterData.map((d, i) => {
+                          const cx = xAx.scale ? xAx.scale(d.ts) : 0;
+                          const cy = yAx.scale ? yAx.scale(d.price) : 0;
+                          if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+                          const isHov = hoveredDot?.data === d;
+                          const floorColor = getFloorColor(d.floor);
+                          return (
+                            <circle key={i} cx={cx} cy={cy}
+                              r={isHov ? 5 : 3} fill={floorColor}
+                              opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
+                              stroke={isHov ? '#fbbf24' : 'none'}
+                              strokeWidth={isHov ? 2 : 0}
+                              style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
+                              onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
+                              onMouseLeave={() => setHoveredDot(null)}
+                            />
+                          );
+                        })}
+                      </g>
+                    );
+                  }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
+              <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
+            </div>
+          )}
           {hoveredDot && (() => {
             const d = hoveredDot.data;
             const aptKey = normalizeAptName(displayAptName);

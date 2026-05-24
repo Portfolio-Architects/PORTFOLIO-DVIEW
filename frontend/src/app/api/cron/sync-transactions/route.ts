@@ -7,6 +7,7 @@
  */
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
+import { sendMail } from '@/lib/mailService';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +87,7 @@ export async function GET(request: Request) {
     // 3. Fetch from 국토부 API for each month
     let totalNew = 0;
     const syncLog: string[] = [];
+    const allNewTransactions: any[] = [];
 
     for (const ym of Array.from(monthsToSync).sort()) {
       let page = 1;
@@ -226,8 +228,31 @@ export async function GET(request: Request) {
         rentPage++;
       } while (rentPage * 1000 < rentTotalCount);
 
-      // 4. Batch write to Firestore
+      // 4. Identify brand new transactions before writing
+      const newTransactions: any[] = [];
       if (monthRecords.length > 0) {
+        // chunk 단위로 db.getAll() 실행하여 중복 검사
+        const docRefs = monthRecords.map((r: any) => collRef.doc(r._key as string));
+        const snapDocs = [];
+        const READ_CHUNK_SIZE = 100; 
+        for (let i = 0; i < docRefs.length; i += READ_CHUNK_SIZE) {
+          const slice = docRefs.slice(i, i + READ_CHUNK_SIZE);
+          const docs = await db.getAll(...slice);
+          snapDocs.push(...docs);
+        }
+
+        const existingKeys = new Set(
+          snapDocs.filter(d => d.exists).map(d => d.id)
+        );
+
+        for (const r of (monthRecords as any[])) {
+          if (!existingKeys.has(r._key)) {
+            newTransactions.push(r);
+          }
+        }
+        allNewTransactions.push(...newTransactions);
+
+        // Batch write to Firestore
         const BATCH_SIZE = 500;
         let written = 0;
         for (let i = 0; i < monthRecords.length; i += BATCH_SIZE) {
@@ -240,9 +265,106 @@ export async function GET(request: Request) {
           written += slice.length;
         }
         totalNew += written;
-        syncLog.push(`${ym}: ${written}건 동기화 (매매+전월세)`);
+        syncLog.push(`${ym}: ${written}건 동기화 (매매+전월세), 신규 거래: ${newTransactions.length}건`);
       } else {
         syncLog.push(`${ym}: 0건`);
+      }
+    }
+
+    // 4.5. Send email notification to active subscribers if there are new transactions
+    if (allNewTransactions.length > 0) {
+      try {
+        const subSnap = await db.collection('subscriptions')
+          .where('status', '==', 'active')
+          .where('realtime', '==', true)
+          .get();
+
+        if (!subSnap.empty) {
+          const subscribers = subSnap.docs.map(d => d.data().email).filter(Boolean);
+          
+          if (subscribers.length > 0) {
+            allNewTransactions.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
+            const displayTx = allNewTransactions.slice(0, 15);
+            
+            let txRowsHtml = '';
+            for (const tx of displayTx) {
+              const priceDisplay = tx.dealType === '매매' 
+                ? `${Math.floor(tx.price / 10000) > 0 ? Math.floor(tx.price / 10000) + '억 ' : ''}${(tx.price % 10000).toLocaleString()}만원`
+                : `${tx.dealType} 보증금 ${Math.floor(tx.deposit / 10000) > 0 ? Math.floor(tx.deposit / 10000) + '억 ' : ''}${(tx.deposit % 10000).toLocaleString()}만원${tx.monthlyRent ? ' / 월 ' + tx.monthlyRent + '만' : ''}`;
+              
+              txRowsHtml += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 12px 8px; font-weight: bold; color: #1e293b; font-size: 13px;">${tx.aptName}</td>
+                  <td style="padding: 12px 8px; color: #475569; font-size: 12px;">${tx.areaPyeong}평 (${tx.area}㎡)</td>
+                  <td style="padding: 12px 8px; font-weight: 800; color: #3b82f6; font-size: 13px;">${priceDisplay}</td>
+                  <td style="padding: 12px 8px; color: #475569; font-size: 12px; text-align: center;">${tx.floor}층</td>
+                  <td style="padding: 12px 8px; color: #475569; font-size: 12px; text-align: center;">${tx.contractDate.slice(4, 6)}.${tx.contractDate.slice(6, 8)}</td>
+                </tr>
+              `;
+            }
+
+            const nowStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            for (const email of subscribers) {
+              const unsubscribeLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/unsubscribe?email=${encodeURIComponent(email)}`;
+              
+              const alertMailHtml = `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; color: #1f2937; line-height: 1.6;">
+                  <div style="background-color: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 16px; font-weight: 800; color: #3b82f6; letter-spacing: -0.5px;">D-VIEW 데이터 랩</span>
+                      <span style="font-size: 11px; color: #94a3b8;">실시간 알림 (${nowStr})</span>
+                    </div>
+
+                    <h2 style="font-size: 19px; font-weight: 900; color: #111827; margin-top: 0; margin-bottom: 8px; letter-spacing: -0.5px;">
+                      🛎️ 신규 실거래가 등록 알림
+                    </h2>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 24px; word-break: keep-all;">
+                      구독 중이신 동탄 아파트의 국토교통부 신규 실거래가 등록되었습니다.
+                    </p>
+
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px;">
+                      <thead>
+                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                          <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">단지명</th>
+                          <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">평형/면적</th>
+                          <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">거래 금액</th>
+                          <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700; text-align: center;">층</th>
+                          <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700; text-align: center;">계약일</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${txRowsHtml}
+                      </tbody>
+                    </table>
+
+                    ${allNewTransactions.length > 15 ? `<p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 24px;">외 ${allNewTransactions.length - 15}건의 신규 거래가 더 등록되었습니다. 전체 내역은 D-VIEW에서 확인해 주세요.</p>` : ''}
+
+                    <div style="text-align: center; margin-bottom: 30px;">
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}" style="background-color: #3b82f6; color: white; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);">전체 거래 정보 보기</a>
+                    </div>
+
+                    <div style="border-top: 1px solid #f1f5f9; padding-top: 20px; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.5;">
+                      본 메일은 D-VIEW 실거래 등록 알림 구독자분들께 발송되는 정보 메일입니다.<br />
+                      더 이상 알림을 원치 않으시면 언제든지 아래 링크를 통해 구독을 해지하실 수 있습니다.<br />
+                      <a href="${unsubscribeLink}" style="color: #64748b; text-decoration: underline; font-weight: 600; display: inline-block; margin-top: 8px;">[구독 해지하기]</a>
+                    </div>
+                  </div>
+                </div>
+              `;
+
+              await sendMail({
+                to: email,
+                subject: `[D-VIEW] 신규 실거래가 등록 알림 (${allNewTransactions.length}건 등록)`,
+                html: alertMailHtml
+              });
+            }
+            syncLog.push(`Sent notification emails to ${subscribers.length} active subscribers`);
+          }
+        }
+      } catch (mailErr: any) {
+        console.error('Failed to send notification email during sync:', mailErr);
+        syncLog.push(`Mail Notification Error: ${mailErr.message}`);
       }
     }
 

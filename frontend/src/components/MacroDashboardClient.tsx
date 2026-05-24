@@ -1327,7 +1327,7 @@ interface GroupedCategory {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-10 px-0 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-0 px-0 items-start">
           {accordionData.map((group) => {
             const isExpanded = expandedGroups[group.title];
 
@@ -1572,8 +1572,15 @@ interface GroupedCategory {
           <NativeAdPlaceholder location="매크로 대시보드 하단" onClick={onOpenAdModal} />
         </div>
 
+        {/* 구분선 (Divider) 및 대칭 여백 */}
+        <div className="w-full">
+          <div className="h-[36px]" />
+          <div className="w-full h-px bg-[#f2f4f6] dark:bg-border" />
+          <div className="h-[36px]" />
+        </div>
+
         {/* Dongtan Market Insights (News Section) */}
-        <div className="mt-12 mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8">
+        <div className="mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8">
           <div className="mb-6">
             <h2 className="text-[24px] font-extrabold text-primary tracking-tight">
               동탄 부동산 인사이트{" "}

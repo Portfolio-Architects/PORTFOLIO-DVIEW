@@ -116,23 +116,25 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: anchor.color }}></div>
-                  <span className="text-[12px] font-bold text-secondary">{anchor.name}</span>
+                  <span className="text-[13px] md:text-[14px] font-bold text-secondary">{anchor.name}</span>
                 </div>
                 <div className="flex items-baseline gap-0.5 text-right">
                   <span className="text-[16px] md:text-[18px] font-extrabold text-primary tabular-nums tracking-tight leading-none">
-                    {(anchor.distance / 1000).toFixed(2)}
+                    {Math.round(anchor.distance).toLocaleString()}
                   </span>
-                  <span className="text-[10px] md:text-[11px] font-bold text-secondary ml-0.5">km</span>
+                  <span className="text-[11px] md:text-[12px] font-bold text-secondary ml-0.5">
+                    m
+                  </span>
                 </div>
               </div>
               
               {/* Store Details: Name & Address */}
               <div className="flex flex-col min-w-0 my-3 flex-1 justify-center">
-                <span className="text-primary font-extrabold text-[14px] md:text-[15px] leading-tight truncate tracking-tight" title={anchor.metaName}>
+                <span className="text-primary font-black text-[15.5px] md:text-[17px] leading-tight truncate tracking-tight" title={anchor.metaName}>
                   {anchor.metaName || "-"}
                 </span>
                 {anchor.metaAddress && (
-                  <span className="text-tertiary font-medium text-[11px] truncate mt-1 leading-normal" title={anchor.metaAddress}>
+                  <span className="text-tertiary font-semibold text-[12px] md:text-[13px] truncate mt-1.5 leading-normal" title={anchor.metaAddress}>
                     {anchor.metaAddress}
                   </span>
                 )}
@@ -140,7 +142,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
               
               {/* Bottom Actions: Walking Time & Map button */}
               <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
-                <span className="text-[11px] font-extrabold text-toss-blue bg-toss-blue-light px-2 py-1 rounded-md shrink-0 whitespace-nowrap">
+                <span className="text-[12px] font-extrabold text-toss-blue bg-toss-blue-light px-2.5 py-1.5 rounded-md shrink-0 whitespace-nowrap">
                   도보 {walkingTime}분
                 </span>
                 
@@ -153,7 +155,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
                     title={`${anchor.metaName} 지도에서 보기`}
                   >
                     <MapPin size={12} strokeWidth={2.5} className="shrink-0" />
-                    <span className="text-[11px] font-bold">지도</span>
+                    <span className="text-[12px] font-bold">지도</span>
                   </a>
                 )}
               </div>
