@@ -40,15 +40,22 @@ export const loadKakaoSdk = (): Promise<void> => {
   });
 };
 
+declare global {
+  interface Window {
+    Kakao: any;
+  }
+}
+
 export interface ShareAptParams {
   aptName: string;
   priceEok: number;
   priceMan: number;
   ratio: number;
   imageUrl?: string;
+  imageFile?: File;
 }
 
-export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imageUrl }: ShareAptParams) => {
+export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imageUrl, imageFile }: ShareAptParams) => {
   try {
     // 1. 강제 스크립트 로드 대기
     await loadKakaoSdk();
@@ -69,16 +76,30 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
       console.log("Kakao SDK initialized");
     }
 
+    let finalImageUrl =
+      imageUrl ||
+      "https://dongtanview.com/api/og?title=" + encodeURIComponent("동탄 아파트 가치분석");
+
+    // html2canvas로 캡처된 파일이 있을 경우 카카오 서버에 임시 업로드 진행
+    if (imageFile) {
+      console.log("Uploading generated share card image to Kakao...");
+      const uploadRes = await window.Kakao.Share.uploadImage({
+        file: [imageFile],
+      });
+      if (uploadRes && uploadRes.infos && uploadRes.infos.original && uploadRes.infos.original.url) {
+        finalImageUrl = uploadRes.infos.original.url;
+        console.log("Kakao uploaded image URL:", finalImageUrl);
+      } else {
+        console.warn("Kakao image upload response did not contain URL:", uploadRes);
+      }
+    }
+
     const priceStr =
       priceMan > 0
         ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
         : `${priceEok}억원`;
 
     const description = `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`;
-
-    const finalImageUrl =
-      imageUrl ||
-      "https://dongtanview.com/api/og?title=" + encodeURIComponent("동탄 아파트 가치분석");
 
     // 4002 에러 우회를 위해, 현재 브라우저가 실행중인 도메인(localhost:5000 또는 dongtanview.com)을 그대로 사용
     const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}`;
@@ -111,3 +132,4 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
     alert("공유 실행 중 오류가 발생했습니다: " + error.message);
   }
 };
+

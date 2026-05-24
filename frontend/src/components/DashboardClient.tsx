@@ -616,6 +616,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                   setMobileModalOpen(true);
                 }}
+                onOpenAdModal={() => setIsAdModalOpen(true)}
               />
             </div>
           </section>
@@ -666,6 +667,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 refreshPurchasedReports();
               }
             }}
+            onOpenAdModal={() => setIsAdModalOpen(true)}
           />
         )}
 
