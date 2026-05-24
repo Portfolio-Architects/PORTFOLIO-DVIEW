@@ -381,13 +381,32 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-3.5 h-full">
                       <h5 className="text-[13px] font-bold text-secondary">적용 수식 및 산출 근거</h5>
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-3.5">
+                        {/* 연간 예상 임대 가치 (Annual Rent) */}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] text-tertiary font-medium">연간 예상 임대 가치 (Annual Rent)</span>
+                            <span className="text-[13px] font-bold text-primary">
+                              {formatPrice(avg3MRent * dynamicConversionRate)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30 flex-wrap">
+                            <span>평균 전세 {formatPrice(avg3MRent)}</span>
+                            <span className="text-[#d1d6db]">×</span>
+                            <span>전환율 {(dynamicConversionRate * 100).toFixed(1)}%</span>
+                            {spreadReasons.length > 0 && (
+                              <span className="text-toss-blue">({spreadReasons.join(', ')})</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 기본 투자 요구 이자율 (할인율 r) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
                             <span className="text-[13px] text-tertiary font-medium">기본 투자 요구 이자율 (할인율 r)</span>
                             <span className="text-[13px] font-bold text-primary">{dcf.discountRate.toFixed(2)}%</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30">
+                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30 flex-wrap">
                             <span>국고채 {macroConfig.riskFreeRate.toFixed(2)}%</span>
                             <span className="text-[#d1d6db]">+</span>
                             <span>리스크 1.50%</span>
@@ -399,40 +418,88 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[13px] text-tertiary font-medium">장기 집값 상승 기대치 (성장률 g)</span>
                             <button 
-                              onClick={() => setIsValuationModalOpen(true)}
-                              className="text-[11px] text-tertiary flex items-center gap-1 hover:text-toss-blue transition-colors cursor-pointer text-left font-medium"
+                              onClick={() => {
+                                setIsScoreAccordionOpen(true);
+                                setTimeout(() => {
+                                  document.getElementById('utility-score-section')?.scrollIntoView({ behavior: 'smooth' });
+                                }, 50);
+                              }}
+                              className="text-[11px] text-tertiary hover:underline hover:text-toss-blue transition-colors cursor-pointer text-left font-medium"
                             >
-                              물가(2.0%) ± 단지 가치평가(Max 2.0%p)
-                              <Info className="w-3.5 h-3.5" />
+                              물가({macroConfig.baseInflationRate.toFixed(1)}%) + 단지 가치(+{(utilityScoreResult.total * 0.01).toFixed(2)}%p)
                             </button>
                           </div>
                           <span className="text-[13px] font-bold text-primary">{dcf.growthRate.toFixed(2)}%</span>
                         </div>
                         <div className="h-px w-full bg-border/60 my-0.5" />
-                        <div className="flex items-center justify-between">
-                          <span className="text-[13px] text-secondary font-bold">실질 목표 수익률 (Cap Rate)</span>
-                          <span className="text-[14px] font-extrabold text-toss-blue">{dcf.capRate.toFixed(2)}%</span>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] text-secondary font-bold">실질 목표 수익률 (Cap Rate)</span>
+                            <span className="text-[14px] font-extrabold text-toss-blue">{dcf.capRate.toFixed(2)}%</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30">
+                            <span>할인율 {dcf.discountRate.toFixed(2)}%</span>
+                            <span className="text-[#d1d6db]">-</span>
+                            <span>성장률 {dcf.growthRate.toFixed(2)}%</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                   {/* Right: Main Cap Rate Box */}
-                  <div className="flex-1 flex flex-col justify-center">
-                    <div className="flex flex-col items-center justify-center pb-4">
+                  <div className="flex-1 flex flex-col justify-center gap-4">
+                    <div className="flex flex-col items-center justify-center pb-2">
                       <span className="text-[12px] font-bold text-tertiary mb-1">적정 집값</span>
                       <span className="text-[36px] font-black text-primary leading-none tracking-tighter">
                         {formatPrice(dcf.impliedValue)}
                       </span>
                     </div>
+
+                    {/* Step 5. 최종 적정 집값 산출 과정 */}
+                    <div className="bg-body border border-border/80 rounded-2xl p-4 flex flex-col gap-2.5">
+                      <div className="text-[12px] font-extrabold text-secondary flex items-center gap-1.5">
+                        <span className="w-1 h-3 bg-toss-blue rounded-full inline-block" />
+                        Step 5. 최종 적정 집값 산출
+                      </div>
+                      <div className="flex flex-col gap-1 text-[11px] text-tertiary leading-relaxed">
+                        <div className="flex justify-between items-center text-[12px] font-bold text-primary mb-0.5">
+                          <span>적정 집값 공식</span>
+                          <span>연간 임대료 ÷ Cap Rate</span>
+                        </div>
+                        <div className="h-px bg-border/40 my-1" />
+                        <div className="flex justify-between">
+                          <span>연간 예상 임대료</span>
+                          <span className="font-semibold text-secondary">
+                            {(avg3MRent * dynamicConversionRate).toFixed(2)}만 원
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>자본환원율 (Cap Rate)</span>
+                          <span className="font-semibold text-secondary">
+                            {dcf.capRate.toFixed(2)}% ({(dcf.capRate / 100).toFixed(4)})
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-primary font-medium mt-1">
+                          <span>이론 계산치</span>
+                          <span className="font-extrabold text-[#f04452]">
+                            ≈ {Math.round(dcf.impliedValue * 10000).toLocaleString()}원
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-tertiary leading-normal mt-1 border-t border-border/30 pt-1.5">
+                          위 이론 계산치를 억/백만 원 단위로 반올림하여 최종적으로 <strong className="text-secondary font-bold">{formatPrice(dcf.impliedValue)}</strong>이 도출되었습니다.
+                        </p>
+                      </div>
+                    </div>
+
                     {avg3MSale > 0 && (
-                      <div className={`w-full flex flex-col items-center p-4 rounded-2xl shadow-sm ${
+                      <div className={`w-full flex flex-col items-center p-5 rounded-2xl shadow-sm ${
                         avg3MSale > dcf.impliedValue ? 'bg-toss-red/5 border border-toss-red/20' : 'bg-toss-blue/5 border border-toss-blue/20'
                       }`}>
-                        <div className="flex items-center gap-1.5 text-[12px] font-bold text-tertiary mb-1">
-                          <Target size={13} className={avg3MSale > dcf.impliedValue ? 'text-toss-red' : 'text-toss-blue'} />
-                          기준가 (3개월 평균): <span className="text-primary font-extrabold">{formatPrice(avg3MSale)}</span>
+                        <div className="flex items-center gap-1.5 text-[14px] font-bold text-secondary mb-2">
+                          <Target size={15} className={avg3MSale > dcf.impliedValue ? 'text-toss-red' : 'text-toss-blue'} />
+                          기준가 (3개월 평균): <span className="text-primary font-black ml-0.5">{formatPrice(avg3MSale)}</span>
                         </div>
-                        <div className={`px-3 py-1 rounded-lg text-[12.5px] font-bold shadow-sm ${
+                        <div className={`px-4 py-2 rounded-xl text-[14.5px] font-extrabold shadow-sm ${
                           avg3MSale > dcf.impliedValue ? 'bg-toss-red/10 text-toss-red' : 'bg-toss-blue/10 text-toss-blue'
                         }`}>
                           적정가 대비 {formatPrice(Math.abs(avg3MSale - dcf.impliedValue))} {avg3MSale > dcf.impliedValue ? '고평가' : '저평가'}
@@ -450,7 +517,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
             {/* Section 3: 단지 상품성 & 인프라 가치평가 (Utility Score) */}
             {utilityScoreResult.total > 0 && (
-              <div className="p-6">
+              <div id="utility-score-section" className="p-6 scroll-mt-20">
                 <h4 className="text-[14px] font-extrabold text-secondary mb-4 flex items-center gap-1.5">
                   <span className="w-1.5 h-3.5 bg-[#f59e0b] rounded-full inline-block" />
                   3. 단지 상품성 & 인프라 가치평가 (Utility Score)

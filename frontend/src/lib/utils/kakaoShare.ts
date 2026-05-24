@@ -40,9 +40,51 @@ export const loadKakaoSdk = (): Promise<void> => {
   });
 };
 
+interface KakaoUploadResponse {
+  infos: {
+    original: {
+      url: string;
+    };
+  };
+}
+
+interface KakaoShareLink {
+  mobileWebUrl: string;
+  webUrl: string;
+}
+
+interface KakaoShareContent {
+  title: string;
+  description: string;
+  imageUrl: string;
+  imageWidth: number;
+  imageHeight: number;
+  link: KakaoShareLink;
+}
+
+interface KakaoShareButton {
+  title: string;
+  link: KakaoShareLink;
+}
+
+interface KakaoShareOptions {
+  objectType: string;
+  content: KakaoShareContent;
+  buttons?: KakaoShareButton[];
+}
+
+interface KakaoSDK {
+  isInitialized: () => boolean;
+  init: (key: string) => void;
+  Share: {
+    uploadImage: (options: { file: File[] }) => Promise<KakaoUploadResponse>;
+    sendDefault: (options: KakaoShareOptions) => void;
+  };
+}
+
 declare global {
   interface Window {
-    Kakao: any;
+    Kakao?: KakaoSDK;
   }
 }
 
@@ -127,9 +169,9 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
         },
       ],
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
     console.error("Kakao Share Error:", error);
-    alert("공유 실행 중 오류가 발생했습니다: " + error.message);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
   }
 };
-

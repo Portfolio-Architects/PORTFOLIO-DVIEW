@@ -3,7 +3,7 @@
  * @description KPI simulation logic with cyclic real estate price data.
  * Architecture Layer: Service (business logic, no I/O)
  */
-import { TrendingUp, Users, RefreshCw } from 'lucide-react';
+
 import type { KPIData } from '@/lib/types/dashboard.types';
 
 /** Simulated KPI price data for cycling display */

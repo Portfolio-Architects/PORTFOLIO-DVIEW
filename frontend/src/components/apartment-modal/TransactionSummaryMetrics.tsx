@@ -32,7 +32,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
 
-  const { typeFilters, periodData } = useMemo(() => {
+  const metrics = useMemo(() => {
     const now = new Date();
     
     // 1) 타입 필터 칩 목록 구성
@@ -146,10 +146,28 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       };
     }).filter(p => p.count > 0 || p.avgPrice > 0);
 
-    return { typeFilters, periodData };
+    // 3) 갭투자 필요자금 및 전세가율 계산 (최근 6개월 평균 기준, 거래 부족시 전체 기준)
+    const filteredSales = baseTx.filter(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
+    const filteredJeonses = baseTx.filter(tx => tx.dealType === '전세');
+
+    const getAvgForGap = (txs: TransactionRecord[]) => {
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      const recent = txs.filter(tx => getTxDate(tx) >= sixMonthsAgo);
+      const targetList = recent.length > 0 ? recent : txs;
+      return targetList.length > 0 ? targetList.reduce((sum, tx) => sum + tx.price, 0) / targetList.length : 0;
+    };
+
+    const avgSalePrice = getAvgForGap(filteredSales);
+    const avgJeonsePrice = getAvgForGap(filteredJeonses);
+    const gapPrice = avgSalePrice > 0 && avgJeonsePrice > 0 ? (avgSalePrice - avgJeonsePrice) : 0;
+    const jeonseRatio = avgSalePrice > 0 && avgJeonsePrice > 0 ? (avgJeonsePrice / avgSalePrice) * 100 : 0;
+
+    const gapPriceEok = gapPrice > 0 ? formatEok(Math.round(gapPrice)) : null;
+
+    return { typeFilters, periodData, avgSalePrice, avgJeonsePrice, gapPriceEok, jeonseRatio };
   }, [transactions, apartmentName, typeMap, areaUnit, priceTypeFilter, periodDealType]);
 
-  if (transactions.length === 0 || periodData.length === 0) return null;
+  if (transactions.length === 0 || metrics.periodData.length === 0) return null;
 
   return (
     <div className="bg-surface w-full px-4 md:px-10 pb-6 border-b border-border">
@@ -181,7 +199,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
           )}
         </div>
         <div className="flex flex-nowrap gap-1.5 overflow-x-auto custom-scrollbar pb-3 -mx-1 px-1">
-          {typeFilters.map(f => {
+          {metrics.typeFilters.map(f => {
             const isActive = priceTypeFilter === f.key;
             return (
               <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
@@ -194,12 +212,39 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
             );
           })}
         </div>
+
+        {/* 갭투자 및 전세가율 요약 카드 (선택된 평형 필터 대응) */}
+        {metrics.avgSalePrice > 0 && metrics.avgJeonsePrice > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5 mt-3">
+            <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[12px] font-bold text-tertiary">실투자금 (매매-전세 갭)</span>
+                <span className="text-[11px] text-tertiary font-medium">최근 6개월 평균 실거래 기준</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[18px] font-black text-toss-blue tabular-nums">{metrics.gapPriceEok}</span>
+                <span className="text-[12px] font-bold text-secondary ml-0.5">필요</span>
+              </div>
+            </div>
+            <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
+                <span className="text-[11px] text-tertiary font-medium">매매 대비 전세 가격 비율</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[18px] font-black text-[#00d29d] tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
+                <span className="text-[12px] font-bold text-secondary ml-0.5">기록</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
           <table className="w-full text-sm min-w-[600px] border-t border-body">
             <thead>
               <tr className="border-b border-border text-tertiary text-[13px] md:text-[14px] font-bold bg-body">
                 <th className="py-3 px-2 text-center w-[56px] min-w-[56px] shrink-0">구분</th>
-                {periodData.map(p => (
+                {metrics.periodData.map(p => (
                   <th key={`th-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">{p.label}</th>
                 ))}
               </tr>
@@ -212,7 +257,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
                     <span>가격</span>
                   </div>
                 </td>
-                {periodData.map(p => (
+                {metrics.periodData.map(p => (
                   <td key={`price-${p.key}`} className="py-3.5 px-3 text-center whitespace-nowrap">
                     <span className="text-[14px] md:text-[16px] font-bold md:font-extrabold text-primary tracking-tight">{p.avgPriceEok}</span>
                   </td>
@@ -225,7 +270,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
                     <span>가격</span>
                   </div>
                 </td>
-                {periodData.map(p => (
+                {metrics.periodData.map(p => (
                   <td key={`perpyeong-${p.key}`} className="py-3.5 px-3 text-center">
                     <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
                       <span className="text-[13px] md:text-[14px] font-bold text-secondary tracking-tight">{p.perPyeongEok}</span>
@@ -241,7 +286,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
                     <span>건수</span>
                   </div>
                 </td>
-                {periodData.map(p => (
+                {metrics.periodData.map(p => (
                   <td key={`count-${p.key}`} className="py-3.5 px-3 text-center whitespace-nowrap">
                     <span className="text-[13px] md:text-[14px] font-medium text-tertiary">{p.count}건</span>
                   </td>

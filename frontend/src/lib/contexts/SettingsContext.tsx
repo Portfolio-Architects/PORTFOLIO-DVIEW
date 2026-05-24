@@ -16,10 +16,8 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [areaUnit, setAreaUnitState] = useState<AreaUnit>('m2');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const stored = localStorage.getItem('dtdls-area-unit');
     if (stored === 'm2' || stored === 'pyeong') {
       setAreaUnitState(stored);

@@ -70,7 +70,7 @@ export async function sendMail({ to, subject, html }: SendMailParams): Promise<b
       try {
         const fileContent = fs.readFileSync(mockEmailPath, 'utf-8');
         mockEmails = JSON.parse(fileContent);
-      } catch (err) {
+      } catch {
         mockEmails = [];
       }
     }

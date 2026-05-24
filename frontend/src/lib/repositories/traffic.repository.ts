@@ -4,17 +4,8 @@
  * Architecture Layer: Repository
  */
 import { db } from '@/lib/firebaseConfig';
-import { doc, getDoc, setDoc, updateDoc, increment, collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
-
-/**
- * Gets today's date in YYYY-MM-DD format strictly.
- */
-function getTodayStr(): string {
-  const d = new Date();
-  d.setHours(d.getHours() + 9); // KST Timezone adjustment approximation
-  return d.toISOString().split('T')[0];
-}
 
 export async function incrementWebsiteVisit(): Promise<void> {
   try {

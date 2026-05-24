@@ -1,9 +1,8 @@
 import { Suspense } from 'react';
 import DashboardClient from '@/components/DashboardClient';
 import { adminDb } from '@/lib/firebaseAdmin';
-import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
-import { fetchSheetApartmentsByDong } from '@/lib/services/googleSheets';
 import { createInitialKPIs } from '@/lib/services/kpi.service';
+import { fetchSheetApartmentsByDong, fetchSheetTypeMap } from '@/lib/services/googleSheets';
 
 import { redis } from '@/lib/redis';
 
@@ -102,23 +101,8 @@ async function getInitialData() {
   };
 
   const fetchTypeMap = async () => {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
-    if (res.ok) {
-      const csvText = await res.text();
-      const lines = csvText.split('\n').filter((l: string) => l.trim());
-      for (let i = 1; i < lines.length; i++) {
-        const cols = parseCsvLine(lines[i]);
-        if (cols.length < 3) continue;
-        const aptName = cols[1]?.trim();
-        const area = cols[2]?.trim();
-        const typeM2 = cols[3]?.trim() || '';
-        const typePyeong = cols[5]?.trim() || '';
-        if (aptName && area && (typeM2 || typePyeong)) {
-          result.typeMap.push({ aptName, area, typeM2, typePyeong });
-        }
-      }
-    }
+    const data = await fetchSheetTypeMap();
+    result.typeMap = data;
   };
 
   const fetchApts = async () => {

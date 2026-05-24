@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
-import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
+import { fetchSheetTypeMap } from '@/lib/services/googleSheets';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 const TX_SUMMARY = (txSummaryDataRaw as any).summary;
 
@@ -122,7 +122,15 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
 
 import { createInitialKPIs } from '@/lib/services/kpi.service';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const aptNames = Object.keys(TX_SUMMARY || {});
+  // Pre-render the first 50 apartments to prevent long build times
+  return aptNames.slice(0, 50).map((name) => ({
+    aptName: encodeURIComponent(name),
+  }));
+}
 
 async function getInitialData() {
   const result: {
@@ -208,23 +216,8 @@ async function getInitialData() {
   };
 
   const fetchTypeMap = async () => {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
-    const res = await fetch(csvUrl, { cache: 'no-store' });
-    if (res.ok) {
-      const csvText = await res.text();
-      const lines = csvText.split('\n').filter((l: string) => l.trim());
-      for (let i = 1; i < lines.length; i++) {
-        const cols = parseCsvLine(lines[i]);
-        if (cols.length < 3) continue;
-        const aptName = cols[1]?.trim();
-        const area = cols[2]?.trim();
-        const typeM2 = cols[3]?.trim() || '';
-        const typePyeong = cols[5]?.trim() || '';
-        if (aptName && area && (typeM2 || typePyeong)) {
-          result.typeMap.push({ aptName, area, typeM2, typePyeong });
-        }
-      }
-    }
+    const data = await fetchSheetTypeMap();
+    result.typeMap = data;
   };
 
   await Promise.allSettled([

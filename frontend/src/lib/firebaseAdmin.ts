@@ -12,7 +12,7 @@ function getAdminCredentials() {
     if (fs.existsSync(serviceAccountPath)) {
       return JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
     }
-  } catch (e) {
+  } catch {
     // Ignore and fallback
   }
 
@@ -20,7 +20,7 @@ function getAdminCredentials() {
   if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     try {
       return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    } catch (e) {
+    } catch {
       console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Is it valid JSON?');
     }
   }

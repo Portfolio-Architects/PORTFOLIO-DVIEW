@@ -5,6 +5,19 @@ import { redis } from '@/lib/redis';
 const PUBLIC_ANALYTICS_CACHE_KEY = 'dtdls:analytics:public:lkg';
 const ADMIN_ANALYTICS_CACHE_KEY = 'dtdls:analytics:admin:lkg';
 
+export interface PublicAnalyticsData {
+  mau: number;
+  dau: number;
+  totalViews: number;
+  avgSessionDuration: string;
+}
+
+export interface AdminAnalyticsRow {
+  date: string;
+  activeUsers: number;
+  pageViews: number;
+}
+
 // TTLs in seconds
 const PUBLIC_CACHE_TTL = 3600; // 1 hour
 const ADMIN_CACHE_TTL = 600; // 10 minutes
@@ -24,7 +37,7 @@ function getGACredentials() {
 /**
  * Fetch raw public analytics from Google Analytics API
  */
-async function fetchPublicAnalyticsFromGA() {
+async function fetchPublicAnalyticsFromGA(): Promise<PublicAnalyticsData> {
   const creds = getGACredentials();
   if (!creds) {
     return { mau: 0, dau: 0, totalViews: 0, avgSessionDuration: '0m 0s' };
@@ -64,10 +77,10 @@ async function fetchPublicAnalyticsFromGA() {
 /**
  * Get Public Analytics using LKG (Last Known Good) Strategy
  */
-export async function getPublicAnalyticsLKG() {
+export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
   try {
     if (redis) {
-      const cached = await redis.get<{ data: any, timestamp: number }>(PUBLIC_ANALYTICS_CACHE_KEY);
+      const cached = await redis.get<{ data: PublicAnalyticsData, timestamp: number }>(PUBLIC_ANALYTICS_CACHE_KEY);
       if (cached) {
         const isStale = (Date.now() - cached.timestamp) > (PUBLIC_CACHE_TTL * 1000);
         if (isStale) {
@@ -96,7 +109,7 @@ export async function getPublicAnalyticsLKG() {
 /**
  * Fetch raw admin analytics from Google Analytics API
  */
-async function fetchAdminAnalyticsFromGA() {
+async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsRow[]> {
   const creds = getGACredentials();
   if (!creds) {
     return [];
@@ -136,10 +149,10 @@ async function fetchAdminAnalyticsFromGA() {
 /**
  * Get Admin Analytics using LKG (Last Known Good) Strategy
  */
-export async function getAdminAnalyticsLKG() {
+export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsRow[]> {
   try {
     if (redis) {
-      const cached = await redis.get<{ data: any, timestamp: number }>(ADMIN_ANALYTICS_CACHE_KEY);
+      const cached = await redis.get<{ data: AdminAnalyticsRow[], timestamp: number }>(ADMIN_ANALYTICS_CACHE_KEY);
       if (cached) {
         const isStale = (Date.now() - cached.timestamp) > (ADMIN_CACHE_TTL * 1000);
         if (isStale) {

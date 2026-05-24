@@ -37,9 +37,7 @@ export function TransactionTable({
 }: TransactionTableProps) {
   const { areaUnit } = useSettings();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
-  const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
-  const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
-  const [activeDropdown, setActiveDropdown] = useState<'sort' | 'area' | 'dealType' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
   
   const INITIAL_DISPLAY_COUNT = 10;
   const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
@@ -47,7 +45,7 @@ export function TransactionTable({
   // Reset displayed count when filters change
   useEffect(() => {
     setDisplayedCount(INITIAL_DISPLAY_COUNT);
-  }, [txSort, txFilterArea, txFilterDealType, chartType]);
+  }, [txSort, chartType]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -59,32 +57,14 @@ export function TransactionTable({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeDropdown]);
 
-  // Derived filter options
-  const { areaTypes, dealTypes } = useMemo(() => {
-    const areas = new Set<number>();
-    const deals = new Set<string>();
-    transactions.forEach(t => {
-      areas.add(t.area);
-      if (t.dealType) deals.add(t.dealType);
-    });
-    return {
-      areaTypes: Array.from(areas).sort((a, b) => a - b),
-      dealTypes: Array.from(deals)
-    };
-  }, [transactions]);
-
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
       // 연동 차트에 따라 매매/전월세 기본 분류 필터링
       if (chartType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
       if (chartType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
-
-      // 추가 필터링
-      if (txFilterArea !== 'ALL' && tx.area !== Number(txFilterArea)) return false;
-      if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
       return true;
     });
-  }, [transactions, chartType, txFilterArea, txFilterDealType]);
+  }, [transactions, chartType]);
 
   const sortedFilteredTransactions = useMemo(() => {
     return [...filteredTransactions].sort((a, b) => {
@@ -127,67 +107,31 @@ export function TransactionTable({
 
   return (
     <div className="flex flex-col bg-[#F9FAFB] rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full shadow-inner">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-[#F9FAFB] border-b border-border w-full">
+      <div className="flex items-center justify-between p-4 bg-[#F9FAFB] border-b border-border w-full">
         <h4 className="text-[14px] font-bold text-secondary shrink-0">
           실거래가 <span className="text-toss-blue ml-1">{filteredTransactions.length}</span>건
         </h4>
-        <div className="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto pb-0.5">
-          {/* 면적 필터 */}
-          <div className="relative flex-1 md:flex-none" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'area' ? null : 'area'); }}>
-            <button className="flex items-center justify-center md:justify-start gap-1 w-full px-2 py-1.5 rounded-lg border border-border bg-surface text-[12px] font-bold text-secondary hover:bg-body transition-colors truncate">
-              <span className="truncate">{txFilterArea === 'ALL' ? '전체 면적' : `${txFilterArea}m²`}</span>
-              <ChevronDown size={14} className={`shrink-0 text-tertiary transition-transform ${activeDropdown === 'area' ? 'rotate-180' : ''}`} />
-            </button>
-            {activeDropdown === 'area' && (
-              <div className="absolute top-10 left-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
-                {[{ label: '전체 면적', value: 'ALL' }, ...areaTypes.map(a => ({ label: `${a}m²`, value: String(a) }))].map(opt => (
-                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txFilterArea === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'}`}
-                    onClick={(e) => { e.stopPropagation(); setTxFilterArea(opt.value); setActiveDropdown(null); }}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* 거래유형 필터 */}
-          <div className="relative flex-1 md:flex-none" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'dealType' ? null : 'dealType'); }}>
-            <button className="flex items-center justify-center md:justify-start gap-1 w-full px-2 py-1.5 rounded-lg border border-border bg-surface text-[12px] font-bold text-secondary hover:bg-body transition-colors truncate">
-              <span className="truncate">{txFilterDealType === 'ALL' ? '전체 유형' : txFilterDealType}</span>
-              <ChevronDown size={14} className={`shrink-0 text-tertiary transition-transform ${activeDropdown === 'dealType' ? 'rotate-180' : ''}`} />
-            </button>
-            {activeDropdown === 'dealType' && (
-              <div className="absolute top-10 left-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
-                {[{ label: '전체 유형', value: 'ALL' }, ...dealTypes.map(d => ({ label: d, value: d }))].map(opt => (
-                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txFilterDealType === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'}`}
-                    onClick={(e) => { e.stopPropagation(); setTxFilterDealType(opt.value); setActiveDropdown(null); }}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* 정렬 필터 */}
-          <div className="relative flex-1 md:flex-none" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
-            <button className="flex items-center justify-center md:justify-start gap-1 w-full px-2 py-1.5 rounded-lg border border-border bg-surface text-[12px] font-bold text-secondary hover:bg-body transition-colors truncate">
-              <span className="truncate">{{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가', 'price_asc': '낮은가' }[txSort as string] || '최신순'}</span>
-              <ChevronDown size={14} className={`shrink-0 text-tertiary transition-transform ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
-            </button>
-            {activeDropdown === 'sort' && (
-              <div className="absolute top-10 right-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
-                {[
-                  { label: '최신순 (계약일)', value: 'date_desc' },
-                  { label: '과거순 (계약일)', value: 'date_asc' },
-                  { label: '높은가격순', value: 'price_desc' },
-                  { label: '낮은가격순', value: 'price_asc' },
-                ].map(opt => (
-                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txSort === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'}`}
-                    onClick={(e) => { e.stopPropagation(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* 정렬 필터 */}
+        <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
+          <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#6b7684] hover:text-[#191f28] transition-colors cursor-pointer bg-transparent border-none outline-none">
+            <span>{{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가격순', 'price_asc': '낮은가격순' }[txSort as string] || '최신순'}</span>
+            <ChevronDown size={14} className={`text-tertiary transition-transform duration-200 ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
+          </button>
+          {activeDropdown === 'sort' && (
+            <div className="absolute top-6 right-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
+              {[
+                { label: '최신순 (계약일)', value: 'date_desc' },
+                { label: '과거순 (계약일)', value: 'date_asc' },
+                { label: '높은가격순', value: 'price_desc' },
+                { label: '낮은가격순', value: 'price_asc' },
+              ].map(opt => (
+                <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txSort === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'} border-none bg-transparent`}
+                  onClick={(e) => { e.stopPropagation(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -263,7 +207,7 @@ export function TransactionTable({
               
               {/* 2. 평형 (독립 칼럼 & 칩 디자인 세련되게 정돈) */}
               <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
-                <span className={`w-full text-center text-[12px] md:text-[13px] tracking-tight font-extrabold py-0.5 px-1.5 rounded-md bg-[#f1f5f9] ${isCancelled ? 'text-tertiary' : 'text-secondary'}`} title={typeLabel}>
+                <span className={`w-full text-center text-[12.5px] tracking-tight font-bold ${isCancelled ? 'text-tertiary/60' : 'text-secondary'}`} title={typeLabel}>
                   {typeLabel}
                 </span>
               </div>

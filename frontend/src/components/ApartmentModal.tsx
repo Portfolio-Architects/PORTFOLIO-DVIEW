@@ -95,6 +95,8 @@ function FieldReportModal({
   const [activeTab, setActiveTab] = useState('sec-summary');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   // 차트 매매/전월세 토글
@@ -165,6 +167,31 @@ function FieldReportModal({
       return b.price - a.price;
     });
   }, [rawTransactions]);
+
+  // 특정 평형 필터 칩 목록
+  const areaFilterChips = useMemo(() => {
+    const rawAreas = Array.from(new Set(transactions.map(tx => {
+      const norm = normalizeAptName(tx.aptName);
+      const t = typeMap[norm]?.[String(tx.area)];
+      return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+    })));
+    return ['전체', ...rawAreas.sort((a, b) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] || '0');
+      const numB = parseInt(b.match(/\d+/)?.[0] || '0');
+      return numA - numB;
+    })];
+  }, [transactions, typeMap, areaUnit]);
+
+  // 필터링된 실거래 목록
+  const filteredTransactions = useMemo(() => {
+    if (selectedAreaFilter === '전체') return transactions;
+    return transactions.filter(tx => {
+      const norm = normalizeAptName(tx.aptName);
+      const t = typeMap[norm]?.[String(tx.area)];
+      const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+      return label === selectedAreaFilter;
+    });
+  }, [transactions, selectedAreaFilter, typeMap, areaUnit]);
 
   // Hydration-safe portal mount
   useEffect(() => {
@@ -285,6 +312,14 @@ function FieldReportModal({
 
   const handleScroll = () => {
     if (!modalRef.current) return;
+
+    // Top 버튼 상태 감지
+    if (modalRef.current.scrollTop > 400) {
+      setShowScrollTop(true);
+    } else {
+      setShowScrollTop(false);
+    }
+
     const sections = ['sec-summary', 'sec-infra-metrics', 'sec-valuation', 'sec-photos', 'sec-comments'];
     let current = 'sec-summary';
     for (const id of sections) {
@@ -470,38 +505,67 @@ function FieldReportModal({
   const content = (
     <>
       {/* ── Unified Header ── */}
-      <div className="w-full bg-surface pt-8 md:pt-10 pb-4 px-4 md:px-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
-        <div className="flex flex-col gap-1.5">
+      <div className="w-full bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0">
+          <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
             <span className="truncate">{displayAptName}</span>
             <a 
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[12px] md:text-[13px] font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue-light/80 px-2.5 py-1.5 md:px-3.5 md:py-1.5 rounded-full transition-all shrink-0 ml-2 group border border-toss-blue/10 shadow-sm"
+              className="inline-flex items-center gap-1 text-[11px] md:text-[12px] font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue-light/80 px-2 py-0.5 md:px-2.5 md:py-0.5 rounded-full transition-all shrink-0 ml-2 group border border-toss-blue/5"
               title="구글 지도에서 아파트 위치 보기"
             >
-              <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:scale-110 transition-transform" />
-              <span>지도 보기</span>
+              <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:scale-105 transition-transform" />
+              <span>지도보기</span>
             </a>
           </h1>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto">
-          {setAreaUnit && (
-            <div className="bg-body p-0.5 rounded-xl hidden md:flex items-center shadow-inner">
-              <button onClick={() => setAreaUnit('m2')} className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'm2' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>m²</button>
-              <button onClick={() => setAreaUnit('pyeong')} className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'pyeong' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>평</button>
-            </div>
-          )}
-          <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
-            <button onClick={() => setChartType('sale')} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+        <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
+          {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
+          <button
+            onClick={handleNativeShare}
+            className="bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary px-4 py-2 rounded-2xl transition-all shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border border-border/20 active:scale-[0.98] cursor-pointer"
+            title="아파트 분석 리포트 공유하기"
+          >
+            <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
+            <span>공유하기</span>
+          </button>
+
+          {/* 매매/전월세 토글 */}
+          <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20">
+            <button onClick={() => setChartType('sale')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+            <button onClick={() => setChartType('jeonse')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
           </div>
         </div>
       </div>
+
+      {/* ── 평형 필터 칩스 (Unified Header와 Hero Section 사이) ── */}
+      {areaFilterChips.length > 2 && (
+        <div className="w-full bg-surface px-4 md:px-10 pt-1 pb-4 flex items-center gap-1.5 overflow-x-auto scrollbar-hide shrink-0 border-b border-border/40">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+            {areaFilterChips.map(chip => {
+              const isActive = selectedAreaFilter === chip;
+              return (
+                <button
+                  key={chip}
+                  onClick={() => setSelectedAreaFilter(chip)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] md:text-[12.5px] font-bold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-primary text-surface shadow-sm'
+                      : 'bg-body text-secondary hover:bg-[#e5e8eb]'
+                  }`}
+                >
+                  {chip}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Hero Section — Layout: 35% table / 65% chart */}
       <div className={`bg-surface w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:px-10 md:py-6'} gap-4 md:gap-8 shrink-0 ${inline ? 'border-b border-body' : 'border-b border-border'}`}>
@@ -509,7 +573,7 @@ function FieldReportModal({
         {/* Left: 실거래가 전체 리스트 (35%) */}
         <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch">
           <TransactionTable 
-            transactions={transactions} 
+            transactions={filteredTransactions} 
             typeMap={typeMap} 
             chartType={chartType} 
             normalizeAptName={normalizeAptName} 
@@ -519,7 +583,7 @@ function FieldReportModal({
         {/* Right: 실거래가 차트 (65%) */}
         <div className="w-full md:w-[65%] flex flex-col">
           <TransactionChartSection 
-            transactions={transactions} 
+            transactions={filteredTransactions} 
             chartType={chartType} 
             setChartType={setChartType}
             displayAptName={displayAptName} 
@@ -1313,29 +1377,6 @@ function FieldReportModal({
         <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
 
           <div className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
-            <button
-              onClick={handleCopyLink}
-              className="bg-surface/90 hover:bg-surface text-secondary px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
-              title="일반 링크 복사"
-            >
-              <Link2 size={16} className="group-hover:scale-110 transition-transform" />
-              링크 복사
-            </button>
-            <button
-              onClick={handleKakaoShare}
-              disabled={isSharing}
-              className="bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px] disabled:opacity-80"
-              title="카카오톡으로 단지 공유하기"
-            >
-              {isSharing ? (
-                <div className="w-4 h-4 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 group-hover:scale-110 transition-transform">
-                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                </svg>
-              )}
-              {isSharing ? '카드 생성 중...' : '카톡 공유'}
-            </button>
             <button onClick={onClose} className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
@@ -1348,6 +1389,19 @@ function FieldReportModal({
             {/* 하단 고정 버튼 영역 침범 방지용 여백 (모바일 전용) */}
             <div className="h-28 md:hidden shrink-0" />
           </div>
+
+          {/* Top Floating Button */}
+          {showScrollTop && (
+            <button
+              onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="fixed bottom-20 md:bottom-8 right-6 z-[100] w-12 h-12 bg-surface hover:bg-[#e5e8eb] text-secondary border border-border rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+              title="맨 위로 이동"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+              </svg>
+            </button>
+          )}
 
           {/* Mobile Sticky CTA (공유하기) */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">

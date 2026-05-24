@@ -34,7 +34,7 @@ export function editDistance(a: string, b: string): number {
   return dp[m][n];
 }
 
-export function autoSuggest(aptName: string, txSummaryData: Record<string, any>): string | null {
+export function autoSuggest<T>(aptName: string, txSummaryData: Record<string, T>): string | null {
   const exactOrHardcoded = findTxKey(aptName, txSummaryData);
   if (exactOrHardcoded) return exactOrHardcoded;
 

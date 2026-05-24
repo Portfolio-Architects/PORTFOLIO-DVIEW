@@ -1,6 +1,7 @@
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { redis } from '@/lib/redis';
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
@@ -49,20 +50,82 @@ export const SheetApartmentSchema = z.object({
 
 export type SheetApartment = z.infer<typeof SheetApartmentSchema>;
 
+const SHEETS_CACHE_TTL = 3600; // 1 hour
+
 async function fetchCsv(sheetName: string): Promise<string[][]> {
+  const cacheKey = `DTDLS:cache:sheets:${sheetName}`;
+
+  if (redis) {
+    try {
+      const cached = await redis.get<{ data: string[][]; timestamp: number }>(cacheKey);
+      if (cached) {
+        const isStale = (Date.now() - cached.timestamp) > SHEETS_CACHE_TTL * 1000;
+        if (isStale) {
+          // Stale-While-Revalidate: fetch in background
+          fetchCsvFromGoogle(sheetName).then(freshData => {
+            redis?.set(cacheKey, { data: freshData, timestamp: Date.now() });
+          }).catch(err => {
+            logger.error('fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err);
+          });
+        }
+        return cached.data;
+      }
+    } catch (e) {
+      logger.error('fetchCsv', `Redis read failed for sheet: ${sheetName}`, undefined, e);
+    }
+  }
+
+  const freshData = await fetchCsvFromGoogle(sheetName);
+  if (redis) {
+    try {
+      await redis.set(cacheKey, { data: freshData, timestamp: Date.now() });
+    } catch (e) {
+      logger.error('fetchCsv', `Redis write failed for sheet: ${sheetName}`, undefined, e);
+    }
+  }
+  return freshData;
+}
+
+async function fetchCsvFromGoogle(sheetName: string): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1&_t=${Date.now()}`;
   try {
-    const res = await fetch(csvUrl, { cache: 'no-store' });
+    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
     if (!res.ok) {
-      logger.error('fetchCsv', `Failed to fetch sheet: ${sheetName}, Status: ${res.status}`);
+      logger.error('fetchCsvFromGoogle', `Failed to fetch sheet: ${sheetName}, Status: ${res.status}`);
       throw new Error(`Failed to fetch sheet: ${sheetName}`);
     }
     const text = await res.text();
     return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
   } catch (e) {
-    logger.error('fetchCsv', `Network error fetching sheet: ${sheetName}`, undefined, e);
+    logger.error('fetchCsvFromGoogle', `Network error fetching sheet: ${sheetName}`, undefined, e);
     throw e;
   }
+}
+
+export interface TypeMapItem {
+  aptName: string;
+  area: string;
+  typeM2: string;
+  typePyeong: string;
+}
+
+export async function fetchSheetTypeMap(): Promise<TypeMapItem[]> {
+  const rows = await fetchCsv(SHEET_TABS.TYPE_MAP);
+  if (rows.length < 2) return [];
+
+  const result: TypeMapItem[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i];
+    if (cols.length < 3) continue;
+    const aptName = cols[1]?.trim();
+    const area = cols[2]?.trim();
+    const typeM2 = cols[3]?.trim() || '';
+    const typePyeong = cols[5]?.trim() || '';
+    if (aptName && area && (typeM2 || typePyeong)) {
+      result.push({ aptName, area, typeM2, typePyeong });
+    }
+  }
+  return result;
 }
 
 function findColIndex(headers: string[], possibleNames: string[]): number {

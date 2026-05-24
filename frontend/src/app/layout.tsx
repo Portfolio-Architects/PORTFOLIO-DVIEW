@@ -10,8 +10,10 @@ import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
-import SettingsModal from '@/components/SettingsModal';
 import Footer from '@/components/Footer';
+import dynamic from 'next/dynamic';
+
+const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dongtanview.com'),

@@ -6,7 +6,7 @@
 import { db } from '@/lib/firebaseConfig';
 import {
   collection, query, where, getDocs, addDoc,
-  serverTimestamp, doc, getDoc
+  serverTimestamp
 } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { Purchase } from '@/lib/types/purchase.types';

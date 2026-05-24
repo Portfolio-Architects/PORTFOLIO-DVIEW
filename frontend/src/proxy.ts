@@ -57,8 +57,6 @@ export async function proxy(request: NextRequest) {
   }
 
   // 2. HTTP Security 헤더 주입 파이프라인
-  const isDev = process.env.NODE_ENV === 'development';
-
   // CSP: ISR/Static Generation 과의 충돌(nonce 불일치)을 방지하기 위해 strict-dynamic 및 nonce를 제거.
   // 대신 엄격한 Host 기반 Allowlist 유지.
   const cspHeader = `

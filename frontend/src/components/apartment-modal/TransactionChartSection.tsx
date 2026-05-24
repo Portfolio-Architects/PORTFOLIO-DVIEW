@@ -317,33 +317,39 @@ export function TransactionChartSection({
           <div className="flex items-center gap-2 md:gap-3 md:ml-auto">
             <button 
               onClick={handleCaptureChart}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-body hover:bg-[#e5e8eb] text-secondary rounded-[10px] text-[12px] sm:text-[13px] font-bold transition-colors shadow-sm shrink-0"
+              className="w-8 h-8 flex items-center justify-center bg-transparent hover:bg-body text-secondary hover:text-primary rounded-lg transition-colors border border-border shrink-0 cursor-pointer"
               title="차트 이미지로 저장"
             >
-              <Camera size={14} strokeWidth={2.5} />
-              <span className="hidden sm:inline">저장</span>
+              <Camera size={15} strokeWidth={2} />
             </button>
-            <div className="flex items-center gap-1 bg-body p-1 rounded-[10px] shadow-inner shrink-0 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1 bg-[#f2f4f6] p-0.5 rounded-xl shadow-inner shrink-0 overflow-x-auto scrollbar-hide">
               {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                 <button key={tf} onClick={() => setChartTimeframe(tf)}
-                  className={`px-3 py-1.5 rounded-md text-[12px] sm:text-[13px] font-bold transition-all whitespace-nowrap ${
-                    chartTimeframe === tf ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:bg-[#e5e8eb]'
+                  className={`px-3 py-1.5 rounded-lg text-[12px] sm:text-[13px] font-bold transition-all whitespace-nowrap ${
+                    chartTimeframe === tf ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:text-secondary'
                   }`}>{tf}</button>
               ))}
             </div>
           </div>
         </div>
         
-        <div className="flex w-full gap-2 md:gap-3 mb-5 overflow-x-auto overflow-y-hidden touch-pan-x scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x pb-2">
-          {[{label: '1개월', val: momentum.m1}, {label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}, {label: '3년', val: momentum.y3}].map((item, idx) => {
+        <div className="flex w-full gap-2 sm:gap-3 mb-5">
+          {[{label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}].map((item) => {
             const isTarget = item.label === '3개월';
             return (
-              <div key={item.label} className={`flex flex-col px-3 py-2.5 sm:px-5 sm:py-4 shrink-0 min-w-[95px] sm:min-w-[120px] flex-1 snap-center relative rounded-xl sm:rounded-2xl border transition-all duration-200 ${isTarget ? 'bg-surface border-toss-blue shadow-[0_4px_16px_rgba(49,130,246,0.15)] ring-1 ring-toss-blue/20 z-10' : 'bg-body border-transparent hover:bg-[#e5e8eb]'}`}>
-                <div className={`text-[11px] sm:text-[13px] font-bold mb-1 sm:mb-1.5 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
+              <div 
+                key={item.label} 
+                className={`flex flex-col px-3 py-2.5 sm:px-4 sm:py-3.5 flex-1 relative rounded-xl border transition-all duration-200 ${
+                  isTarget 
+                    ? 'bg-surface border-toss-blue shadow-[0_4px_12px_rgba(49,130,246,0.06)] ring-1 ring-toss-blue/10 z-10' 
+                    : 'bg-surface border-border/60 hover:bg-body/30'
+                }`}
+              >
+                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
-                  {isTarget && <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 shrink-0 bg-toss-blue rounded-full animate-pulse shadow-[0_0_8px_rgba(49,130,246,0.5)]" />}
+                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-toss-blue rounded-full animate-pulse shadow-[0_0_6px_rgba(49,130,246,0.3)]" />}
                 </div>
-                <span className={`text-[14.5px] sm:text-[18px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>

@@ -379,7 +379,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // --- React Hook (re-exported for backward compatibility) ---
-import { useState, useEffect, useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -388,9 +388,6 @@ const EMPTY_ARRAY: any[] = [];
  * Avoids global array spread deep-copies and triggers re-renders ONLY when specific data references change.
  */
 export function useDashboardData() {
-  const [isHydrated, setIsHydrated] = useState(false);
-  useEffect(() => setIsHydrated(true), []);
-
   const kpis = useSyncExternalStore(
     useCallback((cb) => dashboardFacade.subscribeTo('kpis', cb), []),
     () => dashboardFacade.getKPIs(),
@@ -427,7 +424,6 @@ export function useDashboardData() {
     fieldReports, 
     userReviews, 
     dongtanApartments, 
-    adBanner: dashboardFacade.getAdBanner(), 
-    isHydrated 
+    adBanner: dashboardFacade.getAdBanner()
   };
 }

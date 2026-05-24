@@ -23,8 +23,6 @@ describe('ApartmentMapping Unit Tests', () => {
     });
 
     it('should handle NFC/NFD normalization correctly', () => {
-      // Create NFD string (Decomposed)
-      const nfd = 'ㄷㅗㅇㅌㅏㄴ'.normalize('NFD');
       // Actually standard NFD for "동탄" is \u1103\u1169\u11bc\u1110\u1161\u11ab
       const decomposed = '\u1103\u1169\u11BC\u1110\u1161\u11AB';
       expect(normalizeAptName(decomposed)).toBe('동탄');

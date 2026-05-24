@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only, no business logic)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import type { FieldReportData } from '@/lib/types/report.types';
 
 /**

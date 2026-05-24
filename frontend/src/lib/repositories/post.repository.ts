@@ -10,7 +10,7 @@ import { db } from '@/lib/firebaseConfig';
 import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { NewsItemData } from '@/lib/types/dashboard.types';
-import { Train, Building, BookOpen, Calendar, MessageSquare } from 'lucide-react';
+import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
 
 /**
  * Listens to the 'posts' collection in real-time.
