@@ -2,7 +2,7 @@
 
 import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut, TrendingUp, ShieldAlert,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye, Search, ArrowLeft } from 'lucide-react';
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye, Search, ArrowLeft, Coins } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import DongFilterBar from '@/components/DongFilterBar';
 import { TrendingTicker } from '@/components/ui/TrendingTicker';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
+import PageHeroHeader from '@/components/PageHeroHeader';
 
 import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
@@ -25,6 +26,7 @@ const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ss
 const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
+const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer'), { ssr: false });
 
 
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
@@ -110,7 +112,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'gap' | 'lounge'>('overview');
   const [isPending, startTransition] = useTransition();
 
   const fieldReportsMap = useMemo(() => {
@@ -131,6 +133,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     if (typeof window !== 'undefined') {
       if (window.location.hash === '#imjang') {
         setActiveTab('imjang');
+      } else if (window.location.hash === '#gap') {
+        setActiveTab('gap');
       } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) {
         setActiveTab('lounge');
       }
@@ -139,6 +143,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         startTransition(() => {
           if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) setActiveTab('lounge');
           else if (window.location.hash === '#imjang') setActiveTab('imjang');
+          else if (window.location.hash === '#gap') setActiveTab('gap');
           else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');
         });
       };
@@ -414,7 +419,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   return (
     <>
     <PullToRefresh 
-      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}
+      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : activeTab === 'gap' ? 'gap-scroll' : 'recommend-scroll'}
       disabled={mobileModalOpen || !!selectedReport}
     >
       <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)] overflow-x-hidden">
@@ -458,6 +463,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               >
                 <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
+              </button>
+
+              <button
+                onClick={() => startTransition(() => { setActiveTab('gap'); window.location.hash = 'gap'; })}
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] ${
+                  activeTab === 'gap'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                }`}
+              >
+                <Coins size={16} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>갭투자 탐색</span>
               </button>
 
               <button
@@ -565,6 +582,45 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           </section>
         )}
 
+        {mounted && (
+          <section className={`w-full bg-surface ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
+            <PageHeroHeader 
+              title="D-VIEW 갭투자 탐색"
+              subtitleStrong="실거래가 기준 투자금별 아파트 매칭"
+              subtitleLight="관심 있는 예산 한도 내에서 최적의 갭투자 단지를 찾아보세요"
+            />
+            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16">
+              <GapInvestmentExplorer
+                sheetApartments={sheetApartments}
+                txSummaryData={txSummary}
+                nameMapping={nameMapping || {}}
+                publicRentalSet={publicRentalSet}
+                onSelectApt={(name: string) => {
+                  userHasSelected.current = true;
+                  const report = fieldReportsMap.get(name);
+                  if (report) {
+                    setSelectedReport(report);
+                  } else {
+                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                    setSelectedReport({
+                      id: `stub-${name.replace(/\s+/g, '')}`,
+                      apartmentName: name,
+                      dong: targetApt.dong,
+                      author: '',
+                      likes: 0,
+                      commentCount: 0,
+                      createdAt: null,
+                      metrics: { ...targetApt } as any,
+                    });
+                  }
+                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                  setMobileModalOpen(true);
+                }}
+              />
+            </div>
+          </section>
+        )}
+
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         {mounted && (
           <section className={`w-full bg-surface ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
@@ -576,45 +632,41 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {resolvedReport && mobileModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full h-full md:max-w-[700px] md:max-h-[90vh] md:h-auto bg-surface md:rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-              <FieldReportModal
-              report={resolvedReport}
-              onClose={() => {
-                setSelectedReport(null);
-                setMobileModalOpen(false);
-                
-                const currentHash = window.location.hash;
-                if (currentHash.includes('post=')) {
-                  const postMatch = currentHash.match(/#post=([^&]+)/);
-                  if (postMatch) {
-                    window.history.replaceState(null, '', window.location.pathname + window.location.search + `#post=${postMatch[1]}`);
-                    return;
-                  }
+          <FieldReportModal
+            report={resolvedReport}
+            onClose={() => {
+              setSelectedReport(null);
+              setMobileModalOpen(false);
+              
+              const currentHash = window.location.hash;
+              if (currentHash.includes('post=')) {
+                const postMatch = currentHash.match(/#post=([^&]+)/);
+                if (postMatch) {
+                  window.history.replaceState(null, '', window.location.pathname + window.location.search + `#post=${postMatch[1]}`);
+                  return;
                 }
-                
-                window.history.replaceState(null, '', window.location.pathname + window.location.search);
-              }}
-              comments={commentsData[resolvedReport.id] || []}
-              commentInput={commentInput[resolvedReport.id] || ''}
-              onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
-              onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
-              user={user}
-              transactions={modalTransactions}
-              typeMap={typeMap}
-              inline={false}
-              isLoadingDetail={isLoadingDetail}
-              isPurchased={purchasedReportIds.includes(resolvedReport.id)}
-              isAdmin={dashboardFacade.isAdmin(user?.email)}
-              txSummary={aptTxSummary}
-              onPurchaseComplete={() => {
-                if (user) {
-                  refreshPurchasedReports();
-                }
-              }}
-            />
-            </div>
-          </div>
+              }
+              
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            }}
+            comments={commentsData[resolvedReport.id] || []}
+            commentInput={commentInput[resolvedReport.id] || ''}
+            onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
+            onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
+            user={user}
+            transactions={modalTransactions}
+            typeMap={typeMap}
+            inline={false}
+            isLoadingDetail={isLoadingDetail}
+            isPurchased={purchasedReportIds.includes(resolvedReport.id)}
+            isAdmin={dashboardFacade.isAdmin(user?.email)}
+            txSummary={aptTxSummary}
+            onPurchaseComplete={() => {
+              if (user) {
+                refreshPurchasedReports();
+              }
+            }}
+          />
         )}
 
 

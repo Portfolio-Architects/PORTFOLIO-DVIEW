@@ -56,11 +56,11 @@ export default function PageHeroHeader({
         <div className="flex items-start justify-between w-full">
           <div className="flex flex-col gap-[19px] sm:gap-[23px]">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="rounded-[12px] sm:rounded-[14px] bg-surface border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm">
+              <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden">
                 <img
                   src="/d-view-icon.png"
                   alt="Icon"
-                  className="w-[30px] h-[30px] sm:w-[37px] sm:h-[37px] object-contain"
+                  className="w-[30px] h-[30px] sm:w-[37px] sm:h-[37px] object-contain rounded-[8px] sm:rounded-[10px]"
                 />
               </div>
               <h1 className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
