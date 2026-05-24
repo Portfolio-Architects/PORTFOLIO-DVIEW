@@ -5,14 +5,14 @@ import path from 'path';
 
 export async function getEngineeringReport() {
   let markdownContent = '';
-  let reportMetadata = { date: '', grade: '', branch: '', status: '' };
+  const reportMetadata = { date: '', grade: '', branch: '', status: '' };
   
   try {
     const filePath = path.join(process.cwd(), 'src', 'data', 'engineering-report.md');
     const rawContent = fs.readFileSync(filePath, 'utf8');
 
     const lines = rawContent.split('\n');
-    let contentLines = [];
+    const contentLines = [];
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];

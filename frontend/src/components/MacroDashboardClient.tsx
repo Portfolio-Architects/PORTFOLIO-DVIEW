@@ -632,12 +632,12 @@ export default function MacroDashboardClient({
   };
 
   const isPointInPolygon = (point: { lat: number; lng: number }, vs: { lat: number; lng: number }[]) => {
-    let x = point.lng, y = point.lat;
+    const x = point.lng, y = point.lat;
     let inside = false;
     for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-      let xi = vs[i].lng, yi = vs[i].lat;
-      let xj = vs[j].lng, yj = vs[j].lat;
-      let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      const xi = vs[i].lng, yi = vs[i].lat;
+      const xj = vs[j].lng, yj = vs[j].lat;
+      const intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
       if (intersect) inside = !inside;
     }
     return inside;
@@ -715,7 +715,7 @@ interface GroupedCategory {
             )
             : null;
 
-        let themeTitles: string[] = [];
+        const themeTitles: string[] = [];
 
         // ==========================================
         const isSibumArea = lat !== 0 && lng !== 0 && isPointInPolygon({ lat: Number(lat), lng: Number(lng) }, sibumPolygon);

@@ -13,7 +13,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   let title = '동탄 라운지 게시글 | D-VIEW';
   let description = '동탄 주민들의 솔직한 리얼 실거래가 라운지 이야기입니다.';
   let imageUrl: string | undefined = undefined;
-  let keywords = ['동탄', 'D-VIEW', '라운지', '실거래가', '부동산', '아파트'];
+  const keywords = ['동탄', 'D-VIEW', '라운지', '실거래가', '부동산', '아파트'];
 
   if (!id) return { title, description };
 
