@@ -36,7 +36,14 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
       return () => window.removeEventListener('hashchange', handleHashChange);
     }
   }, []);
-  const categories = ['동탄 부동산 뉴스', '매니저 임장기', '우리동네 이야기'];
+  const categories = [
+    '동탄 부동산 뉴스',
+    '매니저 임장기',
+    '동탄 육아/교육',
+    '실시간 오픈런/정보',
+    '우리동네 이야기',
+    '동탄 벼룩/나눔'
+  ];
   return (
     <div className="flex flex-col w-full bg-surface">
       {/* Standardized Hero Header */}
@@ -96,7 +103,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
 
         <LoungeFeedClient initialPosts={initialPosts} currentTab={currentTab} />
 
-        <LoungeComposeClient currentCategory={currentTab === '동탄 부동산 뉴스' ? '우리동네 이야기' : currentTab} />
+        <LoungeComposeClient currentCategory={(currentTab === '동탄 부동산 뉴스' || currentTab === '매니저 임장기') ? '우리동네 이야기' : currentTab} />
       </section>
 
       </div>

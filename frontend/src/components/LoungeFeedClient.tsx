@@ -27,8 +27,12 @@ interface LoungeFeedClientProps {
 }
 
 const CATEGORY_MAP: Record<string, string[]> = {
+  '동탄 부동산 뉴스': [],
+  '매니저 임장기': ['매니저 임장기'],
+  '동탄 육아/교육': ['동탄 육아/교육', '어린이집/유치원', '학원/교육'],
+  '실시간 오픈런/정보': ['실시간 오픈런/정보', '소아과/병원', '실시간 제보'],
   '우리동네 이야기': ['동탄 임장/분석', '임장기', '부동산 고민상담', '부동산 기초', '동탄 청약/대출', '정책자금 대출', '동탄 교통/상권', '인프라', '우리동네 이야기', '기타', '전체'],
-  '매니저 임장기': ['매니저 임장기']
+  '동탄 벼룩/나눔': ['동탄 벼룩/나눔', '나눔/벼룩', '공동구매']
 };
 
 export function formatRelativeTime(dateInput: number | string | Date | undefined): string {
@@ -339,6 +343,9 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                       (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
                       (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-toss-blue' :
                       (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
+                      (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
+                      (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
+                      (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'text-emerald-500' :
                       'text-secondary'
                     }`}>
                       {news.category === '임장기' ? '동탄 임장/분석' : 
@@ -364,12 +371,15 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
               {/* Desktop Meta */}
               <div className="hidden sm:flex items-center gap-4 shrink-0">
-                <span className={`w-[115px] text-[13px] font-extrabold tracking-wide text-center px-2 py-1.5 rounded-lg truncate ${
-                    (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
-                    (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red' :
-                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue' :
-                    (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'bg-[#f4e8ff] text-[#9b51e0]' :
-                    'bg-body text-secondary'
+                <span className={`w-[115px] text-[13px] font-extrabold tracking-wide text-center px-2 py-1.5 rounded-lg truncate border ${
+                    (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c] border-[#e8f8f0]' :
+                    (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red border-[#ffe8e8]' :
+                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue border-toss-blue-light' :
+                    (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'bg-[#f4e8ff] text-[#9b51e0] border-[#f4e8ff]' :
+                    (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                    (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'bg-rose-50 text-rose-500 border-rose-100' :
+                    (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                    'bg-body text-secondary border-body'
                   }`}>
                     {news.category === '임장기' ? '동탄 임장/분석' : 
                      news.category === '부동산 기초' ? '부동산 고민상담' :

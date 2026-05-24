@@ -46,7 +46,7 @@ export interface DashboardDataStrategy {
   getFullReportByApartmentName?(apartmentName: string): Promise<FieldReportData | null>;
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
-  addPost?(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null): Promise<void>;
+  addPost?(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string): Promise<void>;
   incrementPostView?(postId: string, title?: string): Promise<void>;
   addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   incrementFieldReportView?(reportId: string, title?: string): Promise<void>;
@@ -165,9 +165,9 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     };
   }
 
-  async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null) {
+  async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) {
     try {
-      await PostService.createPost(title, content, category, authorUid, imageFile, authorEmail);
+      await PostService.createPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
     } catch (e: unknown) {
       const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addPost', 'Post creation failed', { title }, e);
@@ -349,7 +349,7 @@ export class DashboardFacade {
   public async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> { return this.strategy.getFullReportByApartmentName ? await this.strategy.getFullReportByApartmentName(apartmentName) : null; }
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
-  public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null) { if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail); }
+  public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) { if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail, customNickname); }
   public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
   public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) { if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile); }

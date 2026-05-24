@@ -191,10 +191,18 @@ export function TransactionTable({
         </div>
       </div>
 
+      {/* 테이블 컬럼 헤더 추가 */}
+      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#8b95a1] select-none shrink-0 w-full gap-2">
+        <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
+        <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
+        <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>
+        <div className="w-[90px] md:w-[110px] shrink-0 text-right">거래금액</div>
+      </div>
+
       <div className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]">
         {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
-          const d = tx.contractDay;
+          const d = String(tx.contractDay).trim().padStart(2, '0');
           const isRent = tx.dealType === '전세' || tx.dealType === '월세';
           const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
           const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
@@ -214,80 +222,85 @@ export function TransactionTable({
           // cancelDate가 유효한 날짜(6자리 이상 숫자)인 경우에만 취소 거래로 판정
           const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
+          // 가격을 깔끔한 단일 문자열로 포맷팅
+          let priceText = '';
+          if (tx.dealType === '월세') {
+            const depEok = Math.floor((tx.deposit || 0) / 10000);
+            const depRem = (tx.deposit || 0) % 10000;
+            let depStr = '';
+            if (depEok > 0) {
+              depStr += `${depEok}억`;
+              if (depRem > 0) depStr += `${depRem.toLocaleString()}`;
+            } else {
+              depStr += `${depRem.toLocaleString()}`;
+            }
+            priceText = `${depStr}/${displayMonthly.toLocaleString()}`;
+          } else {
+            if (eok > 0) {
+              priceText += `${eok}억`;
+              if (rem > 0) {
+                priceText += `${rem.toLocaleString()}`;
+              }
+            } else {
+              priceText += `${rem.toLocaleString()}만`;
+            }
+          }
+
           return (
-            <div key={i} className={`flex items-center justify-between p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
+            <div key={i} className={`flex items-center justify-between p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''} gap-2`}>
               
-              {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
-              <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0 pr-2">
-                {/* 1. 날짜 */}
-                <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
-                  <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
-                    {tx.contractYm.substring(2, 4)}. {m}. {d}.
-                  </div>
-                  {isCancelled && (
-                    <div className="text-[10px] font-bold text-[#ef4444] mt-0.5 leading-tight break-keep">
-                      취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
-                    </div>
-                  )}
+              {/* 1. 날짜 */}
+              <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
+                <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                  {tx.contractYm.substring(2, 4)}.{m}.{d}
                 </div>
+                {isCancelled && (
+                  <div className="text-[10px] font-bold text-[#ef4444] mt-0.5 leading-tight break-keep">
+                    취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
+                  </div>
+                )}
+              </div>
+              
+              {/* 2. 평형 (독립 칼럼 & 칩 디자인 세련되게 정돈) */}
+              <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
+                <span className={`w-full text-center text-[12px] md:text-[13px] tracking-tight font-extrabold py-0.5 px-1.5 rounded-md bg-[#f1f5f9] ${isCancelled ? 'text-tertiary' : 'text-secondary'}`} title={typeLabel}>
+                  {typeLabel}
+                </span>
+              </div>
+ 
+              {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
+              <div className="w-[36px] md:w-[48px] shrink-0 text-center">
+                <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
+                  {tx.floor}층
+                </span>
+              </div>
+ 
+              {/* 4. 거래금액 */}
+              <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px]">
+                {tx.isOutlier && (
+                  <div className="group relative flex items-center justify-center cursor-help">
+                    <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
+                    <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-primary text-surface text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
+                      시세 대비 이례적 편차
+                    </div>
+                  </div>
+                )}
+ 
+                {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
+                  <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
+                    tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
+                    tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
+                    'bg-toss-blue-light text-[#00b386]'
+                  }`}>
+                    {tx.dealType.charAt(0)}
+                  </span>
+                )}
                 
-                {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
-                <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
-                  <span className={`w-full text-center text-[14px] md:text-[15px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-primary'}`} title={typeLabel}>
-                    {typeLabel}
-                  </span>
-                </div>
-
-                {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
-                <div className="w-[36px] md:w-[48px] shrink-0 text-center">
-                  <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
-                    {tx.floor}층
-                  </span>
-                </div>
-
-              </div>
-
-              {/* 우측: 덴시티 최적화 가격 */}
-              <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-2 w-auto">
-                <div className="flex items-center gap-1.5">
-                  {tx.isOutlier && (
-                    <div className="group relative flex items-center justify-center cursor-help">
-                      <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
-                      <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-primary text-surface text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
-                        시세 대비 이례적 편차
-                      </div>
-                    </div>
-                  )}
-
-                  {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
-                    <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
-                      tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
-                      tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
-                      'bg-toss-blue-light text-[#00b386]'
-                    }`}>
-                      {tx.dealType.charAt(0)}
-                    </span>
-                  )}
-                  
-                  {/* 가격 위계 분리 (억 단위 강조, 만 단위 고정폭 정렬) */}
-                  <div className={`flex items-baseline justify-end shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] decoration-2' : ''}`}>
-                    {eok > 0 && <span className={`text-[16px] md:text-[17px] font-black mr-[2px] ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>{eok}억</span>}
-                    
-                    {eok > 0 ? (
-                      <span className={`inline-block text-left tabular-nums text-[15px] md:text-[16px] font-bold ${!(tx.isOutlier || isCancelled) ? 'text-secondary' : ''} ${displayMonthly > 0 ? '' : 'w-[40px]'}`}>
-                        {rem > 0 ? rem.toLocaleString() : ''}
-                      </span>
-                    ) : (
-                      <span className={`text-[15px] md:text-[16px] font-black tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>
-                        {rem > 0 ? (displayMonthly > 0 ? rem.toLocaleString() : `${rem.toLocaleString()}만`) : '0'}
-                      </span>
-                    )}
-
-                    {displayMonthly > 0 && <span className={`text-[15px] md:text-[16px] font-bold ml-0.5 tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-tertiary' : ''}`}>/ {displayMonthly.toLocaleString()}</span>}
-                  </div>
+                <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] decoration-2' : 'text-primary'}`}>
+                  {priceText}
                 </div>
               </div>
-
+ 
             </div>
           );
         })}

@@ -26,7 +26,8 @@ export async function createPost(
   category: string,
   authorUid: string,
   imageFile?: File,
-  authorEmail?: string | null
+  authorEmail?: string | null,
+  customNickname?: string
 ): Promise<void> {
   try {
     const { isAdmin } = await import('@/lib/config/admin.config');
@@ -45,7 +46,7 @@ export async function createPost(
 
     // 3. Persist to Firestore (include apartment verification if present)
     const isUserAdmin = isAdmin(authorEmail);
-    const displayName = isUserAdmin ? '매니저' : (profile.nickname || '매니저');
+    const displayName = isUserAdmin ? '매니저' : (customNickname || profile.nickname || '익명');
     const verifiedApartment = isUserAdmin ? '마스터' : profile.verifiedApartment;
     const verificationLevel = isUserAdmin ? 'registry_verified' : profile.verificationLevel;
 

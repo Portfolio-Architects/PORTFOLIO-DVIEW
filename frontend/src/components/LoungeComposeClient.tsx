@@ -12,6 +12,7 @@ import { getDisplayName } from '@/lib/types/user.types';
 import { useRouter } from 'next/navigation';
 import { isAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
+import { generateMamacafeNickname } from '@/lib/utils/nickname';
 
 interface Props {
   currentCategory?: string;
@@ -20,6 +21,7 @@ interface Props {
 export default function LoungeComposeClient({ currentCategory = '동탄 임장/분석' }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const isUserAdmin = isAdmin(user?.email);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showCompose, setShowCompose] = useState(false);
   const [postTitle, setPostTitle] = useState('');
@@ -35,11 +37,19 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
 - 하단의 '사진 첨부' 버튼을 통해 생생한 현장 사진을 공유해 보세요!`;
 
   const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState('동탄 임장/분석');
+  const [postCategory, setPostCategory] = useState('우리동네 이야기');
+  const [customNickname, setCustomNickname] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Generate initial mom-cafe nickname for non-admin users
+  useEffect(() => {
+    if (showCompose && !isUserAdmin && !customNickname) {
+      setCustomNickname(generateMamacafeNickname());
+    }
+  }, [showCompose, isUserAdmin, customNickname]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,7 +116,6 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
     }
   };
 
-  const isUserAdmin = isAdmin(user?.email);
   const displayAuthorName = isUserAdmin ? '매니저' : (userProfile ? getDisplayName(userProfile) : '익명');
   const displayApartment = isUserAdmin ? '마스터' : (userProfile?.verifiedApartment?.replace(/\[.*?\]\s*/, '') || '');
 
@@ -117,6 +126,7 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
         <button
           onClick={() => {
             setPostCategory(currentCategory);
+            setCustomNickname(''); // Reset to trigger auto-generation
             setShowCompose(true);
             if (isUserAdmin && !postContent) {
               setPostContent(MARKDOWN_TEMPLATE);
@@ -148,10 +158,36 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
             
 
             <div className="flex gap-2 mb-4 overflow-x-auto">
-              {(isUserAdmin ? ['매니저 임장기', '동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'] : ['동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권']).map((cat) => (
+              {(isUserAdmin 
+                ? ['매니저 임장기', '동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔'] 
+                : ['동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔']
+              ).map((cat) => (
                 <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{cat}</button>
               ))}
             </div>
+
+            {/* Mom-cafe custom nickname entry */}
+            {!isUserAdmin && (
+              <div className="flex flex-col gap-1.5 mb-3 bg-body p-3.5 rounded-xl border border-border">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12.5px] font-extrabold text-secondary">🎭 동탄맘카페 스타일 활동 가명</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setCustomNickname(generateMamacafeNickname())} 
+                    className="text-[11.5px] font-extrabold text-toss-blue hover:underline flex items-center gap-1"
+                  >
+                    새로 만들기 🔄
+                  </button>
+                </div>
+                <input 
+                  value={customNickname} 
+                  onChange={(e) => setCustomNickname(e.target.value)} 
+                  placeholder="활동 가명을 입력해 주세요" 
+                  className="w-full bg-surface border border-toss-gray rounded-lg px-3 py-2 text-[14px] font-bold outline-none focus:border-toss-blue transition-colors"
+                />
+              </div>
+            )}
+
             <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="글의 핵심 내용이나 단지명이 포함된 제목을 적어주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-toss-blue focus:bg-surface transition-colors mb-2" autoFocus />
             <textarea 
               ref={textareaRef}
@@ -163,7 +199,7 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-4">
-                <span className="text-[12px] text-tertiary hidden sm:inline-block">🎭 {displayAuthorName}</span>
+                <span className="text-[12px] text-tertiary hidden sm:inline-block">🎭 {isUserAdmin ? '매니저' : (customNickname || '익명')}</span>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
@@ -186,8 +222,16 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
                   if (!user || !postTitle.trim()) return;
                   setIsSubmitting(true);
                   try {
-                    await dashboardFacade.addPost(postTitle.trim(), postContent.trim(), postCategory, user.uid, undefined, user.email);
-                    setPostTitle(''); setPostContent(''); setPostCategory('임장기'); setShowCompose(false);
+                    await dashboardFacade.addPost(
+                      postTitle.trim(), 
+                      postContent.trim(), 
+                      postCategory, 
+                      user.uid, 
+                      undefined, 
+                      user.email,
+                      isUserAdmin ? undefined : customNickname.trim()
+                    );
+                    setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
                     // Refresh the route to show the new post from the server component
                     router.refresh();
                   } catch { alert('글 작성에 실패했습니다.'); }

@@ -470,7 +470,7 @@ function FieldReportModal({
   const content = (
     <>
       {/* ── Unified Header ── */}
-      <div className="w-full bg-surface pt-6 pb-2 px-4 md:px-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
+      <div className="w-full bg-surface pt-8 md:pt-10 pb-4 px-4 md:px-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
             <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
@@ -1291,7 +1291,7 @@ function FieldReportModal({
         
         <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1500px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
 
-          <div className="absolute top-4 right-4 z-[100] hidden md:flex items-center gap-3">
+          <div className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
             <button
               onClick={handleCopyLink}
               className="bg-surface/90 hover:bg-surface text-secondary px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
@@ -1315,7 +1315,7 @@ function FieldReportModal({
               )}
               {isSharing ? '카드 생성 중...' : '카톡 공유'}
             </button>
-            <button onClick={onClose} className="bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 group">
+            <button onClick={onClose} className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>

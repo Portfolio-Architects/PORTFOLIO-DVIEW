@@ -88,7 +88,7 @@ export default function TossApartmentExploreClient({
   handleSelectApt,
   onToggleFavorite,
 }: TossApartmentExploreClientProps) {
-  const [currentCategory, setCurrentCategory] = useState<string>('rank-price');
+  const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -187,8 +187,8 @@ export default function TossApartmentExploreClient({
       if (currentCategory === 'rank-volume') {
         return b.volume3M - a.volume3M;
       }
-      // default: price per pyeong
-      return b.pyeongPrice - a.pyeongPrice;
+      // default: absolute price (totalPrice)
+      return b.totalPrice - a.totalPrice;
     });
 
     // Search filter
