@@ -885,10 +885,10 @@ interface GroupedCategory {
             </div>
             <div className="w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
             <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
-              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">VIEW</span>
+              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">VIEW (30D)</span>
               <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.totalViews) : '...'}</span>
               <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
-                누적 페이지 뷰 (조회수) 총합
+                최근 30일 동안의 누적 페이지 뷰 (조회수) 총합
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
               </div>
             </div>

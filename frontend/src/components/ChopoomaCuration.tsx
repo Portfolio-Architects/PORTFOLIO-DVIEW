@@ -24,6 +24,15 @@ export default function ChopoomaCuration({
   onSelectApt,
 }: ChopoomaCurationProps) {
   const [showAll, setShowAll] = useState<boolean>(false);
+  const [selectedStepIndex, setSelectedStepIndex] = useState<number>(3); // Default to '전체 (300m)'
+
+  // Available distance filter steps (in meters)
+  const DISTANCE_STEPS = useMemo(() => [
+    { label: '100m 미만', min: 0, max: 100, inclusiveMin: false, inclusiveMax: false },
+    { label: '100m~200m', min: 100, max: 200, inclusiveMin: true, inclusiveMax: false },
+    { label: '200m~300m', min: 200, max: 300, inclusiveMin: true, inclusiveMax: true },
+    { label: '전체 (300m)', min: 0, max: 300, inclusiveMin: false, inclusiveMax: true },
+  ], []);
 
   // format price helper
   const formatPrice = (priceMan: number) => {
@@ -37,7 +46,7 @@ export default function ChopoomaCuration({
   };
 
   // Find all complexes and compute school distance info
-  const chopoomaList = useMemo(() => {
+  const rawChopoomaList = useMemo(() => {
     const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
     
     const enriched = allApts.map(apt => {
@@ -68,6 +77,17 @@ export default function ChopoomaCuration({
       .sort((a, b) => a.dist! - b.dist!);
   }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, locationScores]);
 
+  // Filter based on selected distance step
+  const chopoomaList = useMemo(() => {
+    const step = DISTANCE_STEPS[selectedStepIndex];
+    return rawChopoomaList.filter(item => {
+      if (item.dist === undefined) return false;
+      const minPass = step.inclusiveMin ? item.dist >= step.min : item.dist > step.min;
+      const maxPass = step.inclusiveMax ? item.dist <= step.max : item.dist < step.max;
+      return minPass && maxPass;
+    });
+  }, [rawChopoomaList, selectedStepIndex, DISTANCE_STEPS]);
+
   const visibleList = showAll ? chopoomaList : chopoomaList.slice(0, 6);
 
   return (
@@ -88,8 +108,30 @@ export default function ChopoomaCuration({
           </div>
         </div>
         
-        <div className="bg-[#e0fbf4] text-[#00b386] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#00b386]/10 shrink-0 self-start sm:self-center">
-          총 {chopoomaList.length}개 단지 매칭
+        {/* Distance Selector & Match Count */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+          <div className="flex bg-body p-1 rounded-xl items-center gap-0.5 overflow-x-auto no-scrollbar max-w-full shadow-inner border border-border/10">
+            {DISTANCE_STEPS.map((step, idx) => (
+              <button
+                key={step.label}
+                onClick={() => {
+                  setSelectedStepIndex(idx);
+                  setShowAll(false);
+                }}
+                className={`px-3 py-1.5 text-[11px] sm:text-[12px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
+                  selectedStepIndex === idx
+                    ? 'bg-surface text-toss-green shadow-sm'
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                {step.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-[#e0fbf4] text-[#00b386] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#00b386]/10 shrink-0">
+            총 {chopoomaList.length}개 매칭
+          </div>
         </div>
       </div>
 
@@ -105,7 +147,8 @@ export default function ChopoomaCuration({
       {chopoomaList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <HelpCircle className="w-8 h-8 text-border mb-3" />
-          <p className="text-[14px] font-bold text-secondary">조건에 부합하는 초품아 단지 정보가 존재하지 않습니다.</p>
+          <p className="text-[14px] font-bold text-secondary">선택한 거리 기준 내 초품아 단지가 없습니다.</p>
+          <p className="text-[12px] text-tertiary mt-1">거리 조건을 더 넓게 설정해보세요.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
