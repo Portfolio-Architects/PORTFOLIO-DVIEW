@@ -22,8 +22,8 @@ const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 let serviceAccount;
 
 const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY;
-const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
 const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
 
 if (fs.existsSync(serviceAccountPath)) {
