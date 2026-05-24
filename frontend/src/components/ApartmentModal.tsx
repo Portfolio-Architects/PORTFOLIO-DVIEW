@@ -66,7 +66,8 @@ function FieldReportModal({
   isAdmin,
   onPurchaseComplete,
   inline,
-  txSummary
+  txSummary,
+  onOpenAdModal
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -83,6 +84,7 @@ function FieldReportModal({
   onPurchaseComplete?: () => void;
   inline?: boolean;
   txSummary?: any;
+  onOpenAdModal?: () => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -92,6 +94,8 @@ function FieldReportModal({
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
@@ -336,29 +340,83 @@ function FieldReportModal({
     active ? 'bg-toss-blue-light text-toss-blue' : 'bg-transparent text-secondary hover:bg-body'
   }`;
 
-  const handleKakaoShare = () => {
-    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
-    const latestSale = saleTxs[0];
-    const latestJeonse = jeonseTxs[0];
+  const handleKakaoShare = async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+    try {
+      const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+      const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+      const latestSale = saleTxs[0];
+      const latestJeonse = jeonseTxs[0];
 
-    const price = latestSale ? latestSale.price : 0;
-    const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
-    
-    const priceEok = Math.floor(price / 10000);
-    const priceMan = price % 10000;
-    const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+      const price = latestSale ? latestSale.price : 0;
+      const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+      
+      const priceEok = Math.floor(price / 10000);
+      const priceMan = price % 10000;
+      const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
 
-    const encodedTitle = encodeURIComponent(`${displayAptName} 가치분석`);
-    const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
+      let imageFile: File | undefined = undefined;
 
-    shareAptToKakao({
-      aptName: displayAptName,
-      priceEok,
-      priceMan,
-      ratio,
-      imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`
-    });
+      if (shareCardRef.current) {
+        // html2canvas를 동적 임포트하여 클라이언트 사이드에서만 실행되도록 함
+        const html2canvas = (await import('html2canvas')).default;
+        
+        const canvas = await html2canvas(shareCardRef.current, {
+          width: 1200,
+          height: 630,
+          scale: 1.5, // 1.5배 스케일로 카카오 업로드 용량 제한(5MB) 이내 유지하면서 선명한 화질 확보
+          useCORS: true,
+          backgroundColor: '#0f172a',
+          logging: false
+        });
+
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((b) => resolve(b), 'image/png');
+        });
+
+        if (blob) {
+          imageFile = new File([blob], `dview_share_${normalizeAptName(report.apartmentName)}.png`, { type: 'image/png' });
+        }
+      }
+
+      const encodedTitle = encodeURIComponent(`${displayAptName} 가치분석`);
+      const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
+
+      await shareAptToKakao({
+        aptName: displayAptName,
+        priceEok,
+        priceMan,
+        ratio,
+        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`,
+        imageFile
+      });
+    } catch (error) {
+      console.error("Kakao share card generation failed:", error);
+      alert("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
+      // Fallback
+      const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+      const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+      const latestSale = saleTxs[0];
+      const latestJeonse = jeonseTxs[0];
+      const price = latestSale ? latestSale.price : 0;
+      const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+      const priceEok = Math.floor(price / 10000);
+      const priceMan = price % 10000;
+      const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+      const encodedTitle = encodeURIComponent(`${displayAptName} 가치분석`);
+      const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
+
+      await shareAptToKakao({
+        aptName: displayAptName,
+        priceEok,
+        priceMan,
+        ratio,
+        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`
+      });
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const handleCopyLink = () => {
@@ -1007,27 +1065,32 @@ function FieldReportModal({
             {/* In-content Viral CTA & AdSense Placeholder */}
             <div className="flex flex-col gap-6 mt-8 mb-4">
               {/* 1. Viral Share CTA (Desktop/Mobile In-content) */}
-              <div 
+              <button 
                 onClick={handleKakaoShare}
-                className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-colors shadow-sm group"
+                disabled={isSharing}
+                className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-colors shadow-sm group border-none text-left disabled:opacity-85"
               >
                 <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
                   <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
-                    가장 빠른 동탄 소식
+                    {isSharing ? '공유 이미지 카드 준비 중...' : '가장 빠른 동탄 소식'}
                   </span>
                   <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
-                    이 아파트 분석 리포트 카톡으로 지인에게 공유하기
+                    {isSharing ? '잠시만 기다려주시면 카카오톡 전송 창이 열립니다' : '이 아파트 분석 리포트 카톡으로 지인에게 공유하기'}
                   </span>
                 </div>
                 <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                    <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                  </svg>
+                  {isSharing ? (
+                    <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                      <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                    </svg>
+                  )}
                 </div>
-              </div>
+              </button>
 
               {/* 2. Native Ad Placeholder (AdSense Test) */}
-              <NativeAdPlaceholder location="단지 리포트 모달" />
+              <NativeAdPlaceholder location="단지 리포트 모달" onClick={onOpenAdModal} />
             </div>
 
             {/* Comments Section */}
@@ -1239,13 +1302,18 @@ function FieldReportModal({
             </button>
             <button
               onClick={handleKakaoShare}
-              className="bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px]"
+              disabled={isSharing}
+              className="bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] px-4 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group gap-1.5 font-bold text-[14px] disabled:opacity-80"
               title="카카오톡으로 단지 공유하기"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 group-hover:scale-110 transition-transform">
-                <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-              </svg>
-              카톡 공유
+              {isSharing ? (
+                <div className="w-4 h-4 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 group-hover:scale-110 transition-transform">
+                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                </svg>
+              )}
+              {isSharing ? '카드 생성 중...' : '카톡 공유'}
             </button>
             <button onClick={onClose} className="bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 group">
               <X size={20} className="group-hover:scale-110 transition-transform" />
@@ -1294,6 +1362,149 @@ function FieldReportModal({
         />
       )}
       
+      {/* ─── Kakao Share Off-screen Visual Card (1200x630) ─── */}
+      <div
+        ref={shareCardRef}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: '-9999px',
+          width: '1200px',
+          height: '630px',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          boxSizing: 'border-box',
+        }}
+        className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white p-16 flex flex-col justify-between"
+      >
+        {/* Top Header */}
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#00d29d] flex items-center justify-center shadow-lg shadow-[#00d29d]/20">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 text-white">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-[#00d29d] text-[20px] font-black tracking-wider uppercase block leading-none">D-VIEW</span>
+              <span className="text-slate-400 text-[13px] font-bold block leading-none mt-1">동탄 부동산 가치분석 플랫폼</span>
+            </div>
+          </div>
+          <div className="bg-[#1e293b] border border-slate-800/80 rounded-full px-5 py-2">
+            <span className="text-slate-300 text-[14px] font-bold">실거래 가치분석 리포트</span>
+          </div>
+        </div>
+
+        {/* Center Content */}
+        <div className="grid grid-cols-12 gap-8 items-center my-6">
+          {/* Left: Apt Name & Info */}
+          <div className="col-span-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <span className="bg-[#00d29d]/15 text-[#00d29d] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-[#00d29d]/30">
+                {report.dong || '동탄'}
+              </span>
+              {report.metrics?.yearBuilt && (
+                <span className="bg-slate-800 text-slate-400 text-[14px] font-bold px-3.5 py-1.5 rounded-full">
+                  {String(report.metrics.yearBuilt).substring(0, 4)}년 입주
+                </span>
+              )}
+            </div>
+            <h1 className="text-[44px] font-black leading-tight tracking-tight text-white drop-shadow-sm">
+              {displayAptName}
+            </h1>
+            <div className="flex items-center gap-2 text-slate-400 text-[15px] font-semibold">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[#00d29d]">
+                <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm11.378-3.917c-.08-.417-.507-.65-.913-.485a4.5 4.5 0 00-2.836 2.836c-.166.406.067.833.485.913a.75.75 0 01.614.93L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182a.75.75 0 111.46.388L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182z" clipRule="evenodd" />
+              </svg>
+              입지평점: {report.premiumScores?.totalPremiumScore ? `${report.premiumScores.totalPremiumScore.toFixed(1)} / 100` : `${report.rating || 4.5} / 5.0`}
+            </div>
+          </div>
+
+          {/* Right: Metrics Grid */}
+          <div className="col-span-6 grid grid-cols-2 gap-4">
+            {/* Metric 1: Sale Price */}
+            <div className="bg-[#1e293b]/60 border border-slate-800/80 rounded-3xl p-6 flex flex-col gap-1.5">
+              <span className="text-slate-400 text-[14px] font-bold">최근 실거래 매매가</span>
+              <span className="text-[28px] font-black text-white tracking-tight">
+                {(() => {
+                  const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+                  if (saleTxs.length === 0) return '-';
+                  const p = saleTxs[0].price;
+                  const eok = Math.floor(p / 10000);
+                  const man = p % 10000;
+                  return `${eok}억${man > 0 ? ` ${man.toLocaleString()}` : ''}`;
+                })()}
+              </span>
+            </div>
+
+            {/* Metric 2: Jeonse Price */}
+            <div className="bg-[#1e293b]/60 border border-slate-800/80 rounded-3xl p-6 flex flex-col gap-1.5">
+              <span className="text-slate-400 text-[14px] font-bold">최근 실거래 전세가</span>
+              <span className="text-[28px] font-black text-white tracking-tight">
+                {(() => {
+                  const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+                  if (jeonseTxs.length === 0) return '-';
+                  const p = jeonseTxs[0].deposit || 0;
+                  const eok = Math.floor(p / 10000);
+                  const man = p % 10000;
+                  return `${eok}억${man > 0 ? ` ${man.toLocaleString()}` : ''}`;
+                })()}
+              </span>
+            </div>
+
+            {/* Metric 3: Gap Investment */}
+            <div className="bg-[#00d29d]/10 border border-[#00d29d]/20 rounded-3xl p-6 flex flex-col gap-1.5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#00d29d]/5 rounded-full blur-xl -mr-6 -mt-6"></div>
+              <span className="text-[#00d29d] text-[14px] font-extrabold flex items-center gap-1">
+                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clipRule="evenodd" />
+                </svg>
+                갭투자 필요자금
+              </span>
+              <span className="text-[30px] font-black text-[#00d29d] tracking-tight">
+                {(() => {
+                  const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+                  const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+                  if (saleTxs.length === 0 || jeonseTxs.length === 0) return '-';
+                  const salePrice = saleTxs[0].price;
+                  const jeonsePrice = jeonseTxs[0].deposit || 0;
+                  const gap = salePrice - jeonsePrice;
+                  if (gap <= 0) return '갭 없음';
+                  const eok = Math.floor(gap / 10000);
+                  const man = gap % 10000;
+                  return `${eok}억${man > 0 ? ` ${man.toLocaleString()}` : ''}`;
+                })()}
+              </span>
+            </div>
+
+            {/* Metric 4: Jeonse Ratio */}
+            <div className="bg-[#1e293b]/60 border border-slate-800/80 rounded-3xl p-6 flex flex-col gap-1.5">
+              <span className="text-slate-400 text-[14px] font-bold">전세가율 (매매 대비 전세)</span>
+              <span className="text-[28px] font-black text-white tracking-tight">
+                {(() => {
+                  const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+                  const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+                  if (saleTxs.length === 0 || jeonseTxs.length === 0) return '-';
+                  const salePrice = saleTxs[0].price;
+                  const jeonsePrice = jeonseTxs[0].deposit || 0;
+                  const ratio = (jeonsePrice / salePrice) * 100;
+                  return `${ratio.toFixed(1)}%`;
+                })()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Footer */}
+        <div className="flex justify-between items-center w-full border-t border-slate-800/80 pt-6">
+          <div className="flex items-center gap-2 text-slate-400 text-[14px] font-bold">
+            <span>지금 D-VIEW 모바일 앱/웹에서 실시간 동탄 갭투자 분석 지표를 확인하세요.</span>
+          </div>
+          <div className="text-[#00d29d] text-[16px] font-black tracking-wider uppercase">
+            DONGTANVIEW.COM
+          </div>
+        </div>
+      </div>
+
       <FullscreenOverlay />
     </>,
     document.getElementById('modal-root') || document.body

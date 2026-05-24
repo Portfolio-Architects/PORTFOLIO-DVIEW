@@ -5,6 +5,7 @@ import { Sparkles, Coins, HelpCircle, ArrowRight } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
+import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface GapInvestmentExplorerProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -12,6 +13,7 @@ interface GapInvestmentExplorerProps {
   nameMapping: Record<string, string>;
   publicRentalSet: Set<string>;
   onSelectApt: (name: string) => void;
+  onOpenAdModal?: () => void;
 }
 
 export default function GapInvestmentExplorer({
@@ -20,6 +22,7 @@ export default function GapInvestmentExplorer({
   nameMapping,
   publicRentalSet,
   onSelectApt,
+  onOpenAdModal,
 }: GapInvestmentExplorerProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(1); // Default to '1.5억~2억'
   const [showAll, setShowAll] = useState<boolean>(false);
@@ -200,6 +203,10 @@ export default function GapInvestmentExplorer({
                 </div>
               );
             })}
+          </div>
+
+          <div className="my-2">
+            <NativeAdPlaceholder location="갭투자 탐색기 하단" onClick={onOpenAdModal} />
           </div>
 
           {/* Show more Button */}
