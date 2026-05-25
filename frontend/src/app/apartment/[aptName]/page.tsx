@@ -3,53 +3,157 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
 import { fetchSheetTypeMap } from '@/lib/services/googleSheets';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
+import fs from 'fs';
+import path from 'path';
+
 const TX_SUMMARY = (txSummaryDataRaw as any).summary;
 
-// Helper for AI Briefing Text Generation (SEO Optimization)
-function generateAiBriefing(aptName: string, aptSummary: any) {
-  const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
-  const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+interface Transaction {
+  contractYm: string;
+  contractDay: string;
+  price: number;
+  priceEok: string;
+  deposit: number;
+  monthlyRent: number;
+  area: number;
+  areaPyeong: number;
+  floor: number;
+  dealType: string;
+}
 
-  if (!aptSummary) {
-    return `동탄 ${aptName}${titlePyeong} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
-  }
+interface PyeongSummary {
+  pyeong: number;
+  areaM2: number;
+  salesCount: number;
+  rentCount: number;
+  latestPrice: number;
+  latestPriceStr: string;
+  maxPrice: number;
+  maxPriceStr: string;
+  avgPrice: number;
+  avgPriceStr: string;
+  latestDeposit: number;
+  latestDepositStr: string;
+  avgDeposit: number;
+  avgDepositStr: string;
+  jeonseRatio: number;
+}
 
-  const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
+function formatPriceEok(priceMan: number): string {
+  const eok = Math.floor(priceMan / 10000);
+  const remainder = priceMan % 10000;
+  if (eok === 0) return `${priceMan.toLocaleString()}만`;
+  if (remainder === 0) return `${eok}억`;
+  return `${eok}억 ${remainder.toLocaleString()}`;
+}
 
-  let jeonseRatioStr = '';
-  if (aptSummary.avg1MRentDeposit && aptSummary.avg1MPrice) {
-    const ratio = Math.round((aptSummary.avg1MRentDeposit / aptSummary.avg1MPrice) * 100);
-    jeonseRatioStr = `전세가율은 약 ${ratio}% 수준을 형성하고 있습니다.`;
-  } else if (aptSummary.latestRentDeposit && aptSummary.latestPrice) {
-    const ratio = Math.round((aptSummary.latestRentDeposit / aptSummary.latestPrice) * 100);
-    jeonseRatioStr = `전세가율은 약 ${ratio}% 수준을 형성하고 있습니다.`;
-  }
-
-  let trendStr = '';
-  if (aptSummary.avg1MTxCount !== undefined && aptSummary.avg3MTxCount !== undefined) {
-    const avg3MMonthly = Math.round(aptSummary.avg3MTxCount / 3);
-    const avg1M = aptSummary.avg1MTxCount;
-    if (avg1M > avg3MMonthly * 1.3) {
-      trendStr = '최근 1개월간 거래량이 평균 대비 크게 증가하며 시장의 매수세가 유입되고 있습니다.';
-    } else if (avg1M < avg3MMonthly * 0.7) {
-      trendStr = '최근 거래량은 다소 관망세를 보이고 있습니다.';
-    } else {
-      trendStr = '최근 꾸준한 실거래가 이어지며 안정적인 시장 흐름을 보이고 있습니다.';
+function getApartmentTransactions(aptName: string): Transaction[] {
+  try {
+    const filePath = path.join(process.cwd(), 'public', 'tx-data', `${aptName}.json`);
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(fileContent);
     }
+  } catch (error) {
+    console.warn(`[SEO] Failed to read transaction file for ${aptName}:`, error);
   }
+  return [];
+}
 
-  let priceTrendStr = '';
-  if (aptSummary.avg1MPrice && aptSummary.avg3MPrice) {
-    if (aptSummary.avg1MPrice > aptSummary.avg3MPrice * 1.015) {
-      priceTrendStr = '최근 3개월 대비 실거래가가 상승 추세에 있으며,';
-    } else if (aptSummary.avg1MPrice < aptSummary.avg3MPrice * 0.985) {
-      priceTrendStr = '최근 3개월 대비 실거래가는 약보합 흐름을 보이며,';
-    } else {
-      priceTrendStr = '최근 3개월 실거래가는 안정적인 보합세를 유지 중이며,';
+function getPyeongSummaries(txs: Transaction[]): PyeongSummary[] {
+  const groups: Record<number, Transaction[]> = {};
+  
+  txs.forEach(t => {
+    const pyeong = Math.round(t.areaPyeong);
+    if (!pyeong) return;
+    if (!groups[pyeong]) groups[pyeong] = [];
+    groups[pyeong].push(t);
+  });
+  
+  const summaries: PyeongSummary[] = [];
+  
+  Object.entries(groups).forEach(([pyeongKey, groupTxs]) => {
+    const pyeong = parseInt(pyeongKey);
+    const sortedTxs = [...groupTxs].sort((a, b) => {
+      const dateA = a.contractYm + String(a.contractDay).padStart(2, '0');
+      const dateB = b.contractYm + String(b.contractDay).padStart(2, '0');
+      return dateB.localeCompare(dateA);
+    });
+    
+    const avgArea = sortedTxs.reduce((sum, t) => sum + t.area, 0) / sortedTxs.length;
+    const sales = sortedTxs.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+    const jeonse = sortedTxs.filter(t => t.dealType === '전세' && t.deposit > 0);
+    
+    if (sales.length === 0 && jeonse.length === 0) return;
+    
+    const latestSale = sales[0];
+    const latestPrice = latestSale ? latestSale.price : 0;
+    const latestPriceStr = latestSale ? latestSale.priceEok : '정보 없음';
+    
+    const salePrices = sales.map(s => s.price).filter(p => p > 0);
+    const maxPrice = salePrices.length > 0 ? Math.max(...salePrices) : 0;
+    const maxPriceStr = maxPrice > 0 ? formatPriceEok(maxPrice) : '정보 없음';
+    
+    const avgPrice = salePrices.length > 0 ? Math.round(salePrices.reduce((sum, p) => sum + p, 0) / salePrices.length) : 0;
+    const avgPriceStr = avgPrice > 0 ? formatPriceEok(avgPrice) : '정보 없음';
+    
+    const latestJeonse = jeonse[0];
+    const latestDeposit = latestJeonse ? latestJeonse.deposit : 0;
+    const latestDepositStr = latestJeonse ? latestJeonse.priceEok : '정보 없음';
+    
+    const jeonseDeposits = jeonse.map(j => j.deposit).filter(d => d > 0);
+    const avgDeposit = jeonseDeposits.length > 0 ? Math.round(jeonseDeposits.reduce((sum, d) => sum + d, 0) / jeonseDeposits.length) : 0;
+    const avgDepositStr = avgDeposit > 0 ? formatPriceEok(avgDeposit) : '정보 없음';
+    
+    let jeonseRatio = 0;
+    if (avgDeposit > 0 && avgPrice > 0) {
+      jeonseRatio = Math.round((avgDeposit / avgPrice) * 100);
+    } else if (latestDeposit > 0 && latestPrice > 0) {
+      jeonseRatio = Math.round((latestDeposit / latestPrice) * 100);
     }
+    
+    summaries.push({
+      pyeong,
+      areaM2: Math.round(avgArea * 100) / 100,
+      salesCount: sales.length,
+      rentCount: jeonse.length,
+      latestPrice,
+      latestPriceStr,
+      maxPrice,
+      maxPriceStr,
+      avgPrice,
+      avgPriceStr,
+      latestDeposit,
+      latestDepositStr,
+      avgDeposit,
+      avgDepositStr,
+      jeonseRatio
+    });
+  });
+  
+  return summaries.sort((a, b) => a.pyeong - b.pyeong);
+}
+
+function generateAiBriefing(aptName: string, aptSummary: any, pyeongSummaries: PyeongSummary[]) {
+  const defaultBrief = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  
+  if (pyeongSummaries.length === 0) {
+    if (!aptSummary) return defaultBrief;
+    const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
+    return `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
   }
 
-  return `${aptName}${titlePyeong}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, ${jeonseRatioStr} ${priceTrendStr} ${trendStr} D-VIEW에서 실제 데이터에 기반한 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+  const pyeongListStr = pyeongSummaries.map(p => `${p.pyeong}평`).join(', ');
+  
+  const majorDetails = pyeongSummaries.slice(0, 2).map(p => {
+    const saleStr = p.latestPriceStr !== '정보 없음' ? `최근 매매가 ${p.latestPriceStr}` : '';
+    const jeonseStr = p.latestDepositStr !== '정보 없음' ? `전세가 ${p.latestDepositStr}` : '';
+    const ratioStr = p.jeonseRatio > 0 ? `전세가율 ${p.jeonseRatio}%` : '';
+    const parts = [saleStr, jeonseStr, ratioStr].filter(Boolean);
+    return `${p.pyeong}평형(${parts.join(', ')})`;
+  }).join(' 및 ');
+
+  return `동탄 ${aptName} 아파트는 ${pyeongListStr} 다양한 평형대를 형성하고 있습니다. ${majorDetails} 등 평형별 정확한 실거래가 시세와 전세가율 변동 추이, 학군 정보, 대중교통 인프라 요약을 D-VIEW에서 제공합니다.`;
 }
 
 // --- SEO: Dynamic Metadata Generator ---
@@ -85,16 +189,27 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
   }
   
   const aptSummary = TX_SUMMARY[decodedName];
-  const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
-  const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+  const txs = getApartmentTransactions(decodedName);
+  const pyeongSummaries = getPyeongSummaries(txs);
   
-  const seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
-  const seoDescription = generateAiBriefing(decodedName, aptSummary);
+  let seoTitle = '';
+  if (pyeongSummaries.length > 0) {
+    const pyeongListStr = pyeongSummaries.map(p => `${p.pyeong}평`).join('/');
+    seoTitle = `${decodedName} ${pyeongListStr} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+  } else {
+    const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
+    const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+    seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+  }
+  
+  const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
+  const pyeongKeywordsList = pyeongSummaries.map(p => `${decodedName} ${p.pyeong}평, ${decodedName} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`).join(', ');
+  const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
 
   return {
     title: seoTitle,
     description: seoDescription,
-    keywords: `동탄, ${decodedName}, ${pyeongStr}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산`,
+    keywords: dynamicKeywords,
     openGraph: {
       title: seoTitle,
       description: seoDescription,
@@ -261,14 +376,10 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   // --- SSR SEO HTML Block ---
   const aptSummary = TX_SUMMARY[decodedName];
-  const latestPrice = aptSummary?.latestPriceEok ? `${aptSummary.latestPriceEok}억` : '정보 없음';
-  const avg3MPrice = aptSummary?.avg3MPriceEok ? `${aptSummary.avg3MPriceEok}억` : '정보 없음';
-  const jeonsePrice = aptSummary?.latestRentDepositEok ? `${aptSummary.latestRentDepositEok}억` : '정보 없음';
+  const txs = getApartmentTransactions(decodedName);
+  const pyeongSummaries = getPyeongSummaries(txs);
   
-  const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
-  const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
-  
-  const aiBriefing = generateAiBriefing(decodedName, aptSummary);
+  const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
 
   return (
     <>
@@ -279,13 +390,42 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       
       {/* Search Engine Optimization (SSR Content) */}
       <div className="sr-only" aria-hidden="true">
-        <h1>{decodedName}{titlePyeong} 실거래가 및 학군 가치 분석</h1>
+        <h1>{decodedName} 아파트 실거래가 및 학군 가치 분석 리포트</h1>
         <p>{aiBriefing}</p>
-        <ul>
-          <li>최근 매매가: {latestPrice}</li>
-          <li>최근 3개월 평균가: {avg3MPrice}</li>
-          <li>최근 전세가: {jeonsePrice}</li>
-        </ul>
+        
+        {pyeongSummaries.length > 0 ? (
+          pyeongSummaries.map((p) => (
+            <section key={p.pyeong} style={{ marginTop: '20px' }}>
+              <h2>{decodedName} {p.pyeong}평형 실거래가 및 전세가율</h2>
+              <ul>
+                <li>전용면적: {p.areaM2}㎡</li>
+                <li>최근 실거래 매매가: {p.latestPriceStr}</li>
+                <li>평균 매매 실거래가: {p.avgPriceStr}</li>
+                <li>역대 최고 매매가: {p.maxPriceStr}</li>
+                <li>최근 전세 거래가: {p.latestDepositStr}</li>
+                <li>평균 전세 실거래가: {p.avgDepositStr}</li>
+                <li>전세가율: {p.jeonseRatio > 0 ? `${p.jeonseRatio}%` : '정보 없음'}</li>
+                <li>누적 거래 건수: 매매 {p.salesCount}건, 전세 {p.rentCount}건</li>
+              </ul>
+              <p>
+                동탄 {decodedName} {p.pyeong}평형은 전용면적 {p.areaM2}㎡ 크기이며, 
+                {p.latestPriceStr !== '정보 없음' ? ` 최근 실거래가 기준 매매가는 ${p.latestPriceStr} 수준을 기록하고 있고` : ''}
+                {p.latestDepositStr !== '정보 없음' ? ` 전세가는 ${p.latestDepositStr} 수준입니다.` : ''}
+                {p.jeonseRatio > 0 ? ` 해당 평형의 매매 대비 전세가율은 약 ${p.jeonseRatio}%를 보이고 있습니다.` : ''}
+                {p.salesCount > 0 ? ` 누적 매매 실거래 건수는 총 ${p.salesCount}건이 등록되어 데이터 기반의 흐름을 보여줍니다.` : ''}
+              </p>
+            </section>
+          ))
+        ) : (
+          <div>
+            <h2>{decodedName} 실거래 데이터 요약</h2>
+            <ul>
+              <li>최근 매매가: {aptSummary?.latestPriceEok ? `${aptSummary.latestPriceEok}억` : '정보 없음'}</li>
+              <li>최근 3개월 평균가: {aptSummary?.avg3MPriceEok ? `${aptSummary.avg3MPriceEok}억` : '정보 없음'}</li>
+              <li>최근 전세가: {aptSummary?.latestRentDepositEok ? `${aptSummary.latestRentDepositEok}억` : '정보 없음'}</li>
+            </ul>
+          </div>
+        )}
       </div>
 
       <DashboardClient initialDashboardData={initialData} preselectedAptName={decodedName} />

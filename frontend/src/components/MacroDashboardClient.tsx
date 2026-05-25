@@ -82,7 +82,7 @@ const InfoBox = ({
   return (
     <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] p-2.5 md:p-4 flex flex-col gap-1 md:gap-1.5 shadow-sm border border-border h-full justify-center">
       {/* Title Area */}
-      <div className="text-body-xs md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
+      <div className="text-[11.5px] md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
         {title}
       </div>
 
@@ -91,11 +91,11 @@ const InfoBox = ({
 
         {/* Value & Unit */}
         <div className="flex items-baseline gap-0.5 md:gap-1 min-w-0 flex-wrap">
-          <span className="text-body-normal md:text-title-lg font-extrabold text-primary tracking-tight break-keep leading-tight">
+          <span className="text-[14.5px] md:text-title-lg font-extrabold text-primary tracking-tight break-keep leading-tight">
             {value}
           </span>
           {unit && (
-            <span className="text-body-xs md:text-body-sm font-bold text-secondary tracking-tight shrink-0">
+            <span className="text-[11px] md:text-body-sm font-bold text-secondary tracking-tight shrink-0">
               {unit}
             </span>
           )}
