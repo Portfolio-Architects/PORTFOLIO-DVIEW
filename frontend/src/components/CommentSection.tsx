@@ -14,6 +14,8 @@ interface CommentSectionProps {
   premiumContent?: string;
   apartmentName: string;
   onCloseAptModal: () => void;
+  managerPostId: string | null;
+  managerPostTitle: string;
 }
 
 export default function CommentSection({
@@ -26,65 +28,11 @@ export default function CommentSection({
   premiumContent,
   apartmentName,
   onCloseAptModal,
+  managerPostId,
+  managerPostTitle,
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
   const [activeSubTab, setActiveSubTab] = useState<'manager' | 'comments'>('manager');
-  const [postId, setPostId] = useState<string | null>(null);
-  const [postTitle, setPostTitle] = useState<string>('');
-  const [loadingPost, setLoadingPost] = useState(false);
-
-  useEffect(() => {
-    if (!premiumContent || !apartmentName) return;
-
-    const fetchPost = async () => {
-      setLoadingPost(true);
-      try {
-        const { db } = await import('@/lib/firebaseConfig');
-        const { collection, query, where, getDocs } = await import('firebase/firestore');
-        const shortName = apartmentName.replace(/\[.*?\]\s*/, '');
-        
-        // 1. Try querying category "매니저 임장기"
-        const q1 = query(collection(db, 'posts'), where('category', '==', '매니저 임장기'));
-        const snap1 = await getDocs(q1);
-        let matchedId = null;
-        let matchedTitle = '';
-        
-        snap1.forEach((d) => {
-          const data = d.data();
-          const t = data.title || '';
-          const c = data.content || '';
-          if (t.includes(shortName) || c.includes(shortName)) {
-            matchedId = d.id;
-            matchedTitle = t;
-          }
-        });
-
-        // 2. Try querying category "동탄 임장/분석" if not found
-        if (!matchedId) {
-          const q2 = query(collection(db, 'posts'), where('category', '==', '동탄 임장/분석'));
-          const snap2 = await getDocs(q2);
-          snap2.forEach((d) => {
-            const data = d.data();
-            const t = data.title || '';
-            const c = data.content || '';
-            if (t.includes(shortName) || c.includes(shortName)) {
-              matchedId = d.id;
-              matchedTitle = t;
-            }
-          });
-        }
-
-        setPostId(matchedId);
-        setPostTitle(matchedTitle);
-      } catch (err) {
-        console.error('Failed to fetch matching manager post:', err);
-      } finally {
-        setLoadingPost(false);
-      }
-    };
-
-    fetchPost();
-  }, [apartmentName, premiumContent]);
 
   const parsedTitle = useMemo(() => {
     if (!premiumContent) return '';
@@ -102,8 +50,8 @@ export default function CommentSection({
   };
 
   const handleGoToPost = () => {
-    if (postId) {
-      window.location.hash = `#post=${postId}`;
+    if (managerPostId) {
+      window.location.hash = `#post=${managerPostId}`;
       onCloseAptModal();
     } else {
       window.location.hash = '#lounge';
@@ -149,7 +97,7 @@ export default function CommentSection({
               <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">Premium Report</span>
             </div>
             <h3 className="text-[16px] sm:text-[18px] font-extrabold text-primary leading-snug break-keep">
-              {postTitle || parsedTitle || `${apartmentName} 매니저 임장기`}
+              {managerPostTitle || parsedTitle || `${apartmentName} 매니저 임장기`}
             </h3>
             <p className="text-[12.5px] text-secondary mt-1.5 leading-relaxed font-medium">
               D-VIEW 매니저가 직접 발로 뛰며 입지, 호재, 인프라를 팩트체크한 심층 보고서 원본을 라운지에서 확인해보세요.

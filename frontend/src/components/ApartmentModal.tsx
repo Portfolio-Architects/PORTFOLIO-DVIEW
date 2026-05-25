@@ -3,7 +3,8 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share, Link2
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share, Link2,
+  Crown, ChevronRight
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -12,7 +13,7 @@ import { normalize84Price } from '@/lib/utils/valuation';
 import { normalizeAptName, getDisplayAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, googleProvider, db } from '@/lib/firebaseConfig';
 import { signInWithPopup } from 'firebase/auth';
 import { createPortal } from 'react-dom';
@@ -102,6 +103,64 @@ function FieldReportModal({
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
+
+  const [managerPost, setManagerPost] = useState<{ id: string; title: string } | null>(null);
+
+  useEffect(() => {
+    if (!report.premiumContent || !report.apartmentName) return;
+
+    const fetchPost = async () => {
+      try {
+        const shortName = report.apartmentName.replace(/\[.*?\]\s*/, '');
+        
+        // 1. Try querying category "매니저 임장기"
+        const q1 = query(collection(db, 'posts'), where('category', '==', '매니저 임장기'));
+        const snap1 = await getDocs(q1);
+        let matchedId = null;
+        let matchedTitle = '';
+        
+        snap1.forEach((d: any) => {
+          const data = d.data();
+          const t = data.title || '';
+          const c = data.content || '';
+          if (t.includes(shortName) || c.includes(shortName)) {
+            matchedId = d.id;
+            matchedTitle = t;
+          }
+        });
+
+        // 2. Try querying category "동탄 임장/분석" if not found
+        if (!matchedId) {
+          const q2 = query(collection(db, 'posts'), where('category', '==', '동탄 임장/분석'));
+          const snap2 = await getDocs(q2);
+          snap2.forEach((d: any) => {
+            const data = d.data();
+            const t = data.title || '';
+            const c = data.content || '';
+            if (t.includes(shortName) || c.includes(shortName)) {
+              matchedId = d.id;
+              matchedTitle = t;
+            }
+          });
+        }
+
+        setManagerPost(matchedId ? { id: matchedId, title: matchedTitle } : null);
+      } catch (err) {
+        console.error('Failed to fetch matching manager post in modal:', err);
+      }
+    };
+
+    fetchPost();
+  }, [report.apartmentName, report.premiumContent]);
+
+  const parsedTitle = useMemo(() => {
+    if (!report.premiumContent) return '';
+    const match = report.premiumContent.match(/^#+\s+(.*)$/m);
+    if (match) {
+      return match[1].replace(/^[🏢👑]\s*/, '').trim();
+    }
+    return '';
+  }, [report.premiumContent]);
 
   // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김)
   const transactions = useMemo(() => {
@@ -695,6 +754,41 @@ function FieldReportModal({
                     </div>
 
                  </div>
+
+                 {/* Premium Scouting Report Banner for high visibility */}
+                 {report.premiumContent && (
+                   <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                     <div className="flex items-center gap-4 flex-1 min-w-0">
+                       <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                         <Crown size={24} className="text-emerald-600 fill-emerald-600/30" />
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-wider uppercase block">PREMIUM REPORT</span>
+                         <h3 className="text-[15px] font-extrabold text-primary leading-snug truncate mt-0.5">
+                           {managerPost?.title || parsedTitle || `${displayAptName} 매니저 임장기`}
+                         </h3>
+                         <p className="text-[12.5px] text-secondary mt-0.5 truncate">
+                           D-VIEW 매니저가 직접 현장에서 검증한 대장 단지의 가치 평가 리포트
+                         </p>
+                       </div>
+                     </div>
+                     <button
+                       onClick={() => {
+                         if (managerPost?.id) {
+                           window.location.hash = `#post=${managerPost.id}`;
+                           onClose();
+                         } else {
+                           window.location.hash = '#lounge';
+                           onClose();
+                         }
+                       }}
+                       className="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[13px] px-4.5 py-3 rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-98 flex items-center gap-1 border-none cursor-pointer"
+                     >
+                       <span>임장기 보러가기</span>
+                       <ChevronRight size={14} />
+                     </button>
+                   </div>
+                 )}
               </div>
             )}
 
@@ -1184,6 +1278,8 @@ function FieldReportModal({
                 premiumContent={report.premiumContent}
                 apartmentName={report.apartmentName}
                 onCloseAptModal={onClose}
+                managerPostId={managerPost?.id || null}
+                managerPostTitle={managerPost?.title || ''}
               />
             </div>
 
