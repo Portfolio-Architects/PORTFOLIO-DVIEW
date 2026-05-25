@@ -1395,10 +1395,10 @@ interface GroupedCategory {
                           return (
                             <>
                               <div className="flex items-baseline gap-1 whitespace-nowrap">
-                                <span className="text-[15px] md:text-[20px] font-extrabold text-primary tracking-tighter">
+                                <span className="text-[13.5px] md:text-[18px] font-extrabold text-primary tracking-tighter">
                                   {value}
                                 </span>
-                                <span className="text-[11px] md:text-[12px] font-bold text-tertiary">
+                                <span className="text-[10px] md:text-[11px] font-bold text-tertiary">
                                   {unit}
                                 </span>
                               </div>
@@ -1411,10 +1411,10 @@ interface GroupedCategory {
                       ) : (
                         <>
                           <div className="flex items-baseline gap-1 whitespace-nowrap">
-                            <span className="text-[15px] md:text-[20px] font-extrabold text-primary tracking-tighter">
+                            <span className="text-[13.5px] md:text-[18px] font-extrabold text-primary tracking-tighter">
                               {Math.round(group.avgPyeongPrice || 0).toLocaleString()}
                             </span>
-                            <span className="text-[11px] md:text-[12px] font-bold text-tertiary">
+                            <span className="text-[10px] md:text-[11px] font-bold text-tertiary">
                               만원/평
                             </span>
                           </div>
@@ -1534,10 +1534,10 @@ interface GroupedCategory {
                                           const { value, unit } = formatEokWithUnit(apt.latestPrice);
                                           return (
                                             <>
-                                              <span className="text-[15px] sm:text-[17px] font-extrabold text-primary whitespace-nowrap">
+                                              <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
                                                 {value}
                                               </span>
-                                              <span className="text-[11px] sm:text-[12px] font-bold text-tertiary whitespace-nowrap">
+                                              <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
                                                 {unit}
                                               </span>
                                             </>
@@ -1545,10 +1545,10 @@ interface GroupedCategory {
                                         })()
                                       ) : (
                                         <>
-                                          <span className="text-[15px] sm:text-[17px] font-extrabold text-primary whitespace-nowrap">
+                                          <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
                                             {Math.round(apt.pyeongPrice).toLocaleString()}
                                           </span>
-                                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary whitespace-nowrap">
+                                          <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
                                             만원/평
                                           </span>
                                         </>
