@@ -111,7 +111,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   };
   
   const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary } = useApartmentDetails(
-    selectedReport, sheetApartments, nameMapping, user, txSummary
+    selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
   );
   
   const { commentsData, commentInput, setCommentInput, handleSubmitComment } = useComments(

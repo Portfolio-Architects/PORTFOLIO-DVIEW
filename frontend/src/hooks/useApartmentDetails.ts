@@ -56,7 +56,8 @@ export function useApartmentDetails(
   sheetApartments: Record<string, DongApartment[]>,
   nameMapping: Record<string, string> | undefined,
   user: User | null,
-  txSummaryData: Record<string, AptTxSummary> = {}
+  txSummaryData: Record<string, AptTxSummary> = {},
+  locationScores: Record<string, any> = {}
 ) {
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
@@ -178,7 +179,11 @@ export function useApartmentDetails(
     const raw = fullReportData || selectedReport;
     const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
     
-    const mergedMetrics = { ...fallback };
+    // Find location scores dynamically from public/data/location-scores.json
+    const matchKey = Object.keys(locationScores).find(k => isSameApartment(k, raw.apartmentName, nameMapping));
+    const locScore = matchKey ? locationScores[matchKey] : {};
+
+    const mergedMetrics = { ...fallback, ...locScore };
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {
@@ -188,7 +193,7 @@ export function useApartmentDetails(
     }
     
     return { ...raw, metrics: mergedMetrics as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics };
-  }, [selectedReport, fullReportData, sheetApartments, nameMapping]);
+  }, [selectedReport, fullReportData, sheetApartments, nameMapping, locationScores]);
 
   const aptTxSummary = useMemo(() => {
     if (!selectedReport) return undefined;
