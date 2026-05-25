@@ -40,8 +40,16 @@ export function TransactionTable({
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
   
-  const INITIAL_DISPLAY_COUNT = 10;
+  const INITIAL_DISPLAY_COUNT = 30;
   const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
+
+  // 무한 스크롤 핸들러 (데스크톱 스크롤용)
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    if (target.scrollHeight - target.scrollTop <= target.clientHeight + 100) {
+      setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length));
+    }
+  };
 
   // Reset displayed count when filters change
   useEffect(() => {
@@ -144,8 +152,11 @@ export function TransactionTable({
         <div className="w-[90px] md:w-[110px] shrink-0 text-right">거래금액</div>
       </div>
 
-      <div className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]">
-        {sortedFilteredTransactions.map((tx, i) => {
+      <div 
+        onScroll={handleScroll}
+        className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]"
+      >
+        {sortedFilteredTransactions.slice(0, displayedCount).map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = String(tx.contractDay).trim().padStart(2, '0');
           const isRent = tx.dealType === '전세' || tx.dealType === '월세';
@@ -190,7 +201,7 @@ export function TransactionTable({
           }
 
           return (
-            <div key={i} className={`flex items-center justify-between p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''} gap-2`}>
+            <div key={i} className={`flex items-center justify-between p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
               
               {/* 1. 날짜 */}
               <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">

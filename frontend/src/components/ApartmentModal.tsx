@@ -701,13 +701,13 @@ function FieldReportModal({
                    <Building size={18} className="text-toss-blue"/> 단지 기본정보
                  </h2>
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                    <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1">단지명 / 시공사</p>
-                      <p className="text-body-lg text-primary font-bold">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5">({report.metrics.brand})</span>}</p>
+                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap">단지명 / 시공사</p>
+                      <p className="text-body-normal text-primary font-bold">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5">({report.metrics.brand})</span>}</p>
                     </div>
-                    <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1">사용승인일 (연차)</p>
-                      <p className="text-body-lg text-primary font-bold">
+                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap">사용승인일 (연차)</p>
+                      <p className="text-body-normal text-primary font-bold">
                         {report.metrics.yearBuilt ? (() => {
                           const ybStr = String(report.metrics.yearBuilt);
                           const now = new Date();
@@ -740,34 +740,32 @@ function FieldReportModal({
                         })() : '-'}
                       </p>
                     </div>
-                    <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1">규모 (세대/층)</p>
-                      <p className="text-body-lg text-primary font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
+                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap">규모 (세대/층)</p>
+                      <p className="text-body-normal text-primary font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
                     </div>
-                    <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1">용적률 / 건폐율</p>
-                      <p className="text-body-lg text-primary font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
+                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap">용적률 / 건폐율</p>
+                      <p className="text-body-normal text-primary font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
                     </div>
-                    <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1">주차대수 (세대당)</p>
-                      <p className="text-body-lg text-primary font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
+                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border col-span-2 sm:col-span-1">
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap">주차대수 (세대당)</p>
+                      <p className="text-body-normal text-primary font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
                     </div>
-
                  </div>
 
                  {/* Premium Scouting Report Banner for high visibility */}
                  {report.premiumContent && (
-                   <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-                     <div className="flex items-center gap-4 flex-1 min-w-0">
+                   <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-sm">
+                     <div className="flex items-center gap-4 w-full sm:w-auto min-w-0">
                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
                          <Crown size={24} className="text-emerald-600 fill-emerald-600/30" />
                        </div>
                        <div className="flex-1 min-w-0">
-                         <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-wider uppercase block">PREMIUM REPORT</span>
-                         <h3 className="text-[15px] font-extrabold text-primary leading-snug truncate mt-0.5">
+                         <h3 className="text-[15px] font-extrabold text-primary leading-snug break-keep whitespace-normal sm:truncate mt-0.5">
                            {managerPost?.title || parsedTitle || `${displayAptName} 매니저 임장기`}
                          </h3>
-                         <p className="text-[12.5px] text-secondary mt-0.5 truncate">
+                         <p className="text-[12.5px] text-secondary mt-1 break-keep whitespace-normal sm:truncate">
                            D-VIEW 매니저가 직접 현장에서 검증한 대장 단지의 가치 평가 리포트
                          </p>
                        </div>
