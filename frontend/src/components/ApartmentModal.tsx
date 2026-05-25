@@ -563,46 +563,65 @@ function FieldReportModal({
     <>
       {/* ── Unified Header ── */}
       <div className="w-full bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
-        <div className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+        <div className="w-full flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[450px]">
             <div className="flex items-center gap-2">
-              <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
-              <span className="truncate">{displayAptName}</span>
+              <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{report.dong || '동탄'}</span>
               <a 
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
                 target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] md:text-[12px] font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue-light/80 px-2 py-0.5 md:px-2.5 md:py-0.5 rounded-full transition-all shrink-0 ml-2 group border border-toss-blue/5"
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1b64da] bg-[#e8f3ff] hover:bg-[#dbeafe] px-2.5 py-1 rounded-full transition-all shrink-0 group border border-[#1b64da]/20"
                 title="구글 지도에서 아파트 위치 보기"
               >
-                <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:scale-105 transition-transform" />
+                <MapPin className="w-3 h-3 group-hover:scale-105 transition-transform" />
                 <span>지도보기</span>
               </a>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
+              <span className="truncate">{displayAptName}</span>
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
-            {/* 평형 필터 칩스 (Sleek Segment Controller) */}
+          <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap w-full lg:w-auto">
+            {/* 평형 필터 (5개 초과 시 드롭다운, 5개 이하 시 칩스 형식) */}
             {areaFilterChips.length > 2 && (
-              <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20 gap-0.5">
-                {areaFilterChips.map(chip => {
-                  const isActive = selectedAreaFilter === chip;
-                  return (
-                    <button
-                      key={chip}
-                      onClick={() => setSelectedAreaFilter(chip)}
-                      className={`shrink-0 px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-surface text-primary shadow-sm border-none'
-                          : 'text-tertiary hover:text-secondary'
-                      }`}
-                    >
-                      {chip}
-                    </button>
-                  );
-                })}
-              </div>
+              areaFilterChips.length > 5 ? (
+                <div className="relative shrink-0">
+                  <select
+                    value={selectedAreaFilter}
+                    onChange={(e) => setSelectedAreaFilter(e.target.value)}
+                    className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer"
+                  >
+                    {areaFilterChips.map(chip => (
+                      <option key={chip} value={chip} className="font-medium text-secondary">
+                        {chip === '전체' ? '타입: 전체' : `타입: ${chip}`}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
+                    <ChevronDown size={14} strokeWidth={2.5} />
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20 gap-0.5 overflow-x-auto max-w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {areaFilterChips.map(chip => {
+                    const isActive = selectedAreaFilter === chip;
+                    return (
+                      <button
+                        key={chip}
+                        onClick={() => setSelectedAreaFilter(chip)}
+                        className={`shrink-0 px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all cursor-pointer ${
+                          isActive
+                            ? 'bg-surface text-primary shadow-sm border-none'
+                            : 'text-tertiary hover:text-secondary'
+                        }`}
+                      >
+                        {chip}
+                      </button>
+                    );
+                  })}
+                </div>
+              )
             )}
 
             {/* 매매/전월세 토글 */}
@@ -1480,7 +1499,7 @@ function FieldReportModal({
           {showScrollTop && (
             <button
               onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="fixed bottom-20 md:bottom-8 right-6 z-[100] w-12 h-12 bg-surface hover:bg-[#e5e8eb] text-secondary border border-border rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+              className="fixed bottom-[calc(104px+env(safe-area-inset-bottom))] md:bottom-8 right-6 z-[100] w-12 h-12 bg-surface hover:bg-[#e5e8eb] text-secondary border border-border rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer group"
               title="맨 위로 이동"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform">

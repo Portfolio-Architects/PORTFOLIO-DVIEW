@@ -9,7 +9,15 @@ import { redis } from '@/lib/redis';
 // Use Incremental Static Regeneration (ISR) to eliminate TTFB bottlenecks
 export const revalidate = 3600;
 
+const PAGE_DATA_CACHE_TTL = 300; // 5 minutes in-memory cache for Firestore + Sheets merge
+
 async function getInitialData() {
+  const now = Date.now();
+  const cache = (globalThis as any)._initialPageDataCache;
+  if (cache && (now - cache.timestamp) < PAGE_DATA_CACHE_TTL * 1000) {
+    return cache.data;
+  }
+
   const result: {
     favoriteCounts: Record<string, number>;
     typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
@@ -120,6 +128,7 @@ async function getInitialData() {
     fetchApts().catch(e => console.warn('[Server] apts error:', e)),
   ]);
 
+  (globalThis as any)._initialPageDataCache = { data: result, timestamp: Date.now() };
   return result;
 }
 

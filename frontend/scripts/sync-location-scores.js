@@ -178,21 +178,71 @@ async function main() {
         return matches.length > 0 ? findNearest(coord, matches) : null;
      };
 
-     results[aptName] = {
-        distanceToElementary: findNearest(coord, elementary)?.distance ?? null,
-        distanceToMiddle: findNearest(coord, middle)?.distance ?? null,
-        distanceToHigh: findNearest(coord, high)?.distance ?? null,
-        distanceToSubway: (gtxSrt.length > 0 ? findNearest(coord, gtxSrt) : findNearest(coord, stations))?.distance ?? null,
-        distanceToIndeokwon: findNearest(coord, indeokwon)?.distance ?? null,
-        distanceToTram: findNearest(coord, tram)?.distance ?? null,
-        academyDensity: nearbyAcademies.length,
-        restaurantDensity: nearbyRestaurants.length,
-        distanceToStarbucks: findAnchor(['스타벅스'])?.distance ?? null,
-        distanceToMcDonalds: findNearest(coord, restaurants.filter(r => ['배스킨라빈스', '베스킨라빈스'].some(k => r.name.includes(k))))?.distance ?? null,
-        distanceToOliveYoung: findAnchor(['올리브영'])?.distance ?? null,
-        distanceToDaiso: findAnchor(['다이소'])?.distance ?? null,
-        distanceToSupermarket: findAnchor(['이마트','홈플러스','롯데마트','노브랜드'])?.distance ?? null,
-     };
+      const nearElementary = findNearest(coord, elementary);
+      const nearMiddle = findNearest(coord, middle);
+      const nearHigh = findNearest(coord, high);
+
+      const nearSubway = gtxSrt.length > 0 ? findNearest(coord, gtxSrt) : findNearest(coord, stations);
+      const nearIndeokwon = findNearest(coord, indeokwon);
+      const nearTram = findNearest(coord, tram);
+
+      const nearStarbucks = findAnchor(['스타벅스']);
+      const nearMcDonalds = findNearest(coord, restaurants.filter(r => ['배스킨라빈스', '베스킨라빈스'].some(k => r.name.includes(k))));
+      const nearOliveYoung = findAnchor(['올리브영']);
+      const nearDaiso = findAnchor(['다이소']);
+      const nearSupermarket = findAnchor(['이마트','홈플러스','롯데마트','노브랜드']);
+
+      results[aptName] = {
+         distanceToElementary: nearElementary?.distance ?? null,
+         distanceToMiddle: nearMiddle?.distance ?? null,
+         distanceToHigh: nearHigh?.distance ?? null,
+         distanceToSubway: nearSubway?.distance ?? null,
+         distanceToIndeokwon: nearIndeokwon?.distance ?? null,
+         distanceToTram: nearTram?.distance ?? null,
+         academyDensity: nearbyAcademies.length,
+         restaurantDensity: nearbyRestaurants.length,
+         distanceToStarbucks: nearStarbucks?.distance ?? null,
+         distanceToMcDonalds: nearMcDonalds?.distance ?? null,
+         distanceToOliveYoung: nearOliveYoung?.distance ?? null,
+         distanceToDaiso: nearDaiso?.distance ?? null,
+         distanceToSupermarket: nearSupermarket?.distance ?? null,
+
+         // Nearest School Names
+         nearestSchoolNames: {
+            elementary: nearElementary?.name ?? null,
+            middle: nearMiddle?.name ?? null,
+            high: nearHigh?.name ?? null,
+         },
+
+         // Subway/Stations
+         nearestStationName: nearSubway?.name ?? null,
+         nearestStationLine: nearSubway?.line ?? null,
+         nearestStationCoords: nearSubway ? `${nearSubway.lat}, ${nearSubway.lng}` : null,
+
+         nearestIndeokwonStationName: nearIndeokwon?.name ?? null,
+         nearestIndeokwonLine: nearIndeokwon?.line ?? null,
+         nearestIndeokwonCoords: nearIndeokwon ? `${nearIndeokwon.lat}, ${nearIndeokwon.lng}` : null,
+
+         nearestTramStationName: nearTram?.name ?? null,
+         nearestTramLine: nearTram?.line ?? null,
+         nearestTramCoords: nearTram ? `${nearTram.lat}, ${nearTram.lng}` : null,
+
+         // Anchor details
+         starbucksName: nearStarbucks?.name ?? null,
+         starbucksCoordinates: nearStarbucks ? `${nearStarbucks.lat}, ${nearStarbucks.lng}` : null,
+
+         mcdonaldsName: nearMcDonalds?.name ?? null,
+         mcdonaldsCoordinates: nearMcDonalds ? `${nearMcDonalds.lat}, ${nearMcDonalds.lng}` : null,
+
+         oliveYoungName: nearOliveYoung?.name ?? null,
+         oliveYoungCoordinates: nearOliveYoung ? `${nearOliveYoung.lat}, ${nearOliveYoung.lng}` : null,
+
+         daisoName: nearDaiso?.name ?? null,
+         daisoCoordinates: nearDaiso ? `${nearDaiso.lat}, ${nearDaiso.lng}` : null,
+
+         supermarketName: nearSupermarket?.name ?? null,
+         supermarketCoordinates: nearSupermarket ? `${nearSupermarket.lat}, ${nearSupermarket.lng}` : null,
+      };
   }
 
   const outputPath = path.resolve(__dirname, '../public/data/location-scores.json');

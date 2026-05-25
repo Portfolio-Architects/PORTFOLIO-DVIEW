@@ -246,7 +246,7 @@ export function findTypeMapEntry(
   if (!typeMap || !aptName || !area) return null;
 
   // 1. 아파트명 매칭 시도
-  let normApt = normalizeAptName(aptName);
+  const normApt = normalizeAptName(aptName);
   let aptEntry = typeMap[normApt];
 
   if (!aptEntry) {

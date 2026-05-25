@@ -83,6 +83,26 @@ export async function GET(request: NextRequest) {
           supermarketCoordinates: scoreData.supermarketCoordinates || existingMetrics.supermarketCoordinates,
 
           distanceToPark: existingMetrics.distanceToPark,
+
+          // School Names
+          nearestSchoolNames: {
+            elementary: scoreData.nearestSchools?.elementary?.name || existingMetrics.nearestSchoolNames?.elementary || '',
+            middle: scoreData.nearestSchools?.middle?.name || existingMetrics.nearestSchoolNames?.middle || '',
+            high: scoreData.nearestSchools?.high?.name || existingMetrics.nearestSchoolNames?.high || '',
+          },
+
+          // Station Details
+          nearestStationName: scoreData.nearestStation?.name || existingMetrics.nearestStationName || '',
+          nearestStationLine: scoreData.nearestStation?.line || existingMetrics.nearestStationLine || '',
+          nearestStationCoords: scoreData.nearestStation ? `${scoreData.nearestStation.lat}, ${scoreData.nearestStation.lng}` : existingMetrics.nearestStationCoords || '',
+
+          nearestIndeokwonStationName: scoreData.nearestIndeokwon?.name || existingMetrics.nearestIndeokwonStationName || '',
+          nearestIndeokwonLine: scoreData.nearestIndeokwon?.line || existingMetrics.nearestIndeokwonLine || '',
+          nearestIndeokwonCoords: scoreData.nearestIndeokwon ? `${scoreData.nearestIndeokwon.lat}, ${scoreData.nearestIndeokwon.lng}` : existingMetrics.nearestIndeokwonCoords || '',
+
+          nearestTramStationName: scoreData.nearestTram?.name || existingMetrics.nearestTramStationName || '',
+          nearestTramLine: scoreData.nearestTram?.line || existingMetrics.nearestTramLine || '',
+          nearestTramCoords: scoreData.nearestTram ? `${scoreData.nearestTram.lat}, ${scoreData.nearestTram.lng}` : existingMetrics.nearestTramCoords || '',
         };
 
         const premiumScores = calculatePremiumScores(mergedMetrics);

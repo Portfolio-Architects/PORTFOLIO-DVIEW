@@ -306,7 +306,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
             {/* Section 1: 실거래가 & PER 배수 */}
             {realEstatePER > 0 ? (
               <div className="p-6">
-                <h4 className="text-[14px] font-extrabold text-secondary mb-4 flex items-center gap-1.5">
+                <h4 className="text-[14.5px] md:text-[15px] font-extrabold text-primary mb-4 flex items-center gap-1.5">
                   <span className="w-1.5 h-3.5 bg-toss-blue rounded-full inline-block" />
                   1. 실거래 배수 분석 (PER)
                 </h4>
@@ -314,20 +314,20 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   {/* Left: Data Components */}
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-4 h-full">
-                      <h5 className="text-[13px] font-bold text-secondary">기준 실거래 데이터</h5>
+                      <h5 className="text-[13px] md:text-[13.5px] font-extrabold text-secondary">기준 실거래 데이터</h5>
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-[13px] text-tertiary font-medium">3개월 평균 매매가</span>
-                          <span className="text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
+                          <span className="text-[12.5px] md:text-[13px] text-tertiary font-bold">3개월 평균 매매가</span>
+                          <span className="text-[14.5px] md:text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-[13px] text-tertiary font-medium">3개월 평균 전세가</span>
-                          <span className="text-[15px] font-extrabold text-toss-blue">{formatPrice(avg3MRent)}</span>
+                          <span className="text-[12.5px] md:text-[13px] text-tertiary font-bold">3개월 평균 전세가</span>
+                          <span className="text-[14.5px] md:text-[15px] font-extrabold text-toss-blue">{formatPrice(avg3MRent)}</span>
                         </div>
                         <div className="h-px w-full bg-border/60 my-0.5" />
                         <div className="flex items-center justify-between">
-                          <span className="text-[13px] text-tertiary font-bold">도출된 전세가율</span>
-                          <span className="text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
+                          <span className="text-[12.5px] md:text-[13px] text-tertiary font-bold">도출된 전세가율</span>
+                          <span className="text-[14.5px] md:text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
                             {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
                           </span>
                         </div>
@@ -339,9 +339,6 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex flex-col items-center justify-center pb-4">
                       <div className="text-[12px] font-bold text-tertiary mb-1 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsValuationModalOpen(true)}>
                         매매가 ÷ 전세가 배수
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-body border border-border text-secondary shadow-sm transition-transform hover:scale-105 ml-1.5">
-                          <Info size={13} strokeWidth={2.5} />
-                        </span>
                       </div>
                       <div className="flex items-end gap-1.5">
                         <span className="text-[44px] font-black text-primary leading-none tracking-tighter">
@@ -372,7 +369,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
             {/* Section 2: 금리 연동 적정가 (DCF) */}
             {realEstatePER > 0 ? (
               <div className="p-6">
-                <h4 className="text-[14px] font-extrabold text-secondary mb-4 flex items-center gap-1.5">
+                <h4 className="text-[14.5px] md:text-[15px] font-extrabold text-primary mb-4 flex items-center gap-1.5">
                   <span className="w-1.5 h-3.5 bg-toss-green rounded-full inline-block" />
                   2. 금리로 계산한 적정 집값 (DCF)
                 </h4>
@@ -380,17 +377,17 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   {/* Left: Formula & Data Components */}
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-3.5 h-full">
-                      <h5 className="text-[14.5px] md:text-[15px] font-extrabold text-secondary">적용 수식 및 산출 근거</h5>
+                      <h5 className="text-[13px] md:text-[13.5px] font-extrabold text-secondary">적용 수식 및 산출 근거</h5>
                       <div className="flex flex-col gap-3.5">
                         {/* 연간 예상 임대 가치 (Annual Rent) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[14px] md:text-[14.5px] text-tertiary font-bold">연간 예상 임대 가치 (Annual Rent)</span>
-                            <span className="text-[15.5px] md:text-[16px] font-black text-primary">
+                            <span className="text-[12.5px] md:text-[13px] text-tertiary font-bold">연간 예상 임대 가치 (Annual Rent)</span>
+                            <span className="text-[14.5px] md:text-[15px] font-black text-primary">
                               {formatPrice(avg3MRent * dynamicConversionRate)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 flex-wrap">
+                          <div className="flex items-center gap-1.5 text-[11.5px] md:text-[12px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 flex-wrap">
                             <span>평균 전세 {formatPrice(avg3MRent)}</span>
                             <span className="text-[#d1d6db]">×</span>
                             <span>전환율 {(dynamicConversionRate * 100).toFixed(1)}%</span>
@@ -403,10 +400,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                         {/* 기본 투자 요구 이자율 (할인율 r) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[14px] md:text-[14.5px] text-tertiary font-bold">기본 투자 요구 이자율 (할인율 r)</span>
-                            <span className="text-[15.5px] md:text-[16px] font-black text-primary">{dcf.discountRate.toFixed(2)}%</span>
+                            <span className="text-[12.5px] md:text-[13px] text-tertiary font-bold">기본 투자 요구 이자율 (할인율 r)</span>
+                            <span className="text-[14.5px] md:text-[15px] font-black text-primary">{dcf.discountRate.toFixed(2)}%</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 flex-wrap">
+                          <div className="flex items-center gap-1.5 text-[11.5px] md:text-[12px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 flex-wrap">
                             <span>국고채 {macroConfig.riskFreeRate.toFixed(2)}%</span>
                             <span className="text-[#d1d6db]">+</span>
                             <span>리스크 1.50%</span>
@@ -418,8 +415,8 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                         {/* 장기 집값 상승 기대치 (성장률 g) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[14px] md:text-[14.5px] text-tertiary font-bold">장기 집값 상승 기대치 (성장률 g)</span>
-                            <span className="text-[15.5px] md:text-[16px] font-black text-primary">{dcf.growthRate.toFixed(2)}%</span>
+                            <span className="text-[12.5px] md:text-[13px] text-tertiary font-bold">장기 집값 상승 기대치 (성장률 g)</span>
+                            <span className="text-[14.5px] md:text-[15px] font-black text-primary">{dcf.growthRate.toFixed(2)}%</span>
                           </div>
                           <button 
                             onClick={() => {
@@ -428,7 +425,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                                 document.getElementById('utility-score-section')?.scrollIntoView({ behavior: 'smooth' });
                               }, 50);
                             }}
-                            className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 hover:underline hover:text-toss-blue transition-colors cursor-pointer text-left font-bold w-full"
+                            className="flex items-center gap-1.5 text-[11.5px] md:text-[12px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 hover:underline hover:text-toss-blue transition-colors cursor-pointer text-left font-bold w-full"
                           >
                             물가({macroConfig.baseInflationRate.toFixed(1)}%) + 단지 가치(+{(utilityScoreResult.total * 0.01).toFixed(2)}%p)
                           </button>
@@ -439,10 +436,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                         {/* 실질 목표 수익률 (Cap Rate) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[14px] md:text-[14.5px] text-secondary font-extrabold">실질 목표 수익률 (Cap Rate)</span>
-                            <span className="text-[16.5px] md:text-[17px] font-black text-[#00b386]">{dcf.capRate.toFixed(2)}%</span>
+                            <span className="text-[12.5px] md:text-[13px] text-secondary font-extrabold">실질 목표 수익률 (Cap Rate)</span>
+                            <span className="text-[14.5px] md:text-[15px] font-black text-[#00b386]">{dcf.capRate.toFixed(2)}%</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30">
+                          <div className="flex items-center gap-1.5 text-[11.5px] md:text-[12px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30">
                             <span>할인율 {dcf.discountRate.toFixed(2)}%</span>
                             <span className="text-[#d1d6db]">-</span>
                             <span>성장률 {dcf.growthRate.toFixed(2)}%</span>
@@ -454,7 +451,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   {/* Right: Main Cap Rate Box */}
                   <div className="flex-1 flex flex-col justify-center gap-4">
                     <div className="flex flex-col items-center justify-center pb-2">
-                      <span className="text-[12px] font-bold text-tertiary mb-1">적정 집값</span>
+                      <span className="text-[13px] md:text-[13.5px] font-bold text-tertiary mb-1">적정 집값</span>
                       <span className="text-[36px] font-black text-primary leading-none tracking-tighter">
                         {formatPrice(dcf.impliedValue)}
                       </span>
@@ -462,12 +459,12 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
                     {/* Step 5. 최종 적정 집값 산출 과정 */}
                     <div className="bg-body border border-border/80 rounded-2xl p-4 flex flex-col gap-2.5">
-                      <div className="text-[12px] font-extrabold text-secondary flex items-center gap-1.5">
+                      <div className="text-[13px] md:text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5">
                         <span className="w-1 h-3 bg-toss-blue rounded-full inline-block" />
                         Step 5. 최종 적정 집값 산출
                       </div>
-                      <div className="flex flex-col gap-1 text-[11px] text-tertiary leading-relaxed">
-                        <div className="flex justify-between items-center text-[12px] font-bold text-primary mb-0.5">
+                      <div className="flex flex-col gap-1 text-[12.5px] md:text-[13px] text-tertiary leading-relaxed">
+                        <div className="flex justify-between items-center text-[13px] md:text-[13.5px] font-bold text-primary mb-0.5">
                           <span>적정 집값 공식</span>
                           <span>연간 임대료 ÷ Cap Rate</span>
                         </div>
@@ -490,7 +487,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                             ≈ {Math.round(dcf.impliedValue * 10000).toLocaleString()}원
                           </span>
                         </div>
-                        <p className="text-[10px] text-tertiary leading-normal mt-1 border-t border-border/30 pt-1.5">
+                        <p className="text-[11.5px] md:text-[12px] text-tertiary leading-normal mt-1 border-t border-border/30 pt-1.5">
                           위 이론 계산치를 억/백만 원 단위로 반올림하여 최종적으로 <strong className="text-secondary font-bold">{formatPrice(dcf.impliedValue)}</strong>이 도출되었습니다.
                         </p>
                       </div>
@@ -523,7 +520,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
             {/* Section 3: 단지 상품성 & 인프라 가치평가 (Utility Score) */}
             {utilityScoreResult.total > 0 && (
               <div id="utility-score-section" className="p-6 scroll-mt-20">
-                <h4 className="text-[14px] font-extrabold text-secondary mb-4 flex items-center gap-1.5">
+                <h4 className="text-[14.5px] md:text-[15px] font-extrabold text-primary mb-4 flex items-center gap-1.5">
                   <span className="w-1.5 h-3.5 bg-[#f59e0b] rounded-full inline-block" />
                   3. 단지 상품성 & 인프라 가치평가 (Utility Score)
                 </h4>
@@ -559,7 +556,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                           {utilityScoreResult.total >= 130 ? '최우수 단지' : utilityScoreResult.total >= 100 ? '우수 단지' : '표준 단지'}
                         </span>
                       </div>
-                      <p className="text-[13.5px] text-secondary leading-relaxed font-semibold mt-1">
+                      <p className="text-[13px] md:text-[13.5px] text-secondary leading-relaxed font-semibold mt-1">
                         {utilityScoreResult.total >= 130 ? '동탄 내 최상위권의 상품성과 초역세권 입지를 갖추어, 평균(2.0%)보다 높은 장기 성장률 프리미엄이 반영됩니다.' : 
                          utilityScoreResult.total >= 100 ? '준수한 단지 스펙과 생활 인프라를 갖추어, 시장 평균 수준의 성장률이 안정적으로 적용됩니다.' : 
                          '단지 규모나 연식, 역세권 접근성 등의 제한으로 인해 평균보다 다소 보수적인 성장률이 적용됩니다.'}
@@ -589,7 +586,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                       
                       {/* Section 1: 단지 기본 스펙 (Specs) */}
                       <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-extrabold text-[#f59e0b] border-b border-border pb-2 flex items-center gap-1.5">
+                        <h4 className="text-[13px] md:text-[13.5px] font-extrabold text-[#f59e0b] border-b border-border pb-2 flex items-center gap-1.5">
                           <Building size={16} />
                           단지 상품성 & 스펙 (4개 지표)
                         </h4>
@@ -603,14 +600,14 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                                     <div className="w-8 h-8 rounded-full bg-[#f59e0b]/10 text-[#f59e0b] flex items-center justify-center shrink-0">
                                       <Icon size={16} />
                                     </div>
-                                    <span className="text-[13.5px] font-bold text-primary">{log.category}</span>
+                                    <span className="text-[13px] md:text-[13.5px] font-bold text-primary">{log.category}</span>
                                   </div>
                                   <div className="flex items-baseline gap-0.5">
                                     <span className="text-[14px] font-black text-secondary">{log.score}</span>
                                     <span className="text-[11px] text-tertiary">/ {log.max}점</span>
                                   </div>
                                 </div>
-                                <span className="text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
+                                <span className="text-[12px] md:text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
                                 {log.data && (
                                   <span className="text-[11px] text-toss-blue font-bold mt-1 px-2.5 py-1 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit ml-1">
                                     실데이터: {log.data}
@@ -624,7 +621,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
                       {/* Section 2: 주변 인프라 & 입지 (Infra) */}
                       <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-extrabold text-toss-blue border-b border-border pb-2 flex items-center gap-1.5">
+                        <h4 className="text-[13px] md:text-[13.5px] font-extrabold text-toss-blue border-b border-border pb-2 flex items-center gap-1.5">
                           <MapPin size={16} />
                           주변 인프라 & 교통 입지 (7개 지표)
                         </h4>
@@ -638,14 +635,14 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                                     <div className="w-8 h-8 rounded-full bg-toss-blue/10 text-toss-blue flex items-center justify-center shrink-0">
                                       <Icon size={16} />
                                     </div>
-                                    <span className="text-[13.5px] font-bold text-primary">{log.category}</span>
+                                    <span className="text-[13px] md:text-[13.5px] font-bold text-primary">{log.category}</span>
                                   </div>
                                   <div className="flex items-baseline gap-0.5">
                                     <span className="text-[14px] font-black text-secondary">{log.score}</span>
                                     <span className="text-[11px] text-tertiary">/ {log.max}점</span>
                                   </div>
                                 </div>
-                                <span className="text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
+                                <span className="text-[12px] md:text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
                                 {log.data && (
                                   <span className="text-[11px] text-toss-blue font-bold mt-1 px-2.5 py-1 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit ml-1">
                                     실데이터: {log.data}
@@ -718,16 +715,16 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
               {/* Part 1: DCF Formula & Calculation */}
               {realEstatePER > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h4 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
+                  <h4 className="text-[15px] font-extrabold text-primary flex items-center gap-1.5">
                     <span className="w-1.5 h-3.5 bg-toss-green rounded-full inline-block" />
                     1. 적정 집값 계산법 (수익환원법)
                   </h4>
                   
                   <div className="bg-body rounded-2xl p-4 border border-border">
-                    <div className="text-[14px] font-extrabold text-primary mb-2">
+                    <div className="text-[13.5px] font-extrabold text-primary mb-2">
                       적정 집값 = 1년 예상 월세 ÷ 은행 예금이자
                     </div>
-                    <p className="text-[13px] text-secondary leading-relaxed font-medium">
+                    <p className="text-[12.5px] text-secondary leading-relaxed font-medium">
                       이 아파트를 매수하는 대신 그 돈을 은행에 넣었을 때 받을 수 있는 이자와, 이 아파트에서 발생하는 임대 가치(전세 기반 가상 월세)를 비교해 적정 가격을 계산합니다.
                     </p>
                   </div>
@@ -772,7 +769,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
               {/* Part 2: Utility Score Detailed Items */}
               {utilityScoreResult.total > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h4 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
+                  <h4 className="text-[15px] font-extrabold text-primary flex items-center gap-1.5">
                     <span className="w-1.5 h-3.5 bg-[#f59e0b] rounded-full inline-block" />
                     2. 단지 상품성 & 인프라 가치평가 (Utility Score)
                   </h4>
@@ -837,7 +834,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
               {/* Part 3: PER Range Guides */}
               {realEstatePER > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h4 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
+                  <h4 className="text-[15px] font-extrabold text-primary flex items-center gap-1.5">
                     <span className="w-1.5 h-3.5 bg-toss-blue rounded-full inline-block" />
                     3. 매매가 ÷ 전세가 배수 기준 (PER 구간 가이드)
                   </h4>
@@ -846,10 +843,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex gap-3">
                       <div className="w-2 h-2 rounded-full bg-toss-green mt-2 shrink-0" />
                       <div>
-                        <div className="text-[13.5px] font-bold text-primary flex items-center gap-1.5">
+                        <div className="text-[13px] font-bold text-primary flex items-center gap-1.5">
                           안전구간 (1.4배 미만) <span className="text-[11px] text-tertiary font-normal">(전세가율 71% 이상)</span>
                         </div>
-                        <div className="text-[12.5px] text-secondary mt-1 leading-relaxed">
+                        <div className="text-[12px] text-secondary mt-1 leading-relaxed font-medium">
                           <b className="text-toss-green font-bold">집값이 떨어질 위험이 매우 낮습니다.</b> 실거주 인기가 높아 매매가와 전세가의 차이가 적고, 적은 돈으로도 투자(갭투자)하기 좋은 곳들이 모여있습니다.
                         </div>
                       </div>
@@ -858,10 +855,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex gap-3">
                       <div className="w-2 h-2 rounded-full bg-[#10b981] mt-2 shrink-0" />
                       <div>
-                        <div className="text-[13.5px] font-bold text-primary flex items-center gap-1.5">
+                        <div className="text-[13px] font-bold text-primary flex items-center gap-1.5">
                           안정구간 (1.4배 ~ 1.6배) <span className="text-[11px] text-tertiary font-normal">(전세가율 62~71%)</span>
                         </div>
-                        <div className="text-[12.5px] text-secondary mt-1 leading-relaxed">
+                        <div className="text-[12px] text-secondary mt-1 leading-relaxed font-medium">
                           <b className="text-[#10b981] font-bold">가격이 든든하게 방어됩니다.</b> 경제가 흔들려도 집값이 잘 버티는 편이며, 사람들이 실제로 살고 싶어 하는 수요가 가격을 탄탄하게 받쳐줍니다.
                         </div>
                       </div>
@@ -870,10 +867,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex gap-3">
                       <div className="w-2 h-2 rounded-full bg-toss-blue mt-2 shrink-0" />
                       <div>
-                        <div className="text-[13.5px] font-bold text-primary flex items-center gap-1.5">
+                        <div className="text-[13px] font-bold text-primary flex items-center gap-1.5">
                           평균구간 (1.6배 ~ 1.8배) <span className="text-[11px] text-tertiary font-normal">(전세가율 55~62%)</span>
                         </div>
-                        <div className="text-[12.5px] text-secondary mt-1 leading-relaxed">
+                        <div className="text-[12px] text-secondary mt-1 leading-relaxed font-medium">
                           <b className="text-toss-blue font-bold">시장의 딱 중간 수준입니다.</b> 수도권 아파트들이 일반적으로 가지고 있는 생활 인프라와 사람들의 평범한 선호도가 그대로 반영된 상태입니다.
                         </div>
                       </div>
@@ -882,10 +879,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex gap-3">
                       <div className="w-2 h-2 rounded-full bg-[#f59e0b] mt-2 shrink-0" />
                       <div>
-                        <div className="text-[13.5px] font-bold text-primary flex items-center gap-1.5">
+                        <div className="text-[13px] font-bold text-primary flex items-center gap-1.5">
                           성장구간 (1.8배 ~ 2.2배) <span className="text-[11px] text-tertiary font-normal">(전세가율 45~55%)</span>
                         </div>
-                        <div className="text-[12.5px] text-secondary mt-1 leading-relaxed">
+                        <div className="text-[12px] text-secondary mt-1 leading-relaxed font-medium">
                           <b className="text-[#f59e0b] font-bold">미래에 대한 기대감이 섞여있습니다.</b> 뛰어난 학군이나 새로운 교통망 등 좋은 입지 조건 때문에 나중에 집값이 오를 것이란 기대가 이미 가격에 포함되어 있습니다.
                         </div>
                       </div>
@@ -894,10 +891,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                     <div className="flex gap-3">
                       <div className="w-2 h-2 rounded-full bg-toss-red mt-2 shrink-0" />
                       <div>
-                        <div className="text-[13.5px] font-bold text-primary flex items-center gap-1.5">
+                        <div className="text-[13px] font-bold text-primary flex items-center gap-1.5">
                           투자집중구간 (2.2배 초과) <span className="text-[11px] text-tertiary font-normal">(전세가율 45% 미만)</span>
                         </div>
-                        <div className="text-[12.5px] text-secondary mt-1 leading-relaxed">
+                        <div className="text-[12px] text-secondary mt-1 leading-relaxed font-medium">
                           <b className="text-toss-red font-bold">큰 수익을 노리는 투자가 집중된 곳입니다.</b> 재건축이나 대형 개발을 바라보는 투자자들이 몰려있어, 현재 살기 좋은 것보다 앞으로 오를 가치에 가격이 맞춰져 있습니다.
                         </div>
                       </div>

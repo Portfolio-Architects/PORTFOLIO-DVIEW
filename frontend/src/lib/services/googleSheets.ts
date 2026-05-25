@@ -21,6 +21,7 @@ export const SheetApartmentSchema = z.object({
   far: z.number().optional(),
   bcr: z.number().optional(),
   parkingCount: z.number().optional(),
+  parkingPerHousehold: z.number().optional(),
   brand: z.string().optional(),
   maxFloor: z.number().optional(),
   minFloor: z.number().optional(),
@@ -50,24 +51,44 @@ export const SheetApartmentSchema = z.object({
 
 export type SheetApartment = z.infer<typeof SheetApartmentSchema>;
 
+// In-memory cache to bypass Redis roundtrips in local/serverless environments
+const sheetsMemoryCache = (globalThis as any)._sheetsMemoryCache || {};
+if (!(globalThis as any)._sheetsMemoryCache) {
+  (globalThis as any)._sheetsMemoryCache = sheetsMemoryCache;
+}
+
 const SHEETS_CACHE_TTL = 3600; // 1 hour
 
 async function fetchCsv(sheetName: string): Promise<string[][]> {
   const cacheKey = `DTDLS:cache:sheets:${sheetName}`;
+  const now = Date.now();
 
+  // 1. Check in-memory cache first
+  const memCached = sheetsMemoryCache[cacheKey];
+  if (memCached) {
+    const isStale = (now - memCached.timestamp) > SHEETS_CACHE_TTL * 1000;
+    if (!isStale) {
+      return memCached.data;
+    }
+  }
+
+  // 2. Check Redis cache
   if (redis) {
     try {
       const cached = await redis.get<{ data: string[][]; timestamp: number }>(cacheKey);
       if (cached) {
-        const isStale = (Date.now() - cached.timestamp) > SHEETS_CACHE_TTL * 1000;
+        const isStale = (now - cached.timestamp) > SHEETS_CACHE_TTL * 1000;
         if (isStale) {
           // Stale-While-Revalidate: fetch in background
           fetchCsvFromGoogle(sheetName).then(freshData => {
             redis?.set(cacheKey, { data: freshData, timestamp: Date.now() });
+            sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: Date.now() };
           }).catch(err => {
             logger.error('fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err);
           });
         }
+        // Write to memory cache
+        sheetsMemoryCache[cacheKey] = { data: cached.data, timestamp: cached.timestamp };
         return cached.data;
       }
     } catch (e) {
@@ -75,10 +96,13 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
     }
   }
 
+  // 3. Live fetch
   const freshData = await fetchCsvFromGoogle(sheetName);
+  sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: now };
+
   if (redis) {
     try {
-      await redis.set(cacheKey, { data: freshData, timestamp: Date.now() });
+      await redis.set(cacheKey, { data: freshData, timestamp: now });
     } catch (e) {
       logger.error('fetchCsv', `Redis write failed for sheet: ${sheetName}`, undefined, e);
     }
@@ -110,6 +134,13 @@ export interface TypeMapItem {
 }
 
 export async function fetchSheetTypeMap(): Promise<TypeMapItem[]> {
+  const cacheKey = 'DTDLS:parsed:typeMap';
+  const now = Date.now();
+  const memCached = sheetsMemoryCache[cacheKey];
+  if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
+    return memCached.data;
+  }
+
   const rows = await fetchCsv(SHEET_TABS.TYPE_MAP);
   if (rows.length < 2) return [];
 
@@ -125,6 +156,7 @@ export async function fetchSheetTypeMap(): Promise<TypeMapItem[]> {
       result.push({ aptName, area, typeM2, typePyeong });
     }
   }
+  sheetsMemoryCache[cacheKey] = { data: result, timestamp: now };
   return result;
 }
 
@@ -138,6 +170,13 @@ function findColIndex(headers: string[], possibleNames: string[]): number {
 }
 
 export async function fetchSheetApartmentsByDong() {
+  const cacheKey = 'DTDLS:parsed:apartmentsByDong';
+  const now = Date.now();
+  const memCached = sheetsMemoryCache[cacheKey];
+  if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
+    return memCached.data;
+  }
+
   const [aptRows, sboydsRows, restRows] = await Promise.all([
     fetchCsv(SHEET_TABS.APARTMENTS),
     fetchCsv(SHEET_TABS.SBOYDS),
@@ -181,6 +220,10 @@ export async function fetchSheetApartmentsByDong() {
     const maxFloor = floorStr ? parseInt(floorStr.replace(/,/g, '')) : undefined;
     const minFloor = minFloorStr ? parseInt(minFloorStr.replace(/,/g, '')) : undefined;
 
+    const parkingPerHousehold = (householdCount && parkingCount && !isNaN(householdCount) && !isNaN(parkingCount) && householdCount > 0)
+      ? Math.round((parkingCount / householdCount) * 100) / 100
+      : undefined;
+
     const rawApt = {
       ticker, name, dong,
       lat: coord?.lat || 0,
@@ -190,6 +233,7 @@ export async function fetchSheetApartmentsByDong() {
       far: farStr ? parseFloat(farStr.replace(/,/g, '')) || undefined : undefined,
       bcr: bcrStr ? parseFloat(bcrStr.replace(/,/g, '')) || undefined : undefined,
       parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
+      parkingPerHousehold,
       brand,
       maxFloor: isNaN(maxFloor as number) ? undefined : maxFloor,
       minFloor: isNaN(minFloor as number) ? undefined : minFloor,
@@ -322,5 +366,7 @@ export async function fetchSheetApartmentsByDong() {
 
   Object.values(byDong).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name, 'ko')));
 
-  return { total: apartments.length, dongCount: Object.keys(byDong).length, byDong };
+  const result = { total: apartments.length, dongCount: Object.keys(byDong).length, byDong };
+  sheetsMemoryCache[cacheKey] = { data: result, timestamp: now };
+  return result;
 }

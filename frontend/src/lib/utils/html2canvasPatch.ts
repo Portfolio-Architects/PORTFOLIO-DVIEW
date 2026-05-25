@@ -81,7 +81,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
         for (let j = 0; j < rules.length; j++) {
           const rule = rules[j] as CSSStyleRule;
           if (rule.style && rule.style.cssText) {
-            let cssText = rule.style.cssText;
+            const cssText = rule.style.cssText;
             if (hasUnsupported(cssText)) {
               rule.style.cssText = sanitizeColors(cssText);
             }
