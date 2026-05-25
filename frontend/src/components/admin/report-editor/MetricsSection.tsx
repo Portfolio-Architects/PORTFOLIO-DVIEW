@@ -158,7 +158,7 @@ export function MetricsSection({
       const restEntries = Object.entries(loc.restaurantCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
       const restMsg = restEntries.length > 0 ? `\n\n🍽️ 음식점·카페 ${loc.restaurantDensity}개 (500m)\n${restEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : '';
       const transitMsg = `\n\n🚇 교통\nGTX-A/SRT: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
-      const anchorMsg = `\n\n🎯 앵커 테넌트\n스타벅스: ${loc.distanceToStarbucks ?? '-'}\n올리브영: ${loc.distanceToOliveYoung ?? '-'}\n다이소: ${loc.distanceToDaiso ?? '-'}\n이마트/노브랜드: ${loc.distanceToSupermarket ?? '-'}\n맥도날드: ${loc.distanceToMcDonalds ?? '-'}`;
+      const anchorMsg = `\n\n🎯 앵커 테넌트\n스타벅스: ${loc.distanceToStarbucks ?? '-'}\n올리브영: ${loc.distanceToOliveYoung ?? '-'}\n다이소: ${loc.distanceToDaiso ?? '-'}\n이마트/노브랜드: ${loc.distanceToSupermarket ?? '-'}\n배스킨라빈스: ${loc.distanceToMcDonalds ?? '-'}`;
       if (!silent) alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}${anchorMsg}`);
     } catch (e) {
       if (!silent) alert('자동 출력 중 오류가 발생했습니다.');
@@ -247,7 +247,7 @@ export function MetricsSection({
             <NumberInput name="metrics.distanceToOliveYoung" label="올리브영 거리" placeholder="예: 300" unit="m" />
             <NumberInput name="metrics.distanceToDaiso" label="다이소 거리" placeholder="예: 400" unit="m" />
             <NumberInput name="metrics.distanceToSupermarket" label="대형마트(이마트 등)" placeholder="예: 500" unit="m" />
-            <NumberInput name="metrics.distanceToMcDonalds" label="맥도날드 거리" placeholder="예: 600" unit="m" />
+            <NumberInput name="metrics.distanceToMcDonalds" label="배스킨라빈스 거리" placeholder="예: 600" unit="m" />
           </div>
         </div>
       </div>

@@ -58,10 +58,30 @@ export async function GET(request: NextRequest) {
           academyDensity: scoreData.academyDensity || 0,
           restaurantDensity: scoreData.restaurantDensity || 0,
           distanceToStarbucks: scoreData.distanceToStarbucks,
+          starbucksName: scoreData.starbucksName || existingMetrics.starbucksName,
+          starbucksAddress: scoreData.starbucksAddress || existingMetrics.starbucksAddress,
+          starbucksCoordinates: scoreData.starbucksCoordinates || existingMetrics.starbucksCoordinates,
+
           distanceToMcDonalds: scoreData.distanceToMcDonalds,
+          mcdonaldsName: scoreData.mcdonaldsName || existingMetrics.mcdonaldsName,
+          mcdonaldsAddress: scoreData.mcdonaldsAddress || existingMetrics.mcdonaldsAddress,
+          mcdonaldsCoordinates: scoreData.mcdonaldsCoordinates || existingMetrics.mcdonaldsCoordinates,
+
           distanceToOliveYoung: scoreData.distanceToOliveYoung,
+          oliveYoungName: scoreData.oliveYoungName || existingMetrics.oliveYoungName,
+          oliveYoungAddress: scoreData.oliveYoungAddress || existingMetrics.oliveYoungAddress,
+          oliveYoungCoordinates: scoreData.oliveYoungCoordinates || existingMetrics.oliveYoungCoordinates,
+
           distanceToDaiso: scoreData.distanceToDaiso,
+          daisoName: scoreData.daisoName || existingMetrics.daisoName,
+          daisoAddress: scoreData.daisoAddress || existingMetrics.daisoAddress,
+          daisoCoordinates: scoreData.daisoCoordinates || existingMetrics.daisoCoordinates,
+
           distanceToSupermarket: scoreData.distanceToSupermarket,
+          supermarketName: scoreData.supermarketName || existingMetrics.supermarketName,
+          supermarketAddress: scoreData.supermarketAddress || existingMetrics.supermarketAddress,
+          supermarketCoordinates: scoreData.supermarketCoordinates || existingMetrics.supermarketCoordinates,
+
           distanceToPark: existingMetrics.distanceToPark,
         };
 

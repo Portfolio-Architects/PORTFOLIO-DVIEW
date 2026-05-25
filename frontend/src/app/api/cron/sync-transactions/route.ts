@@ -37,6 +37,87 @@ interface GovApiItem {
   sggCd: string;
 }
 
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      inQuotes = !inQuotes;
+    } else if (c === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += c;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+function normalizeAptName(name: string): string {
+  if (!name) return '';
+  return name
+    .normalize('NFC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\[.*?\]\s*/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[()（）]/g, '')
+    .trim();
+}
+
+async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
+  const typeMap: Record<string, Record<string, number>> = {};
+  const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=TYPE_MAP`;
+    const res = await fetch(csvUrl);
+    if (res.ok) {
+      const csvText = await res.text();
+      const lines = csvText.split('\n').filter(l => l.trim());
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        if (cols.length < 3) continue;
+        const aptName = normalizeAptName(cols[1] || '');
+        const area = (cols[2] || '').trim();
+        const typeM2Str = (cols[3] || '').trim();
+        if (aptName && area && typeM2Str) {
+          if (!typeMap[aptName]) typeMap[aptName] = {};
+          const match = typeM2Str.match(/\d+(\.\d+)?/);
+          if (match) {
+            typeMap[aptName][area] = parseFloat(match[0]) * 0.3025;
+          }
+        }
+      }
+    }
+  } catch(e) {
+    console.error('Failed to fetch typeMap in cron sync:', e);
+  }
+  return typeMap;
+}
+
+function getSupplyPyeong(aptName: string, area: number, typeMap: Record<string, Record<string, number>>): number {
+  const normApt = normalizeAptName(aptName);
+  const aptEntry = typeMap[normApt];
+  if (aptEntry) {
+    // 1. Exact match
+    const exactKey = String(area);
+    if (aptEntry[exactKey]) return aptEntry[exactKey];
+    
+    // 2. Tolerance match (e.g. 0.1 m²)
+    for (const [keyStr, val] of Object.entries(aptEntry)) {
+      const keyNum = parseFloat(keyStr);
+      if (!isNaN(keyNum) && Math.abs(keyNum - area) < 0.11) {
+        return val;
+      }
+    }
+  }
+  
+  // Fallback
+  return area * 0.3025 * 1.33;
+}
+
 function extractDong(umdNm: string): string {
   return umdNm || '';
 }
@@ -57,6 +138,8 @@ export async function GET(request: Request) {
     if (!db) {
       return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
     }
+
+    const typeMap = await fetchTypeMap();
 
     // 1. Find the latest contractDate in Firestore to determine sync range
     const collRef = db.collection('transactions');
@@ -133,7 +216,7 @@ export async function GET(request: Request) {
             dong,
             aptName,
             area,
-            areaPyeong: Math.round(area / 3.3058 * 10) / 10,
+            areaPyeong: getSupplyPyeong(aptName, area, typeMap),
             contractYm: ym,
             contractDay,
             contractDate: `${ym}${contractDay}`,
@@ -201,7 +284,7 @@ export async function GET(request: Request) {
             dong,
             aptName,
             area,
-            areaPyeong: Math.round(area / 3.3058 * 10) / 10,
+            areaPyeong: getSupplyPyeong(aptName, area, typeMap),
             contractYm: ym,
             contractDay,
             contractDate: `${ym}${contractDay}`,

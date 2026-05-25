@@ -9,7 +9,7 @@
     "academyDensity": 90,
     "restaurantDensity": 40,
     "distanceToStarbucks": 347,
-    "distanceToMcDonalds": 1357,
+    "distanceToMcDonalds": 581,
     "distanceToOliveYoung": 239,
     "distanceToDaiso": 1348,
     "distanceToSupermarket": 1411
@@ -24,7 +24,7 @@
     "academyDensity": 112,
     "restaurantDensity": 276,
     "distanceToStarbucks": 457,
-    "distanceToMcDonalds": 1457,
+    "distanceToMcDonalds": 216,
     "distanceToOliveYoung": 536,
     "distanceToDaiso": 994,
     "distanceToSupermarket": 994
@@ -39,7 +39,7 @@
     "academyDensity": 71,
     "restaurantDensity": 64,
     "distanceToStarbucks": 323,
-    "distanceToMcDonalds": 979,
+    "distanceToMcDonalds": 629,
     "distanceToOliveYoung": 179,
     "distanceToDaiso": 1359,
     "distanceToSupermarket": 1520
@@ -54,7 +54,7 @@
     "academyDensity": 14,
     "restaurantDensity": 4,
     "distanceToStarbucks": 343,
-    "distanceToMcDonalds": 1517,
+    "distanceToMcDonalds": 1018,
     "distanceToOliveYoung": 465,
     "distanceToDaiso": 946,
     "distanceToSupermarket": 1824
@@ -69,7 +69,7 @@
     "academyDensity": 116,
     "restaurantDensity": 211,
     "distanceToStarbucks": 576,
-    "distanceToMcDonalds": 1398,
+    "distanceToMcDonalds": 343,
     "distanceToOliveYoung": 418,
     "distanceToDaiso": 1159,
     "distanceToSupermarket": 1159
@@ -84,7 +84,7 @@
     "academyDensity": 117,
     "restaurantDensity": 189,
     "distanceToStarbucks": 641,
-    "distanceToMcDonalds": 1658,
+    "distanceToMcDonalds": 437,
     "distanceToOliveYoung": 655,
     "distanceToDaiso": 1044,
     "distanceToSupermarket": 1044
@@ -99,7 +99,7 @@
     "academyDensity": 15,
     "restaurantDensity": 13,
     "distanceToStarbucks": 518,
-    "distanceToMcDonalds": 1680,
+    "distanceToMcDonalds": 763,
     "distanceToOliveYoung": 547,
     "distanceToDaiso": 1024,
     "distanceToSupermarket": 1625
@@ -114,7 +114,7 @@
     "academyDensity": 20,
     "restaurantDensity": 21,
     "distanceToStarbucks": 588,
-    "distanceToMcDonalds": 1647,
+    "distanceToMcDonalds": 669,
     "distanceToOliveYoung": 526,
     "distanceToDaiso": 1270,
     "distanceToSupermarket": 1359
@@ -129,7 +129,7 @@
     "academyDensity": 56,
     "restaurantDensity": 45,
     "distanceToStarbucks": 942,
-    "distanceToMcDonalds": 1993,
+    "distanceToMcDonalds": 337,
     "distanceToOliveYoung": 885,
     "distanceToDaiso": 1287,
     "distanceToSupermarket": 1307
@@ -144,7 +144,7 @@
     "academyDensity": 101,
     "restaurantDensity": 107,
     "distanceToStarbucks": 747,
-    "distanceToMcDonalds": 2293,
+    "distanceToMcDonalds": 393,
     "distanceToOliveYoung": 1115,
     "distanceToDaiso": 1075,
     "distanceToSupermarket": 1075
@@ -159,7 +159,7 @@
     "academyDensity": 89,
     "restaurantDensity": 95,
     "distanceToStarbucks": 977,
-    "distanceToMcDonalds": 2356,
+    "distanceToMcDonalds": 146,
     "distanceToOliveYoung": 1262,
     "distanceToDaiso": 1329,
     "distanceToSupermarket": 1329
@@ -174,7 +174,7 @@
     "academyDensity": 111,
     "restaurantDensity": 98,
     "distanceToStarbucks": 851,
-    "distanceToMcDonalds": 2023,
+    "distanceToMcDonalds": 482,
     "distanceToOliveYoung": 898,
     "distanceToDaiso": 994,
     "distanceToSupermarket": 994
@@ -189,7 +189,7 @@
     "academyDensity": 126,
     "restaurantDensity": 68,
     "distanceToStarbucks": 587,
-    "distanceToMcDonalds": 1480,
+    "distanceToMcDonalds": 522,
     "distanceToOliveYoung": 490,
     "distanceToDaiso": 1278,
     "distanceToSupermarket": 856
@@ -204,7 +204,7 @@
     "academyDensity": 17,
     "restaurantDensity": 5,
     "distanceToStarbucks": 685,
-    "distanceToMcDonalds": 2108,
+    "distanceToMcDonalds": 835,
     "distanceToOliveYoung": 784,
     "distanceToDaiso": 1516,
     "distanceToSupermarket": 1497
@@ -219,7 +219,7 @@
     "academyDensity": 19,
     "restaurantDensity": 5,
     "distanceToStarbucks": 822,
-    "distanceToMcDonalds": 1810,
+    "distanceToMcDonalds": 619,
     "distanceToOliveYoung": 568,
     "distanceToDaiso": 1610,
     "distanceToSupermarket": 1188
@@ -234,7 +234,7 @@
     "academyDensity": 94,
     "restaurantDensity": 110,
     "distanceToStarbucks": 376,
-    "distanceToMcDonalds": 1716,
+    "distanceToMcDonalds": 462,
     "distanceToOliveYoung": 443,
     "distanceToDaiso": 1543,
     "distanceToSupermarket": 1192
@@ -249,7 +249,7 @@
     "academyDensity": 179,
     "restaurantDensity": 243,
     "distanceToStarbucks": 289,
-    "distanceToMcDonalds": 1189,
+    "distanceToMcDonalds": 356,
     "distanceToOliveYoung": 355,
     "distanceToDaiso": 988,
     "distanceToSupermarket": 566
@@ -264,7 +264,7 @@
     "academyDensity": 176,
     "restaurantDensity": 151,
     "distanceToStarbucks": 536,
-    "distanceToMcDonalds": 1698,
+    "distanceToMcDonalds": 389,
     "distanceToOliveYoung": 344,
     "distanceToDaiso": 1510,
     "distanceToSupermarket": 1118
@@ -279,7 +279,7 @@
     "academyDensity": 77,
     "restaurantDensity": 80,
     "distanceToStarbucks": 539,
-    "distanceToMcDonalds": 920,
+    "distanceToMcDonalds": 642,
     "distanceToOliveYoung": 322,
     "distanceToDaiso": 735,
     "distanceToSupermarket": 839
@@ -294,7 +294,7 @@
     "academyDensity": 81,
     "restaurantDensity": 22,
     "distanceToStarbucks": 528,
-    "distanceToMcDonalds": 1149,
+    "distanceToMcDonalds": 615,
     "distanceToOliveYoung": 497,
     "distanceToDaiso": 827,
     "distanceToSupermarket": 921
@@ -309,7 +309,7 @@
     "academyDensity": 122,
     "restaurantDensity": 276,
     "distanceToStarbucks": 121,
-    "distanceToMcDonalds": 1303,
+    "distanceToMcDonalds": 220,
     "distanceToOliveYoung": 151,
     "distanceToDaiso": 432,
     "distanceToSupermarket": 612
@@ -324,7 +324,7 @@
     "academyDensity": 112,
     "restaurantDensity": 70,
     "distanceToStarbucks": 657,
-    "distanceToMcDonalds": 777,
+    "distanceToMcDonalds": 658,
     "distanceToOliveYoung": 471,
     "distanceToDaiso": 691,
     "distanceToSupermarket": 663
@@ -339,7 +339,7 @@
     "academyDensity": 280,
     "restaurantDensity": 325,
     "distanceToStarbucks": 14,
-    "distanceToMcDonalds": 1015,
+    "distanceToMcDonalds": 299,
     "distanceToOliveYoung": 340,
     "distanceToDaiso": 827,
     "distanceToSupermarket": 448
@@ -354,7 +354,7 @@
     "academyDensity": 168,
     "restaurantDensity": 147,
     "distanceToStarbucks": 406,
-    "distanceToMcDonalds": 1430,
+    "distanceToMcDonalds": 121,
     "distanceToOliveYoung": 78,
     "distanceToDaiso": 1244,
     "distanceToSupermarket": 857
@@ -369,7 +369,7 @@
     "academyDensity": 95,
     "restaurantDensity": 81,
     "distanceToStarbucks": 336,
-    "distanceToMcDonalds": 861,
+    "distanceToMcDonalds": 461,
     "distanceToOliveYoung": 577,
     "distanceToDaiso": 708,
     "distanceToSupermarket": 481
@@ -384,7 +384,7 @@
     "academyDensity": 77,
     "restaurantDensity": 134,
     "distanceToStarbucks": 495,
-    "distanceToMcDonalds": 817,
+    "distanceToMcDonalds": 681,
     "distanceToOliveYoung": 235,
     "distanceToDaiso": 636,
     "distanceToSupermarket": 933
@@ -399,7 +399,7 @@
     "academyDensity": 90,
     "restaurantDensity": 210,
     "distanceToStarbucks": 283,
-    "distanceToMcDonalds": 1480,
+    "distanceToMcDonalds": 308,
     "distanceToOliveYoung": 333,
     "distanceToDaiso": 631,
     "distanceToSupermarket": 515
@@ -414,7 +414,7 @@
     "academyDensity": 155,
     "restaurantDensity": 134,
     "distanceToStarbucks": 549,
-    "distanceToMcDonalds": 1394,
+    "distanceToMcDonalds": 401,
     "distanceToOliveYoung": 428,
     "distanceToDaiso": 1241,
     "distanceToSupermarket": 953
@@ -429,7 +429,7 @@
     "academyDensity": 11,
     "restaurantDensity": 5,
     "distanceToStarbucks": 326,
-    "distanceToMcDonalds": 2056,
+    "distanceToMcDonalds": 747,
     "distanceToOliveYoung": 706,
     "distanceToDaiso": 1474,
     "distanceToSupermarket": 1483
@@ -444,7 +444,7 @@
     "academyDensity": 180,
     "restaurantDensity": 156,
     "distanceToStarbucks": 423,
-    "distanceToMcDonalds": 1407,
+    "distanceToMcDonalds": 297,
     "distanceToOliveYoung": 262,
     "distanceToDaiso": 1208,
     "distanceToSupermarket": 790
@@ -459,7 +459,7 @@
     "academyDensity": 168,
     "restaurantDensity": 137,
     "distanceToStarbucks": 714,
-    "distanceToMcDonalds": 1745,
+    "distanceToMcDonalds": 490,
     "distanceToOliveYoung": 439,
     "distanceToDaiso": 1549,
     "distanceToSupermarket": 1134
@@ -474,7 +474,7 @@
     "academyDensity": 67,
     "restaurantDensity": 87,
     "distanceToStarbucks": 264,
-    "distanceToMcDonalds": 3980,
+    "distanceToMcDonalds": 909,
     "distanceToOliveYoung": 286,
     "distanceToDaiso": 841,
     "distanceToSupermarket": 1445
@@ -489,7 +489,7 @@
     "academyDensity": 115,
     "restaurantDensity": 184,
     "distanceToStarbucks": 130,
-    "distanceToMcDonalds": 4246,
+    "distanceToMcDonalds": 628,
     "distanceToOliveYoung": 90,
     "distanceToDaiso": 561,
     "distanceToSupermarket": 1289
@@ -504,7 +504,7 @@
     "academyDensity": 19,
     "restaurantDensity": 21,
     "distanceToStarbucks": 960,
-    "distanceToMcDonalds": 3244,
+    "distanceToMcDonalds": 1433,
     "distanceToOliveYoung": 1008,
     "distanceToDaiso": 1403,
     "distanceToSupermarket": 1581
@@ -519,7 +519,7 @@
     "academyDensity": 55,
     "restaurantDensity": 25,
     "distanceToStarbucks": 999,
-    "distanceToMcDonalds": 2684,
+    "distanceToMcDonalds": 365,
     "distanceToOliveYoung": 1260,
     "distanceToDaiso": 1275,
     "distanceToSupermarket": 860
@@ -534,7 +534,7 @@
     "academyDensity": 25,
     "restaurantDensity": 69,
     "distanceToStarbucks": 668,
-    "distanceToMcDonalds": 2053,
+    "distanceToMcDonalds": 729,
     "distanceToOliveYoung": 518,
     "distanceToDaiso": 664,
     "distanceToSupermarket": 790
@@ -549,7 +549,7 @@
     "academyDensity": 108,
     "restaurantDensity": 278,
     "distanceToStarbucks": 78,
-    "distanceToMcDonalds": 1320,
+    "distanceToMcDonalds": 229,
     "distanceToOliveYoung": 138,
     "distanceToDaiso": 200,
     "distanceToSupermarket": 635
@@ -564,7 +564,7 @@
     "academyDensity": 89,
     "restaurantDensity": 240,
     "distanceToStarbucks": 252,
-    "distanceToMcDonalds": 1649,
+    "distanceToMcDonalds": 154,
     "distanceToOliveYoung": 261,
     "distanceToDaiso": 403,
     "distanceToSupermarket": 278
@@ -579,7 +579,7 @@
     "academyDensity": 23,
     "restaurantDensity": 50,
     "distanceToStarbucks": 679,
-    "distanceToMcDonalds": 2035,
+    "distanceToMcDonalds": 560,
     "distanceToOliveYoung": 562,
     "distanceToDaiso": 610,
     "distanceToSupermarket": 560
@@ -594,7 +594,7 @@
     "academyDensity": 38,
     "restaurantDensity": 100,
     "distanceToStarbucks": 243,
-    "distanceToMcDonalds": 1387,
+    "distanceToMcDonalds": 143,
     "distanceToOliveYoung": 445,
     "distanceToDaiso": 621,
     "distanceToSupermarket": 1253
@@ -609,7 +609,7 @@
     "academyDensity": 35,
     "restaurantDensity": 113,
     "distanceToStarbucks": 290,
-    "distanceToMcDonalds": 1604,
+    "distanceToMcDonalds": 92,
     "distanceToOliveYoung": 434,
     "distanceToDaiso": 671,
     "distanceToSupermarket": 1240
@@ -624,7 +624,7 @@
     "academyDensity": 35,
     "restaurantDensity": 114,
     "distanceToStarbucks": 147,
-    "distanceToMcDonalds": 1516,
+    "distanceToMcDonalds": 74,
     "distanceToOliveYoung": 308,
     "distanceToDaiso": 533,
     "distanceToSupermarket": 1124
@@ -639,7 +639,7 @@
     "academyDensity": 44,
     "restaurantDensity": 127,
     "distanceToStarbucks": 301,
-    "distanceToMcDonalds": 1723,
+    "distanceToMcDonalds": 235,
     "distanceToOliveYoung": 342,
     "distanceToDaiso": 601,
     "distanceToSupermarket": 1095
@@ -654,7 +654,7 @@
     "academyDensity": 64,
     "restaurantDensity": 181,
     "distanceToStarbucks": 467,
-    "distanceToMcDonalds": 930,
+    "distanceToMcDonalds": 643,
     "distanceToOliveYoung": 380,
     "distanceToDaiso": 542,
     "distanceToSupermarket": 1156
@@ -669,7 +669,7 @@
     "academyDensity": 52,
     "restaurantDensity": 23,
     "distanceToStarbucks": 1163,
-    "distanceToMcDonalds": 2769,
+    "distanceToMcDonalds": 209,
     "distanceToOliveYoung": 1288,
     "distanceToDaiso": 1345,
     "distanceToSupermarket": 1020
@@ -684,7 +684,7 @@
     "academyDensity": 54,
     "restaurantDensity": 142,
     "distanceToStarbucks": 436,
-    "distanceToMcDonalds": 1866,
+    "distanceToMcDonalds": 455,
     "distanceToOliveYoung": 352,
     "distanceToDaiso": 582,
     "distanceToSupermarket": 939
@@ -699,7 +699,7 @@
     "academyDensity": 54,
     "restaurantDensity": 35,
     "distanceToStarbucks": 1383,
-    "distanceToMcDonalds": 3085,
+    "distanceToMcDonalds": 233,
     "distanceToOliveYoung": 1492,
     "distanceToDaiso": 1671,
     "distanceToSupermarket": 1248
@@ -714,7 +714,7 @@
     "academyDensity": 29,
     "restaurantDensity": 70,
     "distanceToStarbucks": 619,
-    "distanceToMcDonalds": 1938,
+    "distanceToMcDonalds": 626,
     "distanceToOliveYoung": 435,
     "distanceToDaiso": 522,
     "distanceToSupermarket": 626
@@ -729,7 +729,7 @@
     "academyDensity": 23,
     "restaurantDensity": 94,
     "distanceToStarbucks": 315,
-    "distanceToMcDonalds": 2132,
+    "distanceToMcDonalds": 258,
     "distanceToOliveYoung": 774,
     "distanceToDaiso": 916,
     "distanceToSupermarket": 258
@@ -744,7 +744,7 @@
     "academyDensity": 22,
     "restaurantDensity": 72,
     "distanceToStarbucks": 1091,
-    "distanceToMcDonalds": 3078,
+    "distanceToMcDonalds": 1489,
     "distanceToOliveYoung": 1134,
     "distanceToDaiso": 1709,
     "distanceToSupermarket": 1489
@@ -759,7 +759,7 @@
     "academyDensity": 20,
     "restaurantDensity": 15,
     "distanceToStarbucks": 1116,
-    "distanceToMcDonalds": 3186,
+    "distanceToMcDonalds": 1195,
     "distanceToOliveYoung": 1164,
     "distanceToDaiso": 1296,
     "distanceToSupermarket": 1533
@@ -774,7 +774,7 @@
     "academyDensity": 7,
     "restaurantDensity": 6,
     "distanceToStarbucks": 647,
-    "distanceToMcDonalds": 2368,
+    "distanceToMcDonalds": 508,
     "distanceToOliveYoung": 984,
     "distanceToDaiso": 989,
     "distanceToSupermarket": 508
@@ -789,7 +789,7 @@
     "academyDensity": 154,
     "restaurantDensity": 90,
     "distanceToStarbucks": 552,
-    "distanceToMcDonalds": 5211,
+    "distanceToMcDonalds": 368,
     "distanceToOliveYoung": 522,
     "distanceToDaiso": 439,
     "distanceToSupermarket": 1217
@@ -804,7 +804,7 @@
     "academyDensity": 16,
     "restaurantDensity": 46,
     "distanceToStarbucks": 730,
-    "distanceToMcDonalds": 5311,
+    "distanceToMcDonalds": 596,
     "distanceToOliveYoung": 637,
     "distanceToDaiso": 654,
     "distanceToSupermarket": 1757
@@ -819,7 +819,7 @@
     "academyDensity": 86,
     "restaurantDensity": 170,
     "distanceToStarbucks": 483,
-    "distanceToMcDonalds": 5061,
+    "distanceToMcDonalds": 448,
     "distanceToOliveYoung": 387,
     "distanceToDaiso": 423,
     "distanceToSupermarket": 1583
@@ -834,7 +834,7 @@
     "academyDensity": 7,
     "restaurantDensity": 11,
     "distanceToStarbucks": 1388,
-    "distanceToMcDonalds": 5461,
+    "distanceToMcDonalds": 926,
     "distanceToOliveYoung": 1426,
     "distanceToDaiso": 981,
     "distanceToSupermarket": 805
@@ -849,7 +849,7 @@
     "academyDensity": 6,
     "restaurantDensity": 8,
     "distanceToStarbucks": 1555,
-    "distanceToMcDonalds": 5720,
+    "distanceToMcDonalds": 1186,
     "distanceToOliveYoung": 1581,
     "distanceToDaiso": 1241,
     "distanceToSupermarket": 1065
@@ -864,7 +864,7 @@
     "academyDensity": 57,
     "restaurantDensity": 53,
     "distanceToStarbucks": 1235,
-    "distanceToMcDonalds": 5829,
+    "distanceToMcDonalds": 1048,
     "distanceToOliveYoung": 1211,
     "distanceToDaiso": 1124,
     "distanceToSupermarket": 1449
@@ -879,7 +879,7 @@
     "academyDensity": 68,
     "restaurantDensity": 72,
     "distanceToStarbucks": 850,
-    "distanceToMcDonalds": 5534,
+    "distanceToMcDonalds": 686,
     "distanceToOliveYoung": 791,
     "distanceToDaiso": 737,
     "distanceToSupermarket": 1535
@@ -894,7 +894,7 @@
     "academyDensity": 36,
     "restaurantDensity": 65,
     "distanceToStarbucks": 451,
-    "distanceToMcDonalds": 5344,
+    "distanceToMcDonalds": 301,
     "distanceToOliveYoung": 910,
     "distanceToDaiso": 964,
     "distanceToSupermarket": 2128
@@ -909,7 +909,7 @@
     "academyDensity": 13,
     "restaurantDensity": 10,
     "distanceToStarbucks": 1141,
-    "distanceToMcDonalds": 5338,
+    "distanceToMcDonalds": 843,
     "distanceToOliveYoung": 1177,
     "distanceToDaiso": 904,
     "distanceToSupermarket": 751
@@ -924,7 +924,7 @@
     "academyDensity": 70,
     "restaurantDensity": 62,
     "distanceToStarbucks": 1105,
-    "distanceToMcDonalds": 5705,
+    "distanceToMcDonalds": 918,
     "distanceToOliveYoung": 1081,
     "distanceToDaiso": 994,
     "distanceToSupermarket": 1368
@@ -939,7 +939,7 @@
     "academyDensity": 39,
     "restaurantDensity": 93,
     "distanceToStarbucks": 662,
-    "distanceToMcDonalds": 5137,
+    "distanceToMcDonalds": 231,
     "distanceToOliveYoung": 717,
     "distanceToDaiso": 784,
     "distanceToSupermarket": 1965
@@ -954,7 +954,7 @@
     "academyDensity": 3,
     "restaurantDensity": 12,
     "distanceToStarbucks": 831,
-    "distanceToMcDonalds": 4336,
+    "distanceToMcDonalds": 873,
     "distanceToOliveYoung": 793,
     "distanceToDaiso": 834,
     "distanceToSupermarket": 1036
@@ -969,7 +969,7 @@
     "academyDensity": 9,
     "restaurantDensity": 2,
     "distanceToStarbucks": 1027,
-    "distanceToMcDonalds": 2769,
+    "distanceToMcDonalds": 1053,
     "distanceToOliveYoung": 1068,
     "distanceToDaiso": 1044,
     "distanceToSupermarket": 2152
@@ -984,7 +984,7 @@
     "academyDensity": 14,
     "restaurantDensity": 6,
     "distanceToStarbucks": 739,
-    "distanceToMcDonalds": 3097,
+    "distanceToMcDonalds": 803,
     "distanceToOliveYoung": 781,
     "distanceToDaiso": 769,
     "distanceToSupermarket": 2351
@@ -999,7 +999,7 @@
     "academyDensity": 42,
     "restaurantDensity": 18,
     "distanceToStarbucks": 658,
-    "distanceToMcDonalds": 2894,
+    "distanceToMcDonalds": 588,
     "distanceToOliveYoung": 687,
     "distanceToDaiso": 635,
     "distanceToSupermarket": 2056
@@ -1014,7 +1014,7 @@
     "academyDensity": 15,
     "restaurantDensity": 3,
     "distanceToStarbucks": 871,
-    "distanceToMcDonalds": 2651,
+    "distanceToMcDonalds": 975,
     "distanceToOliveYoung": 1027,
     "distanceToDaiso": 990,
     "distanceToSupermarket": 2045
@@ -1029,7 +1029,7 @@
     "academyDensity": 146,
     "restaurantDensity": 181,
     "distanceToStarbucks": 263,
-    "distanceToMcDonalds": 3298,
+    "distanceToMcDonalds": 186,
     "distanceToOliveYoung": 287,
     "distanceToDaiso": 230,
     "distanceToSupermarket": 1725
@@ -1044,7 +1044,7 @@
     "academyDensity": 141,
     "restaurantDensity": 180,
     "distanceToStarbucks": 115,
-    "distanceToMcDonalds": 3445,
+    "distanceToMcDonalds": 189,
     "distanceToOliveYoung": 155,
     "distanceToDaiso": 133,
     "distanceToSupermarket": 1715
@@ -1059,7 +1059,7 @@
     "academyDensity": 118,
     "restaurantDensity": 65,
     "distanceToStarbucks": 467,
-    "distanceToMcDonalds": 3109,
+    "distanceToMcDonalds": 460,
     "distanceToOliveYoung": 505,
     "distanceToDaiso": 467,
     "distanceToSupermarket": 2007
@@ -1074,7 +1074,7 @@
     "academyDensity": 25,
     "restaurantDensity": 22,
     "distanceToStarbucks": 840,
-    "distanceToMcDonalds": 3402,
+    "distanceToMcDonalds": 679,
     "distanceToOliveYoung": 821,
     "distanceToDaiso": 775,
     "distanceToSupermarket": 1281
@@ -1089,7 +1089,7 @@
     "academyDensity": 144,
     "restaurantDensity": 113,
     "distanceToStarbucks": 531,
-    "distanceToMcDonalds": 3131,
+    "distanceToMcDonalds": 386,
     "distanceToOliveYoung": 540,
     "distanceToDaiso": 477,
     "distanceToSupermarket": 1700
@@ -1104,7 +1104,7 @@
     "academyDensity": 24,
     "restaurantDensity": 28,
     "distanceToStarbucks": 1766,
-    "distanceToMcDonalds": 5210,
+    "distanceToMcDonalds": 1034,
     "distanceToOliveYoung": 1727,
     "distanceToDaiso": 1036,
     "distanceToSupermarket": 907
@@ -1119,7 +1119,7 @@
     "academyDensity": 148,
     "restaurantDensity": 157,
     "distanceToStarbucks": 806,
-    "distanceToMcDonalds": 4382,
+    "distanceToMcDonalds": 285,
     "distanceToOliveYoung": 819,
     "distanceToDaiso": 294,
     "distanceToSupermarket": 419
@@ -1134,7 +1134,7 @@
     "academyDensity": 118,
     "restaurantDensity": 151,
     "distanceToStarbucks": 975,
-    "distanceToMcDonalds": 4469,
+    "distanceToMcDonalds": 115,
     "distanceToOliveYoung": 987,
     "distanceToDaiso": 130,
     "distanceToSupermarket": 254
@@ -1149,7 +1149,7 @@
     "academyDensity": 161,
     "restaurantDensity": 238,
     "distanceToStarbucks": 252,
-    "distanceToMcDonalds": 4263,
+    "distanceToMcDonalds": 618,
     "distanceToOliveYoung": 260,
     "distanceToDaiso": 588,
     "distanceToSupermarket": 957
@@ -1164,7 +1164,7 @@
     "academyDensity": 71,
     "restaurantDensity": 140,
     "distanceToStarbucks": 289,
-    "distanceToMcDonalds": 3973,
+    "distanceToMcDonalds": 894,
     "distanceToOliveYoung": 334,
     "distanceToDaiso": 854,
     "distanceToSupermarket": 1096
@@ -1179,7 +1179,7 @@
     "academyDensity": 67,
     "restaurantDensity": 71,
     "distanceToStarbucks": 1020,
-    "distanceToMcDonalds": 3727,
+    "distanceToMcDonalds": 810,
     "distanceToOliveYoung": 1061,
     "distanceToDaiso": 759,
     "distanceToSupermarket": 942
@@ -1194,7 +1194,7 @@
     "academyDensity": 102,
     "restaurantDensity": 91,
     "distanceToStarbucks": 861,
-    "distanceToMcDonalds": 4768,
+    "distanceToMcDonalds": 358,
     "distanceToOliveYoung": 935,
     "distanceToDaiso": 420,
     "distanceToSupermarket": 359
@@ -1209,7 +1209,7 @@
     "academyDensity": 22,
     "restaurantDensity": 28,
     "distanceToStarbucks": 1986,
-    "distanceToMcDonalds": 5419,
+    "distanceToMcDonalds": 1149,
     "distanceToOliveYoung": 1947,
     "distanceToDaiso": 1161,
     "distanceToSupermarket": 1011
@@ -1224,7 +1224,7 @@
     "academyDensity": 118,
     "restaurantDensity": 153,
     "distanceToStarbucks": 1047,
-    "distanceToMcDonalds": 4226,
+    "distanceToMcDonalds": 317,
     "distanceToOliveYoung": 1071,
     "distanceToDaiso": 260,
     "distanceToSupermarket": 441
@@ -1239,7 +1239,7 @@
     "academyDensity": 119,
     "restaurantDensity": 123,
     "distanceToStarbucks": 840,
-    "distanceToMcDonalds": 4111,
+    "distanceToMcDonalds": 450,
     "distanceToOliveYoung": 868,
     "distanceToDaiso": 415,
     "distanceToSupermarket": 593
@@ -1254,7 +1254,7 @@
     "academyDensity": 198,
     "restaurantDensity": 265,
     "distanceToStarbucks": 244,
-    "distanceToMcDonalds": 4743,
+    "distanceToMcDonalds": 189,
     "distanceToOliveYoung": 311,
     "distanceToDaiso": 223,
     "distanceToSupermarket": 963
@@ -1269,7 +1269,7 @@
     "academyDensity": 201,
     "restaurantDensity": 153,
     "distanceToStarbucks": 540,
-    "distanceToMcDonalds": 4773,
+    "distanceToMcDonalds": 463,
     "distanceToOliveYoung": 610,
     "distanceToDaiso": 517,
     "distanceToSupermarket": 677
@@ -1284,7 +1284,7 @@
     "academyDensity": 41,
     "restaurantDensity": 60,
     "distanceToStarbucks": 607,
-    "distanceToMcDonalds": 753,
+    "distanceToMcDonalds": 692,
     "distanceToOliveYoung": 580,
     "distanceToDaiso": 655,
     "distanceToSupermarket": 667
@@ -1299,7 +1299,7 @@
     "academyDensity": 8,
     "restaurantDensity": 5,
     "distanceToStarbucks": 1205,
-    "distanceToMcDonalds": 1026,
+    "distanceToMcDonalds": 1128,
     "distanceToOliveYoung": 1209,
     "distanceToDaiso": 1054,
     "distanceToSupermarket": 1251
@@ -1314,7 +1314,7 @@
     "academyDensity": 9,
     "restaurantDensity": 2,
     "distanceToStarbucks": 1086,
-    "distanceToMcDonalds": 1075,
+    "distanceToMcDonalds": 1171,
     "distanceToOliveYoung": 1056,
     "distanceToDaiso": 1048,
     "distanceToSupermarket": 1144
@@ -1329,7 +1329,7 @@
     "academyDensity": 141,
     "restaurantDensity": 169,
     "distanceToStarbucks": 420,
-    "distanceToMcDonalds": 390,
+    "distanceToMcDonalds": 478,
     "distanceToOliveYoung": 498,
     "distanceToDaiso": 275,
     "distanceToSupermarket": 443
@@ -1344,7 +1344,7 @@
     "academyDensity": 29,
     "restaurantDensity": 78,
     "distanceToStarbucks": 838,
-    "distanceToMcDonalds": 727,
+    "distanceToMcDonalds": 754,
     "distanceToOliveYoung": 1253,
     "distanceToDaiso": 851,
     "distanceToSupermarket": 1198
@@ -1359,7 +1359,7 @@
     "academyDensity": 207,
     "restaurantDensity": 305,
     "distanceToStarbucks": 214,
-    "distanceToMcDonalds": 746,
+    "distanceToMcDonalds": 132,
     "distanceToOliveYoung": 297,
     "distanceToDaiso": 550,
     "distanceToSupermarket": 165
@@ -1374,7 +1374,7 @@
     "academyDensity": 95,
     "restaurantDensity": 223,
     "distanceToStarbucks": 15,
-    "distanceToMcDonalds": 453,
+    "distanceToMcDonalds": 276,
     "distanceToOliveYoung": 973,
     "distanceToDaiso": 636,
     "distanceToSupermarket": 1034
@@ -1389,7 +1389,7 @@
     "academyDensity": 52,
     "restaurantDensity": 104,
     "distanceToStarbucks": 571,
-    "distanceToMcDonalds": 1049,
+    "distanceToMcDonalds": 648,
     "distanceToOliveYoung": 438,
     "distanceToDaiso": 884,
     "distanceToSupermarket": 645
@@ -1404,7 +1404,7 @@
     "academyDensity": 83,
     "restaurantDensity": 195,
     "distanceToStarbucks": 197,
-    "distanceToMcDonalds": 371,
+    "distanceToMcDonalds": 219,
     "distanceToOliveYoung": 810,
     "distanceToDaiso": 511,
     "distanceToSupermarket": 874
@@ -1419,7 +1419,7 @@
     "academyDensity": 78,
     "restaurantDensity": 183,
     "distanceToStarbucks": 464,
-    "distanceToMcDonalds": 927,
+    "distanceToMcDonalds": 649,
     "distanceToOliveYoung": 374,
     "distanceToDaiso": 542,
     "distanceToSupermarket": 1153
@@ -1434,7 +1434,7 @@
     "academyDensity": 65,
     "restaurantDensity": 149,
     "distanceToStarbucks": 411,
-    "distanceToMcDonalds": 440,
+    "distanceToMcDonalds": 360,
     "distanceToOliveYoung": 628,
     "distanceToDaiso": 497,
     "distanceToSupermarket": 772
@@ -1449,7 +1449,7 @@
     "academyDensity": 94,
     "restaurantDensity": 197,
     "distanceToStarbucks": 204,
-    "distanceToMcDonalds": 263,
+    "distanceToMcDonalds": 117,
     "distanceToOliveYoung": 1048,
     "distanceToDaiso": 462,
     "distanceToSupermarket": 881
@@ -1464,7 +1464,7 @@
     "academyDensity": 143,
     "restaurantDensity": 205,
     "distanceToStarbucks": 301,
-    "distanceToMcDonalds": 509,
+    "distanceToMcDonalds": 374,
     "distanceToOliveYoung": 356,
     "distanceToDaiso": 349,
     "distanceToSupermarket": 342
@@ -1479,7 +1479,7 @@
     "academyDensity": 69,
     "restaurantDensity": 192,
     "distanceToStarbucks": 456,
-    "distanceToMcDonalds": 1081,
+    "distanceToMcDonalds": 496,
     "distanceToOliveYoung": 302,
     "distanceToDaiso": 886,
     "distanceToSupermarket": 513
@@ -1494,7 +1494,7 @@
     "academyDensity": 25,
     "restaurantDensity": 144,
     "distanceToStarbucks": 368,
-    "distanceToMcDonalds": 1350,
+    "distanceToMcDonalds": 552,
     "distanceToOliveYoung": 899,
     "distanceToDaiso": 1054,
     "distanceToSupermarket": 1700
@@ -1509,7 +1509,7 @@
     "academyDensity": 44,
     "restaurantDensity": 204,
     "distanceToStarbucks": 311,
-    "distanceToMcDonalds": 1161,
+    "distanceToMcDonalds": 992,
     "distanceToOliveYoung": 1153,
     "distanceToDaiso": 1355,
     "distanceToSupermarket": 1761
@@ -1524,7 +1524,7 @@
     "academyDensity": 103,
     "restaurantDensity": 297,
     "distanceToStarbucks": 390,
-    "distanceToMcDonalds": 1818,
+    "distanceToMcDonalds": 482,
     "distanceToOliveYoung": 187,
     "distanceToDaiso": 302,
     "distanceToSupermarket": 302
@@ -1539,7 +1539,7 @@
     "academyDensity": 99,
     "restaurantDensity": 117,
     "distanceToStarbucks": 1018,
-    "distanceToMcDonalds": 2850,
+    "distanceToMcDonalds": 431,
     "distanceToOliveYoung": 580,
     "distanceToDaiso": 1046,
     "distanceToSupermarket": 1401
@@ -1554,7 +1554,7 @@
     "academyDensity": 191,
     "restaurantDensity": 171,
     "distanceToStarbucks": 822,
-    "distanceToMcDonalds": 2992,
+    "distanceToMcDonalds": 208,
     "distanceToOliveYoung": 366,
     "distanceToDaiso": 843,
     "distanceToSupermarket": 1181
@@ -1569,7 +1569,7 @@
     "academyDensity": 194,
     "restaurantDensity": 111,
     "distanceToStarbucks": 978,
-    "distanceToMcDonalds": 3210,
+    "distanceToMcDonalds": 140,
     "distanceToOliveYoung": 224,
     "distanceToDaiso": 744,
     "distanceToSupermarket": 1291
@@ -1584,7 +1584,7 @@
     "academyDensity": 187,
     "restaurantDensity": 83,
     "distanceToStarbucks": 999,
-    "distanceToMcDonalds": 3534,
+    "distanceToMcDonalds": 406,
     "distanceToOliveYoung": 310,
     "distanceToDaiso": 556,
     "distanceToSupermarket": 1437
@@ -1599,7 +1599,7 @@
     "academyDensity": 30,
     "restaurantDensity": 27,
     "distanceToStarbucks": 224,
-    "distanceToMcDonalds": 2778,
+    "distanceToMcDonalds": 710,
     "distanceToOliveYoung": 609,
     "distanceToDaiso": 400,
     "distanceToSupermarket": 763
@@ -1614,7 +1614,7 @@
     "academyDensity": 25,
     "restaurantDensity": 80,
     "distanceToStarbucks": 574,
-    "distanceToMcDonalds": 2109,
+    "distanceToMcDonalds": 705,
     "distanceToOliveYoung": 377,
     "distanceToDaiso": 307,
     "distanceToSupermarket": 307
@@ -1629,7 +1629,7 @@
     "academyDensity": 178,
     "restaurantDensity": 325,
     "distanceToStarbucks": 414,
-    "distanceToMcDonalds": 1526,
+    "distanceToMcDonalds": 473,
     "distanceToOliveYoung": 340,
     "distanceToDaiso": 648,
     "distanceToSupermarket": 648
@@ -1644,7 +1644,7 @@
     "academyDensity": 228,
     "restaurantDensity": 372,
     "distanceToStarbucks": 339,
-    "distanceToMcDonalds": 2064,
+    "distanceToMcDonalds": 440,
     "distanceToOliveYoung": 139,
     "distanceToDaiso": 60,
     "distanceToSupermarket": 60
@@ -1659,7 +1659,7 @@
     "academyDensity": 267,
     "restaurantDensity": 256,
     "distanceToStarbucks": 590,
-    "distanceToMcDonalds": 3023,
+    "distanceToMcDonalds": 262,
     "distanceToOliveYoung": 352,
     "distanceToDaiso": 603,
     "distanceToSupermarket": 926
@@ -1674,7 +1674,7 @@
     "academyDensity": 250,
     "restaurantDensity": 319,
     "distanceToStarbucks": 346,
-    "distanceToMcDonalds": 2759,
+    "distanceToMcDonalds": 506,
     "distanceToOliveYoung": 544,
     "distanceToDaiso": 348,
     "distanceToSupermarket": 661
@@ -1689,7 +1689,7 @@
     "academyDensity": 184,
     "restaurantDensity": 99,
     "distanceToStarbucks": 741,
-    "distanceToMcDonalds": 3123,
+    "distanceToMcDonalds": 194,
     "distanceToOliveYoung": 133,
     "distanceToDaiso": 530,
     "distanceToSupermarket": 1016
@@ -1704,7 +1704,7 @@
     "academyDensity": 229,
     "restaurantDensity": 238,
     "distanceToStarbucks": 461,
-    "distanceToMcDonalds": 2743,
+    "distanceToMcDonalds": 563,
     "distanceToOliveYoung": 519,
     "distanceToDaiso": 479,
     "distanceToSupermarket": 647
@@ -1719,7 +1719,7 @@
     "academyDensity": 99,
     "restaurantDensity": 67,
     "distanceToStarbucks": 1224,
-    "distanceToMcDonalds": 3105,
+    "distanceToMcDonalds": 446,
     "distanceToOliveYoung": 538,
     "distanceToDaiso": 1028,
     "distanceToSupermarket": 1573
@@ -1734,7 +1734,7 @@
     "academyDensity": 202,
     "restaurantDensity": 288,
     "distanceToStarbucks": 416,
-    "distanceToMcDonalds": 2543,
+    "distanceToMcDonalds": 751,
     "distanceToOliveYoung": 613,
     "distanceToDaiso": 375,
     "distanceToSupermarket": 454
@@ -1749,7 +1749,7 @@
     "academyDensity": 211,
     "restaurantDensity": 338,
     "distanceToStarbucks": 424,
-    "distanceToMcDonalds": 2366,
+    "distanceToMcDonalds": 680,
     "distanceToOliveYoung": 454,
     "distanceToDaiso": 298,
     "distanceToSupermarket": 298
@@ -1764,7 +1764,7 @@
     "academyDensity": 130,
     "restaurantDensity": 89,
     "distanceToStarbucks": 327,
-    "distanceToMcDonalds": 2378,
+    "distanceToMcDonalds": 843,
     "distanceToOliveYoung": 566,
     "distanceToDaiso": 432,
     "distanceToSupermarket": 432
@@ -1779,7 +1779,7 @@
     "academyDensity": 205,
     "restaurantDensity": 379,
     "distanceToStarbucks": 266,
-    "distanceToMcDonalds": 1784,
+    "distanceToMcDonalds": 218,
     "distanceToOliveYoung": 324,
     "distanceToDaiso": 545,
     "distanceToSupermarket": 545
@@ -1794,7 +1794,7 @@
     "academyDensity": 233,
     "restaurantDensity": 468,
     "distanceToStarbucks": 223,
-    "distanceToMcDonalds": 1854,
+    "distanceToMcDonalds": 196,
     "distanceToOliveYoung": 216,
     "distanceToDaiso": 354,
     "distanceToSupermarket": 354
@@ -1809,7 +1809,7 @@
     "academyDensity": 93,
     "restaurantDensity": 340,
     "distanceToStarbucks": 277,
-    "distanceToMcDonalds": 1637,
+    "distanceToMcDonalds": 483,
     "distanceToOliveYoung": 196,
     "distanceToDaiso": 472,
     "distanceToSupermarket": 472
@@ -1824,7 +1824,7 @@
     "academyDensity": 219,
     "restaurantDensity": 360,
     "distanceToStarbucks": 283,
-    "distanceToMcDonalds": 2402,
+    "distanceToMcDonalds": 605,
     "distanceToOliveYoung": 451,
     "distanceToDaiso": 233,
     "distanceToSupermarket": 294
@@ -1839,7 +1839,7 @@
     "academyDensity": 29,
     "restaurantDensity": 54,
     "distanceToStarbucks": 342,
-    "distanceToMcDonalds": 2331,
+    "distanceToMcDonalds": 905,
     "distanceToOliveYoung": 721,
     "distanceToDaiso": 627,
     "distanceToSupermarket": 627
@@ -1854,7 +1854,7 @@
     "academyDensity": 151,
     "restaurantDensity": 177,
     "distanceToStarbucks": 370,
-    "distanceToMcDonalds": 1687,
+    "distanceToMcDonalds": 468,
     "distanceToOliveYoung": 396,
     "distanceToDaiso": 841,
     "distanceToSupermarket": 841
@@ -1869,7 +1869,7 @@
     "academyDensity": 187,
     "restaurantDensity": 278,
     "distanceToStarbucks": 174,
-    "distanceToMcDonalds": 1986,
+    "distanceToMcDonalds": 370,
     "distanceToOliveYoung": 153,
     "distanceToDaiso": 780,
     "distanceToSupermarket": 786
@@ -1884,7 +1884,7 @@
     "academyDensity": 9,
     "restaurantDensity": 14,
     "distanceToStarbucks": 405,
-    "distanceToMcDonalds": 1839,
+    "distanceToMcDonalds": 811,
     "distanceToOliveYoung": 314,
     "distanceToDaiso": 1221,
     "distanceToSupermarket": 1221
@@ -1899,7 +1899,7 @@
     "academyDensity": 12,
     "restaurantDensity": 9,
     "distanceToStarbucks": 509,
-    "distanceToMcDonalds": 2090,
+    "distanceToMcDonalds": 711,
     "distanceToOliveYoung": 470,
     "distanceToDaiso": 1070,
     "distanceToSupermarket": 1124

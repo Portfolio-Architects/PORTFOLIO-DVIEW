@@ -3,7 +3,7 @@ import { Coord, parseCoordString } from '@/lib/utils/haversine';
 
 // ── Types ──────────────────────────────────────────
 
-export interface POI extends Coord { name: string; }
+export interface POI extends Coord { name: string; address?: string; }
 export interface SchoolPOI extends POI { type: string; }
 export interface StationPOI extends POI { line: string; }
 export interface AcademyPOI extends POI { category: string; }
@@ -175,7 +175,28 @@ async function loadRestaurants(forceRefresh = false): Promise<RestaurantPOI[]> {
     const lat = parseFloat(cols[1]);
     const lng = parseFloat(cols[2]);
     if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0 && cols[0]) {
-      result.push({ lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() });
+      let rawName = cols[0].trim();
+      if (rawName.includes('배스킨라빈스') || rawName.includes('베스킨라빈스')) {
+        const dong = cols[4]?.trim() || '';
+        let displayName = rawName.replace('베스킨라빈스', '배스킨라빈스');
+        if (displayName === '배스킨라빈스' || displayName === '배스킨라빈스동탄') {
+          displayName = dong ? `배스킨라빈스 ${dong}점` : '배스킨라빈스 동탄점';
+        } else {
+          displayName = displayName.replace('배스킨라빈스', '배스킨라빈스 ');
+          displayName = displayName.replace(/\s+/g, ' ').trim();
+        }
+        if (!displayName.endsWith('점')) {
+          displayName += '점';
+        }
+        rawName = displayName;
+      }
+      result.push({ 
+        lat, 
+        lng, 
+        name: rawName, 
+        category: (cols[3] || '기타').trim(),
+        address: cols[5]?.trim() || undefined
+      });
     }
   }
   return result;
@@ -183,18 +204,41 @@ async function loadRestaurants(forceRefresh = false): Promise<RestaurantPOI[]> {
 
 async function loadSboyds(forceRefresh = false): Promise<RestaurantPOI[]> {
   const rows = await fetchSheetCSV(SHEET_TABS.SBOYDS, forceRefresh);
+  if (rows.length < 2) return [];
+
+  const header = rows[0].map(h => h.toLowerCase().trim());
+  const col = (names: string[], fallback: number) => {
+    const idx = header.findIndex(h => names.some(n => h === n || h.startsWith(n)));
+    return idx !== -1 ? idx : fallback;
+  };
+
+  const nameIdx = col(['상호명', 'name', '이름'], 0);
+  const latIdx = col(['위도', 'latitude', 'lat'], 1);
+  const lngIdx = col(['경도', 'longitude', 'lng'], 2);
+  const catIdx = col(['업종', '분류', 'category', 'cat'], 3);
+  const addrIdx = col(['주소', 'address', 'addr'], 4);
+
   const result: RestaurantPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
-    if (cols.length < 3) continue;
-    const lat = parseFloat(cols[1]);
-    const lng = parseFloat(cols[2]);
-    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0 && cols[0]) {
-      result.push({ lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() });
+    if (cols.length <= Math.max(nameIdx, latIdx, lngIdx)) continue;
+    const name = cols[nameIdx]?.trim();
+    if (!name) continue;
+    const lat = parseFloat(cols[latIdx]);
+    const lng = parseFloat(cols[lngIdx]);
+    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0) {
+      result.push({ 
+        lat, 
+        lng, 
+        name, 
+        category: (catIdx !== -1 && cols[catIdx]?.trim()) || '기타',
+        address: (addrIdx !== -1 && cols[addrIdx]?.trim()) || undefined
+      });
     }
   }
   return result;
 }
+
 
 export function resolveApartment(name: string, apartments: ApartmentPOI[]): ApartmentPOI | null {
   const cleanName = name.replace(/\[.*?\]\s*/, '').trim();

@@ -111,7 +111,7 @@ export default function ReportClient() {
         }
       />
 
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-6 md:py-10 flex flex-col gap-6">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-10 flex flex-col gap-6">
         {engReportData && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-4">
             <EngineeringReportClient 

@@ -3,7 +3,7 @@ import { MapPin } from 'lucide-react';
 
 /**
  * AnchorTenantCard — 앵커 테넌트 근접도 시각화 카드
- * 스타벅스, 올리브영, 다이소, 대형마트, 맥도날드까지의 거리를
+ * 스타벅스, 올리브영, 다이소, 배스킨라빈스까지의 거리를
  * 깔끔하고 모던한 UI로 표시합니다.
  */
 
@@ -20,10 +20,6 @@ interface AnchorTenantCardProps {
   daisoName?: string;
   daisoAddress?: string;
   daisoCoordinates?: string;
-  distanceToSupermarket?: number;
-  supermarketName?: string;
-  supermarketAddress?: string;
-  supermarketCoordinates?: string;
   distanceToMcDonalds?: number;
   mcdonaldsName?: string;
   mcdonaldsAddress?: string;
@@ -70,19 +66,10 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
       metaCoordinates: props.daisoCoordinates
     },
     { 
-      id: 'supermarket', 
-      name: '대형마트', 
-      distance: props.distanceToSupermarket, 
-      color: '#f59e0b', 
-      metaName: props.supermarketName,
-      metaAddress: props.supermarketAddress,
-      metaCoordinates: props.supermarketCoordinates
-    },
-    { 
       id: 'mcdonalds', 
-      name: '맥도날드', 
+      name: '배스킨라빈스', 
       distance: props.distanceToMcDonalds, 
-      color: '#DA291C', 
+      color: '#FF6699', 
       metaName: props.mcdonaldsName,
       metaAddress: props.mcdonaldsAddress,
       metaCoordinates: props.mcdonaldsCoordinates
@@ -104,7 +91,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
       </div>
 
       {/* Anchor List - 카드 그리드 레이아웃 적용 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
         {anchors.map((anchor) => {
           if (anchor.distance == null) return null;
           const walkingTime = Math.ceil(anchor.distance / 80);

@@ -210,7 +210,7 @@ export default function TossApartmentExploreClient({
       />
 
       {/* Real-time Hot Complex Ranking Card */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 shrink-0 bg-surface">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 shrink-0 bg-surface">
         <HotComplexRanking
           sheetApartments={sheetApartments}
           fieldReportsMap={fieldReportsMap}

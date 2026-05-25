@@ -15,6 +15,7 @@ import { getDisplayName } from '@/lib/types/user.types';
 import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { dashboardFacade } from '@/lib/DashboardFacade';
+import { syncManagerPostToScoutingReport } from '@/lib/services/post.service';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 
@@ -188,38 +189,8 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         updatedAt: serverTimestamp(),
       });
 
-      // Sync edited manager report to scoutingReports.premiumContent
-      const cleanTitle = editTitle.trim();
-      const cleanContent = editContent.trim();
-      const isManagerReport = editCategory === '동탄 임장/분석' || editCategory === '임장기' || 
-                              cleanTitle.includes('매니저') || cleanTitle.includes('임장기') || 
-                              cleanContent.includes('매니저 임장기');
-      
-      if (isManagerReport && dongtanApartments.length > 0) {
-        const scoredApts = dongtanApartments.map(apt => {
-          const shortName = apt.replace(/\[.*?\]\s*/, '');
-          if (!shortName) return { apt, score: 0 };
-          const titleMatches = cleanTitle.split(shortName).length - 1;
-          const contentMatches = cleanContent.split(shortName).length - 1;
-          const score = (titleMatches * 10) + contentMatches;
-          return { apt, score };
-        }).filter(a => a.score > 0)
-          .sort((a, b) => b.score - a.score);
-
-        if (scoredApts.length > 0) {
-          const targetAptName = scoredApts[0].apt;
-          const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', targetAptName), limit(1));
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            const reportDoc = querySnapshot.docs[0];
-            await updateDoc(doc(db, 'scoutingReports', reportDoc.id), {
-              premiumContent: cleanContent,
-              updatedAt: serverTimestamp()
-            });
-            console.log(`[Sync] Updated scoutingReports premiumContent for ${targetAptName}`);
-          }
-        }
-      }
+      // Sync edited manager report to scoutingReports.premiumContent using the shared service helper
+      await syncManagerPostToScoutingReport(editTitle, editContent, editCategory, user?.email, dongtanApartments);
 
       setPost((prev) => prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev);
       setIsEditing(false);
@@ -366,9 +337,15 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           {isEditing ? (
             <div className="mt-4 flex flex-col gap-3">
               <div className="flex gap-2 mb-2 overflow-x-auto">
-                {['동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'].map((cat) => (
-                  <button key={cat} onClick={() => setEditCategory(cat)} className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${editCategory === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{cat}</button>
-                ))}
+                {(() => {
+                  const defaultCats = checkAdmin(user?.email)
+                    ? ['매니저 임장기', '동탄 임장/분석', '동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권']
+                    : ['동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔', '동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'];
+                  const cats = defaultCats.includes(editCategory) ? defaultCats : [...defaultCats, editCategory];
+                  return cats.map((cat) => (
+                    <button key={cat} onClick={() => setEditCategory(cat)} className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${editCategory === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{cat}</button>
+                  ));
+                })()}
               </div>
               <input
                 value={editTitle}

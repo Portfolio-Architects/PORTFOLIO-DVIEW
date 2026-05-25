@@ -62,19 +62,19 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
                   if (onTabChange) onTabChange('overview');
                   setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                 }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-[15px] font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'overview'
-                    ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-toss-blue' : ''} />
+                <LayoutDashboard size={16} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 데이터 랩
               </Link>
               
               <Link
                 href="/#imjang"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'imjang'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
@@ -86,7 +86,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
 
               <Link
                 href="/#gap"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'gap'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
@@ -98,7 +98,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               
               <Link
                 href="/#lounge"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'lounge'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
@@ -110,7 +110,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
 
               <Link
                 href="/#report"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'report'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'

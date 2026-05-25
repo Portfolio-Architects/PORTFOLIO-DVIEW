@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 
 export interface TransactionRecord {
   dong?: string;
@@ -152,9 +153,7 @@ export function TransactionTable({
           const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
           const eok = Math.floor(displayPrice / 10000);
           const rem = displayPrice % 10000;
-          const key = String(tx.area);
-          const txAptNorm = normalizeAptName(tx.aptName);
-          const typeData = typeMap[txAptNorm]?.[key];
+          const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
           let typeLabel = '';
           if (typeData) {
             typeLabel = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);

@@ -228,3 +228,48 @@ export function getAreaType(aptName: string, areaStr: string): string | null {
   if (!typeMap) return null;
   return typeMap[areaStr] || null;
 }
+
+export interface TypeMapEntry {
+  typeM2: string;
+  typePyeong: string;
+}
+
+/**
+ * 4단계 캐스케이딩 매칭과 numeric tolerance를 결합하여
+ * 구글 시트 TYPE_MAP에서 아파트 면적에 매칭되는 타입(TypeMapEntry)을 찾는 강인한 헬퍼 함수
+ */
+export function findTypeMapEntry(
+  typeMap: Record<string, Record<string, TypeMapEntry>> | undefined,
+  aptName: string,
+  area: number
+): TypeMapEntry | null {
+  if (!typeMap || !aptName || !area) return null;
+
+  // 1. 아파트명 매칭 시도
+  let normApt = normalizeAptName(aptName);
+  let aptEntry = typeMap[normApt];
+
+  if (!aptEntry) {
+    // exact match 실패 시 findTxKey와 유사한 캐스케이딩 매칭 수행
+    const matchedKey = findTxKey(aptName, typeMap);
+    if (matchedKey) {
+      aptEntry = typeMap[matchedKey];
+    }
+  }
+
+  if (!aptEntry) return null;
+
+  // 2. 정확 일치 검사
+  const exactKey = String(area);
+  if (aptEntry[exactKey]) return aptEntry[exactKey];
+
+  // 3. 소수점 미세 차이 허용 (0.11 m² 이내의 차이면 동일 타입으로 판정)
+  for (const [keyStr, val] of Object.entries(aptEntry)) {
+    const keyNum = parseFloat(keyStr);
+    if (!isNaN(keyNum) && Math.abs(keyNum - area) < 0.11) {
+      return val;
+    }
+  }
+
+  return null;
+}

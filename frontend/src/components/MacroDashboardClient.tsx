@@ -80,22 +80,22 @@ const InfoBox = ({
   color = "#00d29d",
 }: InfoBoxProps) => {
   return (
-    <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] p-3 md:px-4 md:py-4 flex flex-col gap-1.5 md:gap-1.5 shadow-sm border border-border h-full justify-center">
+    <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] p-2.5 md:p-4 flex flex-col gap-1 md:gap-1.5 shadow-sm border border-border h-full justify-center">
       {/* Title Area */}
-      <div className="text-[12px] md:text-[13px] font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
+      <div className="text-body-xs md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
         {title}
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-1.5 md:gap-2 mt-0.5 md:mt-0">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-1 md:gap-2 mt-0.5 md:mt-0">
 
         {/* Value & Unit */}
-        <div className="flex items-baseline gap-1 min-w-0 flex-wrap">
-          <span className="text-[15px] md:text-[18px] lg:text-[19px] font-extrabold text-primary tracking-tight break-keep leading-tight">
+        <div className="flex items-baseline gap-0.5 md:gap-1 min-w-0 flex-wrap">
+          <span className="text-body-normal md:text-title-lg font-extrabold text-primary tracking-tight break-keep leading-tight">
             {value}
           </span>
           {unit && (
-            <span className="text-[12px] md:text-[13px] font-bold text-secondary tracking-tight shrink-0">
+            <span className="text-body-xs md:text-body-sm font-bold text-secondary tracking-tight shrink-0">
               {unit}
             </span>
           )}
@@ -105,8 +105,8 @@ const InfoBox = ({
         {(progress !== undefined || badge) && (
           <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-2">
             {badge && (
-              <div className="bg-surface border border-border px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md shadow-sm">
-                <span className="text-[11.5px] md:text-[13.5px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
+              <div className="bg-surface border border-border px-2.5 py-0.5 md:px-3 md:py-1 rounded-[6px] shadow-sm">
+                <span className="text-[13px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
                   {badge}
                 </span>
               </div>
@@ -923,7 +923,7 @@ interface GroupedCategory {
           </div>
         }
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-10 pb-0 md:pb-12 lg:pb-16 w-full">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-0 md:pb-12 lg:pb-16 w-full">
 
         <div className="flex flex-col md:flex-row gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}

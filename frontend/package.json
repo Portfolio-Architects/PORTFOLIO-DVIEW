@@ -31,7 +31,7 @@
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
     "google-spreadsheet": "^5.2.0",
-    "html2canvas": "^1.4.1",
+    "html2canvas-pro": "^2.0.3",
     "https-proxy-agent": "^9.0.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.577.0",

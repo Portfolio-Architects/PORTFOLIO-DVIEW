@@ -250,8 +250,22 @@ export async function fetchSheetApartmentsByDong() {
         const cleanName = name.replace(/^(?:\(주\)|주식회사\s*|유한회사\s*)/, '').trim();
         const entry = { name: cleanName, lat: parseFloat(latStr), lng: parseFloat(lngStr), address: address.trim() };
         
-        if (cleanName.includes('맥도날드')) {
-          tenants.mcdonalds.push(entry);
+        if (cleanName.includes('배스킨라빈스') || cleanName.includes('베스킨라빈스')) {
+          const dongIdx = findColIndex(h, ['행정동', '법정동', '동']);
+          const dongVal = (dongIdx !== -1 && row[dongIdx]) ? row[dongIdx].trim() : '';
+          
+          let displayName = cleanName.replace('베스킨라빈스', '배스킨라빈스');
+          if (displayName === '배스킨라빈스' || displayName === '배스킨라빈스동탄') {
+            displayName = dongVal ? `배스킨라빈스 ${dongVal}점` : '배스킨라빈스 동탄점';
+          } else {
+            displayName = displayName.replace('배스킨라빈스', '배스킨라빈스 ');
+            displayName = displayName.replace(/\s+/g, ' ').trim();
+          }
+          if (!displayName.endsWith('점')) {
+            displayName += '점';
+          }
+          
+          tenants.mcdonalds.push({ ...entry, name: displayName });
         } else {
           const isSupermarketMatch = /^(이마트|홈플러스|롯데마트|하나로마트|코스트코|트레이더스|노브랜드|스타필드마켓)/.test(cleanName) || /^[가-힣]*농협.*하나로마트/.test(cleanName);
           const isSupermarket = isSupermarketMatch && !cleanName.includes('이마트24') && !cleanName.includes('버거') && !cleanName.includes('피자');

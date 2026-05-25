@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface TransactionRecord {
@@ -40,8 +40,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
     transactions.forEach(tx => {
       const key = String(tx.area);
       if (!byArea.has(key)) {
-        const txAptNorm = normalizeAptName(tx.aptName);
-        const typeData = typeMap[txAptNorm]?.[key];
+        const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
         const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
         const label = typeName || (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
         byArea.set(key, { label, area: tx.area });
@@ -90,9 +89,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       : periodTransactions.filter(tx => String(tx.area) === priceTypeFilter);
 
     const getTxSupplyPyeong = (tx: TransactionRecord) => {
-      const key = String(tx.area);
-      const txAptNorm = normalizeAptName(tx.aptName);
-      const typeData = typeMap[txAptNorm]?.[key];
+      const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
       if (typeData?.typeM2) {
         const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
         if (supplyM2Match) return parseFloat(supplyM2Match[0]) * 0.3025;
@@ -198,12 +195,12 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
             </>
           )}
         </div>
-        <div className="flex flex-nowrap gap-1.5 overflow-x-auto custom-scrollbar pb-3 -mx-1 px-1">
+        <div className="flex flex-nowrap gap-2.5 overflow-x-auto custom-scrollbar pb-3 -mx-1 px-1">
           {metrics.typeFilters.map(f => {
             const isActive = priceTypeFilter === f.key;
             return (
               <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
-                className={`shrink-0 px-3.5 py-2 rounded-[10px] text-[12px] md:text-[13px] font-bold transition-all ${
+                className={`shrink-0 px-[18px] py-[7.5px] rounded-[10px] text-[13px] md:text-[13.5px] font-bold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-primary text-surface shadow-sm'
                     : 'bg-body text-tertiary hover:bg-[#e5e8eb]'

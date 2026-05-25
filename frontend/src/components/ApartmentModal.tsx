@@ -9,7 +9,7 @@ import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
-import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, getDisplayAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -25,6 +25,7 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao } from '@/lib/utils/kakaoShare';
+import BuyOrWaitVote from './apartment-modal/BuyOrWaitVote';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -171,8 +172,7 @@ function FieldReportModal({
   // 특정 평형 필터 칩 목록
   const areaFilterChips = useMemo(() => {
     const rawAreas = Array.from(new Set(transactions.map(tx => {
-      const norm = normalizeAptName(tx.aptName);
-      const t = typeMap[norm]?.[String(tx.area)];
+      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
       return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
     })));
     return ['전체', ...rawAreas.sort((a, b) => {
@@ -186,8 +186,7 @@ function FieldReportModal({
   const filteredTransactions = useMemo(() => {
     if (selectedAreaFilter === '전체') return transactions;
     return transactions.filter(tx => {
-      const norm = normalizeAptName(tx.aptName);
-      const t = typeMap[norm]?.[String(tx.area)];
+      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
       const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
       return label === selectedAreaFilter;
     });
@@ -224,7 +223,7 @@ function FieldReportModal({
     }
     const el = modalRef.current?.querySelector(`#${id}`);
     if (el && modalRef.current) {
-      const topPos = el.getBoundingClientRect().top + modalRef.current.scrollTop - modalRef.current.getBoundingClientRect().top - 60;
+      const topPos = el.getBoundingClientRect().top + modalRef.current.scrollTop - modalRef.current.getBoundingClientRect().top - 70;
       modalRef.current.scrollTo({ top: topPos, behavior: 'smooth' });
     }
   };
@@ -343,8 +342,7 @@ function FieldReportModal({
   const typeBadgeColors: [string, string][] = [['text-toss-blue','bg-toss-blue-light'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
   const groupSet = new Set<number>();
   transactions.forEach(tx => {
-    const norm = normalizeAptName(tx.aptName);
-    const t = typeMap[norm]?.[String(tx.area)];
+    const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
     const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
     if (label) {
       const m = label.match(/\d+/);
@@ -364,8 +362,7 @@ function FieldReportModal({
 
   // 고유 m² 타입 목록
   const areaTypes = Array.from(new Set(transactions.map(tx => {
-    const norm = normalizeAptName(tx.aptName);
-    const t = typeMap[norm]?.[String(tx.area)];
+    const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
     return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
   }))).sort();
   // 고유 유형 목록
@@ -395,7 +392,7 @@ function FieldReportModal({
 
       if (shareCardRef.current) {
         // html2canvas를 동적 임포트하여 클라이언트 사이드에서만 실행되도록 함
-        const html2canvas = (await import('html2canvas')).default;
+        const html2canvas = (await import('html2canvas-pro')).default;
         
         const canvas = await html2canvas(shareCardRef.current, {
           width: 1200,
@@ -505,67 +502,67 @@ function FieldReportModal({
   const content = (
     <>
       {/* ── Unified Header ── */}
-      <div className="w-full bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
-        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+      <div className="w-full bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
+        <div className="w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
+              <span className="truncate">{displayAptName}</span>
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] md:text-[12px] font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue-light/80 px-2 py-0.5 md:px-2.5 md:py-0.5 rounded-full transition-all shrink-0 ml-2 group border border-toss-blue/5"
+                title="구글 지도에서 아파트 위치 보기"
+              >
+                <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:scale-105 transition-transform" />
+                <span>지도보기</span>
+              </a>
+            </h1>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
-            <span className="truncate">{displayAptName}</span>
-            <a 
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] md:text-[12px] font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue-light/80 px-2 py-0.5 md:px-2.5 md:py-0.5 rounded-full transition-all shrink-0 ml-2 group border border-toss-blue/5"
-              title="구글 지도에서 아파트 위치 보기"
+
+          <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
+            {/* 평형 필터 칩스 (Sleek Segment Controller) */}
+            {areaFilterChips.length > 2 && (
+              <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20 gap-0.5">
+                {areaFilterChips.map(chip => {
+                  const isActive = selectedAreaFilter === chip;
+                  return (
+                    <button
+                      key={chip}
+                      onClick={() => setSelectedAreaFilter(chip)}
+                      className={`shrink-0 px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-surface text-primary shadow-sm border-none'
+                          : 'text-tertiary hover:text-secondary'
+                      }`}
+                    >
+                      {chip}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 매매/전월세 토글 */}
+            <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20">
+              <button onClick={() => setChartType('sale')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+              <button onClick={() => setChartType('jeonse')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+            </div>
+
+            {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
+            <button
+              onClick={handleNativeShare}
+              className="bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary px-4 py-2 rounded-2xl transition-all shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border border-border/20 active:scale-[0.98] cursor-pointer"
+              title="아파트 분석 리포트 공유하기"
             >
-              <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:scale-105 transition-transform" />
-              <span>지도보기</span>
-            </a>
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
-          {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
-          <button
-            onClick={handleNativeShare}
-            className="bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary px-4 py-2 rounded-2xl transition-all shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border border-border/20 active:scale-[0.98] cursor-pointer"
-            title="아파트 분석 리포트 공유하기"
-          >
-            <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
-            <span>공유하기</span>
-          </button>
-
-          {/* 매매/전월세 토글 */}
-          <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20">
-            <button onClick={() => setChartType('sale')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-            <button onClick={() => setChartType('jeonse')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+              <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
+              <span>공유하기</span>
+            </button>
           </div>
         </div>
       </div>
-
-      {/* ── 평형 필터 칩스 (Unified Header와 Hero Section 사이) ── */}
-      {areaFilterChips.length > 2 && (
-        <div className="w-full bg-surface px-4 md:px-10 pt-1 pb-4 flex items-center gap-1.5 overflow-x-auto scrollbar-hide shrink-0 border-b border-border/40">
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-            {areaFilterChips.map(chip => {
-              const isActive = selectedAreaFilter === chip;
-              return (
-                <button
-                  key={chip}
-                  onClick={() => setSelectedAreaFilter(chip)}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] md:text-[12.5px] font-bold transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-primary text-surface shadow-sm'
-                      : 'bg-body text-secondary hover:bg-[#e5e8eb]'
-                  }`}
-                >
-                  {chip}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Hero Section — Layout: 35% table / 65% chart */}
       <div className={`bg-surface w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:px-10 md:py-6'} gap-4 md:gap-8 shrink-0 ${inline ? 'border-b border-body' : 'border-b border-border'}`}>
@@ -603,7 +600,7 @@ function FieldReportModal({
           />
 
           {/* Sticky Section Nav */}
-          <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-3 pb-0 shadow-sm shadow-[#191f28]/5">
+          <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-[16px] md:pt-[20px] pb-0 shadow-sm shadow-[#191f28]/5">
             <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
               {(() => {
                 const tabs = [
@@ -620,7 +617,7 @@ function FieldReportModal({
                     <button
                       key={tab.id}
                       onClick={() => scrollToSection(tab.id)}
-                      className={`relative shrink-0 pb-3 text-[14px] font-bold transition-all duration-200 outline-none ${
+                      className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[13px] font-extrabold tracking-wider transition-all duration-200 outline-none ${
                          isActive ? 'text-primary' : 'text-tertiary hover:text-primary'
                       }`}
                     >
@@ -641,17 +638,17 @@ function FieldReportModal({
             {/* 1. 단지 기본 명세 (Specs) */}
             {report.metrics && (
               <div id="sec-specs" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border">
-                 <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
+                 <h2 className="text-title-lg font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
                    <Building size={18} className="text-toss-blue"/> 단지 기본정보
                  </h2>
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                     <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-[12px] text-tertiary font-bold mb-1">단지명 / 시공사</p>
-                      <p className="text-[15px] text-primary font-bold">{displayAptName} {report.metrics.brand && <span className="block text-[13px] text-secondary font-medium mt-0.5">({report.metrics.brand})</span>}</p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1">단지명 / 시공사</p>
+                      <p className="text-body-lg text-primary font-bold">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5">({report.metrics.brand})</span>}</p>
                     </div>
                     <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-[12px] text-tertiary font-bold mb-1">사용승인일 (연차)</p>
-                      <p className="text-[15px] text-primary font-bold">
+                      <p className="text-body-sm text-tertiary font-bold mb-1">사용승인일 (연차)</p>
+                      <p className="text-body-lg text-primary font-bold">
                         {report.metrics.yearBuilt ? (() => {
                           const ybStr = String(report.metrics.yearBuilt);
                           const now = new Date();
@@ -675,26 +672,26 @@ function FieldReportModal({
                               else if (y > 0) ageStr = `${y}년차`;
                               else ageStr = `${m}개월차`;
                             }
-                            return <>{year}년 {month}월 <span className="block text-[13px] text-toss-blue font-medium mt-0.5">({ageStr})</span></>;
+                            return <>{year}년 {month}월 <span className="block text-body-sm text-toss-blue font-medium mt-0.5">({ageStr})</span></>;
                           }
                           
                           const year = parseInt(ybStr);
                           const age = currentYear - year + 1;
-                          return <>{year}년 <span className="block text-[13px] text-toss-blue font-medium mt-0.5">({age}년차)</span></>;
+                          return <>{year}년 <span className="block text-body-sm text-toss-blue font-medium mt-0.5">({age}년차)</span></>;
                         })() : '-'}
                       </p>
                     </div>
                     <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-[12px] text-tertiary font-bold mb-1">규모 (세대/층)</p>
-                      <p className="text-[15px] text-primary font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-[13px] font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1">규모 (세대/층)</p>
+                      <p className="text-body-lg text-primary font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
                     </div>
                     <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-[12px] text-tertiary font-bold mb-1">용적률 / 건폐율</p>
-                      <p className="text-[15px] text-primary font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-[13px] font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1">용적률 / 건폐율</p>
+                      <p className="text-body-lg text-primary font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
                     </div>
                     <div className="bg-body p-4 rounded-xl border border-border">
-                      <p className="text-[12px] text-tertiary font-bold mb-1">주차대수 (세대당)</p>
-                      <p className="text-[15px] text-primary font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-[13px] font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1">주차대수 (세대당)</p>
+                      <p className="text-body-lg text-primary font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
                     </div>
 
                  </div>
@@ -928,10 +925,6 @@ function FieldReportModal({
                 daisoName={report.metrics.daisoName}
                 daisoAddress={report.metrics.daisoAddress}
                 daisoCoordinates={report.metrics.daisoCoordinates}
-                distanceToSupermarket={report.metrics.distanceToSupermarket}
-                supermarketName={report.metrics.supermarketName}
-                supermarketAddress={report.metrics.supermarketAddress}
-                supermarketCoordinates={report.metrics.supermarketCoordinates}
                 distanceToMcDonalds={report.metrics.distanceToMcDonalds}
                 mcdonaldsName={report.metrics.mcdonaldsName}
                 mcdonaldsAddress={report.metrics.mcdonaldsAddress}
@@ -943,6 +936,7 @@ function FieldReportModal({
             {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
             <div id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
               <AdvancedValuationMetrics report={report} transactions={transactions} />
+              <BuyOrWaitVote aptName={report.apartmentName} />
             </div>
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}

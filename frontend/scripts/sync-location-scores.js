@@ -124,11 +124,26 @@ async function main() {
   }
 
   const sboyds = [];
-  for(let i=1; i<sboydsRows.length; i++) {
-     const name = sboydsRows[i][0];
-     const lat = parseFloat(sboydsRows[i][1]);
-     const lng = parseFloat(sboydsRows[i][2]);
-     if(name && !isNaN(lat) && !isNaN(lng)) sboyds.push({name: name.trim(), lat, lng});
+  if (sboydsRows.length > 1) {
+    const sboydsHeader = sboydsRows[0].map(h => h.toLowerCase().trim());
+    const getSboydIdx = (names, fallback) => {
+      const idx = sboydsHeader.findIndex(h => names.some(n => h === n || h.startsWith(n)));
+      return idx !== -1 ? idx : fallback;
+    };
+    const sbNameIdx = getSboydIdx(['상호명', 'name', '이름'], 0);
+    const sbLatIdx = getSboydIdx(['위도', 'latitude', 'lat'], 1);
+    const sbLngIdx = getSboydIdx(['경도', 'longitude', 'lng'], 2);
+
+    for (let i = 1; i < sboydsRows.length; i++) {
+      const cols = sboydsRows[i];
+      if (cols.length <= Math.max(sbNameIdx, sbLatIdx, sbLngIdx)) continue;
+      const name = cols[sbNameIdx]?.trim();
+      const lat = parseFloat(cols[sbLatIdx]);
+      const lng = parseFloat(cols[sbLngIdx]);
+      if (name && !isNaN(lat) && !isNaN(lng)) {
+        sboyds.push({ name, lat, lng });
+      }
+    }
   }
 
   const results = {};
@@ -173,7 +188,7 @@ async function main() {
         academyDensity: nearbyAcademies.length,
         restaurantDensity: nearbyRestaurants.length,
         distanceToStarbucks: findAnchor(['스타벅스'])?.distance ?? null,
-        distanceToMcDonalds: findAnchor(['맥도날드'])?.distance ?? null,
+        distanceToMcDonalds: findNearest(coord, restaurants.filter(r => ['배스킨라빈스', '베스킨라빈스'].some(k => r.name.includes(k))))?.distance ?? null,
         distanceToOliveYoung: findAnchor(['올리브영'])?.distance ?? null,
         distanceToDaiso: findAnchor(['다이소'])?.distance ?? null,
         distanceToSupermarket: findAnchor(['이마트','홈플러스','롯데마트','노브랜드'])?.distance ?? null,

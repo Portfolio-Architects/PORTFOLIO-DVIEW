@@ -20,6 +20,14 @@
   --color-toss-green: var(--toss-green);
   --color-toss-gray: var(--toss-gray);
   --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  
+  --font-size-title-xl: var(--fs-title-xl);
+  --font-size-title-lg: var(--fs-title-lg);
+  --font-size-title-md: var(--fs-title-md);
+  --font-size-body-lg: var(--fs-body-lg);
+  --font-size-body-normal: var(--fs-body-normal);
+  --font-size-body-sm: var(--fs-body-sm);
+  --font-size-body-xs: var(--fs-body-xs);
 }
 
 @layer base {
@@ -42,6 +50,28 @@
     --transition-speed: 0.2s;
     --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
     --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    /* Typography scale (mobile defaults) */
+    --fs-title-xl: 20px;
+    --fs-title-lg: 16px;
+    --fs-title-md: 14px;
+    --fs-body-lg: 14px;
+    --fs-body-normal: 13px;
+    --fs-body-sm: 11px;
+    --fs-body-xs: 10px;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      /* Typography scale (desktop size) */
+      --fs-title-xl: 24px;
+      --fs-title-lg: 18px;
+      --fs-title-md: 15px;
+      --fs-body-lg: 15px;
+      --fs-body-normal: 13px;
+      --fs-body-sm: 12px;
+      --fs-body-xs: 10px;
+    }
   }
 
   .dark {

@@ -37,7 +37,7 @@ export function haversineDistance(a: Coord, b: Coord): number {
 export function findNearest<T extends Coord & { name: string }>(
   origin: Coord,
   pois: T[]
-): { name: string; distance: number; lat: number; lng: number } | null {
+): (T & { distance: number }) | null {
   if (pois.length === 0) return null;
 
   let nearest = pois[0];
@@ -51,7 +51,7 @@ export function findNearest<T extends Coord & { name: string }>(
     }
   }
 
-  return { name: nearest.name, distance: minDist, lat: nearest.lat, lng: nearest.lng };
+  return { ...nearest, distance: minDist };
 }
 
 /**

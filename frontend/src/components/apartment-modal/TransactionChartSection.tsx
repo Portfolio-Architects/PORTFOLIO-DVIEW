@@ -16,6 +16,7 @@ import {
 import { TransactionRecord } from './TransactionTable';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { AptTxSummary } from '@/lib/types/transaction';
+import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 
 interface TransactionChartSectionProps {
   transactions: TransactionRecord[];
@@ -459,8 +460,7 @@ export function TransactionChartSection({
           )}
           {hoveredDot && (() => {
             const d = hoveredDot.data;
-            const aptKey = normalizeAptName(displayAptName);
-            const typeData = typeMap[aptKey]?.[String(d.rawArea)];
+            const typeData = findTypeMapEntry(typeMap, displayAptName, d.rawArea);
             const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
             return (
               <div 

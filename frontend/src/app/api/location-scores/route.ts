@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     };
     
     const nearestStarbucks = findAnchor(['스타벅스']);
-    const nearestMcDonalds = findAnchor(['맥도날드']);
+    const nearestMcDonalds = findNearest(aptCoord, restaurants.filter(r => ['배스킨라빈스', '베스킨라빈스'].some(k => r.name.includes(k))));
     const nearestOliveYoung = findAnchor(['올리브영']);
     const nearestDaiso = findAnchor(['다이소']);
     const nearestSupermarket = findAnchor(['이마트', '홈플러스', '롯데마트', '노브랜드']);
@@ -118,13 +118,31 @@ export async function GET(request: NextRequest) {
       academyCategories,
       restaurantDensity,
       restaurantCategories,
-      
-      // Anchor Tenants Distances
+      // Anchor Tenants Distances & Info
       distanceToStarbucks: nearestStarbucks?.distance ?? null,
+      starbucksName: nearestStarbucks?.name ?? null,
+      starbucksAddress: nearestStarbucks?.address ?? null,
+      starbucksCoordinates: nearestStarbucks ? `${nearestStarbucks.lat}, ${nearestStarbucks.lng}` : null,
+
       distanceToMcDonalds: nearestMcDonalds?.distance ?? null,
+      mcdonaldsName: nearestMcDonalds?.name ?? null,
+      mcdonaldsAddress: nearestMcDonalds?.address ?? null,
+      mcdonaldsCoordinates: nearestMcDonalds ? `${nearestMcDonalds.lat}, ${nearestMcDonalds.lng}` : null,
+
       distanceToOliveYoung: nearestOliveYoung?.distance ?? null,
+      oliveYoungName: nearestOliveYoung?.name ?? null,
+      oliveYoungAddress: nearestOliveYoung?.address ?? null,
+      oliveYoungCoordinates: nearestOliveYoung ? `${nearestOliveYoung.lat}, ${nearestOliveYoung.lng}` : null,
+
       distanceToDaiso: nearestDaiso?.distance ?? null,
+      daisoName: nearestDaiso?.name ?? null,
+      daisoAddress: nearestDaiso?.address ?? null,
+      daisoCoordinates: nearestDaiso ? `${nearestDaiso.lat}, ${nearestDaiso.lng}` : null,
+
       distanceToSupermarket: nearestSupermarket?.distance ?? null,
+      supermarketName: nearestSupermarket?.name ?? null,
+      supermarketAddress: nearestSupermarket?.address ?? null,
+      supermarketCoordinates: nearestSupermarket ? `${nearestSupermarket.lat}, ${nearestSupermarket.lng}` : null,
 
       // Building info from sheet
       buildingInfo: {

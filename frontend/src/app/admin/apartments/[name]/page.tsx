@@ -929,19 +929,19 @@ export default function ApartmentInfoPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#DA291C]/30 bg-[#DA291C]/5 text-[#DA291C]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#FF6699]/30 bg-[#FF6699]/5 text-[#FF6699]">
               <div>
-                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">맥도날드 지점명</label>
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">배스킨라빈스 지점명</label>
                 <input type="text" value={meta.mcdonaldsName || ''} onChange={e => setMeta({ ...meta, mcdonaldsName: e.target.value || undefined })}
-                  placeholder="예: 맥도날드 동탄점" className="w-full px-4 py-3 bg-surface border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all" />
+                  placeholder="예: 배스킨라빈스 동탄점" className="w-full px-4 py-3 bg-surface border border-[#FF6699]/30 rounded-xl text-[15px] outline-none focus:border-[#FF6699] transition-all" />
               </div>
               <div className="md:col-span-2">
-                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">맥도날드 주소 / 좌표</label>
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">배스킨라빈스 주소 / 좌표</label>
                 <div className="flex gap-2">
                   <input type="text" value={meta.mcdonaldsAddress || ''} onChange={e => setMeta({ ...meta, mcdonaldsAddress: e.target.value || undefined })}
-                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all text-primary" />
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#FF6699]/30 rounded-xl text-[15px] outline-none focus:border-[#FF6699] transition-all text-primary" />
                   <input type="text" value={meta.mcdonaldsCoordinates || ''} onChange={e => setMeta({ ...meta, mcdonaldsCoordinates: e.target.value || undefined })}
-                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-surface border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all font-mono text-primary" />
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-surface border border-[#FF6699]/30 rounded-xl text-[15px] outline-none focus:border-[#FF6699] transition-all font-mono text-primary" />
                 </div>
               </div>
             </div>
@@ -951,7 +951,7 @@ export default function ApartmentInfoPage() {
               <NumField label="올리브영" value={meta.distanceToOliveYoung} unit="m" placeholder="300" onChange={v => setMeta({...meta, distanceToOliveYoung: v})}/>
               <NumField label="다이소" value={meta.distanceToDaiso} unit="m" placeholder="400" onChange={v => setMeta({...meta, distanceToDaiso: v})}/>
               <NumField label="대형마트" value={meta.distanceToSupermarket} unit="m" placeholder="500" onChange={v => setMeta({...meta, distanceToSupermarket: v})}/>
-              <NumField label="맥도날드" value={meta.distanceToMcDonalds} unit="m" placeholder="600" onChange={v => setMeta({...meta, distanceToMcDonalds: v})}/>
+              <NumField label="배스킨라빈스" value={meta.distanceToMcDonalds} unit="m" placeholder="600" onChange={v => setMeta({...meta, distanceToMcDonalds: v})}/>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <NumField label="학원 밀집도 (500m)" value={meta.academyDensity} unit="개" placeholder="120" onChange={v => setMeta({...meta, academyDensity: v})}/>

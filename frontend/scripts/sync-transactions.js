@@ -396,8 +396,7 @@ async function main() {
       return t.area * 0.3025 * 1.33; // Fallback
     };
     
-    saleTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
-    rentTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
+    txs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
 
     // --- 동탄 전체 가격 지수(거시 트렌드) 계산 ---
     const standardTxs = saleTxs.filter(t => t.areaPyeong >= 30 && t.areaPyeong <= 36);
