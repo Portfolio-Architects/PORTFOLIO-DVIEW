@@ -677,7 +677,7 @@ function FieldReportModal({
                     <button
                       key={tab.id}
                       onClick={() => scrollToSection(tab.id)}
-                      className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[13px] font-extrabold tracking-wider transition-all duration-200 outline-none ${
+                      className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[14.5px] font-extrabold tracking-wider transition-all duration-200 outline-none ${
                          isActive ? 'text-primary' : 'text-tertiary hover:text-primary'
                       }`}
                     >
