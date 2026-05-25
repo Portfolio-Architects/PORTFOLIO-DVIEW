@@ -1,6 +1,5 @@
-import html2canvas from 'html2canvas';
+import { safeHtml2canvas } from './html2canvasPatch';
 import jsPDF from 'jspdf';
-import { patchClonedDocumentForHtml2canvas } from './html2canvasPatch';
 
 export async function exportToPDF(elementId: string, filename: string = 'DVIEW_Report.pdf') {
   const element = document.getElementById(elementId);
@@ -11,14 +10,11 @@ export async function exportToPDF(elementId: string, filename: string = 'DVIEW_R
 
   try {
     // 1. html2canvas로 요소 캡처
-    const canvas = await html2canvas(element, {
+    const canvas = await safeHtml2canvas(element, {
       scale: 2, // 고해상도 캡처
       useCORS: true, // 외부 이미지(Firebase Storage 등) 허용
       logging: false,
-      backgroundColor: '#f8fafc', // D-VIEW bg-body 색상 (투명 배경 방지)
-      onclone: (clonedDoc) => {
-        patchClonedDocumentForHtml2canvas(clonedDoc);
-      }
+      backgroundColor: '#f8fafc' // D-VIEW bg-body 색상 (투명 배경 방지)
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);

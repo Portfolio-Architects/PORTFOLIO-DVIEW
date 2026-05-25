@@ -452,14 +452,15 @@ function FieldReportModal({
 
       if (shareCardRef.current) {
         // html2canvas를 동적 임포트하여 클라이언트 사이드에서만 실행되도록 함
+        const html2canvasProInstance = (await import('html2canvas-pro')).default;
+        
+        const canvas = await safeHtml2canvasPro(html2canvasProInstance, shareCardRef.current, {
+          width: 1200,
           height: 630,
           scale: 1.5, // 1.5배 스케일로 카카오 업로드 용량 제한(5MB) 이내 유지하면서 선명한 화질 확보
           useCORS: true,
           backgroundColor: '#0f172a',
-          logging: false,
-          onclone: (clonedDoc) => {
-            patchClonedDocumentForHtml2canvas(clonedDoc);
-          }
+          logging: false
         });
 
         const blob = await new Promise<Blob | null>((resolve) => {

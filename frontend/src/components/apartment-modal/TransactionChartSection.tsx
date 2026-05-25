@@ -17,7 +17,7 @@ import { TransactionRecord } from './TransactionTable';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
-import { patchClonedDocumentForHtml2canvas } from '@/lib/utils/html2canvasPatch';
+import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 
 interface TransactionChartSectionProps {
   transactions: TransactionRecord[];
@@ -239,19 +239,18 @@ export function TransactionChartSection({
   const handleCaptureChart = async () => {
     if (!chartRef.current) return;
     try {
-      const canvas = await html2canvas(chartRef.current, {
+      const canvas = await safeHtml2canvas(chartRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
         logging: false,
         useCORS: true,
-        onclone: (clonedDoc) => {
+        onclone: (clonedDoc: Document) => {
           // You can modify cloned DOM here if needed
           const watermark = clonedDoc.getElementById('dview-watermark');
           if (watermark) {
             watermark.style.opacity = '1';
             watermark.style.color = '#8b95a1';
           }
-          patchClonedDocumentForHtml2canvas(clonedDoc);
         }
       });
       const dataUrl = canvas.toDataURL('image/png');
@@ -380,6 +379,9 @@ export function TransactionChartSection({
                     if (!active || !payload?.length) return null;
                     const item = payload[0]?.payload;
                     const vol = item?.volume;
+                    const hasRatio = item?.saleAvg != null && item?.jeonseAvg != null && item.saleAvg > 0;
+                    const ratioValue = hasRatio ? ((item.jeonseAvg / item.saleAvg) * 100).toFixed(1) : null;
+
                     return (
                       <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
                         <div className="text-tertiary text-[12px] font-bold mb-2">
@@ -396,6 +398,12 @@ export function TransactionChartSection({
                             <div className="flex items-center justify-between gap-4">
                               <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
                               <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
+                            </div>
+                          )}
+                          {ratioValue != null && (
+                            <div className="flex items-center justify-between gap-4 border-t border-border/20 pt-1.5 mt-0.5">
+                              <span className="text-tertiary text-[13px] font-bold">전세가율</span>
+                              <span className="text-toss-blue text-[15px] font-extrabold">{ratioValue}%</span>
                             </div>
                           )}
                           {vol != null && vol > 0 && (
