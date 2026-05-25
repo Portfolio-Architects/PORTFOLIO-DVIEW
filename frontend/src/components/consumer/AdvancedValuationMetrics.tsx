@@ -380,17 +380,17 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                   {/* Left: Formula & Data Components */}
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-3.5 h-full">
-                      <h5 className="text-[13px] font-bold text-secondary">적용 수식 및 산출 근거</h5>
+                      <h5 className="text-[14.5px] md:text-[15px] font-extrabold text-secondary">적용 수식 및 산출 근거</h5>
                       <div className="flex flex-col gap-3.5">
                         {/* 연간 예상 임대 가치 (Annual Rent) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[13px] text-tertiary font-medium">연간 예상 임대 가치 (Annual Rent)</span>
-                            <span className="text-[13px] font-bold text-primary">
+                            <span className="text-[14px] md:text-[14.5px] text-tertiary font-bold">연간 예상 임대 가치 (Annual Rent)</span>
+                            <span className="text-[15.5px] md:text-[16px] font-black text-primary">
                               {formatPrice(avg3MRent * dynamicConversionRate)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30 flex-wrap">
+                          <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 flex-wrap">
                             <span>평균 전세 {formatPrice(avg3MRent)}</span>
                             <span className="text-[#d1d6db]">×</span>
                             <span>전환율 {(dynamicConversionRate * 100).toFixed(1)}%</span>
@@ -403,10 +403,10 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                         {/* 기본 투자 요구 이자율 (할인율 r) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[13px] text-tertiary font-medium">기본 투자 요구 이자율 (할인율 r)</span>
-                            <span className="text-[13px] font-bold text-primary">{dcf.discountRate.toFixed(2)}%</span>
+                            <span className="text-[14px] md:text-[14.5px] text-tertiary font-bold">기본 투자 요구 이자율 (할인율 r)</span>
+                            <span className="text-[15.5px] md:text-[16px] font-black text-primary">{dcf.discountRate.toFixed(2)}%</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30 flex-wrap">
+                          <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 flex-wrap">
                             <span>국고채 {macroConfig.riskFreeRate.toFixed(2)}%</span>
                             <span className="text-[#d1d6db]">+</span>
                             <span>리스크 1.50%</span>
@@ -414,30 +414,35 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                             <span>조달 페널티({macroConfig.fundingCost.toFixed(2)}%) {(Math.max(0, macroConfig.fundingCost - 4.0) * 0.5).toFixed(2)}%</span>
                           </div>
                         </div>
-                        <div className="flex items-start justify-between">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-[13px] text-tertiary font-medium">장기 집값 상승 기대치 (성장률 g)</span>
-                            <button 
-                              onClick={() => {
-                                setIsScoreAccordionOpen(true);
-                                setTimeout(() => {
-                                  document.getElementById('utility-score-section')?.scrollIntoView({ behavior: 'smooth' });
-                                }, 50);
-                              }}
-                              className="text-[11px] text-tertiary hover:underline hover:text-toss-blue transition-colors cursor-pointer text-left font-medium"
-                            >
-                              물가({macroConfig.baseInflationRate.toFixed(1)}%) + 단지 가치(+{(utilityScoreResult.total * 0.01).toFixed(2)}%p)
-                            </button>
-                          </div>
-                          <span className="text-[13px] font-bold text-primary">{dcf.growthRate.toFixed(2)}%</span>
-                        </div>
-                        <div className="h-px w-full bg-border/60 my-0.5" />
+
+                        {/* 장기 집값 상승 기대치 (성장률 g) */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[13px] text-secondary font-bold">실질 목표 수익률 (Cap Rate)</span>
-                            <span className="text-[14px] font-extrabold text-toss-blue">{dcf.capRate.toFixed(2)}%</span>
+                            <span className="text-[14px] md:text-[14.5px] text-tertiary font-bold">장기 집값 상승 기대치 (성장률 g)</span>
+                            <span className="text-[15.5px] md:text-[16px] font-black text-primary">{dcf.growthRate.toFixed(2)}%</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-tertiary bg-body px-2 py-1 rounded-md mt-0.5 border border-border/30">
+                          <button 
+                            onClick={() => {
+                              setIsScoreAccordionOpen(true);
+                              setTimeout(() => {
+                                document.getElementById('utility-score-section')?.scrollIntoView({ behavior: 'smooth' });
+                              }, 50);
+                            }}
+                            className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 hover:underline hover:text-toss-blue transition-colors cursor-pointer text-left font-bold w-full"
+                          >
+                            물가({macroConfig.baseInflationRate.toFixed(1)}%) + 단지 가치(+{(utilityScoreResult.total * 0.01).toFixed(2)}%p)
+                          </button>
+                        </div>
+
+                        <div className="h-px w-full bg-border/60 my-0.5" />
+                        
+                        {/* 실질 목표 수익률 (Cap Rate) */}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[14px] md:text-[14.5px] text-secondary font-extrabold">실질 목표 수익률 (Cap Rate)</span>
+                            <span className="text-[16.5px] md:text-[17px] font-black text-[#00b386]">{dcf.capRate.toFixed(2)}%</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30">
                             <span>할인율 {dcf.discountRate.toFixed(2)}%</span>
                             <span className="text-[#d1d6db]">-</span>
                             <span>성장률 {dcf.growthRate.toFixed(2)}%</span>

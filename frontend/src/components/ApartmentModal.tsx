@@ -703,12 +703,12 @@ function FieldReportModal({
                  </h2>
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-[10px] md:text-[11px] text-tertiary font-bold mb-1 whitespace-nowrap">단지명 / 시공사</p>
-                      <p className="text-[11.7px] text-primary font-bold">{displayAptName} {report.metrics.brand && <span className="block text-[10px] md:text-[11px] text-secondary font-medium mt-0.5">({report.metrics.brand})</span>}</p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">단지명 / 시공사</p>
+                      <p className="text-body-normal text-primary font-bold apt-spec-value">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({report.metrics.brand})</span>}</p>
                     </div>
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-[10px] md:text-[11px] text-tertiary font-bold mb-1 whitespace-nowrap">사용승인일 (연차)</p>
-                      <p className="text-[11.7px] text-primary font-bold">
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">사용승인일 (연차)</p>
+                      <p className="text-body-normal text-primary font-bold apt-spec-value">
                         {report.metrics.yearBuilt ? (() => {
                           const ybStr = String(report.metrics.yearBuilt);
                           const now = new Date();
@@ -732,26 +732,26 @@ function FieldReportModal({
                               else if (y > 0) ageStr = `${y}년차`;
                               else ageStr = `${m}개월차`;
                             }
-                            return <>{year}년 {month}월 <span className="block text-[10px] md:text-[11px] text-toss-blue font-medium mt-0.5">({ageStr})</span></>;
+                            return <>{year}년 {month}월 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({ageStr})</span></>;
                           }
                           
                           const year = parseInt(ybStr);
                           const age = currentYear - year + 1;
-                          return <>{year}년 <span className="block text-[10px] md:text-[11px] text-toss-blue font-medium mt-0.5">({age}년차)</span></>;
+                          return <>{year}년 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({age}년차)</span></>;
                         })() : '-'}
                       </p>
                     </div>
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-[10px] md:text-[11px] text-tertiary font-bold mb-1 whitespace-nowrap">규모 (세대/층)</p>
-                      <p className="text-[11.7px] text-primary font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-[10px] md:text-[11px] font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">규모 (세대/층)</p>
+                      <p className="text-body-normal text-primary font-bold apt-spec-value">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
                     </div>
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-[10px] md:text-[11px] text-tertiary font-bold mb-1 whitespace-nowrap">용적률 / 건폐율</p>
-                      <p className="text-[11.7px] text-primary font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-[10px] md:text-[11px] font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">용적률 / 건폐율</p>
+                      <p className="text-body-normal text-primary font-bold apt-spec-value">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
                     </div>
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border col-span-2 sm:col-span-1">
-                      <p className="text-[10px] md:text-[11px] text-tertiary font-bold mb-1 whitespace-nowrap">주차대수 (세대당)</p>
-                      <p className="text-[11.7px] text-primary font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-[10px] md:text-[11px] font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
+                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">주차대수 (세대당)</p>
+                      <p className="text-body-normal text-primary font-bold apt-spec-value">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
                     </div>
                  </div>
 
