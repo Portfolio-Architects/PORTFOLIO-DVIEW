@@ -1182,6 +1182,8 @@ function FieldReportModal({
                 user={user}
                 isUnlocked={isUnlocked}
                 premiumContent={report.premiumContent}
+                apartmentName={report.apartmentName}
+                onCloseAptModal={onClose}
               />
             </div>
 
