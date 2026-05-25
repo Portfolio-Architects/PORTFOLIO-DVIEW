@@ -13,9 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!adminDb) {
-      const mockBuy = (aptName.length * 7) % 25 + 5;
-      const mockWait = (aptName.length * 3) % 15 + 3;
-      return NextResponse.json({ buyCount: mockBuy, waitCount: mockWait });
+      return NextResponse.json({ buyCount: 0, waitCount: 0 });
     }
 
     const docId = normalizeAptName(aptName);
@@ -23,9 +21,7 @@ export async function GET(request: NextRequest) {
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      const mockBuy = (aptName.length * 7) % 25 + 5;
-      const mockWait = (aptName.length * 3) % 15 + 3;
-      return NextResponse.json({ buyCount: mockBuy, waitCount: mockWait });
+      return NextResponse.json({ buyCount: 0, waitCount: 0 });
     }
 
     const data = docSnap.data() || { buyCount: 0, waitCount: 0 };
@@ -49,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!adminDb) {
-      return NextResponse.json({ success: true, mock: true });
+      return NextResponse.json({ success: true, buyCount: voteType === 'buy' ? 1 : 0, waitCount: voteType === 'wait' ? 1 : 0 });
     }
 
     const docId = normalizeAptName(aptName);
@@ -58,13 +54,10 @@ export async function POST(request: NextRequest) {
     await adminDb.runTransaction(async (transaction) => {
       const docSnap = await transaction.get(docRef);
       if (!docSnap.exists) {
-        const mockBuy = (aptName.length * 7) % 25 + 5;
-        const mockWait = (aptName.length * 3) % 15 + 3;
-        
         transaction.set(docRef, {
           aptName,
-          buyCount: voteType === 'buy' ? mockBuy + 1 : mockBuy,
-          waitCount: voteType === 'wait' ? mockWait + 1 : mockWait,
+          buyCount: voteType === 'buy' ? 1 : 0,
+          waitCount: voteType === 'wait' ? 1 : 0,
           updatedAt: new Date(),
         });
       } else {
