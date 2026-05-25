@@ -278,7 +278,7 @@ export function TransactionChartSection({
         {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
         <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
           <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>
-          <span className="text-[10px] md:text-[12px] font-bold text-tertiary">dview.kr</span>
+          <span className="text-[10px] md:text-[12px] font-bold text-tertiary">dongtanview.com</span>
         </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 w-full gap-3">
           <div className="flex flex-col gap-2 w-full md:w-1/2">

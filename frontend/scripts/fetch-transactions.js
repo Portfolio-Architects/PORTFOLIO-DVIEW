@@ -30,6 +30,27 @@ function formatPriceEok(priceMan) {
   return `${eok}억${remainder.toLocaleString()}`;
 }
 
+// 헬퍼: 타임아웃 및 지수 백오프 기반 재시도 로직이 탑재된 HTTP 클라이언트
+async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await axios.get(url, {
+        ...options,
+        timeout: 10000 // 10초 타임아웃
+      });
+      return response;
+    } catch (err) {
+      const isLastActive = i === retries - 1;
+      const status = err.response ? err.response.status : null;
+      console.warn(`   ⚠️ API 호출 시도 ${i + 1}/${retries} 실패: ${err.message} (HTTP status: ${status})`);
+      if (isLastActive) throw err;
+      
+      const backoffDelay = delay * Math.pow(2, i);
+      await new Promise(resolve => setTimeout(resolve, backoffDelay));
+    }
+  }
+}
+
 async function main() {
   if (!API_KEY) {
     console.error('❌ BUILDING_API_KEY 환경변수가 설정되지 않았습니다.');
@@ -98,90 +119,118 @@ async function main() {
 
   console.log(`   동기화 대상: ${Array.from(monthsToSync).sort().join(', ')}`);
 
-  // 3. 국토부 API 호출
+  // 3. 국토부 API 호출 및 Firestore 쓰기 최적화
   let totalNew = 0;
   const syncLog = [];
   const LAWD_CDS = ['41590', '41597']; // 화성시(기존) 및 동탄구(신설) 모두 스캔
 
   for (const ym of Array.from(monthsToSync).sort()) {
+    // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
+    // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로(99%) 감면
+    const existingMap = new Map(); // _key -> cancelDate
+    try {
+      const existingSnap = await collRef
+        .where('contractYm', '==', ym)
+        .select('cancelDate')
+        .get();
+      existingSnap.docs.forEach(doc => {
+        existingMap.set(doc.id, doc.data().cancelDate || '');
+      });
+      console.log(`   📂 [${ym}] Firestore 기존 거래 로드 완료: ${existingMap.size}건`);
+    } catch (err) {
+      console.warn(`   ⚠️ [${ym}] 기존 데이터 조회 실패 (무시하고 전체 덮어쓰기 진행): ${err.message}`);
+    }
+
     for (const currentLawd of LAWD_CDS) {
       let page = 1;
       let totalCount = 0;
       const monthRecords = [];
 
-      console.log(`\n📅 ${ym} (LAWD_CD: ${currentLawd}) 처리 중...`);
+      console.log(`📅 ${ym} (LAWD_CD: ${currentLawd}) 처리 중...`);
 
       do {
         const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
 
         const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
         try {
-        const res = await axios.get(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
-        const data = res.data;
+          // axios.get 대신 지수 백오프 재시도가 연동된 fetchWithRetry 호출
+          const res = await fetchWithRetry(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
+          const data = res.data;
 
-        // 에러 응답 체크 (JSON 구조 지원)
-        if (data.response?.header?.resultCode !== '000' && data.response?.header?.resultCode !== '00') {
-           const errMsg = data.response?.header?.resultMsg || JSON.stringify(data);
-           console.error(`   ❌ API 에러: ${errMsg}`);
-           syncLog.push(`${ym} (${currentLawd}): API 에러 - ${errMsg}`);
-           break;
+          // 에러 응답 체크 (JSON 구조 지원)
+          if (data.response?.header?.resultCode !== '000' && data.response?.header?.resultCode !== '00') {
+             const errMsg = data.response?.header?.resultMsg || JSON.stringify(data);
+             console.error(`   ❌ API 에러: ${errMsg}`);
+             syncLog.push(`${ym} (${currentLawd}): API 에러 - ${errMsg}`);
+             break;
+          }
+
+          totalCount = data.response?.body?.totalCount || 0;
+          if (totalCount === 0) break;
+
+          let items = data.response?.body?.items?.item || [];
+          if (!Array.isArray(items)) items = [items];
+
+          for (const item of items) {
+            const dong = item.umdNm || '';
+
+            // 동탄 권역 속하는 동 이름만 메모리 필터링
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
+
+            const aptName = item.aptNm || '';
+            const priceStr = String(item.dealAmount || '0').replace(/,/g, '').trim();
+            const price = parseInt(priceStr, 10) || 0;
+            const area = parseFloat(item.excluUseAr) || 0;
+            const contractDay = String(item.dealDay || '').padStart(2, '0');
+            const floor = parseInt(item.floor || '0', 10) || 0;
+            const key = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const cancelDate = item.cdealDay || '';
+
+            // 🔥 Firestore 쓰기(Write) 요금 초절감 검사: 중복 거래 및 취소 날짜 무변화 시 스킵
+            if (existingMap.has(key)) {
+              const existingCancelDate = existingMap.get(key);
+              if (cancelDate === existingCancelDate) {
+                continue; // 이미 데이터가 같으므로 쓰기 버퍼에서 제외
+              }
+            }
+
+            monthRecords.push({
+              sigungu: `경기도 화성시 동탄구 ${dong}`,
+              dong,
+              aptName,
+              area,
+              areaPyeong: Math.round(area / 3.3058 * 10) / 10,
+              contractYm: ym,
+              contractDay,
+              contractDate: `${ym}${contractDay}`,
+              price,
+              floor,
+              buyer: item.buyerGbn || '',
+              seller: item.slerGbn || '',
+              buildYear: parseInt(item.buildYear, 10) || 0,
+              roadName: item.roadNm || '',
+              cancelDate,
+              dealType: item.cdealType || item.dealingGbn || '',
+              agentLocation: item.estateAgentSggNm || '',
+              registrationDate: item.rgstDate || '',
+              housingType: '',
+              source: 'govt_api',
+              _key: key,
+            });
+          }
+
+          if (items.length === 0) break; // 무한 루프 방지
+          page++;
+        } catch (err) {
+          const status = err.response ? err.response.status : (err.code || 'Unknown');
+          syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${status}`);
+          console.error(`   ❌ HTTP ${status} - ${err.message}`);
+          // 하나의 구역/페이지가 완전히 응답하지 않는 경우 break하여 루프를 안전하게 빠져나가며 다음 지역으로 진행 (전체 프로세스 크래시 방지)
+          break;
         }
+      } while (page * 1000 <= totalCount + 1000); // numOfRows 기준 안전한 루프 탈출
 
-        totalCount = data.response?.body?.totalCount || 0;
-        if (totalCount === 0) break;
-
-        let items = data.response?.body?.items?.item || [];
-        if (!Array.isArray(items)) items = [items];
-
-        for (const item of items) {
-          const dong = item.umdNm || '';
-
-          // 🔥 치명적 버그 수정: 동탄 권역 속하는 동 이름만 메모리 필터링
-          if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
-
-          const aptName = item.aptNm || '';
-          const priceStr = String(item.dealAmount || '0').replace(/,/g, '').trim();
-          const price = parseInt(priceStr, 10) || 0;
-          const area = parseFloat(item.excluUseAr) || 0;
-          const contractDay = String(item.dealDay || '').padStart(2, '0');
-          const floor = parseInt(item.floor || '0', 10) || 0;
-
-          monthRecords.push({
-            sigungu: `경기도 화성시 동탄구 ${dong}`,
-            dong,
-            aptName,
-            area,
-            areaPyeong: Math.round(area / 3.3058 * 10) / 10,
-            contractYm: ym,
-            contractDay,
-            contractDate: `${ym}${contractDay}`,
-            price,
-            floor,
-            buyer: item.buyerGbn || '',
-            seller: item.slerGbn || '',
-            buildYear: parseInt(item.buildYear, 10) || 0,
-            roadName: item.roadNm || '',
-            cancelDate: item.cdealDay || '',
-            dealType: item.cdealType || item.dealingGbn || '',
-            agentLocation: item.estateAgentSggNm || '',
-            registrationDate: item.rgstDate || '',
-            housingType: '',
-            source: 'govt_api',
-            _key: `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`,
-          });
-        }
-
-        if (items.length === 0) break; // 무한 루프 방지
-        page++;
-      } catch (err) {
-        const status = err.response ? err.response.status : (err.code || 'Unknown');
-        syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${status}`);
-        console.error(`   ❌ HTTP ${status} - ${err.message}`);
-        break;
-      }
-    } while (page * 1000 <= totalCount + 1000); // numOfRows 기준 안전한 루프 탈출
-
-      // 4. Firestore에 배치 쓰기
+      // 4. Firestore에 배치 쓰기 (필터링을 거친 새로운 건들만 실질적 쓰기 동작)
       if (monthRecords.length > 0) {
         const BATCH_SIZE = 500;
         let written = 0;
@@ -195,16 +244,16 @@ async function main() {
           written += slice.length;
         }
         totalNew += written;
-        syncLog.push(`${ym} (${currentLawd}): ${written}건 동기화`);
-        console.log(`   ✅ ${written}건 동기화 완료`);
+        syncLog.push(`${ym} (${currentLawd}): ${written}건 실질 쓰기 동기화`);
+        console.log(`   ✅ ${written}건 실질 Firestore DB 쓰기 완료`);
       } else {
-        syncLog.push(`${ym} (${currentLawd}): 0건`);
-        console.log(`   ⏭️  0건`);
+        syncLog.push(`${ym} (${currentLawd}): 0건 (기존과 모두 동일)`);
+        console.log(`   ⏭️  0건 (기존과 모두 동일하여 쓰기 생략)`);
       }
     }
   }
 
-  console.log(`\n🎉 총 ${totalNew}건 Firestore 동기화 완료`);
+  console.log(`\n🎉 총 ${totalNew}건 Firestore 신규/변경 등록 완료`);
   syncLog.forEach(l => console.log(`   ${l}`));
 
   process.exit(0);

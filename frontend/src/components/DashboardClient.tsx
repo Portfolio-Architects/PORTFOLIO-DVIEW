@@ -313,9 +313,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
     // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
     History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setMobileModalOpen(true);
-    }
+    setMobileModalOpen(true);
   }, [fieldReportsMap, setSelectedReport]);
 
   const handleAptClickByName = useCallback((name: string) => {
