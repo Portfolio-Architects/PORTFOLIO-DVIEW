@@ -1358,7 +1358,7 @@ interface GroupedCategory {
                     />
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[15px] md:text-[18px] font-extrabold text-primary tracking-tight break-keep">
+                        <span className="text-[14px] md:text-[17px] font-extrabold text-primary tracking-tight break-keep">
                           {group.title}
                         </span>
                         {group.title === "동탄역세권" && (
