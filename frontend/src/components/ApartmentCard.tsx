@@ -82,6 +82,7 @@ const ApartmentCard = memo(function ApartmentCard({ apt, txSummary, report, isPu
   const handlePrefetch = () => {
     const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
     const fileKey = overrideKey ? normalizeAptName(overrideKey) : normalizeAptName(apt.name);
+    preload(`/tx-data/${encodeURIComponent(fileKey)}-recent.json`, fetcher);
     preload(`/tx-data/${encodeURIComponent(fileKey)}.json`, fetcher);
   };
 

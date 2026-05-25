@@ -662,9 +662,15 @@ async function main() {
     const json = JSON.stringify(records);
     
     fs.writeFileSync(filepath, json, 'utf-8');
+
+    // 최근 거래 내역만 포함하는 경량 JSON 파일 생성 (최근 15건)
+    const filenameRecent = `${aptName}-recent.json`;
+    const filepathRecent = path.join(TX_DATA_DIR, filenameRecent);
+    const jsonRecent = JSON.stringify(records.slice(0, 15));
+    fs.writeFileSync(filepathRecent, jsonRecent, 'utf-8');
     
     totalRecords += records.length;
-    totalSizeKB += json.length / 1024;
+    totalSizeKB += (json.length + jsonRecent.length) / 1024;
     chunkCount++;
   }
 
