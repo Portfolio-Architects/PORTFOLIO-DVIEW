@@ -1275,11 +1275,6 @@ function FieldReportModal({
                 onSubmitComment={onSubmitComment}
                 user={user}
                 isUnlocked={isUnlocked}
-                premiumContent={report.premiumContent}
-                apartmentName={report.apartmentName}
-                onCloseAptModal={onClose}
-                managerPostId={managerPost?.id || null}
-                managerPostTitle={managerPost?.title || ''}
               />
             </div>
 
