@@ -683,8 +683,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 }}
               />
 
-              <LocalEventCuration onSelectApt={handleAptClickByName} />
-
               <GapInvestmentExplorer
                 sheetApartments={sheetApartments}
                 txSummaryData={txSummary}
@@ -712,6 +710,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   setMobileModalOpen(true);
                 }}
                 onOpenAdModal={() => setIsAdModalOpen(true)}
+              />
+
+              <LocalEventCuration 
+                txSummaryData={txSummary}
+                onSelectApt={handleAptClickByName} 
               />
             </div>
           </section>

@@ -1,12 +1,13 @@
-'use client';
-
 import { Sparkles, Calendar, Eye } from 'lucide-react';
+import { AptTxSummary } from '@/lib/types/transaction';
+import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 
 interface LocalEventCurationProps {
+  txSummaryData: Record<string, AptTxSummary>;
   onSelectApt: (name: string) => void;
 }
 
-export default function LocalEventCuration({ onSelectApt }: LocalEventCurationProps) {
+export default function LocalEventCuration({ txSummaryData, onSelectApt }: LocalEventCurationProps) {
   const lunaShowApts = [
     {
       name: '동탄레이크자이더테라스',
@@ -79,32 +80,55 @@ export default function LocalEventCuration({ onSelectApt }: LocalEventCurationPr
           </div>
 
           <div className="flex flex-col gap-3">
-            {lunaShowApts.map((apt) => (
-              <div 
-                key={apt.name}
-                onClick={() => onSelectApt(apt.name)}
-                className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 group"
-              >
-                <div className="flex flex-col gap-1 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight group-hover:text-emerald-600 transition-colors">
-                      {apt.name}
-                    </span>
-                    <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] md:text-[11px] font-extrabold shrink-0">
-                      {apt.badge}
-                    </span>
+            {lunaShowApts.map((apt) => {
+              const key = normalizeAptName(apt.name);
+              const sum = txSummaryData[key];
+              const latestSale = sum?.latestPriceEok && sum.latestPriceEok !== "0" ? sum.latestPriceEok : null;
+              const latestJeonse = sum?.latestRentDepositEok && sum.latestRentDepositEok !== "0" ? sum.latestRentDepositEok : null;
+
+              return (
+                <div 
+                  key={apt.name}
+                  onClick={() => onSelectApt(apt.name)}
+                  className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 group"
+                >
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight group-hover:text-emerald-600 transition-colors">
+                        {apt.name}
+                      </span>
+                      <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] md:text-[11px] font-extrabold shrink-0">
+                        {apt.badge}
+                      </span>
+                    </div>
+                    <p className="text-[12px] md:text-[13px] text-tertiary font-medium leading-relaxed">
+                      {apt.desc}
+                    </p>
+
+                    {/* 실거래가 정보 표시 영역 */}
+                    <div className="flex gap-4 mt-1 border-t border-border/20 pt-2 text-[11.5px] md:text-[12px] text-secondary font-bold">
+                      {latestSale && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          최근 매매 <strong className="text-primary">{latestSale}</strong>
+                        </span>
+                      )}
+                      {latestJeonse && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                          최근 전세 <strong className="text-primary">{latestJeonse}</strong>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-[12px] md:text-[13px] text-tertiary font-medium leading-relaxed">
-                    {apt.desc}
-                  </p>
+                  
+                  <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto text-[12px] md:text-[13px] font-extrabold text-emerald-600 group-hover:translate-x-1 transition-transform">
+                    <span>단지 가치분석</span>
+                    <span>&rarr;</span>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto text-[12px] md:text-[13px] font-extrabold text-emerald-600 group-hover:translate-x-1 transition-transform">
-                  <span>단지 가치분석</span>
-                  <span>&rarr;</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

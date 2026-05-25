@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Download, Copy, Database, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { patchClonedDocumentForHtml2canvas } from '@/lib/utils/html2canvasPatch';
 
 interface ReportMetadata {
   date: string;
@@ -29,7 +30,14 @@ export default function EngineeringReportClient({ metadata, markdownContent, con
     if (!contentRef?.current) return;
     try {
       setIsExporting(true);
-      const canvas = await html2canvas(contentRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          patchClonedDocumentForHtml2canvas(clonedDoc);
+        }
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();

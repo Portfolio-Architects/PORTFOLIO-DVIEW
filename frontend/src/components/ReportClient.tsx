@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { getEngineeringReport } from '@/app/actions/getEngineeringReport';
 import EngineeringReportClient from './EngineeringReportClient';
+import { patchClonedDocumentForHtml2canvas } from '@/lib/utils/html2canvasPatch';
 
 export default function ReportClient() {
   const [mounted, setMounted] = useState(false);
@@ -20,7 +21,14 @@ export default function ReportClient() {
     if (!reportRef.current) return;
     try {
       setIsExporting(true);
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          patchClonedDocumentForHtml2canvas(clonedDoc);
+        }
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();

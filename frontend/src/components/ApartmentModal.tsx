@@ -27,6 +27,7 @@ import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao } from '@/lib/utils/kakaoShare';
 import BuyOrWaitVote from './apartment-modal/BuyOrWaitVote';
+import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -451,15 +452,14 @@ function FieldReportModal({
 
       if (shareCardRef.current) {
         // html2canvas를 동적 임포트하여 클라이언트 사이드에서만 실행되도록 함
-        const html2canvas = (await import('html2canvas-pro')).default;
-        
-        const canvas = await html2canvas(shareCardRef.current, {
-          width: 1200,
           height: 630,
           scale: 1.5, // 1.5배 스케일로 카카오 업로드 용량 제한(5MB) 이내 유지하면서 선명한 화질 확보
           useCORS: true,
           backgroundColor: '#0f172a',
-          logging: false
+          logging: false,
+          onclone: (clonedDoc) => {
+            patchClonedDocumentForHtml2canvas(clonedDoc);
+          }
         });
 
         const blob = await new Promise<Blob | null>((resolve) => {
