@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v5';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v5';
+const CACHE_NAME = 'dview-cache-v7';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v7';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -8,7 +8,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
         '/',
-        '/manifest.webmanifest',
+        '/manifest.webmanifest?v=10',
         '/icon-192x192.png',
         '/icon-512x512.png',
         '/d-view-icon.png'

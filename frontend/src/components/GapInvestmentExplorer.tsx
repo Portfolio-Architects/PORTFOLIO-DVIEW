@@ -24,18 +24,27 @@ export default function GapInvestmentExplorer({
   onSelectApt,
   onOpenAdModal,
 }: GapInvestmentExplorerProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number>(1); // Default to '1.5억~2억'
+  const [maxGap, setMaxGap] = useState<number>(20000); // Default to 2억 (20,000만원)
   const [showAll, setShowAll] = useState<boolean>(false);
 
-  // Available gap filter steps (in 만원)
-  const GAP_STEPS = [
-    { label: '1.5억 미만', min: 0, max: 15000 },
-    { label: '1.5억~2억', min: 15000, max: 20000 },
-    { label: '2억~2.5억', min: 20000, max: 25000 },
-    { label: '2.5억~3억', min: 25000, max: 30000 },
-    { label: '3억~4억', min: 30000, max: 40000 },
-    { label: '4억~6억', min: 40000, max: 60000 },
+  const PRESETS = [
+    { label: '1.5억', value: 15000 },
+    { label: '2억', value: 20000 },
+    { label: '2.5억', value: 25000 },
+    { label: '3억', value: 30000 },
+    { label: '4억', value: 40000 },
+    { label: '전체', value: 60000 },
   ];
+
+  const formatGapLabel = (valMan: number) => {
+    if (valMan >= 60000) return '전체';
+    const eok = Math.floor(valMan / 10000);
+    const man = valMan % 10000;
+    if (eok > 0) {
+      return `${eok}억${man > 0 ? ` ${man.toLocaleString()}` : ''}원 이하`;
+    }
+    return `${valMan.toLocaleString()}만원 이하`;
+  };
 
   // format price helper
   const formatPrice = (priceMan: number) => {
@@ -50,7 +59,6 @@ export default function GapInvestmentExplorer({
   // Find all complexes and compute their gap info
   const gapList = useMemo(() => {
     const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
-    const selectedStep = GAP_STEPS[selectedIndex];
     
     const enriched = allApts.map(apt => {
       const rawKey = apt.txKey || apt.name;
@@ -72,12 +80,12 @@ export default function GapInvestmentExplorer({
       };
     });
 
-    // Filter complexes that have valid transactions, positive gap, and fall within the selected gap range
+    // Filter complexes that have valid transactions, positive gap, and fall below or equal to maxGap
     // Sort by jeonse rate descending (highest rate first = best gap candidates)
     return enriched
-      .filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > selectedStep.min && item.gap <= selectedStep.max)
+      .filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > 0 && (maxGap >= 60000 || item.gap <= maxGap))
       .sort((a, b) => b.ratio - a.ratio);
-  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, selectedIndex]);
+  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, maxGap]);
 
   const visibleList = showAll ? gapList : gapList.slice(0, 6);
 
@@ -98,23 +106,82 @@ export default function GapInvestmentExplorer({
             </p>
           </div>
         </div>
-        
-        {/* Step Selector */}
-        <div className="flex bg-body p-1 rounded-xl items-center gap-0.5 self-start sm:self-center overflow-x-auto no-scrollbar max-w-full shadow-inner border border-border/10">
-          {GAP_STEPS.map((step, idx) => (
+      </div>
+
+      {/* Dynamic Budget Controller Panel */}
+      <div className="flex flex-col gap-5 bg-body/40 dark:bg-[#121824]/20 p-5 rounded-2xl border border-border/30 mb-6 shadow-sm">
+        {/* Slider & Numeric input */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+          {/* Slider input */}
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="flex justify-between items-baseline">
+              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary">최대 투자금 (갭)</span>
+              <span className="text-[18px] md:text-[20px] font-black text-toss-blue tracking-tight">
+                {formatGapLabel(maxGap)}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="3000"
+                max="60000"
+                step="500"
+                value={maxGap}
+                onChange={(e) => {
+                  setMaxGap(Number(e.target.value));
+                  setShowAll(false);
+                }}
+                className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-[#3182f6] transition-all bg-slate-100 dark:bg-slate-800"
+                style={{
+                  background: `linear-gradient(to right, #3182f6 0%, #3182f6 ${((maxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((maxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Direct Input & Match Count */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-1.5 bg-surface border border-border/60 rounded-xl px-3.5 py-2.5 focus-within:ring-1 focus-within:ring-[#3182f6] shadow-sm">
+              <input
+                type="number"
+                min="0"
+                max="60000"
+                step="500"
+                value={maxGap >= 60000 ? '' : maxGap}
+                placeholder={maxGap >= 60000 ? '전체' : '예산 입력'}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? 60000 : Number(e.target.value);
+                  setMaxGap(Math.min(60000, val));
+                  setShowAll(false);
+                }}
+                className="w-20 bg-transparent text-right font-black text-primary text-[14px] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span className="text-[12px] font-bold text-tertiary">만원</span>
+            </div>
+
+            <div className="bg-[#e8f3ff] dark:bg-[#3182f6]/10 text-toss-blue px-3 py-2.5 rounded-xl text-[12px] md:text-[13px] font-extrabold border border-[#3182f6]/10 shrink-0">
+              총 {gapList.length}개 매칭
+            </div>
+          </div>
+        </div>
+
+        {/* Preset Quick Buttons */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-3.5 border-t border-border/20">
+          <span className="text-[11.5px] font-bold text-tertiary mr-1.5">빠른 선택</span>
+          {PRESETS.map((preset) => (
             <button
-              key={step.label}
+              key={preset.label}
               onClick={() => {
-                setSelectedIndex(idx);
+                setMaxGap(preset.value);
                 setShowAll(false);
               }}
-              className={`px-3.5 py-1.5 text-[12px] sm:text-[13px] font-extrabold rounded-lg whitespace-nowrap transition-all ${
-                selectedIndex === idx
-                  ? 'bg-surface text-toss-blue shadow-sm'
-                  : 'text-tertiary hover:text-secondary'
+              className={`px-3.5 py-1.5 text-[12px] font-extrabold rounded-lg transition-all border ${
+                maxGap === preset.value
+                  ? 'bg-[#3182f6] text-white border-[#3182f6] shadow-sm'
+                  : 'bg-surface text-secondary hover:text-primary border-border/60'
               }`}
             >
-              {step.label}
+              {preset.label}
             </button>
           ))}
         </div>

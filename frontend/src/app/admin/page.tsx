@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
-  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw
+  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw,
+  ShieldAlert
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
@@ -15,6 +16,7 @@ import { FULL_DONG_DATA } from '@/lib/dong-apartments';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { useTxData } from '@/hooks/useStaticData';
+import { ValuationTuner } from '@/components/admin/ValuationTuner';
 
 const FIRESTORE_DOC = 'settings/apartmentMeta';
 const dongNames = DONGS.map(d => d.name).sort((a, b) => a.localeCompare(b, 'ko'));
@@ -481,6 +483,15 @@ export default function AdminDashboard() {
             <div className="text-[26px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* Valuation Tuning Control Panel */}
+      <div className="mb-8">
+        <h2 className="text-[18px] font-black text-primary mb-4 flex items-center gap-2">
+          <ShieldAlert className="text-toss-blue" size={20} />
+          실수요자 투표 기반 가치평가 보정 시스템
+        </h2>
+        <ValuationTuner />
       </div>
 
       {/* Search + Filter */}

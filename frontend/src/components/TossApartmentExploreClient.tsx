@@ -216,6 +216,8 @@ export default function TossApartmentExploreClient({
           fieldReportsMap={fieldReportsMap}
           favoriteCounts={favoriteCounts}
           onSelectApt={handleSelectApt}
+          txSummaryData={txSummaryData}
+          nameMapping={nameMapping}
         />
       </div>
 

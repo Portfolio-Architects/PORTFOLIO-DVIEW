@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { SWRConfig } from 'swr';
+
 
 // BeforeInstallPromptEvent type declaration
 export interface BeforeInstallPromptEvent extends Event {
@@ -53,6 +55,51 @@ function urlBase64ToUint8Array(base64String: string) {
   }
   return outputArray;
 }
+
+// SWR LocalStorage Cache Provider for client-side persistence (reduces Firestore reads)
+function localStorageProvider() {
+  if (typeof window === 'undefined') return new Map();
+
+  let map: Map<string, any>;
+  try {
+    const rawCache = localStorage.getItem('dview-swr-cache');
+    map = new Map(JSON.parse(rawCache || '[]'));
+  } catch (e) {
+    console.warn('Failed to load SWR cache from localStorage:', e);
+    map = new Map();
+  }
+
+  // Before unload or hide, serialize and store back to localStorage
+  const handleSave = () => {
+    // Only cache static JSON configs and transaction details
+    const entriesToPersist = Array.from(map.entries()).filter(([key]) => {
+      const keyStr = typeof key === 'string' ? key : JSON.stringify(key);
+      return (
+        keyStr.includes('/data/') ||
+        keyStr.includes('/tx-data/') ||
+        keyStr.includes('location-scores') ||
+        keyStr.includes('tx-summary') ||
+        keyStr.includes('scoutingReport')
+      );
+    });
+
+    try {
+      localStorage.setItem('dview-swr-cache', JSON.stringify(entriesToPersist));
+    } catch (err) {
+      console.warn('SWR localStorage save failed:', err);
+    }
+  };
+
+  window.addEventListener('beforeunload', handleSave);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      handleSave();
+    }
+  });
+
+  return map;
+}
+
 
 export function PWAProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -151,20 +198,22 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <PWAContext.Provider
-      value={{
-        isInstallable,
-        deferredPrompt,
-        triggerA2HSPrompt,
-        showCustomA2HSModal,
-        setShowCustomA2HSModal,
-        triggerCustomA2HSModal,
-        isPushSupported,
-        pushSubscription,
-        subscribeToPush,
-      }}
-    >
-      {children}
-    </PWAContext.Provider>
+    <SWRConfig value={{ provider: localStorageProvider }}>
+      <PWAContext.Provider
+        value={{
+          isInstallable,
+          deferredPrompt,
+          triggerA2HSPrompt,
+          showCustomA2HSModal,
+          setShowCustomA2HSModal,
+          triggerCustomA2HSModal,
+          isPushSupported,
+          pushSubscription,
+          subscribeToPush,
+        }}
+      >
+        {children}
+      </PWAContext.Provider>
+    </SWRConfig>
   );
 }

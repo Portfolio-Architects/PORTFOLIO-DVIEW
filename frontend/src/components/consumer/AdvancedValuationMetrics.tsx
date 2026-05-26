@@ -55,7 +55,7 @@ const GaugeBar = ({ score, max }: { score: number, max: number }) => {
 // --------------------------------------------------------------------------
 // Utility Score V2 엔진 (Max 100점)
 // --------------------------------------------------------------------------
-function calculateUtilityScoreV2(report: FieldReportData) {
+function calculateUtilityScoreV2(report: FieldReportData, overrideScore: number = 0) {
   const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics | undefined;
   const premium = calculatePremiumScores(m);
   const d = premium.details;
@@ -85,20 +85,58 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     { icon: TreePine, category: '자연 환경 (호수/상징공원)', score: d.parkDist.score, max: d.parkDist.max, label: d.parkDist.label, isInfra: true, data: d.parkDist.data },
   ];
 
+  if (overrideScore !== 0) {
+    logs.push({
+      icon: Award,
+      category: '어드민 수동 보정',
+      score: overrideScore,
+      max: Math.abs(overrideScore),
+      label: `실수요자 투표 반영 어드민 수동 보정 (${overrideScore > 0 ? '+' : ''}${overrideScore}점)`,
+      isInfra: false
+    });
+  }
+
   const breakDown = {
-    specs: d.brand.score + d.scale.score + d.parking.score + d.year.score,
+    specs: d.brand.score + d.scale.score + d.parking.score + d.year.score + (overrideScore !== 0 ? overrideScore : 0),
     infra: d.gtx.score + d.indeokwon.score + d.tram.score + d.school.score + d.store.score + d.parkDist.score
   };
 
   const maxTotal = logs.reduce((sum, log) => sum + log.max, 0);
+  const adjustedTotal = Math.max(0, Math.min(maxTotal, premium.totalScore + overrideScore));
 
-  return { total: premium.totalScore, breakDown, logs, rawScore: premium.totalScore, isCapped: false, maxTotal };
+  return { total: adjustedTotal, breakDown, logs, rawScore: adjustedTotal, isCapped: false, maxTotal };
 }
 
 export default function AdvancedValuationMetrics({ report, transactions, txSummaryData = {} }: Props) {
   const [isValuationModalOpen, setIsValuationModalOpen] = useState(false);
   const [isScoreAccordionOpen, setIsScoreAccordionOpen] = useState(false);
   const [macroConfig, setMacroConfig] = useState(MACRO_CONFIG.macroEnvironment);
+  const [overrideScore, setOverrideScore] = useState(0);
+
+  useEffect(() => {
+    const fetchOverrides = async () => {
+      try {
+        const { doc, getDoc } = await import('firebase/firestore');
+        const { db } = await import('@/lib/firebaseConfig');
+        const docRef = doc(db, 'settings/valuation_overrides');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const normName = normalizeAptName(report.apartmentName);
+          if (data && data[normName] !== undefined) {
+            setOverrideScore(Number(data[normName]));
+          } else {
+            setOverrideScore(0);
+          }
+        } else {
+          setOverrideScore(0);
+        }
+      } catch (err) {
+        console.error('Failed to load valuation overrides:', err);
+      }
+    };
+    fetchOverrides();
+  }, [report.apartmentName]);
 
   useEffect(() => {
     const fetchMacroRates = async () => {
@@ -197,7 +235,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const dynamicMacroConfig = { ...macroConfig, jeonseConversionRate: dynamicConversionRate };
 
   // 1. Dynamic DCF (거시 금리 연동 및 동적 전환율 적용)
-  const utilityScoreResult = calculateUtilityScoreV2(report);
+  const utilityScoreResult = calculateUtilityScoreV2(report, overrideScore);
   const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScoreResult.total);
   // 2. Dong Spread (인접 단지 상대평가) - 실제 데이터 연동
   const targetDongMatch = report.apartmentName.match(/\[(.*?)\]/);

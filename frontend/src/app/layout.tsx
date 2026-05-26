@@ -46,14 +46,19 @@ export const metadata: Metadata = {
     icon: '/icon-192x192.png',
     apple: '/icon-192x192.png'
   },
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.webmanifest?v=10',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'D-VIEW',
+  },
   verification: {
     google: '4Fp0CzvSfTUPesN1rF0KFxF5YNSVLa_eSUfNKgKNEQs',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#00d29d',
+  themeColor: '#ffffff',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,

@@ -1281,7 +1281,7 @@ function FieldReportModal({
               </button>
 
               {/* 2. Native Ad Placeholder (AdSense Test) */}
-              <NativeAdPlaceholder location="단지 리포트 모달" onClick={onOpenAdModal} />
+              <NativeAdPlaceholder location="단지 리포트 모달" onClick={onOpenAdModal} metrics={report.metrics} />
             </div>
 
             {/* Comments Section */}
