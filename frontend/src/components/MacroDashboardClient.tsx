@@ -18,6 +18,7 @@ import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transacti
 import type { FieldReportData } from "@/lib/types/report.types";
 import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
+import { useSettings } from "@/lib/contexts/SettingsContext";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
 import {
@@ -301,6 +302,14 @@ export default function MacroDashboardClient({
   onSelectApt,
   onOpenAdModal,
 }: MacroDashboardProps) {
+  const { areaUnit } = useSettings();
+  const renderAreaLabel = (areaPyeong: number, area?: number) => {
+    if (areaUnit === 'm2' && area) {
+      return `${Math.round(area)}㎡`;
+    }
+    return `${Math.round(areaPyeong)}평`;
+  };
+
   const { data: gaData } = useSWR('/api/public/analytics', fetcher, { 
     revalidateOnFocus: false,
     dedupingInterval: 60000 
@@ -839,6 +848,7 @@ export default function MacroDashboardClient({
                       priceEok: tx.priceEok,
                       priceVal: price,
                       areaPyeong: tx.areaPyeong,
+                      area: tx.area,
                       floor: tx.floor,
                       maxPriceVal: maxPriceEokVal,
                     });
@@ -855,6 +865,7 @@ export default function MacroDashboardClient({
                       priceEok: tx.priceEok,
                       priceVal: price,
                       areaPyeong: tx.areaPyeong,
+                      area: tx.area,
                       floor: tx.floor,
                       maxPriceVal: maxPriceEokVal,
                       dropPriceVal: maxPriceEokVal - price,
@@ -945,6 +956,7 @@ export default function MacroDashboardClient({
                       priceEok: tx.priceEok,
                       priceVal: price,
                       areaPyeong: tx.areaPyeong,
+                      area: tx.area,
                       floor: tx.floor,
                       type: "high",
                     });
@@ -1316,7 +1328,7 @@ interface GroupedCategory {
                                 {item.aptName}
                               </span>
                               <span className="text-[11px] text-tertiary font-semibold mt-0.5">
-                                {item.areaPyeong}평 · {item.floor}층
+                                {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                               </span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
@@ -1608,7 +1620,7 @@ interface GroupedCategory {
                             {item.aptName}
                           </span>
                           <span className="text-[11.5px] text-tertiary font-semibold mt-1">
-                            {item.date} · {item.areaPyeong}평 · {item.floor}층
+                            {item.date} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                           </span>
                         </div>
                         <div className="flex flex-col items-end shrink-0">
@@ -1652,7 +1664,7 @@ interface GroupedCategory {
                               {item.aptName}
                             </span>
                             <span className="text-[11.5px] text-tertiary font-semibold mt-1">
-                              {item.date} · {item.areaPyeong}평 · {item.floor}층
+                              {item.date} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                             </span>
                           </div>
                           <div className="flex flex-col items-end shrink-0">
