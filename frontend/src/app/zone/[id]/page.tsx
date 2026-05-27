@@ -32,20 +32,33 @@ export default function ZoneDetailPage() {
     return () => unsubscribe();
   }, []);
 
+  const handleSelectReport = (report: FieldReportData) => {
+    setSelectedReport(report);
+    setIsLoadingDetail(true);
+    setFullReportData(null);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedReport(null);
+    setFullReportData(null);
+    setIsLoadingDetail(false);
+  };
+
   // Fetch full report detail data when modal opens (lazy loading)
   useEffect(() => {
-    if (selectedReport) {
-      setIsLoadingDetail(true);
-      setFullReportData(null);
-      dashboardFacade.getFullReport(selectedReport.id).then((data) => {
-        setFullReportData(data);
-        setIsLoadingDetail(false);
-      }).catch(() => {
-        setIsLoadingDetail(false);
-      });
-    } else {
-      setFullReportData(null);
-    }
+    if (!selectedReport) return;
+    
+    let unmounted = false;
+    dashboardFacade.getFullReport(selectedReport.id).then((data) => {
+      if (unmounted) return;
+      setFullReportData(data);
+      setIsLoadingDetail(false);
+    }).catch(() => {
+      if (unmounted) return;
+      setIsLoadingDetail(false);
+    });
+
+    return () => { unmounted = true; };
   }, [selectedReport]);
 
   // Listen to comments when a report is selected
@@ -128,7 +141,7 @@ export default function ZoneDetailPage() {
               const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
 
               return (
-                <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
+                <div key={report.id} onClick={() => handleSelectReport(report)} className="bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
                   {coverImage ? (
                     <div className="w-full h-[200px] shrink-0 bg-body relative overflow-hidden">
                       <img src={coverImage} alt="Cover" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -177,7 +190,7 @@ export default function ZoneDetailPage() {
       {selectedReport && (
         <FieldReportModal 
           report={fullReportData || selectedReport} 
-          onClose={() => setSelectedReport(null)} 
+          onClose={handleCloseModal} 
           comments={commentsData[selectedReport.id] || []}
           commentInput={commentInput[selectedReport.id] || ''}
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}

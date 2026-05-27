@@ -22,7 +22,7 @@ export default function TermsPage() {
         <article className="prose prose-sm sm:prose-base max-w-none text-secondary">
           <h2 className="text-xl font-bold text-primary mb-4">제1조 (목적)</h2>
           <p>
-            본 약관은 D-VIEW(이하 "회사")가 제공하는 부동산 데이터 분석 및 관련 서비스(이하 "서비스")의 이용조건 및 절차, 회사와 회원 간의 권리, 의무 및 책임사항 등을 규정함을 목적으로 합니다.
+            본 약관은 D-VIEW(이하 &quot;회사&quot;)가 제공하는 부동산 데이터 분석 및 관련 서비스(이하 &quot;서비스&quot;)의 이용조건 및 절차, 회사와 회원 간의 권리, 의무 및 책임사항 등을 규정함을 목적으로 합니다.
           </p>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제2조 (약관의 효력 및 변경)</h2>

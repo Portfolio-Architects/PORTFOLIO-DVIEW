@@ -127,7 +127,9 @@ export function PWAProvider({ children }: { children: ReactNode }) {
 
     // 2. Web Push Support Check
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
-      setIsPushSupported(true);
+      setTimeout(() => {
+        setIsPushSupported(true);
+      }, 0);
       // Check existing subscription
       navigator.serviceWorker.ready.then((reg) => {
         reg.pushManager.getSubscription().then((sub) => {

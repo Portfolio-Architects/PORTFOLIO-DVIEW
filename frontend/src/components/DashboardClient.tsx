@@ -1,15 +1,8 @@
 'use client';
 
-import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
-  LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut, TrendingUp, ShieldAlert,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye, Search, ArrowLeft, Coins } from 'lucide-react';
-import { logger } from '@/lib/services/logger';
-import Image from 'next/image';
-import Link from 'next/link';
+import { MessageSquare, X, LayoutDashboard, Home, Search, Coins } from 'lucide-react';
 
-import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
-import ApartmentCard from '@/components/ApartmentCard';
-import DongFilterBar from '@/components/DongFilterBar';
+import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { TrendingTicker } from '@/components/ui/TrendingTicker';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
@@ -31,14 +24,10 @@ const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration'), 
 const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration'), { ssr: false });
 
 
-import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
-import { ZONES } from '@/lib/zones';
-import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
+import { DONGS, getAllDongNames } from '@/lib/dongs';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import { type AptTxSummary } from '@/lib/types/transaction';
-import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
-import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
+import { isSameApartment, normalizeAptName, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';

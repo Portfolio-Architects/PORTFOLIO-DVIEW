@@ -61,6 +61,13 @@ export function useApartmentDetails(
 ) {
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [prevReportId, setPrevReportId] = useState<string | null>(null);
+
+  if (selectedReport?.id !== prevReportId) {
+    setPrevReportId(selectedReport?.id || null);
+    setFullReportData(null);
+    setIsLoadingDetail(!!selectedReport && !selectedReport.id.startsWith('stub-'));
+  }
 
   const formatPriceEok = (priceMan: number) => {
     const eok = Math.floor(priceMan / 10000);
@@ -130,15 +137,11 @@ export function useApartmentDetails(
   useEffect(() => {
     if (!selectedReport) { return; }
     
-    // Clear stale fullReportData from previous selection immediately
-    setFullReportData(null);
-
     let unmounted = false;
 
     // Fetch Full Report & View count
     const isStubReport = selectedReport.id.startsWith('stub-');
     if (!isStubReport) {
-      setIsLoadingDetail(true);
       dashboardFacade.getFullReport!(selectedReport.id).then((data) => {
         if (!unmounted) {
           setFullReportData(data);
@@ -159,15 +162,12 @@ export function useApartmentDetails(
       }
     } else {
       if (dashboardFacade.getFullReportByApartmentName) {
-        setIsLoadingDetail(true);
         dashboardFacade.getFullReportByApartmentName(selectedReport.apartmentName).then((data) => {
           if (!unmounted) {
             setFullReportData(data);
             setIsLoadingDetail(false);
           }
         }).catch(() => { if (!unmounted) setIsLoadingDetail(false); });
-      } else {
-        setFullReportData(null);
       }
     }
     

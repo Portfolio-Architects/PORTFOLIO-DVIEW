@@ -16,7 +16,6 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     // Dev mode: skip auth entirely
     if (process.env.NODE_ENV === 'development') {
-      setIsAuthorized(true);
       localStorage.setItem('dview_is_admin', 'true');
       return;
     }

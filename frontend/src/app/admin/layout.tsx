@@ -34,7 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, []);
 
-  const SidebarContent = () => (
+  const renderSidebarContent = () => (
     <>
       <div className="mb-10 flex items-center gap-2">
         <h2 className="text-[18px] font-bold text-primary tracking-tight">Admin<span className="text-toss-blue"> CMS</span></h2>
@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen bg-body">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex w-[240px] shrink-0 flex-col bg-surface p-6 border-r border-border fixed h-full overflow-y-auto z-30">
-          <SidebarContent />
+          {renderSidebarContent()}
         </aside>
 
         {/* Spacer for fixed sidebar */}
@@ -94,7 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <X size={20} />
                 </button>
               </div>
-              <SidebarContent />
+              {renderSidebarContent()}
             </aside>
           </>
         )}

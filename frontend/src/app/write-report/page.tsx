@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, ChevronLeft, MapPin, X, Building, Info, Map as MapIcon, ShieldAlert, ImagePlus, Star, Zap, RotateCcw, Save } from 'lucide-react';
+import { ChevronLeft, MapPin, Building, Info, Map as MapIcon, ShieldAlert, Zap, RotateCcw, Save } from 'lucide-react';
 import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/DashboardFacade';
 import { auth } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -10,11 +10,6 @@ import { EmojiRating as BaseEmojiRating, MultiPhotoDropzone as BaseMultiPhotoDro
 
 const DRAFT_KEY = 'dtdls_report_draft';
 const AUTO_SAVE_INTERVAL = 30_000; // 30s
-
-// Rating emoji map
-const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'] as const;
-const RATING_LABELS = ['매우 나쁨', '나쁨', '보통', '좋음', '매우 좋음'] as const;
-const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#00d29d'] as const;
 
 // Auto grade map
 function computeAutoGrade(sections: ReportSections): { grade: string; score: number; label: string; color: string } {
@@ -368,7 +363,7 @@ export default function WriteFieldReport() {
                       ))}
                     </div>
                   )}
-                  {!selectedDong && <div className="bg-body border border-dashed border-toss-gray rounded-xl p-4 text-center text-[12px] text-tertiary">위에서 <strong>'동네 명'</strong>을 골라주세요.</div>}
+                  {!selectedDong && <div className="bg-body border border-dashed border-toss-gray rounded-xl p-4 text-center text-[12px] text-tertiary">위에서 <strong>&apos;동네 명&apos;</strong>을 골라주세요.</div>}
                 </>
               )}
             </div>
