@@ -20,10 +20,10 @@ export function useTxData() {
     summary: Record<string, AptTxSummary>;
     macroTrend: DongtanMacroTrendPoint[];
   }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 3600000 // 1 hour cache
+    revalidateOnFocus: true,
+    revalidateIfStale: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 300000 // 5분 캐시로 단축하여 실거래 갱신 반영 보장
   });
   
   return {
