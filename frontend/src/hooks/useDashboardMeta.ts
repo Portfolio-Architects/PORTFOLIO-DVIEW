@@ -9,7 +9,7 @@ export interface DashboardInitialDataLocal {
   typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
   apartmentMeta?: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
   favoriteCounts?: Record<string, number>;
-  sheetApartments?: Record<string, any[]>;
+  sheetApartments?: Record<string, DongApartment[]>;
   kpis?: KPIData[];
   fieldReports?: FieldReportData[];
 }
@@ -34,13 +34,46 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     }
     return buildInitialApartments();
   });
-  const [typeMap, setTypeMap] = useState<Record<string, Record<string, { typeM2: string; typePyeong: string }>>>({});
-  const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
-  const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(new Set());
+  const [typeMap, setTypeMap] = useState<Record<string, Record<string, { typeM2: string; typePyeong: string }>>>(() => {
+    if (initialDashboardData?.typeMap) {
+      const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
+      for (const e of initialDashboardData.typeMap) {
+        const key = normalizeAptName(e.aptName);
+        if (!map[key]) map[key] = {};
+        map[key][String(Number(e.area))] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
+      }
+      return map;
+    }
+    return {};
+  });
+  const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(() => {
+    if (initialDashboardData?.apartmentMeta) {
+      const mapping: Record<string, string> = {};
+      for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
+        if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
+        if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
+      }
+      return mapping;
+    }
+    return undefined;
+  });
+  const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(() => {
+    if (initialDashboardData?.apartmentMeta) {
+      const rentals = new Set<string>();
+      for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
+        if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
+        if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
+      }
+      return rentals;
+    }
+    return new Set();
+  });
+
+  const hasSheetData = !!(initialDashboardData?.sheetApartments && Object.keys(initialDashboardData.sheetApartments).length > 0);
 
   // Fetch sheet apartments only if not provided by server
   useEffect(() => {
-    if (initialDashboardData?.sheetApartments && Object.keys(initialDashboardData.sheetApartments).length > 0) return;
+    if (hasSheetData) return;
     
     let unmounted = false;
     fetch('/api/apartments-by-dong')
@@ -66,35 +99,11 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
       .catch((err) => { logger.warn('Dashboard', 'Failed to fetch apartments', {}, err); });
 
       return () => { unmounted = true; };
-  }, []);
+  }, [hasSheetData]);
 
-  // Fetch init map (or use SSR props)
+  // Fetch init map only if not provided by server
   useEffect(() => {
-    if (initialDashboardData) {
-      if (initialDashboardData.typeMap) {
-        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
-        for (const e of initialDashboardData.typeMap) {
-          const key = normalizeAptName(e.aptName);
-          if (!map[key]) map[key] = {};
-          map[key][String(Number(e.area))] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
-        }
-        setTypeMap(map);
-      }
-      if (initialDashboardData.apartmentMeta) {
-        const mapping: Record<string, string> = {};
-        const rentals = new Set<string>();
-        for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
-          if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
-          if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
-          if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
-        }
-        setNameMapping(mapping);
-        setPublicRentalSet(rentals);
-      } else {
-        setNameMapping({});
-      }
-      return;
-    }
+    if (initialDashboardData) return;
 
     let unmounted = false;
     fetch('/api/dashboard-init').then(r => r.json()).then(data => {

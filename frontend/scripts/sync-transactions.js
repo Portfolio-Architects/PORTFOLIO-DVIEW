@@ -552,7 +552,7 @@ async function main() {
       avg3MPriceEok: formatPriceEok(avg3MPrice),
       avg3MPerPyeong,
       avg3MTxCount: recent3MonthSale.length,
-      recent: saleTxs.slice(0, 4).map(t => ({
+      recent: saleTxs.slice(0, 25).map(t => ({
         date: `${t.contractYm.slice(4)}.${t.contractDay}`,
         priceEok: t.priceEok,
         areaPyeong: t.areaPyeong,

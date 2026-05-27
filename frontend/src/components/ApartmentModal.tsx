@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
-  MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share, Link2,
+  MapPin, X, Camera,
+  Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share,
   Crown, ChevronRight
 } from 'lucide-react';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
@@ -14,8 +13,7 @@ import { normalizeAptName, getDisplayAptName, findTypeMapEntry } from '@/lib/uti
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { auth, googleProvider, db } from '@/lib/firebaseConfig';
-import { signInWithPopup } from 'firebase/auth';
+import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import CommentSection from '@/components/CommentSection';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
@@ -64,10 +62,7 @@ function FieldReportModal({
   user,
   transactions: rawTransactions,
   typeMap,
-  isLoadingDetail,
-  isPurchased,
   isAdmin,
-  onPurchaseComplete,
   inline,
   txSummary,
   onOpenAdModal
@@ -395,42 +390,8 @@ function FieldReportModal({
     setActiveTab(current);
   };
 
+  // Unused variables (coverImage, rating, badge color utils, type filter constants) removed to optimize code hygiene.
   const s = report.sections;
-  const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
-  const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
-
-  const typeBadgeColors: [string, string][] = [['text-toss-blue','bg-toss-blue-light'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
-  const groupSet = new Set<number>();
-  transactions.forEach(tx => {
-    const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-    const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
-    if (label) {
-      const m = label.match(/\d+/);
-      if (m) groupSet.add(Math.round(parseInt(m[0]) / 3));
-    }
-  });
-  const sortedGroups = Array.from(groupSet).sort((a, b) => a - b);
-  const groupColorIdx = new Map(sortedGroups.map((g, i) => [g, i]));
-
-  const getBadgeColorClasses = (label: string | null) => {
-    if (!label) return ['text-toss-blue', 'bg-toss-blue-light'];
-    const m = label.match(/\d+/);
-    const group = m ? Math.round(parseInt(m[0]) / 3) : 0;
-    const cIdx = (groupColorIdx.get(group) ?? 0) % typeBadgeColors.length;
-    return typeBadgeColors[cIdx];
-  };
-
-  // 고유 m² 타입 목록
-  const areaTypes = Array.from(new Set(transactions.map(tx => {
-    const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-    return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
-  }))).sort();
-  // 고유 유형 목록
-  const dealTypes = Array.from(new Set(transactions.map(tx => tx.dealType))).sort();
-
-  const chipClass = (active: boolean) => `w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-    active ? 'bg-toss-blue-light text-toss-blue' : 'bg-transparent text-secondary hover:bg-body'
-  }`;
 
   const handleKakaoShare = async () => {
     if (isSharing) return;
@@ -1281,7 +1242,7 @@ function FieldReportModal({
               </button>
 
               {/* 2. Native Ad Placeholder (AdSense Test) */}
-              <NativeAdPlaceholder location="단지 리포트 모달" onClick={onOpenAdModal} />
+              <NativeAdPlaceholder location="단지 리포트 모달" onClick={onOpenAdModal} metrics={report.metrics} />
             </div>
 
             {/* Comments Section */}

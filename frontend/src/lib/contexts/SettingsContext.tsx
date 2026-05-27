@@ -20,7 +20,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem('dtdls-area-unit');
     if (stored === 'm2' || stored === 'pyeong') {
-      setAreaUnitState(stored);
+      setTimeout(() => {
+        setAreaUnitState(stored);
+      }, 0);
     }
   }, []);
 

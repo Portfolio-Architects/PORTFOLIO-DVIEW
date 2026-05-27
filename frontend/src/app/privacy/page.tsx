@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <article className="prose prose-sm sm:prose-base max-w-none text-secondary">
           <h2 className="text-xl font-bold text-primary mb-4">제1조 (목적)</h2>
           <p>
-            D-VIEW(이하 "회사")는 이용자의 개인정보를 중요시하며, 「정보통신망 이용촉진 및 정보보호 등에 관한 법률」 및 「개인정보 보호법」 등 관련 법령을 준수하고 있습니다.
+            D-VIEW(이하 &quot;회사&quot;)는 이용자의 개인정보를 중요시하며, 「정보통신망 이용촉진 및 정보보호 등에 관한 법률」 및 「개인정보 보호법」 등 관련 법령을 준수하고 있습니다.
             본 방침을 통하여 회사가 이용자로부터 제공받는 개인정보를 어떠한 용도와 방식으로 이용하고 있으며, 개인정보보호를 위해 어떠한 조치를 취하고 있는지 알려드립니다.
           </p>
 
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제6조 (이용자의 권리와 그 행사방법)</h2>
           <p>
             이용자는 언제든지 등록되어 있는 자신의 개인정보를 조회하거나 수정할 수 있으며, 가입 해지(회원 탈퇴)를 요청할 수 있습니다. 
-            회원 탈퇴를 원하시는 경우, 서비스 내 '마이페이지' 또는 관리자 이메일을 통해 요청하시면 본인 확인 절차를 거친 후 지체 없이 처리합니다.
+            회원 탈퇴를 원하시는 경우, 서비스 내 &apos;마이페이지&apos; 또는 관리자 이메일을 통해 요청하시면 본인 확인 절차를 거친 후 지체 없이 처리합니다.
           </p>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제7조 (개인정보 보호책임자)</h2>

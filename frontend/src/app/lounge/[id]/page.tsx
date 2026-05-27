@@ -94,7 +94,7 @@ export default async function LoungePostPage(props: Props) {
             authorUid: data.authorUid || null,
             verifiedApartment: data.verifiedApartment || null,
             verificationLevel: data.verificationLevel || null,
-            createdAt: data.createdAt ? data.createdAt.toMillis() : Date.now(),
+            createdAt: data.createdAt ? data.createdAt.toMillis() : null,
           };
         }
       }

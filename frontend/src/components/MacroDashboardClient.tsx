@@ -80,22 +80,22 @@ const InfoBox = ({
   color = "#00d29d",
 }: InfoBoxProps) => {
   return (
-    <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] p-2.5 md:p-4 flex flex-col gap-1 md:gap-1.5 shadow-sm border border-border h-full justify-center">
+    <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] py-2 px-2.5 md:py-2.5 md:px-3.5 flex flex-col justify-between shadow-sm border border-border h-[82px] sm:h-[86px] md:h-[96px] min-w-0">
       {/* Title Area */}
-      <div className="text-[11.5px] md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
+      <div className="text-[11px] md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-none">
         {title}
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-1 md:gap-2 mt-0.5 md:mt-0">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full min-w-0 gap-1 md:gap-2 mt-auto">
 
         {/* Value & Unit */}
-        <div className="flex items-baseline gap-0.5 md:gap-1 min-w-0 flex-wrap">
-          <span className="text-[14.5px] md:text-title-lg font-extrabold text-primary tracking-tight break-keep leading-tight">
+        <div className="flex items-baseline gap-0.5 md:gap-1 min-w-0 max-w-full">
+          <span className="text-[13px] md:text-[16px] font-extrabold text-primary tracking-tight truncate block leading-none">
             {value}
           </span>
           {unit && (
-            <span className="text-[11px] md:text-body-sm font-bold text-secondary tracking-tight shrink-0">
+            <span className="text-[10px] md:text-body-sm font-bold text-secondary tracking-tight shrink-0 leading-none">
               {unit}
             </span>
           )}
@@ -103,10 +103,10 @@ const InfoBox = ({
 
         {/* Badges / Progress */}
         {(progress !== undefined || badge) && (
-          <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-2">
+          <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-1.5">
             {badge && (
-              <div className="bg-surface border border-border px-2.5 py-0.5 md:px-3 md:py-1 rounded-[6px] shadow-sm">
-                <span className="text-[13px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
+              <div className="bg-surface border border-border px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[5px] shadow-sm">
+                <span className="text-[10.5px] md:text-[11.5px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
                   {badge}
                 </span>
               </div>
@@ -241,6 +241,54 @@ export const formatEokWithUnit = (priceMan: number) => {
   };
 };
 
+const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): Date | null => {
+  const clean = String(dateStr).replace(/[^0-9]/g, '');
+  if (clean.length === 8) {
+    const y = parseInt(clean.substring(0, 4), 10);
+    const m = parseInt(clean.substring(4, 6), 10) - 1;
+    const d = parseInt(clean.substring(6, 8), 10);
+    return new Date(y, m, d);
+  }
+  if (String(dateStr).includes('.')) {
+    const parts = String(dateStr).split('.');
+    if (parts.length >= 2) {
+      const m = parseInt(parts[0], 10) - 1;
+      const d = parseInt(parts[1], 10);
+      let y = 2026;
+      let latestDt: Date | null = null;
+      if (parentLatestDate && parentLatestDate.length === 8) {
+        y = parseInt(parentLatestDate.substring(0, 4), 10);
+        const lm = parseInt(parentLatestDate.substring(4, 6), 10) - 1;
+        const ld = parseInt(parentLatestDate.substring(6, 8), 10);
+        latestDt = new Date(y, lm, ld);
+      }
+      const dt = new Date(y, m, d);
+      if (latestDt && dt.getTime() > latestDt.getTime()) {
+        dt.setFullYear(y - 1);
+      }
+      return dt;
+    }
+  }
+  return null;
+};
+
+const parsePriceEokHelper = (priceStr: string): number => {
+  let total = 0;
+  const clean = priceStr.replace(/,/g, '').trim();
+  if (clean.includes('억')) {
+    const parts = clean.split('억');
+    total += parseFloat(parts[0]) || 0;
+    if (parts[1]) {
+      const tenMillion = parseFloat(parts[1].replace(/[^0-9.]/g, '')) || 0;
+      total += tenMillion / 10000;
+    }
+  } else {
+    const val = parseFloat(clean.replace(/[^0-9.]/g, '')) || 0;
+    total += val / 10000;
+  }
+  return total;
+};
+
 export default function MacroDashboardClient({
   sheetApartments,
   txSummaryData,
@@ -260,7 +308,7 @@ export default function MacroDashboardClient({
   
   const formatNum = (num?: number) => typeof num === 'number' ? num.toLocaleString() : '-';
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [chartMode, setChartMode] = useState<"price" | "pyeong">("price");
+  const [chartMode, setChartMode] = useState<string>("30");
   const [accordionMode, setAccordionMode] = useState<"price" | "pyeong">("price");
   const [timeframe, setTimeframe] = useState<
     "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL"
@@ -269,6 +317,8 @@ export default function MacroDashboardClient({
     {},
   );
   const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
+  const [selectedSubModes, setSelectedSubModes] = useState<Record<string, "tiers" | "recentTxs">>({});
+  const [selectedDongs, setSelectedDongs] = useState<Record<string, string>>({});
   const [isScrolled, setIsScrolled] = useState(false);
   const [newsData, setNewsData] = useState<MacroNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -320,62 +370,81 @@ export default function MacroDashboardClient({
     };
   }, []);
 
-  // 1. Donut Chart Data (실거래가/평단가 티어별 세대수 분포)
-  const donutData = useMemo(() => {
-    const priceTiers = [
-      { name: "15억원 이상", min: 150000, max: Infinity, count: 0 },
-      { name: "10억~15억원", min: 100000, max: 150000, count: 0 },
-      { name: "8억~10억원", min: 80000, max: 100000, count: 0 },
-      { name: "6억~8억원", min: 60000, max: 80000, count: 0 },
-      { name: "6억원 미만", min: 0, max: 60000, count: 0 },
-    ];
-
-    const pyeongTiers = [
-      { name: "4,000만원 이상", min: 4000, max: Infinity, count: 0 },
-      { name: "3,000~4,000만원", min: 3000, max: 4000, count: 0 },
-      { name: "2,500~3,000만원", min: 2500, max: 3000, count: 0 },
-      { name: "2,000~2,500만원", min: 2000, max: 2500, count: 0 },
-      { name: "2,000만원 미만", min: 0, max: 2000, count: 0 },
-    ];
-
-    const tiers = chartMode === "price" ? priceTiers : pyeongTiers;
-
-    Object.entries(sheetApartments).forEach(([dong, apts]) => {
-      const validApts = apts.filter((a) => !publicRentalSet.has(a.name));
-
-      validApts.forEach((a) => {
-        const rawTxKey = a.txKey || findTxKey(a.name, txSummaryData, nameMapping);
-        const key = rawTxKey ? normalizeAptName(rawTxKey) : null;
-        const tx = key ? txSummaryData[key] : undefined;
-        if (tx && a.householdCount) {
-          let valueToCompare = 0;
-          const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
-          if (chartMode === "price" && sales > 0) {
-            valueToCompare = sales; // 만원 단위
-          } else if (chartMode === "pyeong") {
-            valueToCompare =
-              tx.avg3MPerPyeong ||
-              tx.avg1MPerPyeong ||
-              (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
+  // Compute max transaction date across all data once
+  const maxDateTime = useMemo(() => {
+    let maxVal = 0;
+    Object.values(txSummaryData).forEach((sum) => {
+      if (sum.recent) {
+        sum.recent.forEach((tx) => {
+          const dt = parseDateHelper(tx.date, sum.latestDate);
+          if (dt) {
+            const time = dt.getTime();
+            if (time > maxVal) {
+              maxVal = time;
+            }
           }
+        });
+      }
+    });
+    if (maxVal === 0) {
+      maxVal = new Date("2026-05-26").getTime();
+    }
+    return maxVal;
+  }, [txSummaryData]);
 
-          if (valueToCompare > 0) {
-            const tier = tiers.find(
-              (t) => valueToCompare >= t.min && valueToCompare < t.max,
-            );
-            if (tier) {
-              tier.count += a.householdCount;
+  // 1. Donut Chart Data (실거래 등락 비중 - 상승 vs 하락 vs 보합)
+  const donutData = useMemo(() => {
+    const daysLimit = chartMode === "30" ? 30 : 90;
+    const cutoffTime = maxDateTime - daysLimit * 24 * 60 * 60 * 1000;
+    let upCount = 0;
+    let downCount = 0;
+    let sameCount = 0;
+
+    Object.values(txSummaryData).forEach((sum) => {
+      if (!sum.recent || sum.recent.length === 0) return;
+      const areaGroups: Record<number, typeof sum.recent> = {};
+      sum.recent.forEach((tx) => {
+        const areaKey = Math.floor(tx.area);
+        if (!areaGroups[areaKey]) {
+          areaGroups[areaKey] = [];
+        }
+        areaGroups[areaKey].push(tx);
+      });
+
+      Object.values(areaGroups).forEach((transactions) => {
+        const mapped = transactions
+          .map((tx) => ({
+            tx,
+            dt: parseDateHelper(tx.date, sum.latestDate),
+          }))
+          .filter((item): item is { tx: typeof item.tx; dt: Date } => item.dt !== null);
+
+        const sorted = mapped.sort((a, b) => a.dt.getTime() - b.dt.getTime());
+
+        for (let j = 1; j < sorted.length; j++) {
+          const current = sorted[j];
+          const prev = sorted[j - 1];
+          if (current.dt.getTime() >= cutoffTime) {
+            const currentPrice = parsePriceEokHelper(current.tx.priceEok);
+            const prevPrice = parsePriceEokHelper(prev.tx.priceEok);
+            if (currentPrice > prevPrice) {
+              upCount++;
+            } else if (currentPrice < prevPrice) {
+              downCount++;
+            } else if (currentPrice === prevPrice) {
+              sameCount++;
             }
           }
         }
       });
     });
 
-    return tiers.map((t) => ({
-      name: t.name,
-      value: t.count,
-    }));
-  }, [sheetApartments, publicRentalSet, txSummaryData, chartMode]);
+    return [
+      { name: "상승 거래", value: upCount },
+      { name: "하락 거래", value: downCount },
+      { name: "보합 거래", value: sameCount },
+    ];
+  }, [txSummaryData, chartMode, maxDateTime]);
 
   const [totalHouseholds, publicRentalHouseholds] = useMemo(() => {
     let total = 0;
@@ -453,124 +522,6 @@ export default function MacroDashboardClient({
     return ticks;
   }, [lineData, timeframe]);
 
-  const topTierRatio =
-    totalHouseholds > 0
-      ? (((donutData[0]?.value || 0) + (donutData[1]?.value || 0)) /
-        totalHouseholds) *
-      100
-      : 0;
-  const topTierLabel =
-    chartMode === "price" ? "PREMIUM (1급지+)" : "NEW APT (10년내)";
-
-  const publicRentalRatio =
-    totalHouseholds > 0 ? (publicRentalHouseholds / totalHouseholds) * 100 : 0;
-
-  const latestAvgPrice =
-    macroTrendData && macroTrendData.length > 0
-      ? macroTrendData[macroTrendData.length - 1]["동탄 아파트 전체"]
-      : 0;
-  const avgPriceProgress = Math.min((latestAvgPrice / 15) * 100, 100);
-
-  const avgPriceFormatted = useMemo(() => {
-    const uk = Math.floor(latestAvgPrice);
-    const man = Math.round((latestAvgPrice - uk) * 10000);
-
-    if (man === 0) {
-      return { value: `${uk}`, unit: "억" };
-    }
-    return { value: `${uk}억 ${man.toLocaleString()}`, unit: "만원" };
-  }, [latestAvgPrice]);
-
-  const momStats = useMemo(() => {
-    if (!macroTrendData || macroTrendData.length < 2)
-      return {
-        change: 0,
-        changeText: "0원",
-        rate: 0,
-        text: "보합 상태",
-        color: "#b0b8c1",
-      };
-    const current =
-      macroTrendData[macroTrendData.length - 1]["동탄 아파트 전체"];
-    const prev =
-      macroTrendData[macroTrendData.length - 2]["동탄 아파트 전체"];
-    if (prev === 0)
-      return {
-        change: 0,
-        changeText: "0원",
-        rate: 0,
-        text: "보합 상태",
-        color: "#b0b8c1",
-      };
-
-    const change = current - prev;
-    const rate = (change / prev) * 100;
-
-    const formatChange = (c: number) => {
-      const uk = Math.floor(c);
-      const man = Math.round((c - uk) * 10000);
-      if (uk === 0) return `${man.toLocaleString()}만원`;
-      if (man === 0) return `${uk}억`;
-      return `${uk}억 ${man.toLocaleString()}만원`;
-    };
-
-    const absChange = Math.abs(change);
-    const changeText = formatChange(absChange);
-
-    if (change > 0)
-      return {
-        change: absChange,
-        changeText,
-        rate: Math.abs(rate),
-        text: "상승 중",
-        color: "#f04452",
-      };
-    if (change < 0)
-      return {
-        change: absChange,
-        changeText,
-        rate: Math.abs(rate),
-        text: "하락 중",
-        color: "#3182f6",
-      };
-    return {
-      change: 0,
-      changeText: "0원",
-      rate: 0,
-      text: "보합 상태",
-      color: "#b0b8c1",
-    };
-  }, [lineData]);
-
-  const dongtanAvgPyeongPrice = useMemo(() => {
-    let sum = 0;
-    let count = 0;
-    if (!sheetApartments) return 0;
-
-    Object.values(sheetApartments)
-      .flat()
-      .forEach((apt) => {
-        if (publicRentalSet.has(apt.name)) return;
-        const rawTxKey =
-          apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
-        const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
-        const tx = txKey ? txSummaryData[txKey] : undefined;
-
-        if (tx) {
-          const pyeongPrice =
-            tx.avg3MPerPyeong ||
-            tx.avg1MPerPyeong ||
-            (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
-          if (pyeongPrice > 0) {
-            sum += pyeongPrice;
-            count++;
-          }
-        }
-      });
-
-    return count > 0 ? Math.round(sum / count) : 0;
-  }, [txSummaryData, sheetApartments, publicRentalSet]);
-
   const [maxAptName, maxPriceEok] = useMemo(() => {
     let maxPrice = 0;
     let maxEok = "";
@@ -624,6 +575,223 @@ export default function MacroDashboardClient({
 
     return [displayAptName, Math.round(maxPrice)];
   }, [txSummaryData, sheetApartments, publicRentalSet]);
+
+  // 1안 Card 1 & Card 2: 최근 신고가 단지 & 최근 최대 낙폭 단지
+  const card1And2Data = useMemo(() => {
+    let bestHigh = {
+      name: "-",
+      price: "",
+      days: 999,
+      val: 0,
+    };
+    let bestDrop = {
+      name: "-",
+      drop: "",
+      days: 999,
+      pct: 0,
+    };
+
+    if (!sheetApartments) {
+      return {
+        card1: {
+          name: "-",
+          price: "-",
+          label: "최근 7일 신고가",
+        },
+        card2: {
+          name: "-",
+          drop: "-원 (0%)",
+          label: "최근 7일 최대 낙폭",
+        },
+      };
+    }
+
+    Object.values(sheetApartments)
+      .flat()
+      .forEach((apt) => {
+        if (publicRentalSet.has(apt.name)) return;
+        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+        if (txKey && txSummaryData[txKey]) {
+          const sum = txSummaryData[txKey];
+          if (sum.recent) {
+            sum.recent.forEach((tx) => {
+              const dt = parseDateHelper(tx.date, sum.latestDate);
+              if (dt) {
+                const diffMs = maxDateTime - dt.getTime();
+                const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+                // Only inspect past 90 days to avoid stale data
+                if (diffDays >= 0 && diffDays <= 90) {
+                  const price = parsePriceEokHelper(tx.priceEok);
+                  const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
+                  // A. New High (within 500k won margin of peak)
+                  if (price > 0 && maxPriceEokVal > 0 && price >= maxPriceEokVal - 0.05) {
+                    const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
+                    const bestWindow = Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7);
+                    if (
+                      bestHigh.name === "-" ||
+                      currentWindow < bestWindow ||
+                      (currentWindow === bestWindow && price > bestHigh.val)
+                    ) {
+                      const fmt = formatEokWithUnit(price * 10000);
+                      bestHigh = {
+                        name: apt.name,
+                        price: `${fmt.value}${fmt.unit === "만원" ? "만" : ""}`,
+                        days: diffDays,
+                        val: price,
+                      };
+                    }
+                  }
+                  // B. Price Drop from peak
+                  if (price > 0 && maxPriceEokVal > 0) {
+                    const dropPct = ((price - maxPriceEokVal) / maxPriceEokVal) * 100;
+                    if (dropPct < -1.0) {
+                      const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
+                      const bestWindow = Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7);
+                      if (
+                        bestDrop.name === "-" ||
+                        currentWindow < bestWindow ||
+                        (currentWindow === bestWindow && dropPct < bestDrop.pct)
+                      ) {
+                        const diffPrice = maxPriceEokVal - price;
+                        const fmtDiff = formatEokWithUnit(diffPrice * 10000);
+                        const unitStr =
+                          fmtDiff.unit === "만원" ? "만" : fmtDiff.unit === "원" ? "" : fmtDiff.unit;
+                        bestDrop = {
+                          name: apt.name,
+                          drop: `-${fmtDiff.value}${unitStr} (${dropPct.toFixed(1)}%)`,
+                          days: diffDays,
+                          pct: dropPct,
+                        };
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+      });
+
+    // Fallbacks
+    const card1Name = bestHigh.name !== "-" ? bestHigh.name : maxAptName;
+    const card1Price = bestHigh.name !== "-" ? bestHigh.price : maxPriceEok;
+    const card1Window = bestHigh.name !== "-" ? Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7) : 7;
+
+    const card2Name = bestDrop.name !== "-" ? bestDrop.name : maxPyeongAptName;
+    const card2Drop = bestDrop.name !== "-" ? bestDrop.drop : "-0원 (0%)";
+    const card2Window = bestDrop.name !== "-" ? Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7) : 7;
+
+    return {
+      card1: {
+        name: card1Name,
+        price: card1Price,
+        label: `최근 ${card1Window}일 신고가`,
+      },
+      card2: {
+        name: card2Name,
+        drop: card2Drop,
+        label: `최근 ${card2Window}일 최대 낙폭`,
+      },
+    };
+  }, [
+    txSummaryData,
+    sheetApartments,
+    publicRentalSet,
+    nameMapping,
+    maxDateTime,
+    maxAptName,
+    maxPriceEok,
+    maxPyeongAptName,
+  ]);
+
+  // 1안 Card 3: 최근 30일 동탄 실거래량 & 추세 (MoM)
+  const card3Data = useMemo(() => {
+    const limit30 = 30 * 24 * 60 * 60 * 1000;
+    const cutoff30 = maxDateTime - limit30;
+    const cutoff60 = maxDateTime - 2 * limit30;
+    let currentCount = 0;
+    let prevCount = 0;
+
+    Object.values(txSummaryData).forEach((sum) => {
+      if (sum.recent) {
+        sum.recent.forEach((tx) => {
+          const dt = parseDateHelper(tx.date, sum.latestDate);
+          if (dt) {
+            const time = dt.getTime();
+            if (time >= cutoff30) {
+              currentCount++;
+            } else if (time >= cutoff60) {
+              prevCount++;
+            }
+          }
+        });
+      }
+    });
+
+    const diff = currentCount - prevCount;
+    const rate = prevCount > 0 ? (diff / prevCount) * 100 : 0;
+    const isUp = diff > 0;
+    const isDown = diff < 0;
+    let trendText = "보합 (0%)";
+    let trendColor = "#94a3b8";
+
+    if (isUp) {
+      trendText = `상승 (+${rate.toFixed(1)}%)`;
+      trendColor = "#ff4b5c";
+    } else if (isDown) {
+      trendText = `하락 (${rate.toFixed(1)}%)`;
+      trendColor = "#2e7cf6";
+    }
+
+    return {
+      currentCount,
+      prevCount,
+      trendText,
+      trendColor,
+      badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`,
+    };
+  }, [txSummaryData, maxDateTime]);
+
+  // 1안 Card 4: 최저 갭(GAP) 투자 단지
+  const card4Data = useMemo(() => {
+    let targetAptName = "-";
+    let minGapAmount = Infinity;
+    let targetGapPct = 0;
+
+    if (sheetApartments) {
+      Object.values(sheetApartments)
+        .flat()
+        .forEach((apt) => {
+          if (publicRentalSet.has(apt.name)) return;
+          const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+          if (txKey && txSummaryData[txKey]) {
+            const sum = txSummaryData[txKey];
+            const sales = sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0;
+            const rent = sum.latestRentDeposit || sum.avg3MRentDeposit || 0;
+            if (sales > 0 && rent > 0) {
+              const gapAmount = sales - rent;
+              if (gapAmount > 0 && gapAmount < minGapAmount) {
+                minGapAmount = gapAmount;
+                targetAptName = apt.name;
+                targetGapPct = (rent / sales) * 100;
+              }
+            }
+          }
+        });
+    }
+
+    let badgeText = "-";
+    if (minGapAmount !== Infinity) {
+      const fmt = formatEokWithUnit(minGapAmount);
+      const unitStr = fmt.unit === "만원" ? "만" : fmt.unit === "원" ? "" : fmt.unit;
+      badgeText = `갭 ${fmt.value}${unitStr} (${targetGapPct.toFixed(0)}%)`;
+    }
+
+    return {
+      name: targetAptName,
+      badge: badgeText,
+    };
+  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping]);
 
 
 
@@ -682,6 +850,8 @@ interface GroupedApartment {
   householdCount: number;
   yearBuilt: string;
   distToDongtan: number | null;
+  dong?: string;
+  txKey?: string;
 }
 
 interface GroupedCategory {
@@ -813,6 +983,8 @@ interface GroupedCategory {
                 householdCount: apt.householdCount || 0,
                 yearBuilt: formattedYear,
                 distToDongtan: distToDongtan,
+                dong: apt.dong,
+                txKey: apt.txKey,
               });
 
               grouped[themeTitle].totalValue += sales;
@@ -930,44 +1102,42 @@ interface GroupedCategory {
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
             {/* Donut Chart Card */}
             <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-7 min-h-[350px]">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
-                  동탄 아파트 {chartMode === "price" ? "가격" : "평단가"} 현황
+              <div className="flex justify-between items-center gap-2 mb-4">
+                <h2 className="text-[14.5px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
+                  최근 실거래 등락 비중
                 </h2>
-                {/* Toss Style Segmented Control */}
-                <div className="flex bg-body p-1 rounded-lg">
+                <div className="flex bg-body p-1 rounded-lg shrink-0">
                   <button
-                    onClick={() => setChartMode("price")}
-                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === "price"
+                    onClick={() => setChartMode("30")}
+                    className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "30"
                       ? "bg-surface text-primary shadow-sm"
                       : "text-tertiary hover:text-secondary"
                       }`}
                   >
-                    매매가
+                    최근 30일
                   </button>
                   <button
-                    onClick={() => setChartMode("pyeong")}
-                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === "pyeong"
+                    onClick={() => setChartMode("90")}
+                    className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "90"
                       ? "bg-surface text-primary shadow-sm"
                       : "text-tertiary hover:text-secondary"
                       }`}
                   >
-                    평당가
+                    최근 90일
                   </button>
                 </div>
               </div>
 
               <div ref={chartContainerRef} className="flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3">
                 <div className="w-[240px] h-[240px] relative shrink-0">
-                  {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <span className="text-[13px] font-bold text-tertiary mb-1">
-                      분석 세대수
+                      총 거래 건수
                     </span>
                     <span className="text-[26px] font-extrabold text-primary leading-none tracking-tight">
-                      {totalHouseholds.toLocaleString()}
+                      {donutData.reduce((s, d) => s + d.value, 0).toLocaleString()}
                       <span className="text-[15px] font-bold text-tertiary ml-1">
-                        세대
+                        건
                       </span>
                     </span>
                   </div>
@@ -992,20 +1162,23 @@ interface GroupedCategory {
                         animationDuration={400}
                         animationBegin={0}
                       >
-                        {donutData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                            style={{
-                              transition: "all 0.3s ease",
-                              opacity:
-                                activeIndex === null || activeIndex === index
-                                  ? 1
-                                  : 0.3,
-                              filter: "none",
-                            }}
-                          />
-                        ))}
+                        {donutData.map((entry, index) => {
+                          const DONUT_COLORS = ["#ff4b5c", "#2e7cf6", "#94a3b8"];
+                          return (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                              style={{
+                                transition: "all 0.3s ease",
+                                opacity:
+                                  activeIndex === null || activeIndex === index
+                                    ? 1
+                                    : 0.3,
+                                filter: "none",
+                              }}
+                            />
+                          );
+                        })}
                       </Pie>
                       <RechartsTooltip
                         content={({ active, payload }) => {
@@ -1014,7 +1187,7 @@ interface GroupedCategory {
                             return (
                               <div className="bg-surface py-2 px-3 rounded-[10px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-border">
                                 <span className="text-[14.5px] font-bold" style={{ color }}>
-                                  세대수 : {(payload[0].value || 0).toLocaleString()} 세대
+                                  거래수 : {(payload[0].value || 0).toLocaleString()} 건
                                 </span>
                               </div>
                             );
@@ -1040,6 +1213,7 @@ interface GroupedCategory {
                         ? ((entry.value / totalValue) * 100).toFixed(1)
                         : "0.0";
                     const isActive = activeIndex === index;
+                    const DONUT_COLORS = ["#ff4b5c", "#2e7cf6", "#94a3b8"];
                     return (
                       <div
                         key={entry.name}
@@ -1051,19 +1225,19 @@ interface GroupedCategory {
                           <div
                             className="w-3 h-3 rounded-full shrink-0 shadow-sm"
                             style={{
-                              backgroundColor: COLORS[index % COLORS.length],
+                              backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length],
                             }}
                           />
                           <span className="text-[14px] font-bold text-secondary tracking-tight">
                             {entry.name}
                           </span>
                         </div>
-                        <div className="text-right flex flex-col items-end">
-                          <span className="text-[15.5px] font-extrabold text-primary leading-none mb-1">
+                        <div className="text-right flex items-center gap-2">
+                          <span className="text-[15px] font-extrabold text-primary leading-none">
                             {percentage}%
                           </span>
                           <span className="text-[12px] font-semibold text-tertiary leading-none">
-                            {entry.value.toLocaleString()} 세대
+                            {entry.value.toLocaleString()}건
                           </span>
                         </div>
                       </div>
@@ -1076,83 +1250,73 @@ interface GroupedCategory {
             {/* 4 Info Boxes Grid */}
             <div className="grid grid-cols-2 gap-3">
               <InfoBox
-                title="대장 아파트 단지"
-                value={maxAptName}
-                badge={maxPriceEok}
-              />
-              <InfoBox
-                title="최고 평당가 단지"
-                value={maxPyeongAptName}
-                badge={
-                  <>
-                    {maxPyeongPrice.toLocaleString()}만원
-                    <span className="text-secondary ml-0.5 font-bold">/평</span>
-                  </>
+                title={
+                  <div className="relative group flex items-center gap-1 w-full">
+                    <span className="break-keep whitespace-nowrap tracking-tight">
+                      {card1And2Data.card1.label}
+                    </span>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                      최근 7일(데이터 공백 시 최대 90일) 내 직전 신고가 대비 비슷하거나 더 높은 가격에 거래가 성사된 단지입니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
+                    </div>
+                  </div>
                 }
+                value={card1And2Data.card1.name}
+                badge={card1And2Data.card1.price}
+                color="#ff4b5c"
               />
               <InfoBox
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      평균 매매/평당가
+                      {card1And2Data.card2.label}
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-
-                    {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
-                      통계 왜곡을 방지하기 위해 국민평형(30~36평형)을 기준으로,
-                      각 단지별 가장 최근 실거래가를 취합하여 산출한 대표
-                      가격입니다.
+                      최근 7일(데이터 공백 시 최대 90일) 내 역대 최고가 대비 가장 큰 폭으로 하락하여 실거래된 단지입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={avgPriceFormatted.value}
-                unit={avgPriceFormatted.unit}
-                badge={
-                  <>
-                    {dongtanAvgPyeongPrice.toLocaleString()}만원
-                    <span className="text-secondary ml-0.5 font-bold">/평</span>
-                  </>
-                }
+                value={card1And2Data.card2.name}
+                badge={card1And2Data.card2.drop}
+                color="#2e7cf6"
               />
               <InfoBox
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">전월 대비 가격 변동</span>
+                    <span className="break-keep whitespace-nowrap tracking-tight">
+                      최근 30일 동탄 실거래량
+                    </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-
-                    {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
-                      동탄 지역 내 거래된 전체 아파트의 지난달 평균 실거래가
-                      대비, 이번 달 평균 실거래가의 변동폭을 의미합니다.
+                      최근 30일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(31~60일 전) 대비 거래량 증감 추세입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={
-                  <span style={{ color: momStats.color }}>{momStats.text}</span>
-                }
-                badge={
-                  <>
-                    {momStats.text === "상승 중"
-                      ? "+"
-                      : momStats.text === "하락 중"
-                        ? "-"
-                        : ""}
-                    {momStats.changeText}{" "}
-                    <span className="text-secondary ml-0.5 font-bold">
-                      (
-                      {momStats.text === "상승 중"
-                        ? "+"
-                        : momStats.text === "하락 중"
-                          ? "-"
-                          : ""}
-                      {momStats.rate.toFixed(1)}%)
+                value={card3Data.currentCount}
+                unit="건"
+                badge={card3Data.badge}
+                color={card3Data.trendColor}
+              />
+              <InfoBox
+                title={
+                  <div className="relative group flex items-center gap-1 w-full">
+                    <span className="break-keep whitespace-nowrap tracking-tight">
+                      최저 갭(GAP) 투자 단지
                     </span>
-                  </>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                      최근 실거래 매매가와 전세가 차이(갭)가 가장 적은 아파트 단지(임대 전용 단지 제외) 정보입니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
+                    </div>
+                  </div>
                 }
-                color={momStats.color}
+                value={card4Data.name}
+                badge={card4Data.badge}
+                color="#00d29d"
               />
             </div>
           </div>
@@ -1437,131 +1601,319 @@ interface GroupedCategory {
                   <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="w-full h-[1px] bg-body mb-4" />
 
-                    <div className="flex flex-col gap-4">
-                      {(() => {
-                        const TIERS = accordionMode === "price"
-                          ? [
-                            { name: "15억원 이상", min: 150000, max: Infinity },
-                            { name: "10억~15억원", min: 100000, max: 150000 },
-                            { name: "8억~10억원", min: 80000, max: 100000 },
-                            { name: "6억~8억원", min: 60000, max: 80000 },
-                            { name: "6억원 미만", min: 0, max: 60000 },
-                          ]
-                          : [
-                            { name: "4,000만원 이상", min: 4000, max: Infinity },
-                            { name: "3,000~4,000만원", min: 3000, max: 4000 },
-                            { name: "2,500~3,000만원", min: 2500, max: 3000 },
-                            { name: "2,000~2,500만원", min: 2000, max: 2500 },
-                            { name: "2,000만원 미만", min: 0, max: 2000 },
-                          ];
+                    {/* Sub-tab Toggle: 단지 목록 (금액대별) vs 동별 최근 실거래 */}
+                    <div className="flex bg-body p-0.5 rounded-lg w-max mb-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSubModes(prev => ({ ...prev, [group.title]: "tiers" }));
+                        }}
+                        className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${
+                          (selectedSubModes[group.title] ?? "tiers") === "tiers"
+                            ? "bg-surface text-primary shadow-sm"
+                            : "text-tertiary hover:text-secondary"
+                        }`}
+                      >
+                        금액대별 단지
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSubModes(prev => ({ ...prev, [group.title]: "recentTxs" }));
+                        }}
+                        className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${
+                          (selectedSubModes[group.title] ?? "tiers") === "recentTxs"
+                            ? "bg-surface text-primary shadow-sm"
+                            : "text-tertiary hover:text-secondary"
+                        }`}
+                      >
+                        동별 최근 실거래
+                      </button>
+                    </div>
 
-                        // Compute which tiers have apartments
-                        const availableTiers = TIERS.map((tier, idx) => {
-                          const apts = group.apartments.filter((apt) => {
-                            const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
-                            return val >= tier.min && val < tier.max;
-                          }).sort((a, b) => {
-                            return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
+                    {(selectedSubModes[group.title] ?? "tiers") === "tiers" ? (
+                      <div className="flex flex-col gap-4">
+                        {(() => {
+                          const TIERS = accordionMode === "price"
+                            ? [
+                              { name: "15억원 이상", min: 150000, max: Infinity },
+                              { name: "10억~15억원", min: 100000, max: 150000 },
+                              { name: "8억~10억원", min: 80000, max: 100000 },
+                              { name: "6억~8억원", min: 60000, max: 80000 },
+                              { name: "6억원 미만", min: 0, max: 60000 },
+                            ]
+                            : [
+                              { name: "4,000만원 이상", min: 4000, max: Infinity },
+                              { name: "3,000~4,000만원", min: 3000, max: 4000 },
+                              { name: "2,500~3,000만원", min: 2500, max: 3000 },
+                              { name: "2,000~2,500만원", min: 2000, max: 2500 },
+                              { name: "2,000만원 미만", min: 0, max: 2000 },
+                            ];
+
+                          // Compute which tiers have apartments
+                          const availableTiers = TIERS.map((tier, idx) => {
+                            const apts = group.apartments.filter((apt) => {
+                              const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
+                              return val >= tier.min && val < tier.max;
+                            }).sort((a, b) => {
+                              return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
+                            });
+                            return { ...tier, originalIndex: idx, apts };
+                          }).filter(t => t.apts.length > 0);
+
+                          if (availableTiers.length === 0) return null;
+
+                          // Default to the first available tier if none is selected
+                          const currentTierIndex = selectedTiers[group.title] ?? availableTiers[0].originalIndex;
+                          const activeTier = availableTiers.find(t => t.originalIndex === currentTierIndex) || availableTiers[0];
+
+                          return (
+                            <>
+                              {/* Tier Selection Pills */}
+                              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
+                                {availableTiers.map(t => {
+                                  const isActive = t.originalIndex === currentTierIndex;
+                                  return (
+                                    <button
+                                      key={t.originalIndex}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTiers(prev => ({ ...prev, [group.title]: t.originalIndex }));
+                                      }}
+                                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive
+                                        ? "bg-[#333d4b] text-white shadow-sm"
+                                        : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
+                                        }`}
+                                    >
+                                      {t.name}
+                                      <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
+                                        {t.apts.length}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Active Tier Apartments List */}
+                              <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
+                                {activeTier.apts.map((apt) => (
+                                  <div
+                                    key={apt.name}
+                                    onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
+                                    className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
+                                  >
+                                    {/* Top Row: Name and Chevron */}
+                                    <div className="flex items-center justify-between w-full">
+                                      <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                                        <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors" />
+                                        <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
+                                          {apt.name}
+                                        </span>
+                                      </div>
+                                      <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
+                                    </div>
+
+                                    {/* Bottom Row: Distance and Price */}
+                                    <div className="flex items-center justify-between pl-4 mt-0.5">
+                                      <div className="flex items-center min-w-0 pr-2">
+                                        {apt.distToDongtan !== null && (
+                                          <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
+                                            동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <div className="flex flex-row items-baseline gap-1 text-right shrink-0">
+                                        {accordionMode === "price" ? (
+                                          (() => {
+                                            const { value, unit } = formatEokWithUnit(apt.latestPrice);
+                                            return (
+                                              <>
+                                                <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
+                                                  {value}
+                                                </span>
+                                                <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
+                                                  {unit}
+                                                </span>
+                                              </>
+                                            );
+                                          })()
+                                        ) : (
+                                          <>
+                                            <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
+                                              {Math.round(apt.pyeongPrice).toLocaleString()}
+                                            </span>
+                                            <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
+                                              만원/평
+                                            </span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      /* 동별 최근 실거래 UI */
+                      <div className="flex flex-col gap-4">
+                        {(() => {
+                          const uniqueDongs = Array.from(
+                            new Set(group.apartments.map(a => a.dong).filter(Boolean))
+                          ) as string[];
+
+                          const activeDong = selectedDongs[group.title] ?? "all";
+
+                          const txList: Array<{
+                            aptName: string;
+                            dong: string;
+                            date: string;
+                            priceEok: string;
+                            areaPyeong: number;
+                            floor: number;
+                            area: number;
+                            sortVal: number;
+                          }> = [];
+
+                          group.apartments.forEach(apt => {
+                            const rawTxKey = apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
+                            const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
+                            const tx = txKey ? txSummaryData[txKey] : undefined;
+
+                            if (tx && tx.recent) {
+                              tx.recent.forEach(r => {
+                                const [month, day] = r.date.split('.').map(Number);
+                                const currentYear = new Date().getFullYear();
+                                const currentMonth = new Date().getMonth() + 1;
+                                let yearOffset = 0;
+                                if (month > currentMonth) {
+                                  yearOffset = -1;
+                                }
+                                const sortVal = (currentYear + yearOffset) * 10000 + month * 100 + day;
+
+                                txList.push({
+                                  aptName: apt.name,
+                                  dong: apt.dong || tx.dong || "",
+                                  date: r.date,
+                                  priceEok: r.priceEok,
+                                  areaPyeong: r.areaPyeong,
+                                  floor: r.floor,
+                                  area: r.area,
+                                  sortVal: sortVal
+                                });
+                              });
+                            }
                           });
-                          return { ...tier, originalIndex: idx, apts };
-                        }).filter(t => t.apts.length > 0);
 
-                        if (availableTiers.length === 0) return null;
+                          txList.sort((a, b) => b.sortVal - a.sortVal);
 
-                        // Default to the first available tier if none is selected
-                        const currentTierIndex = selectedTiers[group.title] ?? availableTiers[0].originalIndex;
-                        const activeTier = availableTiers.find(t => t.originalIndex === currentTierIndex) || availableTiers[0];
+                          const filteredTxList = activeDong === "all"
+                            ? txList
+                            : txList.filter(tx => tx.dong === activeDong);
 
-                        return (
-                          <>
-                            {/* Tier Selection Pills */}
-                            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
-                              {availableTiers.map(t => {
-                                const isActive = t.originalIndex === currentTierIndex;
-                                return (
-                                  <button
-                                    key={t.originalIndex}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedTiers(prev => ({ ...prev, [group.title]: t.originalIndex }));
-                                    }}
-                                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive
+                          const visibleTxList = filteredTxList.slice(0, 10);
+
+                          return (
+                            <>
+                              {/* Dong Filter Pills */}
+                              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedDongs(prev => ({ ...prev, [group.title]: "all" }));
+                                  }}
+                                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${
+                                    activeDong === "all"
                                       ? "bg-[#333d4b] text-white shadow-sm"
                                       : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
-                                      }`}
-                                  >
-                                    {t.name}
-                                    <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
-                                      {t.apts.length}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            {/* Active Tier Apartments List */}
-                            <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
-                              {activeTier.apts.map((apt) => (
-                                <div
-                                  key={apt.name}
-                                  onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
-                                  className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
+                                  }`}
                                 >
-                                  {/* Top Row: Name and Chevron */}
-                                  <div className="flex items-center justify-between w-full">
-                                    <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                                      <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors" />
-                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
-                                        {apt.name}
+                                  전체
+                                  <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === 'all' ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
+                                    {txList.length}
+                                  </span>
+                                </button>
+
+                                {uniqueDongs.map(dong => {
+                                  const count = txList.filter(tx => tx.dong === dong).length;
+                                  return (
+                                    <button
+                                      key={dong}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedDongs(prev => ({ ...prev, [group.title]: dong }));
+                                      }}
+                                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${
+                                        activeDong === dong
+                                          ? "bg-[#333d4b] text-white shadow-sm"
+                                          : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
+                                      }`}
+                                    >
+                                      {dong}
+                                      <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === dong ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
+                                        {count}
                                       </span>
-                                    </div>
-                                    <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
-                                  </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
 
-                                  {/* Bottom Row: Distance and Price */}
-                                  <div className="flex items-center justify-between pl-4 mt-0.5">
-                                    <div className="flex items-center min-w-0 pr-2">
-                                      {apt.distToDongtan !== null && (
-                                        <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
-                                          동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                              {/* Recent Transactions List */}
+                              <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
+                                {visibleTxList.length > 0 ? (
+                                  visibleTxList.map((tx, idx) => (
+                                    <div
+                                      key={`${tx.aptName}-${tx.date}-${tx.priceEok}-${idx}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelectApt && onSelectApt(tx.aptName);
+                                      }}
+                                      className="flex flex-row items-center justify-between p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/tx"
+                                    >
+                                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                                        <div className="px-2 py-1 bg-body rounded-[8px] text-[11.5px] font-extrabold text-tertiary group-hover/tx:bg-[#e8f3ff] group-hover/tx:text-[#3182f6] transition-colors shrink-0">
+                                          {tx.date}
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
+                                              {tx.aptName}
+                                            </span>
+                                            {activeDong === "all" && tx.dong && (
+                                              <span className="text-[10px] font-semibold text-tertiary bg-body px-1.5 py-[2px] rounded-[4px] shrink-0">
+                                                {tx.dong}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <span className="text-[11.5px] sm:text-[12px] font-medium text-tertiary mt-0.5">
+                                            {tx.areaPyeong}평 ({tx.area.toFixed(1)}㎡) · {tx.floor}층
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <span className="text-[14px] sm:text-[15.5px] font-extrabold text-[#f04452]">
+                                          {tx.priceEok}
                                         </span>
-                                      )}
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-tertiary ml-0.5">
+                                          만원
+                                        </span>
+                                      </div>
                                     </div>
-
-                                    <div className="flex flex-row items-baseline gap-1 text-right shrink-0">
-                                      {accordionMode === "price" ? (
-                                        (() => {
-                                          const { value, unit } = formatEokWithUnit(apt.latestPrice);
-                                          return (
-                                            <>
-                                              <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
-                                                {value}
-                                              </span>
-                                              <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
-                                                {unit}
-                                              </span>
-                                            </>
-                                          );
-                                        })()
-                                      ) : (
-                                        <>
-                                          <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
-                                            {Math.round(apt.pyeongPrice).toLocaleString()}
-                                          </span>
-                                          <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
-                                            만원/평
-                                          </span>
-                                        </>
-                                      )}
-                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center py-8 text-tertiary text-[13.5px]">
+                                    최근 실거래 내역이 없습니다.
                                   </div>
-                                </div>
-                              ))}
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

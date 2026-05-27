@@ -7,6 +7,7 @@
     "build": "npm run sync-transactions && next build",
     "start": "next start",
     "lint": "eslint",
+    "audit": "node scripts/audit-pipeline.js",
     "sync-apartments": "node scripts/sync-apartments.js",
     "sync-transactions": "node scripts/sync-transactions.js",
     "sync-macro": "node scripts/sync-macro.js",

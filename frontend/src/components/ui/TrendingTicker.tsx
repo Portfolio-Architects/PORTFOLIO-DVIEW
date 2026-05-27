@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, Flame, ChevronUp, ChevronDown, Minus } from 'lucide-react';
+import { TrendingUp, Flame, Triangle, Minus } from 'lucide-react';
 
 interface TrendingTickerProps {
   topApts: { name: string; rank: number; change?: 'up' | 'down' | 'same'; changeValue?: number }[];
@@ -24,10 +24,28 @@ export function TrendingTicker({ topApts, onSelectApt }: TrendingTickerProps) {
 
   const currentApt = topApts[currentIndex];
 
-  const renderChangeIcon = (change?: 'up' | 'down' | 'same') => {
-    if (change === 'up') return <ChevronUp size={14} className="text-rose-500 inline mr-0.5" />;
-    if (change === 'down') return <ChevronDown size={14} className="text-blue-500 inline mr-0.5" />;
-    return <Minus size={12} className="text-tertiary inline mr-0.5" />;
+  const renderChangeBadge = (change?: 'up' | 'down' | 'same', value?: number) => {
+    if (change === 'up') {
+      return (
+        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#f04452] bg-[#f04452]/8 dark:bg-[#f04452]/20 px-2 py-0.5 rounded-full border border-[#f04452]/15 shrink-0 ml-1.5 align-middle">
+          <Triangle size={7.5} className="fill-[#f04452] text-[#f04452] shrink-0 -translate-y-[0.8px]" />
+          <span className="tabular-nums leading-none text-[#f04452] font-black">{value || 1}</span>
+        </span>
+      );
+    }
+    if (change === 'down') {
+      return (
+        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#3182f6] bg-[#3182f6]/8 dark:bg-[#3182f6]/20 px-2 py-0.5 rounded-full border border-[#3182f6]/15 shrink-0 ml-1.5 align-middle">
+          <Triangle size={7.5} className="fill-[#3182f6] text-[#3182f6] rotate-180 shrink-0 translate-y-[0.8px]" />
+          <span className="tabular-nums leading-none text-[#3182f6] font-black">{value || 1}</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-bold text-tertiary bg-body px-1.5 py-0.5 rounded-full border border-border/40 shrink-0 ml-1.5 align-middle">
+        <Minus size={8} className="text-tertiary shrink-0" />
+      </span>
+    );
   };
 
   return (
@@ -52,10 +70,7 @@ export function TrendingTicker({ topApts, onSelectApt }: TrendingTickerProps) {
               <span className="text-[13px] font-bold tracking-tight text-primary max-w-[150px] sm:max-w-xs truncate">
                 {currentApt.name}
               </span>
-              <span className="text-[11px] font-semibold text-tertiary shrink-0 ml-1">
-                {renderChangeIcon(currentApt.change)}
-                {currentApt.change !== 'same' && (currentApt.changeValue || 1)}
-              </span>
+              {renderChangeBadge(currentApt.change, currentApt.changeValue)}
             </div>
           </div>
         </div>

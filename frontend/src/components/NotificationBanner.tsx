@@ -60,7 +60,7 @@ export default function NotificationBanner() {
       <div className="max-w-[1000px] mx-auto w-full flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between relative z-10">
         
         {/* Left Section: Info */}
-        <div className="flex-1 flex flex-col justify-start gap-4 w-full">
+        <div className="lg:flex-1 flex flex-col justify-start gap-4 w-full">
           <div>
             <h3 className="text-[18px] md:text-[20px] font-black leading-tight tracking-tight text-primary dark:text-white">
               실시간 거래가 & 주간 리포트 알림 받기
@@ -94,7 +94,7 @@ export default function NotificationBanner() {
         </div>
 
         {/* Right Section: Form or Success */}
-        <div className="flex-1 flex flex-col justify-center min-w-0 sm:min-w-[280px] lg:max-w-[360px] bg-body/30 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl p-4 md:p-5">
+        <div className="w-full max-w-[360px] lg:flex-1 flex flex-col justify-center min-w-0 sm:min-w-[280px] bg-body/30 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl p-4 md:p-5">
           {subscribed ? (
             <div className="flex flex-col items-center justify-center text-center py-4">
               <div className="w-10 h-10 rounded-full bg-[#00d29d]/20 flex items-center justify-center text-[#00d29d] mb-3 animate-bounce">

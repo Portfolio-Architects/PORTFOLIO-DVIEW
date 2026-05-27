@@ -1,0 +1,3595 @@
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ MacroDashboardClient),
+/* harmony export */   formatEokWithUnit: () => (/* binding */ formatEokWithUnit)
+/* harmony export */ });
+/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ "(app-pages-browser)/./node_modules/next/dist/compiled/react/jsx-dev-runtime.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "(app-pages-browser)/./node_modules/next/dist/compiled/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var swr__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! swr */ "(app-pages-browser)/./node_modules/swr/dist/index/index.mjs");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/component/ResponsiveContainer.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/chart/PieChart.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/polar/Pie.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/component/Cell.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/component/Tooltip.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/chart/LineChart.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/cartesian/CartesianGrid.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/cartesian/XAxis.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/cartesian/YAxis.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/component/Legend.js");
+/* harmony import */ var _barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! __barrel_optimize__?names=CartesianGrid,Cell,Legend,Line,LineChart,Pie,PieChart,ResponsiveContainer,Tooltip,XAxis,YAxis!=!recharts */ "(app-pages-browser)/./node_modules/recharts/es6/cartesian/Line.js");
+/* harmony import */ var _lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/lib/utils/apartmentMapping */ "(app-pages-browser)/./src/lib/utils/apartmentMapping.ts");
+/* harmony import */ var _lib_utils_haversine__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/lib/utils/haversine */ "(app-pages-browser)/./src/lib/utils/haversine.ts");
+/* harmony import */ var _PageHeroHeader__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./PageHeroHeader */ "(app-pages-browser)/./src/components/PageHeroHeader.tsx");
+/* harmony import */ var _barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! __barrel_optimize__?names=ChevronDown,ChevronRight,ChevronUp,Info,MessageSquare!=!lucide-react */ "(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/message-square.js");
+/* harmony import */ var _barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! __barrel_optimize__?names=ChevronDown,ChevronRight,ChevronUp,Info,MessageSquare!=!lucide-react */ "(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/info.js");
+/* harmony import */ var _barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! __barrel_optimize__?names=ChevronDown,ChevronRight,ChevronUp,Info,MessageSquare!=!lucide-react */ "(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/chevron-up.js");
+/* harmony import */ var _barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! __barrel_optimize__?names=ChevronDown,ChevronRight,ChevronUp,Info,MessageSquare!=!lucide-react */ "(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/chevron-down.js");
+/* harmony import */ var _barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! __barrel_optimize__?names=ChevronDown,ChevronRight,ChevronUp,Info,MessageSquare!=!lucide-react */ "(app-pages-browser)/./node_modules/lucide-react/dist/esm/icons/chevron-right.js");
+/* harmony import */ var _components_ui_NativeAdPlaceholder__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @/components/ui/NativeAdPlaceholder */ "(app-pages-browser)/./src/components/ui/NativeAdPlaceholder.tsx");
+
+var _s = $RefreshSig$();
+
+
+
+
+
+
+
+
+const fetcher = (url)=>fetch(url).then((res)=>res.json());
+const COLORS = [
+    "#00d29d",
+    "#4196f7",
+    "#f9a825",
+    "#f04452",
+    "#b0b8c1"
+];
+const LINE_COLORS = [
+    "#b0b8c1",
+    "#00d29d",
+    "#f04452",
+    "#00a261",
+    "#f9a825"
+];
+const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
+    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+        className: "bg-[#f4f5f6] dark:bg-body rounded-[14px] p-2.5 md:p-3 flex flex-col shadow-sm border border-border h-[92px] sm:h-[96px] md:h-[106px] justify-between",
+        children: [
+            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                className: "flex flex-col gap-0.5 min-w-0 w-full",
+                children: [
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "h-[20px] md:h-[18px] flex items-center min-w-0 w-full",
+                        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "text-[10.5px] md:text-[12px] font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug",
+                            children: title
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 88,
+                            columnNumber: 11
+                        }, undefined)
+                    }, void 0, false, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 87,
+                        columnNumber: 9
+                    }, undefined),
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "flex items-baseline gap-0.5 md:gap-1 min-w-0 w-full h-[24px] md:h-[28px] overflow-hidden",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                className: "text-[12.5px] sm:text-[13px] md:text-[14.5px] font-extrabold text-primary tracking-tight line-clamp-1 break-keep leading-tight",
+                                children: value
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 95,
+                                columnNumber: 11
+                            }, undefined),
+                            unit && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                className: "text-[10px] md:text-[11px] font-bold text-secondary tracking-tight shrink-0",
+                                children: unit
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 99,
+                                columnNumber: 13
+                            }, undefined)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 94,
+                        columnNumber: 9
+                    }, undefined)
+                ]
+            }, void 0, true, {
+                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                lineNumber: 85,
+                columnNumber: 7
+            }, undefined),
+            (progress !== undefined || badge) && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                className: "flex items-center justify-end w-full mt-0.5",
+                children: [
+                    badge && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "bg-surface border border-border px-1.5 py-0.5 rounded-[5px] shadow-sm",
+                        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                            className: "text-[10px] md:text-[11px] tracking-tight font-extrabold whitespace-nowrap",
+                            style: {
+                                color
+                            },
+                            children: badge
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 111,
+                            columnNumber: 15
+                        }, undefined)
+                    }, void 0, false, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 110,
+                        columnNumber: 13
+                    }, undefined),
+                    progress !== undefined && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "relative flex items-center justify-center ml-1.5",
+                        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("svg", {
+                            width: "16",
+                            height: "16",
+                            viewBox: "0 0 32 32",
+                            className: "transform -rotate-90 md:w-5 md:h-5",
+                            children: [
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("circle", {
+                                    cx: "16",
+                                    cy: "16",
+                                    r: "12",
+                                    fill: "transparent",
+                                    stroke: "#e5e8eb",
+                                    strokeWidth: "4"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 127,
+                                    columnNumber: 17
+                                }, undefined),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("circle", {
+                                    cx: "16",
+                                    cy: "16",
+                                    r: "12",
+                                    fill: "transparent",
+                                    stroke: color,
+                                    strokeWidth: "4",
+                                    strokeDasharray: 2 * Math.PI * 12,
+                                    strokeDashoffset: 2 * Math.PI * 12 * (1 - progress / 100),
+                                    strokeLinecap: "round",
+                                    className: "transition-all duration-1000 ease-out"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 135,
+                                    columnNumber: 17
+                                }, undefined)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 121,
+                            columnNumber: 15
+                        }, undefined)
+                    }, void 0, false, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 120,
+                        columnNumber: 13
+                    }, undefined)
+                ]
+            }, void 0, true, {
+                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                lineNumber: 108,
+                columnNumber: 9
+            }, undefined)
+        ]
+    }, void 0, true, {
+        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+        lineNumber: 83,
+        columnNumber: 5
+    }, undefined);
+};
+_c = InfoBox;
+const CustomTooltip = ({ active, payload, label })=>{
+    if (active && payload && payload.length) {
+        const saleData = payload.find((p)=>p.dataKey === "동탄 아파트 전체" || p.name === "평균 매매가");
+        const rentData = payload.find((p)=>p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전월세가");
+        const salePrice = saleData?.value || 0;
+        const rentPrice = rentData?.value || 0;
+        let ratio = 0;
+        if (salePrice > 0 && rentPrice > 0) {
+            ratio = rentPrice / salePrice * 100;
+        }
+        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+            className: "bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[150px]",
+            children: [
+                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                    className: "text-[13.5px] font-bold text-tertiary mb-1",
+                    children: label
+                }, void 0, false, {
+                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                    lineNumber: 190,
+                    columnNumber: 9
+                }, undefined),
+                payload.map((entry, index)=>{
+                    const isRent = entry.dataKey === "동탄 아파트 전세 평균" || entry.name === "평균 전월세가";
+                    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "flex items-center justify-between gap-6",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "w-2.5 h-2.5 rounded-full",
+                                        style: {
+                                            backgroundColor: entry.color
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 203,
+                                        columnNumber: 17
+                                    }, undefined),
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                        className: "text-[14px] font-bold text-secondary",
+                                        children: isRent ? "전세가" : "매매가"
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 207,
+                                        columnNumber: 17
+                                    }, undefined)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 202,
+                                columnNumber: 15
+                            }, undefined),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                className: "text-[14px] font-extrabold text-primary",
+                                children: [
+                                    entry.value,
+                                    "억"
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 211,
+                                columnNumber: 15
+                            }, undefined)
+                        ]
+                    }, index, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 198,
+                        columnNumber: 13
+                    }, undefined);
+                }),
+                ratio > 0 && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                    children: [
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "w-full h-[1px] bg-body my-1"
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 219,
+                            columnNumber: 13
+                        }, undefined),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "flex items-center justify-between gap-4",
+                            children: [
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "text-[13px] font-bold text-tertiary pl-4",
+                                    children: "전세가율"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 221,
+                                    columnNumber: 15
+                                }, undefined),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "text-[14.5px] font-extrabold text-[#00d29d] tracking-tight",
+                                    children: [
+                                        ratio.toFixed(1),
+                                        "%"
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 224,
+                                    columnNumber: 15
+                                }, undefined)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 220,
+                            columnNumber: 13
+                        }, undefined)
+                    ]
+                }, void 0, true)
+            ]
+        }, void 0, true, {
+            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+            lineNumber: 189,
+            columnNumber: 7
+        }, undefined);
+    }
+    return null;
+};
+_c1 = CustomTooltip;
+const formatEokWithUnit = (priceMan)=>{
+    const roundedPriceMan = Math.round(priceMan / 100) * 100;
+    const eok = Math.floor(roundedPriceMan / 10000);
+    const man = roundedPriceMan % 10000;
+    if (eok === 0) return {
+        value: `${man.toLocaleString()}`,
+        unit: "만원"
+    };
+    if (man === 0) return {
+        value: `${eok}억`,
+        unit: "원"
+    };
+    return {
+        value: `${eok}억 ${man === 0 ? "" : man.toLocaleString()}`,
+        unit: "만원"
+    };
+};
+const parseDateHelper = (dateStr, parentLatestDate)=>{
+    const clean = String(dateStr).replace(/[^0-9]/g, '');
+    if (clean.length === 8) {
+        const y = parseInt(clean.substring(0, 4), 10);
+        const m = parseInt(clean.substring(4, 6), 10) - 1;
+        const d = parseInt(clean.substring(6, 8), 10);
+        return new Date(y, m, d);
+    }
+    if (dateStr.includes('.')) {
+        const parts = dateStr.split('.');
+        if (parts.length >= 2) {
+            const m = parseInt(parts[0], 10) - 1;
+            const d = parseInt(parts[1], 10);
+            let y = 2026;
+            let latestDt = null;
+            if (parentLatestDate && parentLatestDate.length === 8) {
+                y = parseInt(parentLatestDate.substring(0, 4), 10);
+                const lm = parseInt(parentLatestDate.substring(4, 6), 10) - 1;
+                const ld = parseInt(parentLatestDate.substring(6, 8), 10);
+                latestDt = new Date(y, lm, ld);
+            }
+            const dt = new Date(y, m, d);
+            if (latestDt && dt.getTime() > latestDt.getTime()) {
+                dt.setFullYear(y - 1);
+            }
+            return dt;
+        }
+    }
+    return null;
+};
+const parsePriceEokHelper = (priceStr)=>{
+    let total = 0;
+    const clean = priceStr.replace(/,/g, '').trim();
+    if (clean.includes('억')) {
+        const parts = clean.split('억');
+        total += parseFloat(parts[0]) || 0;
+        if (parts[1]) {
+            const tenMillion = parseFloat(parts[1].replace(/[^0-9.]/g, '')) || 0;
+            total += tenMillion / 10000;
+        }
+    } else {
+        const val = parseFloat(clean.replace(/[^0-9.]/g, '')) || 0;
+        total += val / 10000;
+    }
+    return total;
+};
+function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, nameMapping, publicRentalSet, userFavorites, fieldReportsMap, favoriteCounts, onSelectApt, onOpenAdModal }) {
+    _s();
+    const { data: gaData } = (0,swr__WEBPACK_IMPORTED_MODULE_6__["default"])('/api/public/analytics', fetcher, {
+        revalidateOnFocus: false,
+        dedupingInterval: 60000
+    });
+    const formatNum = (num)=>typeof num === 'number' ? num.toLocaleString() : '-';
+    const [activeIndex, setActiveIndex] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+    const [chartMode, setChartMode] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)("30");
+    const [accordionMode, setAccordionMode] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)("price");
+    const [timeframe, setTimeframe] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)("ALL");
+    const [expandedGroups, setExpandedGroups] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({});
+    const [selectedTiers, setSelectedTiers] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({});
+    const [selectedSubModes, setSelectedSubModes] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({});
+    const [selectedDongs, setSelectedDongs] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)({});
+    const [isScrolled, setIsScrolled] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+    const [newsData, setNewsData] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)([]);
+    const [newsLoading, setNewsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(true);
+    const [visibleNewsCount, setVisibleNewsCount] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(6);
+    react__WEBPACK_IMPORTED_MODULE_1___default().useEffect({
+        "MacroDashboardClient.useEffect": ()=>{
+            async function fetchNews() {
+                try {
+                    const res = await fetch("/api/macro/news");
+                    const json = await res.json();
+                    if (json.status === "success" && json.data) {
+                        setNewsData(json.data);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch news", err);
+                } finally{
+                    setNewsLoading(false);
+                }
+            }
+            fetchNews();
+        }
+    }["MacroDashboardClient.useEffect"], []);
+    react__WEBPACK_IMPORTED_MODULE_1___default().useEffect({
+        "MacroDashboardClient.useEffect": ()=>{
+            const handleScroll = {
+                "MacroDashboardClient.useEffect.handleScroll": ()=>{
+                    setIsScrolled(window.scrollY > 80);
+                }
+            }["MacroDashboardClient.useEffect.handleScroll"];
+            window.addEventListener("scroll", handleScroll, {
+                passive: true
+            });
+            return ({
+                "MacroDashboardClient.useEffect": ()=>window.removeEventListener("scroll", handleScroll)
+            })["MacroDashboardClient.useEffect"];
+        }
+    }["MacroDashboardClient.useEffect"], []);
+    const chartContainerRef = react__WEBPACK_IMPORTED_MODULE_1___default().useRef(null);
+    react__WEBPACK_IMPORTED_MODULE_1___default().useEffect({
+        "MacroDashboardClient.useEffect": ()=>{
+            const handleClickOutside = {
+                "MacroDashboardClient.useEffect.handleClickOutside": (e)=>{
+                    if (chartContainerRef.current && !chartContainerRef.current.contains(e.target)) {
+                        setActiveIndex(null);
+                    }
+                }
+            }["MacroDashboardClient.useEffect.handleClickOutside"];
+            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener("touchstart", handleClickOutside, {
+                passive: true
+            });
+            return ({
+                "MacroDashboardClient.useEffect": ()=>{
+                    document.removeEventListener("mousedown", handleClickOutside);
+                    document.removeEventListener("touchstart", handleClickOutside);
+                }
+            })["MacroDashboardClient.useEffect"];
+        }
+    }["MacroDashboardClient.useEffect"], []);
+    // 1. Donut Chart Data (실거래가/평단가 티어별 세대수 분포)
+    // Compute max transaction date across all data once
+    const maxDateTime = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[maxDateTime]": ()=>{
+            let maxVal = 0;
+            Object.values(txSummaryData).forEach({
+                "MacroDashboardClient.useMemo[maxDateTime]": (sum)=>{
+                    if (sum.recent) {
+                        sum.recent.forEach({
+                            "MacroDashboardClient.useMemo[maxDateTime]": (tx)=>{
+                                const dt = parseDateHelper(tx.date, sum.latestDate);
+                                if (dt && dt.getTime() > maxVal) {
+                                    maxVal = dt.getTime();
+                                }
+                            }
+                        }["MacroDashboardClient.useMemo[maxDateTime]"]);
+                    }
+                }
+            }["MacroDashboardClient.useMemo[maxDateTime]"]);
+            if (maxVal === 0) {
+                maxVal = new Date("2026-05-26").getTime();
+            }
+            return maxVal;
+        }
+    }["MacroDashboardClient.useMemo[maxDateTime]"], [
+        txSummaryData
+    ]);
+    // 1. Donut Chart Data (실거래가/평단가 티어별 세대수 분포)
+    const donutData = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[donutData]": ()=>{
+            const daysLimit = chartMode === "30" ? 30 : 90;
+            const cutoffTime = maxDateTime - daysLimit * 24 * 60 * 60 * 1000;
+            let upCount = 0;
+            let downCount = 0;
+            let sameCount = 0;
+            Object.values(txSummaryData).forEach({
+                "MacroDashboardClient.useMemo[donutData]": (sum)=>{
+                    if (!sum.recent || sum.recent.length === 0) return;
+                    const areaGroups = {};
+                    sum.recent.forEach({
+                        "MacroDashboardClient.useMemo[donutData]": (tx)=>{
+                            const areaKey = Math.floor(tx.area);
+                            if (!areaGroups[areaKey]) {
+                                areaGroups[areaKey] = [];
+                            }
+                            areaGroups[areaKey].push(tx);
+                        }
+                    }["MacroDashboardClient.useMemo[donutData]"]);
+                    Object.values(areaGroups).forEach({
+                        "MacroDashboardClient.useMemo[donutData]": (transactions)=>{
+                            const mapped = transactions.map({
+                                "MacroDashboardClient.useMemo[donutData].mapped": (tx)=>({
+                                        tx,
+                                        dt: parseDateHelper(tx.date, sum.latestDate)
+                                    })
+                            }["MacroDashboardClient.useMemo[donutData].mapped"]).filter({
+                                "MacroDashboardClient.useMemo[donutData].mapped": (item)=>item.dt !== null
+                            }["MacroDashboardClient.useMemo[donutData].mapped"]);
+                            const sorted = mapped.sort({
+                                "MacroDashboardClient.useMemo[donutData].sorted": (a, b)=>a.dt.getTime() - b.dt.getTime()
+                            }["MacroDashboardClient.useMemo[donutData].sorted"]);
+                            for(let j = 1; j < sorted.length; j++){
+                                const current = sorted[j];
+                                const prev = sorted[j - 1];
+                                if (current.dt.getTime() >= cutoffTime) {
+                                    const currentPrice = parsePriceEokHelper(current.tx.priceEok);
+                                    const prevPrice = parsePriceEokHelper(prev.tx.priceEok);
+                                    if (currentPrice > prevPrice) {
+                                        upCount++;
+                                    } else if (currentPrice < prevPrice) {
+                                        downCount++;
+                                    } else if (currentPrice === prevPrice) {
+                                        sameCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }["MacroDashboardClient.useMemo[donutData]"]);
+                }
+            }["MacroDashboardClient.useMemo[donutData]"]);
+            return [
+                {
+                    name: "상승 거래",
+                    value: upCount
+                },
+                {
+                    name: "하락 거래",
+                    value: downCount
+                },
+                {
+                    name: "보합 거래",
+                    value: sameCount
+                }
+            ];
+        }
+    }["MacroDashboardClient.useMemo[donutData]"], [
+        txSummaryData,
+        chartMode,
+        maxDateTime
+    ]);
+    const [maxAptName, maxPriceEok] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo": ()=>{
+            let maxPrice = 0;
+            let maxEok = "";
+            let displayAptName = "";
+            if (!sheetApartments) return [
+                "",
+                ""
+            ];
+            Object.values(sheetApartments).flat().forEach({
+                "MacroDashboardClient.useMemo": (apt)=>{
+                    if (publicRentalSet.has(apt.name)) return;
+                    const txKey = (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                    if (txKey && txSummaryData[txKey]) {
+                        const tx = txSummaryData[txKey];
+                        const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
+                        if (sales > maxPrice) {
+                            maxPrice = sales;
+                            const fmt = formatEokWithUnit(sales);
+                            maxEok = `${fmt.value}${fmt.unit}`;
+                            displayAptName = apt.name;
+                        }
+                    }
+                }
+            }["MacroDashboardClient.useMemo"]);
+            return [
+                displayAptName,
+                maxEok
+            ];
+        }
+    }["MacroDashboardClient.useMemo"], [
+        txSummaryData,
+        sheetApartments,
+        publicRentalSet
+    ]);
+    const [maxPyeongAptName, maxPyeongPrice] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo": ()=>{
+            let maxPrice = 0;
+            let displayAptName = "";
+            if (!sheetApartments) return [
+                "",
+                0
+            ];
+            Object.values(sheetApartments).flat().forEach({
+                "MacroDashboardClient.useMemo": (apt)=>{
+                    if (publicRentalSet.has(apt.name)) return;
+                    const txKey = (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                    if (txKey && txSummaryData[txKey]) {
+                        const tx = txSummaryData[txKey];
+                        const pyeongPrice = tx.avg3MPerPyeong || tx.avg1MPerPyeong || (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
+                        if (pyeongPrice > maxPrice) {
+                            maxPrice = pyeongPrice;
+                            displayAptName = apt.name;
+                        }
+                    }
+                }
+            }["MacroDashboardClient.useMemo"]);
+            return [
+                displayAptName,
+                Math.round(maxPrice)
+            ];
+        }
+    }["MacroDashboardClient.useMemo"], [
+        txSummaryData,
+        sheetApartments,
+        publicRentalSet
+    ]);
+    // 1안 Card 1 & Card 2: 최근 신고가 단지 & 최근 최대 낙폭 단지
+    const card1And2Data = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[card1And2Data]": ()=>{
+            let bestHigh = {
+                name: "-",
+                price: "",
+                days: 999,
+                val: 0
+            };
+            let bestDrop = {
+                name: "-",
+                drop: "",
+                days: 999,
+                pct: 0
+            };
+            if (!sheetApartments) {
+                return {
+                    card1: {
+                        name: "-",
+                        price: "-",
+                        label: "최근 7일 신고가"
+                    },
+                    card2: {
+                        name: "-",
+                        drop: "-원 (0%)",
+                        label: "최근 7일 최대 낙폭"
+                    }
+                };
+            }
+            Object.values(sheetApartments).flat().forEach({
+                "MacroDashboardClient.useMemo[card1And2Data]": (apt)=>{
+                    if (publicRentalSet.has(apt.name)) return;
+                    const txKey = (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                    if (txKey && txSummaryData[txKey]) {
+                        const sum = txSummaryData[txKey];
+                        if (sum.recent) {
+                            sum.recent.forEach({
+                                "MacroDashboardClient.useMemo[card1And2Data]": (tx)=>{
+                                    const dt = parseDateHelper(tx.date, sum.latestDate);
+                                    if (dt) {
+                                        const diffMs = maxDateTime - dt.getTime();
+                                        const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+                                        // Only inspect past 90 days to avoid stale data
+                                        if (diffDays >= 0 && diffDays <= 90) {
+                                            const price = parsePriceEokHelper(tx.priceEok);
+                                            const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
+                                            // A. New High (within 500k won margin of peak)
+                                            if (price > 0 && maxPriceEokVal > 0 && price >= maxPriceEokVal - 0.05) {
+                                                const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
+                                                const bestWindow = Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7);
+                                                if (bestHigh.name === "-" || currentWindow < bestWindow || currentWindow === bestWindow && price > bestHigh.val) {
+                                                    const fmt = formatEokWithUnit(price * 10000);
+                                                    bestHigh = {
+                                                        name: apt.name,
+                                                        price: `${fmt.value}${fmt.unit === '만원' ? '만' : ''}`,
+                                                        days: diffDays,
+                                                        val: price
+                                                    };
+                                                }
+                                            }
+                                            // B. Price Drop from peak
+                                            if (price > 0 && maxPriceEokVal > 0) {
+                                                const dropPct = (price - maxPriceEokVal) / maxPriceEokVal * 100;
+                                                if (dropPct < -1.0) {
+                                                    const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
+                                                    const bestWindow = Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7);
+                                                    if (bestDrop.name === "-" || currentWindow < bestWindow || currentWindow === bestWindow && dropPct < bestDrop.pct) {
+                                                        const diffPrice = maxPriceEokVal - price;
+                                                        const fmtDiff = formatEokWithUnit(diffPrice * 10000);
+                                                        const unitStr = fmtDiff.unit === '만원' ? '만' : fmtDiff.unit === '원' ? '' : fmtDiff.unit;
+                                                        bestDrop = {
+                                                            name: apt.name,
+                                                            drop: `-${fmtDiff.value}${unitStr} (${dropPct.toFixed(1)}%)`,
+                                                            days: diffDays,
+                                                            pct: dropPct
+                                                        };
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }["MacroDashboardClient.useMemo[card1And2Data]"]);
+                        }
+                    }
+                }
+            }["MacroDashboardClient.useMemo[card1And2Data]"]);
+            // Fallbacks
+            const card1Name = bestHigh.name !== "-" ? bestHigh.name : maxAptName;
+            const card1Price = bestHigh.name !== "-" ? bestHigh.price : maxPriceEok;
+            const card1Window = bestHigh.name !== "-" ? Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7) : 7;
+            const card2Name = bestDrop.name !== "-" ? bestDrop.name : maxPyeongAptName;
+            const card2Drop = bestDrop.name !== "-" ? bestDrop.drop : "-0원 (0%)";
+            const card2Window = bestDrop.name !== "-" ? Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7) : 7;
+            return {
+                card1: {
+                    name: card1Name,
+                    price: card1Price,
+                    label: `최근 ${card1Window}일 신고가`
+                },
+                card2: {
+                    name: card2Name,
+                    drop: card2Drop,
+                    label: `최근 ${card2Window}일 최대 낙폭`
+                }
+            };
+        }
+    }["MacroDashboardClient.useMemo[card1And2Data]"], [
+        txSummaryData,
+        sheetApartments,
+        publicRentalSet,
+        nameMapping,
+        maxDateTime,
+        maxAptName,
+        maxPriceEok,
+        maxPyeongAptName
+    ]);
+    // 1안 Card 3: 최근 30일 동탄 실거래량 & 추세 (MoM)
+    const card3Data = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[card3Data]": ()=>{
+            const limit30 = 30 * 24 * 60 * 60 * 1000;
+            const cutoff30 = maxDateTime - limit30;
+            const cutoff60 = maxDateTime - 2 * limit30;
+            let currentCount = 0;
+            let prevCount = 0;
+            Object.values(txSummaryData).forEach({
+                "MacroDashboardClient.useMemo[card3Data]": (sum)=>{
+                    if (sum.recent) {
+                        sum.recent.forEach({
+                            "MacroDashboardClient.useMemo[card3Data]": (tx)=>{
+                                const dt = parseDateHelper(tx.date, sum.latestDate);
+                                if (dt) {
+                                    const time = dt.getTime();
+                                    if (time >= cutoff30) {
+                                        currentCount++;
+                                    } else if (time >= cutoff60) {
+                                        prevCount++;
+                                    }
+                                }
+                            }
+                        }["MacroDashboardClient.useMemo[card3Data]"]);
+                    }
+                }
+            }["MacroDashboardClient.useMemo[card3Data]"]);
+            const diff = currentCount - prevCount;
+            const rate = prevCount > 0 ? diff / prevCount * 100 : 0;
+            const isUp = diff > 0;
+            const isDown = diff < 0;
+            let trendText = "보합 (0%)";
+            let trendColor = "#94a3b8";
+            if (isUp) {
+                trendText = `상승 (+${rate.toFixed(1)}%)`;
+                trendColor = "#ff4b5c";
+            } else if (isDown) {
+                trendText = `하락 (${rate.toFixed(1)}%)`;
+                trendColor = "#2e7cf6";
+            }
+            return {
+                currentCount,
+                prevCount,
+                trendText,
+                trendColor,
+                badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`
+            };
+        }
+    }["MacroDashboardClient.useMemo[card3Data]"], [
+        txSummaryData,
+        maxDateTime
+    ]);
+    // 1안 Card 4: 최저 갭(GAP) 투자 단지
+    const card4Data = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[card4Data]": ()=>{
+            let targetAptName = "-";
+            let minGapAmount = Infinity;
+            let targetGapPct = 0;
+            if (sheetApartments) {
+                Object.values(sheetApartments).flat().forEach({
+                    "MacroDashboardClient.useMemo[card4Data]": (apt)=>{
+                        if (publicRentalSet.has(apt.name)) return;
+                        const txKey = (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                        if (txKey && txSummaryData[txKey]) {
+                            const sum = txSummaryData[txKey];
+                            const sales = sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0;
+                            const rent = sum.latestRentDeposit || sum.avg3MRentDeposit || 0;
+                            if (sales > 0 && rent > 0) {
+                                const gapAmount = sales - rent;
+                                if (gapAmount > 0 && gapAmount < minGapAmount) {
+                                    minGapAmount = gapAmount;
+                                    targetAptName = apt.name;
+                                    targetGapPct = rent / sales * 100;
+                                }
+                            }
+                        }
+                    }
+                }["MacroDashboardClient.useMemo[card4Data]"]);
+            }
+            let badgeText = "-";
+            if (minGapAmount !== Infinity) {
+                const fmt = formatEokWithUnit(minGapAmount);
+                const unitStr = fmt.unit === '만원' ? '만' : fmt.unit === '원' ? '' : fmt.unit;
+                badgeText = `갭 ${fmt.value}${unitStr} (${targetGapPct.toFixed(0)}%)`;
+            }
+            return {
+                name: targetAptName,
+                badge: badgeText
+            };
+        }
+    }["MacroDashboardClient.useMemo[card4Data]"], [
+        txSummaryData,
+        sheetApartments,
+        publicRentalSet,
+        nameMapping
+    ]);
+    const [totalHouseholds, publicRentalHouseholds] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo": ()=>{
+            let total = 0;
+            let publicRental = 0;
+            if (!sheetApartments) return [
+                0,
+                0
+            ];
+            Object.values(sheetApartments).flat().forEach({
+                "MacroDashboardClient.useMemo": (apt)=>{
+                    const hh = apt.householdCount || 0;
+                    total += hh;
+                    if (publicRentalSet.has(apt.name)) {
+                        publicRental += hh;
+                    }
+                }
+            }["MacroDashboardClient.useMemo"]);
+            return [
+                total,
+                publicRental
+            ];
+        }
+    }["MacroDashboardClient.useMemo"], [
+        sheetApartments,
+        publicRentalSet
+    ]);
+    // 2. Line Chart Data (동탄 아파트 전체 가격 변화 추이 - 실제 데이터)
+    const benchmarks = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[benchmarks]": ()=>{
+            return [
+                "동탄 아파트 전체"
+            ];
+        }
+    }["MacroDashboardClient.useMemo[benchmarks]"], []);
+    const deferredMacroTrendData = (0,react__WEBPACK_IMPORTED_MODULE_1__.useDeferredValue)(macroTrendData);
+    const lineData = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[lineData]": ()=>{
+            if (!deferredMacroTrendData) return [];
+            let count = deferredMacroTrendData.length;
+            switch(timeframe){
+                case "3M":
+                    count = 3;
+                    break;
+                case "6M":
+                    count = 6;
+                    break;
+                case "1Y":
+                    count = 12;
+                    break;
+                case "3Y":
+                    count = 36;
+                    break;
+                case "5Y":
+                    count = 60;
+                    break;
+                case "ALL":
+                    count = deferredMacroTrendData.length;
+                    break;
+            }
+            return deferredMacroTrendData.slice(-Math.min(count, deferredMacroTrendData.length));
+        }
+    }["MacroDashboardClient.useMemo[lineData]"], [
+        timeframe,
+        deferredMacroTrendData
+    ]);
+    const xTicks = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[xTicks]": ()=>{
+            if (lineData.length === 0) return [];
+            const ticks = [];
+            const total = lineData.length;
+            if (timeframe === "3M" || timeframe === "6M") {
+                return lineData.map({
+                    "MacroDashboardClient.useMemo[xTicks]": (d)=>d.name
+                }["MacroDashboardClient.useMemo[xTicks]"]);
+            }
+            let step = 1;
+            if (timeframe === "1Y") step = 2; // 2개월 간격
+            else if (timeframe === "3Y") step = 6; // 6개월 간격
+            else if (timeframe === "5Y") step = 12; // 1년 간격
+            else if (timeframe === "ALL") step = 24; // 2년 간격
+            // 항상 최신 달(가장 오른쪽)부터 역순으로 균등하게 범례를 추출
+            for(let i = total - 1; i >= 0; i -= step){
+                ticks.unshift(lineData[i].name);
+            }
+            return ticks;
+        }
+    }["MacroDashboardClient.useMemo[xTicks]"], [
+        lineData,
+        timeframe
+    ]);
+    const publicRentalRatio = totalHouseholds > 0 ? publicRentalHouseholds / totalHouseholds * 100 : 0;
+    const latestAvgPrice = macroTrendData && macroTrendData.length > 0 ? macroTrendData[macroTrendData.length - 1]["동탄 아파트 전체"] : 0;
+    const avgPriceProgress = Math.min(latestAvgPrice / 15 * 100, 100);
+    const avgPriceFormatted = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[avgPriceFormatted]": ()=>{
+            const uk = Math.floor(latestAvgPrice);
+            const man = Math.round((latestAvgPrice - uk) * 10000);
+            if (man === 0) {
+                return {
+                    value: `${uk}`,
+                    unit: "억"
+                };
+            }
+            return {
+                value: `${uk}억 ${man.toLocaleString()}`,
+                unit: "만원"
+            };
+        }
+    }["MacroDashboardClient.useMemo[avgPriceFormatted]"], [
+        latestAvgPrice
+    ]);
+    const momStats = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[momStats]": ()=>{
+            if (!macroTrendData || macroTrendData.length < 2) return {
+                change: 0,
+                changeText: "0원",
+                rate: 0,
+                text: "보합 상태",
+                color: "#b0b8c1"
+            };
+            const current = macroTrendData[macroTrendData.length - 1]["동탄 아파트 전체"];
+            const prev = macroTrendData[macroTrendData.length - 2]["동탄 아파트 전체"];
+            if (prev === 0) return {
+                change: 0,
+                changeText: "0원",
+                rate: 0,
+                text: "보합 상태",
+                color: "#b0b8c1"
+            };
+            const change = current - prev;
+            const rate = change / prev * 100;
+            const formatChange = {
+                "MacroDashboardClient.useMemo[momStats].formatChange": (c)=>{
+                    const uk = Math.floor(c);
+                    const man = Math.round((c - uk) * 10000);
+                    if (uk === 0) return `${man.toLocaleString()}만원`;
+                    if (man === 0) return `${uk}억`;
+                    return `${uk}억 ${man.toLocaleString()}만원`;
+                }
+            }["MacroDashboardClient.useMemo[momStats].formatChange"];
+            const absChange = Math.abs(change);
+            const changeText = formatChange(absChange);
+            if (change > 0) return {
+                change: absChange,
+                changeText,
+                rate: Math.abs(rate),
+                text: "상승 중",
+                color: "#ff4b5c"
+            };
+            if (change < 0) return {
+                change: absChange,
+                changeText,
+                rate: Math.abs(rate),
+                text: "하락 중",
+                color: "#2e7cf6"
+            };
+            return {
+                change: 0,
+                changeText: "0원",
+                rate: 0,
+                text: "보합 상태",
+                color: "#94a3b8"
+            };
+        }
+    }["MacroDashboardClient.useMemo[momStats]"], [
+        lineData
+    ]);
+    const dongtanAvgPyeongPrice = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[dongtanAvgPyeongPrice]": ()=>{
+            let sum = 0;
+            let count = 0;
+            if (!sheetApartments) return 0;
+            Object.values(sheetApartments).flat().forEach({
+                "MacroDashboardClient.useMemo[dongtanAvgPyeongPrice]": (apt)=>{
+                    if (publicRentalSet.has(apt.name)) return;
+                    const rawTxKey = apt.txKey || (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                    const txKey = rawTxKey ? (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.normalizeAptName)(rawTxKey) : null;
+                    const tx = txKey ? txSummaryData[txKey] : undefined;
+                    if (tx) {
+                        const pyeongPrice = tx.avg3MPerPyeong || tx.avg1MPerPyeong || (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
+                        if (pyeongPrice > 0) {
+                            sum += pyeongPrice;
+                            count++;
+                        }
+                    }
+                }
+            }["MacroDashboardClient.useMemo[dongtanAvgPyeongPrice]"]);
+            return count > 0 ? Math.round(sum / count) : 0;
+        }
+    }["MacroDashboardClient.useMemo[dongtanAvgPyeongPrice]"], [
+        txSummaryData,
+        sheetApartments,
+        publicRentalSet
+    ]);
+    const toggleGroup = (title)=>{
+        setExpandedGroups((prev)=>({
+                ...prev,
+                [title]: !prev[title]
+            }));
+    };
+    const isPointInPolygon = (point, vs)=>{
+        const x = point.lng, y = point.lat;
+        let inside = false;
+        for(let i = 0, j = vs.length - 1; i < vs.length; j = i++){
+            const xi = vs[i].lng, yi = vs[i].lat;
+            const xj = vs[j].lng, yj = vs[j].lat;
+            const intersect = yi > y != yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi;
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    };
+    const sibumPolygon = [
+        {
+            lat: 37.204400,
+            lng: 127.099303
+        },
+        {
+            lat: 37.194603,
+            lng: 127.099151
+        },
+        {
+            lat: 37.199094,
+            lng: 127.115916
+        },
+        {
+            lat: 37.203404,
+            lng: 127.112905
+        }
+    ];
+    const culturePolygon = [
+        {
+            lat: 37.194037,
+            lng: 127.082630
+        },
+        {
+            lat: 37.193915,
+            lng: 127.099012
+        },
+        {
+            lat: 37.178302,
+            lng: 127.103808
+        },
+        {
+            lat: 37.188171,
+            lng: 127.083393
+        }
+    ];
+    const waterfrontPolygon = [
+        {
+            lat: 37.172228,
+            lng: 127.094673
+        },
+        {
+            lat: 37.171307,
+            lng: 127.118744
+        },
+        {
+            lat: 37.165758,
+            lng: 127.114791
+        },
+        {
+            lat: 37.165082,
+            lng: 127.091299
+        }
+    ];
+    const gwangBizPolygon = [
+        {
+            lat: 37.204512,
+            lng: 127.085889
+        },
+        {
+            lat: 37.194624,
+            lng: 127.083147
+        },
+        {
+            lat: 37.194700,
+            lng: 127.098262
+        },
+        {
+            lat: 37.204544,
+            lng: 127.098434
+        }
+    ];
+    const accordionData = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)({
+        "MacroDashboardClient.useMemo[accordionData]": ()=>{
+            if (!sheetApartments || !txSummaryData) return [];
+            const grouped = {};
+            Object.values(sheetApartments).flat().forEach({
+                "MacroDashboardClient.useMemo[accordionData]": (apt)=>{
+                    const lat = apt.lat || 0;
+                    const lng = apt.lng || 0;
+                    const dongtanCoord = {
+                        lat: 37.2005,
+                        lng: 127.0985
+                    };
+                    const distToDongtan = lat && lng ? (0,_lib_utils_haversine__WEBPACK_IMPORTED_MODULE_3__.haversineDistance)({
+                        lat: Number(lat),
+                        lng: Number(lng)
+                    }, dongtanCoord) : null;
+                    const themeTitles = [];
+                    // ==========================================
+                    const isSibumArea = lat !== 0 && lng !== 0 && isPointInPolygon({
+                        lat: Number(lat),
+                        lng: Number(lng)
+                    }, sibumPolygon);
+                    const isCultureArea = lat !== 0 && lng !== 0 && isPointInPolygon({
+                        lat: Number(lat),
+                        lng: Number(lng)
+                    }, culturePolygon);
+                    const isLakeArea = lat !== 0 && lng !== 0 && isPointInPolygon({
+                        lat: Number(lat),
+                        lng: Number(lng)
+                    }, waterfrontPolygon);
+                    const isGwangBizArea = lat !== 0 && lng !== 0 && isPointInPolygon({
+                        lat: Number(lat),
+                        lng: Number(lng)
+                    }, gwangBizPolygon);
+                    const isDongtanName = apt.name.includes("동탄역");
+                    let isDongtanArea = false;
+                    if (distToDongtan !== null) {
+                        isDongtanArea = distToDongtan <= 1500;
+                    } else {
+                        isDongtanArea = isDongtanName || apt.dong === "오산동" || apt.dong === "여울동";
+                    }
+                    const is1Dongtan = apt.dong === "반송동" || apt.dong === "능동" || apt.dong === "석우동";
+                    // 동탄역세권은 중복 편입을 허용하므로 독립적으로 push
+                    if (isDongtanArea) {
+                        themeTitles.push("동탄역세권");
+                    }
+                    // 나머지 권역들은 Mutually Exclusive
+                    if (isGwangBizArea) {
+                        themeTitles.push("광역비지니스컴플렉스");
+                    } else if (isSibumArea) {
+                        themeTitles.push("커뮤니티시범단지");
+                    } else if (isCultureArea) {
+                        themeTitles.push("문화디자인밸리");
+                    } else if (isLakeArea) {
+                        themeTitles.push("워터프론트컴플렉스");
+                    } else if (is1Dongtan) {
+                        themeTitles.push("1동탄");
+                    }
+                    if (themeTitles.length === 0) {
+                        themeTitles.push("기타 권역");
+                    }
+                    if (publicRentalSet.has(apt.name)) return;
+                    const rawTxKey = apt.txKey || (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                    const txKey = rawTxKey ? (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.normalizeAptName)(rawTxKey) : null;
+                    const tx = txKey ? txSummaryData[txKey] : undefined;
+                    if (tx) {
+                        const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
+                        if (sales > 0) {
+                            const maxPrice = tx.maxPrice || sales;
+                            const mdd = maxPrice > 0 ? (sales - maxPrice) / maxPrice * 100 : 0;
+                            const gap = sales > 0 && tx.latestRentDeposit ? tx.latestRentDeposit / sales * 100 : 0;
+                            const liquid = tx.avg3MTxCount || 0;
+                            let formattedYear = apt.yearBuilt || "";
+                            if (formattedYear.length === 6 && !isNaN(Number(formattedYear))) {
+                                formattedYear = `${formattedYear.substring(0, 4)}년 ${formattedYear.substring(4, 6)}월`;
+                            } else if (formattedYear.length === 4 && !isNaN(Number(formattedYear))) {
+                                formattedYear = `${formattedYear}년`;
+                            }
+                            const pyeongPrice = tx.avg3MPerPyeong || tx.avg1MPerPyeong || (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
+                            // distToDongtan은 상단에서 미리 계산함
+                            themeTitles.forEach({
+                                "MacroDashboardClient.useMemo[accordionData]": (themeTitle)=>{
+                                    if (!grouped[themeTitle]) {
+                                        grouped[themeTitle] = {
+                                            title: themeTitle,
+                                            dong: themeTitle,
+                                            totalValue: 0,
+                                            totalPyeongValue: 0,
+                                            count: 0,
+                                            apartments: []
+                                        };
+                                    }
+                                    grouped[themeTitle].apartments.push({
+                                        name: apt.name,
+                                        latestPrice: sales,
+                                        latestPriceEok: formatEokWithUnit(sales).value + (formatEokWithUnit(sales).unit === '만원' ? '만' : ''),
+                                        pyeongPrice: pyeongPrice,
+                                        mdd: mdd,
+                                        gap: gap,
+                                        liquid: liquid,
+                                        householdCount: apt.householdCount || 0,
+                                        yearBuilt: formattedYear,
+                                        distToDongtan: distToDongtan,
+                                        dong: apt.dong,
+                                        txKey: apt.txKey
+                                    });
+                                    grouped[themeTitle].totalValue += sales;
+                                    grouped[themeTitle].totalPyeongValue += pyeongPrice;
+                                    grouped[themeTitle].count += 1;
+                                }
+                            }["MacroDashboardClient.useMemo[accordionData]"]);
+                        }
+                    }
+                }
+            }["MacroDashboardClient.useMemo[accordionData]"]);
+            const themeOrder = [
+                "동탄역세권",
+                "광역비지니스컴플렉스",
+                "커뮤니티시범단지",
+                "워터프론트컴플렉스",
+                "문화디자인밸리",
+                "1동탄",
+                "기타 권역"
+            ];
+            const result = Object.values(grouped).filter({
+                "MacroDashboardClient.useMemo[accordionData].result": (g)=>g.count > 0
+            }["MacroDashboardClient.useMemo[accordionData].result"]).map({
+                "MacroDashboardClient.useMemo[accordionData].result": (g)=>{
+                    g.avgPrice = g.totalValue / g.count;
+                    g.avgPyeongPrice = g.totalPyeongValue / g.count;
+                    g.apartments.sort({
+                        "MacroDashboardClient.useMemo[accordionData].result": (a, b)=>b.latestPrice - a.latestPrice
+                    }["MacroDashboardClient.useMemo[accordionData].result"]);
+                    return g;
+                }
+            }["MacroDashboardClient.useMemo[accordionData].result"]).sort({
+                "MacroDashboardClient.useMemo[accordionData].result": (a, b)=>{
+                    const indexA = themeOrder.indexOf(a.title);
+                    const indexB = themeOrder.indexOf(b.title);
+                    const orderA = indexA === -1 ? 999 : indexA;
+                    const orderB = indexB === -1 ? 999 : indexB;
+                    if (orderA !== orderB) return orderA - orderB;
+                    return (b.avgPrice || 0) - (a.avgPrice || 0);
+                }
+            }["MacroDashboardClient.useMemo[accordionData].result"]);
+            return result;
+        }
+    }["MacroDashboardClient.useMemo[accordionData]"], [
+        sheetApartments,
+        txSummaryData,
+        publicRentalSet
+    ]);
+    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+        className: "w-full flex flex-col bg-surface relative",
+        children: [
+            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_PageHeroHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
+                title: "D-VIEW 데이터 랩",
+                compactTitle: "D-VIEW 데이터 랩",
+                subtitleStrong: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                    children: [
+                        "데이터 기반 ",
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                            className: "text-[#00d29d] font-extrabold px-0.5",
+                            children: "동탄 아파트"
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1126,
+                            columnNumber: 20
+                        }, this),
+                        " 가치 분석"
+                    ]
+                }, void 0, true),
+                subtitleLight: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                    className: "flex flex-nowrap overflow-x-auto overflow-y-hidden touch-pan-x sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center gap-2 sm:gap-3 ml-0 sm:ml-1 mt-1 sm:mt-0 max-w-[calc(100vw-32px)] md:max-w-none h-7 md:h-auto py-1 md:py-0",
+                    children: [
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                            className: "hidden sm:inline text-[#d1d6db] mr-0.5 shrink-0",
+                            children: "—"
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1131,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "group relative flex items-center gap-1.5 shrink-0 cursor-help",
+                            children: [
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight",
+                                    children: "MAU"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1133,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums",
+                                    children: gaData ? formatNum(gaData.mau) : '...'
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1134,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                    className: "hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50",
+                                    children: [
+                                        "최근 30일 동안의 월간 순 방문자 수",
+                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]"
+                                        }, void 0, false, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1137,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1135,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1132,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0"
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1140,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "group relative flex items-center gap-1.5 shrink-0 cursor-help",
+                            children: [
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-toss-blue font-bold tracking-tight",
+                                    children: "DAU"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1142,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "text-toss-blue font-extrabold text-[13px] sm:text-[14px] font-mono tabular-nums",
+                                    children: gaData ? formatNum(gaData.dau) : '...'
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1143,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                    className: "hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50",
+                                    children: [
+                                        "오늘 하루 동안의 일간 순 방문자 수",
+                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]"
+                                        }, void 0, false, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1146,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1144,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1141,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0"
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1149,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "group relative flex items-center gap-1.5 shrink-0 cursor-help",
+                            children: [
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight",
+                                    children: "VIEW (30D)"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1151,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums",
+                                    children: gaData ? formatNum(gaData.totalViews) : '...'
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1152,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                    className: "hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50",
+                                    children: [
+                                        "최근 30일 동안의 누적 페이지 뷰 (조회수) 총합",
+                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]"
+                                        }, void 0, false, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1155,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1153,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1150,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "hidden sm:block w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0"
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1158,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                            className: "group relative flex items-center gap-1.5 shrink-0 pr-4 sm:pr-0 cursor-help",
+                            children: [
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight",
+                                    children: "AVG. TIME"
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1160,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                    className: "text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums",
+                                    children: gaData ? gaData.avgSessionDuration : '...'
+                                }, void 0, false, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1161,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                    className: "hidden sm:block absolute right-0 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50",
+                                    children: [
+                                        "방문자 1인당 평균 체류 시간",
+                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                            className: "absolute bottom-full right-6 border-4 border-transparent border-b-[#191f28]"
+                                        }, void 0, false, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1164,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1162,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1159,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                    lineNumber: 1130,
+                    columnNumber: 11
+                }, this),
+                rightContent: onOpenAdModal && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                    onClick: onOpenAdModal,
+                    className: "hidden md:flex ml-4 px-3 py-1.5 bg-body hover:bg-body/80 text-secondary text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5",
+                    children: [
+                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                            size: 14
+                        }, void 0, false, {
+                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                            lineNumber: 1175,
+                            columnNumber: 15
+                        }, this),
+                        "광고/제휴 문의"
+                    ]
+                }, void 0, true, {
+                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                    lineNumber: 1171,
+                    columnNumber: 13
+                }, this),
+                rightSideContent: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                    className: "flex items-center justify-center shrink-0 w-[320px] h-[80px] bg-body border border-border rounded-[12px] border-dashed cursor-pointer hover:bg-body/60 transition-colors group",
+                    onClick: onOpenAdModal,
+                    children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "flex flex-col items-center gap-1",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                className: "text-[14px] font-bold text-tertiary group-hover:text-primary transition-colors",
+                                children: "광고 구좌 (배너) 영역"
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 1183,
+                                columnNumber: 15
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                className: "text-[12px] text-tertiary group-hover:text-secondary transition-colors",
+                                children: "이곳을 클릭하여 제휴 문의를 남겨주세요"
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 1184,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 1182,
+                        columnNumber: 13
+                    }, this)
+                }, void 0, false, {
+                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                    lineNumber: 1181,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                lineNumber: 1121,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                className: "flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-0 md:pb-12 lg:pb-16 w-full",
+                children: [
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "flex flex-col md:flex-row gap-4 w-full px-0 mt-0",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "w-full md:w-1/2 flex flex-col gap-4 min-w-0",
+                                children: [
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-7 min-h-[350px]",
+                                        children: [
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "flex justify-between items-center gap-2 mb-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h2", {
+                                                        className: "text-[14.5px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap",
+                                                        children: "최근 실거래 등락 비중"
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1197,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "flex bg-body p-1 rounded-lg shrink-0",
+                                                        children: [
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                                onClick: ()=>setChartMode("30"),
+                                                                className: `px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "30" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                                                children: "최근 30일"
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1202,
+                                                                columnNumber: 19
+                                                            }, this),
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                                onClick: ()=>setChartMode("90"),
+                                                                className: `px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "90" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                                                children: "최근 90일"
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1211,
+                                                                columnNumber: 19
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1201,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1196,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                ref: chartContainerRef,
+                                                className: "flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3",
+                                                children: [
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "w-[240px] h-[240px] relative shrink-0",
+                                                        children: [
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                className: "absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                        className: "text-[13px] font-bold text-tertiary mb-1",
+                                                                        children: "총 거래 건수"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1227,
+                                                                        columnNumber: 21
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                        className: "text-[26px] font-extrabold text-primary leading-none tracking-tight",
+                                                                        children: [
+                                                                            donutData.reduce((s, d)=>s + d.value, 0).toLocaleString(),
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                className: "text-[15px] font-bold text-tertiary ml-1",
+                                                                                children: "건"
+                                                                            }, void 0, false, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1232,
+                                                                                columnNumber: 23
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1230,
+                                                                        columnNumber: 21
+                                                                    }, this)
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1226,
+                                                                columnNumber: 19
+                                                            }, this),
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_8__.ResponsiveContainer, {
+                                                                width: "100%",
+                                                                minWidth: 1,
+                                                                minHeight: 1,
+                                                                height: 240,
+                                                                className: "relative z-10",
+                                                                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_9__.PieChart, {
+                                                                    onMouseLeave: ()=>setActiveIndex(null),
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_10__.Pie, {
+                                                                            data: donutData,
+                                                                            innerRadius: 78,
+                                                                            outerRadius: 110,
+                                                                            paddingAngle: 2,
+                                                                            dataKey: "value",
+                                                                            onMouseEnter: (_, index)=>setActiveIndex(index),
+                                                                            onMouseLeave: ()=>setActiveIndex(null),
+                                                                            stroke: "none",
+                                                                            animationDuration: 400,
+                                                                            animationBegin: 0,
+                                                                            children: donutData.map((entry, index)=>{
+                                                                                const DONUT_COLORS = [
+                                                                                    "#ff4b5c",
+                                                                                    "#2e7cf6",
+                                                                                    "#94a3b8"
+                                                                                ];
+                                                                                return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_11__.Cell, {
+                                                                                    fill: DONUT_COLORS[index % DONUT_COLORS.length],
+                                                                                    style: {
+                                                                                        transition: "all 0.3s ease",
+                                                                                        opacity: activeIndex === null || activeIndex === index ? 1 : 0.3,
+                                                                                        filter: "none"
+                                                                                    }
+                                                                                }, `cell-${index}`, false, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1261,
+                                                                                    columnNumber: 29
+                                                                                }, this);
+                                                                            })
+                                                                        }, void 0, false, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1246,
+                                                                            columnNumber: 23
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_12__.Tooltip, {
+                                                                            content: ({ active, payload })=>{
+                                                                                if (active && payload && payload.length && activeIndex !== null) {
+                                                                                    const color = payload[0].payload?.fill || payload[0].color || "#4e5968";
+                                                                                    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                        className: "bg-surface py-2 px-3 rounded-[10px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-border",
+                                                                                        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                            className: "text-[14.5px] font-bold",
+                                                                                            style: {
+                                                                                                color
+                                                                                            },
+                                                                                            children: [
+                                                                                                "거래수 : ",
+                                                                                                (payload[0].value || 0).toLocaleString(),
+                                                                                                " 건"
+                                                                                            ]
+                                                                                        }, void 0, true, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1282,
+                                                                                            columnNumber: 33
+                                                                                        }, this)
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1281,
+                                                                                        columnNumber: 31
+                                                                                    }, this);
+                                                                                }
+                                                                                return null;
+                                                                            },
+                                                                            cursor: {
+                                                                                fill: "transparent"
+                                                                            },
+                                                                            isAnimationActive: false
+                                                                        }, void 0, false, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1276,
+                                                                            columnNumber: 23
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1245,
+                                                                    columnNumber: 21
+                                                                }, this)
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1238,
+                                                                columnNumber: 19
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1224,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "flex flex-col gap-1 w-full max-w-[260px]",
+                                                        children: donutData.map((entry, index)=>{
+                                                            const totalValue = donutData.reduce((s, i)=>s + i.value, 0);
+                                                            const percentage = totalValue > 0 ? (entry.value / totalValue * 100).toFixed(1) : "0.0";
+                                                            const isActive = activeIndex === index;
+                                                            const DONUT_COLORS = [
+                                                                "#ff4b5c",
+                                                                "#2e7cf6",
+                                                                "#94a3b8"
+                                                            ];
+                                                            return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                className: `flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? "bg-body scale-[1.02]" : "hover:bg-body"}`,
+                                                                onMouseEnter: ()=>setActiveIndex(index),
+                                                                onMouseLeave: ()=>setActiveIndex(null),
+                                                                children: [
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                        className: "flex items-center gap-3",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                className: "w-3 h-3 rounded-full shrink-0 shadow-sm",
+                                                                                style: {
+                                                                                    backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length]
+                                                                                }
+                                                                            }, void 0, false, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1318,
+                                                                                columnNumber: 27
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                className: "text-[14px] font-bold text-secondary tracking-tight",
+                                                                                children: entry.name
+                                                                            }, void 0, false, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1324,
+                                                                                columnNumber: 27
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1317,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                        className: "text-right flex items-center gap-2",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                className: "text-[15px] font-extrabold text-primary leading-none",
+                                                                                children: [
+                                                                                    percentage,
+                                                                                    "%"
+                                                                                ]
+                                                                            }, void 0, true, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1329,
+                                                                                columnNumber: 27
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                className: "text-[12px] font-semibold text-tertiary leading-none",
+                                                                                children: [
+                                                                                    entry.value.toLocaleString(),
+                                                                                    "건"
+                                                                                ]
+                                                                            }, void 0, true, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1332,
+                                                                                columnNumber: 27
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1328,
+                                                                        columnNumber: 25
+                                                                    }, this)
+                                                                ]
+                                                            }, entry.name, true, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1311,
+                                                                columnNumber: 23
+                                                            }, this);
+                                                        })
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1298,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1223,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1195,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "grid grid-cols-2 gap-3",
+                                        children: [
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(InfoBox, {
+                                                title: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "relative group flex items-center gap-1 w-full",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                            className: "break-keep whitespace-nowrap tracking-tight",
+                                                            children: card1And2Data.card1.label
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1348,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
+                                                            className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1351,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep",
+                                                            children: [
+                                                                "최근 7일(데이터 공백 시 최대 90일) 내 직전 신고가 대비 비슷하거나 더 높은 가격에 거래가 성사된 단지입니다.",
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1355,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1353,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1347,
+                                                    columnNumber: 19
+                                                }, this),
+                                                value: card1And2Data.card1.name,
+                                                badge: card1And2Data.card1.price,
+                                                color: "#ff4b5c"
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1345,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(InfoBox, {
+                                                title: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "relative group flex items-center gap-1 w-full",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                            className: "break-keep whitespace-nowrap tracking-tight",
+                                                            children: card1And2Data.card2.label
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1366,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
+                                                            className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1369,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep",
+                                                            children: [
+                                                                "최근 7일(데이터 공백 시 최대 90일) 내 역대 최고가 대비 가장 큰 폭으로 하락하여 실거래된 단지입니다.",
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1373,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1371,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1365,
+                                                    columnNumber: 19
+                                                }, this),
+                                                value: card1And2Data.card2.name,
+                                                badge: card1And2Data.card2.drop,
+                                                color: "#2e7cf6"
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1363,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(InfoBox, {
+                                                title: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "relative group flex items-center gap-1 w-full",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                            className: "break-keep whitespace-nowrap tracking-tight",
+                                                            children: "최근 30일 동탄 실거래량"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1384,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
+                                                            className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1387,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep",
+                                                            children: [
+                                                                "최근 30일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(31~60일 전) 대비 거래량 증감 추세입니다.",
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1391,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1389,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1383,
+                                                    columnNumber: 19
+                                                }, this),
+                                                value: card3Data.currentCount,
+                                                unit: "건",
+                                                badge: card3Data.badge,
+                                                color: card3Data.trendColor
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1381,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(InfoBox, {
+                                                title: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "relative group flex items-center gap-1 w-full",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                            className: "break-keep whitespace-nowrap tracking-tight",
+                                                            children: "최저 갭(GAP) 투자 단지"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1403,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
+                                                            className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1406,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep",
+                                                            children: [
+                                                                "최근 실거래 매매가와 전세가 차이(갭)가 가장 적은 아파트 단지(임대 전용 단지 제외) 정보입니다.",
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1410,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1408,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1402,
+                                                    columnNumber: 19
+                                                }, this),
+                                                value: card4Data.name,
+                                                badge: card4Data.badge,
+                                                color: "#00d29d"
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1400,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1344,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 1193,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[300px] min-w-0",
+                                children: [
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4",
+                                        children: [
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "flex flex-col",
+                                                children: [
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h2", {
+                                                        className: "text-[18px] font-extrabold text-primary tracking-tight",
+                                                        children: "동탄 아파트 대표 가격 변화 추이"
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1425,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                        className: "text-[13px] text-tertiary font-medium mt-1",
+                                                        children: [
+                                                            timeframe === "ALL" ? "전체 기간 " : `최근 ${timeframe.replace("M", "개월").replace("Y", "년")} `,
+                                                            "국민평형(30~36평형) 실거래가 변동"
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1428,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1424,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto",
+                                                children: [
+                                                    "3M",
+                                                    "6M",
+                                                    "1Y",
+                                                    "3Y",
+                                                    "5Y",
+                                                    "ALL"
+                                                ].map((tf)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                        onClick: ()=>setTimeframe(tf),
+                                                        className: `px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${timeframe === tf ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                                        children: tf
+                                                    }, tf, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1437,
+                                                        columnNumber: 19
+                                                    }, this))
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1435,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1423,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "w-full h-[250px] md:h-auto md:flex-1 mt-2 sm:mt-0 min-h-[250px]",
+                                        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_8__.ResponsiveContainer, {
+                                            width: "100%",
+                                            height: "100%",
+                                            minWidth: 1,
+                                            minHeight: 1,
+                                            children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_14__.LineChart, {
+                                                data: lineData,
+                                                margin: {
+                                                    top: 10,
+                                                    right: 10,
+                                                    left: 0,
+                                                    bottom: 0
+                                                },
+                                                children: [
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_15__.CartesianGrid, {
+                                                        strokeDasharray: "3 3",
+                                                        vertical: false,
+                                                        stroke: "var(--border-color)"
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1457,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_16__.XAxis, {
+                                                        dataKey: "name",
+                                                        axisLine: false,
+                                                        tickLine: false,
+                                                        tick: {
+                                                            fill: "var(--text-secondary)",
+                                                            fontSize: 12,
+                                                            fontWeight: 600
+                                                        },
+                                                        dy: 10,
+                                                        ticks: xTicks
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1462,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_17__.YAxis, {
+                                                        yAxisId: "left",
+                                                        axisLine: false,
+                                                        tickLine: false,
+                                                        tick: {
+                                                            fill: "var(--text-secondary)",
+                                                            fontSize: 12,
+                                                            fontWeight: 600
+                                                        },
+                                                        tickFormatter: (value)=>`${Number.isInteger(value) ? value : value.toFixed(1)}억`,
+                                                        domain: [
+                                                            "auto",
+                                                            "auto"
+                                                        ],
+                                                        width: 40
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1470,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_17__.YAxis, {
+                                                        yAxisId: "right",
+                                                        orientation: "right",
+                                                        axisLine: false,
+                                                        tickLine: false,
+                                                        tick: {
+                                                            fill: "var(--text-secondary)",
+                                                            fontSize: 12,
+                                                            fontWeight: 600
+                                                        },
+                                                        tickFormatter: (value)=>`${Number.isInteger(value) ? value : value.toFixed(1)}억`,
+                                                        domain: [
+                                                            "auto",
+                                                            "auto"
+                                                        ],
+                                                        width: 40
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1481,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_12__.Tooltip, {
+                                                        content: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(CustomTooltip, {}, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1494,
+                                                            columnNumber: 32
+                                                        }, this),
+                                                        cursor: {
+                                                            stroke: "var(--border-color)",
+                                                            strokeWidth: 2,
+                                                            strokeDasharray: "3 3"
+                                                        }
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1493,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_18__.Legend, {
+                                                        align: "center",
+                                                        verticalAlign: "bottom",
+                                                        iconType: "circle",
+                                                        wrapperStyle: {
+                                                            paddingTop: "20px",
+                                                            fontSize: "13px",
+                                                            fontWeight: "bold"
+                                                        },
+                                                        formatter: (value, entry)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                style: {
+                                                                    color: entry.color,
+                                                                    marginLeft: "4px"
+                                                                },
+                                                                children: value
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1511,
+                                                                columnNumber: 25
+                                                            }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1501,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_19__.Line, {
+                                                        yAxisId: "left",
+                                                        type: "monotone",
+                                                        name: "평균 매매가(좌)",
+                                                        dataKey: "동탄 아파트 전체",
+                                                        stroke: "#00d29d",
+                                                        strokeWidth: 4,
+                                                        animationDuration: 300,
+                                                        dot: timeframe === "ALL" || timeframe === "5Y" ? false : {
+                                                            r: 5,
+                                                            strokeWidth: 2
+                                                        },
+                                                        activeDot: {
+                                                            r: 7
+                                                        }
+                                                    }, "동탄 아파트 전체", false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1521,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_19__.Line, {
+                                                        yAxisId: "right",
+                                                        type: "monotone",
+                                                        name: "평균 전월세가(우)",
+                                                        dataKey: "동탄 아파트 전세 평균",
+                                                        stroke: "#f9a825",
+                                                        strokeWidth: 2,
+                                                        animationDuration: 300,
+                                                        dot: timeframe === "ALL" || timeframe === "5Y" ? false : {
+                                                            r: 3,
+                                                            strokeWidth: 2
+                                                        },
+                                                        activeDot: {
+                                                            r: 5
+                                                        }
+                                                    }, "동탄 아파트 전세 평균", false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 1537,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 1453,
+                                                columnNumber: 17
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1452,
+                                            columnNumber: 15
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1451,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 1422,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 1191,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "mt-12 mb-6 flex items-center justify-between px-0",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "w-[3px] h-[16px] bg-[#00d29d] rounded-full"
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1562,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h2", {
+                                        className: "text-[22px] font-bold text-primary",
+                                        children: "권역별 단지 분류"
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1563,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 1561,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "flex bg-body p-1 rounded-lg",
+                                children: [
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                        onClick: ()=>setAccordionMode("price"),
+                                        className: `px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "price" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                        children: "매매가"
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1570,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                        onClick: ()=>setAccordionMode("pyeong"),
+                                        className: `px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "pyeong" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                        children: "평단가"
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 1579,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 1569,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 1560,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "grid grid-cols-1 lg:grid-cols-2 gap-4 pb-0 px-0 items-start",
+                        children: [
+                            accordionData.map((group)=>{
+                                const isExpanded = expandedGroups[group.title];
+                                const themeColors = {
+                                    "동탄역세권": "#3182f6",
+                                    "광역비지니스컴플렉스": "#ff9f0a",
+                                    "커뮤니티시범단지": "#af52de",
+                                    "워터프론트컴플렉스": "#00d29d",
+                                    "문화디자인밸리": "#f04452",
+                                    "1동탄": "#4e5968"
+                                };
+                                const themeColor = themeColors[group.title] || "#00d29d";
+                                return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                    className: "bg-surface rounded-[20px] shadow-sm border border-border transition-all duration-300 relative",
+                                    children: [
+                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                            className: `px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`,
+                                            onClick: ()=>toggleGroup(group.title),
+                                            children: [
+                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "flex items-center gap-3.5 flex-1 min-w-0 pr-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "w-[12px] h-[12px] rounded-full shadow-sm shrink-0",
+                                                            style: {
+                                                                backgroundColor: themeColor
+                                                            }
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1616,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "flex flex-col flex-1 min-w-0",
+                                                            children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                className: "flex items-center gap-1.5 flex-wrap",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                        className: "text-[14px] md:text-[17px] font-extrabold text-primary tracking-tight break-keep",
+                                                                        children: group.title
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1622,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    group.title === "동탄역세권" && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                        className: "relative group/info flex items-center",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
+                                                                                className: "w-4 h-4 text-tertiary cursor-pointer hover:text-secondary transition-colors"
+                                                                            }, void 0, false, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1627,
+                                                                                columnNumber: 29
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                className: "absolute left-0 bottom-full mb-3 w-max max-w-[280px] sm:max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-surface text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-border z-50 pointer-events-none flex flex-col gap-3 text-left",
+                                                                                children: [
+                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                        className: "font-bold text-[#3182f6] text-[15px]",
+                                                                                        children: "동탄역세권 설정 기준"
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1629,
+                                                                                        columnNumber: 31
+                                                                                    }, this),
+                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                        children: [
+                                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                className: "font-bold text-primary",
+                                                                                                children: "1. 공간적\xb7물리적 기준"
+                                                                                            }, void 0, false, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1631,
+                                                                                                columnNumber: 33
+                                                                                            }, this),
+                                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1631,
+                                                                                                columnNumber: 94
+                                                                                            }, this),
+                                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                className: "text-secondary",
+                                                                                                children: [
+                                                                                                    "1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)",
+                                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
+                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        lineNumber: 1632,
+                                                                                                        columnNumber: 98
+                                                                                                    }, this),
+                                                                                                    "2차: 반경 1km 이내 (경부 지하화로 인한 광비콤 서측 동서 단절 해소)"
+                                                                                                ]
+                                                                                            }, void 0, true, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1632,
+                                                                                                columnNumber: 33
+                                                                                            }, this)
+                                                                                        ]
+                                                                                    }, void 0, true, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1630,
+                                                                                        columnNumber: 31
+                                                                                    }, this),
+                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                        className: "pt-2 border-t border-border",
+                                                                                        children: [
+                                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                className: "font-bold text-primary",
+                                                                                                children: "2. 시간 및 교통 연계적 기준"
+                                                                                            }, void 0, false, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1636,
+                                                                                                columnNumber: 33
+                                                                                            }, this),
+                                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1636,
+                                                                                                columnNumber: 98
+                                                                                            }, this),
+                                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                className: "text-secondary",
+                                                                                                children: [
+                                                                                                    "복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경 적용.",
+                                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
+                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        lineNumber: 1637,
+                                                                                                        columnNumber: 127
+                                                                                                    }, this),
+                                                                                                    "➡ ",
+                                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                        className: "font-bold text-[#3182f6]",
+                                                                                                        children: "1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류."
+                                                                                                    }, void 0, false, {
+                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        lineNumber: 1638,
+                                                                                                        columnNumber: 37
+                                                                                                    }, this)
+                                                                                                ]
+                                                                                            }, void 0, true, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1637,
+                                                                                                columnNumber: 33
+                                                                                            }, this)
+                                                                                        ]
+                                                                                    }, void 0, true, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1635,
+                                                                                        columnNumber: 31
+                                                                                    }, this),
+                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                        className: "mt-1 bg-[#3182f6]/10 text-[#3182f6] px-2 py-1.5 rounded-[6px] text-center font-bold",
+                                                                                        children: "물리+시간적 1.5km 통합 기준 적용"
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1640,
+                                                                                        columnNumber: 31
+                                                                                    }, this),
+                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                        className: "absolute top-full left-3 border-[6px] border-transparent border-t-white"
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1643,
+                                                                                        columnNumber: 31
+                                                                                    }, this)
+                                                                                ]
+                                                                            }, void 0, true, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1628,
+                                                                                columnNumber: 29
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1626,
+                                                                        columnNumber: 27
+                                                                    }, this)
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 1621,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1620,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1615,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "flex items-center gap-3 sm:gap-4 shrink-0",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                            className: "flex flex-col items-end shrink-0",
+                                                            children: accordionMode === "price" ? (()=>{
+                                                                const { value, unit } = formatEokWithUnit(group.avgPrice || 0);
+                                                                return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                            className: "flex items-baseline gap-1 whitespace-nowrap",
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                    className: "text-[13.5px] md:text-[18px] font-extrabold text-primary tracking-tighter",
+                                                                                    children: value
+                                                                                }, void 0, false, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1659,
+                                                                                    columnNumber: 33
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                    className: "text-[10px] md:text-[11px] font-bold text-tertiary",
+                                                                                    children: unit
+                                                                                }, void 0, false, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1662,
+                                                                                    columnNumber: 33
+                                                                                }, this)
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1658,
+                                                                            columnNumber: 31
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                            className: "text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap",
+                                                                            children: "평균 실거래가"
+                                                                        }, void 0, false, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1666,
+                                                                            columnNumber: 31
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true);
+                                                            })() : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                        className: "flex items-baseline gap-1 whitespace-nowrap",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                className: "text-[13.5px] md:text-[18px] font-extrabold text-primary tracking-tighter",
+                                                                                children: Math.round(group.avgPyeongPrice || 0).toLocaleString()
+                                                                            }, void 0, false, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1675,
+                                                                                columnNumber: 29
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                className: "text-[10px] md:text-[11px] font-bold text-tertiary",
+                                                                                children: "만원/평"
+                                                                            }, void 0, false, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1678,
+                                                                                columnNumber: 29
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1674,
+                                                                        columnNumber: 27
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                        className: "text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap",
+                                                                        children: "평균 평단가"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 1682,
+                                                                        columnNumber: 27
+                                                                    }, this)
+                                                                ]
+                                                            }, void 0, true)
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1652,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        isExpanded ? /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_20__["default"], {
+                                                            className: "w-5 h-5 text-tertiary"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1689,
+                                                            columnNumber: 23
+                                                        }, this) : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_21__["default"], {
+                                                            className: "w-5 h-5 text-tertiary"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1691,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1651,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1611,
+                                            columnNumber: 17
+                                        }, this),
+                                        isExpanded && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                            className: "px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300",
+                                            children: [
+                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "w-full h-[1px] bg-body mb-4"
+                                                }, void 0, false, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1699,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "flex bg-body p-0.5 rounded-lg w-max mb-3",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                            onClick: (e)=>{
+                                                                e.stopPropagation();
+                                                                setSelectedSubModes((prev)=>({
+                                                                        ...prev,
+                                                                        [group.title]: "tiers"
+                                                                    }));
+                                                            },
+                                                            className: `px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${(selectedSubModes[group.title] ?? "tiers") === "tiers" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                                            children: "금액대별 단지"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1703,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                            onClick: (e)=>{
+                                                                e.stopPropagation();
+                                                                setSelectedSubModes((prev)=>({
+                                                                        ...prev,
+                                                                        [group.title]: "recentTxs"
+                                                                    }));
+                                                            },
+                                                            className: `px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${(selectedSubModes[group.title] ?? "tiers") === "recentTxs" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
+                                                            children: "동별 최근 실거래"
+                                                        }, void 0, false, {
+                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                            lineNumber: 1716,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1702,
+                                                    columnNumber: 21
+                                                }, this),
+                                                (selectedSubModes[group.title] ?? "tiers") === "tiers" ? /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "flex flex-col gap-4",
+                                                    children: (()=>{
+                                                        const TIERS = accordionMode === "price" ? [
+                                                            {
+                                                                name: "15억원 이상",
+                                                                min: 150000,
+                                                                max: Infinity
+                                                            },
+                                                            {
+                                                                name: "10억~15억원",
+                                                                min: 100000,
+                                                                max: 150000
+                                                            },
+                                                            {
+                                                                name: "8억~10억원",
+                                                                min: 80000,
+                                                                max: 100000
+                                                            },
+                                                            {
+                                                                name: "6억~8억원",
+                                                                min: 60000,
+                                                                max: 80000
+                                                            },
+                                                            {
+                                                                name: "6억원 미만",
+                                                                min: 0,
+                                                                max: 60000
+                                                            }
+                                                        ] : [
+                                                            {
+                                                                name: "4,000만원 이상",
+                                                                min: 4000,
+                                                                max: Infinity
+                                                            },
+                                                            {
+                                                                name: "3,000~4,000만원",
+                                                                min: 3000,
+                                                                max: 4000
+                                                            },
+                                                            {
+                                                                name: "2,500~3,000만원",
+                                                                min: 2500,
+                                                                max: 3000
+                                                            },
+                                                            {
+                                                                name: "2,000~2,500만원",
+                                                                min: 2000,
+                                                                max: 2500
+                                                            },
+                                                            {
+                                                                name: "2,000만원 미만",
+                                                                min: 0,
+                                                                max: 2000
+                                                            }
+                                                        ];
+                                                        // Compute which tiers have apartments
+                                                        const availableTiers = TIERS.map((tier, idx)=>{
+                                                            const apts = group.apartments.filter((apt)=>{
+                                                                const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
+                                                                return val >= tier.min && val < tier.max;
+                                                            }).sort((a, b)=>{
+                                                                return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
+                                                            });
+                                                            return {
+                                                                ...tier,
+                                                                originalIndex: idx,
+                                                                apts
+                                                            };
+                                                        }).filter((t)=>t.apts.length > 0);
+                                                        if (availableTiers.length === 0) return null;
+                                                        // Default to the first available tier if none is selected
+                                                        const currentTierIndex = selectedTiers[group.title] ?? availableTiers[0].originalIndex;
+                                                        const activeTier = availableTiers.find((t)=>t.originalIndex === currentTierIndex) || availableTiers[0];
+                                                        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                                                            children: [
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2",
+                                                                    children: availableTiers.map((t)=>{
+                                                                        const isActive = t.originalIndex === currentTierIndex;
+                                                                        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                                            onClick: (e)=>{
+                                                                                e.stopPropagation();
+                                                                                setSelectedTiers((prev)=>({
+                                                                                        ...prev,
+                                                                                        [group.title]: t.originalIndex
+                                                                                    }));
+                                                                            },
+                                                                            className: `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive ? "bg-[#333d4b] text-white shadow-sm" : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"}`,
+                                                                            children: [
+                                                                                t.name,
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                    className: `text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`,
+                                                                                    children: t.apts.length
+                                                                                }, void 0, false, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1786,
+                                                                                    columnNumber: 39
+                                                                                }, this)
+                                                                            ]
+                                                                        }, t.originalIndex, true, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1774,
+                                                                            columnNumber: 37
+                                                                        }, this);
+                                                                    })
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1770,
+                                                                    columnNumber: 31
+                                                                }, this),
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "flex flex-col gap-2 mt-1 animate-in fade-in duration-300",
+                                                                    children: activeTier.apts.map((apt)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                            onClick: (e)=>{
+                                                                                e.stopPropagation();
+                                                                                onSelectApt && onSelectApt(apt.name);
+                                                                            },
+                                                                            className: "flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5",
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                    className: "flex items-center justify-between w-full",
+                                                                                    children: [
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                            className: "flex items-center gap-2.5 flex-1 min-w-0 pr-2",
+                                                                                            children: [
+                                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                                    className: "w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors"
+                                                                                                }, void 0, false, {
+                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    lineNumber: 1805,
+                                                                                                    columnNumber: 41
+                                                                                                }, this),
+                                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                    className: "text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate",
+                                                                                                    children: apt.name
+                                                                                                }, void 0, false, {
+                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    lineNumber: 1806,
+                                                                                                    columnNumber: 41
+                                                                                                }, this)
+                                                                                            ]
+                                                                                        }, void 0, true, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1804,
+                                                                                            columnNumber: 39
+                                                                                        }, this),
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_22__["default"], {
+                                                                                            className: "w-4 h-4 text-tertiary shrink-0"
+                                                                                        }, void 0, false, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1810,
+                                                                                            columnNumber: 39
+                                                                                        }, this)
+                                                                                    ]
+                                                                                }, void 0, true, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1803,
+                                                                                    columnNumber: 37
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                    className: "flex items-center justify-between pl-4 mt-0.5",
+                                                                                    children: [
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                            className: "flex items-center min-w-0 pr-2",
+                                                                                            children: apt.distToDongtan !== null && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                className: "text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap",
+                                                                                                children: [
+                                                                                                    "동탄역 ",
+                                                                                                    (apt.distToDongtan / 1000).toFixed(2),
+                                                                                                    "km"
+                                                                                                ]
+                                                                                            }, void 0, true, {
+                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                lineNumber: 1817,
+                                                                                                columnNumber: 43
+                                                                                            }, this)
+                                                                                        }, void 0, false, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1815,
+                                                                                            columnNumber: 39
+                                                                                        }, this),
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                            className: "flex flex-row items-baseline gap-1 text-right shrink-0",
+                                                                                            children: accordionMode === "price" ? (()=>{
+                                                                                                const { value, unit } = formatEokWithUnit(apt.latestPrice);
+                                                                                                return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                                                                                                    children: [
+                                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                            className: "text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap",
+                                                                                                            children: value
+                                                                                                        }, void 0, false, {
+                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            lineNumber: 1829,
+                                                                                                            columnNumber: 49
+                                                                                                        }, this),
+                                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                            className: "text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap",
+                                                                                                            children: unit
+                                                                                                        }, void 0, false, {
+                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            lineNumber: 1832,
+                                                                                                            columnNumber: 49
+                                                                                                        }, this)
+                                                                                                    ]
+                                                                                                }, void 0, true);
+                                                                                            })() : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                                                                                                children: [
+                                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                        className: "text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap",
+                                                                                                        children: Math.round(apt.pyeongPrice).toLocaleString()
+                                                                                                    }, void 0, false, {
+                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        lineNumber: 1840,
+                                                                                                        columnNumber: 45
+                                                                                                    }, this),
+                                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                        className: "text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap",
+                                                                                                        children: "만원/평"
+                                                                                                    }, void 0, false, {
+                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        lineNumber: 1843,
+                                                                                                        columnNumber: 45
+                                                                                                    }, this)
+                                                                                                ]
+                                                                                            }, void 0, true)
+                                                                                        }, void 0, false, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1823,
+                                                                                            columnNumber: 39
+                                                                                        }, this)
+                                                                                    ]
+                                                                                }, void 0, true, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1814,
+                                                                                    columnNumber: 37
+                                                                                }, this)
+                                                                            ]
+                                                                        }, apt.name, true, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1797,
+                                                                            columnNumber: 35
+                                                                        }, this))
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1795,
+                                                                    columnNumber: 31
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true);
+                                                    })()
+                                                }, void 0, false, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1732,
+                                                    columnNumber: 23
+                                                }, this) : /* 동별 최근 실거래 UI */ /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                    className: "flex flex-col gap-4",
+                                                    children: (()=>{
+                                                        const uniqueDongs = Array.from(new Set(group.apartments.map((a)=>a.dong).filter(Boolean)));
+                                                        const activeDong = selectedDongs[group.title] ?? "all";
+                                                        const txList = [];
+                                                        group.apartments.forEach((apt)=>{
+                                                            const rawTxKey = apt.txKey || (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.findTxKey)(apt.name, txSummaryData, nameMapping);
+                                                            const txKey = rawTxKey ? (0,_lib_utils_apartmentMapping__WEBPACK_IMPORTED_MODULE_2__.normalizeAptName)(rawTxKey) : null;
+                                                            const tx = txKey ? txSummaryData[txKey] : undefined;
+                                                            if (tx && tx.recent) {
+                                                                tx.recent.forEach((r)=>{
+                                                                    const [month, day] = r.date.split('.').map(Number);
+                                                                    const currentYear = new Date().getFullYear();
+                                                                    const currentMonth = new Date().getMonth() + 1;
+                                                                    let yearOffset = 0;
+                                                                    if (month > currentMonth) {
+                                                                        yearOffset = -1;
+                                                                    }
+                                                                    const sortVal = (currentYear + yearOffset) * 10000 + month * 100 + day;
+                                                                    txList.push({
+                                                                        aptName: apt.name,
+                                                                        dong: apt.dong || tx.dong || "",
+                                                                        date: r.date,
+                                                                        priceEok: r.priceEok,
+                                                                        areaPyeong: r.areaPyeong,
+                                                                        floor: r.floor,
+                                                                        area: r.area,
+                                                                        sortVal: sortVal
+                                                                    });
+                                                                });
+                                                            }
+                                                        });
+                                                        txList.sort((a, b)=>b.sortVal - a.sortVal);
+                                                        const filteredTxList = activeDong === "all" ? txList : txList.filter((tx)=>tx.dong === activeDong);
+                                                        const visibleTxList = filteredTxList.slice(0, 10);
+                                                        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                                                            children: [
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                                            onClick: (e)=>{
+                                                                                e.stopPropagation();
+                                                                                setSelectedDongs((prev)=>({
+                                                                                        ...prev,
+                                                                                        [group.title]: "all"
+                                                                                    }));
+                                                                            },
+                                                                            className: `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${activeDong === "all" ? "bg-[#333d4b] text-white shadow-sm" : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"}`,
+                                                                            children: [
+                                                                                "전체",
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                    className: `text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === 'all' ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`,
+                                                                                    children: txList.length
+                                                                                }, void 0, false, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1932,
+                                                                                    columnNumber: 35
+                                                                                }, this)
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1920,
+                                                                            columnNumber: 33
+                                                                        }, this),
+                                                                        uniqueDongs.map((dong)=>{
+                                                                            const count = txList.filter((tx)=>tx.dong === dong).length;
+                                                                            return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                                                                onClick: (e)=>{
+                                                                                    e.stopPropagation();
+                                                                                    setSelectedDongs((prev)=>({
+                                                                                            ...prev,
+                                                                                            [group.title]: dong
+                                                                                        }));
+                                                                                },
+                                                                                className: `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${activeDong === dong ? "bg-[#333d4b] text-white shadow-sm" : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"}`,
+                                                                                children: [
+                                                                                    dong,
+                                                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                        className: `text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === dong ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`,
+                                                                                        children: count
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        lineNumber: 1953,
+                                                                                        columnNumber: 39
+                                                                                    }, this)
+                                                                                ]
+                                                                            }, dong, true, {
+                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                lineNumber: 1940,
+                                                                                columnNumber: 37
+                                                                            }, this);
+                                                                        })
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1919,
+                                                                    columnNumber: 31
+                                                                }, this),
+                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                    className: "flex flex-col gap-2 mt-1 animate-in fade-in duration-300",
+                                                                    children: visibleTxList.length > 0 ? visibleTxList.map((tx, idx)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                            onClick: (e)=>{
+                                                                                e.stopPropagation();
+                                                                                onSelectApt && onSelectApt(tx.aptName);
+                                                                            },
+                                                                            className: "flex flex-row items-center justify-between p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/tx",
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                    className: "flex items-center gap-3 min-w-0 pr-2",
+                                                                                    children: [
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                            className: "px-2 py-1 bg-body rounded-[8px] text-[11.5px] font-extrabold text-tertiary group-hover/tx:bg-[#e8f3ff] group-hover/tx:text-[#3182f6] transition-colors shrink-0",
+                                                                                            children: tx.date
+                                                                                        }, void 0, false, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1974,
+                                                                                            columnNumber: 41
+                                                                                        }, this),
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                            className: "flex flex-col min-w-0",
+                                                                                            children: [
+                                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                                    className: "flex items-center gap-1.5",
+                                                                                                    children: [
+                                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                            className: "text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate",
+                                                                                                            children: tx.aptName
+                                                                                                        }, void 0, false, {
+                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            lineNumber: 1979,
+                                                                                                            columnNumber: 45
+                                                                                                        }, this),
+                                                                                                        activeDong === "all" && tx.dong && /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                            className: "text-[10px] font-semibold text-tertiary bg-body px-1.5 py-[2px] rounded-[4px] shrink-0",
+                                                                                                            children: tx.dong
+                                                                                                        }, void 0, false, {
+                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            lineNumber: 1983,
+                                                                                                            columnNumber: 47
+                                                                                                        }, this)
+                                                                                                    ]
+                                                                                                }, void 0, true, {
+                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    lineNumber: 1978,
+                                                                                                    columnNumber: 43
+                                                                                                }, this),
+                                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                                    className: "text-[11.5px] sm:text-[12px] font-medium text-tertiary mt-0.5",
+                                                                                                    children: [
+                                                                                                        tx.areaPyeong,
+                                                                                                        "평 (",
+                                                                                                        tx.area.toFixed(1),
+                                                                                                        "㎡) \xb7 ",
+                                                                                                        tx.floor,
+                                                                                                        "층"
+                                                                                                    ]
+                                                                                                }, void 0, true, {
+                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    lineNumber: 1988,
+                                                                                                    columnNumber: 43
+                                                                                                }, this)
+                                                                                            ]
+                                                                                        }, void 0, true, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1977,
+                                                                                            columnNumber: 41
+                                                                                        }, this)
+                                                                                    ]
+                                                                                }, void 0, true, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1973,
+                                                                                    columnNumber: 39
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                                    className: "text-right shrink-0",
+                                                                                    children: [
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                            className: "text-[14px] sm:text-[15.5px] font-extrabold text-[#f04452]",
+                                                                                            children: tx.priceEok
+                                                                                        }, void 0, false, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1994,
+                                                                                            columnNumber: 41
+                                                                                        }, this),
+                                                                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                                            className: "text-[10px] sm:text-[11px] font-bold text-tertiary ml-0.5",
+                                                                                            children: "만원"
+                                                                                        }, void 0, false, {
+                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            lineNumber: 1997,
+                                                                                            columnNumber: 41
+                                                                                        }, this)
+                                                                                    ]
+                                                                                }, void 0, true, {
+                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    lineNumber: 1993,
+                                                                                    columnNumber: 39
+                                                                                }, this)
+                                                                            ]
+                                                                        }, `${tx.aptName}-${tx.date}-${tx.priceEok}-${idx}`, true, {
+                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            lineNumber: 1965,
+                                                                            columnNumber: 37
+                                                                        }, this)) : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                                        className: "flex flex-col items-center justify-center py-8 text-tertiary text-[13.5px]",
+                                                                        children: "최근 실거래 내역이 없습니다."
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        lineNumber: 2004,
+                                                                        columnNumber: 35
+                                                                    }, this)
+                                                                }, void 0, false, {
+                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    lineNumber: 1962,
+                                                                    columnNumber: 31
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true);
+                                                    })()
+                                                }, void 0, false, {
+                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                    lineNumber: 1859,
+                                                    columnNumber: 23
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 1698,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, group.title, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 1606,
+                                    columnNumber: 15
+                                }, this);
+                            }),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_components_ui_NativeAdPlaceholder__WEBPACK_IMPORTED_MODULE_5__.NativeAdPlaceholder, {
+                                location: "매크로 대시보드 하단",
+                                onClick: onOpenAdModal
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2021,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 1591,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "w-full",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "h-[36px]"
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2026,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "w-full h-px bg-[#f2f4f6] dark:bg-border"
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2027,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "h-[36px]"
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2028,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 2025,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                        className: "mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8",
+                        children: [
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "mb-6",
+                                children: [
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("h2", {
+                                        className: "text-[24px] font-extrabold text-primary tracking-tight",
+                                        children: [
+                                            "동탄 부동산 인사이트",
+                                            " ",
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                className: "text-[16px] font-semibold text-tertiary ml-2 font-normal",
+                                                children: "최신 뉴스 피드"
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 2036,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 2034,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
+                                        className: "text-[13px] font-medium text-tertiary mt-1 italic",
+                                        children: "Dongtan real estate market latest news"
+                                    }, void 0, false, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 2040,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2033,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "grid grid-cols-1 md:grid-cols-2 gap-4",
+                                children: newsLoading ? Array.from({
+                                    length: 6
+                                }).map((_, i)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        className: "flex gap-4 p-5 rounded-xl border border-border bg-body animate-pulse",
+                                        children: [
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "w-8 h-8 shrink-0 bg-gray-200 rounded-full"
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 2052,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "flex flex-col w-full",
+                                                children: [
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "w-1/3 h-3 bg-gray-200 rounded mb-2"
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 2054,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "w-full h-4 bg-gray-200 rounded mb-1.5"
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 2055,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "w-2/3 h-4 bg-gray-200 rounded"
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 2056,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 2053,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, i, true, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 2048,
+                                        columnNumber: 17
+                                    }, this)) : (newsData.length > 0 ? newsData.slice(0, visibleNewsCount) : [
+                                    {
+                                        id: 1,
+                                        category: "INFRASTRUCTURE",
+                                        sub: "Transportation",
+                                        title: "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
+                                        link: "#"
+                                    },
+                                    {
+                                        id: 2,
+                                        category: "MARKET",
+                                        sub: "Supply & Demand",
+                                        title: "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
+                                        link: "#"
+                                    },
+                                    {
+                                        id: 3,
+                                        category: "POLICY",
+                                        sub: "Urban Development",
+                                        title: "동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
+                                        link: "#"
+                                    },
+                                    {
+                                        id: 4,
+                                        category: "COMMERCIAL",
+                                        sub: "Anchor Tenant",
+                                        title: "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
+                                        link: "#"
+                                    },
+                                    {
+                                        id: 5,
+                                        category: "MACRO",
+                                        sub: "Liquidity",
+                                        title: "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
+                                        link: "#"
+                                    },
+                                    {
+                                        id: 6,
+                                        category: "COMMUNITY",
+                                        sub: "Education",
+                                        title: "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
+                                        link: "#"
+                                    }
+                                ]).map((news)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                        onClick: ()=>news.link !== "#" && window.open(news.link, "_blank"),
+                                        className: "flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group",
+                                        children: [
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors",
+                                                children: news.id
+                                            }, void 0, false, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 2120,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                className: "flex flex-col justify-center",
+                                                children: [
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                                        className: "flex items-center gap-2 mb-1.5 md:mb-2",
+                                                        children: [
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                className: "text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide",
+                                                                children: news.category
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 2125,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                className: "text-[11px] md:text-[12px] text-gray-300",
+                                                                children: "|"
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 2128,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("span", {
+                                                                className: "text-[11px] md:text-[12px] font-semibold text-tertiary",
+                                                                children: news.sub
+                                                            }, void 0, false, {
+                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                                lineNumber: 2129,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 2124,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("p", {
+                                                        className: "text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2",
+                                                        children: news.title
+                                                    }, void 0, false, {
+                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                        lineNumber: 2133,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                                lineNumber: 2123,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, news.id, true, {
+                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                        lineNumber: 2113,
+                                        columnNumber: 17
+                                    }, this))
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2045,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
+                                className: "mt-6 flex flex-col gap-3 justify-center items-center",
+                                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("button", {
+                                    onClick: ()=>{
+                                        window.location.hash = 'lounge-news';
+                                    },
+                                    className: "flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm",
+                                    children: [
+                                        "더보기 (",
+                                        visibleNewsCount,
+                                        " ",
+                                        "/",
+                                        " ",
+                                        newsData.length || 100,
+                                        ")",
+                                        /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_22__["default"], {
+                                            className: "w-4 h-4"
+                                        }, void 0, false, {
+                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                            lineNumber: 2149,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                    lineNumber: 2142,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                                lineNumber: 2141,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                        lineNumber: 2032,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+                lineNumber: 1189,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
+        lineNumber: 1120,
+        columnNumber: 5
+    }, this);
+}
+_s(MacroDashboardClient, "uc5hEEtpTgstpqpBT6Oc+8Qgrwg=", false, function() {
+    return [
+        swr__WEBPACK_IMPORTED_MODULE_6__["default"],
+        react__WEBPACK_IMPORTED_MODULE_1__.useDeferredValue
+    ];
+});
+_c2 = MacroDashboardClient;
+var _c, _c1, _c2;
+$RefreshReg$(_c, "InfoBox");
+$RefreshReg$(_c1, "CustomTooltip");
+$RefreshReg$(_c2, "MacroDashboardClient");
+
+
+;
+    // Wrapped in an IIFE to avoid polluting the global scope
+    ;
+    (function () {
+        var _a, _b;
+        // Legacy CSS implementations will `eval` browser code in a Node.js context
+        // to extract CSS. For backwards compatibility, we need to check we're in a
+        // browser context before continuing.
+        if (typeof self !== 'undefined' &&
+            // No-JS mode does not inject these helpers:
+            '$RefreshHelpers$' in self) {
+            // @ts-ignore __webpack_module__ is global
+            var currentExports = module.exports;
+            // @ts-ignore __webpack_module__ is global
+            var prevSignature = (_b = (_a = module.hot.data) === null || _a === void 0 ? void 0 : _a.prevSignature) !== null && _b !== void 0 ? _b : null;
+            // This cannot happen in MainTemplate because the exports mismatch between
+            // templating and execution.
+            self.$RefreshHelpers$.registerExportsForReactRefresh(currentExports, module.id);
+            // A module can be accepted automatically based on its exports, e.g. when
+            // it is a Refresh Boundary.
+            if (self.$RefreshHelpers$.isReactRefreshBoundary(currentExports)) {
+                // Save the previous exports signature on update so we can compare the boundary
+                // signatures. We avoid saving exports themselves since it causes memory leaks (https://github.com/vercel/next.js/pull/53797)
+                module.hot.dispose(function (data) {
+                    data.prevSignature =
+                        self.$RefreshHelpers$.getRefreshBoundarySignature(currentExports);
+                });
+                // Unconditionally accept an update to this module, we'll check if it's
+                // still a Refresh Boundary later.
+                // @ts-ignore importMeta is replaced in the loader
+                module.hot.accept();
+                // This field is set when the previous version of this module was a
+                // Refresh Boundary, letting us know we need to check for invalidation or
+                // enqueue an update.
+                if (prevSignature !== null) {
+                    // A boundary can become ineligible if its exports are incompatible
+                    // with the previous exports.
+                    //
+                    // For example, if you add/remove/change exports, we'll want to
+                    // re-execute the importing modules, and force those components to
+                    // re-render. Similarly, if you convert a class component to a
+                    // function, we want to invalidate the boundary.
+                    if (self.$RefreshHelpers$.shouldInvalidateReactRefreshBoundary(prevSignature, self.$RefreshHelpers$.getRefreshBoundarySignature(currentExports))) {
+                        module.hot.invalidate();
+                    }
+                    else {
+                        self.$RefreshHelpers$.scheduleUpdate();
+                    }
+                }
+            }
+            else {
+                // Since we just executed the code for the module, it's possible that the
+                // new exports made it ineligible for being a boundary.
+                // We only care about the case when we were _previously_ a boundary,
+                // because we already accepted this update (accidental side effect).
+                var isNoLongerABoundary = prevSignature !== null;
+                if (isNoLongerABoundary) {
+                    module.hot.invalidate();
+                }
+            }
+        }
+    })();
+//# sourceURL=[module]
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKGFwcC1wYWdlcy1icm93c2VyKS8uL3NyYy9jb21wb25lbnRzL01hY3JvRGFzaGJvYXJkQ2xpZW50LnRzeCIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQW1FO0FBQzFDO0FBYVA7QUFJeUQ7QUFDakI7QUFFWjtBQVF4QjtBQUNvRDtBQXVCMUUsTUFBTTJCLFVBQVUsQ0FBQ0MsTUFBZ0JDLE1BQU1ELEtBQUtFLElBQUksQ0FBQ0MsQ0FBQUEsTUFBT0EsSUFBSUMsSUFBSTtBQUVoRSxNQUFNQyxTQUFTO0lBQ2I7SUFDQTtJQUNBO0lBQ0E7SUFDQTtDQUNEO0FBQ0QsTUFBTUMsY0FBYztJQUFDO0lBQVc7SUFBVztJQUFXO0lBQVc7Q0FBVTtBQVczRSxNQUFNQyxVQUFVLENBQUMsRUFDZkMsS0FBSyxFQUNMQyxLQUFLLEVBQ0xDLElBQUksRUFDSkMsUUFBUSxFQUNSQyxLQUFLLEVBQ0xDLFFBQVEsU0FBUyxFQUNKO0lBQ2IscUJBQ0UsOERBQUNDO1FBQUlDLFdBQVU7OzBCQUViLDhEQUFDRDtnQkFBSUMsV0FBVTs7a0NBRWIsOERBQUNEO3dCQUFJQyxXQUFVO2tDQUNiLDRFQUFDRDs0QkFBSUMsV0FBVTtzQ0FDWlA7Ozs7Ozs7Ozs7O2tDQUtMLDhEQUFDTTt3QkFBSUMsV0FBVTs7MENBQ2IsOERBQUNDO2dDQUFLRCxXQUFVOzBDQUNiTjs7Ozs7OzRCQUVGQyxzQkFDQyw4REFBQ007Z0NBQUtELFdBQVU7MENBQ2JMOzs7Ozs7Ozs7Ozs7Ozs7Ozs7WUFPUEMsQ0FBQUEsYUFBYU0sYUFBYUwsS0FBSSxtQkFDOUIsOERBQUNFO2dCQUFJQyxXQUFVOztvQkFDWkgsdUJBQ0MsOERBQUNFO3dCQUFJQyxXQUFVO2tDQUNiLDRFQUFDQzs0QkFDQ0QsV0FBVTs0QkFDVkcsT0FBTztnQ0FBRUw7NEJBQU07c0NBRWREOzs7Ozs7Ozs7OztvQkFJTkQsYUFBYU0sMkJBQ1osOERBQUNIO3dCQUFJQyxXQUFVO2tDQUNiLDRFQUFDSTs0QkFDQ0MsT0FB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OzswRUFDM0QsOERBQUNDO2dFQUFLRCxXQUFVOzBFQUNid2EsS0FBS0YsR0FBRzs7Ozs7Ozs7Ozs7O2tFQUdiLDhEQUFDM1k7d0RBQUUzQixXQUFVO2tFQUNWd2EsS0FBSy9hLEtBQUs7Ozs7Ozs7Ozs7Ozs7dUNBcEJWK2EsS0FBS0osRUFBRTs7Ozs7Ozs7OzswQ0EyQnBCLDhEQUFDcmE7Z0NBQUlDLFdBQVU7MENBQ2IsNEVBQUMyVTtvQ0FDQ0MsU0FBUzt3Q0FDUGhOLE9BQU91UyxRQUFRLENBQUNPLElBQUksR0FBRztvQ0FDekI7b0NBQ0ExYSxXQUFVOzt3Q0FDWDt3Q0FDT21IO3dDQUFpQjt3Q0FBRTt3Q0FBSTt3Q0FBRUosU0FBU3ZGLE1BQU0sSUFBSTt3Q0FBSTtzREFDdEQsOERBQUMzQyxrSUFBWUE7NENBQUNtQixXQUFVOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQU90QztHQWgwRHdCNEU7O1FBWUduSCwyQ0FBTUE7UUF5WkFELG1EQUFnQkE7OztNQXJhekJvSCIsInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxvY3M1NlxcT25lRHJpdmVcXOuwlO2DlSDtmZTrqbRcXFBPUlRGT0xJT1xcUE9SVEZPTElPIC0gRFZJRVdcXGZyb250ZW5kXFxzcmNcXGNvbXBvbmVudHNcXE1hY3JvRGFzaGJvYXJkQ2xpZW50LnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUmVhY3QsIHsgdXNlTWVtbywgdXNlU3RhdGUsIHVzZURlZmVycmVkVmFsdWUgfSBmcm9tIFwicmVhY3RcIjtcclxuaW1wb3J0IHVzZVNXUiBmcm9tIFwic3dyXCI7XHJcbmltcG9ydCB7XHJcbiAgUGllQ2hhcnQsXHJcbiAgUGllLFxyXG4gIENlbGwsXHJcbiAgUmVzcG9uc2l2ZUNvbnRhaW5lcixcclxuICBMaW5lQ2hhcnQsXHJcbiAgTGluZSxcclxuICBYQXhpcyxcclxuICBZQXhpcyxcclxuICBUb29sdGlwIGFzIFJlY2hhcnRzVG9vbHRpcCxcclxuICBDYXJ0ZXNpYW5HcmlkLFxyXG4gIExlZ2VuZCxcclxufSBmcm9tIFwicmVjaGFydHNcIjtcclxuaW1wb3J0IHR5cGUgeyBEb25nQXBhcnRtZW50IH0gZnJvbSBcIkAvbGliL2RvbmctYXBhcnRtZW50c1wiO1xyXG5pbXBvcnQgdHlwZSB7IEFwdFR4U3VtbWFyeSwgRG9uZ3Rhbk1hY3JvVHJlbmRQb2ludCB9IGZyb20gXCJAL2xpYi90eXBlcy90cmFuc2FjdGlvblwiO1xyXG5pbXBvcnQgdHlwZSB7IEZpZWxkUmVwb3J0RGF0YSB9IGZyb20gXCJAL2xpYi90eXBlcy9yZXBvcnQudHlwZXNcIjtcclxuaW1wb3J0IHsgbm9ybWFsaXplQXB0TmFtZSwgZmluZFR4S2V5IH0gZnJvbSBcIkAvbGliL3V0aWxzL2FwYXJ0bWVudE1hcHBpbmdcIjtcclxuaW1wb3J0IHsgaGF2ZXJzaW5lRGlzdGFuY2UgfSBmcm9tIFwiQC9saWIvdXRpbHMvaGF2ZXJzaW5lXCI7XHJcbmltcG9ydCBGbG9hdGluZ1VzZXJCYXIgZnJvbSBcIkAvY29tcG9uZW50cy9GbG9hdGluZ1VzZXJCYXJcIjtcclxuaW1wb3J0IFBhZ2VIZXJvSGVhZGVyIGZyb20gXCIuL1BhZ2VIZXJvSGVhZGVyXCI7XHJcbmltcG9ydCB7XHJcbiAgQXJyb3dVcCxcclxuICBJbmZvLFxyXG4gIENoZXZyb25Eb3duLFxyXG4gIENoZXZyb25VcCxcclxuICBDaGV2cm9uUmlnaHQsXHJcbiAgTWVzc2FnZVNxdWFyZSxcclxufSBmcm9tIFwibHVjaWRlLXJlYWN0XCI7XHJcbmltcG9ydCB7IE5hdGl2ZUFkUGxhY2Vob2xkZXIgfSBmcm9tIFwiQC9jb21wb25lbnRzL3VpL05hdGl2ZUFkUGxhY2Vob2xkZXJcIjtcclxuXHJcbmludGVyZmFjZSBNYWNyb05ld3NJdGVtIHtcclxuICBpZDogbnVtYmVyIHwgc3RyaW5nO1xyXG4gIGNhdGVnb3J5OiBzdHJpbmc7XHJcbiAgc3ViOiBzdHJpbmc7XHJcbiAgdGl0bGU6IHN0cmluZztcclxuICBsaW5rOiBzdHJpbmc7XHJcbn1cclxuXHJcbmludGVyZmFjZSBNYWNyb0Rhc2hib2FyZFByb3BzIHtcclxuICBzaGVldEFwYXJ0bWVudHM6IFJlY29yZDxzdHJpbmcsIERvbmdBcGFydG1lbnRbXT47XHJcbiAgdHhTdW1tYXJ5RGF0YTogUmVjb3JkPHN0cmluZywgQXB0VHhTdW1tYXJ5PjtcclxuICBtYWNyb1RyZW5kRGF0YTogRG9uZ3Rhbk1hY3JvVHJlbmRQb2ludFtdO1xyXG4gIG5hbWVNYXBwaW5nPzogUmVjb3JkPHN0cmluZywgc3RyaW5nPjtcclxuICBwdWJsaWNSZW50YWxTZXQ6IFNldDxzdHJpbmc+O1xyXG4gIHVzZXJGYXZvcml0ZXM/OiBTZXQ8c3RyaW5nPjtcclxuICBmaWVsZFJlcG9ydHNNYXA6IE1hcDxzdHJpbmcsIEZpZWxkUmVwb3J0RGF0YT47XHJcbiAgZmF2b3JpdGVDb3VudHM6IFJlY29yZDxzdHJpbmcsIG51bWJlcj47XHJcbiAgb25TZWxlY3RBcHQ/OiAobmFtZTogc3RyaW5nKSA9PiB2b2lkO1xyXG4gIG9uT3BlbkFkTW9kYWw/OiAoKSA9PiB2b2lkO1xyXG59XHJcblxyXG5jb25zdCBmZXRjaGVyID0gKHVybDogc3RyaW5nKSA9PiBmZXRjaCh1cmwpLnRoZW4ocmVzID0+IHJlcy5qc29uKCkpO1xyXG5cclxuY29uc3QgQ09MT1JTID0gW1xyXG4gIFwiIzAwZDI5ZFwiLFxyXG4gIFwiIzQxOTZmN1wiLFxyXG4gIFwiI2Y5YTgyNVwiLFxyXG4gIFwiI2YwNDQ1MlwiLFxyXG4gIFwiI2IwYjhjMVwiLFxyXG5dO1xyXG5jb25zdCBMSU5FX0NPTE9SUyA9IFtcIiNiMGI4YzFcIiwgXCIjMDBkMjlkXCIsIFwiI2YwNDQ1MlwiLCBcIiMwMGEyNjFcIiwgXCIjZjlhODI1XCJdO1xyXG5cclxuaW50ZXJmYWNlIEluZm9Cb3hQcm9wcyB7XHJcbiAgdGl0bGU6IFJlYWN0LlJlYWN0Tm9kZTtcclxuICB2YWx1ZTogUmVhY3QuUmVhY3ROb2RlO1xyXG4gIHVuaXQ/OiBzdHJpbmc7XHJcbiAgcHJvZ3Jlc3M/OiBudW1iZXI7XHJcbiAgYmFkZ2U/OiBSZWFjdC5SZWFjdE5vZGU7XHJcbiAgY29sb3I/OiBzdHJpbmc7XHJcbn1cclxuXHJcbmNvbnN0IEluZm9Cb3ggPSAoe1xyXG4gIHRpdGxlLFxyXG4gIHZhbHVlLFxyXG4gIHVuaXQsXHJcbiAgcHJvZ3Jlc3MsXHJcbiAgYmFkZ2UsXHJcbiAgY29sb3IgPSBcIiMwMGQyOWRcIixcclxufTogSW5mb0JveFByb3BzKSA9PiB7XHJcbiAgcmV0dXJuIChcclxuICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctWyNmNGY1ZjZdIGRhcms6YmctYm9keSByb3VuZGVkLVsxNHB4XSBwLTIuNSBtZDpwLTMgZmxleCBmbGV4LWNvbCBzaGFkb3ctc20gYm9yZGVyIGJvcmRlci1ib3JkZXIgaC1bOTJweF0gc206aC1bOTZweF0gbWQ6aC1bMTA2cHhdIGp1c3RpZnktYmV0d2VlblwiPlxyXG4gICAgICB7LyogVG9wIFNlY3Rpb24gKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBmbGV4LWNvbCBnYXAtMC41IG1pbi13LTAgdy1mdWxsXCI+XHJcbiAgICAgICAgey8qIFRpdGxlIEFyZWEgKi99XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJoLVsyMHB4XSBtZDpoLVsxOHB4XSBmbGV4IGl0ZW1zLWNlbnRlciBtaW4tdy0wIHctZnVsbFwiPlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LVsxMC41cHhdIG1kOnRleHQtWzEycHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5IHRyYWNraW5nLXRpZ2h0IG1pbi13LTAgdy1mdWxsIGJyZWFrLWtlZXAgbGVhZGluZy1zbnVnXCI+XHJcbiAgICAgICAgICAgIHt0aXRsZX1cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICB7LyogVmFsdWUgQXJlYSAoRml4ZWQgaGVpZ2h0IHRvIHByZXZlbnQgdW5ldmVuIGNhcmQgc2l6ZXMsIHdpdGggbGluZS1jbGFtcCkgKi99XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWJhc2VsaW5lIGdhcC0wLjUgbWQ6Z2FwLTEgbWluLXctMCB3LWZ1bGwgaC1bMjRweF0gbWQ6aC1bMjhweF0gb3ZlcmZsb3ctaGlkZGVuXCI+XHJcbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMi41cHhdIHNtOnRleHQtWzEzcHhdIG1kOnRleHQtWzE0LjVweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5IHRyYWNraW5nLXRpZ2h0IGxpbmUtY2xhbXAtMSBicmVhay1rZWVwIGxlYWRpbmctdGlnaHRcIj5cclxuICAgICAgICAgICAge3ZhbHVlfVxyXG4gICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAge3VuaXQgJiYgKFxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMHB4XSBtZDp0ZXh0LVsxMXB4XSBmb250LWJvbGQgdGV4dC1zZWNvbmRhcnkgdHJhY2tpbmctdGlnaHQgc2hyaW5rLTBcIj5cclxuICAgICAgICAgICAgICB7dW5pdH1cclxuICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgKX1cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7LyogQm90dG9tIFNlY3Rpb24gKEFsd2F5cyBhbmNob3JlZCBhdCB0aGUgYm90dG9tIHJpZ2h0KSAqL31cclxuICAgICAgeyhwcm9ncmVzcyAhPT0gdW5kZWZpbmVkIHx8IGJhZGdlKSAmJiAoXHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWVuZCB3LWZ1bGwgbXQtMC41XCI+XHJcbiAgICAgICAgICB7YmFkZ2UgJiYgKFxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJnLXN1cmZhY2UgYm9yZGVyIGJvcmRlci1ib3JkZXIgcHgtMS41IHB5LTAuNSByb3VuZGVkLVs1cHhdIHNoYWRvdy1zbVwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIFxyXG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidGV4dC1bMTBweF0gbWQ6dGV4dC1bMTFweF0gdHJhY2tpbmctdGlnaHQgZm9udC1leHRyYWJvbGQgd2hpdGVzcGFjZS1ub3dyYXBcIlxyXG4gICAgICAgICAgICAgICAgc3R5bGU9e3sgY29sb3IgfX1cclxuICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICB7YmFkZ2V9XHJcbiAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICl9XHJcbiAgICAgICAgICB7cHJvZ3Jlc3MgIT09IHVuZGVmaW5lZCAmJiAoXHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicmVsYXRpdmUgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgbWwtMS41XCI+XHJcbiAgICAgICAgICAgICAgPHN2Z1xyXG4gICAgICAgICAgICAgICAgd2lkdGg9XCIxNlwiXHJcbiAgICAgICAgICAgICAgICBoZWlnaHQ9XCIxNlwiXHJcbiAgICAgICAgICAgICAgICB2aWV3Qm94PVwiMCAwIDMyIDMyXCJcclxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInRyYW5zZm9ybSAtcm90YXRlLTkwIG1kOnctNSBtZDpoLTVcIlxyXG4gICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgIDxjaXJjbGVcclxuICAgICAgICAgICAgICAgICAgY3g9XCIxNlwiXHJcbiAgICAgICAgICAgICAgICAgIGN5PVwiMTZcIlxyXG4gICAgICAgICAgICAgICAgICByPVwiMTJcIlxyXG4gICAgICAgICAgICAgICAgICBmaWxsPVwidHJhbnNwYXJlbnRcIlxyXG4gICAgICAgICAgICAgICAgICBzdHJva2U9XCIjZTVlOGViXCJcclxuICAgICAgICAgICAgICAgICAgc3Ryb2tlV2lkdGg9XCI0XCJcclxuICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICA8Y2lyY2xlXHJcbiAgICAgICAgICAgICAgICAgIGN4PVwiMTZcIlxyXG4gICAgICAgICAgICAgICAgICBjeT1cIjE2XCJcclxuICAgICAgICAgICAgICAgICAgcj1cIjEyXCJcclxuICAgICAgICAgICAgICAgICAgZmlsbD1cInRyYW5zcGFyZW50XCJcclxuICAgICAgICAgICAgICAgICAgc3Ryb2tlPXtjb2xvcn1cclxuICAgICAgICAgICAgICAgICAgc3Ryb2tlV2lkdGg9XCI0XCJcclxuICAgICAgICAgICAgICAgICAgc3Ryb2tlRGFzaGFycmF5PXsyICogTWF0aC5QSSAqIDEyfVxyXG4gICAgICAgICAgICAgICAgICBzdHJva2VEYXNob2Zmc2V0PXsyICogTWF0aC5QSSAqIDEyICogKDEgLSBwcm9ncmVzcyAvIDEwMCl9XHJcbiAgICAgICAgICAgICAgICAgIHN0cm9rZUxpbmVjYXA9XCJyb3VuZFwiXHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTEwMDAgZWFzZS1vdXRcIlxyXG4gICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICA8L3N2Zz5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICApfVxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICApfVxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufTtcclxuXHJcbmludGVyZmFjZSBUb29sdGlwUGF5bG9hZEVudHJ5IHtcclxuICBkYXRhS2V5Pzogc3RyaW5nIHwgbnVtYmVyO1xyXG4gIG5hbWU/OiBzdHJpbmc7XHJcbiAgdmFsdWU6IG51bWJlcjtcclxuICBjb2xvcj86IHN0cmluZztcclxuICBwYXlsb2FkPzogYW55O1xyXG59XHJcblxyXG5pbnRlcmZhY2UgQ3VzdG9tVG9vbHRpcFByb3BzIHtcclxuICBhY3RpdmU/OiBib29sZWFuO1xyXG4gIHBheWxvYWQ/OiBUb29sdGlwUGF5bG9hZEVudHJ5W107XHJcbiAgbGFiZWw/OiBzdHJpbmc7XHJcbn1cclxuXHJcbmNvbnN0IEN1c3RvbVRvb2x0aXAgPSAoeyBhY3RpdmUsIHBheWxvYWQsIGxhYmVsIH06IEN1c3RvbVRvb2x0aXBQcm9wcykgPT4ge1xyXG4gIGlmIChhY3RpdmUgJiYgcGF5bG9hZCAmJiBwYXlsb2FkLmxlbmd0aCkge1xyXG4gICAgY29uc3Qgc2FsZURhdGEgPSBwYXlsb2FkLmZpbmQoXHJcbiAgICAgIChwKSA9PiBwLmRhdGFLZXkgPT09IFwi64+Z7YOEIOyVhO2MjO2KuCDsoITssrRcIiB8fCBwLm5hbWUgPT09IFwi7Y+J6regIOunpOunpOqwgFwiLFxyXG4gICAgKTtcclxuICAgIGNvbnN0IHJlbnREYXRhID0gcGF5bG9hZC5maW5kKFxyXG4gICAgICAocCkgPT5cclxuICAgICAgICBwLmRhdGFLZXkgPT09IFwi64+Z7YOEIOyVhO2MjO2KuCDsoITshLgg7Y+J6regXCIgfHwgcC5uYW1lID09PSBcIu2Pieq3oCDsoITsm5TshLjqsIBcIixcclxuICAgICk7XHJcblxyXG4gICAgY29uc3Qgc2FsZVByaWNlID0gc2FsZURhdGE/LnZhbHVlIHx8IDA7XHJcbiAgICBjb25zdCByZW50UHJpY2UgPSByZW50RGF0YT8udmFsdWUgfHwgMDtcclxuXHJcbiAgICBsZXQgcmF0aW8gPSAwO1xyXG4gICAgaWYgKHNhbGVQcmljZSA+IDAgJiYgcmVudFByaWNlID4gMCkge1xyXG4gICAgICByYXRpbyA9IChyZW50UHJpY2UgLyBzYWxlUHJpY2UpICogMTAwO1xyXG4gICAgfVxyXG5cclxuICAgIHJldHVybiAoXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctc3VyZmFjZSBwLTMuNSByb3VuZGVkLVsxNHB4XSBzaGFkb3ctWzBfOHB4XzMwcHhfcmdiYSgwLDAsMCwwLjEyKV0gYm9yZGVyIGJvcmRlci1ib3JkZXIgZmxleCBmbGV4LWNvbCBnYXAtMiBtaW4tdy1bMTUwcHhdXCI+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LVsxMy41cHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5IG1iLTFcIj5cclxuICAgICAgICAgIHtsYWJlbH1cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgICB7cGF5bG9hZC5tYXAoKGVudHJ5LCBpbmRleDogbnVtYmVyKSA9PiB7XHJcbiAgICAgICAgICBjb25zdCBpc1JlbnQgPVxyXG4gICAgICAgICAgICBlbnRyeS5kYXRhS2V5ID09PSBcIuuPme2DhCDslYTtjIztirgg7KCE7IS4IO2Pieq3oFwiIHx8XHJcbiAgICAgICAgICAgIGVudHJ5Lm5hbWUgPT09IFwi7Y+J6regIOyghOyblOyEuOqwgFwiO1xyXG4gICAgICAgICAgcmV0dXJuIChcclxuICAgICAgICAgICAgPGRpdlxyXG4gICAgICAgICAgICAgIGtleT17aW5kZXh9XHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC02XCJcclxuICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cclxuICAgICAgICAgICAgICAgIDxkaXZcclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy0yLjUgaC0yLjUgcm91bmRlZC1mdWxsXCJcclxuICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgYmFja2dyb3VuZENvbG9yOiBlbnRyeS5jb2xvciB9fVxyXG4gICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzE0cHhdIGZvbnQtYm9sZCB0ZXh0LXNlY29uZGFyeVwiPlxyXG4gICAgICAgICAgICAgICAgICB7aXNSZW50ID8gXCLsoITshLjqsIBcIiA6IFwi66ek66ek6rCAXCJ9XHJcbiAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTRweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5XCI+XHJcbiAgICAgICAgICAgICAgICB7ZW50cnkudmFsdWV97Ja1XHJcbiAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICk7XHJcbiAgICAgICAgfSl9XHJcbiAgICAgICAge3JhdGlvID4gMCAmJiAoXHJcbiAgICAgICAgICA8PlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBoLVsxcHhdIGJnLWJvZHkgbXktMVwiIC8+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC00XCI+XHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTNweF0gZm9udC1ib2xkIHRleHQtdGVydGlhcnkgcGwtNFwiPlxyXG4gICAgICAgICAgICAgICAg7KCE7IS46rCA7JyoXHJcbiAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzE0LjVweF0gZm9udC1leHRyYWJvbGQgdGV4dC1bIzAwZDI5ZF0gdHJhY2tpbmctdGlnaHRcIj5cclxuICAgICAgICAgICAgICAgIHtyYXRpby50b0ZpeGVkKDEpfSVcclxuICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPC8+XHJcbiAgICAgICAgKX1cclxuICAgICAgPC9kaXY+XHJcbiAgICApO1xyXG4gIH1cclxuICByZXR1cm4gbnVsbDtcclxufTtcclxuXHJcbmV4cG9ydCBjb25zdCBmb3JtYXRFb2tXaXRoVW5pdCA9IChwcmljZU1hbjogbnVtYmVyKSA9PiB7XHJcbiAgY29uc3Qgcm91bmRlZFByaWNlTWFuID0gTWF0aC5yb3VuZChwcmljZU1hbiAvIDEwMCkgKiAxMDA7XHJcbiAgY29uc3QgZW9rID0gTWF0aC5mbG9vcihyb3VuZGVkUHJpY2VNYW4gLyAxMDAwMCk7XHJcbiAgY29uc3QgbWFuID0gcm91bmRlZFByaWNlTWFuICUgMTAwMDA7XHJcbiAgaWYgKGVvayA9PT0gMCkgcmV0dXJuIHsgdmFsdWU6IGAke21hbi50b0xvY2FsZVN0cmluZygpfWAsIHVuaXQ6IFwi66eM7JuQXCIgfTtcclxuICBpZiAobWFuID09PSAwKSByZXR1cm4geyB2YWx1ZTogYCR7ZW9rfeyWtWAsIHVuaXQ6IFwi7JuQXCIgfTtcclxuICByZXR1cm4ge1xyXG4gICAgdmFsdWU6IGAke2Vva33slrUgJHttYW4gPT09IDAgPyBcIlwiIDogbWFuLnRvTG9jYWxlU3RyaW5nKCl9YCxcclxuICAgIHVuaXQ6IFwi66eM7JuQXCIsXHJcbiAgfTtcclxufTtcclxuXHJcbmNvbnN0IHBhcnNlRGF0ZUhlbHBlciA9IChkYXRlU3RyOiBzdHJpbmcsIHBhcmVudExhdGVzdERhdGU/OiBzdHJpbmcpOiBEYXRlIHwgbnVsbCA9PiB7XHJcbiAgY29uc3QgY2xlYW4gPSBTdHJpbmcoZGF0ZVN0cikucmVwbGFjZSgvW14wLTldL2csICcnKTtcclxuICBpZiAoY2xlYW4ubGVuZ3RoID09PSA4KSB7XHJcbiAgICBjb25zdCB5ID0gcGFyc2VJbnQoY2xlYW4uc3Vic3RyaW5nKDAsIDQpLCAxMCk7XHJcbiAgICBjb25zdCBtID0gcGFyc2VJbnQoY2xlYW4uc3Vic3RyaW5nKDQsIDYpLCAxMCkgLSAxO1xyXG4gICAgY29uc3QgZCA9IHBhcnNlSW50KGNsZWFuLnN1YnN0cmluZyg2LCA4KSwgMTApO1xyXG4gICAgcmV0dXJuIG5ldyBEYXRlKHksIG0sIGQpO1xyXG4gIH1cclxuICBcclxuICBpZiAoZGF0ZVN0ci5pbmNsdWRlcygnLicpKSB7XHJcbiAgICBjb25zdCBwYXJ0cyA9IGRhdGVTdHIuc3BsaXQoJy4nKTtcclxuICAgIGlmIChwYXJ0cy5sZW5ndGggPj0gMikge1xyXG4gICAgICBjb25zdCBtID0gcGFyc2VJbnQocGFydHNbMF0sIDEwKSAtIDE7XHJcbiAgICAgIGNvbnN0IGQgPSBwYXJzZUludChwYXJ0c1sxXSwgMTApO1xyXG4gICAgICBcclxuICAgICAgbGV0IHkgPSAyMDI2O1xyXG4gICAgICBsZXQgbGF0ZXN0RHQ6IERhdGUgfCBudWxsID0gbnVsbDtcclxuICAgICAgaWYgKHBhcmVudExhdGVzdERhdGUgJiYgcGFyZW50TGF0ZXN0RGF0ZS5sZW5ndGggPT09IDgpIHtcclxuICAgICAgICB5ID0gcGFyc2VJbnQocGFyZW50TGF0ZXN0RGF0ZS5zdWJzdHJpbmcoMCwgNCksIDEwKTtcclxuICAgICAgICBjb25zdCBsbSA9IHBhcnNlSW50KHBhcmVudExhdGVzdERhdGUuc3Vic3RyaW5nKDQsIDYpLCAxMCkgLSAxO1xyXG4gICAgICAgIGNvbnN0IGxkID0gcGFyc2VJbnQocGFyZW50TGF0ZXN0RGF0ZS5zdWJzdHJpbmcoNiwgOCksIDEwKTtcclxuICAgICAgICBsYXRlc3REdCA9IG5ldyBEYXRlKHksIGxtLCBsZCk7XHJcbiAgICAgIH1cclxuICAgICAgXHJcbiAgICAgIGNvbnN0IGR0ID0gbmV3IERhdGUoeSwgbSwgZCk7XHJcbiAgICAgIGlmIChsYXRlc3REdCAmJiBkdC5nZXRUaW1lKCkgPiBsYXRlc3REdC5nZXRUaW1lKCkpIHtcclxuICAgICAgICBkdC5zZXRGdWxsWWVhcih5IC0gMSk7XHJcbiAgICAgIH1cclxuICAgICAgcmV0dXJuIGR0O1xyXG4gICAgfVxyXG4gIH1cclxuICByZXR1cm4gbnVsbDtcclxufTtcclxuXHJcbmNvbnN0IHBhcnNlUHJpY2VFb2tIZWxwZXIgPSAocHJpY2VTdHI6IHN0cmluZyk6IG51bWJlciA9PiB7XHJcbiAgbGV0IHRvdGFsID0gMDtcclxuICBjb25zdCBjbGVhbiA9IHByaWNlU3RyLnJlcGxhY2UoLywvZywgJycpLnRyaW0oKTtcclxuICBcclxuICBpZiAoY2xlYW4uaW5jbHVkZXMoJ+yWtScpKSB7XHJcbiAgICBjb25zdCBwYXJ0cyA9IGNsZWFuLnNwbGl0KCfslrUnKTtcclxuICAgIHRvdGFsICs9IHBhcnNlRmxvYXQocGFydHNbMF0pIHx8IDA7XHJcbiAgICBpZiAocGFydHNbMV0pIHtcclxuICAgICAgY29uc3QgdGVuTWlsbGlvbiA9IHBhcnNlRmxvYXQocGFydHNbMV0ucmVwbGFjZSgvW14wLTkuXS9nLCAnJykpIHx8IDA7XHJcbiAgICAgIHRvdGFsICs9IHRlbk1pbGxpb24gLyAxMDAwMDtcclxuICAgIH1cclxuICB9IGVsc2Uge1xyXG4gICAgY29uc3QgdmFsID0gcGFyc2VGbG9hdChjbGVhbi5yZXBsYWNlKC9bXjAtOS5dL2csICcnKSkgfHwgMDtcclxuICAgIHRvdGFsICs9IHZhbCAvIDEwMDAwO1xyXG4gIH1cclxuICByZXR1cm4gdG90YWw7XHJcbn07XHJcblxyXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBNYWNyb0Rhc2hib2FyZENsaWVudCh7XHJcbiAgc2hlZXRBcGFydG1lbnRzLFxyXG4gIHR4U3VtbWFyeURhdGEsXHJcbiAgbWFjcm9UcmVuZERhdGEsXHJcbiAgbmFtZU1hcHBpbmcsXHJcbiAgcHVibGljUmVudGFsU2V0LFxyXG4gIHVzZXJGYXZvcml0ZXMsXHJcbiAgZmllbGRSZXBvcnRzTWFwLFxyXG4gIGZhdm9yaXRlQ291bnRzLFxyXG4gIG9uU2VsZWN0QXB0LFxyXG4gIG9uT3BlbkFkTW9kYWwsXHJcbn06IE1hY3JvRGFzaGJvYXJkUHJvcHMpIHtcclxuICBjb25zdCB7IGRhdGE6IGdhRGF0YSB9ID0gdXNlU1dSKCcvYXBpL3B1YmxpYy9hbmFseXRpY3MnLCBmZXRjaGVyLCB7IFxyXG4gICAgcmV2YWxpZGF0ZU9uRm9jdXM6IGZhbHNlLFxyXG4gICAgZGVkdXBpbmdJbnRlcnZhbDogNjAwMDAgXHJcbiAgfSk7XHJcbiAgXHJcbiAgY29uc3QgZm9ybWF0TnVtID0gKG51bT86IG51bWJlcikgPT4gdHlwZW9mIG51bSA9PT0gJ251bWJlcicgPyBudW0udG9Mb2NhbGVTdHJpbmcoKSA6ICctJztcclxuICBjb25zdCBbYWN0aXZlSW5kZXgsIHNldEFjdGl2ZUluZGV4XSA9IHVzZVN0YXRlPG51bWJlciB8IG51bGw+KG51bGwpO1xyXG4gIGNvbnN0IFtjaGFydE1vZGUsIHNldENoYXJ0TW9kZV0gPSB1c2VTdGF0ZTxcIjMwXCIgfCBcIjkwXCI+KFwiMzBcIik7XHJcbiAgY29uc3QgW2FjY29yZGlvbk1vZGUsIHNldEFjY29yZGlvbk1vZGVdID0gdXNlU3RhdGU8XCJwcmljZVwiIHwgXCJweWVvbmdcIj4oXCJwcmljZVwiKTtcclxuICBjb25zdCBbdGltZWZyYW1lLCBzZXRUaW1lZnJhbWVdID0gdXNlU3RhdGU8XHJcbiAgICBcIjNNXCIgfCBcIjZNXCIgfCBcIjFZXCIgfCBcIjNZXCIgfCBcIjVZXCIgfCBcIkFMTFwiXHJcbiAgPihcIkFMTFwiKTtcclxuICBjb25zdCBbZXhwYW5kZWRHcm91cHMsIHNldEV4cGFuZGVkR3JvdXBzXSA9IHVzZVN0YXRlPFJlY29yZDxzdHJpbmcsIGJvb2xlYW4+PihcclxuICAgIHt9LFxyXG4gICk7XHJcbiAgY29uc3QgW3NlbGVjdGVkVGllcnMsIHNldFNlbGVjdGVkVGllcnNdID0gdXNlU3RhdGU8UmVjb3JkPHN0cmluZywgbnVtYmVyPj4oe30pO1xyXG4gIGNvbnN0IFtzZWxlY3RlZFN1Yk1vZGVzLCBzZXRTZWxlY3RlZFN1Yk1vZGVzXSA9IHVzZVN0YXRlPFJlY29yZDxzdHJpbmcsIFwidGllcnNcIiB8IFwicmVjZW50VHhzXCI+Pih7fSk7XHJcbiAgY29uc3QgW3NlbGVjdGVkRG9uZ3MsIHNldFNlbGVjdGVkRG9uZ3NdID0gdXNlU3RhdGU8UmVjb3JkPHN0cmluZywgc3RyaW5nPj4oe30pO1xyXG4gIGNvbnN0IFtpc1Njcm9sbGVkLCBzZXRJc1Njcm9sbGVkXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuICBjb25zdCBbbmV3c0RhdGEsIHNldE5ld3NEYXRhXSA9IHVzZVN0YXRlPE1hY3JvTmV3c0l0ZW1bXT4oW10pO1xyXG4gIGNvbnN0IFtuZXdzTG9hZGluZywgc2V0TmV3c0xvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7XHJcbiAgY29uc3QgW3Zpc2libGVOZXdzQ291bnQsIHNldFZpc2libGVOZXdzQ291bnRdID0gdXNlU3RhdGUoNik7XHJcblxyXG4gIFJlYWN0LnVzZUVmZmVjdCgoKSA9PiB7XHJcbiAgICBhc3luYyBmdW5jdGlvbiBmZXRjaE5ld3MoKSB7XHJcbiAgICAgIHRyeSB7XHJcbiAgICAgICAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2goXCIvYXBpL21hY3JvL25ld3NcIik7XHJcbiAgICAgICAgY29uc3QganNvbiA9IGF3YWl0IHJlcy5qc29uKCk7XHJcbiAgICAgICAgaWYgKGpzb24uc3RhdHVzID09PSBcInN1Y2Nlc3NcIiAmJiBqc29uLmRhdGEpIHtcclxuICAgICAgICAgIHNldE5ld3NEYXRhKGpzb24uZGF0YSk7XHJcbiAgICAgICAgfVxyXG4gICAgICB9IGNhdGNoIChlcnIpIHtcclxuICAgICAgICBjb25zb2xlLmVycm9yKFwiRmFpbGVkIHRvIGZldGNoIG5ld3NcIiwgZXJyKTtcclxuICAgICAgfSBmaW5hbGx5IHtcclxuICAgICAgICBzZXROZXdzTG9hZGluZyhmYWxzZSk7XHJcbiAgICAgIH1cclxuICAgIH1cclxuICAgIGZldGNoTmV3cygpO1xyXG4gIH0sIFtdKTtcclxuXHJcbiAgUmVhY3QudXNlRWZmZWN0KCgpID0+IHtcclxuICAgIGNvbnN0IGhhbmRsZVNjcm9sbCA9ICgpID0+IHtcclxuICAgICAgc2V0SXNTY3JvbGxlZCh3aW5kb3cuc2Nyb2xsWSA+IDgwKTtcclxuICAgIH07XHJcbiAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcihcInNjcm9sbFwiLCBoYW5kbGVTY3JvbGwsIHsgcGFzc2l2ZTogdHJ1ZSB9KTtcclxuICAgIHJldHVybiAoKSA9PiB3aW5kb3cucmVtb3ZlRXZlbnRMaXN0ZW5lcihcInNjcm9sbFwiLCBoYW5kbGVTY3JvbGwpO1xyXG4gIH0sIFtdKTtcclxuXHJcbiAgY29uc3QgY2hhcnRDb250YWluZXJSZWYgPSBSZWFjdC51c2VSZWY8SFRNTERpdkVsZW1lbnQ+KG51bGwpO1xyXG5cclxuICBSZWFjdC51c2VFZmZlY3QoKCkgPT4ge1xyXG4gICAgY29uc3QgaGFuZGxlQ2xpY2tPdXRzaWRlID0gKGU6IE1vdXNlRXZlbnQgfCBUb3VjaEV2ZW50KSA9PiB7XHJcbiAgICAgIGlmIChcclxuICAgICAgICBjaGFydENvbnRhaW5lclJlZi5jdXJyZW50ICYmXHJcbiAgICAgICAgIWNoYXJ0Q29udGFpbmVyUmVmLmN1cnJlbnQuY29udGFpbnMoZS50YXJnZXQgYXMgTm9kZSlcclxuICAgICAgKSB7XHJcbiAgICAgICAgc2V0QWN0aXZlSW5kZXgobnVsbCk7XHJcbiAgICAgIH1cclxuICAgIH07XHJcbiAgICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKFwibW91c2Vkb3duXCIsIGhhbmRsZUNsaWNrT3V0c2lkZSk7XHJcbiAgICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKFwidG91Y2hzdGFydFwiLCBoYW5kbGVDbGlja091dHNpZGUsIHtcclxuICAgICAgcGFzc2l2ZTogdHJ1ZSxcclxuICAgIH0pO1xyXG4gICAgcmV0dXJuICgpID0+IHtcclxuICAgICAgZG9jdW1lbnQucmVtb3ZlRXZlbnRMaXN0ZW5lcihcIm1vdXNlZG93blwiLCBoYW5kbGVDbGlja091dHNpZGUpO1xyXG4gICAgICBkb2N1bWVudC5yZW1vdmVFdmVudExpc3RlbmVyKFwidG91Y2hzdGFydFwiLCBoYW5kbGVDbGlja091dHNpZGUpO1xyXG4gICAgfTtcclxuICB9LCBbXSk7XHJcblxyXG4gIC8vIDEuIERvbnV0IENoYXJ0IERhdGEgKOyLpOqxsOuemOqwgC/tj4nri6jqsIAg7Yuw7Ja067OEIOyEuOuMgOyImCDrtoTtj6wpXHJcbiAgLy8gQ29tcHV0ZSBtYXggdHJhbnNhY3Rpb24gZGF0ZSBhY3Jvc3MgYWxsIGRhdGEgb25jZVxyXG4gIGNvbnN0IG1heERhdGVUaW1lID0gdXNlTWVtbygoKSA9PiB7XHJcbiAgICBsZXQgbWF4VmFsID0gMDtcclxuICAgIE9iamVjdC52YWx1ZXModHhTdW1tYXJ5RGF0YSkuZm9yRWFjaCgoc3VtKSA9PiB7XHJcbiAgICAgIGlmIChzdW0ucmVjZW50KSB7XHJcbiAgICAgICAgc3VtLnJlY2VudC5mb3JFYWNoKCh0eCkgPT4ge1xyXG4gICAgICAgICAgY29uc3QgZHQgPSBwYXJzZURhdGVIZWxwZXIodHguZGF0ZSwgc3VtLmxhdGVzdERhdGUpO1xyXG4gICAgICAgICAgaWYgKGR0ICYmIGR0LmdldFRpbWUoKSA+IG1heFZhbCkge1xyXG4gICAgICAgICAgICBtYXhWYWwgPSBkdC5nZXRUaW1lKCk7XHJcbiAgICAgICAgICB9XHJcbiAgICAgICAgfSk7XHJcbiAgICAgIH1cclxuICAgIH0pO1xyXG5cclxuICAgIGlmIChtYXhWYWwgPT09IDApIHtcclxuICAgICAgbWF4VmFsID0gbmV3IERhdGUoXCIyMDI2LTA1LTI2XCIpLmdldFRpbWUoKTtcclxuICAgIH1cclxuICAgIHJldHVybiBtYXhWYWw7XHJcbiAgfSwgW3R4U3VtbWFyeURhdGFdKTtcclxuXHJcbiAgLy8gMS4gRG9udXQgQ2hhcnQgRGF0YSAo7Iuk6rGw656Y6rCAL+2PieuLqOqwgCDti7DslrTrs4Qg7IS464yA7IiYIOu2hO2PrClcclxuICBjb25zdCBkb251dERhdGEgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGNvbnN0IGRheXNMaW1pdCA9IGNoYXJ0TW9kZSA9PT0gXCIzMFwiID8gMzAgOiA5MDtcclxuICAgIGNvbnN0IGN1dG9mZlRpbWUgPSBtYXhEYXRlVGltZSAtIGRheXNMaW1pdCAqIDI0ICogNjAgKiA2MCAqIDEwMDA7XHJcblxyXG4gICAgbGV0IHVwQ291bnQgPSAwO1xyXG4gICAgbGV0IGRvd25Db3VudCA9IDA7XHJcbiAgICBsZXQgc2FtZUNvdW50ID0gMDtcclxuXHJcbiAgICBPYmplY3QudmFsdWVzKHR4U3VtbWFyeURhdGEpLmZvckVhY2goKHN1bSkgPT4ge1xyXG4gICAgICBpZiAoIXN1bS5yZWNlbnQgfHwgc3VtLnJlY2VudC5sZW5ndGggPT09IDApIHJldHVybjtcclxuXHJcbiAgICAgIGNvbnN0IGFyZWFHcm91cHM6IFJlY29yZDxudW1iZXIsIHR5cGVvZiBzdW0ucmVjZW50PiA9IHt9O1xyXG4gICAgICBzdW0ucmVjZW50LmZvckVhY2goKHR4KSA9PiB7XHJcbiAgICAgICAgY29uc3QgYXJlYUtleSA9IE1hdGguZmxvb3IodHguYXJlYSk7XHJcbiAgICAgICAgaWYgKCFhcmVhR3JvdXBzW2FyZWFLZXldKSB7XHJcbiAgICAgICAgICBhcmVhR3JvdXBzW2FyZWFLZXldID0gW107XHJcbiAgICAgICAgfVxyXG4gICAgICAgIGFyZWFHcm91cHNbYXJlYUtleV0ucHVzaCh0eCk7XHJcbiAgICAgIH0pO1xyXG5cclxuICAgICAgT2JqZWN0LnZhbHVlcyhhcmVhR3JvdXBzKS5mb3JFYWNoKCh0cmFuc2FjdGlvbnMpID0+IHtcclxuICAgICAgICBjb25zdCBtYXBwZWQgPSB0cmFuc2FjdGlvbnNcclxuICAgICAgICAgIC5tYXAoKHR4KSA9PiAoeyB0eCwgZHQ6IHBhcnNlRGF0ZUhlbHBlcih0eC5kYXRlLCBzdW0ubGF0ZXN0RGF0ZSkgfSkpXHJcbiAgICAgICAgICAuZmlsdGVyKChpdGVtKTogaXRlbSBpcyB7IHR4OiB0eXBlb2YgdHJhbnNhY3Rpb25zW251bWJlcl07IGR0OiBEYXRlIH0gPT4gaXRlbS5kdCAhPT0gbnVsbCk7XHJcblxyXG4gICAgICAgIGNvbnN0IHNvcnRlZCA9IG1hcHBlZC5zb3J0KChhLCBiKSA9PiBhLmR0LmdldFRpbWUoKSAtIGIuZHQuZ2V0VGltZSgpKTtcclxuXHJcbiAgICAgICAgZm9yIChsZXQgaiA9IDE7IGogPCBzb3J0ZWQubGVuZ3RoOyBqKyspIHtcclxuICAgICAgICAgIGNvbnN0IGN1cnJlbnQgPSBzb3J0ZWRbal07XHJcbiAgICAgICAgICBjb25zdCBwcmV2ID0gc29ydGVkW2ogLSAxXTtcclxuXHJcbiAgICAgICAgICBpZiAoY3VycmVudC5kdC5nZXRUaW1lKCkgPj0gY3V0b2ZmVGltZSkge1xyXG4gICAgICAgICAgICBjb25zdCBjdXJyZW50UHJpY2UgPSBwYXJzZVByaWNlRW9rSGVscGVyKGN1cnJlbnQudHgucHJpY2VFb2spO1xyXG4gICAgICAgICAgICBjb25zdCBwcmV2UHJpY2UgPSBwYXJzZVByaWNlRW9rSGVscGVyKHByZXYudHgucHJpY2VFb2spO1xyXG5cclxuICAgICAgICAgICAgaWYgKGN1cnJlbnRQcmljZSA+IHByZXZQcmljZSkge1xyXG4gICAgICAgICAgICAgIHVwQ291bnQrKztcclxuICAgICAgICAgICAgfSBlbHNlIGlmIChjdXJyZW50UHJpY2UgPCBwcmV2UHJpY2UpIHtcclxuICAgICAgICAgICAgICBkb3duQ291bnQrKztcclxuICAgICAgICAgICAgfSBlbHNlIGlmIChjdXJyZW50UHJpY2UgPT09IHByZXZQcmljZSkge1xyXG4gICAgICAgICAgICAgIHNhbWVDb3VudCsrO1xyXG4gICAgICAgICAgICB9XHJcbiAgICAgICAgICB9XHJcbiAgICAgICAgfVxyXG4gICAgICB9KTtcclxuICAgIH0pO1xyXG5cclxuICAgIHJldHVybiBbXHJcbiAgICAgIHsgbmFtZTogXCLsg4Hsirkg6rGw656YXCIsIHZhbHVlOiB1cENvdW50IH0sXHJcbiAgICAgIHsgbmFtZTogXCLtlZjrnb0g6rGw656YXCIsIHZhbHVlOiBkb3duQ291bnQgfSxcclxuICAgICAgeyBuYW1lOiBcIuuztO2VqSDqsbDrnphcIiwgdmFsdWU6IHNhbWVDb3VudCB9LFxyXG4gICAgXTtcclxuICB9LCBbdHhTdW1tYXJ5RGF0YSwgY2hhcnRNb2RlLCBtYXhEYXRlVGltZV0pO1xyXG5cclxuICBjb25zdCBbbWF4QXB0TmFtZSwgbWF4UHJpY2VFb2tdID0gdXNlTWVtbygoKSA9PiB7XHJcbiAgICBsZXQgbWF4UHJpY2UgPSAwO1xyXG4gICAgbGV0IG1heEVvayA9IFwiXCI7XHJcbiAgICBsZXQgZGlzcGxheUFwdE5hbWUgPSBcIlwiO1xyXG5cclxuICAgIGlmICghc2hlZXRBcGFydG1lbnRzKSByZXR1cm4gW1wiXCIsIFwiXCJdO1xyXG5cclxuICAgIE9iamVjdC52YWx1ZXMoc2hlZXRBcGFydG1lbnRzKVxyXG4gICAgICAuZmxhdCgpXHJcbiAgICAgIC5mb3JFYWNoKChhcHQpID0+IHtcclxuICAgICAgICBpZiAocHVibGljUmVudGFsU2V0LmhhcyhhcHQubmFtZSkpIHJldHVybjtcclxuICAgICAgICBjb25zdCB0eEtleSA9IGZpbmRUeEtleShhcHQubmFtZSwgdHhTdW1tYXJ5RGF0YSwgbmFtZU1hcHBpbmcpO1xyXG4gICAgICAgIGlmICh0eEtleSAmJiB0eFN1bW1hcnlEYXRhW3R4S2V5XSkge1xyXG4gICAgICAgICAgY29uc3QgdHggPSB0eFN1bW1hcnlEYXRhW3R4S2V5XTtcclxuICAgICAgICAgIGNvbnN0IHNhbGVzID0gdHguYXZnM01QcmljZSB8fCB0eC5hdmcxTVByaWNlIHx8IHR4LmxhdGVzdFByaWNlIHx8IDA7XHJcbiAgICAgICAgICBpZiAoc2FsZXMgPiBtYXhQcmljZSkge1xyXG4gICAgICAgICAgICBtYXhQcmljZSA9IHNhbGVzO1xyXG4gICAgICAgICAgICBjb25zdCBmbXQgPSBmb3JtYXRFb2tXaXRoVW5pdChzYWxlcyk7XHJcbiAgICAgICAgICAgIG1heEVvayA9IGAke2ZtdC52YWx1ZX0ke2ZtdC51bml0fWA7XHJcbiAgICAgICAgICAgIGRpc3BsYXlBcHROYW1lID0gYXB0Lm5hbWU7XHJcbiAgICAgICAgICB9XHJcbiAgICAgICAgfVxyXG4gICAgICB9KTtcclxuXHJcbiAgICByZXR1cm4gW2Rpc3BsYXlBcHROYW1lLCBtYXhFb2tdO1xyXG4gIH0sIFt0eFN1bW1hcnlEYXRhLCBzaGVldEFwYXJ0bWVudHMsIHB1YmxpY1JlbnRhbFNldF0pO1xyXG5cclxuICBjb25zdCBbbWF4UHllb25nQXB0TmFtZSwgbWF4UHllb25nUHJpY2VdID0gdXNlTWVtbygoKSA9PiB7XHJcbiAgICBsZXQgbWF4UHJpY2UgPSAwO1xyXG4gICAgbGV0IGRpc3BsYXlBcHROYW1lID0gXCJcIjtcclxuXHJcbiAgICBpZiAoIXNoZWV0QXBhcnRtZW50cykgcmV0dXJuIFtcIlwiLCAwXTtcclxuXHJcbiAgICBPYmplY3QudmFsdWVzKHNoZWV0QXBhcnRtZW50cylcclxuICAgICAgLmZsYXQoKVxyXG4gICAgICAuZm9yRWFjaCgoYXB0KSA9PiB7XHJcbiAgICAgICAgaWYgKHB1YmxpY1JlbnRhbFNldC5oYXMoYXB0Lm5hbWUpKSByZXR1cm47XHJcbiAgICAgICAgY29uc3QgdHhLZXkgPSBmaW5kVHhLZXkoYXB0Lm5hbWUsIHR4U3VtbWFyeURhdGEsIG5hbWVNYXBwaW5nKTtcclxuICAgICAgICBpZiAodHhLZXkgJiYgdHhTdW1tYXJ5RGF0YVt0eEtleV0pIHtcclxuICAgICAgICAgIGNvbnN0IHR4ID0gdHhTdW1tYXJ5RGF0YVt0eEtleV07XHJcbiAgICAgICAgICBjb25zdCBweWVvbmdQcmljZSA9XHJcbiAgICAgICAgICAgIHR4LmF2ZzNNUGVyUHllb25nIHx8XHJcbiAgICAgICAgICAgIHR4LmF2ZzFNUGVyUHllb25nIHx8XHJcbiAgICAgICAgICAgICh0eC5sYXRlc3RBcmVhID8gdHgubGF0ZXN0UHJpY2UgLyAodHgubGF0ZXN0QXJlYSAvIDMuMzA1OCkgOiAwKTtcclxuICAgICAgICAgIGlmIChweWVvbmdQcmljZSA+IG1heFByaWNlKSB7XHJcbiAgICAgICAgICAgIG1heFByaWNlID0gcHllb25nUHJpY2U7XHJcbiAgICAgICAgICAgIGRpc3BsYXlBcHROYW1lID0gYXB0Lm5hbWU7XHJcbiAgICAgICAgICB9XHJcbiAgICAgICAgfVxyXG4gICAgICB9KTtcclxuXHJcbiAgICByZXR1cm4gW2Rpc3BsYXlBcHROYW1lLCBNYXRoLnJvdW5kKG1heFByaWNlKV07XHJcbiAgfSwgW3R4U3VtbWFyeURhdGEsIHNoZWV0QXBhcnRtZW50cywgcHVibGljUmVudGFsU2V0XSk7XHJcblxyXG4gIC8vIDHslYggQ2FyZCAxICYgQ2FyZCAyOiDstZzqt7wg7Iug6rOg6rCAIOuLqOyngCAmIOy1nOq3vCDstZzrjIAg64KZ7Y+tIOuLqOyngFxyXG4gIGNvbnN0IGNhcmQxQW5kMkRhdGEgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGxldCBiZXN0SGlnaCA9IHsgbmFtZTogXCItXCIsIHByaWNlOiBcIlwiLCBkYXlzOiA5OTksIHZhbDogMCB9O1xyXG4gICAgbGV0IGJlc3REcm9wID0geyBuYW1lOiBcIi1cIiwgZHJvcDogXCJcIiwgZGF5czogOTk5LCBwY3Q6IDAgfTtcclxuXHJcbiAgICBpZiAoIXNoZWV0QXBhcnRtZW50cykge1xyXG4gICAgICByZXR1cm4geyBcclxuICAgICAgICBjYXJkMTogeyBuYW1lOiBcIi1cIiwgcHJpY2U6IFwiLVwiLCBsYWJlbDogXCLstZzqt7wgN+ydvCDsi6Dqs6DqsIBcIiB9LCBcclxuICAgICAgICBjYXJkMjogeyBuYW1lOiBcIi1cIiwgZHJvcDogXCIt7JuQICgwJSlcIiwgbGFiZWw6IFwi7LWc6re8IDfsnbwg7LWc64yAIOuCme2PrVwiIH0gXHJcbiAgICAgIH07XHJcbiAgICB9XHJcblxyXG4gICAgT2JqZWN0LnZhbHVlcyhzaGVldEFwYXJ0bWVudHMpXHJcbiAgICAgIC5mbGF0KClcclxuICAgICAgLmZvckVhY2goKGFwdCkgPT4ge1xyXG4gICAgICAgIGlmIChwdWJsaWNSZW50YWxTZXQuaGFzKGFwdC5uYW1lKSkgcmV0dXJuO1xyXG4gICAgICAgIGNvbnN0IHR4S2V5ID0gZmluZFR4S2V5KGFwdC5uYW1lLCB0eFN1bW1hcnlEYXRhLCBuYW1lTWFwcGluZyk7XHJcbiAgICAgICAgaWYgKHR4S2V5ICYmIHR4U3VtbWFyeURhdGFbdHhLZXldKSB7XHJcbiAgICAgICAgICBjb25zdCBzdW0gPSB0eFN1bW1hcnlEYXRhW3R4S2V5XTtcclxuICAgICAgICAgIGlmIChzdW0ucmVjZW50KSB7XHJcbiAgICAgICAgICAgIHN1bS5yZWNlbnQuZm9yRWFjaCgodHgpID0+IHtcclxuICAgICAgICAgICAgICBjb25zdCBkdCA9IHBhcnNlRGF0ZUhlbHBlcih0eC5kYXRlLCBzdW0ubGF0ZXN0RGF0ZSk7XHJcbiAgICAgICAgICAgICAgaWYgKGR0KSB7XHJcbiAgICAgICAgICAgICAgICBjb25zdCBkaWZmTXMgPSBtYXhEYXRlVGltZSAtIGR0LmdldFRpbWUoKTtcclxuICAgICAgICAgICAgICAgIGNvbnN0IGRpZmZEYXlzID0gTWF0aC5mbG9vcihkaWZmTXMgLyAoMjQgKiA2MCAqIDYwICogMTAwMCkpO1xyXG4gICAgICAgICAgICAgICAgXHJcbiAgICAgICAgICAgICAgICAvLyBPbmx5IGluc3BlY3QgcGFzdCA5MCBkYXlzIHRvIGF2b2lkIHN0YWxlIGRhdGFcclxuICAgICAgICAgICAgICAgIGlmIChkaWZmRGF5cyA+PSAwICYmIGRpZmZEYXlzIDw9IDkwKSB7XHJcbiAgICAgICAgICAgICAgICAgIGNvbnN0IHByaWNlID0gcGFyc2VQcmljZUVva0hlbHBlcih0eC5wcmljZUVvayk7XHJcbiAgICAgICAgICAgICAgICAgIGNvbnN0IG1heFByaWNlRW9rVmFsID0gKHN1bS5tYXhQcmljZSB8fCAwKSAvIDEwMDAwO1xyXG4gICAgICAgICAgICAgICAgICBcclxuICAgICAgICAgICAgICAgICAgLy8gQS4gTmV3IEhpZ2ggKHdpdGhpbiA1MDBrIHdvbiBtYXJnaW4gb2YgcGVhaylcclxuICAgICAgICAgICAgICAgICAgaWYgKHByaWNlID4gMCAmJiBtYXhQcmljZUVva1ZhbCA+IDAgJiYgcHJpY2UgPj0gbWF4UHJpY2VFb2tWYWwgLSAwLjA1KSB7XHJcbiAgICAgICAgICAgICAgICAgICAgY29uc3QgY3VycmVudFdpbmRvdyA9IE1hdGgubWF4KDcsIE1hdGguY2VpbCgoZGlmZkRheXMgfHwgMSkgLyA3KSAqIDcpO1xyXG4gICAgICAgICAgICAgICAgICAgIGNvbnN0IGJlc3RXaW5kb3cgPSBNYXRoLm1heCg3LCBNYXRoLmNlaWwoKGJlc3RIaWdoLmRheXMgfHwgMSkgLyA3KSAqIDcpO1xyXG4gICAgICAgICAgICAgICAgICAgIFxyXG4gICAgICAgICAgICAgICAgICAgIGlmIChiZXN0SGlnaC5uYW1lID09PSBcIi1cIiB8fCBjdXJyZW50V2luZG93IDwgYmVzdFdpbmRvdyB8fCAoY3VycmVudFdpbmRvdyA9PT0gYmVzdFdpbmRvdyAmJiBwcmljZSA+IGJlc3RIaWdoLnZhbCkpIHtcclxuICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGZtdCA9IGZvcm1hdEVva1dpdGhVbml0KHByaWNlICogMTAwMDApO1xyXG4gICAgICAgICAgICAgICAgICAgICAgYmVzdEhpZ2ggPSB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIG5hbWU6IGFwdC5uYW1lLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBwcmljZTogYCR7Zm10LnZhbHVlfSR7Zm10LnVuaXQgPT09ICfrp4zsm5AnID8gJ+unjCcgOiAnJ31gLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBkYXlzOiBkaWZmRGF5cyxcclxuICAgICAgICAgICAgICAgICAgICAgICAgdmFsOiBwcmljZVxyXG4gICAgICAgICAgICAgICAgICAgICAgfTtcclxuICAgICAgICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgICAgICAgIH1cclxuXHJcbiAgICAgICAgICAgICAgICAgIC8vIEIuIFByaWNlIERyb3AgZnJvbSBwZWFrXHJcbiAgICAgICAgICAgICAgICAgIGlmIChwcmljZSA+IDAgJiYgbWF4UHJpY2VFb2tWYWwgPiAwKSB7XHJcbiAgICAgICAgICAgICAgICAgICAgY29uc3QgZHJvcFBjdCA9ICgocHJpY2UgLSBtYXhQcmljZUVva1ZhbCkgLyBtYXhQcmljZUVva1ZhbCkgKiAxMDA7XHJcbiAgICAgICAgICAgICAgICAgICAgaWYgKGRyb3BQY3QgPCAtMS4wKSB7IC8vIGRyb3BzIG1vcmUgdGhhbiAxJVxyXG4gICAgICAgICAgICAgICAgICAgICAgY29uc3QgY3VycmVudFdpbmRvdyA9IE1hdGgubWF4KDcsIE1hdGguY2VpbCgoZGlmZkRheXMgfHwgMSkgLyA3KSAqIDcpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgY29uc3QgYmVzdFdpbmRvdyA9IE1hdGgubWF4KDcsIE1hdGguY2VpbCgoYmVzdERyb3AuZGF5cyB8fCAxKSAvIDcpICogNyk7XHJcbiAgICAgICAgICAgICAgICAgICAgICBcclxuICAgICAgICAgICAgICAgICAgICAgIGlmIChiZXN0RHJvcC5uYW1lID09PSBcIi1cIiB8fCBjdXJyZW50V2luZG93IDwgYmVzdFdpbmRvdyB8fCAoY3VycmVudFdpbmRvdyA9PT0gYmVzdFdpbmRvdyAmJiBkcm9wUGN0IDwgYmVzdERyb3AucGN0KSkge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBkaWZmUHJpY2UgPSBtYXhQcmljZUVva1ZhbCAtIHByaWNlO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBmbXREaWZmID0gZm9ybWF0RW9rV2l0aFVuaXQoZGlmZlByaWNlICogMTAwMDApO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICBjb25zdCB1bml0U3RyID0gZm10RGlmZi51bml0ID09PSAn66eM7JuQJyA/ICfrp4wnIDogKGZtdERpZmYudW5pdCA9PT0gJ+ybkCcgPyAnJyA6IGZtdERpZmYudW5pdCk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBiZXN0RHJvcCA9IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBuYW1lOiBhcHQubmFtZSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBkcm9wOiBgLSR7Zm10RGlmZi52YWx1ZX0ke3VuaXRTdHJ9ICgke2Ryb3BQY3QudG9GaXhlZCgxKX0lKWAsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgZGF5czogZGlmZkRheXMsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgcGN0OiBkcm9wUGN0XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIH07XHJcbiAgICAgICAgICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgICAgICAgICAgfVxyXG4gICAgICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgICAgfVxyXG4gICAgICAgICAgICB9KTtcclxuICAgICAgICAgIH1cclxuICAgICAgICB9XHJcbiAgICAgIH0pO1xyXG5cclxuICAgIC8vIEZhbGxiYWNrc1xyXG4gICAgY29uc3QgY2FyZDFOYW1lID0gYmVzdEhpZ2gubmFtZSAhPT0gXCItXCIgPyBiZXN0SGlnaC5uYW1lIDogbWF4QXB0TmFtZTtcclxuICAgIGNvbnN0IGNhcmQxUHJpY2UgPSBiZXN0SGlnaC5uYW1lICE9PSBcIi1cIiA/IGJlc3RIaWdoLnByaWNlIDogbWF4UHJpY2VFb2s7XHJcbiAgICBjb25zdCBjYXJkMVdpbmRvdyA9IGJlc3RIaWdoLm5hbWUgIT09IFwiLVwiID8gTWF0aC5tYXgoNywgTWF0aC5jZWlsKChiZXN0SGlnaC5kYXlzIHx8IDEpIC8gNykgKiA3KSA6IDc7XHJcblxyXG4gICAgY29uc3QgY2FyZDJOYW1lID0gYmVzdERyb3AubmFtZSAhPT0gXCItXCIgPyBiZXN0RHJvcC5uYW1lIDogbWF4UHllb25nQXB0TmFtZTtcclxuICAgIGNvbnN0IGNhcmQyRHJvcCA9IGJlc3REcm9wLm5hbWUgIT09IFwiLVwiID8gYmVzdERyb3AuZHJvcCA6IFwiLTDsm5AgKDAlKVwiO1xyXG4gICAgY29uc3QgY2FyZDJXaW5kb3cgPSBiZXN0RHJvcC5uYW1lICE9PSBcIi1cIiA/IE1hdGgubWF4KDcsIE1hdGguY2VpbCgoYmVzdERyb3AuZGF5cyB8fCAxKSAvIDcpICogNykgOiA3O1xyXG5cclxuICAgIHJldHVybiB7XHJcbiAgICAgIGNhcmQxOiB7XHJcbiAgICAgICAgbmFtZTogY2FyZDFOYW1lLFxyXG4gICAgICAgIHByaWNlOiBjYXJkMVByaWNlLFxyXG4gICAgICAgIGxhYmVsOiBg7LWc6re8ICR7Y2FyZDFXaW5kb3d97J28IOyLoOqzoOqwgGBcclxuICAgICAgfSxcclxuICAgICAgY2FyZDI6IHtcclxuICAgICAgICBuYW1lOiBjYXJkMk5hbWUsXHJcbiAgICAgICAgZHJvcDogY2FyZDJEcm9wLFxyXG4gICAgICAgIGxhYmVsOiBg7LWc6re8ICR7Y2FyZDJXaW5kb3d97J28IOy1nOuMgCDrgpntj61gXHJcbiAgICAgIH1cclxuICAgIH07XHJcbiAgfSwgW3R4U3VtbWFyeURhdGEsIHNoZWV0QXBhcnRtZW50cywgcHVibGljUmVudGFsU2V0LCBuYW1lTWFwcGluZywgbWF4RGF0ZVRpbWUsIG1heEFwdE5hbWUsIG1heFByaWNlRW9rLCBtYXhQeWVvbmdBcHROYW1lXSk7XHJcblxyXG4gIC8vIDHslYggQ2FyZCAzOiDstZzqt7wgMzDsnbwg64+Z7YOEIOyLpOqxsOuemOufiSAmIOy2lOyEuCAoTW9NKVxyXG4gIGNvbnN0IGNhcmQzRGF0YSA9IHVzZU1lbW8oKCkgPT4ge1xyXG4gICAgY29uc3QgbGltaXQzMCA9IDMwICogMjQgKiA2MCAqIDYwICogMTAwMDtcclxuICAgIGNvbnN0IGN1dG9mZjMwID0gbWF4RGF0ZVRpbWUgLSBsaW1pdDMwO1xyXG4gICAgY29uc3QgY3V0b2ZmNjAgPSBtYXhEYXRlVGltZSAtIDIgKiBsaW1pdDMwO1xyXG5cclxuICAgIGxldCBjdXJyZW50Q291bnQgPSAwO1xyXG4gICAgbGV0IHByZXZDb3VudCA9IDA7XHJcblxyXG4gICAgT2JqZWN0LnZhbHVlcyh0eFN1bW1hcnlEYXRhKS5mb3JFYWNoKChzdW0pID0+IHtcclxuICAgICAgaWYgKHN1bS5yZWNlbnQpIHtcclxuICAgICAgICBzdW0ucmVjZW50LmZvckVhY2goKHR4KSA9PiB7XHJcbiAgICAgICAgICBjb25zdCBkdCA9IHBhcnNlRGF0ZUhlbHBlcih0eC5kYXRlLCBzdW0ubGF0ZXN0RGF0ZSk7XHJcbiAgICAgICAgICBpZiAoZHQpIHtcclxuICAgICAgICAgICAgY29uc3QgdGltZSA9IGR0LmdldFRpbWUoKTtcclxuICAgICAgICAgICAgaWYgKHRpbWUgPj0gY3V0b2ZmMzApIHtcclxuICAgICAgICAgICAgICBjdXJyZW50Q291bnQrKztcclxuICAgICAgICAgICAgfSBlbHNlIGlmICh0aW1lID49IGN1dG9mZjYwKSB7XHJcbiAgICAgICAgICAgICAgcHJldkNvdW50Kys7XHJcbiAgICAgICAgICAgIH1cclxuICAgICAgICAgIH1cclxuICAgICAgICB9KTtcclxuICAgICAgfVxyXG4gICAgfSk7XHJcblxyXG4gICAgY29uc3QgZGlmZiA9IGN1cnJlbnRDb3VudCAtIHByZXZDb3VudDtcclxuICAgIGNvbnN0IHJhdGUgPSBwcmV2Q291bnQgPiAwID8gKGRpZmYgLyBwcmV2Q291bnQpICogMTAwIDogMDtcclxuICAgIGNvbnN0IGlzVXAgPSBkaWZmID4gMDtcclxuICAgIGNvbnN0IGlzRG93biA9IGRpZmYgPCAwO1xyXG5cclxuICAgIGxldCB0cmVuZFRleHQgPSBcIuuztO2VqSAoMCUpXCI7XHJcbiAgICBsZXQgdHJlbmRDb2xvciA9IFwiIzk0YTNiOFwiO1xyXG4gICAgaWYgKGlzVXApIHtcclxuICAgICAgdHJlbmRUZXh0ID0gYOyDgeyKuSAoKyR7cmF0ZS50b0ZpeGVkKDEpfSUpYDtcclxuICAgICAgdHJlbmRDb2xvciA9IFwiI2ZmNGI1Y1wiO1xyXG4gICAgfSBlbHNlIGlmIChpc0Rvd24pIHtcclxuICAgICAgdHJlbmRUZXh0ID0gYO2VmOudvSAoJHtyYXRlLnRvRml4ZWQoMSl9JSlgO1xyXG4gICAgICB0cmVuZENvbG9yID0gXCIjMmU3Y2Y2XCI7XHJcbiAgICB9XHJcblxyXG4gICAgcmV0dXJuIHtcclxuICAgICAgY3VycmVudENvdW50LFxyXG4gICAgICBwcmV2Q291bnQsXHJcbiAgICAgIHRyZW5kVGV4dCxcclxuICAgICAgdHJlbmRDb2xvcixcclxuICAgICAgYmFkZ2U6IGAke2RpZmYgPj0gMCA/IFwiK1wiIDogXCJcIn0ke2RpZmZ96rG0ICgke2RpZmYgPj0gMCA/IFwiK1wiIDogXCJcIn0ke3JhdGUudG9GaXhlZCgwKX0lKWBcclxuICAgIH07XHJcbiAgfSwgW3R4U3VtbWFyeURhdGEsIG1heERhdGVUaW1lXSk7XHJcblxyXG4gIC8vIDHslYggQ2FyZCA0OiDstZzsoIAg6rCtKEdBUCkg7Yis7J6QIOuLqOyngFxyXG4gIGNvbnN0IGNhcmQ0RGF0YSA9IHVzZU1lbW8oKCkgPT4ge1xyXG4gICAgbGV0IHRhcmdldEFwdE5hbWUgPSBcIi1cIjtcclxuICAgIGxldCBtaW5HYXBBbW91bnQgPSBJbmZpbml0eTtcclxuICAgIGxldCB0YXJnZXRHYXBQY3QgPSAwO1xyXG5cclxuICAgIGlmIChzaGVldEFwYXJ0bWVudHMpIHtcclxuICAgICAgT2JqZWN0LnZhbHVlcyhzaGVldEFwYXJ0bWVudHMpXHJcbiAgICAgICAgLmZsYXQoKVxyXG4gICAgICAgIC5mb3JFYWNoKChhcHQpID0+IHtcclxuICAgICAgICAgIGlmIChwdWJsaWNSZW50YWxTZXQuaGFzKGFwdC5uYW1lKSkgcmV0dXJuO1xyXG4gICAgICAgICAgY29uc3QgdHhLZXkgPSBmaW5kVHhLZXkoYXB0Lm5hbWUsIHR4U3VtbWFyeURhdGEsIG5hbWVNYXBwaW5nKTtcclxuICAgICAgICAgIGlmICh0eEtleSAmJiB0eFN1bW1hcnlEYXRhW3R4S2V5XSkge1xyXG4gICAgICAgICAgICBjb25zdCBzdW0gPSB0eFN1bW1hcnlEYXRhW3R4S2V5XTtcclxuICAgICAgICAgICAgY29uc3Qgc2FsZXMgPSBzdW0uYXZnM01QcmljZSB8fCBzdW0uYXZnMU1QcmljZSB8fCBzdW0ubGF0ZXN0UHJpY2UgfHwgMDtcclxuICAgICAgICAgICAgY29uc3QgcmVudCA9IHN1bS5sYXRlc3RSZW50RGVwb3NpdCB8fCBzdW0uYXZnM01SZW50RGVwb3NpdCB8fCAwO1xyXG5cclxuICAgICAgICAgICAgaWYgKHNhbGVzID4gMCAmJiByZW50ID4gMCkge1xyXG4gICAgICAgICAgICAgIGNvbnN0IGdhcEFtb3VudCA9IHNhbGVzIC0gcmVudDtcclxuICAgICAgICAgICAgICBpZiAoZ2FwQW1vdW50ID4gMCAmJiBnYXBBbW91bnQgPCBtaW5HYXBBbW91bnQpIHtcclxuICAgICAgICAgICAgICAgIG1pbkdhcEFtb3VudCA9IGdhcEFtb3VudDtcclxuICAgICAgICAgICAgICAgIHRhcmdldEFwdE5hbWUgPSBhcHQubmFtZTtcclxuICAgICAgICAgICAgICAgIHRhcmdldEdhcFBjdCA9IChyZW50IC8gc2FsZXMpICogMTAwO1xyXG4gICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgfVxyXG4gICAgICAgICAgfVxyXG4gICAgICAgIH0pO1xyXG4gICAgfVxyXG5cclxuICAgIGxldCBiYWRnZVRleHQgPSBcIi1cIjtcclxuICAgIGlmIChtaW5HYXBBbW91bnQgIT09IEluZmluaXR5KSB7XHJcbiAgICAgIGNvbnN0IGZtdCA9IGZvcm1hdEVva1dpdGhVbml0KG1pbkdhcEFtb3VudCk7XHJcbiAgICAgIGNvbnN0IHVuaXRTdHIgPSBmbXQudW5pdCA9PT0gJ+unjOybkCcgPyAn66eMJyA6IChmbXQudW5pdCA9PT0gJ+ybkCcgPyAnJyA6IGZtdC51bml0KTtcclxuICAgICAgYmFkZ2VUZXh0ID0gYOqwrSAke2ZtdC52YWx1ZX0ke3VuaXRTdHJ9ICgke3RhcmdldEdhcFBjdC50b0ZpeGVkKDApfSUpYDtcclxuICAgIH1cclxuXHJcbiAgICByZXR1cm4ge1xyXG4gICAgICBuYW1lOiB0YXJnZXRBcHROYW1lLFxyXG4gICAgICBiYWRnZTogYmFkZ2VUZXh0XHJcbiAgICB9O1xyXG4gIH0sIFt0eFN1bW1hcnlEYXRhLCBzaGVldEFwYXJ0bWVudHMsIHB1YmxpY1JlbnRhbFNldCwgbmFtZU1hcHBpbmddKTtcclxuXHJcbiAgY29uc3QgW3RvdGFsSG91c2Vob2xkcywgcHVibGljUmVudGFsSG91c2Vob2xkc10gPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGxldCB0b3RhbCA9IDA7XHJcbiAgICBsZXQgcHVibGljUmVudGFsID0gMDtcclxuICAgIGlmICghc2hlZXRBcGFydG1lbnRzKSByZXR1cm4gWzAsIDBdO1xyXG4gICAgT2JqZWN0LnZhbHVlcyhzaGVldEFwYXJ0bWVudHMpXHJcbiAgICAgIC5mbGF0KClcclxuICAgICAgLmZvckVhY2goKGFwdCkgPT4ge1xyXG4gICAgICAgIGNvbnN0IGhoID0gYXB0LmhvdXNlaG9sZENvdW50IHx8IDA7XHJcbiAgICAgICAgdG90YWwgKz0gaGg7XHJcbiAgICAgICAgaWYgKHB1YmxpY1JlbnRhbFNldC5oYXMoYXB0Lm5hbWUpKSB7XHJcbiAgICAgICAgICBwdWJsaWNSZW50YWwgKz0gaGg7XHJcbiAgICAgICAgfVxyXG4gICAgICB9KTtcclxuICAgIHJldHVybiBbdG90YWwsIHB1YmxpY1JlbnRhbF07XHJcbiAgfSwgW3NoZWV0QXBhcnRtZW50cywgcHVibGljUmVudGFsU2V0XSk7XHJcblxyXG4gIC8vIDIuIExpbmUgQ2hhcnQgRGF0YSAo64+Z7YOEIOyVhO2MjO2KuCDsoITssrQg6rCA6rKpIOuzgO2ZlCDstpTsnbQgLSDsi6TsoJwg642w7J207YSwKVxyXG4gIGNvbnN0IGJlbmNobWFya3MgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIHJldHVybiBbXCLrj5ntg4Qg7JWE7YyM7Yq4IOyghOyytFwiXTtcclxuICB9LCBbXSk7XHJcblxyXG4gIGNvbnN0IGRlZmVycmVkTWFjcm9UcmVuZERhdGEgPSB1c2VEZWZlcnJlZFZhbHVlKG1hY3JvVHJlbmREYXRhKTtcclxuXHJcbiAgY29uc3QgbGluZURhdGEgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGlmICghZGVmZXJyZWRNYWNyb1RyZW5kRGF0YSkgcmV0dXJuIFtdO1xyXG4gICAgbGV0IGNvdW50ID0gZGVmZXJyZWRNYWNyb1RyZW5kRGF0YS5sZW5ndGg7XHJcbiAgICBzd2l0Y2ggKHRpbWVmcmFtZSkge1xyXG4gICAgICBjYXNlIFwiM01cIjpcclxuICAgICAgICBjb3VudCA9IDM7XHJcbiAgICAgICAgYnJlYWs7XHJcbiAgICAgIGNhc2UgXCI2TVwiOlxyXG4gICAgICAgIGNvdW50ID0gNjtcclxuICAgICAgICBicmVhaztcclxuICAgICAgY2FzZSBcIjFZXCI6XHJcbiAgICAgICAgY291bnQgPSAxMjtcclxuICAgICAgICBicmVhaztcclxuICAgICAgY2FzZSBcIjNZXCI6XHJcbiAgICAgICAgY291bnQgPSAzNjtcclxuICAgICAgICBicmVhaztcclxuICAgICAgY2FzZSBcIjVZXCI6XHJcbiAgICAgICAgY291bnQgPSA2MDtcclxuICAgICAgICBicmVhaztcclxuICAgICAgY2FzZSBcIkFMTFwiOlxyXG4gICAgICAgIGNvdW50ID0gZGVmZXJyZWRNYWNyb1RyZW5kRGF0YS5sZW5ndGg7XHJcbiAgICAgICAgYnJlYWs7XHJcbiAgICB9XHJcbiAgICByZXR1cm4gZGVmZXJyZWRNYWNyb1RyZW5kRGF0YS5zbGljZShcclxuICAgICAgLU1hdGgubWluKGNvdW50LCBkZWZlcnJlZE1hY3JvVHJlbmREYXRhLmxlbmd0aCksXHJcbiAgICApO1xyXG4gIH0sIFt0aW1lZnJhbWUsIGRlZmVycmVkTWFjcm9UcmVuZERhdGFdKTtcclxuXHJcbiAgY29uc3QgeFRpY2tzID0gdXNlTWVtbygoKSA9PiB7XHJcbiAgICBpZiAobGluZURhdGEubGVuZ3RoID09PSAwKSByZXR1cm4gW107XHJcbiAgICBjb25zdCB0aWNrcyA9IFtdO1xyXG4gICAgY29uc3QgdG90YWwgPSBsaW5lRGF0YS5sZW5ndGg7XHJcblxyXG4gICAgaWYgKHRpbWVmcmFtZSA9PT0gXCIzTVwiIHx8IHRpbWVmcmFtZSA9PT0gXCI2TVwiKSB7XHJcbiAgICAgIHJldHVybiBsaW5lRGF0YS5tYXAoKGQpID0+IGQubmFtZSk7XHJcbiAgICB9XHJcblxyXG4gICAgbGV0IHN0ZXAgPSAxO1xyXG4gICAgaWYgKHRpbWVmcmFtZSA9PT0gXCIxWVwiKVxyXG4gICAgICBzdGVwID0gMjsgLy8gMuqwnOyblCDqsITqsqlcclxuICAgIGVsc2UgaWYgKHRpbWVmcmFtZSA9PT0gXCIzWVwiKVxyXG4gICAgICBzdGVwID0gNjsgLy8gNuqwnOyblCDqsITqsqlcclxuICAgIGVsc2UgaWYgKHRpbWVmcmFtZSA9PT0gXCI1WVwiKVxyXG4gICAgICBzdGVwID0gMTI7IC8vIDHrhYQg6rCE6rKpXHJcbiAgICBlbHNlIGlmICh0aW1lZnJhbWUgPT09IFwiQUxMXCIpIHN0ZXAgPSAyNDsgLy8gMuuFhCDqsITqsqlcclxuXHJcbiAgICAvLyDtla3sg4Eg7LWc7IugIOuLrCjqsIDsnqUg7Jik66W47Kq9Keu2gO2EsCDsl63siJzsnLzroZwg6reg65Ox7ZWY6rKMIOuylOuhgOulvCDstpTstpxcclxuICAgIGZvciAobGV0IGkgPSB0b3RhbCAtIDE7IGkgPj0gMDsgaSAtPSBzdGVwKSB7XHJcbiAgICAgIHRpY2tzLnVuc2hpZnQobGluZURhdGFbaV0ubmFtZSk7XHJcbiAgICB9XHJcbiAgICByZXR1cm4gdGlja3M7XHJcbiAgfSwgW2xpbmVEYXRhLCB0aW1lZnJhbWVdKTtcclxuXHJcbiAgY29uc3QgcHVibGljUmVudGFsUmF0aW8gPVxyXG4gICAgdG90YWxIb3VzZWhvbGRzID4gMCA/IChwdWJsaWNSZW50YWxIb3VzZWhvbGRzIC8gdG90YWxIb3VzZWhvbGRzKSAqIDEwMCA6IDA7XHJcblxyXG4gIGNvbnN0IGxhdGVzdEF2Z1ByaWNlID1cclxuICAgIG1hY3JvVHJlbmREYXRhICYmIG1hY3JvVHJlbmREYXRhLmxlbmd0aCA+IDBcclxuICAgICAgPyBtYWNyb1RyZW5kRGF0YVttYWNyb1RyZW5kRGF0YS5sZW5ndGggLSAxXVtcIuuPme2DhCDslYTtjIztirgg7KCE7LK0XCJdXHJcbiAgICAgIDogMDtcclxuICBjb25zdCBhdmdQcmljZVByb2dyZXNzID0gTWF0aC5taW4oKGxhdGVzdEF2Z1ByaWNlIC8gMTUpICogMTAwLCAxMDApO1xyXG5cclxuICBjb25zdCBhdmdQcmljZUZvcm1hdHRlZCA9IHVzZU1lbW8oKCkgPT4ge1xyXG4gICAgY29uc3QgdWsgPSBNYXRoLmZsb29yKGxhdGVzdEF2Z1ByaWNlKTtcclxuICAgIGNvbnN0IG1hbiA9IE1hdGgucm91bmQoKGxhdGVzdEF2Z1ByaWNlIC0gdWspICogMTAwMDApO1xyXG5cclxuICAgIGlmIChtYW4gPT09IDApIHtcclxuICAgICAgcmV0dXJuIHsgdmFsdWU6IGAke3VrfWAsIHVuaXQ6IFwi7Ja1XCIgfTtcclxuICAgIH1cclxuICAgIHJldHVybiB7IHZhbHVlOiBgJHt1a33slrUgJHttYW4udG9Mb2NhbGVTdHJpbmcoKX1gLCB1bml0OiBcIuunjOybkFwiIH07XHJcbiAgfSwgW2xhdGVzdEF2Z1ByaWNlXSk7XHJcblxyXG4gIGNvbnN0IG1vbVN0YXRzID0gdXNlTWVtbygoKSA9PiB7XHJcbiAgICBpZiAoIW1hY3JvVHJlbmREYXRhIHx8IG1hY3JvVHJlbmREYXRhLmxlbmd0aCA8IDIpXHJcbiAgICAgIHJldHVybiB7XHJcbiAgICAgICAgY2hhbmdlOiAwLFxyXG4gICAgICAgIGNoYW5nZVRleHQ6IFwiMOybkFwiLFxyXG4gICAgICAgIHJhdGU6IDAsXHJcbiAgICAgICAgdGV4dDogXCLrs7Ttlakg7IOB7YOcXCIsXHJcbiAgICAgICAgY29sb3I6IFwiI2IwYjhjMVwiLFxyXG4gICAgICB9O1xyXG4gICAgY29uc3QgY3VycmVudCA9XHJcbiAgICAgIG1hY3JvVHJlbmREYXRhW21hY3JvVHJlbmREYXRhLmxlbmd0aCAtIDFdW1wi64+Z7YOEIOyVhO2MjO2KuCDsoITssrRcIl07XHJcbiAgICBjb25zdCBwcmV2ID1cclxuICAgICAgbWFjcm9UcmVuZERhdGFbbWFjcm9UcmVuZERhdGEubGVuZ3RoIC0gMl1bXCLrj5ntg4Qg7JWE7YyM7Yq4IOyghOyytFwiXTtcclxuICAgIGlmIChwcmV2ID09PSAwKVxyXG4gICAgICByZXR1cm4ge1xyXG4gICAgICAgIGNoYW5nZTogMCxcclxuICAgICAgICBjaGFuZ2VUZXh0OiBcIjDsm5BcIixcclxuICAgICAgICByYXRlOiAwLFxyXG4gICAgICAgIHRleHQ6IFwi67O07ZWpIOyDge2DnFwiLFxyXG4gICAgICAgIGNvbG9yOiBcIiNiMGI4YzFcIixcclxuICAgICAgfTtcclxuXHJcbiAgICBjb25zdCBjaGFuZ2UgPSBjdXJyZW50IC0gcHJldjtcclxuICAgIGNvbnN0IHJhdGUgPSAoY2hhbmdlIC8gcHJldikgKiAxMDA7XHJcblxyXG4gICAgY29uc3QgZm9ybWF0Q2hhbmdlID0gKGM6IG51bWJlcikgPT4ge1xyXG4gICAgICBjb25zdCB1ayA9IE1hdGguZmxvb3IoYyk7XHJcbiAgICAgIGNvbnN0IG1hbiA9IE1hdGgucm91bmQoKGMgLSB1aykgKiAxMDAwMCk7XHJcbiAgICAgIGlmICh1ayA9PT0gMCkgcmV0dXJuIGAke21hbi50b0xvY2FsZVN0cmluZygpfeunjOybkGA7XHJcbiAgICAgIGlmIChtYW4gPT09IDApIHJldHVybiBgJHt1a33slrVgO1xyXG4gICAgICByZXR1cm4gYCR7dWt97Ja1ICR7bWFuLnRvTG9jYWxlU3RyaW5nKCl966eM7JuQYDtcclxuICAgIH07XHJcblxyXG4gICAgY29uc3QgYWJzQ2hhbmdlID0gTWF0aC5hYnMoY2hhbmdlKTtcclxuICAgIGNvbnN0IGNoYW5nZVRleHQgPSBmb3JtYXRDaGFuZ2UoYWJzQ2hhbmdlKTtcclxuXHJcbiAgICBpZiAoY2hhbmdlID4gMClcclxuICAgICAgcmV0dXJuIHtcclxuICAgICAgICBjaGFuZ2U6IGFic0NoYW5nZSxcclxuICAgICAgICBjaGFuZ2VUZXh0LFxyXG4gICAgICAgIHJhdGU6IE1hdGguYWJzKHJhdGUpLFxyXG4gICAgICAgIHRleHQ6IFwi7IOB7Iq5IOykkVwiLFxyXG4gICAgICAgIGNvbG9yOiBcIiNmZjRiNWNcIixcclxuICAgICAgfTtcclxuICAgIGlmIChjaGFuZ2UgPCAwKVxyXG4gICAgICByZXR1cm4ge1xyXG4gICAgICAgIGNoYW5nZTogYWJzQ2hhbmdlLFxyXG4gICAgICAgIGNoYW5nZVRleHQsXHJcbiAgICAgICAgcmF0ZTogTWF0aC5hYnMocmF0ZSksXHJcbiAgICAgICAgdGV4dDogXCLtlZjrnb0g7KSRXCIsXHJcbiAgICAgICAgY29sb3I6IFwiIzJlN2NmNlwiLFxyXG4gICAgICB9O1xyXG4gICAgcmV0dXJuIHtcclxuICAgICAgY2hhbmdlOiAwLFxyXG4gICAgICBjaGFuZ2VUZXh0OiBcIjDsm5BcIixcclxuICAgICAgcmF0ZTogMCxcclxuICAgICAgdGV4dDogXCLrs7Ttlakg7IOB7YOcXCIsXHJcbiAgICAgIGNvbG9yOiBcIiM5NGEzYjhcIixcclxuICAgIH07XHJcbiAgfSwgW2xpbmVEYXRhXSk7XHJcblxyXG4gIGNvbnN0IGRvbmd0YW5BdmdQeWVvbmdQcmljZSA9IHVzZU1lbW8oKCkgPT4ge1xyXG4gICAgbGV0IHN1bSA9IDA7XHJcbiAgICBsZXQgY291bnQgPSAwO1xyXG4gICAgaWYgKCFzaGVldEFwYXJ0bWVudHMpIHJldHVybiAwO1xyXG5cclxuICAgIE9iamVjdC52YWx1ZXMoc2hlZXRBcGFydG1lbnRzKVxyXG4gICAgICAuZmxhdCgpXHJcbiAgICAgIC5mb3JFYWNoKChhcHQpID0+IHtcclxuICAgICAgICBpZiAocHVibGljUmVudGFsU2V0LmhhcyhhcHQubmFtZSkpIHJldHVybjtcclxuICAgICAgICBjb25zdCByYXdUeEtleSA9XHJcbiAgICAgICAgICBhcHQudHhLZXkgfHwgZmluZFR4S2V5KGFwdC5uYW1lLCB0eFN1bW1hcnlEYXRhLCBuYW1lTWFwcGluZyk7XHJcbiAgICAgICAgY29uc3QgdHhLZXkgPSByYXdUeEtleSA/IG5vcm1hbGl6ZUFwdE5hbWUocmF3VHhLZXkpIDogbnVsbDtcclxuICAgICAgICBjb25zdCB0eCA9IHR4S2V5ID8gdHhTdW1tYXJ5RGF0YVt0eEtleV0gOiB1bmRlZmluZWQ7XHJcblxyXG4gICAgICAgIGlmICh0eCkge1xyXG4gICAgICAgICAgY29uc3QgcHllb25nUHJpY2UgPVxyXG4gICAgICAgICAgICB0eC5hdmczTVBlclB5ZW9uZyB8fFxyXG4gICAgICAgICAgICB0eC5hdmcxTVBlclB5ZW9uZyB8fFxyXG4gICAgICAgICAgICAodHgubGF0ZXN0QXJlYSA/IHR4LmxhdGVzdFByaWNlIC8gKHR4LmxhdGVzdEFyZWEgLyAzLjMwNTgpIDogMCk7XHJcbiAgICAgICAgICBpZiAocHllb25nUHJpY2UgPiAwKSB7XHJcbiAgICAgICAgICAgIHN1bSArPSBweWVvbmdQcmljZTtcclxuICAgICAgICAgICAgY291bnQrKztcclxuICAgICAgICAgIH1cclxuICAgICAgICB9XHJcbiAgICAgIH0pO1xyXG5cclxuICAgIHJldHVybiBjb3VudCA+IDAgPyBNYXRoLnJvdW5kKHN1bSAvIGNvdW50KSA6IDA7XHJcbiAgfSwgW3R4U3VtbWFyeURhdGEsIHNoZWV0QXBhcnRtZW50cywgcHVibGljUmVudGFsU2V0XSk7XHJcblxyXG5cclxuXHJcblxyXG5cclxuICBjb25zdCB0b2dnbGVHcm91cCA9ICh0aXRsZTogc3RyaW5nKSA9PiB7XHJcbiAgICBzZXRFeHBhbmRlZEdyb3VwcygocHJldikgPT4gKHsgLi4ucHJldiwgW3RpdGxlXTogIXByZXZbdGl0bGVdIH0pKTtcclxuICB9O1xyXG5cclxuICBjb25zdCBpc1BvaW50SW5Qb2x5Z29uID0gKHBvaW50OiB7IGxhdDogbnVtYmVyOyBsbmc6IG51bWJlciB9LCB2czogeyBsYXQ6IG51bWJlcjsgbG5nOiBudW1iZXIgfVtdKSA9PiB7XHJcbiAgICBjb25zdCB4ID0gcG9pbnQubG5nLCB5ID0gcG9pbnQubGF0O1xyXG4gICAgbGV0IGluc2lkZSA9IGZhbHNlO1xyXG4gICAgZm9yIChsZXQgaSA9IDAsIGogPSB2cy5sZW5ndGggLSAxOyBpIDwgdnMubGVuZ3RoOyBqID0gaSsrKSB7XHJcbiAgICAgIGNvbnN0IHhpID0gdnNbaV0ubG5nLCB5aSA9IHZzW2ldLmxhdDtcclxuICAgICAgY29uc3QgeGogPSB2c1tqXS5sbmcsIHlqID0gdnNbal0ubGF0O1xyXG4gICAgICBjb25zdCBpbnRlcnNlY3QgPSAoKHlpID4geSkgIT0gKHlqID4geSkpICYmICh4IDwgKHhqIC0geGkpICogKHkgLSB5aSkgLyAoeWogLSB5aSkgKyB4aSk7XHJcbiAgICAgIGlmIChpbnRlcnNlY3QpIGluc2lkZSA9ICFpbnNpZGU7XHJcbiAgICB9XHJcbiAgICByZXR1cm4gaW5zaWRlO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IHNpYnVtUG9seWdvbiA9IFtcclxuICAgIHsgbGF0OiAzNy4yMDQ0MDAsIGxuZzogMTI3LjA5OTMwMyB9LFxyXG4gICAgeyBsYXQ6IDM3LjE5NDYwMywgbG5nOiAxMjcuMDk5MTUxIH0sXHJcbiAgICB7IGxhdDogMzcuMTk5MDk0LCBsbmc6IDEyNy4xMTU5MTYgfSxcclxuICAgIHsgbGF0OiAzNy4yMDM0MDQsIGxuZzogMTI3LjExMjkwNSB9XHJcbiAgXTtcclxuXHJcbiAgY29uc3QgY3VsdHVyZVBvbHlnb24gPSBbXHJcbiAgICB7IGxhdDogMzcuMTk0MDM3LCBsbmc6IDEyNy4wODI2MzAgfSxcclxuICAgIHsgbGF0OiAzNy4xOTM5MTUsIGxuZzogMTI3LjA5OTAxMiB9LFxyXG4gICAgeyBsYXQ6IDM3LjE3ODMwMiwgbG5nOiAxMjcuMTAzODA4IH0sXHJcbiAgICB7IGxhdDogMzcuMTg4MTcxLCBsbmc6IDEyNy4wODMzOTMgfVxyXG4gIF07XHJcblxyXG4gIGNvbnN0IHdhdGVyZnJvbnRQb2x5Z29uID0gW1xyXG4gICAgeyBsYXQ6IDM3LjE3MjIyOCwgbG5nOiAxMjcuMDk0NjczIH0sXHJcbiAgICB7IGxhdDogMzcuMTcxMzA3LCBsbmc6IDEyNy4xMTg3NDQgfSxcclxuICAgIHsgbGF0OiAzNy4xNjU3NTgsIGxuZzogMTI3LjExNDc5MSB9LFxyXG4gICAgeyBsYXQ6IDM3LjE2NTA4MiwgbG5nOiAxMjcuMDkxMjk5IH1cclxuICBdO1xyXG5cclxuICBjb25zdCBnd2FuZ0JpelBvbHlnb24gPSBbXHJcbiAgICB7IGxhdDogMzcuMjA0NTEyLCBsbmc6IDEyNy4wODU4ODkgfSxcclxuICAgIHsgbGF0OiAzNy4xOTQ2MjQsIGxuZzogMTI3LjA4MzE0NyB9LFxyXG4gICAgeyBsYXQ6IDM3LjE5NDcwMCwgbG5nOiAxMjcuMDk4MjYyIH0sXHJcbiAgICB7IGxhdDogMzcuMjA0NTQ0LCBsbmc6IDEyNy4wOTg0MzQgfVxyXG4gIF07XHJcblxyXG5pbnRlcmZhY2UgR3JvdXBlZEFwYXJ0bWVudCB7XHJcbiAgbmFtZTogc3RyaW5nO1xyXG4gIGxhdGVzdFByaWNlOiBudW1iZXI7XHJcbiAgbGF0ZXN0UHJpY2VFb2s6IHN0cmluZztcclxuICBweWVvbmdQcmljZTogbnVtYmVyO1xyXG4gIG1kZDogbnVtYmVyO1xyXG4gIGdhcDogbnVtYmVyO1xyXG4gIGxpcXVpZDogbnVtYmVyO1xyXG4gIGhvdXNlaG9sZENvdW50OiBudW1iZXI7XHJcbiAgeWVhckJ1aWx0OiBzdHJpbmc7XHJcbiAgZGlzdFRvRG9uZ3RhbjogbnVtYmVyIHwgbnVsbDtcclxuICBkb25nPzogc3RyaW5nO1xyXG4gIHR4S2V5Pzogc3RyaW5nO1xyXG59XHJcblxyXG5pbnRlcmZhY2UgR3JvdXBlZENhdGVnb3J5IHtcclxuICB0aXRsZTogc3RyaW5nO1xyXG4gIGRvbmc6IHN0cmluZztcclxuICB0b3RhbFZhbHVlOiBudW1iZXI7XHJcbiAgdG90YWxQeWVvbmdWYWx1ZTogbnVtYmVyO1xyXG4gIGNvdW50OiBudW1iZXI7XHJcbiAgYXBhcnRtZW50czogR3JvdXBlZEFwYXJ0bWVudFtdO1xyXG4gIGF2Z1ByaWNlPzogbnVtYmVyO1xyXG4gIGF2Z1B5ZW9uZ1ByaWNlPzogbnVtYmVyO1xyXG59XHJcblxyXG4gIGNvbnN0IGFjY29yZGlvbkRhdGEgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGlmICghc2hlZXRBcGFydG1lbnRzIHx8ICF0eFN1bW1hcnlEYXRhKSByZXR1cm4gW107XHJcblxyXG4gICAgY29uc3QgZ3JvdXBlZDogUmVjb3JkPHN0cmluZywgR3JvdXBlZENhdGVnb3J5PiA9IHt9O1xyXG5cclxuICAgIE9iamVjdC52YWx1ZXMoc2hlZXRBcGFydG1lbnRzKVxyXG4gICAgICAuZmxhdCgpXHJcbiAgICAgIC5mb3JFYWNoKChhcHQpID0+IHtcclxuICAgICAgICBjb25zdCBsYXQgPSBhcHQubGF0IHx8IDA7XHJcbiAgICAgICAgY29uc3QgbG5nID0gYXB0LmxuZyB8fCAwO1xyXG5cclxuICAgICAgICBjb25zdCBkb25ndGFuQ29vcmQgPSB7IGxhdDogMzcuMjAwNSwgbG5nOiAxMjcuMDk4NSB9O1xyXG4gICAgICAgIGNvbnN0IGRpc3RUb0Rvbmd0YW4gPVxyXG4gICAgICAgICAgbGF0ICYmIGxuZ1xyXG4gICAgICAgICAgICA/IGhhdmVyc2luZURpc3RhbmNlKFxyXG4gICAgICAgICAgICAgIHsgbGF0OiBOdW1iZXIobGF0KSwgbG5nOiBOdW1iZXIobG5nKSB9LFxyXG4gICAgICAgICAgICAgIGRvbmd0YW5Db29yZFxyXG4gICAgICAgICAgICApXHJcbiAgICAgICAgICAgIDogbnVsbDtcclxuXHJcbiAgICAgICAgY29uc3QgdGhlbWVUaXRsZXM6IHN0cmluZ1tdID0gW107XHJcblxyXG4gICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxyXG4gICAgICAgIGNvbnN0IGlzU2lidW1BcmVhID0gbGF0ICE9PSAwICYmIGxuZyAhPT0gMCAmJiBpc1BvaW50SW5Qb2x5Z29uKHsgbGF0OiBOdW1iZXIobGF0KSwgbG5nOiBOdW1iZXIobG5nKSB9LCBzaWJ1bVBvbHlnb24pO1xyXG4gICAgICAgIGNvbnN0IGlzQ3VsdHVyZUFyZWEgPSBsYXQgIT09IDAgJiYgbG5nICE9PSAwICYmIGlzUG9pbnRJblBvbHlnb24oeyBsYXQ6IE51bWJlcihsYXQpLCBsbmc6IE51bWJlcihsbmcpIH0sIGN1bHR1cmVQb2x5Z29uKTtcclxuICAgICAgICBjb25zdCBpc0xha2VBcmVhID0gbGF0ICE9PSAwICYmIGxuZyAhPT0gMCAmJiBpc1BvaW50SW5Qb2x5Z29uKHsgbGF0OiBOdW1iZXIobGF0KSwgbG5nOiBOdW1iZXIobG5nKSB9LCB3YXRlcmZyb250UG9seWdvbik7XHJcbiAgICAgICAgY29uc3QgaXNHd2FuZ0JpekFyZWEgPSBsYXQgIT09IDAgJiYgbG5nICE9PSAwICYmIGlzUG9pbnRJblBvbHlnb24oeyBsYXQ6IE51bWJlcihsYXQpLCBsbmc6IE51bWJlcihsbmcpIH0sIGd3YW5nQml6UG9seWdvbik7XHJcbiAgICAgICAgY29uc3QgaXNEb25ndGFuTmFtZSA9IGFwdC5uYW1lLmluY2x1ZGVzKFwi64+Z7YOE7JetXCIpO1xyXG5cclxuICAgICAgICBsZXQgaXNEb25ndGFuQXJlYSA9IGZhbHNlO1xyXG4gICAgICAgIGlmIChkaXN0VG9Eb25ndGFuICE9PSBudWxsKSB7XHJcbiAgICAgICAgICBpc0Rvbmd0YW5BcmVhID0gZGlzdFRvRG9uZ3RhbiA8PSAxNTAwO1xyXG4gICAgICAgIH0gZWxzZSB7XHJcbiAgICAgICAgICBpc0Rvbmd0YW5BcmVhID0gaXNEb25ndGFuTmFtZSB8fCBhcHQuZG9uZyA9PT0gXCLsmKTsgrDrj5lcIiB8fCBhcHQuZG9uZyA9PT0gXCLsl6zsmrjrj5lcIjtcclxuICAgICAgICB9XHJcblxyXG4gICAgICAgIGNvbnN0IGlzMURvbmd0YW4gPSBhcHQuZG9uZyA9PT0gXCLrsJjshqHrj5lcIiB8fCBhcHQuZG9uZyA9PT0gXCLriqXrj5lcIiB8fCBhcHQuZG9uZyA9PT0gXCLshJ3smrDrj5lcIjtcclxuXHJcbiAgICAgICAgLy8g64+Z7YOE7Jet7IS46raM7J2AIOykkeuztSDtjrjsnoXsnYQg7ZeI7Jqp7ZWY66+A66GcIOuPheumveyggeycvOuhnCBwdXNoXHJcbiAgICAgICAgaWYgKGlzRG9uZ3RhbkFyZWEpIHtcclxuICAgICAgICAgIHRoZW1lVGl0bGVzLnB1c2goXCLrj5ntg4Tsl63shLjqtoxcIik7XHJcbiAgICAgICAgfVxyXG5cclxuICAgICAgICAvLyDrgpjrqLjsp4Ag6raM7Jet65Ok7J2AIE11dHVhbGx5IEV4Y2x1c2l2ZVxyXG4gICAgICAgIGlmIChpc0d3YW5nQml6QXJlYSkge1xyXG4gICAgICAgICAgdGhlbWVUaXRsZXMucHVzaChcIuq0keyXreu5hOyngOuLiOyKpOy7tO2UjOugieyKpFwiKTtcclxuICAgICAgICB9IGVsc2UgaWYgKGlzU2lidW1BcmVhKSB7XHJcbiAgICAgICAgICB0aGVtZVRpdGxlcy5wdXNoKFwi7Luk666k64uI7Yuw7Iuc67KU64uo7KeAXCIpO1xyXG4gICAgICAgIH0gZWxzZSBpZiAoaXNDdWx0dXJlQXJlYSkge1xyXG4gICAgICAgICAgdGhlbWVUaXRsZXMucHVzaChcIuusuO2ZlOuUlOyekOyduOuwuOumrFwiKTtcclxuICAgICAgICB9IGVsc2UgaWYgKGlzTGFrZUFyZWEpIHtcclxuICAgICAgICAgIHRoZW1lVGl0bGVzLnB1c2goXCLsm4zthLDtlITroaDtirjsu7TtlIzroInsiqRcIik7XHJcbiAgICAgICAgfSBlbHNlIGlmIChpczFEb25ndGFuKSB7XHJcbiAgICAgICAgICB0aGVtZVRpdGxlcy5wdXNoKFwiMeuPme2DhFwiKTtcclxuICAgICAgICB9XHJcblxyXG4gICAgICAgIGlmICh0aGVtZVRpdGxlcy5sZW5ndGggPT09IDApIHtcclxuICAgICAgICAgIHRoZW1lVGl0bGVzLnB1c2goXCLquLDtg4Ag6raM7JetXCIpO1xyXG4gICAgICAgIH1cclxuXHJcbiAgICAgICAgaWYgKHB1YmxpY1JlbnRhbFNldC5oYXMoYXB0Lm5hbWUpKSByZXR1cm47XHJcbiAgICAgICAgY29uc3QgcmF3VHhLZXkgPVxyXG4gICAgICAgICAgYXB0LnR4S2V5IHx8IGZpbmRUeEtleShhcHQubmFtZSwgdHhTdW1tYXJ5RGF0YSwgbmFtZU1hcHBpbmcpO1xyXG4gICAgICAgIGNvbnN0IHR4S2V5ID0gcmF3VHhLZXkgPyBub3JtYWxpemVBcHROYW1lKHJhd1R4S2V5KSA6IG51bGw7XHJcbiAgICAgICAgY29uc3QgdHggPSB0eEtleSA/IHR4U3VtbWFyeURhdGFbdHhLZXldIDogdW5kZWZpbmVkO1xyXG5cclxuICAgICAgICBpZiAodHgpIHtcclxuICAgICAgICAgIGNvbnN0IHNhbGVzID0gdHguYXZnM01QcmljZSB8fCB0eC5hdmcxTVByaWNlIHx8IHR4LmxhdGVzdFByaWNlIHx8IDA7XHJcbiAgICAgICAgICBpZiAoc2FsZXMgPiAwKSB7XHJcbiAgICAgICAgICAgIGNvbnN0IG1heFByaWNlID0gdHgubWF4UHJpY2UgfHwgc2FsZXM7XHJcbiAgICAgICAgICAgIGNvbnN0IG1kZCA9XHJcbiAgICAgICAgICAgICAgbWF4UHJpY2UgPiAwID8gKChzYWxlcyAtIG1heFByaWNlKSAvIG1heFByaWNlKSAqIDEwMCA6IDA7XHJcbiAgICAgICAgICAgIGNvbnN0IGdhcCA9XHJcbiAgICAgICAgICAgICAgc2FsZXMgPiAwICYmIHR4LmxhdGVzdFJlbnREZXBvc2l0XHJcbiAgICAgICAgICAgICAgICA/ICh0eC5sYXRlc3RSZW50RGVwb3NpdCAvIHNhbGVzKSAqIDEwMFxyXG4gICAgICAgICAgICAgICAgOiAwO1xyXG4gICAgICAgICAgICBjb25zdCBsaXF1aWQgPSB0eC5hdmczTVR4Q291bnQgfHwgMDtcclxuXHJcbiAgICAgICAgICAgIGxldCBmb3JtYXR0ZWRZZWFyID0gYXB0LnllYXJCdWlsdCB8fCBcIlwiO1xyXG4gICAgICAgICAgICBpZiAoZm9ybWF0dGVkWWVhci5sZW5ndGggPT09IDYgJiYgIWlzTmFOKE51bWJlcihmb3JtYXR0ZWRZZWFyKSkpIHtcclxuICAgICAgICAgICAgICBmb3JtYXR0ZWRZZWFyID0gYCR7Zm9ybWF0dGVkWWVhci5zdWJzdHJpbmcoMCwgNCl964WEICR7Zm9ybWF0dGVkWWVhci5zdWJzdHJpbmcoNCwgNil97JuUYDtcclxuICAgICAgICAgICAgfSBlbHNlIGlmIChcclxuICAgICAgICAgICAgICBmb3JtYXR0ZWRZZWFyLmxlbmd0aCA9PT0gNCAmJlxyXG4gICAgICAgICAgICAgICFpc05hTihOdW1iZXIoZm9ybWF0dGVkWWVhcikpXHJcbiAgICAgICAgICAgICkge1xyXG4gICAgICAgICAgICAgIGZvcm1hdHRlZFllYXIgPSBgJHtmb3JtYXR0ZWRZZWFyfeuFhGA7XHJcbiAgICAgICAgICAgIH1cclxuXHJcbiAgICAgICAgICAgIGNvbnN0IHB5ZW9uZ1ByaWNlID1cclxuICAgICAgICAgICAgICB0eC5hdmczTVBlclB5ZW9uZyB8fFxyXG4gICAgICAgICAgICAgIHR4LmF2ZzFNUGVyUHllb25nIHx8XHJcbiAgICAgICAgICAgICAgKHR4LmxhdGVzdEFyZWEgPyB0eC5sYXRlc3RQcmljZSAvICh0eC5sYXRlc3RBcmVhIC8gMy4zMDU4KSA6IDApO1xyXG5cclxuICAgICAgICAgICAgLy8gZGlzdFRvRG9uZ3RhbuydgCDsg4Hri6jsl5DshJwg66+466asIOqzhOyCsO2VqFxyXG5cclxuICAgICAgICAgICAgdGhlbWVUaXRsZXMuZm9yRWFjaCh0aGVtZVRpdGxlID0+IHtcclxuICAgICAgICAgICAgICBpZiAoIWdyb3VwZWRbdGhlbWVUaXRsZV0pIHtcclxuICAgICAgICAgICAgICAgIGdyb3VwZWRbdGhlbWVUaXRsZV0gPSB7XHJcbiAgICAgICAgICAgICAgICAgIHRpdGxlOiB0aGVtZVRpdGxlLFxyXG4gICAgICAgICAgICAgICAgICBkb25nOiB0aGVtZVRpdGxlLCAvLyDtl6TrjZTsnZggQ29yZSBBbmNob3Ig7ZGc7Iuc7JeQIOyCrOyaqVxyXG4gICAgICAgICAgICAgICAgICB0b3RhbFZhbHVlOiAwLFxyXG4gICAgICAgICAgICAgICAgICB0b3RhbFB5ZW9uZ1ZhbHVlOiAwLFxyXG4gICAgICAgICAgICAgICAgICBjb3VudDogMCxcclxuICAgICAgICAgICAgICAgICAgYXBhcnRtZW50czogW10sXHJcbiAgICAgICAgICAgICAgICB9O1xyXG4gICAgICAgICAgICAgIH1cclxuXHJcbiAgICAgICAgICAgICAgZ3JvdXBlZFt0aGVtZVRpdGxlXS5hcGFydG1lbnRzLnB1c2goe1xyXG4gICAgICAgICAgICAgICAgbmFtZTogYXB0Lm5hbWUsXHJcbiAgICAgICAgICAgICAgICBsYXRlc3RQcmljZTogc2FsZXMsXHJcbiAgICAgICAgICAgICAgICBsYXRlc3RQcmljZUVvazogZm9ybWF0RW9rV2l0aFVuaXQoc2FsZXMpLnZhbHVlICsgKGZvcm1hdEVva1dpdGhVbml0KHNhbGVzKS51bml0ID09PSAn66eM7JuQJyA/ICfrp4wnIDogJycpLFxyXG4gICAgICAgICAgICAgICAgcHllb25nUHJpY2U6IHB5ZW9uZ1ByaWNlLFxyXG4gICAgICAgICAgICAgICAgbWRkOiBtZGQsXHJcbiAgICAgICAgICAgICAgICBnYXA6IGdhcCxcclxuICAgICAgICAgICAgICAgIGxpcXVpZDogbGlxdWlkLFxyXG4gICAgICAgICAgICAgICAgaG91c2Vob2xkQ291bnQ6IGFwdC5ob3VzZWhvbGRDb3VudCB8fCAwLFxyXG4gICAgICAgICAgICAgICAgeWVhckJ1aWx0OiBmb3JtYXR0ZWRZZWFyLFxyXG4gICAgICAgICAgICAgICAgZGlzdFRvRG9uZ3RhbjogZGlzdFRvRG9uZ3RhbixcclxuICAgICAgICAgICAgICAgIGRvbmc6IGFwdC5kb25nLFxyXG4gICAgICAgICAgICAgICAgdHhLZXk6IGFwdC50eEtleSxcclxuICAgICAgICAgICAgICB9KTtcclxuXHJcbiAgICAgICAgICAgICAgZ3JvdXBlZFt0aGVtZVRpdGxlXS50b3RhbFZhbHVlICs9IHNhbGVzO1xyXG4gICAgICAgICAgICAgIGdyb3VwZWRbdGhlbWVUaXRsZV0udG90YWxQeWVvbmdWYWx1ZSArPSBweWVvbmdQcmljZTtcclxuICAgICAgICAgICAgICBncm91cGVkW3RoZW1lVGl0bGVdLmNvdW50ICs9IDE7XHJcbiAgICAgICAgICAgIH0pO1xyXG4gICAgICAgICAgfVxyXG4gICAgICAgIH1cclxuICAgICAgfSk7XHJcblxyXG4gICAgY29uc3QgdGhlbWVPcmRlciA9IFtcclxuICAgICAgXCLrj5ntg4Tsl63shLjqtoxcIixcclxuICAgICAgXCLqtJHsl63ruYTsp4Dri4jsiqTsu7TtlIzroInsiqRcIixcclxuICAgICAgXCLsu6TrrqTri4jti7Dsi5zrspTri6jsp4BcIixcclxuICAgICAgXCLsm4zthLDtlITroaDtirjsu7TtlIzroInsiqRcIixcclxuICAgICAgXCLrrLjtmZTrlJTsnpDsnbjrsLjrpqxcIixcclxuICAgICAgXCIx64+Z7YOEXCIsXHJcbiAgICAgIFwi6riw7YOAIOq2jOyXrVwiLFxyXG4gICAgXTtcclxuXHJcbiAgICBjb25zdCByZXN1bHQgPSBPYmplY3QudmFsdWVzKGdyb3VwZWQpXHJcbiAgICAgIC5maWx0ZXIoKGcpID0+IGcuY291bnQgPiAwKVxyXG4gICAgICAubWFwKChnKSA9PiB7XHJcbiAgICAgICAgZy5hdmdQcmljZSA9IGcudG90YWxWYWx1ZSAvIGcuY291bnQ7XHJcbiAgICAgICAgZy5hdmdQeWVvbmdQcmljZSA9IGcudG90YWxQeWVvbmdWYWx1ZSAvIGcuY291bnQ7XHJcbiAgICAgICAgZy5hcGFydG1lbnRzLnNvcnQoKGEsIGIpID0+IGIubGF0ZXN0UHJpY2UgLSBhLmxhdGVzdFByaWNlKTtcclxuICAgICAgICByZXR1cm4gZztcclxuICAgICAgfSlcclxuICAgICAgLnNvcnQoKGEsIGIpID0+IHtcclxuICAgICAgICBjb25zdCBpbmRleEEgPSB0aGVtZU9yZGVyLmluZGV4T2YoYS50aXRsZSk7XHJcbiAgICAgICAgY29uc3QgaW5kZXhCID0gdGhlbWVPcmRlci5pbmRleE9mKGIudGl0bGUpO1xyXG4gICAgICAgIGNvbnN0IG9yZGVyQSA9IGluZGV4QSA9PT0gLTEgPyA5OTkgOiBpbmRleEE7XHJcbiAgICAgICAgY29uc3Qgb3JkZXJCID0gaW5kZXhCID09PSAtMSA/IDk5OSA6IGluZGV4QjtcclxuICAgICAgICBpZiAob3JkZXJBICE9PSBvcmRlckIpIHJldHVybiBvcmRlckEgLSBvcmRlckI7XHJcbiAgICAgICAgcmV0dXJuIChiLmF2Z1ByaWNlIHx8IDApIC0gKGEuYXZnUHJpY2UgfHwgMCk7XHJcbiAgICAgIH0pO1xyXG5cclxuICAgIHJldHVybiByZXN1bHQ7XHJcbiAgfSwgW3NoZWV0QXBhcnRtZW50cywgdHhTdW1tYXJ5RGF0YSwgcHVibGljUmVudGFsU2V0XSk7XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBmbGV4IGZsZXgtY29sIGJnLXN1cmZhY2UgcmVsYXRpdmVcIj5cclxuICAgICAgPFBhZ2VIZXJvSGVhZGVyIFxyXG4gICAgICAgIHRpdGxlPVwiRC1WSUVXIOuNsOydtO2EsCDrnqlcIlxyXG4gICAgICAgIGNvbXBhY3RUaXRsZT1cIkQtVklFVyDrjbDsnbTthLAg656pXCJcclxuICAgICAgICBzdWJ0aXRsZVN0cm9uZz17XHJcbiAgICAgICAgICA8PlxyXG4gICAgICAgICAgICDrjbDsnbTthLAg6riw67CYIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWyMwMGQyOWRdIGZvbnQtZXh0cmFib2xkIHB4LTAuNVwiPuuPme2DhCDslYTtjIztirg8L3NwYW4+IOqwgOy5mCDrtoTshJ1cclxuICAgICAgICAgIDwvPlxyXG4gICAgICAgIH1cclxuICAgICAgICBzdWJ0aXRsZUxpZ2h0PXtcclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBmbGV4LW5vd3JhcCBvdmVyZmxvdy14LWF1dG8gb3ZlcmZsb3cteS1oaWRkZW4gdG91Y2gtcGFuLXggc206b3ZlcmZsb3ctdmlzaWJsZSBbJjo6LXdlYmtpdC1zY3JvbGxiYXJdOmhpZGRlbiBbLW1zLW92ZXJmbG93LXN0eWxlOm5vbmVdIFtzY3JvbGxiYXItd2lkdGg6bm9uZV0gaXRlbXMtY2VudGVyIGdhcC0yIHNtOmdhcC0zIG1sLTAgc206bWwtMSBtdC0xIHNtOm10LTAgbWF4LXctW2NhbGMoMTAwdnctMzJweCldIG1kOm1heC13LW5vbmUgaC03IG1kOmgtYXV0byBweS0xIG1kOnB5LTBcIj5cclxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiaGlkZGVuIHNtOmlubGluZSB0ZXh0LVsjZDFkNmRiXSBtci0wLjUgc2hyaW5rLTBcIj7igJQ8L3NwYW4+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JvdXAgcmVsYXRpdmUgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBzaHJpbmstMCBjdXJzb3ItaGVscFwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImJnLWJvZHkgYm9yZGVyIGJvcmRlci1ib3JkZXIgcHgtMS41IHB5LTAuNSByb3VuZGVkIHRleHQtWzExcHhdIHNtOnRleHQtWzEycHhdIHRleHQtc2Vjb25kYXJ5IGZvbnQtYm9sZCB0cmFja2luZy10aWdodFwiPk1BVTwvc3Bhbj5cclxuICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXByaW1hcnkgZm9udC1zZW1pYm9sZCB0ZXh0LVsxM3B4XSBzbTp0ZXh0LVsxNHB4XSBmb250LW1vbm8gdGFidWxhci1udW1zXCI+e2dhRGF0YSA/IGZvcm1hdE51bShnYURhdGEubWF1KSA6ICcuLi4nfTwvc3Bhbj5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImhpZGRlbiBzbTpibG9jayBhYnNvbHV0ZSBsZWZ0LTEvMiAtdHJhbnNsYXRlLXgtMS8yIHRvcC1mdWxsIG10LTIgb3BhY2l0eS0wIGdyb3VwLWhvdmVyOm9wYWNpdHktMTAwIHBvaW50ZXItZXZlbnRzLW5vbmUgdHJhbnNpdGlvbi1vcGFjaXR5IGR1cmF0aW9uLTIwMCBiZy1bIzE5MWYyOF0gdGV4dC13aGl0ZSB0ZXh0LVsxMnB4XSBmb250LW1lZGl1bSBweC0zIHB5LTEuNSByb3VuZGVkLWxnIHdoaXRlc3BhY2Utbm93cmFwIHNoYWRvdy14bCB6LTUwXCI+XHJcbiAgICAgICAgICAgICAgICDstZzqt7wgMzDsnbwg64+Z7JWI7J2YIOyblOqwhCDsiJwg67Cp66y47J6QIOyImFxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhYnNvbHV0ZSBib3R0b20tZnVsbCBsZWZ0LTEvMiAtdHJhbnNsYXRlLXgtMS8yIGJvcmRlci00IGJvcmRlci10cmFuc3BhcmVudCBib3JkZXItYi1bIzE5MWYyOF1cIiAvPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LVszcHhdIGgtWzNweF0gcm91bmRlZC1mdWxsIGJnLVsjZDFkNmRiXSBzaHJpbmstMFwiIC8+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JvdXAgcmVsYXRpdmUgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBzaHJpbmstMCBjdXJzb3ItaGVscFwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImJnLWJsdWUtNTAgYm9yZGVyIGJvcmRlci1ibHVlLTEwMCBweC0xLjUgcHktMC41IHJvdW5kZWQgdGV4dC1bMTFweF0gc206dGV4dC1bMTJweF0gdGV4dC10b3NzLWJsdWUgZm9udC1ib2xkIHRyYWNraW5nLXRpZ2h0XCI+REFVPC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtdG9zcy1ibHVlIGZvbnQtZXh0cmFib2xkIHRleHQtWzEzcHhdIHNtOnRleHQtWzE0cHhdIGZvbnQtbW9ubyB0YWJ1bGFyLW51bXNcIj57Z2FEYXRhID8gZm9ybWF0TnVtKGdhRGF0YS5kYXUpIDogJy4uLid9PC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaGlkZGVuIHNtOmJsb2NrIGFic29sdXRlIGxlZnQtMS8yIC10cmFuc2xhdGUteC0xLzIgdG9wLWZ1bGwgbXQtMiBvcGFjaXR5LTAgZ3JvdXAtaG92ZXI6b3BhY2l0eS0xMDAgcG9pbnRlci1ldmVudHMtbm9uZSB0cmFuc2l0aW9uLW9wYWNpdHkgZHVyYXRpb24tMjAwIGJnLVsjMTkxZjI4XSB0ZXh0LXdoaXRlIHRleHQtWzEycHhdIGZvbnQtbWVkaXVtIHB4LTMgcHktMS41IHJvdW5kZWQtbGcgd2hpdGVzcGFjZS1ub3dyYXAgc2hhZG93LXhsIHotNTBcIj5cclxuICAgICAgICAgICAgICAgIOyYpOuKmCDtlZjro6gg64+Z7JWI7J2YIOydvOqwhCDsiJwg67Cp66y47J6QIOyImFxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhYnNvbHV0ZSBib3R0b20tZnVsbCBsZWZ0LTEvMiAtdHJhbnNsYXRlLXgtMS8yIGJvcmRlci00IGJvcmRlci10cmFuc3BhcmVudCBib3JkZXItYi1bIzE5MWYyOF1cIiAvPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LVszcHhdIGgtWzNweF0gcm91bmRlZC1mdWxsIGJnLVsjZDFkNmRiXSBzaHJpbmstMFwiIC8+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JvdXAgcmVsYXRpdmUgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBzaHJpbmstMCBjdXJzb3ItaGVscFwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImJnLWJvZHkgYm9yZGVyIGJvcmRlci1ib3JkZXIgcHgtMS41IHB5LTAuNSByb3VuZGVkIHRleHQtWzExcHhdIHNtOnRleHQtWzEycHhdIHRleHQtc2Vjb25kYXJ5IGZvbnQtYm9sZCB0cmFja2luZy10aWdodFwiPlZJRVcgKDMwRCk8L3NwYW4+XHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1wcmltYXJ5IGZvbnQtc2VtaWJvbGQgdGV4dC1bMTNweF0gc206dGV4dC1bMTRweF0gZm9udC1tb25vIHRhYnVsYXItbnVtc1wiPntnYURhdGEgPyBmb3JtYXROdW0oZ2FEYXRhLnRvdGFsVmlld3MpIDogJy4uLid9PC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaGlkZGVuIHNtOmJsb2NrIGFic29sdXRlIGxlZnQtMS8yIC10cmFuc2xhdGUteC0xLzIgdG9wLWZ1bGwgbXQtMiBvcGFjaXR5LTAgZ3JvdXAtaG92ZXI6b3BhY2l0eS0xMDAgcG9pbnRlci1ldmVudHMtbm9uZSB0cmFuc2l0aW9uLW9wYWNpdHkgZHVyYXRpb24tMjAwIGJnLVsjMTkxZjI4XSB0ZXh0LXdoaXRlIHRleHQtWzEycHhdIGZvbnQtbWVkaXVtIHB4LTMgcHktMS41IHJvdW5kZWQtbGcgd2hpdGVzcGFjZS1ub3dyYXAgc2hhZG93LXhsIHotNTBcIj5cclxuICAgICAgICAgICAgICAgIOy1nOq3vCAzMOydvCDrj5nslYjsnZgg64iE7KCBIO2OmOydtOyngCDrt7AgKOyhsO2ajOyImCkg7LSd7ZWpXHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFic29sdXRlIGJvdHRvbS1mdWxsIGxlZnQtMS8yIC10cmFuc2xhdGUteC0xLzIgYm9yZGVyLTQgYm9yZGVyLXRyYW5zcGFyZW50IGJvcmRlci1iLVsjMTkxZjI4XVwiIC8+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImhpZGRlbiBzbTpibG9jayB3LVszcHhdIGgtWzNweF0gcm91bmRlZC1mdWxsIGJnLVsjZDFkNmRiXSBzaHJpbmstMFwiIC8+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JvdXAgcmVsYXRpdmUgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBzaHJpbmstMCBwci00IHNtOnByLTAgY3Vyc29yLWhlbHBcIj5cclxuICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJiZy1ib2R5IGJvcmRlciBib3JkZXItYm9yZGVyIHB4LTEuNSBweS0wLjUgcm91bmRlZCB0ZXh0LVsxMXB4XSBzbTp0ZXh0LVsxMnB4XSB0ZXh0LXNlY29uZGFyeSBmb250LWJvbGQgdHJhY2tpbmctdGlnaHRcIj5BVkcuIFRJTUU8L3NwYW4+XHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1wcmltYXJ5IGZvbnQtc2VtaWJvbGQgdGV4dC1bMTNweF0gc206dGV4dC1bMTRweF0gZm9udC1tb25vIHRhYnVsYXItbnVtc1wiPntnYURhdGEgPyBnYURhdGEuYXZnU2Vzc2lvbkR1cmF0aW9uIDogJy4uLid9PC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaGlkZGVuIHNtOmJsb2NrIGFic29sdXRlIHJpZ2h0LTAgdG9wLWZ1bGwgbXQtMiBvcGFjaXR5LTAgZ3JvdXAtaG92ZXI6b3BhY2l0eS0xMDAgcG9pbnRlci1ldmVudHMtbm9uZSB0cmFuc2l0aW9uLW9wYWNpdHkgZHVyYXRpb24tMjAwIGJnLVsjMTkxZjI4XSB0ZXh0LXdoaXRlIHRleHQtWzEycHhdIGZvbnQtbWVkaXVtIHB4LTMgcHktMS41IHJvdW5kZWQtbGcgd2hpdGVzcGFjZS1ub3dyYXAgc2hhZG93LXhsIHotNTBcIj5cclxuICAgICAgICAgICAgICAgIOuwqeusuOyekCAx7J2464u5IO2Pieq3oCDssrTrpZgg7Iuc6rCEXHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFic29sdXRlIGJvdHRvbS1mdWxsIHJpZ2h0LTYgYm9yZGVyLTQgYm9yZGVyLXRyYW5zcGFyZW50IGJvcmRlci1iLVsjMTkxZjI4XVwiIC8+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgfVxyXG4gICAgICAgIHJpZ2h0Q29udGVudD17XHJcbiAgICAgICAgICBvbk9wZW5BZE1vZGFsICYmIChcclxuICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgIG9uQ2xpY2s9e29uT3BlbkFkTW9kYWx9XHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiaGlkZGVuIG1kOmZsZXggbWwtNCBweC0zIHB5LTEuNSBiZy1ib2R5IGhvdmVyOmJnLWJvZHkvODAgdGV4dC1zZWNvbmRhcnkgdGV4dC1bMTNweF0gZm9udC1ib2xkIHJvdW5kZWQtWzhweF0gdHJhbnNpdGlvbi1jb2xvcnMgaXRlbXMtY2VudGVyIGdhcC0xLjVcIlxyXG4gICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgPE1lc3NhZ2VTcXVhcmUgc2l6ZT17MTR9IC8+XHJcbiAgICAgICAgICAgICAg6rSR6rOgL+ygnO2ctCDrrLjsnZhcclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICApXHJcbiAgICAgICAgfVxyXG4gICAgICAgIHJpZ2h0U2lkZUNvbnRlbnQ9e1xyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBzaHJpbmstMCB3LVszMjBweF0gaC1bODBweF0gYmctYm9keSBib3JkZXIgYm9yZGVyLWJvcmRlciByb3VuZGVkLVsxMnB4XSBib3JkZXItZGFzaGVkIGN1cnNvci1wb2ludGVyIGhvdmVyOmJnLWJvZHkvNjAgdHJhbnNpdGlvbi1jb2xvcnMgZ3JvdXBcIiBvbkNsaWNrPXtvbk9wZW5BZE1vZGFsfT5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBnYXAtMVwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzE0cHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5IGdyb3VwLWhvdmVyOnRleHQtcHJpbWFyeSB0cmFuc2l0aW9uLWNvbG9yc1wiPuq0keqzoCDqtazsoowgKOuwsOuEiCkg7JiB7JetPC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEycHhdIHRleHQtdGVydGlhcnkgZ3JvdXAtaG92ZXI6dGV4dC1zZWNvbmRhcnkgdHJhbnNpdGlvbi1jb2xvcnNcIj7snbTqs7PsnYQg7YG066at7ZWY7JesIOygnO2ctCDrrLjsnZjrpbwg64Ko6rKo7KO87IS47JqUPC9zcGFuPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIH1cclxuICAgICAgLz5cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIHB4LTQgc206cHgtNiBtZDpweC0xMCBsZzpweC0xNiBwdC0zIG1kOnB0LTUgcGItMCBtZDpwYi0xMiBsZzpwYi0xNiB3LWZ1bGxcIj5cclxuXHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIG1kOmZsZXgtcm93IGdhcC00IHctZnVsbCBweC0wIG10LTBcIj5cclxuICAgICAgICAgIHsvKiBMZWZ0IENvbHVtbiBDb250YWluZXIgKi99XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBtZDp3LTEvMiBmbGV4IGZsZXgtY29sIGdhcC00IG1pbi13LTBcIj5cclxuICAgICAgICAgICAgey8qIERvbnV0IENoYXJ0IENhcmQgKi99XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBmbGV4LWNvbCBiZy1zdXJmYWNlIHJvdW5kZWQtMnhsIHNoYWRvdy1zbSBib3JkZXIgYm9yZGVyLWJvcmRlciBweC01IHB5LTcgbWluLWgtWzM1MHB4XVwiPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBqdXN0aWZ5LWJldHdlZW4gaXRlbXMtY2VudGVyIGdhcC0yIG1iLTRcIj5cclxuICAgICAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9XCJ0ZXh0LVsxNC41cHhdIHNtOnRleHQtWzE4cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSB0cmFja2luZy10aWdodCB3aGl0ZXNwYWNlLW5vd3JhcFwiPlxyXG4gICAgICAgICAgICAgICAgICDstZzqt7wg7Iuk6rGw656YIOuTseudvSDruYTspJFcclxuICAgICAgICAgICAgICAgIDwvaDI+XHJcbiAgICAgICAgICAgICAgICB7LyogVG9zcyBTdHlsZSBTZWdtZW50ZWQgQ29udHJvbCAqL31cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBiZy1ib2R5IHAtMSByb3VuZGVkLWxnIHNocmluay0wXCI+XHJcbiAgICAgICAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRDaGFydE1vZGUoXCIzMFwiKX1cclxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC0yLjUgcHktMSBzbTpweC0zIHNtOnB5LTEuNSB0ZXh0LVsxMXB4XSBzbTp0ZXh0LVsxMnB4XSBmb250LWJvbGQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWFsbCBjdXJzb3ItcG9pbnRlciB3aGl0ZXNwYWNlLW5vd3JhcCAke2NoYXJ0TW9kZSA9PT0gXCIzMFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICA/IFwiYmctc3VyZmFjZSB0ZXh0LXByaW1hcnkgc2hhZG93LXNtXCJcclxuICAgICAgICAgICAgICAgICAgICAgIDogXCJ0ZXh0LXRlcnRpYXJ5IGhvdmVyOnRleHQtc2Vjb25kYXJ5XCJcclxuICAgICAgICAgICAgICAgICAgICAgIH1gfVxyXG4gICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAg7LWc6re8IDMw7J28XHJcbiAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0Q2hhcnRNb2RlKFwiOTBcIil9XHJcbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgcHgtMi41IHB5LTEgc206cHgtMyBzbTpweS0xLjUgdGV4dC1bMTFweF0gc206dGV4dC1bMTJweF0gZm9udC1ib2xkIHJvdW5kZWQtbWQgdHJhbnNpdGlvbi1hbGwgY3Vyc29yLXBvaW50ZXIgd2hpdGVzcGFjZS1ub3dyYXAgJHtjaGFydE1vZGUgPT09IFwiOTBcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgPyBcImJnLXN1cmZhY2UgdGV4dC1wcmltYXJ5IHNoYWRvdy1zbVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICA6IFwidGV4dC10ZXJ0aWFyeSBob3Zlcjp0ZXh0LXNlY29uZGFyeVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICAgIOy1nOq3vCA5MOydvFxyXG4gICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICA8ZGl2IHJlZj17Y2hhcnRDb250YWluZXJSZWZ9IGNsYXNzTmFtZT1cImZsZXgtMSBmbGV4IGZsZXgtY29sIHhsOmZsZXgtcm93IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtMiB4bDpweC0xMiBnYXAtNiByZWxhdGl2ZSBtdC0zXCI+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctWzI0MHB4XSBoLVsyNDBweF0gcmVsYXRpdmUgc2hyaW5rLTBcIj5cclxuICAgICAgICAgICAgICAgICAgey8qIENlbnRlciBMYWJlbCAoUGxhY2VkIGJlZm9yZSBSZXNwb25zaXZlQ29udGFpbmVyIHRvIHByZXZlbnQgei1pbmRleCBvdmVybGFwIHdpdGggVG9vbHRpcCkgKi99XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgaW5zZXQtMCBmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBwb2ludGVyLWV2ZW50cy1ub25lIHotMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEzcHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5IG1iLTFcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIOy0nSDqsbDrnpgg6rG07IiYXHJcbiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzI2cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSBsZWFkaW5nLW5vbmUgdHJhY2tpbmctdGlnaHRcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIHtkb251dERhdGEucmVkdWNlKChzLCBkKSA9PiBzICsgZC52YWx1ZSwgMCkudG9Mb2NhbGVTdHJpbmcoKX1cclxuICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzE1cHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5IG1sLTFcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAg6rG0XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgICAgIDxSZXNwb25zaXZlQ29udGFpbmVyXHJcbiAgICAgICAgICAgICAgICAgICAgd2lkdGg9XCIxMDAlXCJcclxuICAgICAgICAgICAgICAgICAgICBtaW5XaWR0aD17MX1cclxuICAgICAgICAgICAgICAgICAgICBtaW5IZWlnaHQ9ezF9XHJcbiAgICAgICAgICAgICAgICAgICAgaGVpZ2h0PXsyNDB9XHJcbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicmVsYXRpdmUgei0xMFwiXHJcbiAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICA8UGllQ2hhcnQgb25Nb3VzZUxlYXZlPXsoKSA9PiBzZXRBY3RpdmVJbmRleChudWxsKX0+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8UGllXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGRhdGE9e2RvbnV0RGF0YX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgaW5uZXJSYWRpdXM9ezc4fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBvdXRlclJhZGl1cz17MTEwfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBwYWRkaW5nQW5nbGU9ezJ9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGRhdGFLZXk9XCJ2YWx1ZVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uTW91c2VFbnRlcj17KF8sIGluZGV4KSA9PiBzZXRBY3RpdmVJbmRleChpbmRleCl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uTW91c2VMZWF2ZT17KCkgPT4gc2V0QWN0aXZlSW5kZXgobnVsbCl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHN0cm9rZT1cIm5vbmVcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICBhbmltYXRpb25EdXJhdGlvbj17NDAwfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBhbmltYXRpb25CZWdpbj17MH1cclxuICAgICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgICAge2RvbnV0RGF0YS5tYXAoKGVudHJ5LCBpbmRleCkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IERPTlVUX0NPTE9SUyA9IFtcIiNmZjRiNWNcIiwgXCIjMmU3Y2Y2XCIsIFwiIzk0YTNiOFwiXTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPENlbGxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAga2V5PXtgY2VsbC0ke2luZGV4fWB9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZpbGw9e0RPTlVUX0NPTE9SU1tpbmRleCAlIERPTlVUX0NPTE9SUy5sZW5ndGhdfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRyYW5zaXRpb246IFwiYWxsIDAuM3MgZWFzZVwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9wYWNpdHk6XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhY3RpdmVJbmRleCA9PT0gbnVsbCB8fCBhY3RpdmVJbmRleCA9PT0gaW5kZXhcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPyAxXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogMC4zLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZpbHRlcjogXCJub25lXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH19XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIH0pfVxyXG4gICAgICAgICAgICAgICAgICAgICAgPC9QaWU+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8UmVjaGFydHNUb29sdGlwXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGNvbnRlbnQ9eyh7IGFjdGl2ZSwgcGF5bG9hZCB9KSA9PiB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGFjdGl2ZSAmJiBwYXlsb2FkICYmIHBheWxvYWQubGVuZ3RoICYmIGFjdGl2ZUluZGV4ICE9PSBudWxsKSB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBjb2xvciA9IHBheWxvYWRbMF0ucGF5bG9hZD8uZmlsbCB8fCBwYXlsb2FkWzBdLmNvbG9yIHx8IFwiIzRlNTk2OFwiO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1zdXJmYWNlIHB5LTIgcHgtMyByb3VuZGVkLVsxMHB4XSBzaGFkb3ctWzBfOHB4XzMwcHhfcmdiYSgwLDAsMCwwLjE1KV0gYm9yZGVyIGJvcmRlci1ib3JkZXJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxNC41cHhdIGZvbnQtYm9sZFwiIHN0eWxlPXt7IGNvbG9yIH19PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg6rGw656Y7IiYIDogeyhwYXlsb2FkWzBdLnZhbHVlIHx8IDApLnRvTG9jYWxlU3RyaW5nKCl9IOqxtFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICApO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gbnVsbDtcclxuICAgICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgY3Vyc29yPXt7IGZpbGw6IFwidHJhbnNwYXJlbnRcIiB9fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBpc0FuaW1hdGlvbkFjdGl2ZT17ZmFsc2V9XHJcbiAgICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgIDwvUGllQ2hhcnQ+XHJcbiAgICAgICAgICAgICAgICAgIDwvUmVzcG9uc2l2ZUNvbnRhaW5lcj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgIHsvKiBJbnRlcmFjdGl2ZSBMZWdlbmQgKi99XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgZ2FwLTEgdy1mdWxsIG1heC13LVsyNjBweF1cIj5cclxuICAgICAgICAgICAgICAgICAge2RvbnV0RGF0YS5tYXAoKGVudHJ5LCBpbmRleCkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgIGNvbnN0IHRvdGFsVmFsdWUgPSBkb251dERhdGEucmVkdWNlKFxyXG4gICAgICAgICAgICAgICAgICAgICAgKHMsIGkpID0+IHMgKyBpLnZhbHVlLFxyXG4gICAgICAgICAgICAgICAgICAgICAgMCxcclxuICAgICAgICAgICAgICAgICAgICApO1xyXG4gICAgICAgICAgICAgICAgICAgIGNvbnN0IHBlcmNlbnRhZ2UgPVxyXG4gICAgICAgICAgICAgICAgICAgICAgdG90YWxWYWx1ZSA+IDBcclxuICAgICAgICAgICAgICAgICAgICAgICAgPyAoKGVudHJ5LnZhbHVlIC8gdG90YWxWYWx1ZSkgKiAxMDApLnRvRml4ZWQoMSlcclxuICAgICAgICAgICAgICAgICAgICAgICAgOiBcIjAuMFwiO1xyXG4gICAgICAgICAgICAgICAgICAgIGNvbnN0IGlzQWN0aXZlID0gYWN0aXZlSW5kZXggPT09IGluZGV4O1xyXG4gICAgICAgICAgICAgICAgICAgIGNvbnN0IERPTlVUX0NPTE9SUyA9IFtcIiNmZjRiNWNcIiwgXCIjMmU3Y2Y2XCIsIFwiIzk0YTNiOFwiXTtcclxuICAgICAgICAgICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgPGRpdlxyXG4gICAgICAgICAgICAgICAgICAgICAgICBrZXk9e2VudHJ5Lm5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBweC0zIHB5LTEuNSByb3VuZGVkLXhsIHRyYW5zaXRpb24tYWxsIGN1cnNvci1wb2ludGVyICR7aXNBY3RpdmUgPyBcImJnLWJvZHkgc2NhbGUtWzEuMDJdXCIgOiBcImhvdmVyOmJnLWJvZHlcIn1gfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBvbk1vdXNlRW50ZXI9eygpID0+IHNldEFjdGl2ZUluZGV4KGluZGV4KX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgb25Nb3VzZUxlYXZlPXsoKSA9PiBzZXRBY3RpdmVJbmRleChudWxsKX1cclxuICAgICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtM1wiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXZcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctMyBoLTMgcm91bmRlZC1mdWxsIHNocmluay0wIHNoYWRvdy1zbVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kQ29sb3I6IERPTlVUX0NPTE9SU1tpbmRleCAlIERPTlVUX0NPTE9SUy5sZW5ndGhdLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzE0cHhdIGZvbnQtYm9sZCB0ZXh0LXNlY29uZGFyeSB0cmFja2luZy10aWdodFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAge2VudHJ5Lm5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXJpZ2h0IGZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTVweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5IGxlYWRpbmctbm9uZVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAge3BlcmNlbnRhZ2V9JVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMnB4XSBmb250LXNlbWlib2xkIHRleHQtdGVydGlhcnkgbGVhZGluZy1ub25lXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkudmFsdWUudG9Mb2NhbGVTdHJpbmcoKX3qsbRcclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgKTtcclxuICAgICAgICAgICAgICAgICAgfSl9XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICB7LyogNCBJbmZvIEJveGVzIEdyaWQgKi99XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMiBnYXAtM1wiPlxyXG4gICAgICAgICAgICAgIDxJbmZvQm94XHJcbiAgICAgICAgICAgICAgICB0aXRsZT17XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicmVsYXRpdmUgZ3JvdXAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdy1mdWxsXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiYnJlYWsta2VlcCB3aGl0ZXNwYWNlLW5vd3JhcCB0cmFja2luZy10aWdodFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAge2NhcmQxQW5kMkRhdGEuY2FyZDEubGFiZWx9XHJcbiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgIDxJbmZvIGNsYXNzTmFtZT1cInctMy41IGgtMy41IHNocmluay0wIHRleHQtdGVydGlhcnkgY3Vyc29yLXBvaW50ZXIgaG92ZXI6dGV4dC1zZWNvbmRhcnkgdHJhbnNpdGlvbi1jb2xvcnNcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgIHsvKiBUb29sdGlwICovfVxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgYm90dG9tLWZ1bGwgbGVmdC0xLzIgLXRyYW5zbGF0ZS14LTEvMiBtYi0yIHctWzI4MHB4XSBwLTMgYmctWyMxOTFmMjhdIHRleHQtd2hpdGUgdGV4dC1bMTNweF0gZm9udC1tZWRpdW0gbGVhZGluZy1bMS41XSByb3VuZGVkLXhsIHNoYWRvdy14bCBvcGFjaXR5LTAgaW52aXNpYmxlIGdyb3VwLWhvdmVyOm9wYWNpdHktMTAwIGdyb3VwLWhvdmVyOnZpc2libGUgdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMjAwIHotNTAgbm9ybWFsLWNhc2UgdHJhY2tpbmctbm9ybWFsIHdoaXRlc3BhY2Utbm9ybWFsIGJyZWFrLWtlZXBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIOy1nOq3vCA37J28KOuNsOydtO2EsCDqs7XrsLEg7IucIOy1nOuMgCA5MOydvCkg64K0IOyngeyghCDsi6Dqs6DqsIAg64yA67mEIOu5hOyKt+2VmOqxsOuCmCDrjZQg64aS7J2AIOqwgOqyqeyXkCDqsbDrnpjqsIAg7ISx7IKs65CcIOuLqOyngOyeheuLiOuLpC5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgdG9wLWZ1bGwgbGVmdC0xLzIgLXRyYW5zbGF0ZS14LTEvMiBib3JkZXItWzZweF0gYm9yZGVyLXRyYW5zcGFyZW50IGJvcmRlci10LVsjMTkxZjI4XVwiPjwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgIHZhbHVlPXtjYXJkMUFuZDJEYXRhLmNhcmQxLm5hbWV9XHJcbiAgICAgICAgICAgICAgICBiYWRnZT17Y2FyZDFBbmQyRGF0YS5jYXJkMS5wcmljZX1cclxuICAgICAgICAgICAgICAgIGNvbG9yPVwiI2ZmNGI1Y1wiXHJcbiAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICA8SW5mb0JveFxyXG4gICAgICAgICAgICAgICAgdGl0bGU9e1xyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJlbGF0aXZlIGdyb3VwIGZsZXggaXRlbXMtY2VudGVyIGdhcC0xIHctZnVsbFwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImJyZWFrLWtlZXAgd2hpdGVzcGFjZS1ub3dyYXAgdHJhY2tpbmctdGlnaHRcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIHtjYXJkMUFuZDJEYXRhLmNhcmQyLmxhYmVsfVxyXG4gICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICA8SW5mbyBjbGFzc05hbWU9XCJ3LTMuNSBoLTMuNSBzaHJpbmstMCB0ZXh0LXRlcnRpYXJ5IGN1cnNvci1wb2ludGVyIGhvdmVyOnRleHQtc2Vjb25kYXJ5IHRyYW5zaXRpb24tY29sb3JzXCIgLz5cclxuICAgICAgICAgICAgICAgICAgICB7LyogVG9vbHRpcCAqL31cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFic29sdXRlIGJvdHRvbS1mdWxsIGxlZnQtMS8yIC10cmFuc2xhdGUteC0xLzIgbWItMiB3LVsyODBweF0gcC0zIGJnLVsjMTkxZjI4XSB0ZXh0LXdoaXRlIHRleHQtWzEzcHhdIGZvbnQtbWVkaXVtIGxlYWRpbmctWzEuNV0gcm91bmRlZC14bCBzaGFkb3cteGwgb3BhY2l0eS0wIGludmlzaWJsZSBncm91cC1ob3ZlcjpvcGFjaXR5LTEwMCBncm91cC1ob3Zlcjp2aXNpYmxlIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCB6LTUwIG5vcm1hbC1jYXNlIHRyYWNraW5nLW5vcm1hbCB3aGl0ZXNwYWNlLW5vcm1hbCBicmVhay1rZWVwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICDstZzqt7wgN+ydvCjrjbDsnbTthLAg6rO167CxIOyLnCDstZzrjIAgOTDsnbwpIOuCtCDsl63rjIAg7LWc6rOg6rCAIOuMgOu5hCDqsIDsnqUg7YGwIO2PreycvOuhnCDtlZjrnb3tlZjsl6wg7Iuk6rGw656Y65CcIOuLqOyngOyeheuLiOuLpC5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgdG9wLWZ1bGwgbGVmdC0xLzIgLXRyYW5zbGF0ZS14LTEvMiBib3JkZXItWzZweF0gYm9yZGVyLXRyYW5zcGFyZW50IGJvcmRlci10LVsjMTkxZjI4XVwiPjwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgIHZhbHVlPXtjYXJkMUFuZDJEYXRhLmNhcmQyLm5hbWV9XHJcbiAgICAgICAgICAgICAgICBiYWRnZT17Y2FyZDFBbmQyRGF0YS5jYXJkMi5kcm9wfVxyXG4gICAgICAgICAgICAgICAgY29sb3I9XCIjMmU3Y2Y2XCJcclxuICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgIDxJbmZvQm94XHJcbiAgICAgICAgICAgICAgICB0aXRsZT17XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicmVsYXRpdmUgZ3JvdXAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdy1mdWxsXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiYnJlYWsta2VlcCB3aGl0ZXNwYWNlLW5vd3JhcCB0cmFja2luZy10aWdodFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAg7LWc6re8IDMw7J28IOuPme2DhCDsi6TqsbDrnpjrn4lcclxuICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgPEluZm8gY2xhc3NOYW1lPVwidy0zLjUgaC0zLjUgc2hyaW5rLTAgdGV4dC10ZXJ0aWFyeSBjdXJzb3ItcG9pbnRlciBob3Zlcjp0ZXh0LXNlY29uZGFyeSB0cmFuc2l0aW9uLWNvbG9yc1wiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgey8qIFRvb2x0aXAgKi99XHJcbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhYnNvbHV0ZSBib3R0b20tZnVsbCBsZWZ0LTEvMiAtdHJhbnNsYXRlLXgtMS8yIG1iLTIgdy1bMjgwcHhdIHAtMyBiZy1bIzE5MWYyOF0gdGV4dC13aGl0ZSB0ZXh0LVsxM3B4XSBmb250LW1lZGl1bSBsZWFkaW5nLVsxLjVdIHJvdW5kZWQteGwgc2hhZG93LXhsIG9wYWNpdHktMCBpbnZpc2libGUgZ3JvdXAtaG92ZXI6b3BhY2l0eS0xMDAgZ3JvdXAtaG92ZXI6dmlzaWJsZSB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgei01MCBub3JtYWwtY2FzZSB0cmFja2luZy1ub3JtYWwgd2hpdGVzcGFjZS1ub3JtYWwgYnJlYWsta2VlcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAg7LWc6re8IDMw7J28IOuPmeyViCDrj5ntg4Qg7KCE7Jet7JeQ7IScIOyLoOqzoOuQnCDstJ0g7Iuk6rGw656Y65+J6rO8IOyngeyghCDrj5nquLAoMzF+NjDsnbwg7KCEKSDrjIDruYQg6rGw656Y65+JIOymneqwkCDstpTshLjsnoXri4jri6QuXHJcbiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFic29sdXRlIHRvcC1mdWxsIGxlZnQtMS8yIC10cmFuc2xhdGUteC0xLzIgYm9yZGVyLVs2cHhdIGJvcmRlci10cmFuc3BhcmVudCBib3JkZXItdC1bIzE5MWYyOF1cIj48L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgICAgICB2YWx1ZT17Y2FyZDNEYXRhLmN1cnJlbnRDb3VudH1cclxuICAgICAgICAgICAgICAgIHVuaXQ9XCLqsbRcIlxyXG4gICAgICAgICAgICAgICAgYmFkZ2U9e2NhcmQzRGF0YS5iYWRnZX1cclxuICAgICAgICAgICAgICAgIGNvbG9yPXtjYXJkM0RhdGEudHJlbmRDb2xvcn1cclxuICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgIDxJbmZvQm94XHJcbiAgICAgICAgICAgICAgICB0aXRsZT17XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicmVsYXRpdmUgZ3JvdXAgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgdy1mdWxsXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiYnJlYWsta2VlcCB3aGl0ZXNwYWNlLW5vd3JhcCB0cmFja2luZy10aWdodFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAg7LWc7KCAIOqwrShHQVApIO2IrOyekCDri6jsp4BcclxuICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgPEluZm8gY2xhc3NOYW1lPVwidy0zLjUgaC0zLjUgc2hyaW5rLTAgdGV4dC10ZXJ0aWFyeSBjdXJzb3ItcG9pbnRlciBob3Zlcjp0ZXh0LXNlY29uZGFyeSB0cmFuc2l0aW9uLWNvbG9yc1wiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgey8qIFRvb2x0aXAgKi99XHJcbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhYnNvbHV0ZSBib3R0b20tZnVsbCBsZWZ0LTEvMiAtdHJhbnNsYXRlLXgtMS8yIG1iLTIgdy1bMjgwcHhdIHAtMyBiZy1bIzE5MWYyOF0gdGV4dC13aGl0ZSB0ZXh0LVsxM3B4XSBmb250LW1lZGl1bSBsZWFkaW5nLVsxLjVdIHJvdW5kZWQteGwgc2hhZG93LXhsIG9wYWNpdHktMCBpbnZpc2libGUgZ3JvdXAtaG92ZXI6b3BhY2l0eS0xMDAgZ3JvdXAtaG92ZXI6dmlzaWJsZSB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgei01MCBub3JtYWwtY2FzZSB0cmFja2luZy1ub3JtYWwgd2hpdGVzcGFjZS1ub3JtYWwgYnJlYWsta2VlcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAg7LWc6re8IOyLpOqxsOuemCDrp6Trp6TqsIDsmYAg7KCE7IS46rCAIOywqOydtCjqsK0p6rCAIOqwgOyepSDsoIHsnYAg7JWE7YyM7Yq4IOuLqOyngCjsnoTrjIAg7KCE7JqpIOuLqOyngCDsoJzsmbgpIOygleuztOyeheuLiOuLpC5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgdG9wLWZ1bGwgbGVmdC0xLzIgLXRyYW5zbGF0ZS14LTEvMiBib3JkZXItWzZweF0gYm9yZGVyLXRyYW5zcGFyZW50IGJvcmRlci10LVsjMTkxZjI4XVwiPjwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgIHZhbHVlPXtjYXJkNERhdGEubmFtZX1cclxuICAgICAgICAgICAgICAgIGJhZGdlPXtjYXJkNERhdGEuYmFkZ2V9XHJcbiAgICAgICAgICAgICAgICBjb2xvcj1cIiMwMGQyOWRcIlxyXG4gICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgey8qIFJpZ2h0IFBhbmVsOiBMaW5lIENoYXJ0ICovfVxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LWZ1bGwgbWQ6dy0xLzIgZmxleCBmbGV4LWNvbCBiZy1zdXJmYWNlIHJvdW5kZWQtMnhsIHNoYWRvdy1zbSBib3JkZXIgYm9yZGVyLWJvcmRlciBwLTQgc206cC01IG1pbi1oLVszMDBweF0gbWluLXctMFwiPlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgc206ZmxleC1yb3cganVzdGlmeS1iZXR3ZWVuIGl0ZW1zLXN0YXJ0IHNtOml0ZW1zLWNlbnRlciBnYXAtMyBtYi00XCI+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sXCI+XHJcbiAgICAgICAgICAgICAgICA8aDIgY2xhc3NOYW1lPVwidGV4dC1bMThweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5IHRyYWNraW5nLXRpZ2h0XCI+XHJcbiAgICAgICAgICAgICAgICAgIOuPme2DhCDslYTtjIztirgg64yA7ZGcIOqwgOqyqSDrs4DtmZQg7LaU7J20XHJcbiAgICAgICAgICAgICAgICA8L2gyPlxyXG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTNweF0gdGV4dC10ZXJ0aWFyeSBmb250LW1lZGl1bSBtdC0xXCI+XHJcbiAgICAgICAgICAgICAgICAgIHt0aW1lZnJhbWUgPT09IFwiQUxMXCJcclxuICAgICAgICAgICAgICAgICAgICA/IFwi7KCE7LK0IOq4sOqwhCBcIlxyXG4gICAgICAgICAgICAgICAgICAgIDogYOy1nOq3vCAke3RpbWVmcmFtZS5yZXBsYWNlKFwiTVwiLCBcIuqwnOyblFwiKS5yZXBsYWNlKFwiWVwiLCBcIuuFhFwiKX0gYH1cclxuICAgICAgICAgICAgICAgICAg6rWt66+87Y+J7ZiVKDMwfjM27Y+J7ZiVKSDsi6TqsbDrnpjqsIAg67OA64+ZXHJcbiAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGJnLWJvZHkgcC0wLjUgcm91bmRlZC1sZyBzaGFkb3ctaW5uZXIgc2VsZi1lbmQgc206c2VsZi1hdXRvXCI+XHJcbiAgICAgICAgICAgICAgICB7KFtcIjNNXCIsIFwiNk1cIiwgXCIxWVwiLCBcIjNZXCIsIFwiNVlcIiwgXCJBTExcIl0gYXMgY29uc3QpLm1hcCgodGYpID0+IChcclxuICAgICAgICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICAgIGtleT17dGZ9XHJcbiAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0VGltZWZyYW1lKHRmKX1cclxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC0yLjUgcHktMSB0ZXh0LVsxMXB4XSBmb250LWV4dHJhYm9sZCByb3VuZGVkLW1kIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCAke3RpbWVmcmFtZSA9PT0gdGZcclxuICAgICAgICAgICAgICAgICAgICAgID8gXCJiZy1zdXJmYWNlIHRleHQtcHJpbWFyeSBzaGFkb3ctc21cIlxyXG4gICAgICAgICAgICAgICAgICAgICAgOiBcInRleHQtdGVydGlhcnkgaG92ZXI6dGV4dC1zZWNvbmRhcnlcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgfWB9XHJcbiAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICB7dGZ9XHJcbiAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgKSl9XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LWZ1bGwgaC1bMjUwcHhdIG1kOmgtYXV0byBtZDpmbGV4LTEgbXQtMiBzbTptdC0wIG1pbi1oLVsyNTBweF1cIj5cclxuICAgICAgICAgICAgICA8UmVzcG9uc2l2ZUNvbnRhaW5lciB3aWR0aD1cIjEwMCVcIiBoZWlnaHQ9XCIxMDAlXCIgbWluV2lkdGg9ezF9IG1pbkhlaWdodD17MX0+XHJcbiAgICAgICAgICAgICAgICA8TGluZUNoYXJ0XHJcbiAgICAgICAgICAgICAgICAgICAgZGF0YT17bGluZURhdGF9XHJcbiAgICAgICAgICAgICAgICAgICAgbWFyZ2luPXt7IHRvcDogMTAsIHJpZ2h0OiAxMCwgbGVmdDogMCwgYm90dG9tOiAwIH19XHJcbiAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICA8Q2FydGVzaWFuR3JpZFxyXG4gICAgICAgICAgICAgICAgICAgICAgc3Ryb2tlRGFzaGFycmF5PVwiMyAzXCJcclxuICAgICAgICAgICAgICAgICAgICAgIHZlcnRpY2FsPXtmYWxzZX1cclxuICAgICAgICAgICAgICAgICAgICAgIHN0cm9rZT1cInZhcigtLWJvcmRlci1jb2xvcilcIlxyXG4gICAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgPFhBeGlzXHJcbiAgICAgICAgICAgICAgICAgICAgICBkYXRhS2V5PVwibmFtZVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICBheGlzTGluZT17ZmFsc2V9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0aWNrTGluZT17ZmFsc2V9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0aWNrPXt7IGZpbGw6IFwidmFyKC0tdGV4dC1zZWNvbmRhcnkpXCIsIGZvbnRTaXplOiAxMiwgZm9udFdlaWdodDogNjAwIH19XHJcbiAgICAgICAgICAgICAgICAgICAgICBkeT17MTB9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0aWNrcz17eFRpY2tzfVxyXG4gICAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgPFlBeGlzXHJcbiAgICAgICAgICAgICAgICAgICAgICB5QXhpc0lkPVwibGVmdFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICBheGlzTGluZT17ZmFsc2V9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0aWNrTGluZT17ZmFsc2V9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0aWNrPXt7IGZpbGw6IFwidmFyKC0tdGV4dC1zZWNvbmRhcnkpXCIsIGZvbnRTaXplOiAxMiwgZm9udFdlaWdodDogNjAwIH19XHJcbiAgICAgICAgICAgICAgICAgICAgICB0aWNrRm9ybWF0dGVyPXsodmFsdWU6IG51bWJlcikgPT5cclxuICAgICAgICAgICAgICAgICAgICAgICAgYCR7TnVtYmVyLmlzSW50ZWdlcih2YWx1ZSkgPyB2YWx1ZSA6IHZhbHVlLnRvRml4ZWQoMSl97Ja1YFxyXG4gICAgICAgICAgICAgICAgICAgICAgfVxyXG4gICAgICAgICAgICAgICAgICAgICAgZG9tYWluPXtbXCJhdXRvXCIsIFwiYXV0b1wiXX1cclxuICAgICAgICAgICAgICAgICAgICAgIHdpZHRoPXs0MH1cclxuICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgIDxZQXhpc1xyXG4gICAgICAgICAgICAgICAgICAgICAgeUF4aXNJZD1cInJpZ2h0XCJcclxuICAgICAgICAgICAgICAgICAgICAgIG9yaWVudGF0aW9uPVwicmlnaHRcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgYXhpc0xpbmU9e2ZhbHNlfVxyXG4gICAgICAgICAgICAgICAgICAgICAgdGlja0xpbmU9e2ZhbHNlfVxyXG4gICAgICAgICAgICAgICAgICAgICAgdGljaz17eyBmaWxsOiBcInZhcigtLXRleHQtc2Vjb25kYXJ5KVwiLCBmb250U2l6ZTogMTIsIGZvbnRXZWlnaHQ6IDYwMCB9fVxyXG4gICAgICAgICAgICAgICAgICAgICAgdGlja0Zvcm1hdHRlcj17KHZhbHVlOiBudW1iZXIpID0+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGAke051bWJlci5pc0ludGVnZXIodmFsdWUpID8gdmFsdWUgOiB2YWx1ZS50b0ZpeGVkKDEpfeyWtWBcclxuICAgICAgICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgICAgICAgIGRvbWFpbj17W1wiYXV0b1wiLCBcImF1dG9cIl19XHJcbiAgICAgICAgICAgICAgICAgICAgICB3aWR0aD17NDB9XHJcbiAgICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgICA8UmVjaGFydHNUb29sdGlwXHJcbiAgICAgICAgICAgICAgICAgICAgICBjb250ZW50PXs8Q3VzdG9tVG9vbHRpcCAvPn1cclxuICAgICAgICAgICAgICAgICAgICAgIGN1cnNvcj17e1xyXG4gICAgICAgICAgICAgICAgICAgICAgICBzdHJva2U6IFwidmFyKC0tYm9yZGVyLWNvbG9yKVwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBzdHJva2VXaWR0aDogMixcclxuICAgICAgICAgICAgICAgICAgICAgICAgc3Ryb2tlRGFzaGFycmF5OiBcIjMgM1wiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgIDxMZWdlbmRcclxuICAgICAgICAgICAgICAgICAgICAgIGFsaWduPVwiY2VudGVyXCJcclxuICAgICAgICAgICAgICAgICAgICAgIHZlcnRpY2FsQWxpZ249XCJib3R0b21cIlxyXG4gICAgICAgICAgICAgICAgICAgICAgaWNvblR5cGU9XCJjaXJjbGVcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgd3JhcHBlclN0eWxlPXt7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHBhZGRpbmdUb3A6IFwiMjBweFwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBmb250U2l6ZTogXCIxM3B4XCIsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGZvbnRXZWlnaHQ6IFwiYm9sZFwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgIGZvcm1hdHRlcj17KHZhbHVlLCBlbnRyeTogeyBjb2xvcj86IHN0cmluZyB9KSA9PiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbG9yOiBlbnRyeS5jb2xvcixcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1hcmdpbkxlZnQ6IFwiNHB4XCIsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIHt2YWx1ZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgIDxMaW5lXHJcbiAgICAgICAgICAgICAgICAgICAgICB5QXhpc0lkPVwibGVmdFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICBrZXk9XCLrj5ntg4Qg7JWE7YyM7Yq4IOyghOyytFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwibW9ub3RvbmVcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgbmFtZT1cIu2Pieq3oCDrp6Trp6TqsIAo7KKMKVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICBkYXRhS2V5PVwi64+Z7YOEIOyVhO2MjO2KuCDsoITssrRcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgc3Ryb2tlPVwiIzAwZDI5ZFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICBzdHJva2VXaWR0aD17NH1cclxuICAgICAgICAgICAgICAgICAgICAgIGFuaW1hdGlvbkR1cmF0aW9uPXszMDB9XHJcbiAgICAgICAgICAgICAgICAgICAgICBkb3Q9e1xyXG4gICAgICAgICAgICAgICAgICAgICAgICB0aW1lZnJhbWUgPT09IFwiQUxMXCIgfHwgdGltZWZyYW1lID09PSBcIjVZXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICA/IGZhbHNlXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgOiB7IHI6IDUsIHN0cm9rZVdpZHRoOiAyIH1cclxuICAgICAgICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgICAgICAgIGFjdGl2ZURvdD17eyByOiA3IH19XHJcbiAgICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgICA8TGluZVxyXG4gICAgICAgICAgICAgICAgICAgICAgeUF4aXNJZD1cInJpZ2h0XCJcclxuICAgICAgICAgICAgICAgICAgICAgIGtleT1cIuuPme2DhCDslYTtjIztirgg7KCE7IS4IO2Pieq3oFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwibW9ub3RvbmVcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgbmFtZT1cIu2Pieq3oCDsoITsm5TshLjqsIAo7JqwKVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICBkYXRhS2V5PVwi64+Z7YOEIOyVhO2MjO2KuCDsoITshLgg7Y+J6regXCJcclxuICAgICAgICAgICAgICAgICAgICAgIHN0cm9rZT1cIiNmOWE4MjVcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgc3Ryb2tlV2lkdGg9ezJ9XHJcbiAgICAgICAgICAgICAgICAgICAgICBhbmltYXRpb25EdXJhdGlvbj17MzAwfVxyXG4gICAgICAgICAgICAgICAgICAgICAgZG90PXtcclxuICAgICAgICAgICAgICAgICAgICAgICAgdGltZWZyYW1lID09PSBcIkFMTFwiIHx8IHRpbWVmcmFtZSA9PT0gXCI1WVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgPyBmYWxzZVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDogeyByOiAzLCBzdHJva2VXaWR0aDogMiB9XHJcbiAgICAgICAgICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgICAgICAgICAgICBhY3RpdmVEb3Q9e3sgcjogNSB9fVxyXG4gICAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgIDwvTGluZUNoYXJ0PlxyXG4gICAgICAgICAgICAgICAgPC9SZXNwb25zaXZlQ29udGFpbmVyPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICB7LyogRGV0YWlsZWQgUmVhbCBFc3RhdGUgUG9ydGZvbGlvIFNlY3Rpb24gKi99XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC0xMiBtYi02IGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBweC0wXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy1bM3B4XSBoLVsxNnB4XSBiZy1bIzAwZDI5ZF0gcm91bmRlZC1mdWxsXCIgLz5cclxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQtWzIycHhdIGZvbnQtYm9sZCB0ZXh0LXByaW1hcnlcIj5cclxuICAgICAgICAgICAgICDqtozsl63rs4Qg64uo7KeAIOu2hOulmFxyXG4gICAgICAgICAgICA8L2gyPlxyXG4gICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgey8qIFRvc3MgU3R5bGUgU2VnbWVudGVkIENvbnRyb2wgZm9yIEFjY29yZGlvbiAqL31cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBiZy1ib2R5IHAtMSByb3VuZGVkLWxnXCI+XHJcbiAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRBY2NvcmRpb25Nb2RlKFwicHJpY2VcIil9XHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgcHgtMyBweS0xLjUgdGV4dC1bMTJweF0gZm9udC1ib2xkIHJvdW5kZWQtbWQgdHJhbnNpdGlvbi1hbGwgJHthY2NvcmRpb25Nb2RlID09PSBcInByaWNlXCJcclxuICAgICAgICAgICAgICAgID8gXCJiZy1zdXJmYWNlIHRleHQtcHJpbWFyeSBzaGFkb3ctc21cIlxyXG4gICAgICAgICAgICAgICAgOiBcInRleHQtdGVydGlhcnkgaG92ZXI6dGV4dC1zZWNvbmRhcnlcIlxyXG4gICAgICAgICAgICAgICAgfWB9XHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICDrp6Trp6TqsIBcclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRBY2NvcmRpb25Nb2RlKFwicHllb25nXCIpfVxyXG4gICAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTMgcHktMS41IHRleHQtWzEycHhdIGZvbnQtYm9sZCByb3VuZGVkLW1kIHRyYW5zaXRpb24tYWxsICR7YWNjb3JkaW9uTW9kZSA9PT0gXCJweWVvbmdcIlxyXG4gICAgICAgICAgICAgICAgPyBcImJnLXN1cmZhY2UgdGV4dC1wcmltYXJ5IHNoYWRvdy1zbVwiXHJcbiAgICAgICAgICAgICAgICA6IFwidGV4dC10ZXJ0aWFyeSBob3Zlcjp0ZXh0LXNlY29uZGFyeVwiXHJcbiAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgIO2PieuLqOqwgFxyXG4gICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ3JpZC1jb2xzLTEgbGc6Z3JpZC1jb2xzLTIgZ2FwLTQgcGItMCBweC0wIGl0ZW1zLXN0YXJ0XCI+XHJcbiAgICAgICAgICB7YWNjb3JkaW9uRGF0YS5tYXAoKGdyb3VwKSA9PiB7XHJcbiAgICAgICAgICAgIGNvbnN0IGlzRXhwYW5kZWQgPSBleHBhbmRlZEdyb3Vwc1tncm91cC50aXRsZV07XHJcblxyXG4gICAgICAgICAgICBjb25zdCB0aGVtZUNvbG9yczogUmVjb3JkPHN0cmluZywgc3RyaW5nPiA9IHtcclxuICAgICAgICAgICAgICBcIuuPme2DhOyXreyEuOq2jFwiOiBcIiMzMTgyZjZcIixcclxuICAgICAgICAgICAgICBcIuq0keyXreu5hOyngOuLiOyKpOy7tO2UjOugieyKpFwiOiBcIiNmZjlmMGFcIixcclxuICAgICAgICAgICAgICBcIuy7pOuupOuLiO2LsOyLnOuylOuLqOyngFwiOiBcIiNhZjUyZGVcIixcclxuICAgICAgICAgICAgICBcIuybjO2EsO2UhOuhoO2KuOy7tO2UjOugieyKpFwiOiBcIiMwMGQyOWRcIixcclxuICAgICAgICAgICAgICBcIuusuO2ZlOuUlOyekOyduOuwuOumrFwiOiBcIiNmMDQ0NTJcIixcclxuICAgICAgICAgICAgICBcIjHrj5ntg4RcIjogXCIjNGU1OTY4XCIsXHJcbiAgICAgICAgICAgIH07XHJcbiAgICAgICAgICAgIGNvbnN0IHRoZW1lQ29sb3IgPSB0aGVtZUNvbG9yc1tncm91cC50aXRsZV0gfHwgXCIjMDBkMjlkXCI7XHJcblxyXG4gICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgIDxkaXZcclxuICAgICAgICAgICAgICAgIGtleT17Z3JvdXAudGl0bGV9XHJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJiZy1zdXJmYWNlIHJvdW5kZWQtWzIwcHhdIHNoYWRvdy1zbSBib3JkZXIgYm9yZGVyLWJvcmRlciB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0zMDAgcmVsYXRpdmVcIlxyXG4gICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgIHsvKiBHcm91cCBIZWFkZXIgKi99XHJcbiAgICAgICAgICAgICAgICA8ZGl2XHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTUgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGN1cnNvci1wb2ludGVyIGhvdmVyOmJnLWJvZHkvNTAgcm91bmRlZC10LVsyMHB4XSBoLVs3OHB4XSBtZDpoLVs4NnB4XSAkeyFpc0V4cGFuZGVkID8gJ3JvdW5kZWQtYi1bMjBweF0nIDogJyd9YH1cclxuICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gdG9nZ2xlR3JvdXAoZ3JvdXAudGl0bGUpfVxyXG4gICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0zLjUgZmxleC0xIG1pbi13LTAgcHItMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXZcclxuICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctWzEycHhdIGgtWzEycHhdIHJvdW5kZWQtZnVsbCBzaGFkb3ctc20gc2hyaW5rLTBcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgYmFja2dyb3VuZENvbG9yOiB0aGVtZUNvbG9yIH19XHJcbiAgICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgZmxleC0xIG1pbi13LTBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBmbGV4LXdyYXBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTRweF0gbWQ6dGV4dC1bMTdweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5IHRyYWNraW5nLXRpZ2h0IGJyZWFrLWtlZXBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICB7Z3JvdXAudGl0bGV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAge2dyb3VwLnRpdGxlID09PSBcIuuPme2DhOyXreyEuOq2jFwiICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJlbGF0aXZlIGdyb3VwL2luZm8gZmxleCBpdGVtcy1jZW50ZXJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJbmZvIGNsYXNzTmFtZT1cInctNCBoLTQgdGV4dC10ZXJ0aWFyeSBjdXJzb3ItcG9pbnRlciBob3Zlcjp0ZXh0LXNlY29uZGFyeSB0cmFuc2l0aW9uLWNvbG9yc1wiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFic29sdXRlIGxlZnQtMCBib3R0b20tZnVsbCBtYi0zIHctbWF4IG1heC13LVsyODBweF0gc206bWF4LXctWzQyMHB4XSBvcGFjaXR5LTAgaW52aXNpYmxlIGdyb3VwLWhvdmVyL2luZm86b3BhY2l0eS0xMDAgZ3JvdXAtaG92ZXIvaW5mbzp2aXNpYmxlIHRyYW5zaXRpb24tYWxsIGJnLXN1cmZhY2UgdGV4dC1bMTNweF0gbGVhZGluZy1bMS42XSBmb250LW1lZGl1bSBweC01IHB5LTQgcm91bmRlZC1bMTJweF0gc2hhZG93LVswXzEwcHhfNDBweF8tMTBweF9yZ2JhKDAsMCwwLDAuMTUpXSBib3JkZXIgYm9yZGVyLWJvcmRlciB6LTUwIHBvaW50ZXItZXZlbnRzLW5vbmUgZmxleCBmbGV4LWNvbCBnYXAtMyB0ZXh0LWxlZnRcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZm9udC1ib2xkIHRleHQtWyMzMTgyZjZdIHRleHQtWzE1cHhdXCI+64+Z7YOE7Jet7IS46raMIOyEpOyglSDquLDspIA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZm9udC1ib2xkIHRleHQtcHJpbWFyeVwiPjEuIOqzteqwhOyggcK366y866as7KCBIOq4sOykgDwvc3Bhbj48YnIgLz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNlY29uZGFyeVwiPjHssKg6IOuPme2DhOyXrSDspJHsi6wg67CY6rK9IDUwMG0gKOuPhOuztCA3fjjrtoQg7ZWc6rOE7ISgKTxiciAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgMuywqDog67CY6rK9IDFrbSDsnbTrgrQgKOqyveu2gCDsp4DtlZjtmZTroZwg7J247ZWcIOq0keu5hOy9pCDshJzsuKEg64+Z7IScIOuLqOygiCDtlbTshowpPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwdC0yIGJvcmRlci10IGJvcmRlci1ib3JkZXJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJmb250LWJvbGQgdGV4dC1wcmltYXJ5XCI+Mi4g7Iuc6rCEIOuwjyDqtZDthrUg7Jew6rOE7KCBIOq4sOykgDwvc3Bhbj48YnIgLz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNlY29uZGFyeVwiPuuzte2Vqe2ZmOyKuSDqsrDsoIjsoJAoR1RYLUEsIFNSVCwg7J2464+Z7ISgLCDtirjrnqgpIO2aqOqzvCDrsI8g7KeA7ISg66edIOyXsOqzhOulvCDthrXtlZwg7KCR6re8IOyLnOqwhCDrk7HqsIAg67CY6rK9IOyggeyaqS48YnIgLz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIOKeoSA8c3BhbiBjbGFzc05hbWU9XCJmb250LWJvbGQgdGV4dC1bIzMxODJmNl1cIj4xIO2KuOueqCDsoJXqsbDsnqUg7J2064K0IOuPhOuLrCjrsJjqsr0gMS41a20pIOyngOyXreydhCAn7Iuc6rCE7KCBIOyXreyEuOq2jCfsnLzroZwg67aE66WYLjwvc3Bhbj48L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTEgYmctWyMzMTgyZjZdLzEwIHRleHQtWyMzMTgyZjZdIHB4LTIgcHktMS41IHJvdW5kZWQtWzZweF0gdGV4dC1jZW50ZXIgZm9udC1ib2xkXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg66y866asK+yLnOqwhOyggSAxLjVrbSDthrXtlakg6riw7KSAIOyggeyaqVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhYnNvbHV0ZSB0b3AtZnVsbCBsZWZ0LTMgYm9yZGVyLVs2cHhdIGJvcmRlci10cmFuc3BhcmVudCBib3JkZXItdC13aGl0ZVwiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgc206Z2FwLTQgc2hyaW5rLTBcIj5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgaXRlbXMtZW5kIHNocmluay0wXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICB7YWNjb3JkaW9uTW9kZSA9PT0gXCJwcmljZVwiID8gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAoKCkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHsgdmFsdWUsIHVuaXQgfSA9IGZvcm1hdEVva1dpdGhVbml0KGdyb3VwLmF2Z1ByaWNlIHx8IDApO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtYmFzZWxpbmUgZ2FwLTEgd2hpdGVzcGFjZS1ub3dyYXBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMy41cHhdIG1kOnRleHQtWzE4cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSB0cmFja2luZy10aWdodGVyXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dmFsdWV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEwcHhdIG1kOnRleHQtWzExcHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5XCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dW5pdH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMXB4XSBtZDp0ZXh0LVsxMnB4XSBmb250LW1lZGl1bSB0ZXh0LXRlcnRpYXJ5IG10LTAuNSB3aGl0ZXNwYWNlLW5vd3JhcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIO2Pieq3oCDsi6TqsbDrnpjqsIBcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgfSkoKVxyXG4gICAgICAgICAgICAgICAgICAgICAgKSA6IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgPD5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtYmFzZWxpbmUgZ2FwLTEgd2hpdGVzcGFjZS1ub3dyYXBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEzLjVweF0gbWQ6dGV4dC1bMThweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5IHRyYWNraW5nLXRpZ2h0ZXJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge01hdGgucm91bmQoZ3JvdXAuYXZnUHllb25nUHJpY2UgfHwgMCkudG9Mb2NhbGVTdHJpbmcoKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEwcHhdIG1kOnRleHQtWzExcHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5XCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIOunjOybkC/tj4lcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMXB4XSBtZDp0ZXh0LVsxMnB4XSBmb250LW1lZGl1bSB0ZXh0LXRlcnRpYXJ5IG10LTAuNSB3aGl0ZXNwYWNlLW5vd3JhcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAg7Y+J6regIO2PieuLqOqwgFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgIHtpc0V4cGFuZGVkID8gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgPENoZXZyb25VcCBjbGFzc05hbWU9XCJ3LTUgaC01IHRleHQtdGVydGlhcnlcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICA8Q2hldnJvbkRvd24gY2xhc3NOYW1lPVwidy01IGgtNSB0ZXh0LXRlcnRpYXJ5XCIgLz5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgIHsvKiBFeHBhbmRlZCBDb250ZW50ICovfVxyXG4gICAgICAgICAgICAgICAge2lzRXhwYW5kZWQgJiYgKFxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInB4LTUgcGItNSBhbmltYXRlLWluIGZhZGUtaW4gc2xpZGUtaW4tZnJvbS10b3AtMiBkdXJhdGlvbi0zMDBcIj5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBoLVsxcHhdIGJnLWJvZHkgbWItNFwiIC8+XHJcblxyXG4gICAgICAgICAgICAgICAgICAgIHsvKiBTdWItdGFiIFRvZ2dsZTog64uo7KeAIOuqqeuhnSAo6riI7JWh64yA67OEKSB2cyDrj5nrs4Qg7LWc6re8IOyLpOqxsOuemCAqL31cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggYmctYm9keSBwLTAuNSByb3VuZGVkLWxnIHctbWF4IG1iLTNcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KGUpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBlLnN0b3BQcm9wYWdhdGlvbigpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIHNldFNlbGVjdGVkU3ViTW9kZXMocHJldiA9PiAoeyAuLi5wcmV2LCBbZ3JvdXAudGl0bGVdOiBcInRpZXJzXCIgfSkpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICB9fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC0zIHB5LTEuNSB0ZXh0LVsxMXB4XSBmb250LWJvbGQgcm91bmRlZC1tZCB0cmFuc2l0aW9uLWFsbCAke1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIChzZWxlY3RlZFN1Yk1vZGVzW2dyb3VwLnRpdGxlXSA/PyBcInRpZXJzXCIpID09PSBcInRpZXJzXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgID8gXCJiZy1zdXJmYWNlIHRleHQtcHJpbWFyeSBzaGFkb3ctc21cIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgOiBcInRleHQtdGVydGlhcnkgaG92ZXI6dGV4dC1zZWNvbmRhcnlcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgICAg6riI7JWh64yA67OEIOuLqOyngFxyXG4gICAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eyhlKSA9PiB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgZS5zdG9wUHJvcGFnYXRpb24oKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBzZXRTZWxlY3RlZFN1Yk1vZGVzKHByZXYgPT4gKHsgLi4ucHJldiwgW2dyb3VwLnRpdGxlXTogXCJyZWNlbnRUeHNcIiB9KSk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIH19XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTMgcHktMS41IHRleHQtWzExcHhdIGZvbnQtYm9sZCByb3VuZGVkLW1kIHRyYW5zaXRpb24tYWxsICR7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgKHNlbGVjdGVkU3ViTW9kZXNbZ3JvdXAudGl0bGVdID8/IFwidGllcnNcIikgPT09IFwicmVjZW50VHhzXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgID8gXCJiZy1zdXJmYWNlIHRleHQtcHJpbWFyeSBzaGFkb3ctc21cIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgOiBcInRleHQtdGVydGlhcnkgaG92ZXI6dGV4dC1zZWNvbmRhcnlcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgICAg64+Z67OEIOy1nOq3vCDsi6TqsbDrnphcclxuICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgICAgICB7KHNlbGVjdGVkU3ViTW9kZXNbZ3JvdXAudGl0bGVdID8/IFwidGllcnNcIikgPT09IFwidGllcnNcIiA/IChcclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBmbGV4LWNvbCBnYXAtNFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7KCgpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBUSUVSUyA9IGFjY29yZGlvbk1vZGUgPT09IFwicHJpY2VcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPyBbXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgbmFtZTogXCIxNeyWteybkCDsnbTsg4FcIiwgbWluOiAxNTAwMDAsIG1heDogSW5maW5pdHkgfSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeyBuYW1lOiBcIjEw7Ja1fjE17Ja17JuQXCIsIG1pbjogMTAwMDAwLCBtYXg6IDE1MDAwMCB9LFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IG5hbWU6IFwiOOyWtX4xMOyWteybkFwiLCBtaW46IDgwMDAwLCBtYXg6IDEwMDAwMCB9LFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IG5hbWU6IFwiNuyWtX447Ja17JuQXCIsIG1pbjogNjAwMDAsIG1heDogODAwMDAgfSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeyBuYW1lOiBcIjbslrXsm5Ag66+466eMXCIsIG1pbjogMCwgbWF4OiA2MDAwMCB9LFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgXVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgOiBbXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgbmFtZTogXCI0LDAwMOunjOybkCDsnbTsg4FcIiwgbWluOiA0MDAwLCBtYXg6IEluZmluaXR5IH0sXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgbmFtZTogXCIzLDAwMH40LDAwMOunjOybkFwiLCBtaW46IDMwMDAsIG1heDogNDAwMCB9LFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IG5hbWU6IFwiMiw1MDB+MywwMDDrp4zsm5BcIiwgbWluOiAyNTAwLCBtYXg6IDMwMDAgfSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeyBuYW1lOiBcIjIsMDAwfjIsNTAw66eM7JuQXCIsIG1pbjogMjAwMCwgbWF4OiAyNTAwIH0sXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgbmFtZTogXCIyLDAwMOunjOybkCDrr7jrp4xcIiwgbWluOiAwLCBtYXg6IDIwMDAgfSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIF07XHJcblxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIC8vIENvbXB1dGUgd2hpY2ggdGllcnMgaGF2ZSBhcGFydG1lbnRzXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgYXZhaWxhYmxlVGllcnMgPSBUSUVSUy5tYXAoKHRpZXIsIGlkeCkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgYXB0cyA9IGdyb3VwLmFwYXJ0bWVudHMuZmlsdGVyKChhcHQpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgdmFsID0gYWNjb3JkaW9uTW9kZSA9PT0gXCJwcmljZVwiID8gYXB0LmxhdGVzdFByaWNlIDogYXB0LnB5ZW9uZ1ByaWNlO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gdmFsID49IHRpZXIubWluICYmIHZhbCA8IHRpZXIubWF4O1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgfSkuc29ydCgoYSwgYikgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gYWNjb3JkaW9uTW9kZSA9PT0gXCJwcmljZVwiID8gYi5sYXRlc3RQcmljZSAtIGEubGF0ZXN0UHJpY2UgOiBiLnB5ZW9uZ1ByaWNlIC0gYS5weWVvbmdQcmljZTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0pO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHsgLi4udGllciwgb3JpZ2luYWxJbmRleDogaWR4LCBhcHRzIH07XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgfSkuZmlsdGVyKHQgPT4gdC5hcHRzLmxlbmd0aCA+IDApO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICBpZiAoYXZhaWxhYmxlVGllcnMubGVuZ3RoID09PSAwKSByZXR1cm4gbnVsbDtcclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gRGVmYXVsdCB0byB0aGUgZmlyc3QgYXZhaWxhYmxlIHRpZXIgaWYgbm9uZSBpcyBzZWxlY3RlZFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGN1cnJlbnRUaWVySW5kZXggPSBzZWxlY3RlZFRpZXJzW2dyb3VwLnRpdGxlXSA/PyBhdmFpbGFibGVUaWVyc1swXS5vcmlnaW5hbEluZGV4O1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGFjdGl2ZVRpZXIgPSBhdmFpbGFibGVUaWVycy5maW5kKHQgPT4gdC5vcmlnaW5hbEluZGV4ID09PSBjdXJyZW50VGllckluZGV4KSB8fCBhdmFpbGFibGVUaWVyc1swXTtcclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDw+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsvKiBUaWVyIFNlbGVjdGlvbiBQaWxscyAqL31cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGdhcC0yIG92ZXJmbG93LXgtYXV0byBoaWRlLXNjcm9sbGJhciBwYi0yIHB0LTEgLW14LTIgcHgtMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHthdmFpbGFibGVUaWVycy5tYXAodCA9PiB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBpc0FjdGl2ZSA9IHQub3JpZ2luYWxJbmRleCA9PT0gY3VycmVudFRpZXJJbmRleDtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBrZXk9e3Qub3JpZ2luYWxJbmRleH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoZSkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZS5zdG9wUHJvcGFnYXRpb24oKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNldFNlbGVjdGVkVGllcnMocHJldiA9PiAoeyAuLi5wcmV2LCBbZ3JvdXAudGl0bGVdOiB0Lm9yaWdpbmFsSW5kZXggfSkpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH19XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBweC0zLjUgcHktMS41IHJvdW5kZWQtZnVsbCB0ZXh0LVsxM3B4XSBmb250LWJvbGQgd2hpdGVzcGFjZS1ub3dyYXAgdHJhbnNpdGlvbi1jb2xvcnMgJHtpc0FjdGl2ZVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPyBcImJnLVsjMzMzZDRiXSB0ZXh0LXdoaXRlIHNoYWRvdy1zbVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6IFwiYmctYm9keSB0ZXh0LXRlcnRpYXJ5IGhvdmVyOmJnLVsjZTVlOGViXSBob3Zlcjp0ZXh0LXNlY29uZGFyeVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHt0Lm5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC1bMTFweF0gcHgtMS41IHB5LTAuNSByb3VuZGVkLW1kICR7aXNBY3RpdmUgPyAnYmctc3VyZmFjZS8yMCB0ZXh0LXdoaXRlJyA6ICdiZy1bI2U1ZThlYl0gdGV4dC10ZXJ0aWFyeSd9YH0+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dC5hcHRzLmxlbmd0aH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9KX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7LyogQWN0aXZlIFRpZXIgQXBhcnRtZW50cyBMaXN0ICovfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgZ2FwLTIgbXQtMSBhbmltYXRlLWluIGZhZGUtaW4gZHVyYXRpb24tMzAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2FjdGl2ZVRpZXIuYXB0cy5tYXAoKGFwdCkgPT4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBrZXk9e2FwdC5uYW1lfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoZSkgPT4geyBlLnN0b3BQcm9wYWdhdGlvbigpOyBvblNlbGVjdEFwdCAmJiBvblNlbGVjdEFwdChhcHQubmFtZSk7IH19XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgcC0zLjUgc206cC00IHJvdW5kZWQtWzE0cHhdIGJvcmRlciBib3JkZXItYm9yZGVyIGJnLXN1cmZhY2UgaG92ZXI6Ym9yZGVyLVsjMDBkMjlkXS8zMCBob3ZlcjpiZy1ib2R5IGN1cnNvci1wb2ludGVyIHRyYW5zaXRpb24tYWxsIHNoYWRvdy1zbSBncm91cC9hcHQgZ2FwLTIgc206Z2FwLTIuNVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsvKiBUb3AgUm93OiBOYW1lIGFuZCBDaGV2cm9uICovfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiB3LWZ1bGxcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yLjUgZmxleC0xIG1pbi13LTAgcHItMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LTEuNSBoLTEuNSBiZy1bI2QxZDZkYl0gcm91bmRlZC1mdWxsIHNocmluay0wIGdyb3VwLWhvdmVyL2FwdDpiZy1bIzAwZDI5ZF0gdHJhbnNpdGlvbi1jb2xvcnNcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTQuNXB4XSBzbTp0ZXh0LVsxNS41cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSB0cnVuY2F0ZVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7YXB0Lm5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENoZXZyb25SaWdodCBjbGFzc05hbWU9XCJ3LTQgaC00IHRleHQtdGVydGlhcnkgc2hyaW5rLTBcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsvKiBCb3R0b20gUm93OiBEaXN0YW5jZSBhbmQgUHJpY2UgKi99XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHBsLTQgbXQtMC41XCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBtaW4tdy0wIHByLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHthcHQuZGlzdFRvRG9uZ3RhbiAhPT0gbnVsbCAmJiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzExcHhdIHNtOnRleHQtWzExLjVweF0gZm9udC1ib2xkIHRleHQtWyMzMTgyZjZdIGJnLVsjZThmM2ZmXSBweC0yIHB5LVszcHhdIHJvdW5kZWQtWzZweF0gZ3JvdXAtaG92ZXIvYXB0OmJnLVsjZDFlNmZmXSB0cmFuc2l0aW9uLWNvbG9ycyBib3JkZXIgYm9yZGVyLVsjMzE4MmY2XS8xMCBpbmxpbmUtZmxleCB3aGl0ZXNwYWNlLW5vd3JhcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIOuPme2DhOyXrSB7KGFwdC5kaXN0VG9Eb25ndGFuIC8gMTAwMCkudG9GaXhlZCgyKX1rbVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1yb3cgaXRlbXMtYmFzZWxpbmUgZ2FwLTEgdGV4dC1yaWdodCBzaHJpbmstMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2FjY29yZGlvbk1vZGUgPT09IFwicHJpY2VcIiA/IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKCgpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCB7IHZhbHVlLCB1bml0IH0gPSBmb3JtYXRFb2tXaXRoVW5pdChhcHQubGF0ZXN0UHJpY2UpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMy41cHhdIHNtOnRleHQtWzE1cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSB3aGl0ZXNwYWNlLW5vd3JhcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHt2YWx1ZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMHB4XSBzbTp0ZXh0LVsxMXB4XSBmb250LWJvbGQgdGV4dC10ZXJ0aWFyeSB3aGl0ZXNwYWNlLW5vd3JhcFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHt1bml0fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Lz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9KSgpXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApIDogKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEzLjVweF0gc206dGV4dC1bMTVweF0gZm9udC1leHRyYWJvbGQgdGV4dC1wcmltYXJ5IHdoaXRlc3BhY2Utbm93cmFwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7TWF0aC5yb3VuZChhcHQucHllb25nUHJpY2UpLnRvTG9jYWxlU3RyaW5nKCl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzEwcHhdIHNtOnRleHQtWzExcHhdIGZvbnQtYm9sZCB0ZXh0LXRlcnRpYXJ5IHdoaXRlc3BhY2Utbm93cmFwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDrp4zsm5Av7Y+JXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Lz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKSl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgfSkoKX1cclxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAvKiDrj5nrs4Qg7LWc6re8IOyLpOqxsOuemCBVSSAqL1xyXG4gICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIGdhcC00XCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHsoKCkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHVuaXF1ZURvbmdzID0gQXJyYXkuZnJvbShcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIG5ldyBTZXQoZ3JvdXAuYXBhcnRtZW50cy5tYXAoYSA9PiBhLmRvbmcpLmZpbHRlcihCb29sZWFuKSlcclxuICAgICAgICAgICAgICAgICAgICAgICAgICApIGFzIHN0cmluZ1tdO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBhY3RpdmVEb25nID0gc2VsZWN0ZWREb25nc1tncm91cC50aXRsZV0gPz8gXCJhbGxcIjtcclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgdHhMaXN0OiBBcnJheTx7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBhcHROYW1lOiBzdHJpbmc7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBkb25nOiBzdHJpbmc7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBkYXRlOiBzdHJpbmc7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBwcmljZUVvazogc3RyaW5nO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgYXJlYVB5ZW9uZzogbnVtYmVyO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgZmxvb3I6IG51bWJlcjtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFyZWE6IG51bWJlcjtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNvcnRWYWw6IG51bWJlcjtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICB9PiA9IFtdO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICBncm91cC5hcGFydG1lbnRzLmZvckVhY2goYXB0ID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHJhd1R4S2V5ID0gYXB0LnR4S2V5IHx8IGZpbmRUeEtleShhcHQubmFtZSwgdHhTdW1tYXJ5RGF0YSwgbmFtZU1hcHBpbmcpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgdHhLZXkgPSByYXdUeEtleSA/IG5vcm1hbGl6ZUFwdE5hbWUocmF3VHhLZXkpIDogbnVsbDtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHR4ID0gdHhLZXkgPyB0eFN1bW1hcnlEYXRhW3R4S2V5XSA6IHVuZGVmaW5lZDtcclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZiAodHggJiYgdHgucmVjZW50KSB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHR4LnJlY2VudC5mb3JFYWNoKHIgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IFttb250aCwgZGF5XSA9IHIuZGF0ZS5zcGxpdCgnLicpLm1hcChOdW1iZXIpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGN1cnJlbnRZZWFyID0gbmV3IERhdGUoKS5nZXRGdWxsWWVhcigpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGN1cnJlbnRNb250aCA9IG5ldyBEYXRlKCkuZ2V0TW9udGgoKSArIDE7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbGV0IHllYXJPZmZzZXQgPSAwO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChtb250aCA+IGN1cnJlbnRNb250aCkge1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeWVhck9mZnNldCA9IC0xO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzb3J0VmFsID0gKGN1cnJlbnRZZWFyICsgeWVhck9mZnNldCkgKiAxMDAwMCArIG1vbnRoICogMTAwICsgZGF5O1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0eExpc3QucHVzaCh7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhcHROYW1lOiBhcHQubmFtZSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRvbmc6IGFwdC5kb25nIHx8IHR4LmRvbmcgfHwgXCJcIixcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRhdGU6IHIuZGF0ZSxcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHByaWNlRW9rOiByLnByaWNlRW9rLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYXJlYVB5ZW9uZzogci5hcmVhUHllb25nLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZmxvb3I6IHIuZmxvb3IsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhcmVhOiByLmFyZWEsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzb3J0VmFsOiBzb3J0VmFsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfSk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0pO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIH0pO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICB0eExpc3Quc29ydCgoYSwgYikgPT4gYi5zb3J0VmFsIC0gYS5zb3J0VmFsKTtcclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgZmlsdGVyZWRUeExpc3QgPSBhY3RpdmVEb25nID09PSBcImFsbFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA/IHR4TGlzdFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgOiB0eExpc3QuZmlsdGVyKHR4ID0+IHR4LmRvbmcgPT09IGFjdGl2ZURvbmcpO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCB2aXNpYmxlVHhMaXN0ID0gZmlsdGVyZWRUeExpc3Quc2xpY2UoMCwgMTApO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPD5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgey8qIERvbmcgRmlsdGVyIFBpbGxzICovfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZ2FwLTIgb3ZlcmZsb3cteC1hdXRvIGhpZGUtc2Nyb2xsYmFyIHBiLTIgcHQtMSAtbXgtMiBweC0yXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KGUpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZS5zdG9wUHJvcGFnYXRpb24oKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2V0U2VsZWN0ZWREb25ncyhwcmV2ID0+ICh7IC4uLnByZXYsIFtncm91cC50aXRsZV06IFwiYWxsXCIgfSkpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgcHgtMy41IHB5LTEuNSByb3VuZGVkLWZ1bGwgdGV4dC1bMTNweF0gZm9udC1ib2xkIHdoaXRlc3BhY2Utbm93cmFwIHRyYW5zaXRpb24tY29sb3JzICR7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjdGl2ZURvbmcgPT09IFwiYWxsXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/IFwiYmctWyMzMzNkNGJdIHRleHQtd2hpdGUgc2hhZG93LXNtXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6IFwiYmctYm9keSB0ZXh0LXRlcnRpYXJ5IGhvdmVyOmJnLVsjZTVlOGViXSBob3Zlcjp0ZXh0LXNlY29uZGFyeVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDsoITssrRcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzExcHhdIHB4LTEuNSBweS0wLjUgcm91bmRlZC1tZCAke2FjdGl2ZURvbmcgPT09ICdhbGwnID8gJ2JnLXN1cmZhY2UvMjAgdGV4dC13aGl0ZScgOiAnYmctWyNlNWU4ZWJdIHRleHQtdGVydGlhcnknfWB9PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dHhMaXN0Lmxlbmd0aH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cclxuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge3VuaXF1ZURvbmdzLm1hcChkb25nID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGNvdW50ID0gdHhMaXN0LmZpbHRlcih0eCA9PiB0eC5kb25nID09PSBkb25nKS5sZW5ndGg7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAga2V5PXtkb25nfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eyhlKSA9PiB7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBlLnN0b3BQcm9wYWdhdGlvbigpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2V0U2VsZWN0ZWREb25ncyhwcmV2ID0+ICh7IC4uLnByZXYsIFtncm91cC50aXRsZV06IGRvbmcgfSkpO1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH19XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEuNSBweC0zLjUgcHktMS41IHJvdW5kZWQtZnVsbCB0ZXh0LVsxM3B4XSBmb250LWJvbGQgd2hpdGVzcGFjZS1ub3dyYXAgdHJhbnNpdGlvbi1jb2xvcnMgJHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjdGl2ZURvbmcgPT09IGRvbmdcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPyBcImJnLVsjMzMzZDRiXSB0ZXh0LXdoaXRlIHNoYWRvdy1zbVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogXCJiZy1ib2R5IHRleHQtdGVydGlhcnkgaG92ZXI6YmctWyNlNWU4ZWJdIGhvdmVyOnRleHQtc2Vjb25kYXJ5XCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9YH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtkb25nfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YHRleHQtWzExcHhdIHB4LTEuNSBweS0wLjUgcm91bmRlZC1tZCAke2FjdGl2ZURvbmcgPT09IGRvbmcgPyAnYmctc3VyZmFjZS8yMCB0ZXh0LXdoaXRlJyA6ICdiZy1bI2U1ZThlYl0gdGV4dC10ZXJ0aWFyeSd9YH0+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7Y291bnR9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfSl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgey8qIFJlY2VudCBUcmFuc2FjdGlvbnMgTGlzdCAqL31cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIGdhcC0yIG10LTEgYW5pbWF0ZS1pbiBmYWRlLWluIGR1cmF0aW9uLTMwMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHt2aXNpYmxlVHhMaXN0Lmxlbmd0aCA+IDAgPyAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aXNpYmxlVHhMaXN0Lm1hcCgodHgsIGlkeCkgPT4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAga2V5PXtgJHt0eC5hcHROYW1lfS0ke3R4LmRhdGV9LSR7dHgucHJpY2VFb2t9LSR7aWR4fWB9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KGUpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGUuc3RvcFByb3BhZ2F0aW9uKCk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvblNlbGVjdEFwdCAmJiBvblNlbGVjdEFwdCh0eC5hcHROYW1lKTtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cImZsZXggZmxleC1yb3cgaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwLTMuNSBzbTpwLTQgcm91bmRlZC1bMTRweF0gYm9yZGVyIGJvcmRlci1ib3JkZXIgYmctc3VyZmFjZSBob3Zlcjpib3JkZXItWyMwMGQyOWRdLzMwIGhvdmVyOmJnLWJvZHkgY3Vyc29yLXBvaW50ZXIgdHJhbnNpdGlvbi1hbGwgc2hhZG93LXNtIGdyb3VwL3R4XCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgbWluLXctMCBwci0yXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInB4LTIgcHktMSBiZy1ib2R5IHJvdW5kZWQtWzhweF0gdGV4dC1bMTEuNXB4XSBmb250LWV4dHJhYm9sZCB0ZXh0LXRlcnRpYXJ5IGdyb3VwLWhvdmVyL3R4OmJnLVsjZThmM2ZmXSBncm91cC1ob3Zlci90eDp0ZXh0LVsjMzE4MmY2XSB0cmFuc2l0aW9uLWNvbG9ycyBzaHJpbmstMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dHguZGF0ZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIG1pbi13LTBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMS41XCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTQuNXB4XSBzbTp0ZXh0LVsxNS41cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSB0cnVuY2F0ZVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge3R4LmFwdE5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHthY3RpdmVEb25nID09PSBcImFsbFwiICYmIHR4LmRvbmcgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTBweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXRlcnRpYXJ5IGJnLWJvZHkgcHgtMS41IHB5LVsycHhdIHJvdW5kZWQtWzRweF0gc2hyaW5rLTBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge3R4LmRvbmd9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzExLjVweF0gc206dGV4dC1bMTJweF0gZm9udC1tZWRpdW0gdGV4dC10ZXJ0aWFyeSBtdC0wLjVcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dHguYXJlYVB5ZW9uZ33tj4kgKHt0eC5hcmVhLnRvRml4ZWQoMSl9446hKSDCtyB7dHguZmxvb3J97Li1XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1yaWdodCBzaHJpbmstMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTRweF0gc206dGV4dC1bMTUuNXB4XSBmb250LWV4dHJhYm9sZCB0ZXh0LVsjZjA0NDUyXVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dHgucHJpY2VFb2t9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMHB4XSBzbTp0ZXh0LVsxMXB4XSBmb250LWJvbGQgdGV4dC10ZXJ0aWFyeSBtbC0wLjVcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg66eM7JuQXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKSlcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApIDogKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBweS04IHRleHQtdGVydGlhcnkgdGV4dC1bMTMuNXB4XVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDstZzqt7wg7Iuk6rGw656YIOuCtOyXreydtCDsl4bsirXri4jri6QuXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICk7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIH0pKCl9XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICk7XHJcbiAgICAgICAgICB9KX1cclxuXHJcbiAgICAgICAgICB7LyogQWQgQmFubmVyIFBsYWNlaG9sZGVyICg4dGggU2xvdCkgKi99XHJcbiAgICAgICAgICA8TmF0aXZlQWRQbGFjZWhvbGRlciBsb2NhdGlvbj1cIuunpO2BrOuhnCDrjIDsi5zrs7Trk5wg7ZWY64uoXCIgb25DbGljaz17b25PcGVuQWRNb2RhbH0gLz5cclxuICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgey8qIOq1rOu2hOyEoCAoRGl2aWRlcikg67CPIOuMgOy5rSDsl6zrsLEgKi99XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LWZ1bGxcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaC1bMzZweF1cIiAvPlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LWZ1bGwgaC1weCBiZy1bI2YyZjRmNl0gZGFyazpiZy1ib3JkZXJcIiAvPlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJoLVszNnB4XVwiIC8+XHJcbiAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgIHsvKiBEb25ndGFuIE1hcmtldCBJbnNpZ2h0cyAoTmV3cyBTZWN0aW9uKSAqL31cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1iLTggYmctc3VyZmFjZSByb3VuZGVkLTJ4bCBzaGFkb3ctc20gYm9yZGVyIGJvcmRlci1ib3JkZXIgcC04XCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1iLTZcIj5cclxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQtWzI0cHhdIGZvbnQtZXh0cmFib2xkIHRleHQtcHJpbWFyeSB0cmFja2luZy10aWdodFwiPlxyXG4gICAgICAgICAgICAgIOuPme2DhCDrtoDrj5nsgrAg7J247IKs7J207Yq4e1wiIFwifVxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzE2cHhdIGZvbnQtc2VtaWJvbGQgdGV4dC10ZXJ0aWFyeSBtbC0yIGZvbnQtbm9ybWFsXCI+XHJcbiAgICAgICAgICAgICAgICDstZzsi6Ag64m07IqkIO2UvOuTnFxyXG4gICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgPC9oMj5cclxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1bMTNweF0gZm9udC1tZWRpdW0gdGV4dC10ZXJ0aWFyeSBtdC0xIGl0YWxpY1wiPlxyXG4gICAgICAgICAgICAgIERvbmd0YW4gcmVhbCBlc3RhdGUgbWFya2V0IGxhdGVzdCBuZXdzXHJcbiAgICAgICAgICAgIDwvcD5cclxuICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMSBtZDpncmlkLWNvbHMtMiBnYXAtNFwiPlxyXG4gICAgICAgICAgICB7bmV3c0xvYWRpbmdcclxuICAgICAgICAgICAgICA/IEFycmF5LmZyb20oeyBsZW5ndGg6IDYgfSkubWFwKChfLCBpKSA9PiAoXHJcbiAgICAgICAgICAgICAgICA8ZGl2XHJcbiAgICAgICAgICAgICAgICAgIGtleT17aX1cclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiZmxleCBnYXAtNCBwLTUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLWJvcmRlciBiZy1ib2R5IGFuaW1hdGUtcHVsc2VcIlxyXG4gICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctOCBoLTggc2hyaW5rLTAgYmctZ3JheS0yMDAgcm91bmRlZC1mdWxsXCIgLz5cclxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIHctZnVsbFwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy0xLzMgaC0zIGJnLWdyYXktMjAwIHJvdW5kZWQgbWItMlwiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LWZ1bGwgaC00IGJnLWdyYXktMjAwIHJvdW5kZWQgbWItMS41XCIgLz5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctMi8zIGgtNCBiZy1ncmF5LTIwMCByb3VuZGVkXCIgLz5cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICApKVxyXG4gICAgICAgICAgICAgIDogKG5ld3NEYXRhLmxlbmd0aCA+IDBcclxuICAgICAgICAgICAgICAgID8gbmV3c0RhdGEuc2xpY2UoMCwgdmlzaWJsZU5ld3NDb3VudClcclxuICAgICAgICAgICAgICAgIDogW1xyXG4gICAgICAgICAgICAgICAgICB7XHJcbiAgICAgICAgICAgICAgICAgICAgaWQ6IDEsXHJcbiAgICAgICAgICAgICAgICAgICAgY2F0ZWdvcnk6IFwiSU5GUkFTVFJVQ1RVUkVcIixcclxuICAgICAgICAgICAgICAgICAgICBzdWI6IFwiVHJhbnNwb3J0YXRpb25cIixcclxuICAgICAgICAgICAgICAgICAgICB0aXRsZTpcclxuICAgICAgICAgICAgICAgICAgICAgIFwiR1RYLUEg64W47ISgIOqwnO2GtSDsnbTtm4Qg64+Z7YOE7JetIOyjvOuzgCDslYTtjIztirgg7Iuk6rGw656Y6rCAIDE1JSDsg4Hsirkg4oCUIOq0keyXrSDqtZDthrXrp50g7ZmV7Lap7J20IOyngOyXrSDtlbXsi6wg7J6Q7IKwIOqwgOy5mOyXkCDrr7jsuZjripQg7YyM6riJ66ClIOu2hOyEnS5cIixcclxuICAgICAgICAgICAgICAgICAgICBsaW5rOiBcIiNcIixcclxuICAgICAgICAgICAgICAgICAgfSxcclxuICAgICAgICAgICAgICAgICAge1xyXG4gICAgICAgICAgICAgICAgICAgIGlkOiAyLFxyXG4gICAgICAgICAgICAgICAgICAgIGNhdGVnb3J5OiBcIk1BUktFVFwiLFxyXG4gICAgICAgICAgICAgICAgICAgIHN1YjogXCJTdXBwbHkgJiBEZW1hbmRcIixcclxuICAgICAgICAgICAgICAgICAgICB0aXRsZTpcclxuICAgICAgICAgICAgICAgICAgICAgIFwi64+Z7YOEMuyLoOuPhOyLnCDsnoXso7wg66y865+JIOyViOygle2ZlCDsp4TsnoUsIOyghOyEuOqwgOycqCDrsJjrk7Eg4oCUIOuPme2DhCDtmLjsiJjqs7Xsm5Ag67CPIOusuO2ZlOuUlOyekOyduOuwuOumrCDspJHsi6zsnZgg7Iug7LaVIOyVhO2MjO2KuCDshKDtmLjrj4Qg7KeA7IaNLlwiLFxyXG4gICAgICAgICAgICAgICAgICAgIGxpbms6IFwiI1wiLFxyXG4gICAgICAgICAgICAgICAgICB9LFxyXG4gICAgICAgICAgICAgICAgICB7XHJcbiAgICAgICAgICAgICAgICAgICAgaWQ6IDMsXHJcbiAgICAgICAgICAgICAgICAgICAgY2F0ZWdvcnk6IFwiUE9MSUNZXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgc3ViOiBcIlVyYmFuIERldmVsb3BtZW50XCIsXHJcbiAgICAgICAgICAgICAgICAgICAgdGl0bGU6XHJcbiAgICAgICAgICAgICAgICAgICAgICBcIuuPme2DhCDtirjrnqgo64+E7Iuc7LKg64+EKSDquLDrs7jshKTqs4Qg67O46rKp7ZmUIOKAlCAx64+Z7YOE6rO8IDLrj5ntg4TsnYQg7J6H64qUIOuCtOu2gCDqtZDthrXrp50g7JmE7ISx7Jy866GcIOyduO2VnCDqtozsl63rs4Qg6rCA6rKpIOqwrShHYXApIOy2leyGjCDsoITrp50uXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgbGluazogXCIjXCIsXHJcbiAgICAgICAgICAgICAgICAgIH0sXHJcbiAgICAgICAgICAgICAgICAgIHtcclxuICAgICAgICAgICAgICAgICAgICBpZDogNCxcclxuICAgICAgICAgICAgICAgICAgICBjYXRlZ29yeTogXCJDT01NRVJDSUFMXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgc3ViOiBcIkFuY2hvciBUZW5hbnRcIixcclxuICAgICAgICAgICAgICAgICAgICB0aXRsZTpcclxuICAgICAgICAgICAgICAgICAgICAgIFwi6rK967aA6rOg7IaN64+E66GcIOyngO2VmO2ZlCDrsI8g7IOB67aAIOqzteybkO2ZlCDsgqzsl4Ug4oCUIOuPme2DhOyXreyEuOq2jCDqtJHsl63ruYTspojri4jsiqTsvaTtlIzroInsiqQg7ZmV7J6lIOuwjyDrnbzsnbTtlITsiqTtg4Dsnbwg7JW17LukIOyLnOyEpCDrj4TsnoUg7JiI7KCVLlwiLFxyXG4gICAgICAgICAgICAgICAgICAgIGxpbms6IFwiI1wiLFxyXG4gICAgICAgICAgICAgICAgICB9LFxyXG4gICAgICAgICAgICAgICAgICB7XHJcbiAgICAgICAgICAgICAgICAgICAgaWQ6IDUsXHJcbiAgICAgICAgICAgICAgICAgICAgY2F0ZWdvcnk6IFwiTUFDUk9cIixcclxuICAgICAgICAgICAgICAgICAgICBzdWI6IFwiTGlxdWlkaXR5XCIsXHJcbiAgICAgICAgICAgICAgICAgICAgdGl0bGU6XHJcbiAgICAgICAgICAgICAgICAgICAgICBcIuq4iOumrCDsnbjtlZgg6riw64yA6rCQIOyEoOuwmOyYgSwg6rGw656Y65+JIDPqsJzsm5Qg7Jew7IaNIOyDgeyKuSDigJQg7Iug7IOd7JWEIO2KueuhgOuMgOy2nCDrk7Eg7KCV7LGFIOq4iOycteydtCAzMDQwIOyEuOuMgOydmCDrp6TsiJgg7Ius66as7JeQIOuvuOy5nCDsmIHtlqUuXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgbGluazogXCIjXCIsXHJcbiAgICAgICAgICAgICAgICAgIH0sXHJcbiAgICAgICAgICAgICAgICAgIHtcclxuICAgICAgICAgICAgICAgICAgICBpZDogNixcclxuICAgICAgICAgICAgICAgICAgICBjYXRlZ29yeTogXCJDT01NVU5JVFlcIixcclxuICAgICAgICAgICAgICAgICAgICBzdWI6IFwiRWR1Y2F0aW9uXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgdGl0bGU6XHJcbiAgICAgICAgICAgICAgICAgICAgICBcIuuPme2DhCDrgrQg7ZWZ6rWwIO2YleyEsSDqsIDsho3tmZQsICfsi5zrspQg7Luk666k64uI7YuwJyDqtozsl60g7ZSE66as66+47JeEIOqzoOywqe2ZlCDigJQg7Jqw7IiYIO2Vmeq1sCDrsLDsoJUg64uo7KeA7J2YIOqwgOqyqSDtlZjrsKkg6rK97KeB7ISxIOuwjyDqsbDrnpgg7ZqM7KCE7JyoIOqygOymnS5cIixcclxuICAgICAgICAgICAgICAgICAgICBsaW5rOiBcIiNcIixcclxuICAgICAgICAgICAgICAgICAgfSxcclxuICAgICAgICAgICAgICAgIF1cclxuICAgICAgICAgICAgICApLm1hcCgobmV3cykgPT4gKFxyXG4gICAgICAgICAgICAgICAgPGRpdlxyXG4gICAgICAgICAgICAgICAgICBrZXk9e25ld3MuaWR9XHJcbiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+XHJcbiAgICAgICAgICAgICAgICAgICAgbmV3cy5saW5rICE9PSBcIiNcIiAmJiB3aW5kb3cub3BlbihuZXdzLmxpbmssIFwiX2JsYW5rXCIpXHJcbiAgICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiZmxleCBnYXAtNCBwLTUgcm91bmRlZC14bCBib3JkZXIgYm9yZGVyLWJvcmRlciBiZy1ib2R5IGhvdmVyOmJnLXN1cmZhY2UgaG92ZXI6Ym9yZGVyLVsjMDBkMjlkXS8zMCB0cmFuc2l0aW9uLWFsbCBjdXJzb3ItcG9pbnRlciBncm91cFwiXHJcbiAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy04IGgtOCBtZDp3LTkgbWQ6aC05IHNocmluay0wIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGJnLXN1cmZhY2Ugcm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItYm9yZGVyIHRleHQtWyMwMGQyOWRdIGZvbnQtYm9sZCB0ZXh0LVsxM3B4XSBtZDp0ZXh0LVsxNHB4XSBzaGFkb3ctc20gZ3JvdXAtaG92ZXI6YmctWyMwMGQyOWRdIGdyb3VwLWhvdmVyOnRleHQtd2hpdGUgdHJhbnNpdGlvbi1jb2xvcnNcIj5cclxuICAgICAgICAgICAgICAgICAgICB7bmV3cy5pZH1cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBmbGV4LWNvbCBqdXN0aWZ5LWNlbnRlclwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWItMS41IG1kOm1iLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzExcHhdIG1kOnRleHQtWzEycHhdIGZvbnQtZXh0cmFib2xkIHRleHQtWyMwMGQyOWRdIHRyYWNraW5nLXdpZGVcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAge25ld3MuY2F0ZWdvcnl9XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LVsxMXB4XSBtZDp0ZXh0LVsxMnB4XSB0ZXh0LWdyYXktMzAwXCI+fDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtWzExcHhdIG1kOnRleHQtWzEycHhdIGZvbnQtc2VtaWJvbGQgdGV4dC10ZXJ0aWFyeVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7bmV3cy5zdWJ9XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1bMTNweF0gbWQ6dGV4dC1bMTVweF0gZm9udC1zZW1pYm9sZCB0ZXh0LXNlY29uZGFyeSBsZWFkaW5nLXNudWcgbWQ6bGVhZGluZy1bMS41XSBncm91cC1ob3Zlcjp0ZXh0LXByaW1hcnkgdHJhbnNpdGlvbi1jb2xvcnMgbGluZS1jbGFtcC0yXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICB7bmV3cy50aXRsZX1cclxuICAgICAgICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgKSl9XHJcbiAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTYgZmxleCBmbGV4LWNvbCBnYXAtMyBqdXN0aWZ5LWNlbnRlciBpdGVtcy1jZW50ZXJcIj5cclxuICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHtcclxuICAgICAgICAgICAgICAgIHdpbmRvdy5sb2NhdGlvbi5oYXNoID0gJ2xvdW5nZS1uZXdzJztcclxuICAgICAgICAgICAgICB9fVxyXG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0xLjUgcHgtNSBweS0yLjUgYmctc3VyZmFjZSBib3JkZXIgYm9yZGVyLWJvcmRlciBob3ZlcjpiZy1ib2R5IHRleHQtc2Vjb25kYXJ5IHRleHQtWzEzLjVweF0gZm9udC1ib2xkIHJvdW5kZWQtZnVsbCB0cmFuc2l0aW9uLWNvbG9ycyBzaGFkb3ctc21cIlxyXG4gICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAg642U67O06riwICh7dmlzaWJsZU5ld3NDb3VudH0ge1wiL1wifSB7bmV3c0RhdGEubGVuZ3RoIHx8IDEwMH0pXHJcbiAgICAgICAgICAgICAgPENoZXZyb25SaWdodCBjbGFzc05hbWU9XCJ3LTQgaC00XCIgLz5cclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59XHJcbiJdLCJuYW1lcyI6WyJSZWFjdCIsInVzZU1lbW8iLCJ1c2VTdGF0ZSIsInVzZURlZmVycmVkVmFsdWUiLCJ1c2VTV1IiLCJQaWVDaGFydCIsIlBpZSIsIkNlbGwiLCJSZXNwb25zaXZlQ29udGFpbmVyIiwiTGluZUNoYXJ0IiwiTGluZSIsIlhBeGlzIiwiWUF4aXMiLCJUb29sdGlwIiwiUmVjaGFydHNUb29sdGlwIiwiQ2FydGVzaWFuR3JpZCIsIkxlZ2VuZCIsIm5vcm1hbGl6ZUFwdE5hbWUiLCJmaW5kVHhLZXkiLCJoYXZlcnNpbmVEaXN0YW5jZSIsIlBhZ2VIZXJvSGVhZGVyIiwiSW5mbyIsIkNoZXZyb25Eb3duIiwiQ2hldnJvblVwIiwiQ2hldnJvblJpZ2h0IiwiTWVzc2FnZVNxdWFyZSIsIk5hdGl2ZUFkUGxhY2Vob2xkZXIiLCJmZXRjaGVyIiwidXJsIiwiZmV0Y2giLCJ0aGVuIiwicmVzIiwianNvbiIsIkNPTE9SUyIsIkxJTkVfQ09MT1JTIiwiSW5mb0JveCIsInRpdGxlIiwidmFsdWUiLCJ1bml0IiwicHJvZ3Jlc3MiLCJiYWRnZSIsImNvbG9yIiwiZGl2IiwiY2xhc3NOYW1lIiwic3BhbiIsInVuZGVmaW5lZCIsInN0eWxlIiwic3ZnIiwid2lkdGgiLCJoZWlnaHQiLCJ2aWV3Qm94IiwiY2lyY2xlIiwiY3giLCJjeSIsInIiLCJmaWxsIiwic3Ryb2tlIiwic3Ryb2tlV2lkdGgiLCJzdHJva2VEYXNoYXJyYXkiLCJNYXRoIiwiUEkiLCJzdHJva2VEYXNob2Zmc2V0Iiwic3Ryb2tlTGluZWNhcCIsIkN1c3RvbVRvb2x0aXAiLCJhY3RpdmUiLCJwYXlsb2FkIiwibGFiZWwiLCJsZW5ndGgiLCJzYWxlRGF0YSIsImZpbmQiLCJwIiwiZGF0YUtleSIsIm5hbWUiLCJyZW50RGF0YSIsInNhbGVQcmljZSIsInJlbnRQcmljZSIsInJhdGlvIiwibWFwIiwiZW50cnkiLCJpbmRleCIsImlzUmVudCIsImJhY2tncm91bmRDb2xvciIsInRvRml4ZWQiLCJmb3JtYXRFb2tXaXRoVW5pdCIsInByaWNlTWFuIiwicm91bmRlZFByaWNlTWFuIiwicm91bmQiLCJlb2siLCJmbG9vciIsIm1hbiIsInRvTG9jYWxlU3RyaW5nIiwicGFyc2VEYXRlSGVscGVyIiwiZGF0ZVN0ciIsInBhcmVudExhdGVzdERhdGUiLCJjbGVhbiIsIlN0cmluZyIsInJlcGxhY2UiLCJ5IiwicGFyc2VJbnQiLCJzdWJzdHJpbmciLCJtIiwiZCIsIkRhdGUiLCJpbmNsdWRlcyIsInBhcnRzIiwic3BsaXQiLCJsYXRlc3REdCIsImxtIiwibGQiLCJkdCIsImdldFRpbWUiLCJzZXRGdWxsWWVhciIsInBhcnNlUHJpY2VFb2tIZWxwZXIiLCJwcmljZVN0ciIsInRvdGFsIiwidHJpbSIsInBhcnNlRmxvYXQiLCJ0ZW5NaWxsaW9uIiwidmFsIiwiTWFjcm9EYXNoYm9hcmRDbGllbnQiLCJzaGVldEFwYXJ0bWVudHMiLCJ0eFN1bW1hcnlEYXRhIiwibWFjcm9UcmVuZERhdGEiLCJuYW1lTWFwcGluZyIsInB1YmxpY1JlbnRhbFNldCIsInVzZXJGYXZvcml0ZXMiLCJmaWVsZFJlcG9ydHNNYXAiLCJmYXZvcml0ZUNvdW50cyIsIm9uU2VsZWN0QXB0Iiwib25PcGVuQWRNb2RhbCIsImRhdGEiLCJnYURhdGEiLCJyZXZhbGlkYXRlT25Gb2N1cyIsImRlZHVwaW5nSW50ZXJ2YWwiLCJmb3JtYXROdW0iLCJudW0iLCJhY3RpdmVJbmRleCIsInNldEFjdGl2ZUluZGV4IiwiY2hhcnRNb2RlIiwic2V0Q2hhcnRNb2RlIiwiYWNjb3JkaW9uTW9kZSIsInNldEFjY29yZGlvbk1vZGUiLCJ0aW1lZnJhbWUiLCJzZXRUaW1lZnJhbWUiLCJleHBhbmRlZEdyb3VwcyIsInNldEV4cGFuZGVkR3JvdXBzIiwic2VsZWN0ZWRUaWVycyIsInNldFNlbGVjdGVkVGllcnMiLCJzZWxlY3RlZFN1Yk1vZGVzIiwic2V0U2VsZWN0ZWRTdWJNb2RlcyIsInNlbGVjdGVkRG9uZ3MiLCJzZXRTZWxlY3RlZERvbmdzIiwiaXNTY3JvbGxlZCIsInNldElzU2Nyb2xsZWQiLCJuZXdzRGF0YSIsInNldE5ld3NEYXRhIiwibmV3c0xvYWRpbmciLCJzZXROZXdzTG9hZGluZyIsInZpc2libGVOZXdzQ291bnQiLCJzZXRWaXNpYmxlTmV3c0NvdW50IiwidXNlRWZmZWN0IiwiZmV0Y2hOZXdzIiwic3RhdHVzIiwiZXJyIiwiY29uc29sZSIsImVycm9yIiwiaGFuZGxlU2Nyb2xsIiwid2luZG93Iiwic2Nyb2xsWSIsImFkZEV2ZW50TGlzdGVuZXIiLCJwYXNzaXZlIiwicmVtb3ZlRXZlbnRMaXN0ZW5lciIsImNoYXJ0Q29udGFpbmVyUmVmIiwidXNlUmVmIiwiaGFuZGxlQ2xpY2tPdXRzaWRlIiwiZSIsImN1cnJlbnQiLCJjb250YWlucyIsInRhcmdldCIsImRvY3VtZW50IiwibWF4RGF0ZVRpbWUiLCJtYXhWYWwiLCJPYmplY3QiLCJ2YWx1ZXMiLCJmb3JFYWNoIiwic3VtIiwicmVjZW50IiwidHgiLCJkYXRlIiwibGF0ZXN0RGF0ZSIsImRvbnV0RGF0YSIsImRheXNMaW1pdCIsImN1dG9mZlRpbWUiLCJ1cENvdW50IiwiZG93bkNvdW50Iiwic2FtZUNvdW50IiwiYXJlYUdyb3VwcyIsImFyZWFLZXkiLCJhcmVhIiwicHVzaCIsInRyYW5zYWN0aW9ucyIsIm1hcHBlZCIsImZpbHRlciIsIml0ZW0iLCJzb3J0ZWQiLCJzb3J0IiwiYSIsImIiLCJqIiwicHJldiIsImN1cnJlbnRQcmljZSIsInByaWNlRW9rIiwicHJldlByaWNlIiwibWF4QXB0TmFtZSIsIm1heFByaWNlRW9rIiwibWF4UHJpY2UiLCJtYXhFb2siLCJkaXNwbGF5QXB0TmFtZSIsImZsYXQiLCJhcHQiLCJoYXMiLCJ0eEtleSIsInNhbGVzIiwiYXZnM01QcmljZSIsImF2ZzFNUHJpY2UiLCJsYXRlc3RQcmljZSIsImZtdCIsIm1heFB5ZW9uZ0FwdE5hbWUiLCJtYXhQeWVvbmdQcmljZSIsInB5ZW9uZ1ByaWNlIiwiYXZnM01QZXJQeWVvbmciLCJhdmcxTVBlclB5ZW9uZyIsImxhdGVzdEFyZWEiLCJjYXJkMUFuZDJEYXRhIiwiYmVzdEhpZ2giLCJwcmljZSIsImRheXMiLCJiZXN0RHJvcCIsImRyb3AiLCJwY3QiLCJjYXJkMSIsImNhcmQyIiwiZGlmZk1zIiwiZGlmZkRheXMiLCJtYXhQcmljZUVva1ZhbCIsImN1cnJlbnRXaW5kb3ciLCJtYXgiLCJjZWlsIiwiYmVzdFdpbmRvdyIsImRyb3BQY3QiLCJkaWZmUHJpY2UiLCJmbXREaWZmIiwidW5pdFN0ciIsImNhcmQxTmFtZSIsImNhcmQxUHJpY2UiLCJjYXJkMVdpbmRvdyIsImNhcmQyTmFtZSIsImNhcmQyRHJvcCIsImNhcmQyV2luZG93IiwiY2FyZDNEYXRhIiwibGltaXQzMCIsImN1dG9mZjMwIiwiY3V0b2ZmNjAiLCJjdXJyZW50Q291bnQiLCJwcmV2Q291bnQiLCJ0aW1lIiwiZGlmZiIsInJhdGUiLCJpc1VwIiwiaXNEb3duIiwidHJlbmRUZXh0IiwidHJlbmRDb2xvciIsImNhcmQ0RGF0YSIsInRhcmdldEFwdE5hbWUiLCJtaW5HYXBBbW91bnQiLCJJbmZpbml0eSIsInRhcmdldEdhcFBjdCIsInJlbnQiLCJsYXRlc3RSZW50RGVwb3NpdCIsImF2ZzNNUmVudERlcG9zaXQiLCJnYXBBbW91bnQiLCJiYWRnZVRleHQiLCJ0b3RhbEhvdXNlaG9sZHMiLCJwdWJsaWNSZW50YWxIb3VzZWhvbGRzIiwicHVibGljUmVudGFsIiwiaGgiLCJob3VzZWhvbGRDb3VudCIsImJlbmNobWFya3MiLCJkZWZlcnJlZE1hY3JvVHJlbmREYXRhIiwibGluZURhdGEiLCJjb3VudCIsInNsaWNlIiwibWluIiwieFRpY2tzIiwidGlja3MiLCJzdGVwIiwiaSIsInVuc2hpZnQiLCJwdWJsaWNSZW50YWxSYXRpbyIsImxhdGVzdEF2Z1ByaWNlIiwiYXZnUHJpY2VQcm9ncmVzcyIsImF2Z1ByaWNlRm9ybWF0dGVkIiwidWsiLCJtb21TdGF0cyIsImNoYW5nZSIsImNoYW5nZVRleHQiLCJ0ZXh0IiwiZm9ybWF0Q2hhbmdlIiwiYyIsImFic0NoYW5nZSIsImFicyIsImRvbmd0YW5BdmdQeWVvbmdQcmljZSIsInJhd1R4S2V5IiwidG9nZ2xlR3JvdXAiLCJpc1BvaW50SW5Qb2x5Z29uIiwicG9pbnQiLCJ2cyIsIngiLCJsbmciLCJsYXQiLCJpbnNpZGUiLCJ4aSIsInlpIiwieGoiLCJ5aiIsImludGVyc2VjdCIsInNpYnVtUG9seWdvbiIsImN1bHR1cmVQb2x5Z29uIiwid2F0ZXJmcm9udFBvbHlnb24iLCJnd2FuZ0JpelBvbHlnb24iLCJhY2NvcmRpb25EYXRhIiwiZ3JvdXBlZCIsImRvbmd0YW5Db29yZCIsImRpc3RUb0Rvbmd0YW4iLCJOdW1iZXIiLCJ0aGVtZVRpdGxlcyIsImlzU2lidW1BcmVhIiwiaXNDdWx0dXJlQXJlYSIsImlzTGFrZUFyZWEiLCJpc0d3YW5nQml6QXJlYSIsImlzRG9uZ3Rhbk5hbWUiLCJpc0Rvbmd0YW5BcmVhIiwiZG9uZyIsImlzMURvbmd0YW4iLCJtZGQiLCJnYXAiLCJsaXF1aWQiLCJhdmczTVR4Q291bnQiLCJmb3JtYXR0ZWRZZWFyIiwieWVhckJ1aWx0IiwiaXNOYU4iLCJ0aGVtZVRpdGxlIiwidG90YWxWYWx1ZSIsInRvdGFsUHllb25nVmFsdWUiLCJhcGFydG1lbnRzIiwibGF0ZXN0UHJpY2VFb2siLCJ0aGVtZU9yZGVyIiwicmVzdWx0IiwiZyIsImF2Z1ByaWNlIiwiYXZnUHllb25nUHJpY2UiLCJpbmRleEEiLCJpbmRleE9mIiwiaW5kZXhCIiwib3JkZXJBIiwib3JkZXJCIiwiY29tcGFjdFRpdGxlIiwic3VidGl0bGVTdHJvbmciLCJzdWJ0aXRsZUxpZ2h0IiwibWF1IiwiZGF1IiwidG90YWxWaWV3cyIsImF2Z1Nlc3Npb25EdXJhdGlvbiIsInJpZ2h0Q29udGVudCIsImJ1dHRvbiIsIm9uQ2xpY2siLCJzaXplIiwicmlnaHRTaWRlQ29udGVudCIsImgyIiwicmVmIiwicmVkdWNlIiwicyIsIm1pbldpZHRoIiwibWluSGVpZ2h0Iiwib25Nb3VzZUxlYXZlIiwiaW5uZXJSYWRpdXMiLCJvdXRlclJhZGl1cyIsInBhZGRpbmdBbmdsZSIsIm9uTW91c2VFbnRlciIsIl8iLCJhbmltYXRpb25EdXJhdGlvbiIsImFuaW1hdGlvbkJlZ2luIiwiRE9OVVRfQ09MT1JTIiwidHJhbnNpdGlvbiIsIm9wYWNpdHkiLCJjb250ZW50IiwiY3Vyc29yIiwiaXNBbmltYXRpb25BY3RpdmUiLCJwZXJjZW50YWdlIiwiaXNBY3RpdmUiLCJ0ZiIsIm1hcmdpbiIsInRvcCIsInJpZ2h0IiwibGVmdCIsImJvdHRvbSIsInZlcnRpY2FsIiwiYXhpc0xpbmUiLCJ0aWNrTGluZSIsInRpY2siLCJmb250U2l6ZSIsImZvbnRXZWlnaHQiLCJkeSIsInlBeGlzSWQiLCJ0aWNrRm9ybWF0dGVyIiwiaXNJbnRlZ2VyIiwiZG9tYWluIiwib3JpZW50YXRpb24iLCJhbGlnbiIsInZlcnRpY2FsQWxpZ24iLCJpY29uVHlwZSIsIndyYXBwZXJTdHlsZSIsInBhZGRpbmdUb3AiLCJmb3JtYXR0ZXIiLCJtYXJnaW5MZWZ0IiwidHlwZSIsImRvdCIsImFjdGl2ZURvdCIsImdyb3VwIiwiaXNFeHBhbmRlZCIsInRoZW1lQ29sb3JzIiwidGhlbWVDb2xvciIsImJyIiwic3RvcFByb3BhZ2F0aW9uIiwiVElFUlMiLCJhdmFpbGFibGVUaWVycyIsInRpZXIiLCJpZHgiLCJhcHRzIiwib3JpZ2luYWxJbmRleCIsInQiLCJjdXJyZW50VGllckluZGV4IiwiYWN0aXZlVGllciIsInVuaXF1ZURvbmdzIiwiQXJyYXkiLCJmcm9tIiwiU2V0IiwiQm9vbGVhbiIsImFjdGl2ZURvbmciLCJ0eExpc3QiLCJtb250aCIsImRheSIsImN1cnJlbnRZZWFyIiwiZ2V0RnVsbFllYXIiLCJjdXJyZW50TW9udGgiLCJnZXRNb250aCIsInllYXJPZmZzZXQiLCJzb3J0VmFsIiwiYXB0TmFtZSIsImFyZWFQeWVvbmciLCJmaWx0ZXJlZFR4TGlzdCIsInZpc2libGVUeExpc3QiLCJsb2NhdGlvbiIsImlkIiwiY2F0ZWdvcnkiLCJzdWIiLCJsaW5rIiwibmV3cyIsIm9wZW4iLCJoYXNoIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VSb290IjoiIn0=
+//# sourceURL=webpack-internal:///(app-pages-browser)/./src/components/MacroDashboardClient.tsx

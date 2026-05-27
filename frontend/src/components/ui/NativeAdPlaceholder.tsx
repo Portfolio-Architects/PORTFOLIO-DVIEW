@@ -1,32 +1,56 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { getAdForApartment } from '@/lib/utils/adMatching';
 
 interface NativeAdPlaceholderProps {
   location: string;
   onClick?: () => void;
+  metrics?: ObjectiveMetrics;
 }
 
-export function NativeAdPlaceholder({ location, onClick }: NativeAdPlaceholderProps) {
+export function NativeAdPlaceholder({ location, onClick, metrics }: NativeAdPlaceholderProps) {
+  const ad = getAdForApartment(metrics);
+
+  const handleAdClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onClick) {
+      onClick();
+    } else if (ad.link) {
+      if (ad.link.startsWith('/#')) {
+        window.location.hash = ad.link.substring(2);
+      } else {
+        window.open(ad.link, '_blank');
+      }
+    }
+  };
+
   return (
     <div 
-      className="w-full bg-gradient-to-br from-[#e8f3ff]/50 to-[#f0f4f8]/50 rounded-[20px] px-5 border border-border border-dashed flex flex-row items-center justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer h-[78px] md:h-[86px]"
-      onClick={onClick}
+      className={`w-full ${ad.themeColor} rounded-[20px] px-5 border border-dashed flex flex-row items-center justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer h-[78px] md:h-[86px]`}
+      onClick={handleAdClick}
     >
-      <div className="absolute top-1.5 right-3 text-[8px] font-bold text-tertiary/60 uppercase tracking-widest sm:hidden">
+      <div className="absolute top-1.5 right-3 text-[8px] font-bold opacity-60 uppercase tracking-widest sm:hidden">
         Sponsored
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 flex-1 min-w-0 text-left">
-        <h4 className="text-[14px] sm:text-[15px] md:text-[16px] font-extrabold text-primary group-hover:text-toss-blue transition-colors leading-tight shrink-0">
-          D-VIEW 프리미엄 파트너 공간
+        <h4 className={`text-[14px] sm:text-[15px] md:text-[16px] font-extrabold ${ad.textColor} group-hover:opacity-80 transition-opacity leading-tight shrink-0`}>
+          {ad.title}
         </h4>
-        <span className="hidden sm:inline text-tertiary/40">—</span>
+        <span className="hidden sm:inline opacity-40">—</span>
         <p className="text-[11px] sm:text-[12.5px] font-medium text-secondary truncate">
-          [{location}] 제휴 및 광고 문의를 남겨주세요
+          {ad.description}
         </p>
       </div>
-      <div className="hidden sm:block text-[10px] font-bold text-tertiary/60 uppercase tracking-widest shrink-0 ml-4">
-        Sponsored
+      
+      <div className="flex items-center gap-3 shrink-0 ml-4">
+        <button className="hidden sm:block text-[11px] font-bold px-3 py-1.5 bg-surface text-primary border border-border rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
+          {ad.buttonText}
+        </button>
+        <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest">
+          Sponsored
+        </span>
       </div>
     </div>
   );
 }
+
