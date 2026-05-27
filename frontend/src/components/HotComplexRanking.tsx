@@ -6,6 +6,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import { FieldReportData } from '@/lib/types/report.types';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
+import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface HotComplexRankingProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -25,6 +26,7 @@ export default function HotComplexRanking({
   nameMapping,
 }: HotComplexRankingProps) {
   const [activeTab, setActiveTab] = useState<'popular' | 'recent'>('popular');
+  const { areaUnit } = useSettings();
 
   // Compute top 5 hot complexes based on traffic and interest
   const hotList = useMemo(() => {
@@ -97,17 +99,25 @@ export default function HotComplexRanking({
           formattedDate = sum.latestDate || '';
         }
 
-        const areaM2 = sum.latestArea ? Math.floor(sum.latestArea) : 0;
+        const areaVal = sum.latestArea || 0;
+        let areaLabel = '';
+        if (areaVal > 0) {
+          if (areaUnit === 'm2') {
+            areaLabel = `${Math.round(areaVal * 3.3058)}㎡`;
+          } else {
+            areaLabel = `${Math.round(areaVal)}평`;
+          }
+        }
 
         return {
           apt: item.apt,
           latestDate: formattedDate,
           latestPriceEok: sum.latestPriceEok || '-',
           latestFloor: sum.latestFloor || 0,
-          areaM2,
+          areaLabel,
         };
       });
-  }, [sheetApartments, txSummaryData, nameMapping]);
+  }, [sheetApartments, txSummaryData, nameMapping, areaUnit]);
 
   return (
     <div className="w-full bg-surface border border-border rounded-3xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
@@ -224,7 +234,7 @@ export default function HotComplexRanking({
                       {item.latestPriceEok}
                     </span>
                     <span className="text-tertiary font-semibold text-[10.5px] md:text-[11.5px] leading-none mt-1 md:mt-0">
-                      {item.areaM2 > 0 ? `${item.areaM2}㎡` : ''}{item.latestFloor > 0 ? ` · ${item.latestFloor}층` : ''}
+                      {item.areaLabel}{item.latestFloor > 0 ? ` · ${item.latestFloor}층` : ''}
                     </span>
                   </div>
                 </div>
