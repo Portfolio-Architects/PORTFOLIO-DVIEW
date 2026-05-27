@@ -611,6 +611,14 @@
       "latestDate": "20260520",
       "maxPrice": 71800,
       "maxPriceEok": "7억1,800",
+      "maxPriceByArea": {
+        "51.79": 57800,
+        "84.65": 59500,
+        "59.73": 61500,
+        "74.92": 70000,
+        "74.96": 71800,
+        "84.54": 64700
+      },
       "minPrice": 23171,
       "minPriceEok": "2억3,171",
       "txCount": 316,
@@ -818,6 +826,12 @@
       "latestDate": "20260525",
       "maxPrice": 121700,
       "maxPriceEok": "12억1,700",
+      "maxPriceByArea": {
+        "84.93": 110000,
+        "84.44": 108500,
+        "84.98": 121700,
+        "84.42": 114700
+      },
       "minPrice": 51500,
       "minPriceEok": "5억1,500",
       "txCount": 417,
@@ -1025,6 +1039,12 @@
       "latestDate": "20260523",
       "maxPrice": 83500,
       "maxPriceEok": "8억3,500",
+      "maxPriceByArea": {
+        "60.52": 62000,
+        "59.99": 66500,
+        "84.54": 80000,
+        "84.52": 83500
+      },
       "minPrice": 30100,
       "minPriceEok": "3억100",
       "txCount": 387,
@@ -1232,6 +1252,12 @@
       "latestDate": "20260520",
       "maxPrice": 94800,
       "maxPriceEok": "9억4,800",
+      "maxPriceByArea": {
+        "60.38": 73700,
+        "59.99": 70000,
+        "84.54": 93500,
+        "84.52": 94800
+      },
       "minPrice": 30200,
       "minPriceEok": "3억200",
       "txCount": 281,
@@ -1439,6 +1465,12 @@
       "latestDate": "20260516",
       "maxPrice": 65000,
       "maxPriceEok": "6억5,000",
+      "maxPriceByArea": {
+        "59.77": 61300,
+        "74.13": 64600,
+        "59.87": 53000,
+        "85.00": 65000
+      },
       "minPrice": 26000,
       "minPriceEok": "2억6,000",
       "txCount": 636,
@@ -1646,6 +1678,11 @@
       "latestDate": "20260520",
       "maxPrice": 61500,
       "maxPriceEok": "6억1,500",
+      "maxPriceByArea": {
+        "69.99": 53000,
+        "85.00": 59000,
+        "84.98": 61500
+      },
       "minPrice": 40000,
       "minPriceEok": "4억",
       "txCount": 243,
@@ -1853,6 +1890,13 @@
       "latestDate": "20260518",
       "maxPrice": 95000,
       "maxPriceEok": "9억5,000",
+      "maxPriceByArea": {
+        "59.99": 74000,
+        "74.95": 79000,
+        "74.42": 77800,
+        "84.95": 95000,
+        "84.99": 89000
+      },
       "minPrice": 29300,
       "minPriceEok": "2억9,300",
       "txCount": 663,
@@ -2060,6 +2104,12 @@
       "latestDate": "20260521",
       "maxPrice": 78000,
       "maxPriceEok": "7억8,000",
+      "maxPriceByArea": {
+        "84.92": 78000,
+        "74.76": 62500,
+        "74.75": 70000,
+        "84.94": 75800
+      },
       "minPrice": 34200,
       "minPriceEok": "3억4,200",
       "txCount": 367,
@@ -2248,7 +2298,7 @@
           "area": 74.76
         }
       ],
-      "rentTxCount": 482,
+      "rentTxCount": 484,
       "latestRentDeposit": 3000,
       "latestRentDepositEok": "3,000만",
       "latestRentMonthly": 147,
@@ -2267,6 +2317,10 @@
       "latestDate": "20260514",
       "maxPrice": 80800,
       "maxPriceEok": "8억800",
+      "maxPriceByArea": {
+        "59.98": 71000,
+        "84.97": 80800
+      },
       "minPrice": 24980,
       "minPriceEok": "2억4,980",
       "txCount": 624,
@@ -2474,6 +2528,13 @@
       "latestDate": "20260516",
       "maxPrice": 69000,
       "maxPriceEok": "6억9,000",
+      "maxPriceByArea": {
+        "84.96": 66000,
+        "60.49": 62000,
+        "59.37": 59750,
+        "59.69": 55700,
+        "84.13": 69000
+      },
       "minPrice": 15860,
       "minPriceEok": "1억5,860",
       "txCount": 1259,
@@ -2681,6 +2742,14 @@
       "latestDate": "20260523",
       "maxPrice": 72000,
       "maxPriceEok": "7억2,000",
+      "maxPriceByArea": {
+        "59.99": 61800,
+        "74.97": 62500,
+        "59.98": 62500,
+        "84.98": 72000,
+        "74.98": 66500,
+        "84.97": 68000
+      },
       "minPrice": 29000,
       "minPriceEok": "2억9,000",
       "txCount": 373,
@@ -2888,6 +2957,11 @@
       "latestDate": "20260523",
       "maxPrice": 47000,
       "maxPriceEok": "4억7,000",
+      "maxPriceByArea": {
+        "55.99": 47000,
+        "55.97": 44500,
+        "46.85": 39500
+      },
       "minPrice": 33000,
       "minPriceEok": "3억3,000",
       "txCount": 93,
@@ -3095,6 +3169,25 @@
       "latestDate": "20260520",
       "maxPrice": 94000,
       "maxPriceEok": "9억4,000",
+      "maxPriceByArea": {
+        "89.01": 82000,
+        "84.20": 78700,
+        "74.73": 71800,
+        "84.42": 67900,
+        "89.85": 83000,
+        "74.44": 73000,
+        "74.67": 69000,
+        "102.85": 94000,
+        "116.45": 87000,
+        "60.49": 60000,
+        "84.87": 69100,
+        "84.31": 70000,
+        "84.39": 72000,
+        "60.58": 61000,
+        "74.92": 64000,
+        "102.62": 83000,
+        "106.53": 75000
+      },
       "minPrice": 34500,
       "minPriceEok": "3억4,500",
       "txCount": 577,
@@ -3302,6 +3395,12 @@
       "latestDate": "20260515",
       "maxPrice": 142000,
       "maxPriceEok": "14억2,000",
+      "maxPriceByArea": {
+        "96.73": 142000,
+        "84.97": 125000,
+        "84.83": 120000,
+        "84.57": 120000
+      },
       "minPrice": 70000,
       "minPriceEok": "7억",
       "txCount": 316,
@@ -3509,6 +3608,13 @@
       "latestDate": "20260513",
       "maxPrice": 112000,
       "maxPriceEok": "11억2,000",
+      "maxPriceByArea": {
+        "74.87": 91500,
+        "84.67": 112000,
+        "84.93": 110000,
+        "74.88": 84000,
+        "84.64": 102000
+      },
       "minPrice": 39994,
       "minPriceEok": "3억9,994",
       "txCount": 323,
@@ -3716,6 +3822,12 @@
       "latestDate": "20260523",
       "maxPrice": 86000,
       "maxPriceEok": "8억6,000",
+      "maxPriceByArea": {
+        "84.99": 86000,
+        "84.96": 84000,
+        "74.97": 69000,
+        "84.79": 75000
+      },
       "minPrice": 33720,
       "minPriceEok": "3억3,720",
       "txCount": 260,
@@ -3923,6 +4035,12 @@
       "latestDate": "20260515",
       "maxPrice": 130000,
       "maxPriceEok": "13억",
+      "maxPriceByArea": {
+        "84.99": 111800,
+        "99.02": 129500,
+        "99.04": 130000,
+        "84.96": 110500
+      },
       "minPrice": 43501,
       "minPriceEok": "4억3,501",
       "txCount": 518,
@@ -4130,6 +4248,15 @@
       "latestDate": "20260515",
       "maxPrice": 159800,
       "maxPriceEok": "15억9,800",
+      "maxPriceByArea": {
+        "84.98": 159800,
+        "69.98": 125300,
+        "59.95": 126000,
+        "59.98": 127000,
+        "84.94": 150000,
+        "59.99": 124800,
+        "73.96": 129000
+      },
       "minPrice": 32938,
       "minPriceEok": "3억2,938",
       "txCount": 1051,
@@ -4337,6 +4464,13 @@
       "latestDate": "20260513",
       "maxPrice": 64000,
       "maxPriceEok": "6억4,000",
+      "maxPriceByArea": {
+        "81.51": 59700,
+        "81.29": 60000,
+        "80.97": 64000,
+        "82.25": 59500,
+        "79.84": 57700
+      },
       "minPrice": 26500,
       "minPriceEok": "2억6,500",
       "txCount": 470,
@@ -4544,6 +4678,12 @@
       "latestDate": "20260518",
       "maxPrice": 69000,
       "maxPriceEok": "6억9,000",
+      "maxPriceByArea": {
+        "84.51": 69000,
+        "76.51": 66000,
+        "76.50": 58000,
+        "84.55": 62500
+      },
       "minPrice": 23250,
       "minPriceEok": "2억3,250",
       "txCount": 495,
@@ -4751,6 +4891,12 @@
       "latestDate": "20260516",
       "maxPrice": 72300,
       "maxPriceEok": "7억2,300",
+      "maxPriceByArea": {
+        "84.55": 72300,
+        "84.51": 66500,
+        "76.50": 65000,
+        "76.51": 64500
+      },
       "minPrice": 17800,
       "minPriceEok": "1억7,800",
       "txCount": 757,
@@ -4958,6 +5104,11 @@
       "latestDate": "20260515",
       "maxPrice": 71800,
       "maxPriceEok": "7억1,800",
+      "maxPriceByArea": {
+        "76.77": 65000,
+        "84.90": 71800,
+        "76.48": 59400
+      },
       "minPrice": 33400,
       "minPriceEok": "3억3,400",
       "txCount": 167,
@@ -5165,6 +5316,11 @@
       "latestDate": "20260515",
       "maxPrice": 101000,
       "maxPriceEok": "10억1,000",
+      "maxPriceByArea": {
+        "84.52": 101000,
+        "84.54": 94500,
+        "60.38": 70500
+      },
       "minPrice": 38500,
       "minPriceEok": "3억8,500",
       "txCount": 276,
@@ -5372,6 +5528,15 @@
       "latestDate": "20260520",
       "maxPrice": 138000,
       "maxPriceEok": "13억8,000",
+      "maxPriceByArea": {
+        "88.48": 96500,
+        "84.52": 101500,
+        "84.54": 102500,
+        "88.03": 89500,
+        "134.82": 138000,
+        "134.94": 130000,
+        "134.97": 109000
+      },
       "minPrice": 46500,
       "minPriceEok": "4억6,500",
       "txCount": 109,
@@ -5579,6 +5744,12 @@
       "latestDate": "20260521",
       "maxPrice": 100000,
       "maxPriceEok": "10억",
+      "maxPriceByArea": {
+        "128.02": 100000,
+        "103.95": 91300,
+        "96.43": 85500,
+        "128.01": 94000
+      },
       "minPrice": 32100,
       "minPriceEok": "3억2,100",
       "txCount": 788,
@@ -5786,6 +5957,12 @@
       "latestDate": "20260517",
       "maxPrice": 89800,
       "maxPriceEok": "8억9,800",
+      "maxPriceByArea": {
+        "84.97": 89800,
+        "74.99": 82000,
+        "84.96": 81000,
+        "84.87": 45000
+      },
       "minPrice": 32500,
       "minPriceEok": "3억2,500",
       "txCount": 261,
@@ -5993,6 +6170,11 @@
       "latestDate": "20260526",
       "maxPrice": 61000,
       "maxPriceEok": "6억1,000",
+      "maxPriceByArea": {
+        "83.74": 61000,
+        "59.04": 55800,
+        "59.19": 58000
+      },
       "minPrice": 16570,
       "minPriceEok": "1억6,570",
       "txCount": 1434,
@@ -6200,6 +6382,10 @@
       "latestDate": "20260518",
       "maxPrice": 102000,
       "maxPriceEok": "10억2,000",
+      "maxPriceByArea": {
+        "84.96": 102000,
+        "61.66": 83500
+      },
       "minPrice": 21500,
       "minPriceEok": "2억1,500",
       "txCount": 862,
@@ -6407,6 +6593,11 @@
       "latestDate": "20260516",
       "maxPrice": 79500,
       "maxPriceEok": "7억9,500",
+      "maxPriceByArea": {
+        "84.54": 78000,
+        "84.52": 79500,
+        "60.38": 70000
+      },
       "minPrice": 27500,
       "minPriceEok": "2억7,500",
       "txCount": 950,
@@ -6614,6 +6805,11 @@
       "latestDate": "20260525",
       "maxPrice": 78500,
       "maxPriceEok": "7억8,500",
+      "maxPriceByArea": {
+        "84.96": 78000,
+        "84.99": 78500,
+        "74.36": 71000
+      },
       "minPrice": 35000,
       "minPriceEok": "3억5,000",
       "txCount": 686,
@@ -6821,6 +7017,15 @@
       "latestDate": "20260518",
       "maxPrice": 149000,
       "maxPriceEok": "14억9,000",
+      "maxPriceByArea": {
+        "84.79": 81300,
+        "84.21": 79000,
+        "106.86": 100000,
+        "84.71": 73000,
+        "114.71": 92500,
+        "84.47": 75700,
+        "135.12": 149000
+      },
       "minPrice": 38000,
       "minPriceEok": "3억8,000",
       "txCount": 375,
@@ -7028,6 +7233,13 @@
       "latestDate": "20260512",
       "maxPrice": 90000,
       "maxPriceEok": "9억",
+      "maxPriceByArea": {
+        "84.96": 90000,
+        "59.84": 81000,
+        "59.42": 78000,
+        "84.98": 88000,
+        "59.16": 79000
+      },
       "minPrice": 28000,
       "minPriceEok": "2억8,000",
       "txCount": 758,
@@ -7235,6 +7447,13 @@
       "latestDate": "20260512",
       "maxPrice": 144000,
       "maxPriceEok": "14억4,000",
+      "maxPriceByArea": {
+        "74.36": 108700,
+        "59.92": 99400,
+        "84.97": 125000,
+        "96.81": 144000,
+        "84.99": 104500
+      },
       "minPrice": 54700,
       "minPriceEok": "5억4,700",
       "txCount": 189,
@@ -7442,6 +7661,13 @@
       "latestDate": "20260522",
       "maxPrice": 94500,
       "maxPriceEok": "9억4,500",
+      "maxPriceByArea": {
+        "85.20": 75000,
+        "84.54": 72000,
+        "84.52": 75000,
+        "85.18": 66800,
+        "147.32": 94500
+      },
       "minPrice": 34800,
       "minPriceEok": "3억4,800",
       "txCount": 454,
@@ -7649,6 +7875,13 @@
       "latestDate": "20260525",
       "maxPrice": 98000,
       "maxPriceEok": "9억8,000",
+      "maxPriceByArea": {
+        "84.65": 98000,
+        "59.07": 75700,
+        "76.78": 80000,
+        "84.68": 96000,
+        "76.00": 80000
+      },
       "minPrice": 17500,
       "minPriceEok": "1억7,500",
       "txCount": 2381,
@@ -7856,6 +8089,12 @@
       "latestDate": "20260516",
       "maxPrice": 77000,
       "maxPriceEok": "7억7,000",
+      "maxPriceByArea": {
+        "84.94": 77000,
+        "84.97": 75900,
+        "74.87": 70000,
+        "84.90": 67800
+      },
       "minPrice": 36300,
       "minPriceEok": "3억6,300",
       "txCount": 499,
@@ -8063,6 +8302,10 @@
       "latestDate": "20260516",
       "maxPrice": 64900,
       "maxPriceEok": "6억4,900",
+      "maxPriceByArea": {
+        "53.48": 64900,
+        "53.79": 64000
+      },
       "minPrice": 27468,
       "minPriceEok": "2억7,468",
       "txCount": 531,
@@ -8251,7 +8494,7 @@
           "area": 53.4754
         }
       ],
-      "rentTxCount": 867,
+      "rentTxCount": 869,
       "latestRentDeposit": 31500,
       "latestRentDepositEok": "3억1,500",
       "latestRentMonthly": 0,
@@ -8270,6 +8513,12 @@
       "latestDate": "20260516",
       "maxPrice": 80000,
       "maxPriceEok": "8억",
+      "maxPriceByArea": {
+        "84.99": 80000,
+        "69.97": 60000,
+        "69.59": 70000,
+        "84.98": 74500
+      },
       "minPrice": 28000,
       "minPriceEok": "2억8,000",
       "txCount": 475,
@@ -8477,6 +8726,11 @@
       "latestDate": "20260516",
       "maxPrice": 61000,
       "maxPriceEok": "6억1,000",
+      "maxPriceByArea": {
+        "54.55": 61000,
+        "54.97": 52800,
+        "54.42": 59000
+      },
       "minPrice": 39000,
       "minPriceEok": "3억9,000",
       "txCount": 157,
@@ -8684,6 +8938,12 @@
       "latestDate": "20260520",
       "maxPrice": 85000,
       "maxPriceEok": "8억5,000",
+      "maxPriceByArea": {
+        "74.21": 73500,
+        "84.03": 81000,
+        "84.05": 85000,
+        "84.02": 73100
+      },
       "minPrice": 40000,
       "minPriceEok": "4억",
       "txCount": 154,
@@ -8891,6 +9151,14 @@
       "latestDate": "20260521",
       "maxPrice": 87000,
       "maxPriceEok": "8억7,000",
+      "maxPriceByArea": {
+        "73.33": 62000,
+        "81.49": 63000,
+        "72.68": 62500,
+        "81.12": 66000,
+        "101.71": 74500,
+        "153.41": 87000
+      },
       "minPrice": 26000,
       "minPriceEok": "2억6,000",
       "txCount": 1000,
@@ -9098,6 +9366,15 @@
       "latestDate": "20260525",
       "maxPrice": 67000,
       "maxPriceEok": "6억7,000",
+      "maxPriceByArea": {
+        "84.57": 62000,
+        "59.52": 59800,
+        "84.94": 67000,
+        "84.84": 65000,
+        "74.60": 60000,
+        "59.95": 45300,
+        "59.94": 49900
+      },
       "minPrice": 15900,
       "minPriceEok": "1억5,900",
       "txCount": 2082,
@@ -9305,6 +9582,11 @@
       "latestDate": "20260511",
       "maxPrice": 92000,
       "maxPriceEok": "9억2,000",
+      "maxPriceByArea": {
+        "84.80": 92000,
+        "84.79": 85000,
+        "84.73": 87700
+      },
       "minPrice": 28000,
       "minPriceEok": "2억8,000",
       "txCount": 600,
@@ -9512,6 +9794,15 @@
       "latestDate": "20260520",
       "maxPrice": 97000,
       "maxPriceEok": "9억7,000",
+      "maxPriceByArea": {
+        "74.90": 90000,
+        "59.34": 86000,
+        "59.43": 86000,
+        "74.91": 91500,
+        "84.98": 97000,
+        "74.97": 89900,
+        "59.45": 79800
+      },
       "minPrice": 31000,
       "minPriceEok": "3억1,000",
       "txCount": 1186,
@@ -9719,6 +10010,12 @@
       "latestDate": "20260514",
       "maxPrice": 149000,
       "maxPriceEok": "14억9,000",
+      "maxPriceByArea": {
+        "73.43": 132000,
+        "86.23": 149000,
+        "73.65": 128000,
+        "76.19": 128500
+      },
       "minPrice": 67000,
       "minPriceEok": "6억7,000",
       "txCount": 179,
@@ -9926,6 +10223,11 @@
       "latestDate": "20260517",
       "maxPrice": 63400,
       "maxPriceEok": "6억3,400",
+      "maxPriceByArea": {
+        "84.87": 63400,
+        "74.66": 59000,
+        "74.73": 58500
+      },
       "minPrice": 19950,
       "minPriceEok": "1억9,950",
       "txCount": 303,
@@ -10133,6 +10435,19 @@
       "latestDate": "20260519",
       "maxPrice": 232500,
       "maxPriceEok": "23억2,500",
+      "maxPriceByArea": {
+        "128.44": 139700,
+        "96.22": 111700,
+        "107.78": 120000,
+        "112.44": 120000,
+        "187.12": 185000,
+        "126.77": 128000,
+        "127.74": 127500,
+        "109.48": 120000,
+        "161.89": 155000,
+        "209.25": 232500,
+        "230.55": 194000
+      },
       "minPrice": 41000,
       "minPriceEok": "4억1,000",
       "txCount": 887,
@@ -10340,6 +10655,10 @@
       "latestDate": "20260518",
       "maxPrice": 76500,
       "maxPriceEok": "7억6,500",
+      "maxPriceByArea": {
+        "83.01": 76500,
+        "83.17": 73000
+      },
       "minPrice": 39500,
       "minPriceEok": "3억9,500",
       "txCount": 166,
@@ -10547,6 +10866,14 @@
       "latestDate": "20260522",
       "maxPrice": 96500,
       "maxPriceEok": "9억6,500",
+      "maxPriceByArea": {
+        "84.85": 96500,
+        "61.92": 74300,
+        "74.98": 83800,
+        "74.90": 77500,
+        "84.88": 94800,
+        "74.95": 81500
+      },
       "minPrice": 40332,
       "minPriceEok": "4억332",
       "txCount": 474,
@@ -10754,6 +11081,11 @@
       "latestDate": "20260518",
       "maxPrice": 119000,
       "maxPriceEok": "11억9,000",
+      "maxPriceByArea": {
+        "84.54": 110000,
+        "84.52": 119000,
+        "60.38": 82500
+      },
       "minPrice": 36000,
       "minPriceEok": "3억6,000",
       "txCount": 288,
@@ -10961,6 +11293,11 @@
       "latestDate": "20260518",
       "maxPrice": 85000,
       "maxPriceEok": "8억5,000",
+      "maxPriceByArea": {
+        "98.15": 85000,
+        "84.84": 77700,
+        "84.67": 74000
+      },
       "minPrice": 35000,
       "minPriceEok": "3억5,000",
       "txCount": 668,
@@ -11168,6 +11505,10 @@
       "latestDate": "20260523",
       "maxPrice": 74500,
       "maxPriceEok": "7억4,500",
+      "maxPriceByArea": {
+        "83.17": 73000,
+        "83.01": 74500
+      },
       "minPrice": 54766,
       "minPriceEok": "5억4,766",
       "txCount": 73,
@@ -11375,6 +11716,11 @@
       "latestDate": "20260525",
       "maxPrice": 72200,
       "maxPriceEok": "7억2,200",
+      "maxPriceByArea": {
+        "59.58": 62300,
+        "76.36": 72200,
+        "76.59": 60000
+      },
       "minPrice": 27300,
       "minPriceEok": "2억7,300",
       "txCount": 213,
@@ -11582,6 +11928,16 @@
       "latestDate": "20260523",
       "maxPrice": 110500,
       "maxPriceEok": "11억500",
+      "maxPriceByArea": {
+        "120.23": 93000,
+        "98.47": 90900,
+        "84.51": 80000,
+        "98.68": 83000,
+        "80.30": 66500,
+        "141.91": 109000,
+        "140.24": 110500,
+        "143.34": 74500
+      },
       "minPrice": 30000,
       "minPriceEok": "3억",
       "txCount": 543,
@@ -11789,6 +12145,13 @@
       "latestDate": "20260523",
       "maxPrice": 103500,
       "maxPriceEok": "10억3,500",
+      "maxPriceByArea": {
+        "113.65": 103500,
+        "84.61": 85500,
+        "96.97": 89000,
+        "84.56": 70000,
+        "112.31": 91500
+      },
       "minPrice": 23000,
       "minPriceEok": "2억3,000",
       "txCount": 549,
@@ -11996,6 +12359,13 @@
       "latestDate": "20260514",
       "maxPrice": 63500,
       "maxPriceEok": "6억3,500",
+      "maxPriceByArea": {
+        "51.99": 45000,
+        "59.69": 52000,
+        "84.90": 63500,
+        "74.99": 60000,
+        "84.96": 63000
+      },
       "minPrice": 39000,
       "minPriceEok": "3억9,000",
       "txCount": 80,
@@ -12203,6 +12573,11 @@
       "latestDate": "20260521",
       "maxPrice": 69000,
       "maxPriceEok": "6억9,000",
+      "maxPriceByArea": {
+        "84.97": 69000,
+        "74.94": 63000,
+        "74.96": 62500
+      },
       "minPrice": 54800,
       "minPriceEok": "5억4,800",
       "txCount": 66,
@@ -12410,6 +12785,13 @@
       "latestDate": "20260519",
       "maxPrice": 68000,
       "maxPriceEok": "6억8,000",
+      "maxPriceByArea": {
+        "59.96": 55000,
+        "83.21": 53200,
+        "59.87": 55500,
+        "59.05": 55000,
+        "84.88": 68000
+      },
       "minPrice": 15100,
       "minPriceEok": "1억5,100",
       "txCount": 1778,
@@ -12617,6 +12999,9 @@
       "latestDate": "20260525",
       "maxPrice": 55800,
       "maxPriceEok": "5억5,800",
+      "maxPriceByArea": {
+        "72.60": 55800
+      },
       "minPrice": 11400,
       "minPriceEok": "1억1,400",
       "txCount": 838,
@@ -12824,6 +13209,11 @@
       "latestDate": "20260523",
       "maxPrice": 95000,
       "maxPriceEok": "9억5,000",
+      "maxPriceByArea": {
+        "59.97": 78000,
+        "84.99": 95000,
+        "73.00": 86000
+      },
       "minPrice": 30416,
       "minPriceEok": "3억416",
       "txCount": 506,
@@ -13031,6 +13421,11 @@
       "latestDate": "20260521",
       "maxPrice": 125000,
       "maxPriceEok": "12억5,000",
+      "maxPriceByArea": {
+        "84.95": 125000,
+        "84.97": 115700,
+        "84.99": 117000
+      },
       "minPrice": 45000,
       "minPriceEok": "4억5,000",
       "txCount": 681,
@@ -13238,6 +13633,16 @@
       "latestDate": "20260520",
       "maxPrice": 118000,
       "maxPriceEok": "11억8,000",
+      "maxPriceByArea": {
+        "74.97": 108000,
+        "84.94": 102000,
+        "84.95": 118000,
+        "84.80": 117000,
+        "74.99": 97800,
+        "85.00": 105000,
+        "84.82": 88000,
+        "84.89": 97800
+      },
       "minPrice": 38375,
       "minPriceEok": "3억8,375",
       "txCount": 334,
@@ -13445,6 +13850,11 @@
       "latestDate": "20260515",
       "maxPrice": 124000,
       "maxPriceEok": "12억4,000",
+      "maxPriceByArea": {
+        "97.00": 117000,
+        "84.99": 102000,
+        "96.88": 124000
+      },
       "minPrice": 54000,
       "minPriceEok": "5억4,000",
       "txCount": 149,
@@ -13652,6 +14062,13 @@
       "latestDate": "20260518",
       "maxPrice": 115000,
       "maxPriceEok": "11억5,000",
+      "maxPriceByArea": {
+        "59.98": 95700,
+        "59.96": 99000,
+        "72.35": 104800,
+        "72.19": 104000,
+        "84.91": 115000
+      },
       "minPrice": 44800,
       "minPriceEok": "4억4,800",
       "txCount": 645,
@@ -13859,6 +14276,12 @@
       "latestDate": "20260509",
       "maxPrice": 232500,
       "maxPriceEok": "23억2,500",
+      "maxPriceByArea": {
+        "102.71": 232500,
+        "84.70": 208000,
+        "84.82": 190000,
+        "65.97": 164700
+      },
       "minPrice": 104000,
       "minPriceEok": "10억4,000",
       "txCount": 180,
@@ -14066,6 +14489,11 @@
       "latestDate": "20260509",
       "maxPrice": 100000,
       "maxPriceEok": "10억",
+      "maxPriceByArea": {
+        "59.72": 79000,
+        "84.99": 100000,
+        "73.11": 90000
+      },
       "minPrice": 39000,
       "minPriceEok": "3억9,000",
       "txCount": 157,
@@ -14273,6 +14701,11 @@
       "latestDate": "20260509",
       "maxPrice": 95000,
       "maxPriceEok": "9억5,000",
+      "maxPriceByArea": {
+        "84.98": 95000,
+        "74.90": 86000,
+        "74.85": 82000
+      },
       "minPrice": 53000,
       "minPriceEok": "5억3,000",
       "txCount": 216,
@@ -14480,6 +14913,10 @@
       "latestDate": "20260509",
       "maxPrice": 86000,
       "maxPriceEok": "8억6,000",
+      "maxPriceByArea": {
+        "56.36": 79800,
+        "59.47": 86000
+      },
       "minPrice": 51000,
       "minPriceEok": "5억1,000",
       "txCount": 139,
@@ -14687,6 +15124,9 @@
       "latestDate": "20260523",
       "maxPrice": 76000,
       "maxPriceEok": "7억6,000",
+      "maxPriceByArea": {
+        "84.90": 76000
+      },
       "minPrice": 20000,
       "minPriceEok": "2억",
       "txCount": 370,
@@ -14894,6 +15334,18 @@
       "latestDate": "20260516",
       "maxPrice": 198000,
       "maxPriceEok": "19억8,000",
+      "maxPriceByArea": {
+        "113.72": 178500,
+        "84.51": 158500,
+        "101.40": 167500,
+        "84.89": 153500,
+        "124.52": 176000,
+        "101.94": 163000,
+        "124.92": 162000,
+        "84.92": 138000,
+        "128.93": 198000,
+        "101.09": 148000
+      },
       "minPrice": 46000,
       "minPriceEok": "4억6,000",
       "txCount": 794,
@@ -15101,6 +15553,12 @@
       "latestDate": "20260515",
       "maxPrice": 143500,
       "maxPriceEok": "14억3,500",
+      "maxPriceByArea": {
+        "59.92": 111500,
+        "74.36": 124000,
+        "84.99": 127000,
+        "96.81": 143500
+      },
       "minPrice": 38000,
       "minPriceEok": "3억8,000",
       "txCount": 187,
@@ -15308,6 +15766,12 @@
       "latestDate": "20260525",
       "maxPrice": 144700,
       "maxPriceEok": "14억4,700",
+      "maxPriceByArea": {
+        "86.23": 144700,
+        "73.65": 125000,
+        "73.43": 122000,
+        "76.19": 118000
+      },
       "minPrice": 60000,
       "minPriceEok": "6억",
       "txCount": 172,
@@ -15515,6 +15979,13 @@
       "latestDate": "20260520",
       "maxPrice": 109000,
       "maxPriceEok": "10억9,000",
+      "maxPriceByArea": {
+        "84.80": 95000,
+        "84.93": 94000,
+        "99.90": 107000,
+        "99.98": 109000,
+        "84.95": 88800
+      },
       "minPrice": 40500,
       "minPriceEok": "4억500",
       "txCount": 154,
@@ -15722,6 +16193,10 @@
       "latestDate": "20260525",
       "maxPrice": 77800,
       "maxPriceEok": "7억7,800",
+      "maxPriceByArea": {
+        "74.54": 71000,
+        "84.99": 77800
+      },
       "minPrice": 34766,
       "minPriceEok": "3억4,766",
       "txCount": 240,
@@ -15929,6 +16404,15 @@
       "latestDate": "20260522",
       "maxPrice": 104000,
       "maxPriceEok": "10억4,000",
+      "maxPriceByArea": {
+        "59.99": 85000,
+        "84.93": 104000,
+        "74.88": 89500,
+        "59.97": 76000,
+        "59.90": 78600,
+        "84.96": 94000,
+        "74.96": 82000
+      },
       "minPrice": 29800,
       "minPriceEok": "2억9,800",
       "txCount": 1091,
@@ -16136,6 +16620,11 @@
       "latestDate": "20260509",
       "maxPrice": 83800,
       "maxPriceEok": "8억3,800",
+      "maxPriceByArea": {
+        "96.92": 83800,
+        "84.87": 69500,
+        "96.95": 67000
+      },
       "minPrice": 35700,
       "minPriceEok": "3억5,700",
       "txCount": 142,
@@ -16343,6 +16832,17 @@
       "latestDate": "20260513",
       "maxPrice": 194500,
       "maxPriceEok": "19억4,500",
+      "maxPriceByArea": {
+        "97.05": 180000,
+        "106.54": 194500,
+        "84.39": 153000,
+        "84.80": 159000,
+        "97.04": 166000,
+        "97.01": 169000,
+        "97.18": 168000,
+        "115.40": 164500,
+        "115.53": 140000
+      },
       "minPrice": 48106,
       "minPriceEok": "4억8,106",
       "txCount": 391,
@@ -16550,6 +17050,12 @@
       "latestDate": "20260523",
       "maxPrice": 95000,
       "maxPriceEok": "9억5,000",
+      "maxPriceByArea": {
+        "59.93": 78300,
+        "59.96": 74000,
+        "74.97": 90800,
+        "84.96": 95000
+      },
       "minPrice": 29000,
       "minPriceEok": "2억9,000",
       "txCount": 416,
@@ -16757,6 +17263,11 @@
       "latestDate": "20260508",
       "maxPrice": 80800,
       "maxPriceEok": "8억800",
+      "maxPriceByArea": {
+        "84.98": 80800,
+        "84.99": 78800,
+        "78.72": 69500
+      },
       "minPrice": 24000,
       "minPriceEok": "2억4,000",
       "txCount": 938,
@@ -16964,6 +17475,12 @@
       "latestDate": "20260521",
       "maxPrice": 85000,
       "maxPriceEok": "8억5,000",
+      "maxPriceByArea": {
+        "77.18": 63300,
+        "96.79": 85000,
+        "85.00": 72000,
+        "96.70": 75000
+      },
       "minPrice": 33279,
       "minPriceEok": "3억3,279",
       "txCount": 509,
@@ -17171,6 +17688,12 @@
       "latestDate": "20260511",
       "maxPrice": 113000,
       "maxPriceEok": "11억3,000",
+      "maxPriceByArea": {
+        "97.89": 104000,
+        "97.30": 113000,
+        "97.86": 102000,
+        "107.96": 106000
+      },
       "minPrice": 90000,
       "minPriceEok": "9억",
       "txCount": 26,
@@ -17378,6 +17901,11 @@
       "latestDate": "20260508",
       "maxPrice": 97000,
       "maxPriceEok": "9억7,000",
+      "maxPriceByArea": {
+        "102.00": 97000,
+        "84.98": 88000,
+        "101.99": 92000
+      },
       "minPrice": 39500,
       "minPriceEok": "3억9,500",
       "txCount": 429,
@@ -17585,6 +18113,13 @@
       "latestDate": "20260518",
       "maxPrice": 149000,
       "maxPriceEok": "14억9,000",
+      "maxPriceByArea": {
+        "84.74": 124800,
+        "84.87": 125700,
+        "84.65": 119000,
+        "101.74": 143000,
+        "101.57": 149000
+      },
       "minPrice": 45000,
       "minPriceEok": "4억5,000",
       "txCount": 344,
@@ -17792,6 +18327,15 @@
       "latestDate": "20260516",
       "maxPrice": 119000,
       "maxPriceEok": "11억9,000",
+      "maxPriceByArea": {
+        "72.87": 104000,
+        "84.91": 117000,
+        "72.93": 105000,
+        "72.15": 100000,
+        "72.80": 99800,
+        "84.81": 119000,
+        "84.94": 115000
+      },
       "minPrice": 34500,
       "minPriceEok": "3억4,500",
       "txCount": 354,
@@ -17999,6 +18543,12 @@
       "latestDate": "20260515",
       "maxPrice": 87500,
       "maxPriceEok": "8억7,500",
+      "maxPriceByArea": {
+        "103.30": 87500,
+        "84.50": 81800,
+        "84.16": 81900,
+        "84.81": 73500
+      },
       "minPrice": 30000,
       "minPriceEok": "3억",
       "txCount": 413,
@@ -18206,6 +18756,11 @@
       "latestDate": "20260525",
       "maxPrice": 70000,
       "maxPriceEok": "7억",
+      "maxPriceByArea": {
+        "84.50": 69500,
+        "84.54": 61350,
+        "84.23": 70000
+      },
       "minPrice": 21952,
       "minPriceEok": "2억1,952",
       "txCount": 408,
@@ -18413,6 +18968,10 @@
       "latestDate": "20260517",
       "maxPrice": 68000,
       "maxPriceEok": "6억8,000",
+      "maxPriceByArea": {
+        "78.29": 63000,
+        "83.56": 68000
+      },
       "minPrice": 23300,
       "minPriceEok": "2억3,300",
       "txCount": 645,
@@ -18620,6 +19179,13 @@
       "latestDate": "20260520",
       "maxPrice": 109500,
       "maxPriceEok": "10억9,500",
+      "maxPriceByArea": {
+        "116.02": 87000,
+        "110.73": 82000,
+        "139.45": 107000,
+        "101.96": 78000,
+        "166.97": 109500
+      },
       "minPrice": 34700,
       "minPriceEok": "3억4,700",
       "txCount": 526,
@@ -18827,6 +19393,15 @@
       "latestDate": "20260518",
       "maxPrice": 175000,
       "maxPriceEok": "17억5,000",
+      "maxPriceByArea": {
+        "101.88": 114000,
+        "122.64": 144000,
+        "102.00": 108000,
+        "122.98": 135000,
+        "122.97": 120000,
+        "185.43": 168000,
+        "241.60": 175000
+      },
       "minPrice": 47227,
       "minPriceEok": "4억7,227",
       "txCount": 630,
@@ -19034,6 +19609,15 @@
       "latestDate": "20260522",
       "maxPrice": 95000,
       "maxPriceEok": "9억5,000",
+      "maxPriceByArea": {
+        "84.76": 88000,
+        "51.75": 62800,
+        "59.96": 64000,
+        "59.64": 72400,
+        "74.89": 76400,
+        "51.14": 60000,
+        "84.98": 95000
+      },
       "minPrice": 27300,
       "minPriceEok": "2억7,300",
       "txCount": 543,
@@ -19241,6 +19825,10 @@
       "latestDate": "20260519",
       "maxPrice": 76500,
       "maxPriceEok": "7억6,500",
+      "maxPriceByArea": {
+        "84.96": 74200,
+        "84.94": 76500
+      },
       "minPrice": 28000,
       "minPriceEok": "2억8,000",
       "txCount": 805,
@@ -19448,6 +20036,11 @@
       "latestDate": "20260514",
       "maxPrice": 80900,
       "maxPriceEok": "8억900",
+      "maxPriceByArea": {
+        "76.47": 76800,
+        "83.75": 80900,
+        "83.42": 80000
+      },
       "minPrice": 37465,
       "minPriceEok": "3억7,465",
       "txCount": 327,
@@ -19655,6 +20248,11 @@
       "latestDate": "20260520",
       "maxPrice": 103000,
       "maxPriceEok": "10억3,000",
+      "maxPriceByArea": {
+        "102.00": 95000,
+        "104.36": 103000,
+        "93.39": 74500
+      },
       "minPrice": 38900,
       "minPriceEok": "3억8,900",
       "txCount": 261,
@@ -19862,6 +20460,17 @@
       "latestDate": "20260525",
       "maxPrice": 88000,
       "maxPriceEok": "8억8,000",
+      "maxPriceByArea": {
+        "76.16": 64500,
+        "84.62": 67800,
+        "76.53": 67000,
+        "84.03": 70500,
+        "84.31": 67000,
+        "101.08": 74100,
+        "117.51": 81500,
+        "156.26": 88000,
+        "159.20": 68000
+      },
       "minPrice": 23260,
       "minPriceEok": "2억3,260",
       "txCount": 1422,
@@ -20069,6 +20678,12 @@
       "latestDate": "20260515",
       "maxPrice": 80250,
       "maxPriceEok": "8억250",
+      "maxPriceByArea": {
+        "84.70": 79000,
+        "84.69": 80000,
+        "84.77": 80250,
+        "84.71": 76500
+      },
       "minPrice": 28000,
       "minPriceEok": "2억8,000",
       "txCount": 788,
@@ -20276,6 +20891,11 @@
       "latestDate": "20260519",
       "maxPrice": 115000,
       "maxPriceEok": "11억5,000",
+      "maxPriceByArea": {
+        "93.41": 90000,
+        "99.69": 99500,
+        "103.42": 115000
+      },
       "minPrice": 54600,
       "minPriceEok": "5억4,600",
       "txCount": 227,
@@ -20483,6 +21103,14 @@
       "latestDate": "20260513",
       "maxPrice": 162000,
       "maxPriceEok": "16억2,000",
+      "maxPriceByArea": {
+        "75.02": 131000,
+        "92.84": 153000,
+        "84.84": 145000,
+        "92.25": 162000,
+        "93.80": 142300,
+        "84.27": 136000
+      },
       "minPrice": 76000,
       "minPriceEok": "7억6,000",
       "txCount": 149,
@@ -20690,6 +21318,11 @@
       "latestDate": "20260525",
       "maxPrice": 72000,
       "maxPriceEok": "7억2,000",
+      "maxPriceByArea": {
+        "100.92": 72000,
+        "101.23": 69800,
+        "142.09": 55000
+      },
       "minPrice": 28000,
       "minPriceEok": "2억8,000",
       "txCount": 387,
@@ -20897,6 +21530,18 @@
       "latestDate": "20260506",
       "maxPrice": 90000,
       "maxPriceEok": "9억",
+      "maxPriceByArea": {
+        "87.98": 57000,
+        "90.05": 65000,
+        "152.66": 83000,
+        "110.40": 73500,
+        "110.17": 71000,
+        "152.03": 90000,
+        "110.63": 68000,
+        "132.95": 71000,
+        "151.16": 84500,
+        "135.23": 54800
+      },
       "minPrice": 26000,
       "minPriceEok": "2억6,000",
       "txCount": 519,
@@ -21104,6 +21749,15 @@
       "latestDate": "20260521",
       "maxPrice": 143000,
       "maxPriceEok": "14억3,000",
+      "maxPriceByArea": {
+        "134.82": 126000,
+        "84.54": 125000,
+        "88.48": 111000,
+        "84.52": 129500,
+        "88.03": 108000,
+        "134.97": 115000,
+        "134.94": 143000
+      },
       "minPrice": 70500,
       "minPriceEok": "7억500",
       "txCount": 179,
@@ -21311,6 +21965,11 @@
       "latestDate": "20260430",
       "maxPrice": 77000,
       "maxPriceEok": "7억7,000",
+      "maxPriceByArea": {
+        "67.07": 69500,
+        "84.97": 75500,
+        "84.43": 77000
+      },
       "minPrice": 22000,
       "minPriceEok": "2억2,000",
       "txCount": 744,
@@ -21518,6 +22177,13 @@
       "latestDate": "20260525",
       "maxPrice": 86800,
       "maxPriceEok": "8억6,800",
+      "maxPriceByArea": {
+        "96.84": 75700,
+        "113.61": 86700,
+        "113.64": 86000,
+        "113.18": 86800,
+        "97.60": 79800
+      },
       "minPrice": 22400,
       "minPriceEok": "2억2,400",
       "txCount": 677,
@@ -21725,6 +22391,10 @@
       "latestDate": "20260516",
       "maxPrice": 57500,
       "maxPriceEok": "5억7,500",
+      "maxPriceByArea": {
+        "74.99": 53000,
+        "84.96": 57500
+      },
       "minPrice": 46500,
       "minPriceEok": "4억6,500",
       "txCount": 19,
@@ -21890,6 +22560,11 @@
       "latestDate": "20260505",
       "maxPrice": 64800,
       "maxPriceEok": "6억4,800",
+      "maxPriceByArea": {
+        "84.97": 64800,
+        "74.94": 59000,
+        "84.94": 61900
+      },
       "minPrice": 55000,
       "minPriceEok": "5억5,000",
       "txCount": 32,
@@ -22097,6 +22772,11 @@
       "latestDate": "20260518",
       "maxPrice": 150000,
       "maxPriceEok": "15억",
+      "maxPriceByArea": {
+        "84.79": 131500,
+        "84.71": 130000,
+        "120.86": 150000
+      },
       "minPrice": 47000,
       "minPriceEok": "4억7,000",
       "txCount": 215,
@@ -22304,6 +22984,11 @@
       "latestDate": "20260520",
       "maxPrice": 136800,
       "maxPriceEok": "13억6,800",
+      "maxPriceByArea": {
+        "92.31": 136800,
+        "81.22": 119000,
+        "81.35": 119600
+      },
       "minPrice": 50000,
       "minPriceEok": "5억",
       "txCount": 36,
@@ -22511,6 +23196,10 @@
       "latestDate": "20260507",
       "maxPrice": 97000,
       "maxPriceEok": "9억7,000",
+      "maxPriceByArea": {
+        "128.41": 97000,
+        "103.39": 88000
+      },
       "minPrice": 32000,
       "minPriceEok": "3억2,000",
       "txCount": 611,
@@ -22718,6 +23407,10 @@
       "latestDate": "20260519",
       "maxPrice": 90000,
       "maxPriceEok": "9억",
+      "maxPriceByArea": {
+        "85.00": 90000,
+        "84.96": 87000
+      },
       "minPrice": 40000,
       "minPriceEok": "4억",
       "txCount": 330,
@@ -22925,6 +23618,13 @@
       "latestDate": "20260516",
       "maxPrice": 185000,
       "maxPriceEok": "18억5,000",
+      "maxPriceByArea": {
+        "106.95": 149000,
+        "98.96": 142500,
+        "116.28": 185000,
+        "106.94": 130800,
+        "98.94": 144000
+      },
       "minPrice": 90000,
       "minPriceEok": "9억",
       "txCount": 145,
@@ -23132,6 +23832,11 @@
       "latestDate": "20260516",
       "maxPrice": 83600,
       "maxPriceEok": "8억3,600",
+      "maxPriceByArea": {
+        "84.06": 83600,
+        "84.11": 78000,
+        "84.01": 83000
+      },
       "minPrice": 33893,
       "minPriceEok": "3억3,893",
       "txCount": 434,
@@ -23339,6 +24044,12 @@
       "latestDate": "20260517",
       "maxPrice": 110000,
       "maxPriceEok": "11억",
+      "maxPriceByArea": {
+        "100.71": 90000,
+        "124.33": 100500,
+        "121.55": 99500,
+        "164.98": 110000
+      },
       "minPrice": 35000,
       "minPriceEok": "3억5,000",
       "txCount": 701,
@@ -23546,6 +24257,11 @@
       "latestDate": "20260516",
       "maxPrice": 70800,
       "maxPriceEok": "7억800",
+      "maxPriceByArea": {
+        "84.66": 70800,
+        "76.78": 65500,
+        "84.68": 70000
+      },
       "minPrice": 25000,
       "minPriceEok": "2억5,000",
       "txCount": 623,
@@ -23753,6 +24469,11 @@
       "latestDate": "20260520",
       "maxPrice": 82400,
       "maxPriceEok": "8억2,400",
+      "maxPriceByArea": {
+        "84.75": 82400,
+        "79.62": 74700,
+        "84.92": 80000
+      },
       "minPrice": 27500,
       "minPriceEok": "2억7,500",
       "txCount": 689,
@@ -23960,6 +24681,11 @@
       "latestDate": "20260519",
       "maxPrice": 75000,
       "maxPriceEok": "7억5,000",
+      "maxPriceByArea": {
+        "84.73": 74000,
+        "84.65": 69000,
+        "84.79": 75000
+      },
       "minPrice": 26800,
       "minPriceEok": "2억6,800",
       "txCount": 597,
@@ -24167,6 +24893,13 @@
       "latestDate": "20260517",
       "maxPrice": 160000,
       "maxPriceEok": "16억",
+      "maxPriceByArea": {
+        "101.82": 160000,
+        "84.67": 145500,
+        "87.57": 136000,
+        "84.64": 139000,
+        "84.65": 127700
+      },
       "minPrice": 104000,
       "minPriceEok": "10억4,000",
       "txCount": 62,
@@ -24374,6 +25107,12 @@
       "latestDate": "20260511",
       "maxPrice": 89500,
       "maxPriceEok": "8억9,500",
+      "maxPriceByArea": {
+        "84.54": 89500,
+        "84.61": 89400,
+        "84.47": 85500,
+        "66.96": 67700
+      },
       "minPrice": 28800,
       "minPriceEok": "2억8,800",
       "txCount": 600,
@@ -24581,6 +25320,12 @@
       "latestDate": "20260520",
       "maxPrice": 160000,
       "maxPriceEok": "16억",
+      "maxPriceByArea": {
+        "96.58": 160000,
+        "84.50": 132700,
+        "84.61": 134500,
+        "71.65": 114000
+      },
       "minPrice": 66450,
       "minPriceEok": "6억6,450",
       "txCount": 53,
@@ -24788,6 +25533,12 @@
       "latestDate": "20260515",
       "maxPrice": 173000,
       "maxPriceEok": "17억3,000",
+      "maxPriceByArea": {
+        "101.63": 134000,
+        "79.88": 109800,
+        "78.06": 107000,
+        "104.82": 173000
+      },
       "minPrice": 79000,
       "minPriceEok": "7억9,000",
       "txCount": 48,
@@ -24995,6 +25746,11 @@
       "latestDate": "20260525",
       "maxPrice": 85000,
       "maxPriceEok": "8억5,000",
+      "maxPriceByArea": {
+        "84.87": 74000,
+        "96.92": 85000,
+        "96.95": 80000
+      },
       "minPrice": 38000,
       "minPriceEok": "3억8,000",
       "txCount": 119,
@@ -25202,6 +25958,9 @@
       "latestDate": "20260521",
       "maxPrice": 61000,
       "maxPriceEok": "6억1,000",
+      "maxPriceByArea": {
+        "59.02": 61000
+      },
       "minPrice": 40000,
       "minPriceEok": "4억",
       "txCount": 57,
@@ -25409,6 +26168,16 @@
       "latestDate": "20260418",
       "maxPrice": 89000,
       "maxPriceEok": "8억9,000",
+      "maxPriceByArea": {
+        "76.46": 71000,
+        "75.87": 70500,
+        "96.16": 81500,
+        "80.39": 69300,
+        "74.09": 70000,
+        "112.96": 89000,
+        "96.38": 82000,
+        "145.45": 75500
+      },
       "minPrice": 22850,
       "minPriceEok": "2억2,850",
       "txCount": 1411,
@@ -25616,6 +26385,10 @@
       "latestDate": "20260520",
       "maxPrice": 90000,
       "maxPriceEok": "9억",
+      "maxPriceByArea": {
+        "84.01": 90000,
+        "84.03": 90000
+      },
       "minPrice": 45100,
       "minPriceEok": "4억5,100",
       "txCount": 209,
@@ -25823,6 +26596,10 @@
       "latestDate": "20260518",
       "maxPrice": 120000,
       "maxPriceEok": "12억",
+      "maxPriceByArea": {
+        "85.00": 113000,
+        "95.00": 120000
+      },
       "minPrice": 51250,
       "minPriceEok": "5억1,250",
       "txCount": 80,
@@ -26030,6 +26807,13 @@
       "latestDate": "20260516",
       "maxPrice": 158000,
       "maxPriceEok": "15억8,000",
+      "maxPriceByArea": {
+        "84.98": 136000,
+        "99.97": 158000,
+        "99.93": 150000,
+        "84.99": 128000,
+        "84.97": 130000
+      },
       "minPrice": 46800,
       "minPriceEok": "4억6,800",
       "txCount": 87,
@@ -26237,6 +27021,12 @@
       "latestDate": "20260409",
       "maxPrice": 78000,
       "maxPriceEok": "7억8,000",
+      "maxPriceByArea": {
+        "57.80": 65000,
+        "84.07": 78000,
+        "59.56": 60700,
+        "75.08": 72000
+      },
       "minPrice": 19500,
       "minPriceEok": "1억9,500",
       "txCount": 1358,
@@ -26444,6 +27234,12 @@
       "latestDate": "20260409",
       "maxPrice": 114000,
       "maxPriceEok": "11억4,000",
+      "maxPriceByArea": {
+        "101.86": 83000,
+        "128.38": 94500,
+        "104.80": 71000,
+        "164.96": 114000
+      },
       "minPrice": 34000,
       "minPriceEok": "3억4,000",
       "txCount": 550,
@@ -26651,6 +27447,17 @@
       "latestDate": "20260408",
       "maxPrice": 125000,
       "maxPriceEok": "12억5,000",
+      "maxPriceByArea": {
+        "87.64": 84000,
+        "129.93": 119000,
+        "109.32": 89900,
+        "96.40": 86000,
+        "111.04": 100000,
+        "99.21": 86800,
+        "105.07": 95000,
+        "150.43": 125000,
+        "176.29": 81500
+      },
       "minPrice": 29500,
       "minPriceEok": "2억9,500",
       "txCount": 1125,

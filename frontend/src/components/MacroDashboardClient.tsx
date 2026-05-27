@@ -821,10 +821,14 @@ export default function MacroDashboardClient({
               // 최근 60일 내 거래만 필터링 (최신 활성 거래 피드 목적)
               if (diffDays >= 0 && diffDays <= 60) {
                 const price = parsePriceEokHelper(tx.priceEok);
-                const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
+                
+                // 평형별 최고가 조회
+                const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : '';
+                const maxPriceForArea = areaKey && sum.maxPriceByArea ? sum.maxPriceByArea[areaKey] : null;
+                const maxPriceEokVal = maxPriceForArea ? maxPriceForArea / 10000 : (sum.maxPrice || 0) / 10000;
                 
                 if (price > 0 && maxPriceEokVal > 0) {
-                  // A. 신고가 (최고가 대비 500만원 이내 혹은 초과 경신)
+                  // A. 신고가 (평형 최고가 대비 500만원 이내 혹은 초과 경신)
                   const isHigh = price >= maxPriceEokVal - 0.05;
                   if (isHigh) {
                     highs.push({
@@ -840,7 +844,7 @@ export default function MacroDashboardClient({
                     });
                   }
 
-                  // B. 하락거래 (최고가 대비 10% 이상 하락)
+                  // B. 하락거래 (평형 최고가 대비 10% 이상 하락)
                   const dropPct = ((price - maxPriceEokVal) / maxPriceEokVal) * 100;
                   if (dropPct <= -10) {
                     drops.push({
@@ -886,7 +890,7 @@ export default function MacroDashboardClient({
     };
   }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime]);
 
-  // 6차 사이클: 일자별 신고가 / 신저가 타임라인 데이터 계산
+  // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
   const dailyTimelineData = useMemo(() => {
     const groups: Record<string, { dateStr: string; timestamp: number; items: any[] }> = {};
 
@@ -900,13 +904,6 @@ export default function MacroDashboardClient({
       if (txKey && txSummaryData[txKey]) {
         const sum = txSummaryData[txKey];
         if (sum.recent && sum.recent.length > 0) {
-          // 최근 거래 가격 목록에서 최솟값 구하기 (최근 신저가 판정용)
-          const recentPrices = sum.recent
-            .map((r) => parsePriceEokHelper(r.priceEok))
-            .filter((p) => p > 0);
-          const recentMinPrice = recentPrices.length > 0 ? Math.min(...recentPrices) : 0;
-          const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
-
           sum.recent.forEach((tx) => {
             const dt = parseDateHelper(tx.date, sum.latestDate);
             if (dt) {
@@ -915,11 +912,17 @@ export default function MacroDashboardClient({
               // 최근 30일 내의 데이터만 타임라인에 표시
               if (diffDays >= 0 && diffDays <= 30) {
                 const price = parsePriceEokHelper(tx.priceEok);
-                if (price > 0) {
-                  const isHigh = maxPriceEokVal > 0 && price >= maxPriceEokVal - 0.05;
-                  const isLow = !isHigh && recentMinPrice > 0 && price <= recentMinPrice + 0.05;
+                
+                // 평형별 최고가 조회
+                const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : '';
+                const maxPriceForArea = areaKey && sum.maxPriceByArea ? sum.maxPriceByArea[areaKey] : null;
+                const maxPriceEokVal = maxPriceForArea ? maxPriceForArea / 10000 : (sum.maxPrice || 0) / 10000;
 
-                  if (isHigh || isLow) {
+                if (price > 0 && maxPriceEokVal > 0) {
+                  // 신고가만 판정 (최고가 대비 500만원 이내)
+                  const isHigh = price >= maxPriceEokVal - 0.05;
+
+                  if (isHigh) {
                     const dateKey = tx.date;
                     
                     const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
@@ -943,7 +946,7 @@ export default function MacroDashboardClient({
                       priceVal: price,
                       areaPyeong: tx.areaPyeong,
                       floor: tx.floor,
-                      type: isHigh ? "high" : "low",
+                      type: "high",
                     });
                   }
                 }
@@ -958,13 +961,8 @@ export default function MacroDashboardClient({
     return Object.values(groups)
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((group) => {
-        // 동일 날짜 내에서 신고가 먼저 노출 후 신저가 노출
-        const sortedItems = group.items.sort((a, b) => {
-          if (a.type !== b.type) {
-            return a.type === "high" ? -1 : 1;
-          }
-          return b.priceVal - a.priceVal;
-        });
+        // 동일 날짜 내에서 금액 높은 순 정렬
+        const sortedItems = group.items.sort((a, b) => b.priceVal - a.priceVal);
         return {
           ...group,
           items: sortedItems,
@@ -1281,7 +1279,7 @@ interface GroupedCategory {
             <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 min-h-[420px] min-w-0">
               <div className="flex justify-between items-center gap-2 mb-4">
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
-                  일자별 신고가 · 신저가 단지
+                  일자별 신고가 단지
                 </h2>
                 <span className="text-[12px] text-tertiary font-bold bg-[#f2f4f6] px-2 py-1 rounded-md shrink-0">
                   최근 30일
@@ -1291,7 +1289,7 @@ interface GroupedCategory {
               <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
                 {dailyTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
-                    최근 30일 내 등록된 신고가/신저가 거래가 없습니다.
+                    최근 30일 내 등록된 신고가 거래가 없습니다.
                   </div>
                 ) : (
                   dailyTimelineData.map((group) => (
@@ -1322,15 +1320,11 @@ interface GroupedCategory {
                               </span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className={`text-[13px] font-extrabold ${item.type === 'high' ? 'text-[#ff4b5c]' : 'text-[#2e7cf6]'}`}>
+                              <span className="text-[13px] font-extrabold text-[#ff4b5c]">
                                 {item.priceEok}
                               </span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                item.type === 'high'
-                                  ? 'bg-[#ffebed] text-[#ff4b5c]'
-                                  : 'bg-[#ebf3ff] text-[#2e7cf6]'
-                              }`}>
-                                {item.type === 'high' ? '신고가' : '신저가'}
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c]">
+                                신고가
                               </span>
                             </div>
                           </div>

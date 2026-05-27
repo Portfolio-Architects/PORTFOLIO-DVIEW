@@ -15,6 +15,7 @@ export interface AptTxSummary {
   latestDate: string;
   maxPrice: number;
   maxPriceEok: string;
+  maxPriceByArea?: Record<string, number>;
   minPrice: number;
   minPriceEok: string;
   txCount: number;
