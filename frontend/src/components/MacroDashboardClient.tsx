@@ -313,6 +313,7 @@ export default function MacroDashboardClient({
   const [timeframe, setTimeframe] = useState<
     "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL"
   >("ALL");
+  const [rightPanelTab, setRightPanelTab] = useState<"trend" | "highs" | "drops">("trend");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
   );
@@ -792,6 +793,98 @@ export default function MacroDashboardClient({
       badge: badgeText,
     };
   }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping]);
+
+
+
+  // 6차 사이클: 실시간 신고가 Feed & 하락거래 Feed 계산
+  const { recentHighsFeed, recentDropsFeed } = useMemo(() => {
+    const highs: any[] = [];
+    const drops: any[] = [];
+
+    if (!sheetApartments || !txSummaryData) {
+      return { recentHighsFeed: [], recentDropsFeed: [] };
+    }
+
+    const allApts = Object.values(sheetApartments).flat();
+
+    allApts.forEach((apt) => {
+      if (publicRentalSet.has(apt.name)) return;
+      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+      if (txKey && txSummaryData[txKey]) {
+        const sum = txSummaryData[txKey];
+        if (sum.recent) {
+          sum.recent.forEach((tx) => {
+            const dt = parseDateHelper(tx.date, sum.latestDate);
+            if (dt) {
+              const diffMs = maxDateTime - dt.getTime();
+              const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+              // 최근 60일 내 거래만 필터링 (최신 활성 거래 피드 목적)
+              if (diffDays >= 0 && diffDays <= 60) {
+                const price = parsePriceEokHelper(tx.priceEok);
+                const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
+                
+                if (price > 0 && maxPriceEokVal > 0) {
+                  // A. 신고가 (최고가 대비 500만원 이내 혹은 초과 경신)
+                  const isHigh = price >= maxPriceEokVal - 0.05;
+                  if (isHigh) {
+                    highs.push({
+                      aptName: apt.name,
+                      dong: apt.dong || sum.dong || "",
+                      date: tx.date,
+                      rawDate: dt.getTime(),
+                      priceEok: tx.priceEok,
+                      priceVal: price,
+                      areaPyeong: tx.areaPyeong,
+                      floor: tx.floor,
+                      maxPriceVal: maxPriceEokVal,
+                    });
+                  }
+
+                  // B. 하락거래 (최고가 대비 10% 이상 하락)
+                  const dropPct = ((price - maxPriceEokVal) / maxPriceEokVal) * 100;
+                  if (dropPct <= -10) {
+                    drops.push({
+                      aptName: apt.name,
+                      dong: apt.dong || sum.dong || "",
+                      date: tx.date,
+                      rawDate: dt.getTime(),
+                      priceEok: tx.priceEok,
+                      priceVal: price,
+                      areaPyeong: tx.areaPyeong,
+                      floor: tx.floor,
+                      maxPriceVal: maxPriceEokVal,
+                      dropPriceVal: maxPriceEokVal - price,
+                      dropPct: dropPct,
+                    });
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+    });
+
+    // 날짜 최신순 정렬, 동일 날짜일 경우 금액 높은 순 정렬
+    const sortedHighs = highs
+      .sort((a, b) => {
+        if (b.rawDate !== a.rawDate) return b.rawDate - a.rawDate;
+        return b.priceVal - a.priceVal;
+      })
+      .slice(0, 15);
+
+    const sortedDrops = drops
+      .sort((a, b) => {
+        if (b.rawDate !== a.rawDate) return b.rawDate - a.rawDate;
+        return a.dropPct - b.dropPct; // 낙폭이 더 큰 순서
+      })
+      .slice(0, 15);
+
+    return {
+      recentHighsFeed: sortedHighs,
+      recentDropsFeed: sortedDrops,
+    };
+  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime]);
 
 
 
@@ -1321,141 +1414,266 @@ interface GroupedCategory {
             </div>
           </div>
 
-          {/* Right Panel: Line Chart */}
-          <div className="w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[300px] min-w-0">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-              <div className="flex flex-col">
-                <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
-                  동탄 아파트 대표 가격 변화 추이
-                </h2>
-                <span className="text-[13px] text-tertiary font-medium mt-1">
-                  {timeframe === "ALL"
-                    ? "전체 기간 "
-                    : `최근 ${timeframe.replace("M", "개월").replace("Y", "년")} `}
-                  국민평형(30~36평형) 실거래가 변동
-                </span>
-              </div>
-              <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto">
-                {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
-                  <button
-                    key={tf}
-                    onClick={() => setTimeframe(tf)}
-                    className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${timeframe === tf
-                      ? "bg-surface text-primary shadow-sm"
-                      : "text-tertiary hover:text-secondary"
-                      }`}
-                  >
-                    {tf}
-                  </button>
-                ))}
-              </div>
+          {/* Right Panel: Interactive Market Feed & Trend */}
+          <div className="w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[420px] min-w-0">
+            {/* Main Tabs */}
+            <div className="flex border-b border-border mb-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <button
+                onClick={() => setRightPanelTab("trend")}
+                className={`pb-2.5 px-4 text-[14px] sm:text-[15px] font-extrabold transition-all border-b-2 cursor-pointer shrink-0 ${
+                  rightPanelTab === "trend"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-tertiary hover:text-secondary"
+                }`}
+              >
+                시세 변화 추이
+              </button>
+              <button
+                onClick={() => setRightPanelTab("highs")}
+                className={`pb-2.5 px-4 text-[14px] sm:text-[15px] font-extrabold transition-all border-b-2 cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  rightPanelTab === "highs"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-tertiary hover:text-secondary"
+                }`}
+              >
+                🔥 실시간 신고가
+              </button>
+              <button
+                onClick={() => setRightPanelTab("drops")}
+                className={`pb-2.5 px-4 text-[14px] sm:text-[15px] font-extrabold transition-all border-b-2 cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  rightPanelTab === "drops"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-tertiary hover:text-secondary"
+                }`}
+              >
+                📉 실시간 하락거래
+              </button>
             </div>
 
-            <div className="w-full h-[250px] md:h-auto md:flex-1 mt-2 sm:mt-0 min-h-[250px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                <LineChart
-                    data={lineData}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="var(--border-color)"
-                    />
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
-                      dy={10}
-                      ticks={xTicks}
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
-                      tickFormatter={(value: number) =>
-                        `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-                      }
-                      domain={["auto", "auto"]}
-                      width={40}
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
-                      tickFormatter={(value: number) =>
-                        `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-                      }
-                      domain={["auto", "auto"]}
-                      width={40}
-                    />
-                    <RechartsTooltip
-                      content={<CustomTooltip />}
-                      cursor={{
-                        stroke: "var(--border-color)",
-                        strokeWidth: 2,
-                        strokeDasharray: "3 3",
-                      }}
-                    />
-                    <Legend
-                      align="center"
-                      verticalAlign="bottom"
-                      iconType="circle"
-                      wrapperStyle={{
-                        paddingTop: "20px",
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                      }}
-                      formatter={(value, entry: { color?: string }) => (
-                        <span
-                          style={{
-                            color: entry.color,
-                            marginLeft: "4px",
+            {/* Content Area */}
+            {rightPanelTab === "trend" && (
+              <div className="flex-1 flex flex-col min-h-[300px]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                  <div className="flex flex-col">
+                    <h3 className="text-[15px] font-bold text-primary tracking-tight">
+                      동탄 아파트 대표 가격 변화 추이
+                    </h3>
+                    <span className="text-[12px] text-tertiary font-semibold mt-0.5">
+                      {timeframe === "ALL"
+                        ? "전체 기간 "
+                        : `최근 ${timeframe.replace("M", "개월").replace("Y", "년")} `}
+                      국민평형(30~36평형) 실거래가 변동
+                    </span>
+                  </div>
+                  <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
+                    {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
+                          ? "bg-surface text-primary shadow-sm"
+                          : "text-tertiary hover:text-secondary"
+                          }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-full h-[250px] md:flex-1 mt-2 sm:mt-0 min-h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                    <LineChart
+                        data={lineData}
+                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="var(--border-color)"
+                        />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
+                          dy={10}
+                          ticks={xTicks}
+                        />
+                        <YAxis
+                          yAxisId="left"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
+                          tickFormatter={(value: number) =>
+                            `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+                          }
+                          domain={["auto", "auto"]}
+                          width={40}
+                        />
+                        <YAxis
+                          yAxisId="right"
+                          orientation="right"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
+                          tickFormatter={(value: number) =>
+                            `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+                          }
+                          domain={["auto", "auto"]}
+                          width={40}
+                        />
+                        <RechartsTooltip
+                          content={<CustomTooltip />}
+                          cursor={{
+                            stroke: "var(--border-color)",
+                            strokeWidth: 2,
+                            strokeDasharray: "3 3",
                           }}
+                        />
+                        <Legend
+                          align="center"
+                          verticalAlign="bottom"
+                          iconType="circle"
+                          wrapperStyle={{
+                            paddingTop: "20px",
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                          }}
+                          formatter={(value, entry: { color?: string }) => (
+                            <span
+                              style={{
+                                color: entry.color,
+                                marginLeft: "4px",
+                              }}
+                            >
+                              {value}
+                            </span>
+                          )}
+                        />
+                        <Line
+                          yAxisId="left"
+                          key="동탄 아파트 전체"
+                          type="monotone"
+                          name="평균 매매가(좌)"
+                          dataKey="동탄 아파트 전체"
+                          stroke="#00d29d"
+                          strokeWidth={4}
+                          animationDuration={300}
+                          dot={
+                            timeframe === "ALL" || timeframe === "5Y"
+                              ? false
+                              : { r: 5, strokeWidth: 2 }
+                          }
+                          activeDot={{ r: 7 }}
+                        />
+                        <Line
+                          yAxisId="right"
+                          key="동탄 아파트 전세 평균"
+                          type="monotone"
+                          name="평균 전월세가(우)"
+                          dataKey="동탄 아파트 전세 평균"
+                          stroke="#f9a825"
+                          strokeWidth={2}
+                          animationDuration={300}
+                          dot={
+                            timeframe === "ALL" || timeframe === "5Y"
+                              ? false
+                              : { r: 3, strokeWidth: 2 }
+                          }
+                          activeDot={{ r: 5 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {rightPanelTab === "highs" && (
+              <div className="flex-1 flex flex-col min-h-[300px]">
+                <div className="text-[13px] text-tertiary font-medium mb-3 break-keep leading-relaxed">
+                  최근 60일간 국토교통부에 신고된 거래 중 최고가 부근(500만원 이내)에 진입했거나 경신한 신고가 리스트입니다.
+                </div>
+                <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-2">
+                  {recentHighsFeed.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
+                      최근 60일 내 신고가 내역이 없습니다.
+                    </div>
+                  ) : (
+                    recentHighsFeed.map((item, idx) => (
+                      <div
+                        key={`${item.aptName}-${item.date}-${idx}`}
+                        onClick={() => onSelectApt && onSelectApt(item.aptName)}
+                        className="flex items-center justify-between p-3 bg-body hover:bg-body/85 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
+                      >
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <span className="text-[13.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors">
+                            <span className="text-secondary text-[11px] font-semibold bg-white border border-border px-1 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
+                            {item.aptName}
+                          </span>
+                          <span className="text-[11.5px] text-tertiary font-semibold mt-1">
+                            {item.date} · {item.areaPyeong}평 · {item.floor}층
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end shrink-0">
+                          <span className="text-[14.5px] font-extrabold text-[#ff4b5c]">
+                            {item.priceEok}
+                          </span>
+                          <span className="text-[10px] font-extrabold bg-[#ffebed] text-[#ff4b5c] px-1.5 py-0.5 rounded mt-1 shadow-sm">
+                            신고가
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {rightPanelTab === "drops" && (
+              <div className="flex-1 flex flex-col min-h-[300px]">
+                <div className="text-[13px] text-tertiary font-medium mb-3 break-keep leading-relaxed">
+                  최근 60일간 거래 중 직전 최고가 대비 10% 이상 하락하여 실거래 등록된 큰 폭의 하락 거래 리스트입니다.
+                </div>
+                <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-2">
+                  {recentDropsFeed.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
+                      최근 60일 내 하락거래 내역이 없습니다.
+                    </div>
+                  ) : (
+                    recentDropsFeed.map((item, idx) => {
+                      const fmtDiff = formatEokWithUnit(item.dropPriceVal * 10000);
+                      const dropDiffStr = `${fmtDiff.value}${fmtDiff.unit === '만원' ? '만' : ''}`;
+                      return (
+                        <div
+                          key={`${item.aptName}-${item.date}-${idx}`}
+                          onClick={() => onSelectApt && onSelectApt(item.aptName)}
+                          className="flex items-center justify-between p-3 bg-body hover:bg-body/85 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
                         >
-                          {value}
-                        </span>
-                      )}
-                    />
-                    <Line
-                      yAxisId="left"
-                      key="동탄 아파트 전체"
-                      type="monotone"
-                      name="평균 매매가(좌)"
-                      dataKey="동탄 아파트 전체"
-                      stroke="#00d29d"
-                      strokeWidth={4}
-                      animationDuration={300}
-                      dot={
-                        timeframe === "ALL" || timeframe === "5Y"
-                          ? false
-                          : { r: 5, strokeWidth: 2 }
-                      }
-                      activeDot={{ r: 7 }}
-                    />
-                    <Line
-                      yAxisId="right"
-                      key="동탄 아파트 전세 평균"
-                      type="monotone"
-                      name="평균 전월세가(우)"
-                      dataKey="동탄 아파트 전세 평균"
-                      stroke="#f9a825"
-                      strokeWidth={2}
-                      animationDuration={300}
-                      dot={
-                        timeframe === "ALL" || timeframe === "5Y"
-                          ? false
-                          : { r: 3, strokeWidth: 2 }
-                      }
-                      activeDot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-            </div>
+                          <div className="flex flex-col min-w-0 pr-2">
+                            <span className="text-[13.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors">
+                              <span className="text-secondary text-[11px] font-semibold bg-white border border-border px-1 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
+                              {item.aptName}
+                            </span>
+                            <span className="text-[11.5px] text-tertiary font-semibold mt-1">
+                              {item.date} · {item.areaPyeong}평 · {item.floor}층
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-end shrink-0">
+                            <span className="text-[14.5px] font-extrabold text-[#2e7cf6]">
+                              {item.priceEok}
+                            </span>
+                            <span className="text-[10px] font-extrabold bg-[#ebf3ff] text-[#2e7cf6] px-1.5 py-0.5 rounded mt-1 shadow-sm">
+                              -{dropDiffStr} ({item.dropPct.toFixed(1)}%)
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
