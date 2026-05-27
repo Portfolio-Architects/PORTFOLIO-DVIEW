@@ -1310,32 +1310,32 @@ interface GroupedCategory {
                       <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-[#cbd5e1] border-2 border-surface" />
                       
                       {/* Date Heading */}
-                      <h3 className="text-[13px] font-extrabold text-primary flex items-center gap-1.5 mb-1">
+                      <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 mb-1.5">
                         {group.dateStr}
                       </h3>
 
                       {/* Items */}
-                      <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-col gap-2">
                         {group.items.map((item, idx) => (
                           <div
                             key={`${item.aptName}-${idx}`}
                             onClick={() => onSelectApt && onSelectApt(item.aptName)}
-                            className="flex items-center justify-between p-2.5 bg-body hover:bg-body/80 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
+                            className="flex items-center justify-between p-3 bg-body hover:bg-body/80 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
                           >
                             <div className="flex flex-col min-w-0 pr-2">
-                              <span className="text-[12.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors">
-                                <span className="text-secondary text-[10px] font-semibold bg-white border border-border px-1 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
-                                {item.aptName}
+                              <span className="text-[14.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors flex items-center">
+                                <span className="text-secondary text-[11.5px] font-semibold bg-white border border-border px-1.5 py-0.5 rounded mr-2 shrink-0">{item.dong}</span>
+                                <span className="truncate">{item.aptName}</span>
                               </span>
-                              <span className="text-[11px] text-tertiary font-semibold mt-0.5">
+                              <span className="text-[12.5px] text-tertiary font-semibold mt-1">
                                 {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                               </span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-[13px] font-extrabold text-[#ff4b5c]">
+                              <span className="text-[15.5px] font-extrabold text-[#ff4b5c]">
                                 {item.priceEok}
                               </span>
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c]">
+                              <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c]">
                                 신고가
                               </span>
                             </div>
