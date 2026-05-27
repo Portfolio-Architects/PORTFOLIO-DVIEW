@@ -52,7 +52,7 @@ export default function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-5 md:pb-8 w-full bg-surface border-b border-border shrink-0 z-20 relative">
+      <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full bg-surface border-b border-border shrink-0 z-20 relative">
         <div className="flex items-start justify-between w-full">
           <div className="flex flex-col gap-[19px] sm:gap-[23px]">
             <div className="flex items-center gap-3 sm:gap-4">

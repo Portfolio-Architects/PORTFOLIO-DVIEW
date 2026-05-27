@@ -214,6 +214,13 @@ async function main() {
     const aptName = d.aptName || '';
     if (!aptName) return;
 
+    // Filter out transactions that occurred before completion/built year
+    const buildYear = parseInt(d.buildYear || d.constructionYear, 10) || 0;
+    const contractYear = d.contractYm ? parseInt(d.contractYm.substring(0, 4), 10) : 0;
+    if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) {
+      return; // Skip pre-completion transaction
+    }
+
     const key = normalizeAptName(aptName);
     if (!byApt[key]) byApt[key] = [];    
     
@@ -261,6 +268,13 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.apartmentName || d.aptName || '';
     if (!aptName) return;
+
+    // Filter out transactions that occurred before completion/built year
+    const buildYear = parseInt(d.buildYear || d.constructionYear, 10) || 0;
+    const contractYear = d.contractYm ? parseInt(d.contractYm.substring(0, 4), 10) : 0;
+    if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) {
+      return; // Skip pre-completion transaction
+    }
 
     const key = normalizeAptName(aptName);
     if (!byApt[key]) byApt[key] = [];    
@@ -530,6 +544,16 @@ async function main() {
     }
     const avg3MDeposit = Math.round(avg3MDepositRaw / 100) * 100;
 
+    const maxPriceByArea = {};
+    saleTxs.forEach(t => {
+      if (t.price > 0 && t.area > 0) {
+        const areaKey = (Math.round(t.area * 100) / 100).toFixed(2);
+        if (!maxPriceByArea[areaKey] || t.price > maxPriceByArea[areaKey]) {
+          maxPriceByArea[areaKey] = t.price;
+        }
+      }
+    });
+
     summaries[aptName] = {
       // 법정동 (Google Sheets apartments 탭 우선, 없으면 거래 데이터 폴백)
       dong: dongMap[normalizeAptName(aptName)] || (saleTxs.length > 0 ? saleTxs[0].dong : (rentTxs.length > 0 ? rentTxs[0].dong : '')),
@@ -541,6 +565,7 @@ async function main() {
       latestDate: latestTx ? `${latestTx.contractYm}${latestTx.contractDay}` : "",
       maxPrice,
       maxPriceEok: maxPrice > 0 ? formatPriceEok(maxPrice) : "0",
+      maxPriceByArea,
       minPrice,
       minPriceEok: minPrice > 0 ? formatPriceEok(minPrice) : "0",
       txCount: saleTxs.length,

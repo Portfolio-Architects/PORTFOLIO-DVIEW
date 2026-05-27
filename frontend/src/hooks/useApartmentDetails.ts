@@ -62,9 +62,9 @@ export function useApartmentDetails(
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [prevReportId, setPrevReportId] = useState<string | null>(null);
-
-  if (selectedReport?.id !== prevReportId) {
-    setPrevReportId(selectedReport?.id || null);
+  const currentReportId = selectedReport?.id || null;
+  if (currentReportId !== prevReportId) {
+    setPrevReportId(currentReportId);
     setFullReportData(null);
     setIsLoadingDetail(!!selectedReport && !selectedReport.id.startsWith('stub-'));
   }

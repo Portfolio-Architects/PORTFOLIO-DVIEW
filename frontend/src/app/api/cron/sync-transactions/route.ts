@@ -12,7 +12,7 @@ import { sendMail } from '@/lib/mailService';
 export const dynamic = 'force-dynamic';
 
 const API_KEY = process.env.BUILDING_API_KEY || '';
-const LAWD_CD = '41597'; // 동탄구
+const LAWD_CDS = ['41590', '41597']; // 화성시(기존) 및 동탄구(신설) 모두 스캔
 const API_BASE_TRADE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 const API_BASE_RENT = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
 
@@ -140,8 +140,6 @@ export async function GET(request: Request) {
     }
 
     const typeMap = await fetchTypeMap();
-
-    // 1. Find the latest contractDate in Firestore to determine sync range
     const collRef = db.collection('transactions');
     const latestSnap = await collRef.orderBy('contractDate', 'desc').limit(1).get();
     
@@ -151,204 +149,221 @@ export async function GET(request: Request) {
       latestYm = latestDoc.contractYm || '';
     }
 
-    // 2. Determine months to sync (latest month + current month)
+    // 2. Determine months to sync (당월, 전월, 전전월 3개월을 항상 동기화하여 실거래 신고 지연 대응)
     const now = new Date();
-    const currentYm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     const monthsToSync = new Set<string>();
     
-    if (latestYm) {
-      monthsToSync.add(latestYm); // Re-sync latest month (may have new entries)
-    }
-    monthsToSync.add(currentYm); // Always sync current month
-    
-    // Also add previous month if we're early in the month (data delay)
-    if (now.getDate() <= 15) {
-      const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      monthsToSync.add(`${prevDate.getFullYear()}${String(prevDate.getMonth() + 1).padStart(2, '0')}`);
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
     }
 
     // 3. Fetch from 국토부 API for each month
     let totalNew = 0;
     const syncLog: string[] = [];
     const allNewTransactions: any[] = [];
+    
+    const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
 
     for (const ym of Array.from(monthsToSync).sort()) {
-      let page = 1;
-      let totalCount = 0;
-      const monthRecords: unknown[] = [];
+      // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
+      // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로 감면하며, db.getAll()의 네트워크 대기 시간을 제거하여 타임아웃 방지
+      const existingMap = new Map<string, string>(); // _key -> cancelDate
+      try {
+        const existingSnap = await collRef
+          .where('contractYm', '==', ym)
+          .select('cancelDate')
+          .get();
+        existingSnap.docs.forEach(doc => {
+          existingMap.set(doc.id, doc.data().cancelDate || '');
+        });
+      } catch (err: any) {
+        console.warn(`[${ym}] 기존 데이터 조회 실패: ${err.message}`);
+      }
 
-      do {
-        const url = `${API_BASE_TRADE}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
-        const res = await fetch(url);
-        if (!res.ok) { syncLog.push(`${ym} page ${page}: HTTP ${res.status}`); break; }
+      const monthRecords: any[] = [];
+      const newTransactionsOfMonth: any[] = [];
 
-        const text = await res.text();
-        // Parse XML response
-        const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
-        totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+      // 매매 데이터 수집
+      for (const currentLawd of LAWD_CDS) {
+        let page = 1;
+        let totalCount = 0;
 
-        if (totalCount === 0) break;
+        do {
+          const url = `${API_BASE_TRADE}?serviceKey=${API_KEY}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
+          const res = await fetch(url);
+          if (!res.ok) { syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${res.status}`); break; }
 
-        // Extract items using regex (simple XML parsing)
-        const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
-        
-        for (const itemXml of items) {
-          // Single-pass: extract ALL tags into a Map (O(1) lookups)
-          // Previously: 12x new RegExp() per item -> now 1x regex scan
-          const tagMap = new Map<string, string>();
-          const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
-          let tagMatch;
-          while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
-            tagMap.set(tagMatch[1], tagMatch[2].trim());
-          }
-          const get = (tag: string) => tagMap.get(tag) || '';
+          const text = await res.text();
+          // Parse XML response
+          const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+          totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
 
-          const aptName = get('aptNm');
-          const priceStr = get('dealAmount').replace(/,/g, '').trim();
-          const price = parseInt(priceStr, 10) || 0;
-          const area = parseFloat(get('excluUseAr')) || 0;
-          const contractDay = get('dealDay').padStart(2, '0');
-          const floor = parseInt(get('floor'), 10) || 0;
-          const dong = get('umdNm');
+          if (totalCount === 0) break;
 
-          const record = {
-            sigungu: `경기도 화성시 동탄구 ${dong}`,
-            dong,
-            aptName,
-            area,
-            areaPyeong: getSupplyPyeong(aptName, area, typeMap),
-            contractYm: ym,
-            contractDay,
-            contractDate: `${ym}${contractDay}`,
-            price,
-            deposit: 0,
-            monthlyRent: 0,
-            floor,
-            buyer: get('buyerGbn'),
-            seller: get('slerGbn'),
-            buildYear: parseInt(get('buildYear'), 10) || 0,
-            roadName: get('roadNm'),
-            cancelDate: get('cdealDay') || '',
-            dealType: get('cdealType') || get('dealingGbn') || '매매',
-            agentLocation: get('estateAgentSggNm'),
-            registrationDate: get('rgstDate'),
-            housingType: '',
-            source: 'govt_api',
-            _key: `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`,
-          };
-
-          monthRecords.push(record);
-        }
-
-        page++;
-      } while (monthRecords.length < totalCount);
-
-      // 3.1 Fetch Rent Data (전월세)
-      let rentPage = 1;
-      let rentTotalCount = 0;
-      do {
-        const url = `${API_BASE_RENT}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
-        const res = await fetch(url);
-        if (!res.ok) { syncLog.push(`${ym} rent page ${rentPage}: HTTP ${res.status}`); break; }
-
-        const text = await res.text();
-        const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
-        rentTotalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
-        if (rentTotalCount === 0) break;
-
-        const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
-        for (const itemXml of items) {
-          const tagMap = new Map<string, string>();
-          const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
-          let tagMatch;
-          while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
-            tagMap.set(tagMatch[1], tagMatch[2].trim());
-          }
-          const get = (tag: string) => tagMap.get(tag) || '';
-
-          const aptName = get('aptNm');
-          const depositStr = get('deposit').replace(/,/g, '').trim();
-          const monthlyRentStr = get('monthlyRent') ? get('monthlyRent').replace(/,/g, '').trim() : '0';
+          const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
           
-          const deposit = parseInt(depositStr, 10) || 0;
-          const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
-          const dealType = monthlyRent > 0 ? '월세' : '전세';
+          for (const itemXml of items) {
+            const tagMap = new Map<string, string>();
+            const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
+            let tagMatch;
+            while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+              tagMap.set(tagMatch[1], tagMatch[2].trim());
+            }
+            const get = (tag: string) => tagMap.get(tag) || '';
 
-          const area = parseFloat(get('excluUseAr')) || 0;
-          const contractDay = get('dealDay').padStart(2, '0');
-          const floor = parseInt(get('floor'), 10) || 0;
-          const dong = get('umdNm');
+            const dong = get('umdNm');
+            // 동탄 권역 속하는 동 이름만 메모리 필터링
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
 
-          const record = {
-            sigungu: `경기도 화성시 동탄구 ${dong}`,
-            dong,
-            aptName,
-            area,
-            areaPyeong: getSupplyPyeong(aptName, area, typeMap),
-            contractYm: ym,
-            contractDay,
-            contractDate: `${ym}${contractDay}`,
-            price: deposit, // For UI compatibility, use deposit as price
-            deposit,
-            monthlyRent,
-            floor,
-            buyer: '',
-            seller: '',
-            buildYear: parseInt(get('buildYear'), 10) || 0,
-            roadName: get('roadNm'),
-            cancelDate: '',
-            dealType,
-            agentLocation: '',
-            registrationDate: '',
-            housingType: '',
-            source: 'govt_api_rent',
-            reqGb: get('contractType') || '',
-            rnuYn: get('useRRRight') || '',
-            _key: `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`,
-          };
-          monthRecords.push(record);
-        }
-        rentPage++;
-      } while (rentPage * 1000 < rentTotalCount);
+            const aptName = get('aptNm');
+            const priceStr = get('dealAmount').replace(/,/g, '').trim();
+            const price = parseInt(priceStr, 10) || 0;
+            const area = parseFloat(get('excluUseAr')) || 0;
+            const contractDay = get('dealDay').padStart(2, '0');
+            const floor = parseInt(get('floor'), 10) || 0;
+            const key = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const cancelDate = get('cdealDay') || '';
 
-      // 4. Identify brand new transactions before writing
-      const newTransactions: any[] = [];
-      if (monthRecords.length > 0) {
-        // chunk 단위로 db.getAll() 실행하여 중복 검사
-        const docRefs = monthRecords.map((r: any) => collRef.doc(r._key as string));
-        const snapDocs = [];
-        const READ_CHUNK_SIZE = 100; 
-        for (let i = 0; i < docRefs.length; i += READ_CHUNK_SIZE) {
-          const slice = docRefs.slice(i, i + READ_CHUNK_SIZE);
-          const docs = await db.getAll(...slice);
-          snapDocs.push(...docs);
-        }
+            // Firestore 쓰기 절감 및 중복 체크: 이미 존재하고 cancelDate가 같으면 제외
+            if (existingMap.has(key)) {
+              const existingCancelDate = existingMap.get(key);
+              if (cancelDate === existingCancelDate) {
+                continue;
+              }
+            }
 
-        const existingKeys = new Set(
-          snapDocs.filter(d => d.exists).map(d => d.id)
-        );
+            const record = {
+              sigungu: `경기도 화성시 동탄구 ${dong}`,
+              dong,
+              aptName,
+              area,
+              areaPyeong: getSupplyPyeong(aptName, area, typeMap),
+              contractYm: ym,
+              contractDay,
+              contractDate: `${ym}${contractDay}`,
+              price,
+              deposit: 0,
+              monthlyRent: 0,
+              floor,
+              buyer: get('buyerGbn'),
+              seller: get('slerGbn'),
+              buildYear: parseInt(get('buildYear'), 10) || 0,
+              roadName: get('roadNm'),
+              cancelDate,
+              dealType: get('cdealType') || get('dealingGbn') || '매매',
+              agentLocation: get('estateAgentSggNm'),
+              registrationDate: get('rgstDate'),
+              housingType: '',
+              source: 'govt_api',
+              _key: key,
+            };
 
-        for (const r of (monthRecords as any[])) {
-          if (!existingKeys.has(r._key)) {
-            newTransactions.push(r);
+            monthRecords.push(record);
+            newTransactionsOfMonth.push(record);
           }
-        }
-        allNewTransactions.push(...newTransactions);
 
-        // Batch write to Firestore
+          page++;
+        } while (page * 1000 <= totalCount + 1000);
+      }
+
+      // 전월세 데이터 수집
+      for (const currentLawd of LAWD_CDS) {
+        let rentPage = 1;
+        let rentTotalCount = 0;
+        do {
+          const url = `${API_BASE_RENT}?serviceKey=${API_KEY}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
+          const res = await fetch(url);
+          if (!res.ok) { syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: HTTP ${res.status}`); break; }
+
+          const text = await res.text();
+          const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+          rentTotalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+          if (rentTotalCount === 0) break;
+
+          const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+          for (const itemXml of items) {
+            const tagMap = new Map<string, string>();
+            const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
+            let tagMatch;
+            while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+              tagMap.set(tagMatch[1], tagMatch[2].trim());
+            }
+            const get = (tag: string) => tagMap.get(tag) || '';
+
+            const dong = get('umdNm');
+            // 동탄 권역 속하는 동 이름만 메모리 필터링
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
+
+            const aptName = get('aptNm');
+            const depositStr = get('deposit').replace(/,/g, '').trim();
+            const monthlyRentStr = get('monthlyRent') ? get('monthlyRent').replace(/,/g, '').trim() : '0';
+            
+            const deposit = parseInt(depositStr, 10) || 0;
+            const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
+            const dealType = monthlyRent > 0 ? '월세' : '전세';
+
+            const area = parseFloat(get('excluUseAr')) || 0;
+            const contractDay = get('dealDay').padStart(2, '0');
+            const floor = parseInt(get('floor'), 10) || 0;
+            const key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`;
+
+            // 중복 검사
+            if (existingMap.has(key)) {
+              continue; // 렌트는 취소일이 없으므로 단순 키 존재여부만 체크
+            }
+
+            const record = {
+              sigungu: `경기도 화성시 동탄구 ${dong}`,
+              dong,
+              aptName,
+              area,
+              areaPyeong: getSupplyPyeong(aptName, area, typeMap),
+              contractYm: ym,
+              contractDay,
+              contractDate: `${ym}${contractDay}`,
+              price: deposit, // For UI compatibility, use deposit as price
+              deposit,
+              monthlyRent,
+              floor,
+              buyer: '',
+              seller: '',
+              buildYear: parseInt(get('buildYear'), 10) || 0,
+              roadName: get('roadNm'),
+              cancelDate: '',
+              dealType,
+              agentLocation: '',
+              registrationDate: '',
+              housingType: '',
+              source: 'govt_api_rent',
+              reqGb: get('contractType') || '',
+              rnuYn: get('useRRRight') || '',
+              _key: key,
+            };
+            monthRecords.push(record);
+            newTransactionsOfMonth.push(record);
+          }
+          rentPage++;
+        } while (rentPage * 1000 <= rentTotalCount + 1000);
+      }
+
+      // Batch write to Firestore
+      if (monthRecords.length > 0) {
+        allNewTransactions.push(...newTransactionsOfMonth);
+
         const BATCH_SIZE = 500;
         let written = 0;
         for (let i = 0; i < monthRecords.length; i += BATCH_SIZE) {
           const batch = db.batch();
           const slice = monthRecords.slice(i, i + BATCH_SIZE);
-          for (const r of (slice as Record<string, unknown>[])) {
-            batch.set(collRef.doc(r._key as string), r, { merge: true });
+          for (const r of slice) {
+            batch.set(collRef.doc(r._key), r, { merge: true });
           }
           await batch.commit();
           written += slice.length;
         }
         totalNew += written;
-        syncLog.push(`${ym}: ${written}건 동기화 (매매+전월세), 신규 거래: ${newTransactions.length}건`);
+        syncLog.push(`${ym}: ${written}건 동기화 (매매+전월세), 신규/변경 거래: ${newTransactionsOfMonth.length}건`);
       } else {
         syncLog.push(`${ym}: 0건`);
       }

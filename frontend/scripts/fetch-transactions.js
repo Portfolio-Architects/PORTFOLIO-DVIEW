@@ -103,18 +103,13 @@ async function main() {
   }
   console.log(`   최신 Firestore 데이터: ${latestYm || '없음'}`);
 
-  // 2. 동기화할 월 결정
+  // 2. 동기화할 월 결정 (당월, 전월, 전전월 총 3개월을 항상 동기화하여 실거래 신고 지연 대응)
   const now = new Date();
-  const currentYm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthsToSync = new Set();
 
-  if (latestYm) monthsToSync.add(latestYm); // 최신 월 재동기화
-  monthsToSync.add(currentYm);               // 현재 월
-
-  // 월초면 전월도 포함 (국토부 데이터 지연 대응)
-  if (now.getDate() <= 20) {
-    const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    monthsToSync.add(`${prevDate.getFullYear()}${String(prevDate.getMonth() + 1).padStart(2, '0')}`);
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
 
   console.log(`   동기화 대상: ${Array.from(monthsToSync).sort().join(', ')}`);
