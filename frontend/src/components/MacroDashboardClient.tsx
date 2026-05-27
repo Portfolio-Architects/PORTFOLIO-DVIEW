@@ -714,11 +714,11 @@ export default function MacroDashboardClient({
     maxPyeongAptName,
   ]);
 
-  // 1안 Card 3: 최근 30일 동탄 실거래량 & 추세 (MoM)
+  // 1안 Card 3: 최근 7일 동탄 실거래량 & 추세 (WoW)
   const card3Data = useMemo(() => {
-    const limit30 = 30 * 24 * 60 * 60 * 1000;
-    const cutoff30 = maxDateTime - limit30;
-    const cutoff60 = maxDateTime - 2 * limit30;
+    const limit7 = 7 * 24 * 60 * 60 * 1000;
+    const cutoff7 = maxDateTime - limit7;
+    const cutoff14 = maxDateTime - 2 * limit7;
     let currentCount = 0;
     let prevCount = 0;
 
@@ -728,9 +728,9 @@ export default function MacroDashboardClient({
           const dt = parseDateHelper(tx.date, sum.latestDate);
           if (dt) {
             const time = dt.getTime();
-            if (time >= cutoff30) {
+            if (time >= cutoff7) {
               currentCount++;
-            } else if (time >= cutoff60) {
+            } else if (time >= cutoff14) {
               prevCount++;
             }
           }
@@ -762,46 +762,39 @@ export default function MacroDashboardClient({
     };
   }, [txSummaryData, maxDateTime]);
 
-  // 1안 Card 4: 최저 갭(GAP) 투자 단지
+  // 1안 Card 4: 실시간 최고 관심 단지
   const card4Data = useMemo(() => {
     let targetAptName = "-";
-    let minGapAmount = Infinity;
-    let targetGapPct = 0;
+    let maxFavorites = 0;
 
-    if (sheetApartments) {
+    if (sheetApartments && favoriteCounts) {
       Object.values(sheetApartments)
         .flat()
         .forEach((apt) => {
           if (publicRentalSet.has(apt.name)) return;
-          const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-          if (txKey && txSummaryData[txKey]) {
-            const sum = txSummaryData[txKey];
-            const sales = sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0;
-            const rent = sum.latestRentDeposit || sum.avg3MRentDeposit || 0;
-            if (sales > 0 && rent > 0) {
-              const gapAmount = sales - rent;
-              if (gapAmount > 0 && gapAmount < minGapAmount) {
-                minGapAmount = gapAmount;
-                targetAptName = apt.name;
-                targetGapPct = (rent / sales) * 100;
-              }
-            }
+          const count = favoriteCounts[apt.name] || 0;
+          if (count > maxFavorites) {
+            maxFavorites = count;
+            targetAptName = apt.name;
           }
         });
     }
 
-    let badgeText = "-";
-    if (minGapAmount !== Infinity) {
-      const fmt = formatEokWithUnit(minGapAmount);
-      const unitStr = fmt.unit === "만원" ? "만" : fmt.unit === "원" ? "" : fmt.unit;
-      badgeText = `갭 ${fmt.value}${unitStr} (${targetGapPct.toFixed(0)}%)`;
+    // Fallback: 관심(즐겨찾기) 단지가 아직 없을 시, 리스트 내 임대제외 첫 아파트
+    if (targetAptName === "-" && sheetApartments) {
+      const firstApt = Object.values(sheetApartments)
+        .flat()
+        .find((apt) => !publicRentalSet.has(apt.name));
+      if (firstApt) {
+        targetAptName = firstApt.name;
+      }
     }
 
     return {
       name: targetAptName,
-      badge: badgeText,
+      badge: maxFavorites > 0 ? `관심 ${maxFavorites}명` : "관심 0명",
     };
-  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping]);
+  }, [sheetApartments, publicRentalSet, favoriteCounts]);
 
 
 
@@ -1388,11 +1381,11 @@ interface GroupedCategory {
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      최근 30일 동탄 실거래량
+                      최근 7일 동탄 실거래량
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
-                      최근 30일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(31~60일 전) 대비 거래량 증감 추세입니다.
+                      최근 7일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(8~14일 전) 대비 거래량 증감 추세입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
@@ -1406,11 +1399,11 @@ interface GroupedCategory {
                 title={
                   <div className="relative group flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      최저 갭(GAP) 투자 단지
+                      실시간 최고 관심 단지
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
-                      최근 실거래 매매가와 전세가 차이(갭)가 가장 적은 아파트 단지(임대 전용 단지 제외) 정보입니다.
+                      DVIEW 플랫폼 사용자들에게 가장 인기가 많고 즐겨찾기가 많이 등록된 대표 단지 정보입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
