@@ -214,6 +214,13 @@ async function main() {
     const aptName = d.aptName || '';
     if (!aptName) return;
 
+    // Filter out transactions that occurred before completion/built year
+    const buildYear = parseInt(d.buildYear || d.constructionYear, 10) || 0;
+    const contractYear = d.contractYm ? parseInt(d.contractYm.substring(0, 4), 10) : 0;
+    if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) {
+      return; // Skip pre-completion transaction
+    }
+
     const key = normalizeAptName(aptName);
     if (!byApt[key]) byApt[key] = [];    
     
@@ -261,6 +268,13 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.apartmentName || d.aptName || '';
     if (!aptName) return;
+
+    // Filter out transactions that occurred before completion/built year
+    const buildYear = parseInt(d.buildYear || d.constructionYear, 10) || 0;
+    const contractYear = d.contractYm ? parseInt(d.contractYm.substring(0, 4), 10) : 0;
+    if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) {
+      return; // Skip pre-completion transaction
+    }
 
     const key = normalizeAptName(aptName);
     if (!byApt[key]) byApt[key] = [];    

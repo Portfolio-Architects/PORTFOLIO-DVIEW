@@ -81,18 +81,18 @@ const InfoBox = ({
   color = "#00d29d",
 }: InfoBoxProps) => {
   return (
-    <div className="bg-[#f4f5f6] dark:bg-body rounded-[14px] py-2 px-2.5 md:py-2.5 md:px-3.5 flex flex-col justify-between shadow-sm border border-border h-[82px] sm:h-[86px] md:h-[96px] min-w-0">
+    <div className="bg-surface dark:bg-body rounded-2xl p-3 md:p-4 flex flex-col justify-between shadow-sm border border-border/80 h-[86px] sm:h-[90px] md:h-[102px] min-w-0 transition-all hover:shadow-md hover:border-border">
       {/* Title Area */}
-      <div className="text-[11px] md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-none">
+      <div className="text-[10.5px] sm:text-[11.5px] md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
         {title}
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full min-w-0 gap-1 md:gap-2 mt-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full min-w-0 gap-1.5 md:gap-2 mt-auto">
 
         {/* Value & Unit */}
         <div className="flex items-baseline gap-0.5 md:gap-1 min-w-0 max-w-full">
-          <span className="text-[13px] md:text-[16px] font-extrabold text-primary tracking-tight truncate block leading-none">
+          <span className="text-[12px] sm:text-[13.5px] md:text-[16px] font-extrabold text-primary tracking-tight truncate block leading-tight">
             {value}
           </span>
           {unit && (
@@ -106,8 +106,19 @@ const InfoBox = ({
         {(progress !== undefined || badge) && (
           <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-1.5">
             {badge && (
-              <div className="bg-surface border border-border px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[5px] shadow-sm">
-                <span className="text-[10.5px] md:text-[11.5px] tracking-tight font-extrabold text-[#00d29d] whitespace-nowrap">
+              <div 
+                className="px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[5px] shadow-sm"
+                style={{
+                  backgroundColor: color + '0a', // ~4% opacity for light backdrop
+                  borderColor: color + '28',     // ~15% opacity for border
+                  borderWidth: '1px',
+                  borderStyle: 'solid'
+                }}
+              >
+                <span 
+                  className="text-[10px] md:text-[11.5px] tracking-tight font-extrabold whitespace-nowrap"
+                  style={{ color }}
+                >
                   {badge}
                 </span>
               </div>
