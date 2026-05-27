@@ -886,7 +886,91 @@ export default function MacroDashboardClient({
     };
   }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime]);
 
+  // 6차 사이클: 일자별 신고가 / 신저가 타임라인 데이터 계산
+  const dailyTimelineData = useMemo(() => {
+    const groups: Record<string, { dateStr: string; timestamp: number; items: any[] }> = {};
 
+    if (!sheetApartments || !txSummaryData) return [];
+
+    const allApts = Object.values(sheetApartments).flat();
+
+    allApts.forEach((apt) => {
+      if (publicRentalSet.has(apt.name)) return;
+      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+      if (txKey && txSummaryData[txKey]) {
+        const sum = txSummaryData[txKey];
+        if (sum.recent && sum.recent.length > 0) {
+          // 최근 거래 가격 목록에서 최솟값 구하기 (최근 신저가 판정용)
+          const recentPrices = sum.recent
+            .map((r) => parsePriceEokHelper(r.priceEok))
+            .filter((p) => p > 0);
+          const recentMinPrice = recentPrices.length > 0 ? Math.min(...recentPrices) : 0;
+          const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
+
+          sum.recent.forEach((tx) => {
+            const dt = parseDateHelper(tx.date, sum.latestDate);
+            if (dt) {
+              const diffMs = maxDateTime - dt.getTime();
+              const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+              // 최근 30일 내의 데이터만 타임라인에 표시
+              if (diffDays >= 0 && diffDays <= 30) {
+                const price = parsePriceEokHelper(tx.priceEok);
+                if (price > 0) {
+                  const isHigh = maxPriceEokVal > 0 && price >= maxPriceEokVal - 0.05;
+                  const isLow = !isHigh && recentMinPrice > 0 && price <= recentMinPrice + 0.05;
+
+                  if (isHigh || isLow) {
+                    const dateKey = tx.date;
+                    
+                    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+                    const dayName = daysOfWeek[dt.getDay()];
+                    const month = dt.getMonth() + 1;
+                    const dateVal = dt.getDate();
+                    const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+
+                    if (!groups[dateKey]) {
+                      groups[dateKey] = {
+                        dateStr,
+                        timestamp: dt.getTime(),
+                        items: [],
+                      };
+                    }
+
+                    groups[dateKey].items.push({
+                      aptName: apt.name,
+                      dong: apt.dong || sum.dong || "",
+                      priceEok: tx.priceEok,
+                      priceVal: price,
+                      areaPyeong: tx.areaPyeong,
+                      floor: tx.floor,
+                      type: isHigh ? "high" : "low",
+                    });
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+    });
+
+    // 그룹을 날짜 최신순으로 정렬
+    return Object.values(groups)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .map((group) => {
+        // 동일 날짜 내에서 신고가 먼저 노출 후 신저가 노출
+        const sortedItems = group.items.sort((a, b) => {
+          if (a.type !== b.type) {
+            return a.type === "high" ? -1 : 1;
+          }
+          return b.priceVal - a.priceVal;
+        });
+        return {
+          ...group,
+          items: sortedItems,
+        };
+      });
+  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime]);
 
   const toggleGroup = (title: string) => {
     setExpandedGroups((prev) => ({ ...prev, [title]: !prev[title] }));
@@ -1193,150 +1277,68 @@ interface GroupedCategory {
         <div className="flex flex-col md:flex-row gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
-            {/* Donut Chart Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-7 min-h-[350px]">
+            {/* Daily Timeline Card */}
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 min-h-[420px] min-w-0">
               <div className="flex justify-between items-center gap-2 mb-4">
-                <h2 className="text-[14.5px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
-                  최근 실거래 등락 비중
+                <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
+                  일자별 신고가 · 신저가 단지
                 </h2>
-                <div className="flex bg-body p-1 rounded-lg shrink-0">
-                  <button
-                    onClick={() => setChartMode("30")}
-                    className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "30"
-                      ? "bg-surface text-primary shadow-sm"
-                      : "text-tertiary hover:text-secondary"
-                      }`}
-                  >
-                    최근 30일
-                  </button>
-                  <button
-                    onClick={() => setChartMode("90")}
-                    className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "90"
-                      ? "bg-surface text-primary shadow-sm"
-                      : "text-tertiary hover:text-secondary"
-                      }`}
-                  >
-                    최근 90일
-                  </button>
-                </div>
+                <span className="text-[12px] text-tertiary font-bold bg-[#f2f4f6] px-2 py-1 rounded-md shrink-0">
+                  최근 30일
+                </span>
               </div>
 
-              <div ref={chartContainerRef} className="flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3">
-                <div className="w-[240px] h-[240px] relative shrink-0">
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <span className="text-[13px] font-bold text-tertiary mb-1">
-                      총 거래 건수
-                    </span>
-                    <span className="text-[26px] font-extrabold text-primary leading-none tracking-tight">
-                      {donutData.reduce((s, d) => s + d.value, 0).toLocaleString()}
-                      <span className="text-[15px] font-bold text-tertiary ml-1">
-                        건
-                      </span>
-                    </span>
+              <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
+                {dailyTimelineData.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
+                    최근 30일 내 등록된 신고가/신저가 거래가 없습니다.
                   </div>
+                ) : (
+                  dailyTimelineData.map((group) => (
+                    <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-[#f2f4f6]">
+                      {/* Timeline Dot */}
+                      <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-[#cbd5e1] border-2 border-surface" />
+                      
+                      {/* Date Heading */}
+                      <h3 className="text-[13px] font-extrabold text-primary flex items-center gap-1.5 mb-1">
+                        {group.dateStr}
+                      </h3>
 
-                  <ResponsiveContainer
-                    width="100%"
-                    minWidth={1}
-                    minHeight={1}
-                    height={240}
-                    className="relative z-10"
-                  >
-                    <PieChart onMouseLeave={() => setActiveIndex(null)}>
-                      <Pie
-                        data={donutData}
-                        innerRadius={78}
-                        outerRadius={110}
-                        paddingAngle={2}
-                        dataKey="value"
-                        onMouseEnter={(_, index) => setActiveIndex(index)}
-                        onMouseLeave={() => setActiveIndex(null)}
-                        stroke="none"
-                        animationDuration={400}
-                        animationBegin={0}
-                      >
-                        {donutData.map((entry, index) => {
-                          const DONUT_COLORS = ["#ff4b5c", "#2e7cf6", "#94a3b8"];
-                          return (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={DONUT_COLORS[index % DONUT_COLORS.length]}
-                              style={{
-                                transition: "all 0.3s ease",
-                                opacity:
-                                  activeIndex === null || activeIndex === index
-                                    ? 1
-                                    : 0.3,
-                                filter: "none",
-                              }}
-                            />
-                          );
-                        })}
-                      </Pie>
-                      <RechartsTooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length && activeIndex !== null) {
-                            const color = payload[0].payload?.fill || payload[0].color || "#4e5968";
-                            return (
-                              <div className="bg-surface py-2 px-3 rounded-[10px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-border">
-                                <span className="text-[14.5px] font-bold" style={{ color }}>
-                                  거래수 : {(payload[0].value || 0).toLocaleString()} 건
-                                </span>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                        cursor={{ fill: "transparent" }}
-                        isAnimationActive={false}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Interactive Legend */}
-                <div className="flex flex-col gap-1 w-full max-w-[260px]">
-                  {donutData.map((entry, index) => {
-                    const totalValue = donutData.reduce(
-                      (s, i) => s + i.value,
-                      0,
-                    );
-                    const percentage =
-                      totalValue > 0
-                        ? ((entry.value / totalValue) * 100).toFixed(1)
-                        : "0.0";
-                    const isActive = activeIndex === index;
-                    const DONUT_COLORS = ["#ff4b5c", "#2e7cf6", "#94a3b8"];
-                    return (
-                      <div
-                        key={entry.name}
-                        className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? "bg-body scale-[1.02]" : "hover:bg-body"}`}
-                        onMouseEnter={() => setActiveIndex(index)}
-                        onMouseLeave={() => setActiveIndex(null)}
-                      >
-                        <div className="flex items-center gap-3">
+                      {/* Items */}
+                      <div className="flex flex-col gap-1.5">
+                        {group.items.map((item, idx) => (
                           <div
-                            className="w-3 h-3 rounded-full shrink-0 shadow-sm"
-                            style={{
-                              backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length],
-                            }}
-                          />
-                          <span className="text-[14px] font-bold text-secondary tracking-tight">
-                            {entry.name}
-                          </span>
-                        </div>
-                        <div className="text-right flex items-center gap-2">
-                          <span className="text-[15px] font-extrabold text-primary leading-none">
-                            {percentage}%
-                          </span>
-                          <span className="text-[12px] font-semibold text-tertiary leading-none">
-                            {entry.value.toLocaleString()}건
-                          </span>
-                        </div>
+                            key={`${item.aptName}-${idx}`}
+                            onClick={() => onSelectApt && onSelectApt(item.aptName)}
+                            className="flex items-center justify-between p-2.5 bg-body hover:bg-body/80 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
+                          >
+                            <div className="flex flex-col min-w-0 pr-2">
+                              <span className="text-[12.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors">
+                                <span className="text-secondary text-[10px] font-semibold bg-white border border-border px-1 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
+                                {item.aptName}
+                              </span>
+                              <span className="text-[11px] text-tertiary font-semibold mt-0.5">
+                                {item.areaPyeong}평 · {item.floor}층
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`text-[13px] font-extrabold ${item.type === 'high' ? 'text-[#ff4b5c]' : 'text-[#2e7cf6]'}`}>
+                                {item.priceEok}
+                              </span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                item.type === 'high'
+                                  ? 'bg-[#ffebed] text-[#ff4b5c]'
+                                  : 'bg-[#ebf3ff] text-[#2e7cf6]'
+                              }`}>
+                                {item.type === 'high' ? '신고가' : '신저가'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
