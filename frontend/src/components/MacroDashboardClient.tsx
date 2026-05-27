@@ -63,6 +63,18 @@ const COLORS = [
 ];
 const LINE_COLORS = ["#b0b8c1", "#00d29d", "#f04452", "#00a261", "#f9a825"];
 
+const hexToRgba = (hex: string, alpha: number) => {
+  let cleanHex = hex.replace("#", "");
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split("").map((c) => c + c).join("");
+  }
+  if (cleanHex.length !== 6) return hex;
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 interface InfoBoxProps {
   title: React.ReactNode;
   value: React.ReactNode;
@@ -70,6 +82,7 @@ interface InfoBoxProps {
   progress?: number;
   badge?: React.ReactNode;
   color?: string;
+  description?: React.ReactNode;
 }
 
 const InfoBox = ({
@@ -79,82 +92,73 @@ const InfoBox = ({
   progress,
   badge,
   color = "#00d29d",
+  description,
 }: InfoBoxProps) => {
+  const cardStyle = {
+    "--card-color": color,
+    "--card-bg-gradient": `linear-gradient(135deg, var(--bg-surface) 30%, ${hexToRgba(color, 0.015)} 100%)`,
+    "--card-bg-gradient-dark": `linear-gradient(135deg, var(--bg-surface) 30%, ${hexToRgba(color, 0.08)} 100%)`,
+    "--card-border": hexToRgba(color, 0.10),
+    "--card-border-dark": hexToRgba(color, 0.20),
+    "--card-border-hover": hexToRgba(color, 0.30),
+    "--card-border-hover-dark": hexToRgba(color, 0.45),
+    "--card-glow": hexToRgba(color, 0.04),
+    "--card-glow-dark": hexToRgba(color, 0.15),
+  } as React.CSSProperties;
+
   return (
-    <div className="bg-surface dark:bg-body rounded-2xl p-3 md:p-4 flex flex-col justify-between shadow-sm border border-border/80 h-[86px] sm:h-[90px] md:h-[102px] min-w-0 transition-all hover:shadow-md hover:border-border">
-      {/* Title Area */}
-      <div className="text-[10.5px] sm:text-[11.5px] md:text-body-normal font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug">
-        {title}
+    <div
+      className="relative overflow-hidden rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border h-[96px] sm:h-[102px] md:h-[114px] min-w-0 transition-all duration-300 hover:-translate-y-0.5 group/card cursor-pointer bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_8px_20px_var(--card-glow)] dark:hover:shadow-[0_8px_24px_var(--card-glow-dark)]"
+      style={cardStyle}
+    >
+      {/* Background glow blob */}
+      <div
+        className="absolute -right-6 -bottom-6 w-16 h-16 rounded-full blur-[24px] opacity-10 dark:opacity-20 transition-all duration-500 group-hover/card:scale-125 pointer-events-none"
+        style={{ backgroundColor: color }}
+      />
+
+      {/* Row 1: Title Area */}
+      <div className="flex items-center justify-between w-full min-w-0 z-10">
+        <div className="text-[10px] sm:text-[11px] md:text-body-sm font-semibold text-tertiary tracking-tight w-full">
+          {title}
+        </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full min-w-0 gap-1.5 md:gap-2 mt-auto">
-
-        {/* Value & Unit */}
-        <div className="flex items-baseline gap-0.5 md:gap-1 min-w-0 max-w-full">
-          <span className="text-[12px] sm:text-[13.5px] md:text-[16px] font-extrabold text-primary tracking-tight truncate block leading-tight">
+      {/* Row 2: Value & Badge Area */}
+      <div className="flex items-center justify-between w-full min-w-0 gap-2 mt-auto mb-auto z-10">
+        <div className="flex items-baseline gap-0.5 min-w-0">
+          <span className="text-[14px] sm:text-[15.5px] md:text-[19px] font-black text-primary tracking-tight leading-tight truncate">
             {value}
           </span>
           {unit && (
-            <span className="text-[10px] md:text-body-sm font-bold text-secondary tracking-tight shrink-0 leading-none">
+            <span className="text-[10px] sm:text-[10.5px] md:text-body-sm font-bold text-secondary tracking-tight ml-0.5 shrink-0">
               {unit}
             </span>
           )}
         </div>
 
-        {/* Badges / Progress */}
-        {(progress !== undefined || badge) && (
-          <div className="flex items-center shrink-0 self-start md:self-auto md:ml-auto gap-1.5">
-            {badge && (
-              <div 
-                className="px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[5px] shadow-sm"
-                style={{
-                  backgroundColor: color + '0a', // ~4% opacity for light backdrop
-                  borderColor: color + '28',     // ~15% opacity for border
-                  borderWidth: '1px',
-                  borderStyle: 'solid'
-                }}
-              >
-                <span 
-                  className="text-[10px] md:text-[11.5px] tracking-tight font-extrabold whitespace-nowrap"
-                  style={{ color }}
-                >
-                  {badge}
-                </span>
-              </div>
-            )}
-            {progress !== undefined && (
-              <div className="relative flex items-center justify-center">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 32 32"
-                  className="transform -rotate-90 md:w-6 md:h-6"
-                >
-                  <circle
-                    cx="16"
-                    cy="16"
-                    r="12"
-                    fill="transparent"
-                    stroke="#e5e8eb"
-                    strokeWidth="4"
-                  />
-                  <circle
-                    cx="16"
-                    cy="16"
-                    r="12"
-                    fill="transparent"
-                    stroke={color}
-                    strokeWidth="4"
-                    strokeDasharray={2 * Math.PI * 12}
-                    strokeDashoffset={2 * Math.PI * 12 * (1 - progress / 100)}
-                    strokeLinecap="round"
-                    className="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-              </div>
-            )}
+        {badge && (
+          <div
+            className="px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[6px] text-[9.5px] md:text-[11px] tracking-tight font-extrabold whitespace-nowrap leading-none shrink-0"
+            style={{
+              backgroundColor: hexToRgba(color, 0.08),
+              color: color,
+              border: `1px solid ${hexToRgba(color, 0.15)}`,
+            }}
+          >
+            {badge}
           </div>
+        )}
+      </div>
+
+      {/* Row 3: Description Area */}
+      <div className="w-full min-w-0 mt-auto z-10">
+        {description ? (
+          <div className="text-[9.5px] sm:text-[10.5px] md:text-[12px] font-medium text-secondary/90 dark:text-secondary/80 tracking-tight truncate w-full">
+            {description}
+          </div>
+        ) : (
+          <div className="h-[15px] sm:h-[16px] md:h-[18px]" />
         )}
       </div>
     </div>
@@ -607,7 +611,8 @@ export default function MacroDashboardClient({
     };
     let bestDrop = {
       name: "-",
-      drop: "",
+      dropPrice: "",
+      dropPercent: "",
       days: 999,
       pct: 0,
     };
@@ -621,7 +626,8 @@ export default function MacroDashboardClient({
         },
         card2: {
           name: "-",
-          drop: "-원 (0%)",
+          dropPrice: "-",
+          dropPercent: "0%",
           label: "최근 7일 최대 낙폭",
         },
       };
@@ -679,7 +685,8 @@ export default function MacroDashboardClient({
                           fmtDiff.unit === "만원" ? "만" : fmtDiff.unit === "원" ? "" : fmtDiff.unit;
                         bestDrop = {
                           name: apt.name,
-                          drop: `-${fmtDiff.value}${unitStr} (${dropPct.toFixed(1)}%)`,
+                          dropPrice: `-${fmtDiff.value}${unitStr}`,
+                          dropPercent: `${dropPct.toFixed(1)}%`,
                           days: diffDays,
                           pct: dropPct,
                         };
@@ -699,7 +706,8 @@ export default function MacroDashboardClient({
     const card1Window = bestHigh.name !== "-" ? Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7) : 7;
 
     const card2Name = bestDrop.name !== "-" ? bestDrop.name : maxPyeongAptName;
-    const card2Drop = bestDrop.name !== "-" ? bestDrop.drop : "-0원 (0%)";
+    const card2DropPrice = bestDrop.name !== "-" ? bestDrop.dropPrice : "-";
+    const card2DropPercent = bestDrop.name !== "-" ? bestDrop.dropPercent : "0%";
     const card2Window = bestDrop.name !== "-" ? Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7) : 7;
 
     return {
@@ -710,7 +718,8 @@ export default function MacroDashboardClient({
       },
       card2: {
         name: card2Name,
-        drop: card2Drop,
+        dropPrice: card2DropPrice,
+        dropPercent: card2DropPercent,
         label: `최근 ${card2Window}일 최대 낙폭`,
       },
     };
@@ -1324,22 +1333,22 @@ interface GroupedCategory {
                           <div
                             key={`${item.aptName}-${idx}`}
                             onClick={() => onSelectApt && onSelectApt(item.aptName)}
-                            className="flex items-center justify-between p-3 bg-body hover:bg-body/80 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
+                            className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-body hover:bg-body/80 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group gap-2 md:gap-4"
                           >
-                            <div className="flex flex-col min-w-0 pr-2">
-                              <span className="text-[14.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors flex items-center">
-                                <span className="text-secondary text-[11.5px] font-semibold bg-white border border-border px-1.5 py-0.5 rounded mr-2 shrink-0">{item.dong}</span>
-                                <span className="truncate">{item.aptName}</span>
-                              </span>
-                              <span className="text-[12.5px] text-tertiary font-semibold mt-1">
+                            <div className="flex flex-col min-w-0 md:pr-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-secondary text-[11px] sm:text-[11.5px] font-semibold bg-white dark:bg-surface border border-border px-1.5 py-0.5 rounded mr-2 shrink-0">{item.dong}</span>
+                                <span className="text-[14.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors flex-1">{item.aptName}</span>
+                              </div>
+                              <span className="text-[12.5px] text-tertiary font-semibold mt-1.5">
                                 {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center md:flex-col md:items-end justify-between md:justify-center gap-1.5 md:gap-1 shrink-0 mt-1 md:mt-0 pt-1.5 md:pt-0 border-t border-dashed border-border/40 md:border-none">
                               <span className="text-[15.5px] font-extrabold text-[#ff4b5c]">
                                 {item.priceEok}
                               </span>
-                              <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c]">
+                              <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shadow-sm">
                                 신고가
                               </span>
                             </div>
@@ -1353,49 +1362,50 @@ interface GroupedCategory {
             </div>
 
             {/* 4 Info Boxes Grid */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mt-4">
               <InfoBox
                 title={
-                  <div className="relative group flex items-center gap-1 w-full">
+                  <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
                       {card1And2Data.card1.label}
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
                       최근 7일(데이터 공백 시 최대 90일) 내 직전 신고가 대비 비슷하거나 더 높은 가격에 거래가 성사된 단지입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card1And2Data.card1.name}
-                badge={card1And2Data.card1.price}
+                value={card1And2Data.card1.price}
+                description={card1And2Data.card1.name}
                 color="#ff4b5c"
               />
               <InfoBox
                 title={
-                  <div className="relative group flex items-center gap-1 w-full">
+                  <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
                       {card1And2Data.card2.label}
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
                       최근 7일(데이터 공백 시 최대 90일) 내 역대 최고가 대비 가장 큰 폭으로 하락하여 실거래된 단지입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card1And2Data.card2.name}
-                badge={card1And2Data.card2.drop}
+                value={card1And2Data.card2.dropPrice}
+                badge={card1And2Data.card2.dropPercent}
+                description={card1And2Data.card2.name}
                 color="#2e7cf6"
               />
               <InfoBox
                 title={
-                  <div className="relative group flex items-center gap-1 w-full">
+                  <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
                       최근 7일 동탄 실거래량
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
                       최근 7일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(8~14일 전) 대비 거래량 증감 추세입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
@@ -1404,26 +1414,28 @@ interface GroupedCategory {
                 value={card3Data.currentCount}
                 unit="건"
                 badge={card3Data.badge}
+                description={`직전 7일: ${card3Data.prevCount}건`}
                 color={card3Data.trendColor}
               />
               <InfoBox
                 title={
-                  <div className="relative group flex items-center gap-1 w-full">
+                  <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
                       실시간 최고 관심 단지
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
                       DVIEW 플랫폼 사용자들에게 가장 인기가 많고 즐겨찾기가 많이 등록된 대표 단지 정보입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card4Data.name}
-                badge={card4Data.badge}
+                value={card4Data.badge}
+                description={card4Data.name}
                 color="#00d29d"
               />
             </div>
+
           </div>
 
           {/* Right Panel: Interactive Market Feed & Trend */}
@@ -1616,18 +1628,18 @@ interface GroupedCategory {
                       <div
                         key={`${item.aptName}-${item.date}-${idx}`}
                         onClick={() => onSelectApt && onSelectApt(item.aptName)}
-                        className="flex items-center justify-between p-3 bg-body hover:bg-body/85 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-body hover:bg-body/85 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group gap-2 md:gap-4"
                       >
-                        <div className="flex flex-col min-w-0 pr-2">
-                          <span className="text-[13.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors">
-                            <span className="text-secondary text-[11px] font-semibold bg-white border border-border px-1 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
-                            {item.aptName}
-                          </span>
-                          <span className="text-[11.5px] text-tertiary font-semibold mt-1">
+                        <div className="flex flex-col min-w-0 md:pr-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-secondary text-[11px] sm:text-[11.5px] font-semibold bg-white dark:bg-surface border border-border px-1.5 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
+                            <span className="text-[13.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors flex-1">{item.aptName}</span>
+                          </div>
+                          <span className="text-[11.5px] text-tertiary font-semibold mt-1.5">
                             {item.date} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                           </span>
                         </div>
-                        <div className="flex flex-col items-end shrink-0">
+                        <div className="flex items-center md:flex-col md:items-end justify-between md:justify-center gap-1.5 md:gap-1 shrink-0 mt-1 md:mt-0 pt-1.5 md:pt-0 border-t border-dashed border-border/40 md:border-none">
                           <span className="text-[14.5px] font-extrabold text-[#ff4b5c]">
                             {item.priceEok}
                           </span>
@@ -1660,18 +1672,18 @@ interface GroupedCategory {
                         <div
                           key={`${item.aptName}-${item.date}-${idx}`}
                           onClick={() => onSelectApt && onSelectApt(item.aptName)}
-                          className="flex items-center justify-between p-3 bg-body hover:bg-body/85 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group"
+                          className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-body hover:bg-body/85 rounded-xl cursor-pointer transition-all border border-transparent hover:border-border group gap-2 md:gap-4"
                         >
-                          <div className="flex flex-col min-w-0 pr-2">
-                            <span className="text-[13.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors">
-                              <span className="text-secondary text-[11px] font-semibold bg-white border border-border px-1 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
-                              {item.aptName}
-                            </span>
-                            <span className="text-[11.5px] text-tertiary font-semibold mt-1">
+                          <div className="flex flex-col min-w-0 md:pr-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-secondary text-[11px] sm:text-[11.5px] font-semibold bg-white dark:bg-surface border border-border px-1.5 py-0.5 rounded mr-1.5 shrink-0">{item.dong}</span>
+                              <span className="text-[13.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors flex-1">{item.aptName}</span>
+                            </div>
+                            <span className="text-[11.5px] text-tertiary font-semibold mt-1.5">
                               {item.date} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                             </span>
                           </div>
-                          <div className="flex flex-col items-end shrink-0">
+                          <div className="flex items-center md:flex-col md:items-end justify-between md:justify-center gap-1.5 md:gap-1 shrink-0 mt-1 md:mt-0 pt-1.5 md:pt-0 border-t border-dashed border-border/40 md:border-none">
                             <span className="text-[14.5px] font-extrabold text-[#2e7cf6]">
                               {item.priceEok}
                             </span>
