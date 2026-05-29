@@ -33,6 +33,8 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
       verifiedApartment: data.verifiedApartment,
       verificationLevel: data.verificationLevel,
       createdAt: data.createdAt,
+      uploaderPoints: data.uploaderPoints || 0,
+      uploaderTier: data.uploaderTier || '초보 임장러',
     };
   }
 
@@ -41,10 +43,12 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
     nickname: DEFAULT_NICKNAME,
     photoURL: getRandomDefaultAvatar(),
     createdAt: serverTimestamp(),
+    uploaderPoints: 0,
+    uploaderTier: '초보 임장러',
   };
   await setDoc(userRef, newProfile);
   logger.info('UserRepository.getOrCreateProfile', 'New user profile created', { uid, nickname: newProfile.nickname });
-  return { nickname: newProfile.nickname, photoURL: newProfile.photoURL };
+  return { nickname: newProfile.nickname, photoURL: newProfile.photoURL, uploaderPoints: 0, uploaderTier: '초보 임장러' };
 }
 
 

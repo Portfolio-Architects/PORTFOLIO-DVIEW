@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
 import { fetchSheetTypeMap } from '@/lib/services/googleSheets';
+import { redis } from '@/lib/redis';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 import fs from 'fs';
 import path from 'path';
@@ -269,28 +270,68 @@ async function getInitialData() {
     ]);
 
   const fetchFavCounts = async () => {
+    if (redis) {
+      try {
+        const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
+        if (cachedCounts && Object.keys(cachedCounts).length > 0) {
+          result.favoriteCounts = cachedCounts as Record<string, number>;
+          return;
+        }
+      } catch (e) {
+        console.warn('[Server] Redis favCounts read error:', e);
+      }
+    }
     if (adminDb) {
       const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 3000);
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
+      if (redis && Object.keys(result.favoriteCounts).length > 0) {
+        redis.hmset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => console.warn('Redis HMSET error:', err));
+      }
     }
   };
 
   const fetchMeta = async () => {
+    if (redis) {
+      try {
+        const cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
+        if (cachedMeta && typeof cachedMeta === 'object') {
+          result.apartmentMeta = cachedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+          return;
+        }
+      } catch (e) {
+        console.warn('[Server] Redis meta read error:', e);
+      }
+    }
     if (adminDb) {
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 3000);
       if (metaDoc.exists) {
-        result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+        const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+        result.apartmentMeta = metaData;
+        if (redis && Object.keys(metaData).length > 0) {
+          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => console.warn('[Server] Redis meta write error:', e));
+        }
       }
     }
   };
 
   const fetchReports = async () => {
+    if (redis) {
+      try {
+        const cachedReports = await redis.get('DTDLS:cache:fieldReports');
+        if (cachedReports && Array.isArray(cachedReports)) {
+          result.fieldReports = cachedReports;
+          return;
+        }
+      } catch (e) {
+        console.warn('[Server] Redis reports read error:', e);
+      }
+    }
     if (adminDb) {
       const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
-      result.fieldReports = snap.docs.map(doc => {
+      const reports = snap.docs.map(doc => {
         const data = doc.data();
         let createdAtStr = '방금 전';
         let rawTimestamp = 0;
@@ -327,6 +368,10 @@ async function getInitialData() {
           _rawTimestamp: rawTimestamp
         };
       });
+      result.fieldReports = reports;
+      if (redis && reports.length > 0) {
+        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => console.warn('[Server] Redis reports write error:', e));
+      }
     }
   };
 
@@ -365,20 +410,34 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     } catch (e) {}
   }
 
+  // --- SSR SEO HTML Block ---
+  const aptSummary = TX_SUMMARY[decodedName];
+  const txs = getApartmentTransactions(decodedName);
+  const pyeongSummaries = getPyeongSummaries(txs);
+  
+  const salePrices = pyeongSummaries.map(p => p.latestPrice).filter(p => p > 0);
+  const minSalePrice = salePrices.length > 0 ? Math.min(...salePrices) : 0;
+  const maxSalePrice = salePrices.length > 0 ? Math.max(...salePrices) : 0;
+
+  const offers = salePrices.length > 0 ? {
+    "@type": "AggregateOffer",
+    "priceCurrency": "KRW",
+    "lowPrice": minSalePrice * 10000,
+    "highPrice": maxSalePrice * 10000,
+    "offerCount": pyeongSummaries.reduce((sum, p) => sum + p.salesCount, 0)
+  } : undefined;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ApartmentComplex",
     "name": `${decodedName}`,
     "description": `동탄 ${decodedName} 아파트 실거래가 및 임장 리포트`,
     "url": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
-    ...(structuredImages.length > 0 ? { "image": structuredImages } : {})
+    ...(structuredImages.length > 0 ? { "image": structuredImages } : {}),
+    ...(offers ? { "offers": offers } : {}),
+    "priceRange": minSalePrice > 0 ? `₩${(minSalePrice * 10000).toLocaleString()} - ₩${(maxSalePrice * 10000).toLocaleString()}` : undefined
   };
 
-  // --- SSR SEO HTML Block ---
-  const aptSummary = TX_SUMMARY[decodedName];
-  const txs = getApartmentTransactions(decodedName);
-  const pyeongSummaries = getPyeongSummaries(txs);
-  
   const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
 
   return (

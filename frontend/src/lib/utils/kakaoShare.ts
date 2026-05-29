@@ -95,9 +95,11 @@ export interface ShareAptParams {
   ratio: number;
   imageUrl?: string;
   imageFile?: File;
+  customTitle?: string;
+  customDesc?: string;
 }
 
-export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imageUrl, imageFile }: ShareAptParams) => {
+export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imageUrl, imageFile, customTitle, customDesc }: ShareAptParams) => {
   try {
     // 1. 강제 스크립트 로드 대기
     await loadKakaoSdk();
@@ -141,7 +143,7 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
         ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
         : `${priceEok}억원`;
 
-    const description = `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`;
+    const description = customDesc || `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`;
 
     // 4002 에러 우회를 위해, 현재 브라우저가 실행중인 도메인(localhost:5000 또는 dongtanview.com)을 그대로 사용
     const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}`;
@@ -149,7 +151,7 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: `${aptName}, 지금 사면 호구일까?`,
+        title: customTitle || `${aptName}, 지금 사면 호구일까?`,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,

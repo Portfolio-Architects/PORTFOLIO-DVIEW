@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown } from 'lucide-react';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -19,6 +18,24 @@ interface Post {
   views: number;
   likes: number;
   createdAt: number;
+}
+
+interface LocalNoticeItem {
+  id: string;
+  title: string;
+  url: string;
+  dept: string;
+  date: string;
+  isDongtan: boolean;
+}
+
+interface NewsItem {
+  id: number;
+  category: string;
+  sub: string;
+  title: string;
+  summary?: string;
+  link: string;
 }
 
 interface LoungeFeedClientProps {
@@ -67,10 +84,14 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [hasMore, setHasMore] = useState(initialPosts && initialPosts.length > 0 ? initialPosts.length === 50 : true);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const [newsData, setNewsData] = useState<any[]>([]);
+  const [newsData, setNewsData] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [visibleNewsCount, setVisibleNewsCount] = useState(10);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
+  const [noticesData, setNoticesData] = useState<LocalNoticeItem[]>([]);
+  const [noticesLoading, setNoticesLoading] = useState(false);
+  const [visibleNoticesCount, setVisibleNoticesCount] = useState(10);
 
   useEffect(() => {
     const checkHash = () => {
@@ -94,7 +115,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       setNewsLoading(true);
       fetch("/api/macro/news")
         .then(res => res.json())
-        .then(json => {
+        .then((json: { status: string; data?: NewsItem[] }) => {
           if (json.status === "success" && json.data) {
             setNewsData(json.data);
           }
@@ -103,6 +124,21 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         .finally(() => setNewsLoading(false));
     }
   }, [currentTab, newsData.length]);
+
+  useEffect(() => {
+    if (currentTab === '동탄구청 소식' && noticesData.length === 0) {
+      setNoticesLoading(true);
+      fetch("/api/local-notices")
+        .then(res => res.json())
+        .then((json: { notices?: LocalNoticeItem[] }) => {
+          if (json.notices) {
+            setNoticesData(json.notices);
+          }
+        })
+        .catch(err => console.error(err))
+        .finally(() => setNoticesLoading(false));
+    }
+  }, [currentTab, noticesData.length]);
 
   const loadMorePosts = useCallback(async () => {
     if (isLoadingMore || !hasMore) return;
@@ -161,7 +197,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     } finally {
       setIsLoadingMore(false);
     }
-  }, [posts, hasMore, isLoadingMore, currentTab]);
+  }, [posts, hasMore, isLoadingMore]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -180,7 +216,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     return () => observer.disconnect();
   }, [loadMorePosts]);
 
-  const filteredPosts = currentTab === '동탄 부동산 뉴스'
+  const filteredPosts = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구청 소식')
     ? []
     : posts.filter((p) => (CATEGORY_MAP[currentTab] || [currentTab]).includes(p.category || '기타'));
 
@@ -314,12 +350,90 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     );
   }
 
+  if (currentTab === '동탄구청 소식') {
+    return (
+      <div className="flex flex-col gap-4 w-full">
+        {noticesLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex gap-4 p-5 rounded-2xl border border-border bg-surface animate-pulse">
+              <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
+              <div className="flex flex-col w-full">
+                <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
+                <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
+                <div className="w-2/3 h-4 bg-gray-200 rounded" />
+              </div>
+            </div>
+          ))
+        ) : (
+          noticesData.slice(0, visibleNoticesCount).map((notice, idx) => (
+            <div
+              key={notice.id}
+              onClick={() => window.open(notice.url, "_blank")}
+              className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-emerald-500/30 transition-all cursor-pointer group w-full"
+            >
+              <div className="flex items-center gap-3 sm:gap-0 shrink-0">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-emerald-500 font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  {idx + 1}
+                </div>
+                
+                {/* Mobile Meta */}
+                <div className="flex sm:hidden items-center gap-2">
+                  <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide">{notice.dept}</span>
+                  <span className="text-[11px] text-gray-300">|</span>
+                  <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{notice.date}</span>
+                  {notice.isDongtan && (
+                    <>
+                      <span className="text-[11px] text-gray-300">|</span>
+                      <span className="bg-emerald-50 text-emerald-600 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
+                {/* Desktop Meta */}
+                <div className="hidden sm:flex items-center gap-4 shrink-0">
+                  <span className="w-[115px] text-[13px] font-extrabold text-emerald-600 tracking-wide text-center bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1.5 rounded-lg truncate border border-emerald-100 dark:border-emerald-900/30">{notice.dept}</span>
+                  <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{notice.date}</span>
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-emerald-600 transition-colors truncate">
+                    {notice.title}
+                  </p>
+                </div>
+
+                {notice.isDongtan && (
+                  <span className="hidden sm:inline-block bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 text-[11px] font-black rounded-lg border border-emerald-100 dark:border-emerald-900/30 shrink-0">
+                    동탄 관련 소식
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+        
+        {noticesData.length > visibleNoticesCount && (
+          <div className="mt-4 flex justify-center pb-8">
+            <button 
+              onClick={() => setVisibleNoticesCount(prev => prev + 10)}
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+            >
+              더보기 ({visibleNoticesCount} {"/"} {noticesData.length})
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 w-full">
       {filteredPosts.length === 0 && !hasMore && (
         <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
           <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
-          <p className="text-[15px] font-bold text-secondary">아직 '{currentTab}' 관련 글이 없습니다</p>
+          <p className="text-[15px] font-bold text-secondary">아직 &apos;{currentTab}&apos; 관련 글이 없습니다</p>
         </div>
       )}
 

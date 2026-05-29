@@ -1,0 +1,3554 @@
+[
+  {
+    "aptName": "KCC스위첸아파트",
+    "area": "84.01",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "KCC스위첸아파트",
+    "area": "84.06",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "KCC스위첸아파트",
+    "area": "84.11",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "96.22",
+    "typeM2": "135",
+    "typePyeong": "40"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "107.778",
+    "typeM2": "152A",
+    "typePyeong": "46A"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "109.482",
+    "typeM2": "153B",
+    "typePyeong": "46B"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "112.444",
+    "typeM2": "159",
+    "typePyeong": "48"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "126.772",
+    "typeM2": "178C",
+    "typePyeong": "54C"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "127.741",
+    "typeM2": "179B",
+    "typePyeong": "54B"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "128.44",
+    "typeM2": "179A",
+    "typePyeong": "54A"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "161.891",
+    "typeM2": "226",
+    "typePyeong": "68"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "187.117",
+    "typeM2": "262",
+    "typePyeong": "79"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "209.254",
+    "typeM2": "292",
+    "typePyeong": "88"
+  },
+  {
+    "aptName": "METAPOLIS",
+    "area": "230.549",
+    "typeM2": "325",
+    "typePyeong": "98"
+  },
+  {
+    "aptName": "그린힐 반도유보라 아이비파크 10(1단지)",
+    "area": "59.7731",
+    "typeM2": "81A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "그린힐 반도유보라 아이비파크 10(1단지)",
+    "area": "59.8742",
+    "typeM2": "81B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "그린힐 반도유보라 아이비파크 10(1단지)",
+    "area": "74.1263",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "그린힐 반도유보라 아이비파크 10(1단지)",
+    "area": "84.9991",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "금호어울림레이크",
+    "area": "59.93",
+    "typeM2": "81B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "금호어울림레이크",
+    "area": "59.96",
+    "typeM2": "82A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "금호어울림레이크",
+    "area": "74.97",
+    "typeM2": "101",
+    "typePyeong": "30"
+  },
+  {
+    "aptName": "금호어울림레이크",
+    "area": "84.96",
+    "typeM2": "114",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "금호어울림레이크2차",
+    "area": "74.99",
+    "typeM2": "99",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "금호어울림레이크2차",
+    "area": "84.87",
+    "typeM2": "112A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "금호어울림레이크2차",
+    "area": "84.96",
+    "typeM2": "112B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "금호어울림레이크2차",
+    "area": "84.97",
+    "typeM2": "112C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "나루마을신도브래뉴",
+    "area": "96.4338",
+    "typeM2": "127",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "나루마을신도브래뉴",
+    "area": "103.9466",
+    "typeM2": "137",
+    "typePyeong": "41"
+  },
+  {
+    "aptName": "나루마을신도브래뉴",
+    "area": "128.0152",
+    "typeM2": "159",
+    "typePyeong": "48"
+  },
+  {
+    "aptName": "나루마을월드메르디앙반도유보라",
+    "area": "101.9599",
+    "typeM2": "127",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "나루마을월드메르디앙반도유보라",
+    "area": "110.7323",
+    "typeM2": "141",
+    "typePyeong": "42"
+  },
+  {
+    "aptName": "나루마을월드메르디앙반도유보라",
+    "area": "116.0155",
+    "typeM2": "146",
+    "typePyeong": "44"
+  },
+  {
+    "aptName": "나루마을월드메르디앙반도유보라",
+    "area": "139.4524",
+    "typeM2": "170",
+    "typePyeong": "51"
+  },
+  {
+    "aptName": "나루마을월드메르디앙반도유보라",
+    "area": "166.9669",
+    "typeM2": "203",
+    "typePyeong": "61"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린",
+    "area": "96.84",
+    "typeM2": "122B",
+    "typePyeong": "37B"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린",
+    "area": "97.6",
+    "typeM2": "122A",
+    "typePyeong": "37A"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린",
+    "area": "113.18",
+    "typeM2": "142B",
+    "typePyeong": "43B"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린",
+    "area": "113.61",
+    "typeM2": "142A",
+    "typePyeong": "43A"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린",
+    "area": "113.64",
+    "typeM2": "142C",
+    "typePyeong": "43C"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린우림필유",
+    "area": "84.94",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "나루마을한화꿈에그린우림필유",
+    "area": "84.96",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "능동마을이지더원",
+    "area": "78.2912",
+    "typeM2": "100",
+    "typePyeong": "30"
+  },
+  {
+    "aptName": "능동마을이지더원",
+    "area": "83.5573",
+    "typeM2": "105",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "더레이크시티부영1단지",
+    "area": "59.9912",
+    "typeM2": "83A",
+    "typePyeong": "25A"
+  },
+  {
+    "aptName": "더레이크시티부영1단지",
+    "area": "60.3768",
+    "typeM2": "83B",
+    "typePyeong": "25B"
+  },
+  {
+    "aptName": "더레이크시티부영1단지",
+    "area": "84.52",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "더레이크시티부영1단지",
+    "area": "84.5413",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "더레이크시티부영1단지",
+    "area": "84.5442",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "84.52",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "84.5413",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "84.5442",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "88.025",
+    "typeM2": "113C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "88.0279",
+    "typeM2": "113B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "88.4828",
+    "typeM2": "114A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "134.8169",
+    "typeM2": "161A",
+    "typePyeong": "48A"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "134.9413",
+    "typeM2": "161B",
+    "typePyeong": "48B"
+  },
+  {
+    "aptName": "더레이크시티부영2단지",
+    "area": "134.9668",
+    "typeM2": "161C",
+    "typePyeong": "48C"
+  },
+  {
+    "aptName": "더레이크시티부영5단지",
+    "area": "60.3768",
+    "typeM2": "83",
+    "typePyeong": "25"
+  },
+  {
+    "aptName": "더레이크시티부영5단지",
+    "area": "84.52",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "더레이크시티부영5단지",
+    "area": "84.5413",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "더레이크시티부영5단지",
+    "area": "84.5442",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "더레이크시티부영6단지",
+    "area": "59.9912",
+    "typeM2": "83A",
+    "typePyeong": "25A"
+  },
+  {
+    "aptName": "더레이크시티부영6단지",
+    "area": "60.5232",
+    "typeM2": "83B",
+    "typePyeong": "25B"
+  },
+  {
+    "aptName": "더레이크시티부영6단지",
+    "area": "84.52",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "더레이크시티부영6단지",
+    "area": "84.5413",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "더레이크시티부영6단지",
+    "area": "84.5442",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "84.392",
+    "typeM2": "113B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "84.796",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "97.01",
+    "typeM2": "127B",
+    "typePyeong": "38B"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "97.036",
+    "typeM2": "126C",
+    "typePyeong": "38C"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "97.046",
+    "typeM2": "127A",
+    "typePyeong": "38A"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "97.176",
+    "typeM2": "128D",
+    "typePyeong": "38D"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "106.537",
+    "typeM2": "136",
+    "typePyeong": "41"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "115.404",
+    "typeM2": "149B",
+    "typePyeong": "45B"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "115.529",
+    "typeM2": "149C",
+    "typePyeong": "45C"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "115.47",
+    "typeM2": "150A",
+    "typePyeong": "45A"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "115.57",
+    "typeM2": "150D",
+    "typePyeong": "45D"
+  },
+  {
+    "aptName": "더샵센트럴시티",
+    "area": "131.18",
+    "typeM2": "166",
+    "typePyeong": "50"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "84.52",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "84.5413",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "84.5442",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "88.025",
+    "typeM2": "113C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "88.0279",
+    "typeM2": "113B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "88.4828",
+    "typeM2": "114A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "134.8169",
+    "typeM2": "161A",
+    "typePyeong": "48A"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "134.9413",
+    "typeM2": "162B",
+    "typePyeong": "49C"
+  },
+  {
+    "aptName": "동탄 더 레이크 팰리스",
+    "area": "134.9668",
+    "typeM2": "162C",
+    "typePyeong": "49B"
+  },
+  {
+    "aptName": "동탄 더샵 레이크에듀타운",
+    "area": "84.419",
+    "typeM2": "108C",
+    "typePyeong": "32C"
+  },
+  {
+    "aptName": "동탄 더샵 레이크에듀타운",
+    "area": "84.4396",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄 더샵 레이크에듀타운",
+    "area": "84.9318",
+    "typeM2": "108D",
+    "typePyeong": "32D"
+  },
+  {
+    "aptName": "동탄 더샵 레이크에듀타운",
+    "area": "84.9753",
+    "typeM2": "109E",
+    "typePyeong": "33E"
+  },
+  {
+    "aptName": "동탄 더샵 레이크에듀타운",
+    "area": "84.9802",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄2디에트르포레",
+    "area": "46.85",
+    "typeM2": "66A",
+    "typePyeong": "20A"
+  },
+  {
+    "aptName": "동탄2디에트르포레",
+    "area": "55.97",
+    "typeM2": "80B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "동탄2디에트르포레",
+    "area": "55.99",
+    "typeM2": "80A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄2신도시 베라체",
+    "area": "59.98",
+    "typeM2": "80A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄2신도시 베라체",
+    "area": "59.99",
+    "typeM2": "80A-1",
+    "typePyeong": "24A-1"
+  },
+  {
+    "aptName": "동탄2신도시 베라체",
+    "area": "74.97",
+    "typeM2": "100B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄2신도시 베라체",
+    "area": "74.98",
+    "typeM2": "100A-1",
+    "typePyeong": "30A-1"
+  },
+  {
+    "aptName": "동탄2신도시 베라체",
+    "area": "84.97",
+    "typeM2": "113K",
+    "typePyeong": "34K"
+  },
+  {
+    "aptName": "동탄2신도시 베라체",
+    "area": "84.98",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄2신도시4차동원로얄듀크포레",
+    "area": "59.0157",
+    "typeM2": "79",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄2신도시금강펜테리움센트럴파크Ⅰ",
+    "area": "69.5925",
+    "typeM2": "92B",
+    "typePyeong": "27B"
+  },
+  {
+    "aptName": "동탄2신도시금강펜테리움센트럴파크Ⅰ",
+    "area": "69.9678",
+    "typeM2": "92A",
+    "typePyeong": "27A"
+  },
+  {
+    "aptName": "동탄2신도시금강펜테리움센트럴파크Ⅰ",
+    "area": "84.9758",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄2신도시금강펜테리움센트럴파크Ⅰ",
+    "area": "84.9949",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄2신도시호반베르디움22단지",
+    "area": "53.4754",
+    "typeM2": "77A",
+    "typePyeong": "23A"
+  },
+  {
+    "aptName": "동탄2신도시호반베르디움22단지",
+    "area": "53.788",
+    "typeM2": "78B",
+    "typePyeong": "23B"
+  },
+  {
+    "aptName": "동탄2신도시호반베르디움33단지",
+    "area": "76.4781",
+    "typeM2": "103B",
+    "typePyeong": "31B"
+  },
+  {
+    "aptName": "동탄2신도시호반베르디움33단지",
+    "area": "76.7676",
+    "typeM2": "103A",
+    "typePyeong": "31A"
+  },
+  {
+    "aptName": "동탄2신도시호반베르디움33단지",
+    "area": "84.9025",
+    "typeM2": "113",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "동탄2아이파크1단지",
+    "area": "84.8688",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄2아이파크1단지",
+    "area": "96.9237",
+    "typeM2": "126A",
+    "typePyeong": "38A"
+  },
+  {
+    "aptName": "동탄2아이파크1단지",
+    "area": "96.9548",
+    "typeM2": "126B",
+    "typePyeong": "38B"
+  },
+  {
+    "aptName": "동탄2아이파크2단지",
+    "area": "84.8688",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄2아이파크2단지",
+    "area": "96.9237",
+    "typeM2": "126A",
+    "typePyeong": "38A"
+  },
+  {
+    "aptName": "동탄2아이파크2단지",
+    "area": "96.9548",
+    "typeM2": "126B",
+    "typePyeong": "38B"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "59.9",
+    "typeM2": "81B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "59.97",
+    "typeM2": "81C",
+    "typePyeong": "24C"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "59.99",
+    "typeM2": "81A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "74.88",
+    "typeM2": "101A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "74.96",
+    "typeM2": "101B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "84.93",
+    "typeM2": "115A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄2하우스디더레이크",
+    "area": "84.96",
+    "typeM2": "115B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄금강펜테리움센트럴파크Ⅳ",
+    "area": "74.8709",
+    "typeM2": "101",
+    "typePyeong": "30"
+  },
+  {
+    "aptName": "동탄금강펜테리움센트럴파크Ⅳ",
+    "area": "84.8984",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄금강펜테리움센트럴파크Ⅳ",
+    "area": "84.9441",
+    "typeM2": "114B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄금강펜테리움센트럴파크Ⅳ",
+    "area": "84.9723",
+    "typeM2": "114C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "동탄나루마을동탄역U.BORA여울숲1.0",
+    "area": "76.7822",
+    "typeM2": "100",
+    "typePyeong": "30"
+  },
+  {
+    "aptName": "동탄나루마을동탄역U.BORA여울숲1.0",
+    "area": "84.6595",
+    "typeM2": "116A",
+    "typePyeong": "35A"
+  },
+  {
+    "aptName": "동탄나루마을동탄역U.BORA여울숲1.0",
+    "area": "84.6841",
+    "typeM2": "116B",
+    "typePyeong": "35B"
+  },
+  {
+    "aptName": "동탄동원로얄듀크2차",
+    "area": "74.5395",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄동원로얄듀크2차",
+    "area": "84.9889",
+    "typeM2": "111",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "84.7984",
+    "typeM2": "107A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "84.9338",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "84.9548",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "99.5418",
+    "typeM2": "128P1",
+    "typePyeong": "38P1"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "99.8969",
+    "typeM2": "127B",
+    "typePyeong": "38B"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "99.9758",
+    "typeM2": "127C",
+    "typePyeong": "38C"
+  },
+  {
+    "aptName": "동탄레이크자연앤푸르지오",
+    "area": "99.9813",
+    "typeM2": "126A",
+    "typePyeong": "38A"
+  },
+  {
+    "aptName": "동탄린스트라우스더레이크",
+    "area": "98.9373",
+    "typeM2": "131B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "동탄린스트라우스더레이크",
+    "area": "98.9612",
+    "typeM2": "131A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "동탄린스트라우스더레이크",
+    "area": "106.9385",
+    "typeM2": "140B",
+    "typePyeong": "42B"
+  },
+  {
+    "aptName": "동탄린스트라우스더레이크",
+    "area": "106.9474",
+    "typeM2": "140A",
+    "typePyeong": "42A"
+  },
+  {
+    "aptName": "동탄린스트라우스더레이크",
+    "area": "116.2807",
+    "typeM2": "151",
+    "typePyeong": "45"
+  },
+  {
+    "aptName": "동탄센트럴포레스트",
+    "area": "74.66",
+    "typeM2": "99A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄센트럴포레스트",
+    "area": "74.73",
+    "typeM2": "99B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄센트럴포레스트",
+    "area": "84.87",
+    "typeM2": "113",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "동탄숲속마을 광명메이루즈",
+    "area": "84.23",
+    "typeM2": "105B",
+    "typePyeong": "31B"
+  },
+  {
+    "aptName": "동탄숲속마을 광명메이루즈",
+    "area": "84.496",
+    "typeM2": "105C",
+    "typePyeong": "31C"
+  },
+  {
+    "aptName": "동탄숲속마을 광명메이루즈",
+    "area": "84.543",
+    "typeM2": "105A",
+    "typePyeong": "31A"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "87.9844",
+    "typeM2": "116B",
+    "typePyeong": "35B"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "90.0519",
+    "typeM2": "117A",
+    "typePyeong": "35A"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "110.1671",
+    "typeM2": "142B",
+    "typePyeong": "43B"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "110.4018",
+    "typeM2": "142A",
+    "typePyeong": "43A"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "110.6264",
+    "typeM2": "143C",
+    "typePyeong": "43C"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "132.9526",
+    "typeM2": "174",
+    "typePyeong": "52"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "135.2343",
+    "typeM2": "180",
+    "typePyeong": "54"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "151.1593",
+    "typeM2": "199B",
+    "typePyeong": "60B"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "152.0301",
+    "typeM2": "199C",
+    "typePyeong": "60C"
+  },
+  {
+    "aptName": "동탄숲속마을 능동역 리체 더 포레스트",
+    "area": "152.6618",
+    "typeM2": "200A",
+    "typePyeong": "60A"
+  },
+  {
+    "aptName": "동탄숲속마을 모아미래도1단지",
+    "area": "59.37",
+    "typeM2": "79",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄숲속마을 모아미래도1단지",
+    "area": "59.69",
+    "typeM2": "77",
+    "typePyeong": "23"
+  },
+  {
+    "aptName": "동탄숲속마을 모아미래도1단지",
+    "area": "60.49",
+    "typeM2": "84",
+    "typePyeong": "25"
+  },
+  {
+    "aptName": "동탄숲속마을 모아미래도1단지",
+    "area": "84.13",
+    "typeM2": "116B",
+    "typePyeong": "35B"
+  },
+  {
+    "aptName": "동탄숲속마을 모아미래도1단지",
+    "area": "84.96",
+    "typeM2": "116A",
+    "typePyeong": "35A"
+  },
+  {
+    "aptName": "동탄숲속마을모아미래도2단지",
+    "area": "100.92",
+    "typeM2": "131A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "동탄숲속마을모아미래도2단지",
+    "area": "101.23",
+    "typeM2": "130B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "동탄숲속마을모아미래도2단지",
+    "area": "142.09",
+    "typeM2": "194",
+    "typePyeong": "58"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1115-0)",
+    "area": "76.51",
+    "typeM2": "100A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1115-0)",
+    "area": "76.51",
+    "typeM2": "101B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1115-0)",
+    "area": "76.5",
+    "typeM2": "101C",
+    "typePyeong": "30C"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1115-0)",
+    "area": "84.51",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1115-0)",
+    "area": "84.55",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+    "area": "76.51",
+    "typeM2": "101A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+    "area": "76.5",
+    "typeM2": "101C",
+    "typePyeong": "30C"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+    "area": "76.515",
+    "typeM2": "101B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+    "area": "84.55",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+    "area": "84.515",
+    "typeM2": "111C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+    "area": "84.51",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄시범다은마을 메타역 롯데캐슬",
+    "area": "84.157",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄시범다은마을 메타역 롯데캐슬",
+    "area": "84.504",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄시범다은마을 메타역 롯데캐슬",
+    "area": "84.814",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄시범다은마을 메타역 롯데캐슬",
+    "area": "103.295",
+    "typeM2": "130",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "동탄시범다은마을 월드메르디앙 반도유보라",
+    "area": "59.07",
+    "typeM2": "81",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄시범다은마을 월드메르디앙 반도유보라",
+    "area": "76",
+    "typeM2": "99A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄시범다은마을 월드메르디앙 반도유보라",
+    "area": "76.78",
+    "typeM2": "99B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄시범다은마을 월드메르디앙 반도유보라",
+    "area": "84.65",
+    "typeM2": "116B",
+    "typePyeong": "35B"
+  },
+  {
+    "aptName": "동탄시범다은마을 월드메르디앙 반도유보라",
+    "area": "84.68",
+    "typeM2": "116A",
+    "typePyeong": "35A"
+  },
+  {
+    "aptName": "동탄시범다은마을센트럴파크뷰",
+    "area": "79.84",
+    "typeM2": "106",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "동탄시범다은마을센트럴파크뷰",
+    "area": "80.968",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄시범다은마을센트럴파크뷰",
+    "area": "81.292",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄시범다은마을센트럴파크뷰",
+    "area": "81.512",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄시범다은마을센트럴파크뷰",
+    "area": "82.25",
+    "typeM2": "111",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "84.5202",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "84.5413",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "84.5442",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "85.182",
+    "typeM2": "111C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "85.1849",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "85.203",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역 더 힐",
+    "area": "147.3238",
+    "typeM2": "175",
+    "typePyeong": "53"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크 8.0",
+    "area": "73.4311",
+    "typeM2": "103B",
+    "typePyeong": "31B"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크 8.0",
+    "area": "73.6524",
+    "typeM2": "104A",
+    "typePyeong": "31A"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크 8.0",
+    "area": "76.1872",
+    "typeM2": "106",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크 8.0",
+    "area": "86.2318",
+    "typeM2": "119",
+    "typePyeong": "36"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크5.0",
+    "area": "59.9206",
+    "typeM2": "79",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크5.0",
+    "area": "74.3629",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크5.0",
+    "area": "84.9739",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크5.0",
+    "area": "84.9885",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크5.0",
+    "area": "96.8094",
+    "typeM2": "126",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크6.0",
+    "area": "59.9206",
+    "typeM2": "79",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크6.0",
+    "area": "74.3629",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크6.0",
+    "area": "84.9885",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역 반도유보라 아이비파크6.0",
+    "area": "96.8094",
+    "typeM2": "126",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "59.95",
+    "typeM2": "85B",
+    "typePyeong": "25B"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "59.98",
+    "typeM2": "84A",
+    "typePyeong": "25A"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "59.99",
+    "typeM2": "85C",
+    "typePyeong": "25C"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "69.98",
+    "typeM2": "93",
+    "typePyeong": "28"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "73.96",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "84.94",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역 시범우남퍼스트빌아파트",
+    "area": "84.98",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "84.51",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "84.89",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "84.92",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "101.09",
+    "typeM2": "132B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "101.4",
+    "typeM2": "131A2",
+    "typePyeong": "39A2"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "101.94",
+    "typeM2": "131A1",
+    "typePyeong": "39A1"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "113.72",
+    "typeM2": "146A",
+    "typePyeong": "44A"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "124.52",
+    "typeM2": "159A",
+    "typePyeong": "48A"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "124.92",
+    "typeM2": "160B",
+    "typePyeong": "48B"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "128.93",
+    "typeM2": "171A",
+    "typePyeong": "51A"
+  },
+  {
+    "aptName": "동탄역 시범한화 꿈에그린 프레스티지",
+    "area": "128.6",
+    "typeM2": "171B",
+    "typePyeong": "51B"
+  },
+  {
+    "aptName": "동탄역 신미주",
+    "area": "84.896",
+    "typeM2": "107",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "동탄역 호반 써밋",
+    "area": "59.1612",
+    "typeM2": "80C",
+    "typePyeong": "24C"
+  },
+  {
+    "aptName": "동탄역 호반 써밋",
+    "area": "59.417",
+    "typeM2": "80B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "동탄역 호반 써밋",
+    "area": "59.8365",
+    "typeM2": "80A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄역 호반 써밋",
+    "area": "84.957",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역 호반 써밋",
+    "area": "84.9805",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역경남아너스빌",
+    "area": "84.0086",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역경남아너스빌",
+    "area": "84.0254",
+    "typeM2": "108C",
+    "typePyeong": "32C"
+  },
+  {
+    "aptName": "동탄역대방디엠시티더센텀",
+    "area": "56.361",
+    "typeM2": "76A",
+    "typePyeong": "23A"
+  },
+  {
+    "aptName": "동탄역대방디엠시티더센텀",
+    "area": "59.4656",
+    "typeM2": "81B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "84.208",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "84.473",
+    "typeM2": "105D",
+    "typePyeong": "31D"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "84.705",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "84.786",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "106.856",
+    "typeM2": "131",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "114.711",
+    "typeM2": "141",
+    "typePyeong": "42"
+  },
+  {
+    "aptName": "동탄역대원칸타빌포레지움",
+    "area": "135.124",
+    "typeM2": "166",
+    "typePyeong": "50"
+  },
+  {
+    "aptName": "동탄역더샵센트럴시티2차",
+    "area": "74.85",
+    "typeM2": "101B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄역더샵센트럴시티2차",
+    "area": "74.9",
+    "typeM2": "99A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄역더샵센트럴시티2차",
+    "area": "84.98",
+    "typeM2": "112",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크1차",
+    "area": "59.7224",
+    "typeM2": "82",
+    "typePyeong": "25"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크1차",
+    "area": "73.1098",
+    "typeM2": "96",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크1차",
+    "area": "84.9889",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크비스타3차",
+    "area": "84.9963",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크비스타3차",
+    "area": "84.9989",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크비스타3차",
+    "area": "94.9989",
+    "typeM2": "123",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "동탄역동원로얄듀크비스타3차",
+    "area": "94.9993",
+    "typeM2": "123",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "동탄역롯데캐슬",
+    "area": "65.9695",
+    "typeM2": "90",
+    "typePyeong": "27"
+  },
+  {
+    "aptName": "동탄역롯데캐슬",
+    "area": "84.7002",
+    "typeM2": "114A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄역롯데캐슬",
+    "area": "84.8222",
+    "typeM2": "114B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄역롯데캐슬",
+    "area": "102.7092",
+    "typeM2": "138",
+    "typePyeong": "41"
+  },
+  {
+    "aptName": "동탄역린스트라우스",
+    "area": "75.0217",
+    "typeM2": "102A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄역린스트라우스",
+    "area": "84.2656",
+    "typeM2": "115B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄역린스트라우스",
+    "area": "84.8421",
+    "typeM2": "115A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄역린스트라우스",
+    "area": "92.2542",
+    "typeM2": "125B",
+    "typePyeong": "37B"
+  },
+  {
+    "aptName": "동탄역린스트라우스",
+    "area": "92.8382",
+    "typeM2": "125A",
+    "typePyeong": "37A"
+  },
+  {
+    "aptName": "동탄역린스트라우스",
+    "area": "93.8026",
+    "typeM2": "129A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "동탄역모아미래도",
+    "area": "84.9558",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역모아미래도",
+    "area": "84.9982",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크2.0",
+    "area": "74.364",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크2.0",
+    "area": "84.96",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크2.0",
+    "area": "84.9921",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크7.0",
+    "area": "73.4311",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크7.0",
+    "area": "73.6524",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크7.0",
+    "area": "76.1872",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역반도유보라아이비파크7.0",
+    "area": "86.2318",
+    "typeM2": "125",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "동탄역삼정그린코아",
+    "area": "81.2159",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역삼정그린코아",
+    "area": "81.3533",
+    "typeM2": "112A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄역삼정그린코아",
+    "area": "92.3107",
+    "typeM2": "121A",
+    "typePyeong": "36A"
+  },
+  {
+    "aptName": "동탄역삼정그린코아",
+    "area": "92.08",
+    "typeM2": "122B",
+    "typePyeong": "37B"
+  },
+  {
+    "aptName": "동탄역삼정그린코아",
+    "area": "113.89",
+    "typeM2": "152",
+    "typePyeong": "46"
+  },
+  {
+    "aptName": "동탄역센트럴상록아파트",
+    "area": "59.96",
+    "typeM2": "83B",
+    "typePyeong": "25B"
+  },
+  {
+    "aptName": "동탄역센트럴상록아파트",
+    "area": "59.98",
+    "typeM2": "82A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄역센트럴상록아파트",
+    "area": "72.19",
+    "typeM2": "99B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "동탄역센트럴상록아파트",
+    "area": "72.35",
+    "typeM2": "98A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "동탄역센트럴상록아파트",
+    "area": "84.91",
+    "typeM2": "115A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄역센트럴예미지",
+    "area": "84.989",
+    "typeM2": "111",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역센트럴예미지",
+    "area": "96.8763",
+    "typeM2": "126A",
+    "typePyeong": "38A"
+  },
+  {
+    "aptName": "동탄역센트럴예미지",
+    "area": "96.9959",
+    "typeM2": "128B",
+    "typePyeong": "38B"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "72.1539",
+    "typeM2": "98B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "72.8022",
+    "typeM2": "98D",
+    "typePyeong": "29D"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "72.8676",
+    "typeM2": "98A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "72.9251",
+    "typeM2": "99C",
+    "typePyeong": "30C"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "84.8131",
+    "typeM2": "115C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "84.9103",
+    "typeM2": "115B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "84.9295",
+    "typeM2": "116E",
+    "typePyeong": "35E"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "84.9377",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄역센트럴자이(A-10)",
+    "area": "84.97",
+    "typeM2": "115D",
+    "typePyeong": "34D"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "59.3401",
+    "typeM2": "83C",
+    "typePyeong": "25C"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "59.4313",
+    "typeM2": "82A",
+    "typePyeong": "25A"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "59.4456",
+    "typeM2": "83B",
+    "typePyeong": "25B"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "74.9013",
+    "typeM2": "98B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "74.9061",
+    "typeM2": "98A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "74.9734",
+    "typeM2": "98C",
+    "typePyeong": "29C"
+  },
+  {
+    "aptName": "동탄역센트럴푸르지오",
+    "area": "84.9834",
+    "typeM2": "110",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "동탄역시범금강펜테리움센트럴파크3",
+    "area": "84.9748",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역시범금강펜테리움센트럴파크3",
+    "area": "84.9845",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역시범금강펜테리움센트럴파크3",
+    "area": "84.9855",
+    "typeM2": "112B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역시범금강펜테리움센트럴파크3",
+    "area": "99.9262",
+    "typeM2": "130A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "동탄역시범금강펜테리움센트럴파크3",
+    "area": "99.9736",
+    "typeM2": "130B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "동탄역시범대원칸타빌아파트",
+    "area": "84.705",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역시범대원칸타빌아파트",
+    "area": "84.786",
+    "typeM2": "107A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역시범대원칸타빌아파트",
+    "area": "120.86",
+    "typeM2": "154",
+    "typePyeong": "46"
+  },
+  {
+    "aptName": "동탄역시범리슈빌아파트",
+    "area": "84.65",
+    "typeM2": "111D",
+    "typePyeong": "33D"
+  },
+  {
+    "aptName": "동탄역시범리슈빌아파트",
+    "area": "84.74",
+    "typeM2": "111C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역시범리슈빌아파트",
+    "area": "84.87",
+    "typeM2": "112A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역시범리슈빌아파트",
+    "area": "84.87",
+    "typeM2": "112B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄역시범리슈빌아파트",
+    "area": "101.57",
+    "typeM2": "134B",
+    "typePyeong": "40B"
+  },
+  {
+    "aptName": "동탄역시범리슈빌아파트",
+    "area": "101.74",
+    "typeM2": "133A",
+    "typePyeong": "40A"
+  },
+  {
+    "aptName": "동탄역시범반도유보라아이비파크1.0",
+    "area": "84.9643",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역시범반도유보라아이비파크1.0",
+    "area": "84.9885",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역시범반도유보라아이비파크1.0",
+    "area": "99.0153",
+    "typeM2": "128A",
+    "typePyeong": "38A"
+  },
+  {
+    "aptName": "동탄역시범반도유보라아이비파크1.0",
+    "area": "99.0393",
+    "typeM2": "128B",
+    "typePyeong": "38B"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "74.9682",
+    "typeM2": "100A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "74.9878",
+    "typeM2": "98B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.8",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.8227",
+    "typeM2": "116F",
+    "typePyeong": "35F"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.88",
+    "typeM2": "114G",
+    "typePyeong": "34G"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.894",
+    "typeM2": "113E",
+    "typePyeong": "34E"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.9351",
+    "typeM2": "116D",
+    "typePyeong": "35D"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.9486",
+    "typeM2": "113C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "동탄역시범예미지아파트",
+    "area": "84.9962",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역시범호반써밋",
+    "area": "84.9537",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역시범호반써밋",
+    "area": "84.9698",
+    "typeM2": "109B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역시범호반써밋",
+    "area": "84.9909",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라1차",
+    "area": "84.9814",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라1차",
+    "area": "84.9838",
+    "typeM2": "112B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라1차",
+    "area": "101.989",
+    "typeM2": "131A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라1차",
+    "area": "101.9997",
+    "typeM2": "132B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라2차",
+    "area": "59.968",
+    "typeM2": "82",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라2차",
+    "area": "72.9996",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역신안인스빌리베라2차",
+    "area": "84.9896",
+    "typeM2": "114",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "동탄역에일린의뜰",
+    "area": "74.9737",
+    "typeM2": "96",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역에일린의뜰",
+    "area": "84.7918",
+    "typeM2": "108D",
+    "typePyeong": "32D"
+  },
+  {
+    "aptName": "동탄역에일린의뜰",
+    "area": "84.9646",
+    "typeM2": "108C",
+    "typePyeong": "32C"
+  },
+  {
+    "aptName": "동탄역에일린의뜰",
+    "area": "84.994",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역에일린의뜰",
+    "area": "84.9941",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역예미지시그너스",
+    "area": "84.6397",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역예미지시그너스",
+    "area": "84.6531",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역예미지시그너스",
+    "area": "84.6748",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역예미지시그너스",
+    "area": "87.5651",
+    "typeM2": "113",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "동탄역예미지시그너스",
+    "area": "101.8228",
+    "typeM2": "131",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "동탄역유림노르웨이숲",
+    "area": "71.6544",
+    "typeM2": "99",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "동탄역유림노르웨이숲",
+    "area": "84.4985",
+    "typeM2": "114A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄역유림노르웨이숲",
+    "area": "84.6065",
+    "typeM2": "114B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄역유림노르웨이숲",
+    "area": "96.5843",
+    "typeM2": "130",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "동탄역이지더원",
+    "area": "59.9792",
+    "typeM2": "81A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄역이지더원",
+    "area": "59.9804",
+    "typeM2": "82B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "동탄역이지더원",
+    "area": "84.9731",
+    "typeM2": "107",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "동탄역중흥에스클래스",
+    "area": "83.0109",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역중흥에스클래스",
+    "area": "83.1694",
+    "typeM2": "108B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄역파라곤",
+    "area": "78.059",
+    "typeM2": "104B",
+    "typePyeong": "31B"
+  },
+  {
+    "aptName": "동탄역파라곤",
+    "area": "79.8807",
+    "typeM2": "106A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄역파라곤",
+    "area": "101.6281",
+    "typeM2": "136",
+    "typePyeong": "41"
+  },
+  {
+    "aptName": "동탄역파라곤",
+    "area": "99.74",
+    "typeM2": "139",
+    "typePyeong": "42"
+  },
+  {
+    "aptName": "동탄역파라곤",
+    "area": "104.8241",
+    "typeM2": "147",
+    "typePyeong": "44"
+  },
+  {
+    "aptName": "동탄역포레너스",
+    "area": "60.3768",
+    "typeM2": "83",
+    "typePyeong": "25"
+  },
+  {
+    "aptName": "동탄역포레너스",
+    "area": "84.5202",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역포레너스",
+    "area": "84.5413",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역포레너스",
+    "area": "84.5442",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역 푸르지오",
+    "area": "74.8664",
+    "typeM2": "98A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "동탄역 푸르지오",
+    "area": "74.8832",
+    "typeM2": "99B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "동탄역 푸르지오",
+    "area": "84.643",
+    "typeM2": "112C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "동탄역 푸르지오",
+    "area": "84.6681",
+    "typeM2": "112B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄역 푸르지오",
+    "area": "84.9349",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄역헤리엇",
+    "area": "97.3043",
+    "typeM2": "123B",
+    "typePyeong": "37B"
+  },
+  {
+    "aptName": "동탄역헤리엇",
+    "area": "97.8618",
+    "typeM2": "124A",
+    "typePyeong": "37A"
+  },
+  {
+    "aptName": "동탄역헤리엇",
+    "area": "97.8915",
+    "typeM2": "125C",
+    "typePyeong": "37C"
+  },
+  {
+    "aptName": "동탄역헤리엇",
+    "area": "107.9565",
+    "typeM2": "137",
+    "typePyeong": "41"
+  },
+  {
+    "aptName": "동탄위버폴리스",
+    "area": "121.5352",
+    "typeM2": "155B",
+    "typePyeong": "46A"
+  },
+  {
+    "aptName": "동탄위버폴리스",
+    "area": "121.5781",
+    "typeM2": "155A",
+    "typePyeong": "46B"
+  },
+  {
+    "aptName": "동탄파크자이",
+    "area": "93.4136",
+    "typeM2": "121",
+    "typePyeong": "36"
+  },
+  {
+    "aptName": "동탄파크자이",
+    "area": "99.6918",
+    "typeM2": "128",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "동탄파크자이",
+    "area": "103.4182",
+    "typeM2": "133",
+    "typePyeong": "40"
+  },
+  {
+    "aptName": "동탄파크푸르지오",
+    "area": "74.75",
+    "typeM2": "98A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "동탄파크푸르지오",
+    "area": "74.76",
+    "typeM2": "98B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "동탄파크푸르지오",
+    "area": "84.92",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "동탄파크푸르지오",
+    "area": "84.94",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "동탄파크한양수자인",
+    "area": "51.79",
+    "typeM2": "73A",
+    "typePyeong": "22A"
+  },
+  {
+    "aptName": "동탄파크한양수자인",
+    "area": "59.73",
+    "typeM2": "84A",
+    "typePyeong": "25A"
+  },
+  {
+    "aptName": "동탄파크한양수자인",
+    "area": "74.92",
+    "typeM2": "105B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "동탄파크한양수자인",
+    "area": "74.96",
+    "typeM2": "105A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "동탄파크한양수자인",
+    "area": "84.54",
+    "typeM2": "119A",
+    "typePyeong": "36A"
+  },
+  {
+    "aptName": "동탄파크한양수자인",
+    "area": "84.65",
+    "typeM2": "119B",
+    "typePyeong": "36B"
+  },
+  {
+    "aptName": "동탄퍼스트파크",
+    "area": "72.5957",
+    "typeM2": "89",
+    "typePyeong": "26"
+  },
+  {
+    "aptName": "동탄푸른마을신일해피트리",
+    "area": "59.05",
+    "typeM2": "77B",
+    "typePyeong": "23B"
+  },
+  {
+    "aptName": "동탄푸른마을신일해피트리",
+    "area": "59.87",
+    "typeM2": "81A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "동탄푸른마을신일해피트리",
+    "area": "59.96",
+    "typeM2": "78C",
+    "typePyeong": "23C"
+  },
+  {
+    "aptName": "동탄푸른마을신일해피트리",
+    "area": "83.21",
+    "typeM2": "106",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "동탄푸른마을신일해피트리",
+    "area": "84.88",
+    "typeM2": "108",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "51.14",
+    "typeM2": "68B",
+    "typePyeong": "20B"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "51.75",
+    "typeM2": "69A",
+    "typePyeong": "21A"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "59.64",
+    "typeM2": "80",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "59.96",
+    "typeM2": "80C",
+    "typePyeong": "24C"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "74.89",
+    "typeM2": "100",
+    "typePyeong": "30"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "84.76",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "동탄호수자이파밀리에",
+    "area": "84.98",
+    "typeM2": "114B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "동탄호수하우스디",
+    "area": "74.94",
+    "typeM2": "99A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "동탄호수하우스디",
+    "area": "74.96",
+    "typeM2": "99B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "동탄호수하우스디",
+    "area": "84.97",
+    "typeM2": "112A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "레이크반도유보라아이비파크9.0",
+    "area": "93.3858",
+    "typeM2": "118",
+    "typePyeong": "35"
+  },
+  {
+    "aptName": "레이크반도유보라아이비파크9.0",
+    "area": "101.998",
+    "typeM2": "128",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "레이크반도유보라아이비파크9.0",
+    "area": "104.3613",
+    "typeM2": "132",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "레이크힐 반도유보라 아이비파크 10.2",
+    "area": "77.1774",
+    "typeM2": "98",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "레이크힐 반도유보라 아이비파크 10.2",
+    "area": "84.9991",
+    "typeM2": "107",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "레이크힐 반도유보라 아이비파크 10.2",
+    "area": "96.6996",
+    "typeM2": "122B",
+    "typePyeong": "36B"
+  },
+  {
+    "aptName": "레이크힐 반도유보라 아이비파크 10.2",
+    "area": "96.7859",
+    "typeM2": "121A",
+    "typePyeong": "36A"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "87.64",
+    "typeM2": "118",
+    "typePyeong": "35"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "96.4",
+    "typeM2": "123C",
+    "typePyeong": "37C"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "99.21",
+    "typeM2": "124",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "105.07",
+    "typeM2": "133C",
+    "typePyeong": "40C"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "109.32",
+    "typeM2": "135",
+    "typePyeong": "40"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "111.04",
+    "typeM2": "144",
+    "typePyeong": "43"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "129.93",
+    "typeM2": "165",
+    "typePyeong": "50"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "150.43",
+    "typeM2": "195",
+    "typePyeong": "59"
+  },
+  {
+    "aptName": "롯데캐슬",
+    "area": "176.29",
+    "typeM2": "224",
+    "typePyeong": "68"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "101.8848",
+    "typeM2": "131A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "101.9959",
+    "typeM2": "129B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "122.6438",
+    "typeM2": "152A",
+    "typePyeong": "46A"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "122.9736",
+    "typeM2": "152C",
+    "typePyeong": "46C"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "122.9757",
+    "typeM2": "153B",
+    "typePyeong": "46B"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "185.4292",
+    "typeM2": "238",
+    "typePyeong": "72"
+  },
+  {
+    "aptName": "롯데캐슬 알바트로스",
+    "area": "241.5999",
+    "typeM2": "299",
+    "typePyeong": "90"
+  },
+  {
+    "aptName": "르파비스",
+    "area": "51.99",
+    "typeM2": "71A",
+    "typePyeong": "21A"
+  },
+  {
+    "aptName": "르파비스",
+    "area": "59.69",
+    "typeM2": "81A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "르파비스",
+    "area": "74.99",
+    "typeM2": "102A",
+    "typePyeong": "31A"
+  },
+  {
+    "aptName": "르파비스",
+    "area": "84.9",
+    "typeM2": "116A",
+    "typePyeong": "35A"
+  },
+  {
+    "aptName": "르파비스",
+    "area": "84.96",
+    "typeM2": "116B",
+    "typePyeong": "35B"
+  },
+  {
+    "aptName": "반도유보라아이비파크3",
+    "area": "59.987",
+    "typeM2": "81A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "반도유보라아이비파크3",
+    "area": "59.9942",
+    "typeM2": "81B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "반도유보라아이비파크3",
+    "area": "74.4172",
+    "typeM2": "97B",
+    "typePyeong": "29B"
+  },
+  {
+    "aptName": "반도유보라아이비파크3",
+    "area": "74.9535",
+    "typeM2": "97A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "반도유보라아이비파크3",
+    "area": "84.9477",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "반도유보라아이비파크3",
+    "area": "84.9897",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ",
+    "area": "69.9918",
+    "typeM2": "94",
+    "typePyeong": "28"
+  },
+  {
+    "aptName": "산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ",
+    "area": "84.979",
+    "typeM2": "114B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ",
+    "area": "84.9996",
+    "typeM2": "112A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "서희스타힐스엔에이치에프",
+    "area": "74.94",
+    "typeM2": "99A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "서희스타힐스엔에이치에프",
+    "area": "84.94",
+    "typeM2": "112B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "서희스타힐스엔에이치에프",
+    "area": "84.97",
+    "typeM2": "112A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "솔빛마을경남아너스빌",
+    "area": "103.3947",
+    "typeM2": "125",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "솔빛마을경남아너스빌",
+    "area": "128.4145",
+    "typeM2": "152",
+    "typePyeong": "46"
+  },
+  {
+    "aptName": "솔빛마을서해그랑블",
+    "area": "100.705",
+    "typeM2": "129",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "솔빛마을서해그랑블",
+    "area": "121.55",
+    "typeM2": "149",
+    "typePyeong": "45"
+  },
+  {
+    "aptName": "솔빛마을서해그랑블",
+    "area": "124.332",
+    "typeM2": "155",
+    "typePyeong": "47"
+  },
+  {
+    "aptName": "솔빛마을서해그랑블",
+    "area": "164.979",
+    "typeM2": "206",
+    "typePyeong": "62"
+  },
+  {
+    "aptName": "솔빛마을신도브래뉴",
+    "area": "79.6171",
+    "typeM2": "105",
+    "typePyeong": "31"
+  },
+  {
+    "aptName": "솔빛마을신도브래뉴",
+    "area": "84.753",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "솔빛마을신도브래뉴",
+    "area": "84.9245",
+    "typeM2": "112B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "솔빛마을쌍용예가",
+    "area": "78.7193",
+    "typeM2": "99",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "솔빛마을쌍용예가",
+    "area": "84.9784",
+    "typeM2": "113",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "솔빛마을쌍용예가",
+    "area": "84.9794",
+    "typeM2": "115A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "솔빛마을쌍용예가",
+    "area": "84.991",
+    "typeM2": "115B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "시범다은마을삼성래미안",
+    "area": "84.5599",
+    "typeM2": "103",
+    "typePyeong": "31"
+  },
+  {
+    "aptName": "시범다은마을삼성래미안",
+    "area": "84.6098",
+    "typeM2": "108",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "시범다은마을삼성래미안",
+    "area": "96.974",
+    "typeM2": "118",
+    "typePyeong": "35"
+  },
+  {
+    "aptName": "시범다은마을삼성래미안",
+    "area": "112.3059",
+    "typeM2": "139",
+    "typePyeong": "42"
+  },
+  {
+    "aptName": "시범다은마을삼성래미안",
+    "area": "113.6529",
+    "typeM2": "143",
+    "typePyeong": "43"
+  },
+  {
+    "aptName": "시범다은마을우남퍼스트빌",
+    "area": "67.0661",
+    "typeM2": "89",
+    "typePyeong": "27"
+  },
+  {
+    "aptName": "시범다은마을우남퍼스트빌",
+    "area": "84.4275",
+    "typeM2": "115",
+    "typePyeong": "34"
+  },
+  {
+    "aptName": "시범다은마을우남퍼스트빌",
+    "area": "84.9743",
+    "typeM2": "118",
+    "typePyeong": "35"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "80.2971",
+    "typeM2": "100",
+    "typePyeong": "30"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "84.5111",
+    "typeM2": "111",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "98.4746",
+    "typeM2": "122A",
+    "typePyeong": "37A"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "98.6767",
+    "typeM2": "122B",
+    "typePyeong": "37B"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "120.2263",
+    "typeM2": "149",
+    "typePyeong": "45"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "140.2444",
+    "typeM2": "179B",
+    "typePyeong": "54B"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "141.9064",
+    "typeM2": "179C",
+    "typePyeong": "54C"
+  },
+  {
+    "aptName": "시범다은마을포스코더샵",
+    "area": "143.3377",
+    "typeM2": "181A",
+    "typePyeong": "54A"
+  },
+  {
+    "aptName": "시범반도유보라아이비파크4.0",
+    "area": "84.569",
+    "typeM2": "115C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "시범반도유보라아이비파크4.0",
+    "area": "84.8302",
+    "typeM2": "114B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "시범반도유보라아이비파크4.0",
+    "area": "84.9705",
+    "typeM2": "115A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "시범반도유보라아이비파크4.0",
+    "area": "96.7283",
+    "typeM2": "130",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "시범한빛마을금호어울림",
+    "area": "66.962",
+    "typeM2": "91",
+    "typePyeong": "27"
+  },
+  {
+    "aptName": "시범한빛마을금호어울림",
+    "area": "84.465",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "시범한빛마을금호어울림",
+    "area": "84.54",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "시범한빛마을금호어울림",
+    "area": "84.613",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "시범한빛마을동탄아이파크",
+    "area": "61.658",
+    "typeM2": "82",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "시범한빛마을동탄아이파크",
+    "area": "84.96",
+    "typeM2": "113B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "시범한빛마을동탄아이파크",
+    "area": "84.961",
+    "typeM2": "114A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "시범한빛마을삼부르네상스",
+    "area": "84.691",
+    "typeM2": "108D",
+    "typePyeong": "32D"
+  },
+  {
+    "aptName": "시범한빛마을삼부르네상스",
+    "area": "84.695",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "시범한빛마을삼부르네상스",
+    "area": "84.712",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "시범한빛마을삼부르네상스",
+    "area": "84.768",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "시범한빛마을케이씨씨스위첸",
+    "area": "84.6517",
+    "typeM2": "107B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "시범한빛마을케이씨씨스위첸",
+    "area": "84.7328",
+    "typeM2": "107A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "시범한빛마을케이씨씨스위첸",
+    "area": "84.786",
+    "typeM2": "107C",
+    "typePyeong": "32C"
+  },
+  {
+    "aptName": "시범한빛마을한화꿈에그린",
+    "area": "84.73",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "시범한빛마을한화꿈에그린",
+    "area": "84.79",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "시범한빛마을한화꿈에그린",
+    "area": "84.8",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "신일유토빌",
+    "area": "101.857",
+    "typeM2": "128",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "신일유토빌",
+    "area": "128.379",
+    "typeM2": "161",
+    "typePyeong": "48"
+  },
+  {
+    "aptName": "신일유토빌",
+    "area": "164.958",
+    "typeM2": "209",
+    "typePyeong": "63"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "74.092",
+    "typeM2": "103E",
+    "typePyeong": "31E"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "75.8689",
+    "typeM2": "103B",
+    "typePyeong": "31B"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "75.87",
+    "typeM2": "102A",
+    "typePyeong": "31A"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "76.4593",
+    "typeM2": "104D",
+    "typePyeong": "31D"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "80.3931",
+    "typeM2": "104C",
+    "typePyeong": "31C"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "96.1628",
+    "typeM2": "123",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "96.3842",
+    "typeM2": "129",
+    "typePyeong": "39"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "112.961",
+    "typeM2": "149",
+    "typePyeong": "45"
+  },
+  {
+    "aptName": "우미린제일풍경채",
+    "area": "145.4538",
+    "typeM2": "186",
+    "typePyeong": "56"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "60.49",
+    "typeM2": "85A",
+    "typePyeong": "25A"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "60.58",
+    "typeM2": "84B",
+    "typePyeong": "25B"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "74.44",
+    "typeM2": "102C",
+    "typePyeong": "30C"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "74.67",
+    "typeM2": "101B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "74.73",
+    "typeM2": "101A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "74.92",
+    "typeM2": "101D",
+    "typePyeong": "30D"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "84.2",
+    "typeM2": "109A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "84.31",
+    "typeM2": "113E",
+    "typePyeong": "33E"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "84.45",
+    "typeM2": "112F",
+    "typePyeong": "33F"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "84.39",
+    "typeM2": "110C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "84.42",
+    "typeM2": "111D",
+    "typePyeong": "33D"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "84.87",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "89.01",
+    "typeM2": "115A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "89.85",
+    "typeM2": "116B",
+    "typePyeong": "35B"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "102.62",
+    "typeM2": "129A",
+    "typePyeong": "39A"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "102.85",
+    "typeM2": "129B",
+    "typePyeong": "39B"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "106.53",
+    "typeM2": "146A",
+    "typePyeong": "44A"
+  },
+  {
+    "aptName": "이편한세상동탄",
+    "area": "116.45",
+    "typeM2": "154A",
+    "typePyeong": "46A"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "59.52",
+    "typeM2": "77A",
+    "typePyeong": "23A"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "59.94",
+    "typeM2": "78B",
+    "typePyeong": "23B"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "59.95",
+    "typeM2": "79",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "74.6",
+    "typeM2": "96",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "84.57",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "84.84",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "자연앤데시앙",
+    "area": "84.94",
+    "typeM2": "108",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "제일풍경채에듀앤파크",
+    "area": "59.5765",
+    "typeM2": "82",
+    "typePyeong": "24"
+  },
+  {
+    "aptName": "제일풍경채에듀앤파크",
+    "area": "76.3605",
+    "typeM2": "103A",
+    "typePyeong": "31A"
+  },
+  {
+    "aptName": "제일풍경채에듀앤파크",
+    "area": "76.5891",
+    "typeM2": "104B",
+    "typePyeong": "31B"
+  },
+  {
+    "aptName": "중흥에스클래스에듀하이",
+    "area": "83.0109",
+    "typeM2": "108A",
+    "typePyeong": "32A"
+  },
+  {
+    "aptName": "중흥에스클래스에듀하이",
+    "area": "83.1694",
+    "typeM2": "109B",
+    "typePyeong": "32B"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "76.1565",
+    "typeM2": "99B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "76.5336",
+    "typeM2": "100A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "84.0255",
+    "typeM2": "111A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "84.3079",
+    "typeM2": "111C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "84.6199",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "101.0812",
+    "typeM2": "122B",
+    "typePyeong": "37B"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "117.5061",
+    "typeM2": "141",
+    "typePyeong": "42"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "156.2642",
+    "typeM2": "192A",
+    "typePyeong": "58A"
+  },
+  {
+    "aptName": "포스코더샵2차",
+    "area": "159.1995",
+    "typeM2": "194B",
+    "typePyeong": "58B"
+  },
+  {
+    "aptName": "푸르지오",
+    "area": "57.8",
+    "typeM2": "82A",
+    "typePyeong": "24A"
+  },
+  {
+    "aptName": "푸르지오",
+    "area": "59.556",
+    "typeM2": "80B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "푸르지오",
+    "area": "75.076",
+    "typeM2": "96",
+    "typePyeong": "29"
+  },
+  {
+    "aptName": "푸르지오",
+    "area": "84.065",
+    "typeM2": "108",
+    "typePyeong": "32"
+  },
+  {
+    "aptName": "푸른마을두산위브",
+    "area": "72.68",
+    "typeM2": "100A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "푸른마을두산위브",
+    "area": "73.33",
+    "typeM2": "99B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "푸른마을두산위브",
+    "area": "81.12",
+    "typeM2": "112A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "푸른마을두산위브",
+    "area": "81.49",
+    "typeM2": "111B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "푸른마을두산위브",
+    "area": "101.71",
+    "typeM2": "128",
+    "typePyeong": "38"
+  },
+  {
+    "aptName": "푸른마을두산위브",
+    "area": "153.41",
+    "typeM2": "168",
+    "typePyeong": "51"
+  },
+  {
+    "aptName": "푸른마을모아미래도",
+    "area": "59.039",
+    "typeM2": "78A",
+    "typePyeong": "23A"
+  },
+  {
+    "aptName": "푸른마을모아미래도",
+    "area": "59.192",
+    "typeM2": "80B",
+    "typePyeong": "24B"
+  },
+  {
+    "aptName": "푸른마을모아미래도",
+    "area": "83.737",
+    "typeM2": "104",
+    "typePyeong": "31"
+  },
+  {
+    "aptName": "한신더휴",
+    "area": "76.4713",
+    "typeM2": "102",
+    "typePyeong": "31"
+  },
+  {
+    "aptName": "한신더휴",
+    "area": "83.4162",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "한신더휴",
+    "area": "83.7489",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "한화 포레나 동탄호수",
+    "area": "74.21",
+    "typeM2": "100A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "한화 포레나 동탄호수",
+    "area": "84.02",
+    "typeM2": "112C",
+    "typePyeong": "34C"
+  },
+  {
+    "aptName": "한화 포레나 동탄호수",
+    "area": "84.03",
+    "typeM2": "112A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "한화 포레나 동탄호수",
+    "area": "84.05",
+    "typeM2": "113B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "호반베르디움센트럴포레",
+    "area": "84.669",
+    "typeM2": "110B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "호반베르디움센트럴포레",
+    "area": "84.8388",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "호반베르디움센트럴포레",
+    "area": "98.1497",
+    "typeM2": "123",
+    "typePyeong": "37"
+  },
+  {
+    "aptName": "호수공원역 센트럴시티",
+    "area": "60.3768",
+    "typeM2": "83",
+    "typePyeong": "25"
+  },
+  {
+    "aptName": "호수공원역 센트럴시티",
+    "area": "84.52",
+    "typeM2": "110A",
+    "typePyeong": "33A"
+  },
+  {
+    "aptName": "호수공원역 센트럴시티",
+    "area": "84.5413",
+    "typeM2": "109B",
+    "typePyeong": "33B"
+  },
+  {
+    "aptName": "호수공원역 센트럴시티",
+    "area": "84.5442",
+    "typeM2": "109C",
+    "typePyeong": "33C"
+  },
+  {
+    "aptName": "화성동탄2센트럴힐즈동탄아파트",
+    "area": "74.99",
+    "typeM2": "98A",
+    "typePyeong": "29A"
+  },
+  {
+    "aptName": "화성동탄2센트럴힐즈동탄아파트",
+    "area": "84.96",
+    "typeM2": "111",
+    "typePyeong": "33"
+  },
+  {
+    "aptName": "힐스테이트동탄",
+    "area": "61.9248",
+    "typeM2": "88",
+    "typePyeong": "26"
+  },
+  {
+    "aptName": "힐스테이트동탄",
+    "area": "74.8981",
+    "typeM2": "101C",
+    "typePyeong": "30C"
+  },
+  {
+    "aptName": "힐스테이트동탄",
+    "area": "74.9502",
+    "typeM2": "100B",
+    "typePyeong": "30B"
+  },
+  {
+    "aptName": "힐스테이트동탄",
+    "area": "74.9757",
+    "typeM2": "100A",
+    "typePyeong": "30A"
+  },
+  {
+    "aptName": "힐스테이트동탄",
+    "area": "84.8479",
+    "typeM2": "113A",
+    "typePyeong": "34A"
+  },
+  {
+    "aptName": "힐스테이트동탄",
+    "area": "84.8835",
+    "typeM2": "115B",
+    "typePyeong": "34B"
+  },
+  {
+    "aptName": "힐스테이트동탄역",
+    "area": "54.4202",
+    "typeM2": "78B",
+    "typePyeong": "23B"
+  },
+  {
+    "aptName": "힐스테이트동탄역",
+    "area": "54.5508",
+    "typeM2": "77C",
+    "typePyeong": "23C"
+  },
+  {
+    "aptName": "힐스테이트동탄역",
+    "area": "54.5533",
+    "typeM2": "78A",
+    "typePyeong": "23A"
+  },
+  {
+    "aptName": "힐스테이트동탄역",
+    "area": "54.9749",
+    "typeM2": "78D",
+    "typePyeong": "23D"
+  }
+]

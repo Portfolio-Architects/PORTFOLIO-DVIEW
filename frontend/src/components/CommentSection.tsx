@@ -10,6 +10,7 @@ interface CommentSectionProps {
   onSubmitComment: () => void;
   user: User | null;
   isUnlocked: boolean;
+  selectedCommentId?: string;
 }
 
 export default function CommentSection({
@@ -19,6 +20,7 @@ export default function CommentSection({
   onSubmitComment,
   user,
   isUnlocked,
+  selectedCommentId,
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
 
@@ -64,14 +66,22 @@ export default function CommentSection({
             <>
               {/* 최신 1개 댓글은 무료 공개 */}
               {comments.slice(0, 1).map(comment => (
-                <CommentItem key={comment.id} comment={comment} />
+                <CommentItem 
+                  key={comment.id} 
+                  comment={comment} 
+                  isHighlighted={comment.id === selectedCommentId} 
+                />
               ))}
 
               {/* 나머지 댓글: 결제 사용자만 */}
               {comments.length > 1 && (
                 isUnlocked ? (
                   comments.slice(1).map(comment => (
-                    <CommentItem key={comment.id} comment={comment} />
+                    <CommentItem 
+                      key={comment.id} 
+                      comment={comment} 
+                      isHighlighted={comment.id === selectedCommentId} 
+                    />
                   ))
                 ) : (
                   <div className="relative">
@@ -110,9 +120,16 @@ export default function CommentSection({
 }
 
 /** Single comment item */
-function CommentItem({ comment }: { comment: CommentData }) {
+function CommentItem({ comment, isHighlighted }: { comment: CommentData; isHighlighted?: boolean }) {
   return (
-    <div className="flex gap-3 bg-body p-4 rounded-2xl border border-border">
+    <div 
+      id={`comment-${comment.id}`}
+      className={`flex gap-3 bg-body p-4 rounded-2xl border transition-all duration-300 ${
+        isHighlighted 
+          ? 'comment-highlight border-toss-blue' 
+          : 'border-border'
+      }`}
+    >
       <div className="w-8 h-8 rounded-full bg-surface border border-border shadow-sm flex items-center justify-center shrink-0">
         <UserCircle size={16} className="text-tertiary" />
       </div>
@@ -126,4 +143,3 @@ function CommentItem({ comment }: { comment: CommentData }) {
     </div>
   );
 }
-

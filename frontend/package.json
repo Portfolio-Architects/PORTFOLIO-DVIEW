@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev -p 5000 --webpack",
-    "build": "npm run sync-transactions && next build",
+    "build": "npm run sync-transactions && npm run sync-static && next build",
     "start": "next start",
     "lint": "eslint",
     "audit": "node scripts/audit-pipeline.js",
@@ -16,8 +16,9 @@
     "sync-transactions": "node scripts/sync-transactions.js",
     "sync-macro": "node scripts/sync-macro.js",
     "sync-location-scores": "node scripts/sync-location-scores.js",
+    "sync-static": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/sync-static-data.ts",
     "import-csv": "node scripts/import-csv.js",
-    "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js",
+    "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js && npm run sync-static",
     "test": "jest",
     "test:e2e": "playwright test"
   },
@@ -31,6 +32,7 @@
     "@upstash/redis": "^1.37.0",
     "axios": "^1.15.0",
     "browser-image-compression": "^2.0.2",
+    "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.3.1",
     "firebase": "^12.10.0",
@@ -56,6 +58,7 @@
     "rss-parser": "^3.13.0",
     "swr": "^2.4.1",
     "tailwind-merge": "^3.5.0",
+    "web-push": "^3.6.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -68,6 +71,7 @@
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "iconv-lite": "^0.7.2",

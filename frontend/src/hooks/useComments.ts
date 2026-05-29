@@ -28,6 +28,25 @@ export function useComments(selectedReport: FieldReportData | null, fullReportDa
     if (!text?.trim()) return;
 
     await dashboardFacade.addFieldReportComment!(reportId, text, user.uid);
+    
+    // Trigger push notification to report author
+    try {
+      const profile = await dashboardFacade.getUserProfile!(user.uid);
+      const nickname = profile?.nickname || user.displayName || user.email || '익명';
+      await fetch('/api/push/notify-comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportId,
+          commentText: text,
+          authorName: nickname,
+          commentAuthorUid: user.uid
+        }),
+      });
+    } catch (pushErr) {
+      console.warn('Failed to send push notification trigger:', pushErr);
+    }
+
     setCommentInput(prev => ({ ...prev, [reportId]: '' }));
   };
 

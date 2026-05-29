@@ -97,8 +97,76 @@ function FieldReportModal({
   const [showScrollTop, setShowScrollTop] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
+  const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
+  const [shareTheme, setShareTheme] = useState<'value' | 'gap' | 'school' | 'deal'>('value');
+
+  const getShareText = (theme: 'value' | 'gap' | 'school' | 'deal', priceEok: number, priceMan: number, ratio: number) => {
+    const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
+    const aptName = displayAptName;
+
+    switch (theme) {
+      case 'gap':
+        return {
+          title: `🚀 갭투자 추천! ${aptName}`,
+          desc: `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%! 예산 맞춤 갭투자 가능 여부를 D-VIEW에서 바로 조회해보세요.`
+        };
+      case 'school':
+        return {
+          title: `🏫 학세권&초품아 정보: ${aptName}`,
+          desc: `도보 통학이 가능한 학군 분석 완료. 최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}% 정보를 지금 확인해보세요.`
+        };
+      case 'deal':
+        return {
+          title: `📉 최신 실거래 정보: ${aptName}`,
+          desc: `최근 실거래 ${priceStr} (전세가율 ${ratio.toFixed(1)}%). 급매 여부 및 세부 등락 트렌드를 D-VIEW에서 체크하세요.`
+        };
+      case 'value':
+      default:
+        return {
+          title: `🧐 지금 사면 호구일까? ${aptName} 가치분석`,
+          desc: `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`
+        };
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const commentId = params.get('selectedCommentId');
+      if (commentId) {
+        setSelectedCommentId(commentId);
+        const timer = setTimeout(() => {
+          const el = document.getElementById(`comment-${commentId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 600);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [comments]);
+
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
+
+  // 이상치 필터링 토글 상태
+  const [filterOutliers, setFilterOutliers] = useState<boolean>(true);
+
+  // Load outlier filter state from localStorage on mount (hydration-safe)
+  useEffect(() => {
+    const saved = localStorage.getItem('dview_filter_outliers');
+    if (saved === 'false') {
+      setFilterOutliers(false);
+    }
+  }, []);
+
+  const handleToggleFilter = () => {
+    setFilterOutliers(prev => {
+      const next = !prev;
+      localStorage.setItem('dview_filter_outliers', String(next));
+      return next;
+    });
+  };
 
   const [managerPost, setManagerPost] = useState<{ id: string; title: string } | null>(null);
 
@@ -158,7 +226,7 @@ function FieldReportModal({
     return '';
   }, [report.premiumContent]);
 
-  // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김)
+  // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김 - 토글 활성화 시에만 적용)
   const transactions = useMemo(() => {
     if (!rawTransactions || rawTransactions.length === 0) return [];
     
@@ -214,7 +282,10 @@ function FieldReportModal({
       return false;
     });
 
-    const combined = [...filterOutliersRolling(saleTxs), ...filterOutliersRolling(jeonseTxs)];
+    const finalSale = filterOutliers ? filterOutliersRolling(saleTxs) : saleTxs;
+    const finalJeonse = filterOutliers ? filterOutliersRolling(jeonseTxs) : jeonseTxs;
+
+    const combined = [...finalSale, ...finalJeonse];
 
     return combined.sort((a, b) => {
       const da = a.contractYm + String(a.contractDay).padStart(2, '0');
@@ -222,7 +293,7 @@ function FieldReportModal({
       if (da !== db) return parseInt(db) - parseInt(da);
       return b.price - a.price;
     });
-  }, [rawTransactions]);
+  }, [rawTransactions, filterOutliers]);
 
   // 특정 평형 필터 칩 목록
   const areaFilterChips = useMemo(() => {
@@ -433,7 +504,8 @@ function FieldReportModal({
         }
       }
 
-      const encodedTitle = encodeURIComponent(`${displayAptName} 가치분석`);
+      const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
+      const encodedTitle = encodeURIComponent(shareTexts.title);
       const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
 
       await shareAptToKakao({
@@ -442,7 +514,9 @@ function FieldReportModal({
         priceMan,
         ratio,
         imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`,
-        imageFile
+        imageFile,
+        customTitle: shareTexts.title,
+        customDesc: shareTexts.desc
       });
     } catch (error) {
       console.error("Kakao share card generation failed:", error);
@@ -457,7 +531,9 @@ function FieldReportModal({
       const priceEok = Math.floor(price / 10000);
       const priceMan = price % 10000;
       const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
-      const encodedTitle = encodeURIComponent(`${displayAptName} 가치분석`);
+      
+      const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
+      const encodedTitle = encodeURIComponent(shareTexts.title);
       const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
 
       await shareAptToKakao({
@@ -465,7 +541,9 @@ function FieldReportModal({
         priceEok,
         priceMan,
         ratio,
-        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`
+        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`,
+        customTitle: shareTexts.title,
+        customDesc: shareTexts.desc
       });
     } finally {
       setIsSharing(false);
@@ -589,6 +667,25 @@ function FieldReportModal({
             <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20">
               <button onClick={() => setChartType('sale')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>매매</button>
               <button onClick={() => setChartType('jeonse')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+            </div>
+
+            {/* 이상 거래 필터 스위치 */}
+            <div className="flex items-center gap-2 bg-[#f2f4f6] px-3.5 py-2 rounded-2xl border border-border/20 shadow-sm shrink-0">
+              <span className="text-[12.5px] font-extrabold text-secondary tracking-tight select-none">이상거래 필터</span>
+              <button
+                onClick={handleToggleFilter}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                  filterOutliers ? 'bg-toss-blue' : 'bg-secondary/20'
+                }`}
+                role="switch"
+                aria-checked={filterOutliers}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    filterOutliers ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
 
             {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
@@ -1216,6 +1313,31 @@ function FieldReportModal({
 
             {/* In-content Viral CTA & AdSense Placeholder */}
             <div className="flex flex-col gap-6 mt-8 mb-4">
+              {/* 카카오톡 공유 추천 문구 선택 */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[12px] font-bold text-secondary">공유 메시지 테마 선택</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'value', label: '🧐 가치분석' },
+                    { id: 'gap', label: '🚀 갭투자 추천' },
+                    { id: 'school', label: '🏫 초품아 학군' },
+                    { id: 'deal', label: '📉 급매 실거래' }
+                  ].map((theme) => (
+                    <button
+                      key={theme.id}
+                      onClick={() => setShareTheme(theme.id as any)}
+                      className={`px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all cursor-pointer ${
+                        shareTheme === theme.id
+                          ? 'bg-[#00d29d] text-white border-[#00d29d] shadow-sm'
+                          : 'bg-white text-secondary border-border hover:bg-[#e0fbf4]/20'
+                      }`}
+                    >
+                      {theme.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* 1. Viral Share CTA (Desktop/Mobile In-content) */}
               <button 
                 onClick={handleKakaoShare}
@@ -1254,6 +1376,7 @@ function FieldReportModal({
                 onSubmitComment={onSubmitComment}
                 user={user}
                 isUnlocked={isUnlocked}
+                selectedCommentId={selectedCommentId}
               />
             </div>
 

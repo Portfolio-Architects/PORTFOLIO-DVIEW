@@ -173,6 +173,16 @@ async function main() {
      const candidateRestaurants = filterByBBox(coord, restaurants);
      const nearbyRestaurants = candidateRestaurants.filter(r => haversineDistance(coord, r) <= 500);
 
+     const academyCategories = {};
+     for (const a of nearbyAcademies) {
+        academyCategories[a.category] = (academyCategories[a.category] || 0) + 1;
+     }
+
+     const restaurantCategories = {};
+     for (const r of nearbyRestaurants) {
+        restaurantCategories[r.category] = (restaurantCategories[r.category] || 0) + 1;
+     }
+
      const findAnchor = (keywords) => {
         const matches = [...sboyds, ...restaurants].filter(r => keywords.some(k => r.name.includes(k)));
         return matches.length > 0 ? findNearest(coord, matches) : null;
@@ -200,7 +210,9 @@ async function main() {
          distanceToIndeokwon: nearIndeokwon?.distance ?? null,
          distanceToTram: nearTram?.distance ?? null,
          academyDensity: nearbyAcademies.length,
+         academyCategories,
          restaurantDensity: nearbyRestaurants.length,
+         restaurantCategories,
          distanceToStarbucks: nearStarbucks?.distance ?? null,
          distanceToMcDonalds: nearMcDonalds?.distance ?? null,
          distanceToOliveYoung: nearOliveYoung?.distance ?? null,
@@ -248,6 +260,10 @@ async function main() {
   const outputPath = path.resolve(__dirname, '../public/data/location-scores.json');
   fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
   console.log(`✅ Synced location scores for ${Object.keys(results).length} apartments to public/data/location-scores.json`);
+
+  const outputPath2 = path.resolve(__dirname, '../src/lib/location-scores.json');
+  fs.writeFileSync(outputPath2, JSON.stringify(results, null, 2));
+  console.log(`✅ Synced location scores for ${Object.keys(results).length} apartments to src/lib/location-scores.json`);
 }
 
 main().catch(console.error);

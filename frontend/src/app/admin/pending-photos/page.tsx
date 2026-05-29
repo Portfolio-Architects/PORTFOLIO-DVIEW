@@ -18,6 +18,7 @@ interface PendingPhoto {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: any;
   uploaderName?: string;
+  uploaderUid?: string;
 }
 
 export default function PendingPhotosPage() {
@@ -70,26 +71,54 @@ export default function PendingPhotosPage() {
       const reportData = reportSnap.data();
       const currentImages = reportData.images || [];
 
-      // 2. Add new image
+      // 2. Fetch and update uploader profile points
+      let uploaderPoints = 0;
+      let uploaderTier = '초보 임장러';
+
+      if (photo.uploaderUid && photo.uploaderUid !== 'anonymous') {
+        const userRef = doc(db, 'users', photo.uploaderUid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          uploaderPoints = (userData.uploaderPoints || 0) + 20;
+          
+          if (uploaderPoints >= 150) {
+            uploaderTier = '임장 마스터';
+          } else if (uploaderPoints >= 55) {
+            uploaderTier = '프로 임장러';
+          } else {
+            uploaderTier = '초보 임장러';
+          }
+          
+          await updateDoc(userRef, {
+            uploaderPoints,
+            uploaderTier
+          });
+        }
+      }
+
+      // 3. Add new image with uploader points and tier tags
       const newImage = {
         url: photo.url,
         caption: photo.caption,
         locationTag: photo.locationTagId, // Need ID for mappings
         isPremium: false,
-        uploaderName: photo.uploaderName || '익명'
+        uploaderName: photo.uploaderName || '익명',
+        uploaderPoints,
+        uploaderTier
       };
 
       await updateDoc(reportRef, {
         images: [...currentImages, newImage]
       });
 
-      // 3. Update pending status
+      // 4. Update pending status
       await updateDoc(doc(db, 'pending_photos', photo.id), {
         status: 'approved',
         processedAt: new Date()
       });
 
-      // 4. Remove from list
+      // 5. Remove from list
       setPhotos(prev => prev.filter(p => p.id !== photo.id));
       
     } catch (error) {

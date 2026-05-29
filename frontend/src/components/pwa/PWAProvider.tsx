@@ -24,7 +24,7 @@ interface PWAContextType {
   // Web Push Notifications
   isPushSupported: boolean;
   pushSubscription: PushSubscription | null;
-  subscribeToPush: () => Promise<boolean>;
+  subscribeToPush: (uid?: string | null) => Promise<boolean>;
 }
 
 const PWAContext = createContext<PWAContextType>({
@@ -109,6 +109,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   // Push Notification state
   const [isPushSupported, setIsPushSupported] = useState(false);
   const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // 1. A2HS Logic
@@ -123,6 +124,15 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       setDeferredPrompt(null);
       setIsInstallable(false);
       setShowCustomA2HSModal(false);
+      
+      // Add PWA reward passes to localStorage
+      const currentPasses = Number(localStorage.getItem('dview_free_passes') || '0');
+      localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
+      
+      setToastMessage('🎉 홈화면 앱 설치 감사 혜택! 무료 리포트 조회권 3회가 지급되었습니다.');
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 5000);
     });
 
     // 2. Web Push Support Check
@@ -163,7 +173,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const subscribeToPush = async () => {
+  const subscribeToPush = async (uid?: string | null) => {
     if (!isPushSupported) {
       alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
       return false;
@@ -178,7 +188,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       const reg = await navigator.serviceWorker.ready;
       
       // Replace with your VAPID public key
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BJfvp3-MGu6cXDWL2GGKO019MjQhLFSwk1zvAIo8QgX31bfCwfjOHHr34iJcGYnhxpJBCsPoXeG6CAXql9KR9Xg';
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
       
       const sub = await reg.pushManager.subscribe({
@@ -188,10 +198,14 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       
       setPushSubscription(sub);
       
-      // TODO: Here you would typically send the subscription to your backend server
-      // e.g. await fetch('/api/push/subscribe', { method: 'POST', body: JSON.stringify(sub) });
+      // Save subscription to the backend
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub, uid: uid || null })
+      });
       
-      console.log('Push Subscribed:', JSON.stringify(sub));
+      console.log('Push Subscribed & Saved:', JSON.stringify(sub));
       return true;
     } catch (error) {
       console.error('Error subscribing to push', error);
@@ -215,6 +229,17 @@ export function PWAProvider({ children }: { children: ReactNode }) {
         }}
       >
         {children}
+        {toastMessage && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-toss-blue text-white font-extrabold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 select-none">
+            <span className="text-[13px] md:text-[14px]">{toastMessage}</span>
+            <button 
+              onClick={() => setToastMessage(null)} 
+              className="ml-2 hover:opacity-85 text-white/80 focus:outline-none text-[12px] font-black cursor-pointer bg-white/20 hover:bg-white/30 rounded-full w-5 h-5 flex items-center justify-center"
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </PWAContext.Provider>
     </SWRConfig>
   );

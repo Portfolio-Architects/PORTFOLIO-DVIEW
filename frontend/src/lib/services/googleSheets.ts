@@ -2,6 +2,8 @@ import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { redis } from '@/lib/redis';
+import fs from 'fs';
+import path from 'path';
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
@@ -134,6 +136,19 @@ export interface TypeMapItem {
 }
 
 export async function fetchSheetTypeMap(): Promise<TypeMapItem[]> {
+  // Try loading from local static file first
+  try {
+    if (process.env.BYPASS_LOCAL_CACHE !== 'true') {
+      const filePath = path.resolve(process.cwd(), 'public/data/type-map.json');
+      if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(data);
+      }
+    }
+  } catch (e) {
+    logger.warn('fetchSheetTypeMap', 'Failed to read local static type-map.json, falling back to sheet fetch', undefined, e);
+  }
+
   const cacheKey = 'DTDLS:parsed:typeMap';
   const now = Date.now();
   const memCached = sheetsMemoryCache[cacheKey];
@@ -170,6 +185,19 @@ function findColIndex(headers: string[], possibleNames: string[]): number {
 }
 
 export async function fetchSheetApartmentsByDong() {
+  // Try loading from local static file first
+  try {
+    if (process.env.BYPASS_LOCAL_CACHE !== 'true') {
+      const filePath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
+      if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(data);
+      }
+    }
+  } catch (e) {
+    logger.warn('fetchSheetApartmentsByDong', 'Failed to read local static apartments-by-dong.json, falling back to sheet fetch', undefined, e);
+  }
+
   const cacheKey = 'DTDLS:parsed:apartmentsByDong';
   const now = Date.now();
   const memCached = sheetsMemoryCache[cacheKey];

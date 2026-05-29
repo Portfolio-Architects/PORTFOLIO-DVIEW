@@ -12,6 +12,8 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { redis } from '@/lib/redis';
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
 
@@ -68,22 +70,28 @@ export async function GET() {
     console.warn('[dashboard-init] favoriteCounts error:', e);
   }
 
-  // 2. Type map (Google Sheets CSV — no auth needed)
+  // 2. Type map (Static JSON Cache first -> Google Sheets Fallback)
   try {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
-    const res = await fetch(csvUrl, { cache: 'no-store' });
-    if (res.ok) {
-      const csvText = await res.text();
-      const lines = csvText.split('\n').filter(l => l.trim());
-      for (let i = 1; i < lines.length; i++) {
-        const cols = parseCsvLine(lines[i]);
-        if (cols.length < 3) continue;
-        const aptName = cols[1]?.trim();
-        const area = cols[2]?.trim();
-        const typeM2 = cols[3]?.trim() || '';
-        const typePyeong = cols[5]?.trim() || '';
-        if (aptName && area && (typeM2 || typePyeong)) {
-          result.typeMap.push({ aptName, area, typeM2, typePyeong });
+    const filePath = path.resolve(process.cwd(), 'public/data/type-map.json');
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf-8');
+      result.typeMap = JSON.parse(data);
+    } else {
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
+      const res = await fetch(csvUrl, { cache: 'no-store' });
+      if (res.ok) {
+        const csvText = await res.text();
+        const lines = csvText.split('\n').filter(l => l.trim());
+        for (let i = 1; i < lines.length; i++) {
+          const cols = parseCsvLine(lines[i]);
+          if (cols.length < 3) continue;
+          const aptName = cols[1]?.trim();
+          const area = cols[2]?.trim();
+          const typeM2 = cols[3]?.trim() || '';
+          const typePyeong = cols[5]?.trim() || '';
+          if (aptName && area && (typeM2 || typePyeong)) {
+            result.typeMap.push({ aptName, area, typeM2, typePyeong });
+          }
         }
       }
     }
@@ -91,12 +99,28 @@ export async function GET() {
     console.warn('[dashboard-init] typeMap error:', e);
   }
 
-  // 3. Apartment meta (Firebase Admin — name mapping + public rental)
+  // 3. Apartment meta (Redis Cache first -> Firestore Fallback)
   try {
-    if (adminDb) {
+    let cachedMeta = null;
+    if (redis) {
+      try {
+        cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
+        if (cachedMeta && typeof cachedMeta === 'object') {
+          result.apartmentMeta = cachedMeta as Record<string, unknown>;
+        }
+      } catch (e) {
+        console.warn('[dashboard-init] Redis meta read error:', e);
+      }
+    }
+
+    if (!cachedMeta && adminDb) {
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
-        result.apartmentMeta = metaDoc.data() || {};
+        const metaData = metaDoc.data() || {};
+        result.apartmentMeta = metaData;
+        if (redis && Object.keys(metaData).length > 0) {
+          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => console.warn('[dashboard-init] Redis meta write error:', e));
+        }
       }
     }
   } catch (e) {

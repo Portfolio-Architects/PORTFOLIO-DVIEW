@@ -57,18 +57,44 @@ async function getInitialData() {
   };
 
   const fetchMeta = async () => {
+    if (redis) {
+      try {
+        const cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
+        if (cachedMeta && typeof cachedMeta === 'object') {
+          result.apartmentMeta = cachedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+          return;
+        }
+      } catch (e) {
+        console.warn('[Server] Redis meta read error:', e);
+      }
+    }
     if (adminDb) {
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
-        result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+        const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+        result.apartmentMeta = metaData;
+        if (redis && Object.keys(metaData).length > 0) {
+          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => console.warn('[Server] Redis meta write error:', e));
+        }
       }
     }
   };
 
   const fetchReports = async () => {
+    if (redis) {
+      try {
+        const cachedReports = await redis.get('DTDLS:cache:fieldReports');
+        if (cachedReports && Array.isArray(cachedReports)) {
+          result.fieldReports = cachedReports;
+          return;
+        }
+      } catch (e) {
+        console.warn('[Server] Redis reports read error:', e);
+      }
+    }
     if (adminDb) {
       const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
-      result.fieldReports = snap.docs.map(doc => {
+      const reports = snap.docs.map(doc => {
         const data = doc.data();
         let createdAtStr = '방금 전';
         let rawTimestamp = 0;
@@ -105,6 +131,10 @@ async function getInitialData() {
           _rawTimestamp: rawTimestamp
         };
       });
+      result.fieldReports = reports;
+      if (redis && reports.length > 0) {
+        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => console.warn('[Server] Redis reports write error:', e));
+      }
     }
   };
 

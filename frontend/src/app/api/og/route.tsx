@@ -11,6 +11,9 @@ export async function GET(req: NextRequest) {
     const title = searchParams.get('title') || '동탄 아파트 가치분석';
     const subtitle = searchParams.get('subtitle') || '실거래가 및 전문가 임장 리포트 확인하기';
     const bgUrl = searchParams.get('bgUrl');
+    const price = searchParams.get('price');
+    const ratio = searchParams.get('ratio');
+    const status = searchParams.get('status');
 
     return new ImageResponse(
       (
@@ -101,6 +104,63 @@ export async function GET(req: NextRequest) {
             >
               {title}
             </div>
+
+            {/* Price Info Badges Row */}
+            {(price || ratio || status) && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                }}
+              >
+                {price && (
+                  <div
+                    style={{
+                      background: '#f04452',
+                      color: 'white',
+                      padding: '8px 20px',
+                      borderRadius: '30px',
+                      fontSize: '26px',
+                      fontWeight: 'bold',
+                      marginRight: '12px',
+                    }}
+                  >
+                    최근 매매 {price}
+                  </div>
+                )}
+                {ratio && (
+                  <div
+                    style={{
+                      background: '#3182f6',
+                      color: 'white',
+                      padding: '8px 20px',
+                      borderRadius: '30px',
+                      fontSize: '26px',
+                      fontWeight: 'bold',
+                      marginRight: '12px',
+                    }}
+                  >
+                    전세가율 {ratio}%
+                  </div>
+                )}
+                {status && (
+                  <div
+                    style={{
+                      background: status === '신고가' ? '#ffebed' : '#e0fbf4',
+                      color: status === '신고가' ? '#ff4b5c' : '#00b386',
+                      border: `2px solid ${status === '신고가' ? '#ff4b5c' : '#00b386'}`,
+                      padding: '6px 18px',
+                      borderRadius: '30px',
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {status}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div
               style={{

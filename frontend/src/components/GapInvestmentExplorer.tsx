@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles, Coins, HelpCircle, ArrowRight } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -26,6 +26,34 @@ export default function GapInvestmentExplorer({
 }: GapInvestmentExplorerProps) {
   const [maxGap, setMaxGap] = useState<number>(20000); // Default to 2억 (20,000만원)
   const [showAll, setShowAll] = useState<boolean>(false);
+
+  // Parse initial maxGap on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const gapParam = params.get('maxGap');
+      if (gapParam) {
+        const parsed = parseInt(gapParam, 10);
+        if (!isNaN(parsed) && parsed >= 3000 && parsed <= 60000) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setMaxGap(parsed);
+        }
+      }
+    }
+  }, []);
+
+  // Sync maxGap state to URL query parameter
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const currentVal = params.get('maxGap');
+      if (currentVal !== String(maxGap)) {
+        params.set('maxGap', String(maxGap));
+        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+  }, [maxGap]);
 
   const PRESETS = [
     { label: '1.5억', value: 15000 },

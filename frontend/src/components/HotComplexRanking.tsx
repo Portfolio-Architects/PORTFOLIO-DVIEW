@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Trophy, Clock, Heart } from 'lucide-react';
+import { Trophy, Clock, Heart, Eye } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { FieldReportData } from '@/lib/types/report.types';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -46,6 +46,7 @@ export default function HotComplexRanking({
         apt,
         score,
         likes,
+        views,
       };
     });
 
@@ -169,7 +170,7 @@ export default function HotComplexRanking({
                 <div
                   key={item.apt.name}
                   onClick={() => onSelectApt(item.apt.name)}
-                  className="flex md:flex-col items-center md:items-start justify-between md:justify-between p-3.5 md:p-4 bg-body/40 hover:bg-body hover:scale-[1.02] border border-border/30 hover:border-border/80 rounded-2xl cursor-pointer transition-all duration-300 group"
+                  className="flex md:flex-col items-center md:items-start justify-between p-3.5 md:p-4 md:min-h-[148px] bg-body/40 hover:bg-body hover:scale-[1.02] border border-border/30 hover:border-border/80 rounded-2xl cursor-pointer transition-all duration-300 group"
                 >
                   {/* Left (or Top on desktop) Area */}
                   <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-2.5 min-w-0 flex-1 pr-3">
@@ -190,9 +191,15 @@ export default function HotComplexRanking({
                   </div>
 
                   {/* Right (or Bottom on desktop) Area */}
-                  <div className="flex items-center gap-1 mt-0 md:mt-3.5 text-[11px] font-bold text-tertiary shrink-0">
-                    <Heart className="w-3.5 h-3.5 text-toss-red/80 fill-toss-red/10 group-hover:fill-toss-red/25 transition-all" />
-                    <span>{item.likes}</span>
+                  <div className="flex md:flex-row items-end md:items-center md:justify-between w-auto md:w-full mt-0 md:mt-3.5 px-0 shrink-0 gap-1.5 md:gap-0 flex-col md:flex-row text-right">
+                    <span className="text-[12px] md:text-[13px] text-toss-blue font-extrabold leading-none flex items-center gap-1">
+                      <Eye className="w-3.5 h-3.5 text-toss-blue/80" />
+                      <span>{item.views.toLocaleString()}회</span>
+                    </span>
+                    <span className="text-toss-red font-extrabold text-[12px] md:text-[13px] leading-none mt-1 md:mt-0 flex items-center gap-1 group-hover:scale-105 transition-transform">
+                      <Heart className="w-3.5 h-3.5 fill-toss-red" />
+                      <span>{item.likes}</span>
+                    </span>
                   </div>
                 </div>
               );
@@ -205,7 +212,7 @@ export default function HotComplexRanking({
                 <div
                   key={item.apt.name}
                   onClick={() => onSelectApt(item.apt.name)}
-                  className="flex md:flex-col items-center md:items-start justify-between md:justify-between p-3.5 md:p-4 bg-body/40 hover:bg-body hover:scale-[1.02] border border-border/30 hover:border-border/80 rounded-2xl cursor-pointer transition-all duration-300 group"
+                  className="flex md:flex-col items-center md:items-start justify-between p-3.5 md:p-4 md:min-h-[148px] bg-body/40 hover:bg-body hover:scale-[1.02] border border-border/30 hover:border-border/80 rounded-2xl cursor-pointer transition-all duration-300 group"
                 >
                   {/* Left (or Top on desktop) Area */}
                   <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-2.5 min-w-0 flex-1 pr-3">

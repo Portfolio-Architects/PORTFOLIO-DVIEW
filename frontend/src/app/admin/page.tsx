@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
   Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw,
-  ShieldAlert
+  ShieldAlert, Globe, MousePointerClick, Eye, TrendingUp, BarChart3, ShieldCheck
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
@@ -57,6 +57,17 @@ export default function AdminDashboard() {
   const [expandedDongs, setExpandedDongs] = useState<Set<string>>(new Set());
   const [expandedApts, setExpandedApts] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
+  
+  // Google Search Console API data SWR fetch
+  const { data: scData } = useSWR('/api/admin/search-console', async (url) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
+  }, { revalidateOnFocus: false, dedupingInterval: 30000 });
   
   // Scouting reports
   const [reports, setReports] = useState<ScoutingReport[]>([]);
@@ -483,6 +494,91 @@ export default function AdminDashboard() {
             <div className="text-[26px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* Google Search Console Index Status & Performance Dashboard */}
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mb-8 animate-in fade-in duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-[#f2f4f6]">
+          <h2 className="text-[17px] font-black text-primary flex items-center gap-2">
+            <Globe className="text-[#03c75a]" size={20} />
+            Google Search Console 검색 노출 & 색인 모니터링
+          </h2>
+          {scData && (
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+              scData.isMock 
+                ? 'bg-[#fff4e6] text-[#ff8a3d]' 
+                : 'bg-[#f0fdf4] text-toss-green'
+            }`}>
+              <ShieldCheck size={12} />
+              {scData.isMock ? '자가 진단 모드 (Mock)' : 'API 실시간 수집 중'}
+            </span>
+          )}
+        </div>
+
+        {!scData ? (
+          <div className="flex items-center justify-center py-6">
+            <div className="w-5 h-5 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" />
+            <span className="text-[13px] text-tertiary font-bold ml-2">서치콘솔 정보 로드 중...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* 1. Indexing Rate */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <BarChart3 className="text-secondary" size={14} />
+                <span className="text-[11.5px] font-bold text-tertiary">색인 성공률</span>
+              </div>
+              <div className="text-[20px] font-extrabold text-primary">
+                {Math.round((scData.indexStatus.totalIndexed / (scData.indexStatus.totalIndexed + scData.indexStatus.notIndexed)) * 100)}%
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                색인 {scData.indexStatus.totalIndexed}개 / 미색인 {scData.indexStatus.notIndexed}개
+              </div>
+            </div>
+
+            {/* 2. Clicks */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <MousePointerClick className="text-[#3182f6]" size={14} />
+                <span className="text-[11.5px] font-bold text-tertiary">클릭 수 (최근 30일)</span>
+              </div>
+              <div className="text-[20px] font-extrabold text-[#3182f6]">
+                {scData.searchMetrics.clicks.toLocaleString()}건
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                사이트 유입 클릭 수
+              </div>
+            </div>
+
+            {/* 3. Impressions */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Eye className="text-[#ff8a3d]" size={14} />
+                <span className="text-[11.5px] font-bold text-tertiary">노출 수 (최근 30일)</span>
+              </div>
+              <div className="text-[20px] font-extrabold text-[#ff8a3d]">
+                {scData.searchMetrics.impressions.toLocaleString()}회
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                구글 검색결과 노출 수
+              </div>
+            </div>
+
+            {/* 4. CTR & Position */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <TrendingUp className="text-toss-green" size={14} />
+                <span className="text-[11.5px] font-bold text-tertiary">CTR / 평균 순위</span>
+              </div>
+              <div className="text-[20px] font-extrabold text-toss-green">
+                {scData.searchMetrics.ctr}% / {scData.searchMetrics.averagePosition}위
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                평균 게재순위 및 클릭률
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Valuation Tuning Control Panel */}

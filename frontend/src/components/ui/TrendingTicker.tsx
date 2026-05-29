@@ -85,7 +85,7 @@ export function TrendingTicker({ topApts, onSelectApt }: TrendingTickerProps) {
               }`}
             >
               <span>{apt.rank}위</span>
-              <span className="truncate max-w-[70px]">{apt.name.replace('동탄역 ', '')}</span>
+              <span className="truncate max-w-[140px]">{apt.name}</span>
             </button>
           ))}
         </div>

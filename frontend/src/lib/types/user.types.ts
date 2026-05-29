@@ -19,6 +19,10 @@ export interface UserProfile {
   verificationLevel?: VerificationLevel;
   /** 프로필 생성 시각 */
   createdAt?: unknown;
+  /** 업로더 포인트 */
+  uploaderPoints?: number;
+  /** 업로더 등급 */
+  uploaderTier?: string;
 }
 
 export function getDisplayName(profile: UserProfile): string {

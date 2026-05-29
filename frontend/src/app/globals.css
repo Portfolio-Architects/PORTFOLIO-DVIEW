@@ -277,3 +277,24 @@
     font-size: 16px !important;
   }
 }
+
+/* Toss-style Comment Deep Link Highlight */
+@keyframes comment-highlight-pulse {
+  0% {
+    background-color: rgba(0, 210, 157, 0.25);
+    transform: scale(1.02);
+    box-shadow: 0 0 0 2px var(--toss-blue);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+.comment-highlight {
+  animation: comment-highlight-pulse 2.5s ease-out forwards;
+}

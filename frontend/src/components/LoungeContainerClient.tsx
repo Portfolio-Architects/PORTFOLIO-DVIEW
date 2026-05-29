@@ -38,6 +38,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
   }, []);
   const categories = [
     '동탄 부동산 뉴스',
+    '동탄구청 소식',
     '매니저 임장기',
     '동탄 육아/교육',
     '실시간 오픈런/정보',

@@ -187,6 +187,9 @@ export default function TossApartmentExploreClient({
       if (currentCategory === 'rank-volume') {
         return b.volume3M - a.volume3M;
       }
+      if (currentCategory === 'rank-turnover') {
+        return b.turnoverRate - a.turnoverRate;
+      }
       // default: absolute price (totalPrice)
       return b.totalPrice - a.totalPrice;
     });
@@ -255,6 +258,11 @@ export default function TossApartmentExploreClient({
               onClick={() => setCurrentCategory('rank-volume')} 
             />
             <SidebarItem 
+              label="회전율 높은 순" 
+              active={currentCategory === 'rank-turnover'} 
+              onClick={() => setCurrentCategory('rank-turnover')} 
+            />
+            <SidebarItem 
               label="조회수 많은 순" 
               active={currentCategory === 'rank-views'} 
               onClick={() => setCurrentCategory('rank-views')} 
@@ -293,6 +301,7 @@ export default function TossApartmentExploreClient({
              currentCategory === 'rank-abs-price' ? '가격 높은 순' :
              currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
              currentCategory === 'rank-volume' ? '최근 거래량 많은 순' :
+             currentCategory === 'rank-turnover' ? '회전율 높은 순' :
              currentCategory === 'rank-views' ? '조회수 많은 순' :
              `${currentCategory.replace('dong-', '')} 아파트`}
           </h2>
@@ -320,6 +329,7 @@ export default function TossApartmentExploreClient({
                  currentCategory === 'rank-abs-price' ? '가격 높은 순' :
                  currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
                  currentCategory === 'rank-volume' ? '최근 거래량 많은 순' :
+                 currentCategory === 'rank-turnover' ? '회전율 높은 순' :
                  currentCategory === 'rank-views' ? '조회수 많은 순' :
                  `${currentCategory.replace('dong-', '')} 아파트`}
               </h1>
@@ -377,12 +387,18 @@ export default function TossApartmentExploreClient({
                     </div>
                     
                     {/* Name */}
-                    <div className="flex-1 min-w-[180px] flex items-center ml-2">
+                    <div className="flex-1 min-w-[180px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
                       <span className="text-[15px] font-extrabold text-primary leading-none">{item.apt.name}</span>
                       {item.photoCount > 0 && (
-                        <span className="ml-2 px-1.5 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-bold rounded-md leading-none flex items-center shrink-0">
+                        <span className="px-1.5 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-bold rounded-md leading-none flex items-center shrink-0">
                           <Camera className="w-3 h-3 mr-1 inline-block" />
                           사진 {item.photoCount}장
+                        </span>
+                      )}
+                      {item.likes > 0 && (
+                        <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-500 text-[11px] font-bold rounded-md leading-none flex items-center shrink-0">
+                          <Heart className="w-3 h-3 mr-1 fill-rose-500" />
+                          관심 {item.likes}
                         </span>
                       )}
                     </div>
@@ -456,6 +472,11 @@ export default function TossApartmentExploreClient({
                               <Camera className="w-2.5 h-2.5 mr-0.5 inline-block" />{item.photoCount}
                             </span>
                           )}
+                          {item.likes > 0 && (
+                            <span className="px-1.5 py-[2px] bg-rose-50 dark:bg-rose-950/20 text-rose-500 text-[10px] font-bold rounded flex items-center shrink-0">
+                              <Heart className="w-2.5 h-2.5 mr-0.5 fill-rose-500" />{item.likes}
+                            </span>
+                          )}
                           <span>{item.apt.dong}</span>
                         </div>
                         <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-1.5 text-[13px] text-tertiary font-medium">
@@ -482,7 +503,7 @@ export default function TossApartmentExploreClient({
                       </span>
                       {item.volume3M > 0 && (
                         <span className="text-[12px] text-secondary mt-1">
-                          거래 {item.volume3M}건
+                          거래 {item.volume3M}건 {item.turnoverRate > 0 && `/ 회전율 ${item.turnoverRate.toFixed(1)}%`}
                         </span>
                       )}
                     </div>
@@ -555,6 +576,11 @@ export default function TossApartmentExploreClient({
                     label="최근 거래량 많은 순" 
                     active={currentCategory === 'rank-volume'} 
                     onClick={() => { setCurrentCategory('rank-volume'); setIsMobileMenuOpen(false); }} 
+                  />
+                  <MobileSidebarItem 
+                    label="회전율 높은 순" 
+                    active={currentCategory === 'rank-turnover'} 
+                    onClick={() => { setCurrentCategory('rank-turnover'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
                     label="조회수 많은 순" 
