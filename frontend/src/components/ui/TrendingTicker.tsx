@@ -59,7 +59,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="text-[13px] font-black text-teal-500 w-[32px] text-left shrink-0 whitespace-nowrap">{item.rank}위</span>
                     {item.dong && (
-                      <span className="text-[10px] font-extrabold text-secondary bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded shrink-0 h-4 flex items-center">
+                      <span className="text-[10px] font-extrabold text-secondary bg-zinc-100 dark:bg-zinc-800 rounded shrink-0 h-4 w-[42px] flex items-center justify-center">
                         {item.dong}
                       </span>
                     )}
@@ -122,7 +122,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
                   {idx + 1}
                 </span>
                 {item.dong && (
-                  <span className="text-[11px] font-bold text-tertiary bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded shrink-0">
+                  <span className="text-[11px] font-bold text-tertiary bg-zinc-100 dark:bg-zinc-800 rounded shrink-0 w-[44px] h-[20px] inline-flex items-center justify-center">
                     {item.dong}
                   </span>
                 )}
