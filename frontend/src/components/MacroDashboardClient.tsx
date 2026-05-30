@@ -336,6 +336,14 @@ export default function MacroDashboardClient({
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isTooltipActive, setIsTooltipActive] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+    }
+  }, []);
+
   const [chartMode, setChartMode] = useState<string>("30");
   const [accordionMode, setAccordionMode] = useState<"price" | "pyeong">("price");
   const [timeframe, setTimeframe] = useState<
@@ -1527,7 +1535,7 @@ interface GroupedCategory {
                         width={40}
                       />
                       <RechartsTooltip
-                        active={isTooltipActive}
+                        active={isTouchDevice ? isTooltipActive : undefined}
                         content={<CustomTooltip />}
                         cursor={{
                           stroke: "var(--border-color)",
