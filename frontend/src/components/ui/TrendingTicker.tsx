@@ -99,7 +99,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
         >
           <div className="flex items-center justify-between px-2 py-1.5 border-b border-border/60 mb-2">
             <span className="text-[13px] font-black text-primary flex items-center gap-1">
-              <span>📈</span> 실시간 급상승 인기 단지
+              실시간 급상승 인기 단지
             </span>
             <span className="text-[11px] text-tertiary font-bold">D-VIEW 관심도 및 거래 기준</span>
           </div>
