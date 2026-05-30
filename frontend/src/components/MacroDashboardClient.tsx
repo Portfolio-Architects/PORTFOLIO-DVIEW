@@ -1481,7 +1481,7 @@ interface GroupedCategory {
               </div>
 
               <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] min-h-[260px] relative">
-                <ResponsiveContainer width="100%" height={260} minWidth={1} minHeight={1}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <LineChart
                       data={lineData}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
