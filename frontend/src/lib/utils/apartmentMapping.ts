@@ -124,6 +124,26 @@ function stripLocationPrefix(normalized: string): string {
   return current;
 }
 
+const LOCATION_SUFFIXES = [
+  '동탄2신도시', '동탄신도시', '2신도시', '신도시', '동탄역', '동탄2', '동탄'
+];
+
+function stripLocationSuffix(normalized: string): string {
+  let current = normalized;
+  let replaced = true;
+  while (replaced) {
+    replaced = false;
+    for (const suffix of LOCATION_SUFFIXES) {
+      if (current.endsWith(suffix) && current.length > suffix.length) {
+        current = current.slice(0, -suffix.length);
+        replaced = true;
+        break;
+      }
+    }
+  }
+  return current;
+}
+
 /**
  * 심층 정규화: 다양한 명칭 차이를 통일
  * - "산척동," 등 TX 키의 동명 콤마 접두사 제거
@@ -158,13 +178,6 @@ function deepNormalize(name: string): string {
   result = result.replace(/스위콈/g, '스위첸');
   result = result.replace(/케이씨씨/g, 'KCC');
   result = result.replace(/S클래스/g, '에스클래스');
-  // Remove regional keywords to focus on the core apartment brand
-  result = result.replace(/동탄2신도시/g, '');
-  result = result.replace(/동탄신도시/g, '');
-  result = result.replace(/동탄역/g, '');
-  result = result.replace(/동탄2/g, '');
-  result = result.replace(/동탄/g, '');
-  result = result.replace(/신도시/g, '');
   return result;
 }
 
@@ -179,7 +192,12 @@ function deepNormalize(name: string): string {
  * @returns 매칭된 키 (없으면 null)
  */
 
-export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMapping?: Record<string, string>): string | null {
+export function findTxKey<T>(
+  aptName: string, 
+  txMap: Record<string, T>, 
+  manualMapping?: Record<string, string>,
+  isRetry = false
+): string | null {
   if (!aptName || !txMap) return null;
   const norm = normalizeAptName(aptName);
 
@@ -191,7 +209,13 @@ export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMa
 
   // 0.5단계: 하드코딩 매핑
   const hardcoded = HARDCODED_MAPPING[norm];
-  if (hardcoded && hardcoded in normalizedTxMap) return normalizedTxMap[hardcoded];
+  if (hardcoded) {
+    if (hardcoded in normalizedTxMap) return normalizedTxMap[hardcoded];
+    if (!isRetry) {
+      const resolved = findTxKey(hardcoded, txMap, manualMapping, true);
+      if (resolved) return resolved;
+    }
+  }
 
   // 0단계: 수동 매핑 (최우선)
   if (manualMapping) {
@@ -202,21 +226,21 @@ export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMa
   // 1단계: 정확 매칭
   if (norm in normalizedTxMap) return normalizedTxMap[norm];
 
-  // 2단계: 접두사 제거 후 매칭
-  const stripped = stripLocationPrefix(norm);
+  // 2단계: 접두사 및 접미사 제거 후 매칭
+  const stripped = stripLocationSuffix(stripLocationPrefix(norm));
   if (stripped !== norm && stripped in normalizedTxMap) return normalizedTxMap[stripped];
 
   for (const key of Object.keys(txMap)) {
     const normKey = normalizeAptName(key);
-    if (stripLocationPrefix(normKey) === stripped) return key;
+    if (stripLocationSuffix(stripLocationPrefix(normKey)) === stripped) return key;
   }
 
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
   for (const key of Object.keys(txMap)) {
     const normKey = normalizeAptName(key);
-    const keyDeep = stripLocationPrefix(deepNormalize(normKey));
-    if (keyDeep === deepNorm || deepNormalize(stripLocationPrefix(normKey)) === deepNorm) return key;
+    const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
+    if (keyDeep === deepNorm || deepNormalize(stripLocationSuffix(stripLocationPrefix(normKey))) === deepNorm) return key;
   }
 
   return null;
