@@ -1,7 +1,7 @@
 import React from 'react';
 import ReportClient from '@/components/ReportClient';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export default async function AdminReportsPage() {
   return (

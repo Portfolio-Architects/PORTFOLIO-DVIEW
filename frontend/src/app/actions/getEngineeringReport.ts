@@ -8,7 +8,13 @@ export async function getEngineeringReport() {
   const reportMetadata = { date: '', grade: '', branch: '', status: '' };
   
   try {
-    const filePath = path.join(process.cwd(), 'src', 'data', 'engineering-report.md');
+    let filePath = path.join(process.cwd(), '..', 'PORTFOLIO DVIEW - Engineering Report.md');
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(process.cwd(), 'PORTFOLIO DVIEW - Engineering Report.md');
+    }
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(process.cwd(), 'src', 'data', 'engineering-report.md');
+    }
     const rawContent = fs.readFileSync(filePath, 'utf8');
 
     const lines = rawContent.split('\n');
