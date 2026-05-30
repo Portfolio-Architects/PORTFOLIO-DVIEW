@@ -14,7 +14,7 @@ export default function NotificationBanner() {
         onClick={() => setShowPwaGuide(true)}
         className="w-full flex items-center justify-between bg-surface border border-border dark:bg-slate-900/60 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm hover:opacity-95 transition-all text-primary dark:text-white"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-[#00d29d]/10 flex items-center justify-center text-[#00d29d] shrink-0">
             <Smartphone className="w-5 h-5" />
           </div>
