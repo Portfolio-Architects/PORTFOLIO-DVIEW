@@ -357,50 +357,50 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     
   const allApts = useMemo(() => rawApts.filter(a => !publicRentalSet.has(a.name)), [rawApts, publicRentalSet]);
 
-  const topApts = useMemo(() => {
-    const landmarks = [
-      '동탄역 롯데캐슬',
-      '동탄역 시범우남퍼스트빌',
-      '동탄역 시범더샵센트럴시티',
-      '동탄역 시범한화꿈에그린프레스티지',
-      '힐스테이트 동탄역',
-      '동탄역 파라곤',
-      '동탄역 반도유보라아이비파크',
-      '동탄역 삼정그린코아더베스트',
-      '동탄역 예미지 3차',
-      '동탄레이크자이더테라스'
-    ];
+  const popularAptItems = useMemo(() => {
+    if (!sheetApartments || !favoriteCounts || !txSummary) return [];
 
-    const aptScores = new Map<string, number>();
-    
-    landmarks.forEach((name, idx) => {
-      aptScores.set(name, (10 - idx) * 10);
+    const apts = Object.values(sheetApartments)
+      .flat()
+      .filter((apt) => !publicRentalSet.has(apt.name));
+
+    const items = apts.map((apt) => {
+      const favCount = favoriteCounts[apt.name] || 0;
+      const txKey = findTxKey(apt.name, txSummary, nameMapping);
+      const summary = txKey ? txSummary[txKey] : undefined;
+      const avg3M = summary?.avg3MTxCount || 0;
+      const latestPrice = summary?.latestPriceEok || "";
+      const dong = apt.dong || summary?.dong || "";
+      return {
+        name: apt.name,
+        dong,
+        favCount,
+        avg3M,
+        latestPrice,
+      };
     });
 
-    if (favoriteCounts) {
-      Object.entries(favoriteCounts).forEach(([name, count]) => {
-        const current = aptScores.get(name) || 0;
-        aptScores.set(name, current + count * 100);
-      });
-    }
+    // 1차: 관심 등록 수(favCount) 내림차순, 2차: 3개월 거래 회전율(avg3M) 내림차순
+    items.sort((a, b) => {
+      if (b.favCount !== a.favCount) return b.favCount - a.favCount;
+      return b.avg3M - a.avg3M;
+    });
 
-    const sorted = Array.from(aptScores.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
+    const sliced = items.slice(0, 5);
 
-    return sorted.map(([name], index) => {
-      const hash = name.length + index;
+    return sliced.map((item, index) => {
+      const hash = item.name.length + index;
       const change: 'up' | 'down' | 'same' = hash % 3 === 0 ? 'up' : (hash % 3 === 1 ? 'down' : 'same');
       const changeValue = (hash % 4) + 1;
       
       return {
-        name,
+        ...item,
         rank: index + 1,
         change,
         changeValue
       };
     });
-  }, [favoriteCounts]);
+  }, [sheetApartments, favoriteCounts, txSummary, nameMapping, publicRentalSet]);
 
   const enrichedApts = useMemo(() => {
     return allApts.map(apt => {
@@ -551,7 +551,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </header>
 
       {/* 실시간 인기 아파트 티커 */}
-      <TrendingTicker topApts={topApts} onSelectApt={handleAptClickByName} />
+      <TrendingTicker popularAptItems={popularAptItems} onSelectApt={handleAptClickByName} />
 
       {/* Main Container */}
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500">
