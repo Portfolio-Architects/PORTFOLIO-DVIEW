@@ -31,6 +31,11 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '동탄호수공원금호어울림레이크1차': '금호어울림레이크',
   '능동역센트럴경남아너스빌': '동탄숲속마을자연앤경남아너스빌1115-0',
   '능동역경남아너스빌': '동탄숲속마을자연앤경남아너스빌1124-0',
+  '동탄역동원로얄듀크비스타': '동탄역동원로얄듀크비스타3차',
+  '그린힐반도유보라아이비파크101단지': '산척동그린힐반도유보라아이비파크10',
+  '센트럴힐조동탄': '여울동센트럴힐즈',
+  '동탄2신도시금강펜테리움': '여울동금강펜테리움센트럴파크',
+  '동탄나루마을동탄역유보라': '나루마을동탄역유보라여울숲1.0',
 };
 
 const DISPLAY_NAME_MAPPING: Record<string, string> = {
@@ -92,9 +97,9 @@ const LOCATION_PREFIXES = [
   // 5글자
   '화성동탄2', '호수공원역', '솔빛마을', '예당마을', '새강마을', '동탄역시범', '한빛마을', '다은마을', '나루마을', '숲속마을', '푸른마을',
   // 4글자
-  '동탄호수', '동탄역', '능동역', '반송동', '석우동', '청계동', '영천동', '오산동', '산척동', '장지동', '방교동', '금곡동',
+  '동탄호수', '동탄역', '능동역', '반송동', '석우동', '청계동', '영천동', '오산동', '산척동', '장지동', '방교동', '금곡동', '여울동', '호수공원',
   // 3글자
-  '동탄2', '능동', '신동', '목동', '송동', '시범', '한빛', '다은', '나루', '숲속', '푸른', '예당', '솔빛', '새강',
+  '동탄2', '능동', '신동', '목동', '송동', '시범', '한빛', '다은', '나루', '숲속', '푸른', '예당', '솔빛', '새강', '여울',
   // 2글자
   '동탄',
 ];
@@ -152,6 +157,14 @@ function deepNormalize(name: string): string {
   // 명칭 통일 (앱 ↔ 실거래DB 표기 차이)
   result = result.replace(/스위콈/g, '스위첸');
   result = result.replace(/케이씨씨/g, 'KCC');
+  result = result.replace(/S클래스/g, '에스클래스');
+  // Remove regional keywords to focus on the core apartment brand
+  result = result.replace(/동탄2신도시/g, '');
+  result = result.replace(/동탄신도시/g, '');
+  result = result.replace(/동탄역/g, '');
+  result = result.replace(/동탄2/g, '');
+  result = result.replace(/동탄/g, '');
+  result = result.replace(/신도시/g, '');
   return result;
 }
 
@@ -167,39 +180,43 @@ function deepNormalize(name: string): string {
  */
 
 export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMapping?: Record<string, string>): string | null {
+  if (!aptName || !txMap) return null;
   const norm = normalizeAptName(aptName);
+
+  // Helper map: normalized key -> original key in txMap
+  const normalizedTxMap: Record<string, string> = {};
+  for (const key of Object.keys(txMap)) {
+    normalizedTxMap[normalizeAptName(key)] = key;
+  }
 
   // 0.5단계: 하드코딩 매핑
   const hardcoded = HARDCODED_MAPPING[norm];
-  if (hardcoded && hardcoded in txMap) return hardcoded;
+  if (hardcoded && hardcoded in normalizedTxMap) return normalizedTxMap[hardcoded];
 
   // 0단계: 수동 매핑 (최우선)
   if (manualMapping) {
-    // Check raw first, then normalized
     const mapped = manualMapping[aptName] || manualMapping[norm];
-    if (mapped && mapped in txMap) return mapped;
+    if (mapped && mapped in normalizedTxMap) return normalizedTxMap[mapped];
   }
 
   // 1단계: 정확 매칭
-  if (norm in txMap) return norm;
+  if (norm in normalizedTxMap) return normalizedTxMap[norm];
 
   // 2단계: 접두사 제거 후 매칭
   const stripped = stripLocationPrefix(norm);
-  if (stripped !== norm && stripped in txMap) return stripped;
+  if (stripped !== norm && stripped in normalizedTxMap) return normalizedTxMap[stripped];
 
   for (const key of Object.keys(txMap)) {
-    if (stripLocationPrefix(key) === stripped) return key;
+    const normKey = normalizeAptName(key);
+    if (stripLocationPrefix(normKey) === stripped) return key;
   }
 
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
   for (const key of Object.keys(txMap)) {
-    // deepNormalize removes '산척동,' BEFORE stripLocationPrefix removes '동탄호수'
-    const keyDeep = stripLocationPrefix(deepNormalize(key));
-    
-    // Fallback: compare exactly what the deepNorm has, 
-    // or compare deepNormalize(stripLocationPrefix(key)) just in case.
-    if (keyDeep === deepNorm || deepNormalize(stripLocationPrefix(key)) === deepNorm) return key;
+    const normKey = normalizeAptName(key);
+    const keyDeep = stripLocationPrefix(deepNormalize(normKey));
+    if (keyDeep === deepNorm || deepNormalize(stripLocationPrefix(normKey)) === deepNorm) return key;
   }
 
   return null;

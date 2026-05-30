@@ -180,7 +180,7 @@ export function useApartmentDetails(
     const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
     
     // Find location scores dynamically from public/data/location-scores.json
-    const matchKey = Object.keys(locationScores).find(k => isSameApartment(k, raw.apartmentName, nameMapping));
+    const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping);
     const locScore = matchKey ? locationScores[matchKey] : {};
 
     const mergedMetrics = { ...fallback, ...locScore };

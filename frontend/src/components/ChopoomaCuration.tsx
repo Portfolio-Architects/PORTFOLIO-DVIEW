@@ -50,7 +50,7 @@ export default function ChopoomaCuration({
     const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
     
     const enriched = allApts.map(apt => {
-      const scoreKey = Object.keys(locationScores).find(k => isSameApartment(k, apt.name, nameMapping)) || apt.name;
+      const scoreKey = findTxKey(apt.name, locationScores, nameMapping) || apt.name;
       const scoreData = locationScores[scoreKey];
       const dist = scoreData?.distanceToElementary;
       

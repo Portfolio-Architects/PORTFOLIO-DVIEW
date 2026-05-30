@@ -95,7 +95,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   
   const getLocScore = (aptName: string) => {
     if (!aptName || !locationScores) return {};
-    const matchKey = Object.keys(locationScores).find(k => isSameApartment(k, aptName, nameMapping));
+    const matchKey = findTxKey(aptName, locationScores, nameMapping);
     return matchKey ? locationScores[matchKey] : {};
   };
   
