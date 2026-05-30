@@ -1,163 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bell, Smartphone, Check, X, ChevronRight } from 'lucide-react';
+import { Smartphone, X, ChevronRight } from 'lucide-react';
 
 export default function NotificationBanner() {
-  const [subscribed, setSubscribed] = useState(false);
-  const [email, setEmail] = useState('');
   const [showPwaGuide, setShowPwaGuide] = useState(false);
-  const [types, setTypes] = useState({
-    realtime: true,
-  });
-  const [loading, setLoading] = useState(false);
-  const [agreePrivacy, setAgreePrivacy] = useState(false);
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !email.includes('@')) {
-      alert('올바른 이메일 주소를 입력해주세요.');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const response = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          types: {
-            realtime: types.realtime,
-            weekly: false,
-          },
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setSubscribed(true);
-      } else {
-        alert(data.error || '구독 신청 중 오류가 발생했습니다.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('서버와 통신하는 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
-    <div className="w-full bg-surface border border-border dark:bg-slate-900/60 dark:border-slate-800/80 text-primary rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden transition-all duration-300">
-      {/* Decorative Glow */}
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-toss-blue/5 dark:bg-toss-blue/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-[#00d29d]/5 dark:bg-[#00d29d]/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="max-w-[1000px] mx-auto w-full flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between relative z-10">
-        
-        {/* Left Section: Info */}
-        <div className="lg:flex-1 flex flex-col justify-start gap-4 w-full">
-          <div>
-            <h3 className="text-[18px] md:text-[20px] font-black leading-tight tracking-tight text-primary dark:text-white">
-              실시간 실거래 알림 받기
-            </h3>
-            <p className="text-[12px] md:text-[13px] text-secondary dark:text-slate-300 mt-2 font-medium break-keep leading-relaxed">
-              관심 단지의 신규 실거래가 등록 소식을 놓치지 말고 받아보세요.
-            </p>
+    <div className="md:hidden w-full px-4 mb-6">
+      {/* PWA 설치 유도 바 */}
+      <button
+        type="button"
+        onClick={() => setShowPwaGuide(true)}
+        className="w-full flex items-center justify-between bg-surface border border-border dark:bg-slate-900/60 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm hover:opacity-95 transition-all text-primary dark:text-white"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#00d29d]/10 flex items-center justify-center text-[#00d29d] shrink-0">
+            <Smartphone className="w-5 h-5" />
           </div>
- 
-          {/* Interactive Checkboxes */}
-          <div className="flex flex-wrap gap-4 mt-2">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={types.realtime}
-                onChange={() => setTypes({ ...types, realtime: !types.realtime })}
-                className="w-4.5 h-4.5 rounded border-border bg-body text-toss-blue focus:ring-toss-blue focus:ring-offset-background dark:border-slate-700 dark:bg-slate-800"
-              />
-              <span className="text-[12px] font-semibold text-secondary dark:text-slate-200">실시간 실거래 알림</span>
-            </label>
+          <div className="flex flex-col text-left min-w-0">
+            <span className="text-[13px] font-black tracking-tight">D-VIEW 앱 홈 화면에 설치하기</span>
+            <span className="text-[11px] text-secondary mt-0.5 font-medium truncate">앱처럼 편리하게 실거래 알림과 대시보드를 이용해 보세요.</span>
           </div>
         </div>
-
-        {/* Right Section: Form or Success */}
-        <div className="w-full max-w-[360px] lg:flex-1 flex flex-col justify-center min-w-0 sm:min-w-[280px] bg-body/30 dark:bg-white/5 border border-border dark:border-white/10 rounded-2xl p-4 md:p-5">
-          {subscribed ? (
-            <div className="flex flex-col items-center justify-center text-center py-4">
-              <div className="w-10 h-10 rounded-full bg-[#00d29d]/20 flex items-center justify-center text-[#00d29d] mb-3 animate-bounce">
-                <Check className="w-5 h-5" />
-              </div>
-              <p className="text-[14px] font-bold text-primary dark:text-white">알림 신청이 완료되었습니다!</p>
-              <p className="text-[11px] text-secondary dark:text-slate-400 mt-1">
-                입력하신 이메일({email})로 신규 소식을 발송해 드릴 예정입니다.
-              </p>
-              <button 
-                onClick={() => { setSubscribed(false); setEmail(''); }}
-                className="mt-4 text-[11px] font-bold text-tertiary hover:text-primary dark:text-slate-400 dark:hover:text-white underline transition-colors"
-              >
-                다른 정보로 재신청
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
-              <span className="text-[11px] font-bold text-tertiary dark:text-slate-400">알림 이메일 등록</span>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 min-w-0 bg-surface border border-border dark:bg-slate-950/60 dark:border-slate-700 rounded-xl px-3 py-2 text-[13px] placeholder-tertiary focus:outline-none focus:ring-1 focus:ring-toss-blue text-primary dark:text-white"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !agreePrivacy}
-                  className="bg-toss-blue hover:opacity-90 disabled:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-[12px] rounded-xl px-4 py-2 flex items-center gap-1.5 transition-all shrink-0 shadow-lg shadow-toss-blue/10 dark:shadow-toss-blue/20"
-                >
-                  <Bell className="w-3.5 h-3.5" />
-                  <span>{loading ? '구독 중...' : '구독'}</span>
-                </button>
-              </div>
-
-              {/* 개인정보 수집 및 이용 동의 */}
-              <label className="flex items-start gap-2 mt-1 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  required
-                  checked={agreePrivacy}
-                  onChange={(e) => setAgreePrivacy(e.target.checked)}
-                  className="w-4 h-4 rounded border-border bg-body text-toss-blue focus:ring-toss-blue focus:ring-offset-background dark:border-slate-700 dark:bg-slate-800 mt-0.5"
-                />
-                <span className="text-[11px] font-semibold text-secondary leading-normal dark:text-slate-300">
-                  개인정보 수집 및 이용에 동의합니다 (필수)
-                  <span className="block text-[9.5px] text-tertiary dark:text-slate-400 font-medium">
-                    수집항목: 이메일 주소 | 보유기간: 알림 해지 시 즉시 파기
-                  </span>
-                </span>
-              </label>
-              
-              <div className="w-full h-[1px] bg-border dark:bg-slate-800 my-1" />
-
-              {/* PWA Button */}
-              <button
-                type="button"
-                onClick={() => setShowPwaGuide(true)}
-                className="w-full flex items-center justify-between text-left text-secondary hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-[#00d29d]" />
-                  <span className="text-[12px] font-bold">D-VIEW 앱 홈 화면에 설치하기</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-tertiary" />
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
+        <ChevronRight className="w-5 h-5 text-tertiary shrink-0" />
+      </button>
 
       {/* PWA Guide Modal Overlay */}
       {showPwaGuide && (
