@@ -187,6 +187,10 @@ export function useApartmentDetails(
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {
+          // If v is an empty object (like empty categories/schools), do not overwrite the populated values
+          if (typeof v === 'object' && v !== null && Object.keys(v).length === 0) {
+            continue;
+          }
           mergedMetrics[k] = v;
         }
       }
