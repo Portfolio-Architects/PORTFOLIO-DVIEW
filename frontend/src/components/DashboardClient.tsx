@@ -389,15 +389,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     const sliced = items.slice(0, 5);
 
     return sliced.map((item, index) => {
-      const hash = item.name.length + index;
-      const change: 'up' | 'down' | 'same' = hash % 3 === 0 ? 'up' : (hash % 3 === 1 ? 'down' : 'same');
-      const changeValue = (hash % 4) + 1;
-      
       return {
         ...item,
         rank: index + 1,
-        change,
-        changeValue
       };
     });
   }, [sheetApartments, favoriteCounts, txSummary, nameMapping, publicRentalSet]);

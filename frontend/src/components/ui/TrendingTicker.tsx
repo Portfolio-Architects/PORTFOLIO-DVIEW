@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Flame, Triangle, Minus, ChevronDown } from 'lucide-react';
+import { Flame, ChevronDown } from 'lucide-react';
 
 export interface PopularAptItem {
   name: string;
@@ -10,8 +10,6 @@ export interface PopularAptItem {
   avg3M: number;
   latestPrice: string;
   rank: number;
-  change?: 'up' | 'down' | 'same';
-  changeValue?: number;
 }
 
 interface TrendingTickerProps {
@@ -32,32 +30,6 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
   }, [popularAptItems, isHovered]);
 
   if (!popularAptItems || popularAptItems.length === 0) return null;
-
-  const currentApt = popularAptItems[currentIndex];
-
-  const renderChangeBadge = (change?: 'up' | 'down' | 'same', value?: number) => {
-    if (change === 'up') {
-      return (
-        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#f04452] bg-[#f04452]/8 dark:bg-[#f04452]/20 px-2 py-0.5 rounded-full border border-[#f04452]/15 shrink-0 ml-1.5 align-middle h-[16px]">
-          <Triangle size={7.5} className="fill-[#f04452] text-[#f04452] shrink-0 -translate-y-[0.2px]" />
-          <span className="tabular-nums leading-none text-[#f04452] font-black">{value || 1}</span>
-        </span>
-      );
-    }
-    if (change === 'down') {
-      return (
-        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#3182f6] bg-[#3182f6]/8 dark:bg-[#3182f6]/20 px-2 py-0.5 rounded-full border border-[#3182f6]/15 shrink-0 ml-1.5 align-middle h-[16px]">
-          <Triangle size={7.5} className="fill-[#3182f6] text-[#3182f6] rotate-180 shrink-0 translate-y-[0.2px]" />
-          <span className="tabular-nums leading-none text-[#3182f6] font-black">{value || 1}</span>
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-bold text-tertiary bg-body px-1.5 py-0.5 rounded-full border border-border/40 shrink-0 ml-1.5 align-middle h-[16px]">
-        <Minus size={8} className="text-tertiary shrink-0" />
-      </span>
-    );
-  };
 
   return (
     <div 
@@ -94,7 +66,6 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
                     <span className="text-[13px] font-bold text-primary truncate hover:text-teal-500 transition-colors">
                       {item.name}
                     </span>
-                    {renderChangeBadge(item.change, item.changeValue)}
                   </div>
                   
                   <div className="hidden sm:flex items-center gap-3 shrink-0 ml-4 text-[12px]">
@@ -158,7 +129,6 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
                 <span className="text-[13.5px] font-bold text-secondary group-hover/item:text-primary group-hover/item:font-extrabold truncate">
                   {item.name}
                 </span>
-                {renderChangeBadge(item.change, item.changeValue)}
               </div>
               <div className="flex items-center gap-3 shrink-0 ml-4 text-[12.5px]">
                 {item.latestPrice && (
