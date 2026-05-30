@@ -2147,8 +2147,10 @@ interface GroupedCategory {
           />
         </div>
 
-        {/* 하단 패딩 여백 */}
-        <div className="h-4" />
+        {/* 권역별 분류와 뉴스 피드 사이의 구분선 */}
+        <div className="w-full my-8 md:my-12">
+          <div className="w-full h-[1px] bg-border dark:bg-slate-800/80" />
+        </div>
 
         {/* Dongtan Market Insights (News Section) */}
         <div className="mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8">
