@@ -1236,7 +1236,7 @@ interface GroupedCategory {
             데이터 기반 <span className="text-[#00d29d] font-extrabold px-0.5">동탄 아파트</span> 가치 분석
           </>
         }
-        subtitleLight=""
+        subtitleLight="실시간 실거래 분석과 입지 점수로 보는 동탄의 오늘"
         rightContent={
           onOpenAdModal && (
             <button
