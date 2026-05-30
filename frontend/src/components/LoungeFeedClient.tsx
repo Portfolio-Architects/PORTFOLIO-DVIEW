@@ -394,7 +394,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 {/* Desktop Meta */}
                 <div className="hidden sm:flex items-center gap-4 shrink-0">
                   <span className="w-[115px] text-[13px] font-extrabold text-emerald-600 tracking-wide text-center bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1.5 rounded-lg truncate border border-emerald-100 dark:border-emerald-900/30">{notice.dept}</span>
-                  <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{notice.date}</span>
+                  <span className="w-[96px] text-[14px] font-semibold text-tertiary text-center shrink-0">{notice.date}</span>
                 </div>
                 
                 <div className="flex-1 min-w-0">
