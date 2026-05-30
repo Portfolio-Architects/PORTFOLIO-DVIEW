@@ -126,7 +126,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   }, [currentTab, newsData.length]);
 
   useEffect(() => {
-    if (currentTab === '동탄구청 소식' && noticesData.length === 0) {
+    if (currentTab === '동탄구 소식' && noticesData.length === 0) {
       setNoticesLoading(true);
       fetch("/api/local-notices")
         .then(res => res.json())
@@ -216,7 +216,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     return () => observer.disconnect();
   }, [loadMorePosts]);
 
-  const filteredPosts = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구청 소식')
+  const filteredPosts = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
     ? []
     : posts.filter((p) => (CATEGORY_MAP[currentTab] || [currentTab]).includes(p.category || '기타'));
 
@@ -350,7 +350,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     );
   }
 
-  if (currentTab === '동탄구청 소식') {
+  if (currentTab === '동탄구 소식') {
     return (
       <div className="flex flex-col gap-4 w-full">
         {noticesLoading ? (

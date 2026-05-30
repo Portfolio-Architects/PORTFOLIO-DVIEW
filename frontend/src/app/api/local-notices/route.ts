@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const filterDongtan = searchParams.get('dongtan') === 'true';
+    const filterDongtan = searchParams.get('dongtan') !== 'false';
 
     const query = db.collection('local_notices')
       .orderBy('date', 'desc')

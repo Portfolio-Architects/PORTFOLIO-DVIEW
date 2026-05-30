@@ -81,19 +81,21 @@ export async function GET(request: Request) {
 
         if (id && title && link) {
           const isDongtan = checkIfDongtan(title, dept);
-          const absoluteUrl = link.startsWith('http') 
-            ? link 
-            : `https://www.hscity.go.kr${link}`;
+          if (isDongtan) {
+            const absoluteUrl = link.startsWith('http') 
+              ? link 
+              : `https://www.hscity.go.kr${link}`;
 
-          notices.push({
-            id,
-            title,
-            url: absoluteUrl,
-            dept,
-            date,
-            isDongtan,
-            createdAt: new Date().toISOString()
-          });
+            notices.push({
+              id,
+              title,
+              url: absoluteUrl,
+              dept,
+              date,
+              isDongtan: true,
+              createdAt: new Date().toISOString()
+            });
+          }
         }
       });
     }
