@@ -181,17 +181,40 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
     }
   }
   
+  const aptSummary = TX_SUMMARY[decodedName];
+  const txs = getApartmentTransactions(decodedName);
+  const pyeongSummaries = getPyeongSummaries(txs);
+  
   // Dynamic OG Image URL
   const ogUrl = new URL(`${baseUrl}/api/og`);
   ogUrl.searchParams.set('title', decodedName);
-  ogUrl.searchParams.set('subtitle', '동탄 실거래가 및 가치 분석');
+  
+  let subtitleText = '동탄 실거래가 및 가치 분석';
+  if (aptSummary?.dong) {
+    subtitleText = `동탄구 ${aptSummary.dong} · 실거래 가치 분석 리포트`;
+  }
+  ogUrl.searchParams.set('subtitle', subtitleText);
+  
   if (imageUrl) {
     ogUrl.searchParams.set('bgUrl', imageUrl);
   }
   
-  const aptSummary = TX_SUMMARY[decodedName];
-  const txs = getApartmentTransactions(decodedName);
-  const pyeongSummaries = getPyeongSummaries(txs);
+  if (aptSummary?.latestPrice) {
+    ogUrl.searchParams.set('price', formatPriceEok(aptSummary.latestPrice));
+  }
+  
+  const salesVal = aptSummary ? (aptSummary.avg3MPrice || aptSummary.avg1MPrice || aptSummary.latestPrice || 0) : 0;
+  const jeonseVal = aptSummary ? (aptSummary.avg3MRentDeposit || aptSummary.avg1MRentDeposit || aptSummary.latestRentDeposit || 0) : 0;
+  const ratioPercent = salesVal > 0 && jeonseVal > 0 ? Math.round((jeonseVal / salesVal) * 100) : 0;
+  if (ratioPercent > 0) {
+    ogUrl.searchParams.set('ratio', ratioPercent.toString());
+  }
+  
+  const maxPriceVal = aptSummary?.maxPrice || 0;
+  const latestPriceVal = aptSummary?.latestPrice || 0;
+  const isHigh = latestPriceVal > 0 && maxPriceVal > 0 && latestPriceVal >= maxPriceVal - 500;
+  const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 ? '갭투자추천' : '인기단지');
+  ogUrl.searchParams.set('status', statusStr);
   
   let seoTitle = '';
   if (pyeongSummaries.length > 0) {

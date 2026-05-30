@@ -194,7 +194,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     );
     const rentData = payload.find(
       (p) =>
-        p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전월세가",
+        p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전세가",
     );
 
     const salePrice = saleData?.value || 0;
@@ -213,7 +213,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         {payload.map((entry, index: number) => {
           const isRent =
             entry.dataKey === "동탄 아파트 전세 평균" ||
-            entry.name === "평균 전월세가";
+            entry.name === "평균 전세가";
           return (
             <div
               key={index}
@@ -647,12 +647,11 @@ export default function MacroDashboardClient({
       days: 999,
       val: 0,
     };
-    let bestDrop = {
+    let bestJeonse = {
       name: "-",
-      dropPrice: "",
-      dropPercent: "",
-      days: 999,
-      pct: 0,
+      ratioPercent: "0%",
+      gapText: "-",
+      val: 0,
     };
 
     if (!sheetApartments) {
@@ -664,9 +663,9 @@ export default function MacroDashboardClient({
         },
         card2: {
           name: "-",
-          dropPrice: "-",
-          dropPercent: "0%",
-          label: "최근 7일 최대 낙폭",
+          ratio: "0%",
+          gapText: "-",
+          label: "최근 90일 최고 전세가율",
         },
       };
     }
@@ -678,17 +677,17 @@ export default function MacroDashboardClient({
         const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
         if (txKey && txSummaryData[txKey]) {
           const sum = txSummaryData[txKey];
+          
+          // A. New High (within 500k won margin of peak) in last 90 days
           if (sum.recent) {
             sum.recent.forEach((tx) => {
               const dt = parseDateHelper(tx.date, sum.latestDate);
               if (dt) {
                 const diffMs = maxDateTime - dt.getTime();
                 const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-                // Only inspect past 90 days to avoid stale data
                 if (diffDays >= 0 && diffDays <= 90) {
                   const price = parsePriceEokHelper(tx.priceEok);
                   const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
-                  // A. New High (within 500k won margin of peak)
                   if (price > 0 && maxPriceEokVal > 0 && price >= maxPriceEokVal - 0.05) {
                     const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
                     const bestWindow = Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7);
@@ -706,34 +705,44 @@ export default function MacroDashboardClient({
                       };
                     }
                   }
-                  // B. Price Drop from peak
-                  if (price > 0 && maxPriceEokVal > 0) {
-                    const dropPct = ((price - maxPriceEokVal) / maxPriceEokVal) * 100;
-                    if (dropPct < -1.0) {
-                      const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
-                      const bestWindow = Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7);
-                      if (
-                        bestDrop.name === "-" ||
-                        currentWindow < bestWindow ||
-                        (currentWindow === bestWindow && dropPct < bestDrop.pct)
-                      ) {
-                        const diffPrice = maxPriceEokVal - price;
-                        const fmtDiff = formatEokWithUnit(diffPrice * 10000);
-                        const unitStr =
-                          fmtDiff.unit === "만원" ? "만" : fmtDiff.unit === "원" ? "" : fmtDiff.unit;
-                        bestDrop = {
-                          name: apt.name,
-                          dropPrice: `-${fmtDiff.value}${unitStr}`,
-                          dropPercent: `${dropPct.toFixed(1)}%`,
-                          days: diffDays,
-                          pct: dropPct,
-                        };
-                      }
-                    }
-                  }
                 }
               }
             });
+          }
+
+          // B. Highest Lease-to-Sale Ratio (전세가율) in last 90 days
+          let hasRecentTx = false;
+          if (sum.recent) {
+            for (let i = 0; i < sum.recent.length; i++) {
+              const dt = parseDateHelper(sum.recent[i].date, sum.latestDate);
+              if (dt) {
+                const diffMs = maxDateTime - dt.getTime();
+                const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+                if (diffDays >= 0 && diffDays <= 90) {
+                  hasRecentTx = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (hasRecentTx) {
+            const sales = sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0;
+            const jeonse = sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0;
+            if (sales > 0 && jeonse > 0) {
+              const ratio = jeonse / sales;
+              if (ratio > bestJeonse.val && ratio < 1.0) {
+                const gapVal = sales - jeonse;
+                const fmtGap = formatEokWithUnit(gapVal);
+                const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
+                bestJeonse = {
+                  name: apt.name,
+                  ratioPercent: `${(ratio * 100).toFixed(1)}%`,
+                  gapText: `갭 ${fmtGap.value}${gapUnitStr}`,
+                  val: ratio,
+                };
+              }
+            }
           }
         }
       });
@@ -743,10 +752,9 @@ export default function MacroDashboardClient({
     const card1Price = bestHigh.name !== "-" ? bestHigh.price : maxPriceEok;
     const card1Window = bestHigh.name !== "-" ? Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7) : 7;
 
-    const card2Name = bestDrop.name !== "-" ? bestDrop.name : maxPyeongAptName;
-    const card2DropPrice = bestDrop.name !== "-" ? bestDrop.dropPrice : "-";
-    const card2DropPercent = bestDrop.name !== "-" ? bestDrop.dropPercent : "0%";
-    const card2Window = bestDrop.name !== "-" ? Math.max(7, Math.ceil((bestDrop.days || 1) / 7) * 7) : 7;
+    const card2Name = bestJeonse.name !== "-" ? bestJeonse.name : maxPyeongAptName;
+    const card2Ratio = bestJeonse.name !== "-" ? bestJeonse.ratioPercent : "0%";
+    const card2GapText = bestJeonse.name !== "-" ? bestJeonse.gapText : "-";
 
     return {
       card1: {
@@ -756,9 +764,9 @@ export default function MacroDashboardClient({
       },
       card2: {
         name: card2Name,
-        dropPrice: card2DropPrice,
-        dropPercent: card2DropPercent,
-        label: `최근 ${card2Window}일 최대 낙폭`,
+        ratio: card2Ratio,
+        gapText: card2GapText,
+        label: "최근 90일 최고 전세가율",
       },
     };
   }, [
@@ -1176,6 +1184,53 @@ interface GroupedCategory {
     return result;
   }, [sheetApartments, txSummaryData, publicRentalSet]);
 
+  const { gapText, jeonseRateText, hasValues } = useMemo(() => {
+    if (!selectedAptSummary) return { gapText: "-", jeonseRateText: "-", hasValues: false };
+    const sale = selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0;
+    const rent = selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0;
+    if (sale > 0 && rent > 0) {
+      const gapVal = sale - rent;
+      const fmtGap = formatEokWithUnit(gapVal);
+      const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
+      const ratio = (rent / sale) * 100;
+      return {
+        gapText: `${fmtGap.value}${gapUnitStr}`,
+        jeonseRateText: `${ratio.toFixed(1)}%`,
+        hasValues: true
+      };
+    }
+    return { gapText: "-", jeonseRateText: "-", hasValues: false };
+  }, [selectedAptSummary]);
+
+  const yTicks = useMemo(() => {
+    if (!lineData || lineData.length === 0) return [0, 2, 4, 6, 8];
+    let maxVal = 0;
+    lineData.forEach((d) => {
+      const sale = d["동탄 아파트 전체"] || 0;
+      const rent = d["동탄 아파트 전세 평균"] || 0;
+      if (sale > maxVal) maxVal = sale;
+      if (rent > maxVal) maxVal = rent;
+    });
+
+    let step = 2;
+    if (maxVal <= 5) {
+      step = 1;
+    } else if (maxVal <= 12) {
+      step = 2;
+    } else if (maxVal <= 24) {
+      step = 4;
+    } else {
+      step = 5;
+    }
+
+    const roundedMax = Math.ceil(maxVal / step) * step;
+    const ticks = [];
+    for (let i = 0; i <= roundedMax + step; i += step) {
+      ticks.push(i);
+    }
+    return ticks;
+  }, [lineData]);
+
   return (
     <div className="w-full flex flex-col bg-surface relative">
       <PageHeroHeader 
@@ -1363,15 +1418,15 @@ interface GroupedCategory {
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      최근 7일(데이터 공백 시 최대 90일) 내 역대 최고가 대비 가장 큰 폭으로 하락하여 실거래된 단지입니다.
+                      최근 90일 내 실거래가 있는 단지 중 매매가 대비 전세가 비율(전세가율)이 가장 높아 매매 대비 전세 수요가 탄탄한 단지입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card1And2Data.card2.dropPrice}
-                badge={card1And2Data.card2.dropPercent}
+                value={card1And2Data.card2.ratio}
+                badge={card1And2Data.card2.gapText}
                 description={card1And2Data.card2.name}
-                color="#2e7cf6"
+                color="#0d9488"
                 onClick={() => {
                   if (onSelectApt && card1And2Data.card2.name && card1And2Data.card2.name !== "-") {
                     onSelectApt(card1And2Data.card2.name);
@@ -1435,7 +1490,7 @@ interface GroupedCategory {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                 <div className="flex flex-col gap-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-[15px] font-bold text-primary tracking-tight truncate max-w-[240px]">
+                    <h3 className="text-[15px] font-bold text-primary tracking-tight truncate max-w-[360px] sm:max-w-none">
                       {selectedTimelineApt ? `${selectedTimelineApt} 가격 추이` : "동탄 아파트 대표 가격 변화 추이"}
                     </h3>
                     {selectedTimelineApt && (
@@ -1447,12 +1502,6 @@ interface GroupedCategory {
                       </button>
                     )}
                   </div>
-                  <span className="text-[12px] text-tertiary font-semibold">
-                    {timeframe === "ALL"
-                      ? "전체 기간 "
-                      : `최근 ${timeframe.replace("M", "개월").replace("Y", "년")} `}
-                    {selectedTimelineApt ? "평균 거래가 추이 (추정)" : "국민평형(30~36평형) 실거래가 변동"}
-                  </span>
                 </div>
                 <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
                   {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
@@ -1470,16 +1519,17 @@ interface GroupedCategory {
                 </div>
               </div>
 
-              <div className="w-full h-[250px] md:flex-1 mt-2 sm:mt-0 min-h-[250px]">
+              <div className="w-full flex-grow mt-2 sm:mt-0 min-h-[260px] relative">
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <LineChart
                       data={lineData}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid
-                        strokeDasharray="3 3"
+                        strokeWidth={0.7}
                         vertical={false}
-                        stroke="var(--border-color)"
+                        horizontal={true}
+                        stroke="rgba(148, 163, 184, 0.25)"
                       />
                       <XAxis
                         dataKey="name"
@@ -1490,26 +1540,14 @@ interface GroupedCategory {
                         ticks={xTicks}
                       />
                       <YAxis
-                        yAxisId="left"
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
                         tickFormatter={(value: number) =>
-                          `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+                           value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
                         }
-                        domain={["auto", "auto"]}
-                        width={40}
-                      />
-                      <YAxis
-                        yAxisId="right"
-                        orientation="right"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
-                        tickFormatter={(value: number) =>
-                          `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-                        }
-                        domain={["auto", "auto"]}
+                        domain={[0, "auto"]}
+                        ticks={yTicks}
                         width={40}
                       />
                       <RechartsTooltip
@@ -1541,10 +1579,9 @@ interface GroupedCategory {
                         )}
                       />
                       <Line
-                        yAxisId="left"
                         key="동탄 아파트 전체"
                         type="monotone"
-                        name="평균 매매가(좌)"
+                        name="평균 매매가"
                         dataKey="동탄 아파트 전체"
                         stroke="#00d29d"
                         strokeWidth={4}
@@ -1557,10 +1594,9 @@ interface GroupedCategory {
                         activeDot={{ r: 7 }}
                       />
                       <Line
-                        yAxisId="right"
                         key="동탄 아파트 전세 평균"
                         type="monotone"
-                        name="평균 전월세가(우)"
+                        name="평균 전세가"
                         dataKey="동탄 아파트 전세 평균"
                         stroke="#f9a825"
                         strokeWidth={2}
@@ -1574,6 +1610,73 @@ interface GroupedCategory {
                       />
                     </LineChart>
                   </ResponsiveContainer>
+              </div>
+
+              {/* 개선된 여백 채우기용 슬림한 실거래 요약 바 */}
+              <div className="mt-3 pt-3 border-t border-border/60 flex-none">
+                {selectedAptSummary ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    {/* Left side: Metadata text */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                      <span className="text-[12px] sm:text-[12.5px] font-bold text-primary">실거래 요약</span>
+                      <span className="text-[10.5px] sm:text-[11px] text-tertiary font-medium">
+                        ({selectedAptSummary.dong || "동탄"} · 최근 90일 매매 {selectedAptSummary.txCount || 0}건)
+                      </span>
+                    </div>
+
+                    {/* Right side: Row indicators with clean dividers */}
+                    <div className="flex items-center gap-3 sm:gap-4 text-[11.5px] sm:text-[12px] font-bold text-secondary flex-wrap sm:self-auto self-start pl-3.5 sm:pl-0">
+                      <div className="flex items-center gap-1">
+                        <span className="text-tertiary font-semibold text-[10.5px] sm:text-[11px]">매매(3M)</span>
+                        <span className="text-primary font-extrabold">{selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}</span>
+                      </div>
+                      <span className="hidden sm:inline w-[1px] h-3 bg-border" />
+                      <div className="flex items-center gap-1">
+                        <span className="text-tertiary font-semibold text-[10.5px] sm:text-[11px]">전세(3M)</span>
+                        <span className="text-primary font-extrabold">{selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}</span>
+                      </div>
+                      {hasValues && (
+                        <>
+                          <span className="hidden sm:inline w-[1px] h-3 bg-border" />
+                          <div className="flex items-center gap-1">
+                            <span className="text-tertiary font-semibold text-[10.5px] sm:text-[11px]">투자 갭</span>
+                            <span className="text-toss-blue font-extrabold">{gapText} <span className="text-[10.5px] font-bold text-tertiary">({jeonseRateText})</span></span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    {/* Left side: Metadata text */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#3182f6]" />
+                      <span className="text-[12px] sm:text-[12.5px] font-bold text-primary">동탄 시장 요약</span>
+                      <span className="text-[10.5px] sm:text-[11px] text-tertiary font-medium">(최근 7일)</span>
+                    </div>
+
+                    {/* Right side: Row indicators */}
+                    <div className="flex items-center gap-3 sm:gap-4 text-[11.5px] sm:text-[12px] font-bold text-secondary flex-wrap sm:self-auto self-start pl-3.5 sm:pl-0">
+                      <div className="flex items-center gap-1">
+                        <span className="text-tertiary font-semibold text-[10.5px] sm:text-[11px]">실거래량</span>
+                        <span className="text-primary font-extrabold">{card3Data.currentCount}건</span>
+                      </div>
+                      <span className="hidden sm:inline w-[1px] h-3 bg-border" />
+                      <div className="flex items-center gap-1">
+                        <span className="text-tertiary font-semibold text-[10.5px] sm:text-[11px]">거래추세</span>
+                        <span className="font-extrabold text-[11.5px] sm:text-[12px]" style={{ color: card3Data.trendColor }}>
+                          {card3Data.trendText.split(" ")[0]} ({card3Data.badge.split(" ")[1]?.replace("(", "")?.replace(")", "") || "0%"})
+                        </span>
+                      </div>
+                      <span className="hidden sm:inline w-[1px] h-3 bg-border" />
+                      <div className="flex items-center gap-1">
+                        <span className="text-tertiary font-semibold text-[10.5px] sm:text-[11px]">최고 관심</span>
+                        <span className="text-primary font-extrabold max-w-[120px] truncate">{card4Data.name}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
