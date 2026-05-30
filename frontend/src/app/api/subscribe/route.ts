@@ -19,9 +19,9 @@ export async function POST(request: Request) {
     }
 
     const realtime = !!types?.realtime;
-    const weekly = !!types?.weekly;
+    const weekly = false;
 
-    if (!realtime && !weekly) {
+    if (!realtime) {
       return NextResponse.json({ error: '최소 한 개 이상의 알림 항목을 선택해주세요.' }, { status: 400 });
     }
 
@@ -76,15 +76,11 @@ export async function POST(request: Request) {
                 <td style="color: #64748b; padding: 6px 0; font-weight: bold;">실시간 거래가</td>
                 <td style="color: #334155; padding: 6px 0; font-weight: 600;">${realtime ? '🟢 알림 받음' : '⚪ 미선택'}</td>
               </tr>
-              <tr>
-                <td style="color: #64748b; padding: 6px 0; font-weight: bold;">주간 리포트</td>
-                <td style="color: #334155; padding: 6px 0; font-weight: 600;">${weekly ? '🟢 알림 받음' : '⚪ 미선택'}</td>
-              </tr>
             </table>
           </div>
 
           <p style="font-size: 13px; color: #4b5563; margin-bottom: 30px;">
-            앞으로 관심 단지의 실거래 소식 및 시장 리포트가 등록되는 즉시 빠르고 정확하게 메일로 전달해 드리겠습니다.
+            앞으로 관심 단지의 실거래 소식이 등록되는 즉시 빠르고 정확하게 메일로 전달해 드리겠습니다.
           </p>
 
           <div style="border-top: 1px solid #f1f5f9; padding-top: 20px; font-size: 12px; color: #94a3b8; text-align: center;">

@@ -9,7 +9,6 @@ export default function NotificationBanner() {
   const [showPwaGuide, setShowPwaGuide] = useState(false);
   const [types, setTypes] = useState({
     realtime: true,
-    weekly: true,
   });
   const [loading, setLoading] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -32,7 +31,7 @@ export default function NotificationBanner() {
           email,
           types: {
             realtime: types.realtime,
-            weekly: types.weekly,
+            weekly: false,
           },
         }),
       });
@@ -63,10 +62,10 @@ export default function NotificationBanner() {
         <div className="lg:flex-1 flex flex-col justify-start gap-4 w-full">
           <div>
             <h3 className="text-[18px] md:text-[20px] font-black leading-tight tracking-tight text-primary dark:text-white">
-              실시간 거래가 & 주간 리포트 알림 받기
+              실시간 실거래 알림 받기
             </h3>
             <p className="text-[12px] md:text-[13px] text-secondary dark:text-slate-300 mt-2 font-medium break-keep leading-relaxed">
-              관심 단지의 신규 실거래가 등록 소식과 동탄 부동산 시장 트렌드 리포트를 놓치지 말고 받아보세요.
+              관심 단지의 신규 실거래가 등록 소식을 놓치지 말고 받아보세요.
             </p>
           </div>
  
@@ -80,15 +79,6 @@ export default function NotificationBanner() {
                 className="w-4.5 h-4.5 rounded border-border bg-body text-toss-blue focus:ring-toss-blue focus:ring-offset-background dark:border-slate-700 dark:bg-slate-800"
               />
               <span className="text-[12px] font-semibold text-secondary dark:text-slate-200">실시간 실거래 알림</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={types.weekly}
-                onChange={() => setTypes({ ...types, weekly: !types.weekly })}
-                className="w-4.5 h-4.5 rounded border-border bg-body text-toss-blue focus:ring-toss-blue focus:ring-offset-background dark:border-slate-700 dark:bg-slate-800"
-              />
-              <span className="text-[12px] font-semibold text-secondary dark:text-slate-200">주간 종합 리포트</span>
             </label>
           </div>
         </div>
