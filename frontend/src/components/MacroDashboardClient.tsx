@@ -2155,13 +2155,13 @@ interface GroupedCategory {
         {/* Dongtan Market Insights (News Section) */}
         <div className="mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8">
           <div className="mb-6">
-            <h2 className="text-[24px] font-extrabold text-primary tracking-tight">
+            <h2 className="text-[18px] md:text-[24px] font-extrabold text-primary tracking-tight whitespace-nowrap">
               동탄 부동산 인사이트{" "}
-              <span className="text-[16px] font-semibold text-tertiary ml-2 font-normal">
+              <span className="text-[13px] md:text-[16px] font-semibold text-tertiary ml-1.5 md:ml-2 font-normal">
                 최신 뉴스 피드
               </span>
             </h2>
-            <p className="text-[13px] font-medium text-tertiary mt-1 italic">
+            <p className="text-[11.5px] md:text-[13px] font-medium text-tertiary mt-1 italic">
               Dongtan real estate market latest news
             </p>
           </div>
