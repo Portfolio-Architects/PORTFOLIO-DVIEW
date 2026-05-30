@@ -333,12 +333,7 @@ export default function MacroDashboardClient({
     return `${Math.round(areaPyeong)}평`;
   };
 
-  const { data: gaData } = useSWR('/api/public/analytics', fetcher, { 
-    revalidateOnFocus: false,
-    dedupingInterval: 60000 
-  });
-  
-  const formatNum = (num?: number) => typeof num === 'number' ? num.toLocaleString() : '-';
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<string>("30");
   const [accordionMode, setAccordionMode] = useState<"price" | "pyeong">("price");
@@ -1241,46 +1236,7 @@ interface GroupedCategory {
             데이터 기반 <span className="text-[#00d29d] font-extrabold px-0.5">동탄 아파트</span> 가치 분석
           </>
         }
-        subtitleLight={
-          <div className="flex flex-nowrap overflow-x-auto overflow-y-hidden touch-pan-x sm:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center gap-2 sm:gap-3 ml-0 sm:ml-1 mt-1 sm:mt-0 max-w-[calc(100vw-32px)] md:max-w-none h-7 md:h-auto py-1 md:py-0">
-            <span className="hidden sm:inline text-[#d1d6db] mr-0.5 shrink-0">—</span>
-            <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
-              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">MAU</span>
-              <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.mau) : '...'}</span>
-              <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
-                최근 30일 동안의 월간 순 방문자 수
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
-              </div>
-            </div>
-            <div className="w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
-            <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
-              <span className="bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-toss-blue font-bold tracking-tight">DAU</span>
-              <span className="text-toss-blue font-extrabold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.dau) : '...'}</span>
-              <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
-                오늘 하루 동안의 일간 순 방문자 수
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
-              </div>
-            </div>
-            <div className="w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
-            <div className="group relative flex items-center gap-1.5 shrink-0 cursor-help">
-              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">VIEW (30D)</span>
-              <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? formatNum(gaData.totalViews) : '...'}</span>
-              <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
-                최근 30일 동안의 누적 페이지 뷰 (조회수) 총합
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]" />
-              </div>
-            </div>
-            <div className="hidden sm:block w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0" />
-            <div className="group relative flex items-center gap-1.5 shrink-0 pr-4 sm:pr-0 cursor-help">
-              <span className="bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight">AVG. TIME</span>
-              <span className="text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums">{gaData ? gaData.avgSessionDuration : '...'}</span>
-              <div className="hidden sm:block absolute right-0 top-full mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 bg-[#191f28] text-white text-[12px] font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50">
-                방문자 1인당 평균 체류 시간
-                <div className="absolute bottom-full right-6 border-4 border-transparent border-b-[#191f28]" />
-              </div>
-            </div>
-          </div>
-        }
+        subtitleLight=""
         rightContent={
           onOpenAdModal && (
             <button

@@ -68,6 +68,17 @@ export default function AdminDashboard() {
       return null;
     }
   }, { revalidateOnFocus: false, dedupingInterval: 30000 });
+
+  // GA4 Traffic Metrics SWR fetch
+  const { data: gaData } = useSWR('/api/public/analytics', async (url) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
+  }, { revalidateOnFocus: false, dedupingInterval: 30000 });
   
   // Scouting reports
   const [reports, setReports] = useState<ScoutingReport[]>([]);
@@ -494,6 +505,75 @@ export default function AdminDashboard() {
             <div className="text-[26px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* GA4 Real-time Traffic Metrics Dashboard */}
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mb-6 animate-in fade-in duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-[#f2f4f6]">
+          <h2 className="text-[17px] font-black text-primary flex items-center gap-2">
+            <BarChart3 className="text-toss-blue" size={20} />
+            실시간 서비스 트래픽 (GA4)
+          </h2>
+          {gaData && (
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 bg-[#f0fdf4] text-toss-green">
+              <ShieldCheck size={12} />
+              Google Analytics 4 실시간 연동
+            </span>
+          )}
+        </div>
+
+        {!gaData ? (
+          <div className="flex items-center justify-center py-6">
+            <div className="w-5 h-5 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" />
+            <span className="text-[13px] text-tertiary font-bold ml-2">GA4 트래픽 정보 로드 중...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* 1. MAU */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="text-[11.5px] font-bold text-tertiary mb-1">MAU</div>
+              <div className="text-[22px] font-extrabold text-primary font-mono">
+                {gaData.mau ? gaData.mau.toLocaleString() : '0'}명
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                최근 30일 활성 사용자 수
+              </div>
+            </div>
+
+            {/* 2. DAU */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="text-[11.5px] font-bold text-toss-blue mb-1">DAU</div>
+              <div className="text-[22px] font-extrabold text-[#3182f6] font-mono">
+                {gaData.dau ? gaData.dau.toLocaleString() : '0'}명
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                오늘 하루 활성 사용자 수
+              </div>
+            </div>
+
+            {/* 3. Views */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="text-[11.5px] font-bold text-tertiary mb-1">VIEW (30D)</div>
+              <div className="text-[22px] font-extrabold text-primary font-mono">
+                {gaData.totalViews ? gaData.totalViews.toLocaleString() : '0'}회
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                최근 30일 누적 페이지 뷰
+              </div>
+            </div>
+
+            {/* 4. Avg Time */}
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+              <div className="text-[11.5px] font-bold text-tertiary mb-1">AVG. TIME</div>
+              <div className="text-[22px] font-extrabold text-primary font-mono">
+                {gaData.avgSessionDuration || '0m 0s'}
+              </div>
+              <div className="text-[10.5px] text-secondary font-medium mt-1">
+                방문자 1인당 평균 체류 시간
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Google Search Console Index Status & Performance Dashboard */}
