@@ -18,17 +18,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('dtdls-area-unit');
-    if (stored === 'm2' || stored === 'pyeong') {
-      setTimeout(() => {
-        setAreaUnitState(stored);
-      }, 0);
+    try {
+      const stored = localStorage.getItem('dtdls-area-unit');
+      if (stored === 'm2' || stored === 'pyeong') {
+        setTimeout(() => {
+          setAreaUnitState(stored);
+        }, 0);
+      }
+    } catch (e) {
+      console.warn('localStorage is blocked or unavailable:', e);
     }
   }, []);
 
   const setAreaUnit = (unit: AreaUnit) => {
     setAreaUnitState(unit);
-    localStorage.setItem('dtdls-area-unit', unit);
+    try {
+      localStorage.setItem('dtdls-area-unit', unit);
+    } catch (e) {
+      console.warn('Failed to save areaUnit to localStorage:', e);
+    }
   };
 
   return (

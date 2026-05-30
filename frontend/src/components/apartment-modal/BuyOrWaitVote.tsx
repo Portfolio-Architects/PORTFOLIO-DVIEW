@@ -24,13 +24,17 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedVote = localStorage.getItem(localStorageKey);
-      if (savedVote) {
-        setHasVoted(true);
-        setUserVote(savedVote as 'buy' | 'wait');
-      } else {
-        setHasVoted(false);
-        setUserVote(null);
+      try {
+        const savedVote = localStorage.getItem(localStorageKey);
+        if (savedVote) {
+          setHasVoted(true);
+          setUserVote(savedVote as 'buy' | 'wait');
+        } else {
+          setHasVoted(false);
+          setUserVote(null);
+        }
+      } catch (e) {
+        console.warn('localStorage is unavailable:', e);
       }
     }
   }, [aptName, localStorageKey]);
@@ -53,7 +57,11 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
 
       const json = await res.json();
       if (json.success) {
-        localStorage.setItem(localStorageKey, type);
+        try {
+          localStorage.setItem(localStorageKey, type);
+        } catch (e) {
+          console.warn('Failed to save vote to localStorage:', e);
+        }
         setHasVoted(true);
         setUserVote(type);
         

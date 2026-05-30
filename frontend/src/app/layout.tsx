@@ -115,6 +115,16 @@ export default function RootLayout({
             {process.env.NEXT_PUBLIC_GA_ID && (
               <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
             )}
+            
+            {/* Google AdSense Script (Only renders if NEXT_PUBLIC_ADSENSE_CLIENT_ID exists) */}
+            {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+              <Script
+                async
+                src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+                crossOrigin="anonymous"
+                strategy="afterInteractive"
+              />
+            )}
           </SettingsProvider>
         </ThemeProvider>
       </body>

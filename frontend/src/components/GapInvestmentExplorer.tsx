@@ -301,7 +301,11 @@ export default function GapInvestmentExplorer({
           </div>
 
           <div className="my-2">
-            <NativeAdPlaceholder location="갭투자 탐색기 하단" onClick={onOpenAdModal} />
+            <NativeAdPlaceholder 
+              location="갭투자 탐색기 하단" 
+              onClick={onOpenAdModal} 
+              adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_GAP_EXPLORER || "test-gap-explorer-slot"}
+            />
           </div>
 
           {/* Show more Button */}

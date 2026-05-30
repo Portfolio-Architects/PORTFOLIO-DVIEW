@@ -81,8 +81,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
 
   useEffect(() => {
     if (!postId) return;
-    const liked = localStorage.getItem(`post_liked_${postId}`);
-    if (liked) setIsLiked(true);
+    try {
+      const liked = localStorage.getItem(`post_liked_${postId}`);
+      if (liked) setIsLiked(true);
+    } catch (e) {
+      console.warn('localStorage is unavailable:', e);
+    }
     
     // View Tracking
     let viewIncremented = false;
@@ -109,7 +113,13 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         if (!viewIncremented) {
           viewIncremented = true;
           try {
-            if (localStorage.getItem('dview_is_admin') !== 'true') {
+            let isAdminUser = false;
+            try {
+              isAdminUser = localStorage.getItem('dview_is_admin') === 'true';
+            } catch (err) {
+              console.warn('localStorage is unavailable:', err);
+            }
+            if (!isAdminUser) {
               await dashboardFacade.incrementPostView(postId, data.title);
             }
             // Optionally update UI view count locally immediately
@@ -148,13 +158,21 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     if (!postId || isLiked) return;
     try {
       setIsLiked(true);
-      localStorage.setItem(`post_liked_${postId}`, 'true');
+      try {
+        localStorage.setItem(`post_liked_${postId}`, 'true');
+      } catch (err) {
+        console.warn('localStorage is unavailable:', err);
+      }
       await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
       triggerCustomA2HSModal();
     } catch(e) {
       setIsLiked(false);
-      localStorage.removeItem(`post_liked_${postId}`);
+      try {
+        localStorage.removeItem(`post_liked_${postId}`);
+      } catch (err) {
+        console.warn('localStorage is unavailable:', err);
+      }
     }
   };
 

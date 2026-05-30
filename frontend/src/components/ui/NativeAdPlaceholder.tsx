@@ -1,14 +1,27 @@
 import React from 'react';
 import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { getAdForApartment } from '@/lib/utils/adMatching';
+import AdSense from './AdSense';
 
 interface NativeAdPlaceholderProps {
   location: string;
   onClick?: () => void;
   metrics?: ObjectiveMetrics;
+  adSlot?: string;
 }
 
-export function NativeAdPlaceholder({ location, onClick, metrics }: NativeAdPlaceholderProps) {
+export function NativeAdPlaceholder({ location, onClick, metrics, adSlot }: NativeAdPlaceholderProps) {
+  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  // If client ID is set, we can render the AdSense component if slot is provided.
+  // Otherwise, we fallback to B2B matching.
+  if (adsenseClient && adSlot) {
+    return (
+      <div className="w-full rounded-[20px] p-2 bg-[#f8fafc] dark:bg-[#1e293b]/30 border border-border overflow-hidden flex items-center justify-center min-h-[82px]">
+        <AdSense adSlot={adSlot} adFormat="horizontal" responsive="true" />
+      </div>
+    );
+  }
+
   const ad = getAdForApartment(metrics);
 
   const handleAdClick = (e: React.MouseEvent) => {

@@ -154,16 +154,24 @@ function FieldReportModal({
 
   // Load outlier filter state from localStorage on mount (hydration-safe)
   useEffect(() => {
-    const saved = localStorage.getItem('dview_filter_outliers');
-    if (saved === 'false') {
-      setFilterOutliers(false);
+    try {
+      const saved = localStorage.getItem('dview_filter_outliers');
+      if (saved === 'false') {
+        setFilterOutliers(false);
+      }
+    } catch (e) {
+      console.warn('localStorage is unavailable:', e);
     }
   }, []);
 
   const handleToggleFilter = () => {
     setFilterOutliers(prev => {
       const next = !prev;
-      localStorage.setItem('dview_filter_outliers', String(next));
+      try {
+        localStorage.setItem('dview_filter_outliers', String(next));
+      } catch (e) {
+        console.warn('Failed to set dview_filter_outliers to localStorage:', e);
+      }
       return next;
     });
   };
@@ -1364,7 +1372,12 @@ function FieldReportModal({
               </button>
 
               {/* 2. Native Ad Placeholder (AdSense Test) */}
-              <NativeAdPlaceholder location="단지 리포트 모달" onClick={onOpenAdModal} metrics={report.metrics} />
+              <NativeAdPlaceholder 
+                location="단지 리포트 모달" 
+                onClick={onOpenAdModal} 
+                metrics={report.metrics} 
+                adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL || "test-apt-modal-slot"} 
+              />
             </div>
 
             {/* Comments Section */}

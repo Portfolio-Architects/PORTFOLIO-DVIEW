@@ -2144,7 +2144,11 @@ interface GroupedCategory {
           })}
 
           {/* Ad Banner Placeholder (8th Slot) */}
-          <NativeAdPlaceholder location="매크로 대시보드 하단" onClick={onOpenAdModal} />
+          <NativeAdPlaceholder 
+            location="매크로 대시보드 하단" 
+            onClick={onOpenAdModal} 
+            adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM || "test-dashboard-bottom-slot"} 
+          />
         </div>
 
         {/* 구분선 (Divider) 및 대칭 여백 */}

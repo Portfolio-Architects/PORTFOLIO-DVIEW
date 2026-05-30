@@ -49,13 +49,13 @@ export default function FloatingUserBar() {
           setAnonProfile(profile);
         }
         if (isAdmin(currentUser.email)) {
-          localStorage.setItem('dview_is_admin', 'true');
+          try { localStorage.setItem('dview_is_admin', 'true'); } catch (e) { /* noop */ }
         } else {
-          localStorage.removeItem('dview_is_admin');
+          try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
         }
       } else {
         setAnonProfile(null);
-        localStorage.removeItem('dview_is_admin');
+        try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
       }
     });
     return () => unsubscribe();
