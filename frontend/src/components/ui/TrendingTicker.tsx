@@ -38,22 +38,22 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
   const renderChangeBadge = (change?: 'up' | 'down' | 'same', value?: number) => {
     if (change === 'up') {
       return (
-        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#f04452] bg-[#f04452]/8 dark:bg-[#f04452]/20 px-2 py-0.5 rounded-full border border-[#f04452]/15 shrink-0 ml-1.5 align-middle">
-          <Triangle size={7.5} className="fill-[#f04452] text-[#f04452] shrink-0 -translate-y-[0.8px]" />
+        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#f04452] bg-[#f04452]/8 dark:bg-[#f04452]/20 px-2 py-0.5 rounded-full border border-[#f04452]/15 shrink-0 ml-1.5 align-middle h-[16px]">
+          <Triangle size={7.5} className="fill-[#f04452] text-[#f04452] shrink-0 -translate-y-[0.2px]" />
           <span className="tabular-nums leading-none text-[#f04452] font-black">{value || 1}</span>
         </span>
       );
     }
     if (change === 'down') {
       return (
-        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#3182f6] bg-[#3182f6]/8 dark:bg-[#3182f6]/20 px-2 py-0.5 rounded-full border border-[#3182f6]/15 shrink-0 ml-1.5 align-middle">
-          <Triangle size={7.5} className="fill-[#3182f6] text-[#3182f6] rotate-180 shrink-0 translate-y-[0.8px]" />
+        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-extrabold text-[#3182f6] bg-[#3182f6]/8 dark:bg-[#3182f6]/20 px-2 py-0.5 rounded-full border border-[#3182f6]/15 shrink-0 ml-1.5 align-middle h-[16px]">
+          <Triangle size={7.5} className="fill-[#3182f6] text-[#3182f6] rotate-180 shrink-0 translate-y-[0.2px]" />
           <span className="tabular-nums leading-none text-[#3182f6] font-black">{value || 1}</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-bold text-tertiary bg-body px-1.5 py-0.5 rounded-full border border-border/40 shrink-0 ml-1.5 align-middle">
+      <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-bold text-tertiary bg-body px-1.5 py-0.5 rounded-full border border-border/40 shrink-0 ml-1.5 align-middle h-[16px]">
         <Minus size={8} className="text-tertiary shrink-0" />
       </span>
     );
@@ -73,21 +73,21 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
           </div>
           
           {/* Rolling Area */}
-          <div className="relative h-[24px] overflow-hidden flex-1 min-w-0">
+          <div className="relative h-[26px] overflow-hidden flex-1 min-w-0">
             <div 
               className="flex flex-col transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateY(-${currentIndex * 24}px)` }}
+              style={{ transform: `translateY(-${currentIndex * 26}px)` }}
             >
               {popularAptItems.map((item, idx) => (
                 <div 
                   key={item.name} 
-                  className="h-[24px] flex items-center justify-between w-full min-w-0"
+                  className="h-[26px] flex items-center justify-between w-full min-w-0"
                   onClick={() => onSelectApt?.(item.name)}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="text-[13px] font-black text-teal-500 w-4 text-center shrink-0">{item.rank}위</span>
+                    <span className="text-[13px] font-black text-teal-500 w-[32px] text-left shrink-0 whitespace-nowrap">{item.rank}위</span>
                     {item.dong && (
-                      <span className="text-[10px] font-extrabold text-secondary bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded shrink-0">
+                      <span className="text-[10px] font-extrabold text-secondary bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded shrink-0 h-4 flex items-center">
                         {item.dong}
                       </span>
                     )}
