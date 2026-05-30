@@ -1,9 +1,49 @@
+import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function LoungePage() {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { notice?: string; title?: string; dept?: string };
+}): Promise<Metadata> {
+  const noticeId = searchParams?.notice;
+  const title = searchParams?.title;
+  const dept = searchParams?.dept;
+
+  if (noticeId && title) {
+    const ogUrl = `https://dongtanview.com/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept || '')}`;
+    return {
+      title: `[동탄구 소식] ${title} - D-VIEW 라운지`,
+      description: `${dept || '동탄구 소식'} - D-VIEW 실시간 행정망 공지사항 안내`,
+      openGraph: {
+        title: `[동탄구 소식] ${title}`,
+        description: `${dept || '동탄구 소식'} - D-VIEW 실시간 행정망 공지사항 안내`,
+        images: [
+          {
+            url: ogUrl,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
+      },
+    };
+  }
+
+  return {
+    title: 'D-VIEW 라운지 | 동탄인들의 부동산 소통 공간',
+    description: '동탄 아파트 임장기, 고민상담, 청약 정보 및 실시간 동탄 소식들을 확인해보세요.',
+  };
+}
+
+export default async function LoungePage({
+  searchParams,
+}: {
+  searchParams: { notice?: string; title?: string; dept?: string };
+}) {
   let posts: Record<string, unknown>[] = [];
   let errorMessage: string | null = null;
   
@@ -61,7 +101,7 @@ export default async function LoungePage() {
           🚧 Server Error: {errorMessage}
         </div>
       )}
-      <LoungeContainerClient initialPosts={posts as any} />
+      <LoungeContainerClient initialPosts={posts as any} searchParams={searchParams} />
     </main>
   );
 }

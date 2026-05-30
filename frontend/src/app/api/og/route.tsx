@@ -14,6 +14,139 @@ export async function GET(req: NextRequest) {
     const price = searchParams.get('price');
     const ratio = searchParams.get('ratio');
     const status = searchParams.get('status');
+    const type = searchParams.get('type');
+    const dept = searchParams.get('dept') || '동탄구청';
+
+    if (type === 'notice') {
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#064e3b',
+              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '40px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#00d29d',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#a7f3d0',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  동탄구 공식 소식
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: '60px',
+                  fontWeight: 800,
+                  letterSpacing: '-2px',
+                  lineHeight: 1.3,
+                  marginBottom: '32px',
+                  color: '#f0fdf4',
+                  maxWidth: '1040px',
+                }}
+              >
+                {title}
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#047857',
+                    color: '#ecfdf5',
+                    padding: '8px 20px',
+                    borderRadius: '30px',
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    marginRight: '12px',
+                    border: '1px solid #10b981',
+                  }}
+                >
+                  담당 부서: {dept}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontSize: '32px',
+                  color: '#d1fae5',
+                  fontWeight: 500,
+                  letterSpacing: '-1px',
+                }}
+              >
+                {subtitle || '실시간 화성·동탄 행정망 고시공고 자동 연동'}
+              </div>
+              
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#34d399',
+                  fontSize: '28px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
 
     return new ImageResponse(
       (

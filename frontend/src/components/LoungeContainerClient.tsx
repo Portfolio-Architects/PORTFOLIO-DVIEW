@@ -19,8 +19,14 @@ interface Post {
   createdAt: number;
 }
 
-export default function LoungeContainerClient({ initialPosts }: { initialPosts: Post[] }) {
-  const [currentTab, setCurrentTab] = useState('동탄 부동산 뉴스');
+export default function LoungeContainerClient({ 
+  initialPosts,
+  searchParams,
+}: { 
+  initialPosts: Post[];
+  searchParams?: { notice?: string };
+}) {
+  const [currentTab, setCurrentTab] = useState(searchParams?.notice ? '동탄구 소식' : '동탄 부동산 뉴스');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

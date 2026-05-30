@@ -49,7 +49,18 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json({ notices });
+    // Find the latest sync timestamp
+    let lastUpdated: string | null = null;
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.createdAt) {
+        if (!lastUpdated || data.createdAt > lastUpdated) {
+          lastUpdated = data.createdAt;
+        }
+      }
+    });
+
+    return NextResponse.json({ notices, lastUpdated });
 
   } catch (error: unknown) {
     console.error('Error fetching local notices:', error);

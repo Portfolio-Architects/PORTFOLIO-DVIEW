@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageSquare, Eye, Heart, Loader2, ChevronDown } from 'lucide-react';
+import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X } from 'lucide-react';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
@@ -92,22 +92,36 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [noticesData, setNoticesData] = useState<LocalNoticeItem[]>([]);
   const [noticesLoading, setNoticesLoading] = useState(false);
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(10);
+  const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkHash = () => {
-      const match = window.location.hash.match(/#post=([^&]+)/);
-      if (match) {
-        setSelectedPostId(decodeURIComponent(match[1]));
+    const checkParams = () => {
+      // Check query parameter
+      const params = new URLSearchParams(window.location.search);
+      const noticeParam = params.get('notice');
+      
+      const postMatch = window.location.hash.match(/#post=([^&]+)/);
+      const noticeMatch = window.location.hash.match(/#notice=([^&]+)/);
+      
+      if (postMatch) {
+        setSelectedPostId(decodeURIComponent(postMatch[1]));
+        setSelectedNoticeId(null);
+      } else if (noticeMatch) {
+        setSelectedNoticeId(decodeURIComponent(noticeMatch[1]));
+        setSelectedPostId(null);
+      } else if (noticeParam) {
+        setSelectedNoticeId(noticeParam);
+        setSelectedPostId(null);
       } else {
         setSelectedPostId(null);
+        setSelectedNoticeId(null);
       }
     };
     
-    // Initial check
-    checkHash();
-    
-    window.addEventListener('hashchange', checkHash);
-    return () => window.removeEventListener('hashchange', checkHash);
+    checkParams();
+    window.addEventListener('hashchange', checkParams);
+    return () => window.removeEventListener('hashchange', checkParams);
   }, []);
 
   useEffect(() => {
@@ -126,19 +140,22 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   }, [currentTab, newsData.length]);
 
   useEffect(() => {
-    if (currentTab === '동탄구 소식' && noticesData.length === 0) {
+    if ((currentTab === '동탄구 소식' || selectedNoticeId) && noticesData.length === 0) {
       setNoticesLoading(true);
       fetch("/api/local-notices")
         .then(res => res.json())
-        .then((json: { notices?: LocalNoticeItem[] }) => {
+        .then((json: { notices?: LocalNoticeItem[]; lastUpdated?: string }) => {
           if (json.notices) {
             setNoticesData(json.notices);
+          }
+          if (json.lastUpdated) {
+            setLastUpdatedTime(json.lastUpdated);
           }
         })
         .catch(err => console.error(err))
         .finally(() => setNoticesLoading(false));
     }
-  }, [currentTab, noticesData.length]);
+  }, [currentTab, selectedNoticeId, noticesData.length]);
 
   const loadMorePosts = useCallback(async () => {
     if (isLoadingMore || !hasMore) return;
@@ -215,6 +232,32 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
     return () => observer.disconnect();
   }, [loadMorePosts]);
+
+  const selectedNotice = noticesData.find(n => n.id === selectedNoticeId);
+
+  const handleShareNotice = (notice: LocalNoticeItem) => {
+    const shareUrl = `${window.location.origin}/lounge?notice=${notice.id}&title=${encodeURIComponent(notice.title)}&dept=${encodeURIComponent(notice.dept)}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `[동탄구 소식] ${notice.title}`,
+        text: `${notice.dept} 고시공고 - D-VIEW에서 바로 확인해보세요!`,
+        url: shareUrl,
+      }).catch(err => console.error(err));
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("공유 링크가 클립보드에 복사되었습니다! 카카오톡이나 다른 SNS에 전달하여 공유해보세요.");
+      });
+    }
+  };
+
+  const handleCloseNoticeModal = () => {
+    if (window.location.search.includes('notice=')) {
+      const newUrl = window.location.pathname + (window.location.hash || '');
+      window.history.replaceState({}, '', newUrl);
+    }
+    window.location.hash = '';
+    setSelectedNoticeId(null);
+  };
 
   const filteredPosts = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
     ? []
@@ -353,6 +396,24 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   if (currentTab === '동탄구 소식') {
     return (
       <div className="flex flex-col gap-4 w-full">
+        {/* Freshness Indicator Widget */}
+        <div className="flex items-center justify-between bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-2xl p-4 mb-1">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[13px] font-extrabold text-emerald-600 dark:text-emerald-400">
+              실시간 행정망 자동 수집 중
+            </span>
+          </div>
+          {lastUpdatedTime && (
+            <span className="text-[12px] font-bold text-emerald-600/80 dark:text-emerald-400/80">
+              최근 업데이트: {formatRelativeTime(lastUpdatedTime)}
+            </span>
+          )}
+        </div>
+
         {noticesLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex gap-4 p-5 rounded-2xl border border-border bg-surface animate-pulse">
@@ -368,7 +429,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
           noticesData.slice(0, visibleNoticesCount).map((notice, idx) => (
             <div
               key={notice.id}
-              onClick={() => window.open(notice.url, "_blank")}
+              onClick={() => { window.location.hash = `notice=${notice.id}`; }}
               className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-emerald-500/30 transition-all cursor-pointer group w-full"
             >
               <div className="flex items-center gap-3 sm:gap-0 shrink-0">
@@ -389,7 +450,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   )}
                 </div>
               </div>
-
+ 
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
                 {/* Desktop Meta */}
                 <div className="hidden sm:flex items-center gap-4 shrink-0">
@@ -402,7 +463,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                     {notice.title}
                   </p>
                 </div>
-
+ 
                 {notice.isDongtan && (
                   <span className="hidden sm:inline-block bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 text-[11px] font-black rounded-lg border border-emerald-100 dark:border-emerald-900/30 shrink-0">
                     동탄 관련 소식
@@ -534,6 +595,91 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       {selectedPostId && (
         <LoungeModalBackdrop onClose={() => { window.location.hash = ''; }}>
           <LoungeDetailClient postId={selectedPostId} isModal={true} />
+        </LoungeModalBackdrop>
+      )}
+
+      {/* Notice Detail Modal */}
+      {selectedNoticeId && selectedNotice && (
+        <LoungeModalBackdrop onClose={handleCloseNoticeModal}>
+          <div className="bg-surface rounded-2xl w-full max-w-2xl mx-auto overflow-hidden shadow-2xl border border-border animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="p-5 sm:p-6 border-b border-border flex justify-between items-start gap-4 bg-emerald-500/5">
+              <div className="flex flex-col gap-2 min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-extrabold text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded">
+                    {selectedNotice.dept}
+                  </span>
+                  <span className="text-[12px] font-bold text-tertiary">
+                    {selectedNotice.date}
+                  </span>
+                </div>
+                <h2 className="text-[18px] sm:text-[20px] font-black text-primary leading-snug tracking-tight">
+                  {selectedNotice.title}
+                </h2>
+              </div>
+              <button 
+                onClick={handleCloseNoticeModal}
+                className="text-tertiary hover:text-primary p-1 bg-body rounded-full transition-colors flex items-center justify-center shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 sm:p-6 flex flex-col gap-6">
+              {/* 원문 이동 및 공유 버튼 */}
+              <div className="flex items-center gap-3">
+                <a 
+                  href={selectedNotice.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
+                >
+                  <ExternalLink size={16} /> 원문 고시공고 사이트 이동
+                </a>
+                <button
+                  onClick={() => handleShareNotice(selectedNotice)}
+                  className="px-5 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                >
+                  <Share2 size={16} /> 카카오톡 공유
+                </button>
+              </div>
+
+              {/* D-VIEW AI Insight Section */}
+              <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 flex flex-col gap-2">
+                <h4 className="text-[13px] font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                  💡 D-VIEW 부동산 분석 팁
+                </h4>
+                <p className="text-[13px] text-emerald-950/80 dark:text-emerald-200/90 leading-relaxed font-bold">
+                  본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 
+                  동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.
+                </p>
+                <div className="mt-2 flex items-center gap-3">
+                  <a 
+                    href="/" 
+                    className="text-[12px] font-extrabold text-[#00a06c] hover:underline flex items-center gap-1"
+                  >
+                    데이터 랩 실거래 대시보드로 이동 ➔
+                  </a>
+                </div>
+              </div>
+
+              {/* D-VIEW Premium Content */}
+              <div className="flex flex-col gap-3 border-t border-border pt-5">
+                <h3 className="text-[14px] font-extrabold text-primary">D-VIEW 추천 콘텐츠</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <a href="/?apt=동탄역 롯데캐슬" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                    <div className="text-[12px] font-bold text-tertiary">실시간 인기 단지</div>
+                    <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">동탄역 롯데캐슬 상세분석 ➔</div>
+                  </a>
+                  <a href="/engineering" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                    <div className="text-[12px] font-bold text-tertiary">기술 성과서</div>
+                    <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">엔지니어링 리포트 보기 ➔</div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </LoungeModalBackdrop>
       )}
     </div>
