@@ -23,7 +23,7 @@ export default function Footer() {
         )}
 
         {/* 하단 면책 조항 및 정보 탭 */}
-        <div className={`w-full flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12 ${!isAdmin ? 'pt-8 border-t border-border' : ''}`}>
+        <div className={`w-full flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12 ${!isAdmin ? 'pt-8 border-t border-border md:border-t-0 md:pt-0' : ''}`}>
           
           {/* 좌측: 로고 및 링크 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8 lg:gap-10 shrink-0">
