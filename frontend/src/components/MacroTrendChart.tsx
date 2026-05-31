@@ -1,0 +1,219 @@
+import React, { useState, useEffect } from "react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  CartesianGrid,
+} from "recharts";
+
+interface TooltipPayloadEntry {
+  dataKey?: string | number;
+  name?: string;
+  value: number;
+  color?: string;
+  payload?: any;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    const saleData = payload.find(
+      (p) => p.dataKey === "동탄 아파트 전체" || p.name === "평균 매매가"
+    );
+    const rentData = payload.find(
+      (p) =>
+        p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전세가"
+    );
+
+    const salePrice = saleData?.value || 0;
+    const rentPrice = rentData?.value || 0;
+
+    let ratio = 0;
+    if (salePrice > 0 && rentPrice > 0) {
+      ratio = (rentPrice / salePrice) * 100;
+    }
+
+    return (
+      <div className="bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[150px]">
+        <div className="text-[13.5px] font-bold text-tertiary mb-1">
+          {label}
+        </div>
+        {payload.map((entry, index: number) => {
+          const isRent =
+            entry.dataKey === "동탄 아파트 전세 평균" ||
+            entry.name === "평균 전세가";
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between gap-6"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-[14px] font-bold text-secondary">
+                  {isRent ? "전세가" : "매매가"}
+                </span>
+              </div>
+              <span className="text-[14px] font-extrabold text-primary">
+                {entry.value}억
+              </span>
+            </div>
+          );
+        })}
+        {ratio > 0 && (
+          <>
+            <div className="w-full h-[1px] bg-body my-1" />
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-[13px] font-bold text-tertiary pl-4">
+                전세가율
+              </span>
+              <span className="text-[14.5px] font-extrabold text-[#00d29d] tracking-tight">
+                {ratio.toFixed(1)}%
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
+interface MacroTrendChartProps {
+  lineData: any[];
+  xTicks: string[];
+  yTicks: number[];
+  timeframe: string;
+  isBottomSheet?: boolean;
+}
+
+export default function MacroTrendChart({
+  lineData,
+  xTicks,
+  yTicks,
+  timeframe,
+  isBottomSheet = false,
+}: MacroTrendChartProps) {
+  const [isTooltipActive, setIsTooltipActive] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+    }
+  }, []);
+
+  const fontSize = isBottomSheet ? 11 : 12;
+  const yWidth = isBottomSheet ? 35 : 40;
+  
+  const desktopEventHandlers = isBottomSheet
+    ? {}
+    : {
+        onMouseMove: (e: any) => {
+          if (e && e.activePayload) {
+            setIsTooltipActive(true);
+          } else {
+            setIsTooltipActive(false);
+          }
+        },
+        onMouseLeave: () => setIsTooltipActive(false),
+        onTouchStart: () => setIsTooltipActive(true),
+        onTouchMove: (e: any) => {
+          if (e && e.activePayload) {
+            setIsTooltipActive(true);
+          }
+        },
+        onTouchEnd: () => setIsTooltipActive(false),
+      };
+
+  return (
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+      <LineChart
+        data={lineData}
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        {...desktopEventHandlers}
+      >
+        <CartesianGrid
+          strokeWidth={0.7}
+          vertical={false}
+          horizontal={true}
+          stroke="rgba(148, 163, 184, 0.25)"
+        />
+        <XAxis
+          dataKey="name"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
+          dy={10}
+          ticks={xTicks}
+        />
+        <YAxis
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
+          tickFormatter={(value: number) =>
+            value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+          }
+          domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
+          ticks={yTicks}
+          width={yWidth}
+        />
+        <RechartsTooltip
+          active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
+          content={<CustomTooltip />}
+          cursor={{
+            stroke: "var(--border-color)",
+            strokeWidth: 2,
+            strokeDasharray: "3 3",
+          }}
+          isAnimationActive={!isBottomSheet}
+          animationDuration={isBottomSheet ? undefined : 150}
+        />
+        <Line
+          key="동탄 아파트 전체"
+          type="monotone"
+          name="평균 매매가"
+          dataKey="동탄 아파트 전체"
+          stroke="#00d29d"
+          strokeWidth={isBottomSheet ? 3 : 4}
+          animationDuration={isBottomSheet ? undefined : 300}
+          dot={
+            isBottomSheet
+              ? false
+              : timeframe === "ALL" || timeframe === "5Y"
+              ? false
+              : { r: 5, strokeWidth: 2 }
+          }
+          activeDot={{ r: isBottomSheet ? 6 : 7 }}
+        />
+        <Line
+          key="동탄 아파트 전세 평균"
+          type="monotone"
+          name="평균 전세가"
+          dataKey="동탄 아파트 전세 평균"
+          stroke="#f9a825"
+          strokeWidth={2}
+          animationDuration={isBottomSheet ? undefined : 300}
+          dot={
+            isBottomSheet
+              ? false
+              : timeframe === "ALL" || timeframe === "5Y"
+              ? false
+              : { r: 3, strokeWidth: 2 }
+          }
+          activeDot={{ r: isBottomSheet ? 4 : 5 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}

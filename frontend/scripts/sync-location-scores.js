@@ -2,6 +2,7 @@
 require('dotenv').config({ path: '.env.local', override: true });
 const fs = require('fs');
 const path = require('path');
+const coordCorrections = require('../public/data/coordinate-corrections.json');
 
 const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
 
@@ -157,8 +158,15 @@ async function main() {
      const aptName = aptRows[i][nameIdx];
      const coordStr = aptRows[i][coordIdx];
      if(!aptName || !coordStr) continue;
-     const coord = parseCoordString(coordStr);
+     let coord = parseCoordString(coordStr);
      if(!coord) continue;
+
+     // Apply coordinate corrections to minimize geolocation errors
+     if (coordCorrections && coordCorrections[aptName]) {
+       const correction = coordCorrections[aptName];
+       coord.lat = correction.lat;
+       coord.lng = correction.lng;
+     }
 
      const elementary = schools.filter(s => s.type.includes('초'));
      const middle = schools.filter(s => s.type.includes('중'));

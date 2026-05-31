@@ -18,7 +18,14 @@ import { createPortal } from 'react-dom';
 import CommentSection from '@/components/CommentSection';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
-import { TransactionChartSection } from './apartment-modal/TransactionChartSection';
+const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
+      <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
+    </div>
+  )
+});
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';

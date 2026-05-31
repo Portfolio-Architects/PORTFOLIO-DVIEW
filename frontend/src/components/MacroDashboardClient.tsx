@@ -1,18 +1,15 @@
 import React, { useMemo, useState, useDeferredValue, useEffect } from "react";
+import { createPortal } from "react-dom";
 import useSWR from "swr";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-  CartesianGrid,
-  Legend,
-} from "recharts";
+import dynamic from "next/dynamic";
+const MacroTrendChart = dynamic(() => import("./MacroTrendChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
+      <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
+    </div>
+  )
+});
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
@@ -202,85 +199,7 @@ const InfoBox = ({
   );
 };
 
-interface TooltipPayloadEntry {
-  dataKey?: string | number;
-  name?: string;
-  value: number;
-  color?: string;
-  payload?: any;
-}
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayloadEntry[];
-  label?: string;
-}
-
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    const saleData = payload.find(
-      (p) => p.dataKey === "동탄 아파트 전체" || p.name === "평균 매매가",
-    );
-    const rentData = payload.find(
-      (p) =>
-        p.dataKey === "동탄 아파트 전세 평균" || p.name === "평균 전세가",
-    );
-
-    const salePrice = saleData?.value || 0;
-    const rentPrice = rentData?.value || 0;
-
-    let ratio = 0;
-    if (salePrice > 0 && rentPrice > 0) {
-      ratio = (rentPrice / salePrice) * 100;
-    }
-
-    return (
-      <div className="bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[150px]">
-        <div className="text-[13.5px] font-bold text-tertiary mb-1">
-          {label}
-        </div>
-        {payload.map((entry, index: number) => {
-          const isRent =
-            entry.dataKey === "동탄 아파트 전세 평균" ||
-            entry.name === "평균 전세가";
-          return (
-            <div
-              key={index}
-              className="flex items-center justify-between gap-6"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-[14px] font-bold text-secondary">
-                  {isRent ? "전세가" : "매매가"}
-                </span>
-              </div>
-              <span className="text-[14px] font-extrabold text-primary">
-                {entry.value}억
-              </span>
-            </div>
-          );
-        })}
-        {ratio > 0 && (
-          <>
-            <div className="w-full h-[1px] bg-body my-1" />
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-[13px] font-bold text-tertiary pl-4">
-                전세가율
-              </span>
-              <span className="text-[14.5px] font-extrabold text-[#00d29d] tracking-tight">
-                {ratio.toFixed(1)}%
-              </span>
-            </div>
-          </>
-        )}
-      </div>
-    );
-  }
-  return null;
-};
 
 export const formatEokWithUnit = (priceMan: number) => {
   const roundedPriceMan = Math.round(priceMan / 100) * 100;
@@ -407,6 +326,20 @@ export default function MacroDashboardClient({
     {},
   );
   const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+
+  // 바텀 시트 오픈 시 body 스크롤 방지
+  useEffect(() => {
+    if (isBottomSheetOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isBottomSheetOpen]);
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [newsData, setNewsData] = useState<MacroNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -1381,7 +1314,12 @@ interface GroupedCategory {
                         {group.items.map((item, idx) => (
                           <div
                             key={`${item.aptName}-${idx}`}
-                            onClick={() => setSelectedTimelineApt(item.aptName)}
+                            onClick={() => {
+                              setSelectedTimelineApt(item.aptName);
+                              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                                setIsBottomSheetOpen(true);
+                              }
+                            }}
                             className={`flex flex-col p-4 rounded-2xl cursor-pointer transition-all border ${
                               selectedTimelineApt === item.aptName
                                 ? "border-[#00d29d] bg-[#e0fbf4]/20 ring-1 ring-[#00d29d]/30"
@@ -1570,94 +1508,12 @@ interface GroupedCategory {
               </div>
 
               <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] min-h-[260px] relative">
-                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <LineChart
-                      data={lineData}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                      onMouseMove={(e: any) => {
-                        if (e && e.activePayload) {
-                          setIsTooltipActive(true);
-                        } else {
-                          setIsTooltipActive(false);
-                        }
-                      }}
-                      onMouseLeave={() => setIsTooltipActive(false)}
-                      onTouchStart={() => setIsTooltipActive(true)}
-                      onTouchMove={(e: any) => {
-                        if (e && e.activePayload) {
-                          setIsTooltipActive(true);
-                        }
-                      }}
-                      onTouchEnd={() => setIsTooltipActive(false)}
-                    >
-                      <CartesianGrid
-                        strokeWidth={0.7}
-                        vertical={false}
-                        horizontal={true}
-                        stroke="rgba(148, 163, 184, 0.25)"
-                      />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
-                        dy={10}
-                        ticks={xTicks}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}
-                        tickFormatter={(value: number) =>
-                           value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-                        }
-                        domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
-                        ticks={yTicks}
-                        width={40}
-                      />
-                      <RechartsTooltip
-                        active={isTouchDevice ? isTooltipActive : undefined}
-                        content={<CustomTooltip />}
-                        cursor={{
-                          stroke: "var(--border-color)",
-                          strokeWidth: 2,
-                          strokeDasharray: "3 3",
-                        }}
-                        isAnimationActive={true}
-                        animationDuration={150}
-                      />
-                      <Line
-                        key="동탄 아파트 전체"
-                        type="monotone"
-                        name="평균 매매가"
-                        dataKey="동탄 아파트 전체"
-                        stroke="#00d29d"
-                        strokeWidth={4}
-                        animationDuration={300}
-                        dot={
-                          timeframe === "ALL" || timeframe === "5Y"
-                            ? false
-                            : { r: 5, strokeWidth: 2 }
-                        }
-                        activeDot={{ r: 7 }}
-                      />
-                      <Line
-                        key="동탄 아파트 전세 평균"
-                        type="monotone"
-                        name="평균 전세가"
-                        dataKey="동탄 아파트 전세 평균"
-                        stroke="#f9a825"
-                        strokeWidth={2}
-                        animationDuration={300}
-                        dot={
-                          timeframe === "ALL" || timeframe === "5Y"
-                            ? false
-                            : { r: 3, strokeWidth: 2 }
-                        }
-                        activeDot={{ r: 5 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <MacroTrendChart
+                  lineData={lineData}
+                  xTicks={xTicks}
+                  yTicks={yTicks}
+                  timeframe={timeframe}
+                />
               </div>
 
               {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
@@ -2310,6 +2166,134 @@ interface GroupedCategory {
           </div>
         </div>
       </div>
+
+      {/* Mobile Bottom Sheet Modal */}
+      {isBottomSheetOpen && typeof window !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center lg:hidden">
+          {/* Backdrop Overlay */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200" 
+            onClick={() => setIsBottomSheetOpen(false)}
+          />
+          {/* Sheet Box */}
+          <div className="relative w-full bg-surface rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] border-t border-border flex flex-col max-h-[80vh] z-10 animate-in slide-in-from-bottom duration-300">
+            {/* Drag Handle Bar */}
+            <div className="w-full flex justify-center py-3 shrink-0 cursor-pointer" onClick={() => setIsBottomSheetOpen(false)}>
+              <div className="w-12 h-1.5 bg-[#e5e8eb] dark:bg-slate-700 rounded-full" />
+            </div>
+            {/* Header */}
+            <div className="px-5 pb-3 flex items-center justify-between border-b border-border/50 shrink-0">
+              <h3 className="text-[15px] font-extrabold text-primary truncate max-w-[80%]">
+                {selectedTimelineApt ? `${selectedTimelineApt} 시세 추이` : "단지 가격 추이"}
+              </h3>
+              <button 
+                onClick={() => setIsBottomSheetOpen(false)}
+                className="text-[12px] font-bold text-secondary bg-body hover:bg-[#e5e8eb] px-3 py-1.5 rounded-lg border-none transition-colors cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+            
+            {/* Content (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-5 pb-24 flex flex-col gap-4">
+              {/* 기간 선택 버튼 (3M, 6M, 1Y, 3Y, 5Y, ALL) */}
+              <div className="flex justify-between items-center mb-4 flex-wrap gap-2 shrink-0">
+                <span className="text-[11.5px] font-bold text-tertiary">조회 기간</span>
+                <div className="flex bg-body p-0.5 rounded-lg text-secondary">
+                  {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
+                    <button
+                      key={tf}
+                      onClick={() => setTimeframe(tf)}
+                      className={`px-2.5 py-1 text-[11px] font-bold rounded-[6px] border-none transition-all cursor-pointer ${
+                        timeframe === tf
+                          ? "bg-surface text-primary shadow-sm"
+                          : "text-tertiary hover:text-secondary"
+                      }`}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 차트 영역 */}
+              <div className="w-full h-[200px] relative mb-4 shrink-0">
+                <MacroTrendChart
+                  lineData={lineData}
+                  xTicks={xTicks}
+                  yTicks={yTicks}
+                  timeframe={timeframe}
+                  isBottomSheet={true}
+                />
+              </div>
+
+              {/* 커스텀 범례 */}
+              <div className="flex items-center justify-center gap-3 mb-5 shrink-0">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 text-[#00d29d] rounded-full text-[10px] font-bold border border-[#00d29d]/15">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                  <span>평균 매매가</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 text-[#f9a825] rounded-full text-[10px] font-bold border border-[#f9a825]/15">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
+                  <span>평균 전세가</span>
+                </div>
+              </div>
+
+              {/* 실거래 요약 테이블 */}
+              {selectedAptSummary && (() => {
+                const avgSale = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0);
+                const avgRent = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0);
+                const hasValues = avgSale > 0 && avgRent > 0;
+                const gap = hasValues ? avgSale - avgRent : 0;
+                
+                const gapEok = Math.floor(gap / 10000);
+                const gapMan = gap % 10000;
+                const gapText = gapEok > 0 ? `${gapEok}억${gapMan > 0 ? ` ${gapMan.toLocaleString()}` : ''}` : `${gapMan.toLocaleString()}만`;
+                
+                const jeonseRate = hasValues ? (avgRent / avgSale) * 100 : 0;
+                const jeonseRateText = `${jeonseRate.toFixed(1)}%`;
+                
+                return (
+                  <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3 shrink-0">
+                    <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
+                      <span className="inline-flex items-center justify-center bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-[11px] px-2 py-0.5 rounded-[5px] shrink-0 gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                        실거래 요약
+                      </span>
+                      <span className="text-[10px] text-tertiary font-bold px-2 py-0.5 rounded border border-border/30">
+                        최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-tertiary">평균 매매(3M)</span>
+                        <span className="text-[12px] font-extrabold text-primary truncate">
+                          {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 pl-1">
+                        <span className="text-[10px] font-bold text-tertiary">평균 전세(3M)</span>
+                        <span className="text-[12px] font-extrabold text-primary truncate">
+                          {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 pl-1">
+                        <span className="text-[10px] font-bold text-tertiary">예상 갭투자금</span>
+                        <span className="text-[12px] font-extrabold text-teal-600 dark:text-teal-400 truncate">
+                          {hasValues ? gapText : "-"}
+                          {hasValues && <span className="text-[9px] font-bold text-secondary ml-1">({jeonseRateText})</span>}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

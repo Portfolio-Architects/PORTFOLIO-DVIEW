@@ -4,6 +4,7 @@ import { logger } from '@/lib/services/logger';
 import { redis } from '@/lib/redis';
 import fs from 'fs';
 import path from 'path';
+import coordCorrections from '../../../public/data/coordinate-corrections.json';
 import typeMapStatic from '../../../public/data/type-map.json';
 import apartmentsByDongStatic from '../../../public/data/apartments-by-dong.json';
 
@@ -252,6 +253,13 @@ export async function fetchSheetApartmentsByDong() {
       txKey,
       isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((rentalStr || '').toLowerCase()),
     };
+
+    // Apply coordinate corrections if specified in corrections database
+    if (coordCorrections && (coordCorrections as any)[name]) {
+      const correction = (coordCorrections as any)[name];
+      rawApt.lat = correction.lat;
+      rawApt.lng = correction.lng;
+    }
 
     const parsed = SheetApartmentSchema.safeParse(rawApt);
     if (parsed.success) {

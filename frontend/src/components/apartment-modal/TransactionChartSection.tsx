@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import useSWR from 'swr';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -42,6 +43,10 @@ export function TransactionChartSection({
 }: TransactionChartSectionProps) {
   const { areaUnit, setAreaUnit } = useSettings();
   const [isMounted, setIsMounted] = useState(false);
+  
+  const jsonFetcher = (url: string) => fetch(url).then(r => r.json());
+  const { data: publicPrices } = useSWR<Record<string, Record<string, number>>>('/data/public-prices.json', jsonFetcher);
+
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -97,6 +102,25 @@ export function TransactionChartSection({
   });
 
   const now = new Date();
+  const getRecentAvgByMonths = (months: number) => {
+    const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
+    const filtered = rawData.filter(d => {
+      const y = Math.floor(d.yearMonth / 100);
+      const m = d.yearMonth % 100;
+      const day = d.contractDay || 1;
+      return new Date(y, m - 1, day) >= cutoffDate;
+    });
+    if (filtered.length === 0) return 0;
+    return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
+  };
+
+  const momentum = {
+    m1: getRecentAvgByMonths(1),
+    m3: getRecentAvgByMonths(3),
+    m6: getRecentAvgByMonths(6),
+    y1: getRecentAvgByMonths(12),
+    y3: getRecentAvgByMonths(36)
+  };
   const cutoffMap: Record<string, number> = { '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999 };
   const monthsCut = cutoffMap[chartTimeframe];
   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsCut, 1);
@@ -163,15 +187,33 @@ export function TransactionChartSection({
   
   const allYms = Array.from(new Set([...byMonthTier.keys(), ...secondaryMonthly.keys()]));
   
+  const aptPublicPrices = publicPrices?.[displayAptName] || publicPrices?.[normalizeAptName(displayAptName)];
+  
+  // Calculate fallback price for public appraisal if data is missing (70% of 3-month average or 1-year average)
+  let fallbackPrice = 0;
+  if (txSummary && txSummary.avg3MPrice) {
+    fallbackPrice = (txSummary.avg3MPrice / 10000) * 0.70;
+  } else if (momentum.y1) {
+    fallbackPrice = momentum.y1 * 0.70;
+  } else {
+    fallbackPrice = 3.5;
+  }
+
   const monthlyData = allYms
     .map(ym => {
       const buckets = byMonthTier.get(ym);
+      const yearStr = Math.floor(ym / 100).toString();
+      const publicPriceEok = aptPublicPrices?.[yearStr] 
+        ? aptPublicPrices[yearStr] / 10000 
+        : fallbackPrice;
+
       return {
         ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
         monthAvg: buckets ? avg(buckets.all) : undefined,
         secondaryAvg: secondaryMonthly.get(ym),
         saleAvg: chartType === 'sale' ? (buckets ? avg(buckets.all) : undefined) : secondaryMonthly.get(ym),
         jeonseAvg: chartType === 'sale' ? secondaryMonthly.get(ym) : (buckets ? avg(buckets.all) : undefined),
+        publicPrice: chartType === 'sale' ? publicPriceEok : undefined,
         volume: buckets ? buckets.all.length : 0, 
         ym,
         bandHigh, bandLow,
@@ -208,25 +250,16 @@ export function TransactionChartSection({
   const domainMax = maxP !== -Infinity ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
   const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
 
-  const getRecentAvgByMonths = (months: number) => {
-    const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
-    const filtered = rawData.filter(d => {
-      const y = Math.floor(d.yearMonth / 100);
-      const m = d.yearMonth % 100;
-      const day = d.contractDay || 1;
-      return new Date(y, m - 1, day) >= cutoffDate;
-    });
-    if (filtered.length === 0) return 0;
-    return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
-  };
 
-  const momentum = {
-    m1: getRecentAvgByMonths(1),
-    m3: getRecentAvgByMonths(3),
-    m6: getRecentAvgByMonths(6),
-    y1: getRecentAvgByMonths(12),
-    y3: getRecentAvgByMonths(36)
-  };
+
+  const currentMarketPrice = momentum.m1 || momentum.m3 || (txSummary?.avg3MPrice ? txSummary.avg3MPrice / 10000 : 0);
+  const latestYear = "2026";
+  const currentAptPublicPrice = aptPublicPrices?.[latestYear] 
+    ? aptPublicPrices[latestYear] / 10000 
+    : fallbackPrice; // eok unit
+  const publicPriceRatio = (currentMarketPrice > 0 && currentAptPublicPrice > 0) 
+    ? (currentAptPublicPrice / currentMarketPrice) * 100 
+    : 70; // fallback ratio
 
   const formatAvgPriceEok = (avgPrice: number) => {
     if (!avgPrice) return '-';
@@ -350,6 +383,31 @@ export function TransactionChartSection({
           })}
         </div>
         
+        {/* 공시가격 연동 자산 안전성 분석 바 */}
+        {chartType === 'sale' && currentMarketPrice > 0 && (
+          <div className="mb-5 p-3.5 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex items-center justify-between text-[12.5px] sm:text-[13px] font-bold">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-teal-400 text-[10.5px] px-2 py-0.5 rounded-[5px]">
+                🛡️ 자산 안전성
+              </span>
+              <span className="text-secondary">공시가 현실화율</span>
+              <span className="text-primary font-extrabold">{publicPriceRatio.toFixed(1)}%</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-secondary">
+              <span className={`px-2 py-0.5 rounded-lg text-[11.5px] ${
+                publicPriceRatio <= 70 
+                  ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
+                  : publicPriceRatio <= 80 
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' 
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+              }`}>
+                {publicPriceRatio <= 70 ? '안전 (우수)' : publicPriceRatio <= 80 ? '보통 (안정)' : '관망 필요'}
+              </span>
+              <span className="text-tertiary font-medium text-[11.5px]">공시 {formatAvgPriceEok(currentAptPublicPrice)}</span>
+            </div>
+          </div>
+        )}
+        
         <div className="flex-1 min-h-[300px] w-full relative">
           {isMounted ? (
             <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
@@ -400,6 +458,12 @@ export function TransactionChartSection({
                               <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
                             </div>
                           )}
+                          {chartType === 'sale' && item?.publicPrice != null && (
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-tertiary text-[13px] font-bold">공시가격</span>
+                              <span className="text-[#4ade80] text-[15px] font-extrabold">{item.publicPrice.toFixed(2)}억</span>
+                            </div>
+                          )}
                           {ratioValue != null && (
                             <div className="flex items-center justify-between gap-4 border-t border-border/20 pt-1.5 mt-0.5">
                               <span className="text-tertiary text-[13px] font-bold">전세가율</span>
@@ -423,6 +487,9 @@ export function TransactionChartSection({
                 <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
                 <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
                 <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="#f9a825" strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} />
+                {chartType === 'sale' && (
+                  <Line type="monotone" dataKey="publicPrice" yAxisId="price" stroke="#4ade80" strokeWidth={2} strokeDasharray="4 4" dot={false} activeDot={false} connectNulls isAnimationActive={false} name="공시가격" />
+                )}
                 <Customized
                   component={(rechartProps: Record<string, unknown>) => {
                     const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
@@ -488,6 +555,9 @@ export function TransactionChartSection({
         </div>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-tertiary">
           <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-[#00d29d] rounded"/>매매 평균</span>
+          {chartType === 'sale' && (
+            <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] border-t-2 border-dashed border-[#4ade80]"/>공시가격</span>
+          )}
           <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-[#f9a825] rounded"/>전월세 평균</span>
           <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>{chartType === 'sale' ? '매매 거래량' : '전월세 거래량'}</span>
         </div>
