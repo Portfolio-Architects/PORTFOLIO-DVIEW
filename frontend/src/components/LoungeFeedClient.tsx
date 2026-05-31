@@ -97,6 +97,15 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
 
+  const handleOpenNoticeUrl = (e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    const newWindow = window.open('about:blank', '_blank');
+    if (newWindow) {
+      newWindow.opener = null;
+      newWindow.location.href = url.trim();
+    }
+  };
+
   const [activeSubCategory, setActiveSubCategory] = useState<'all' | 'city' | 'rail' | 'town'>('all');
   const [activeDongFilter, setActiveDongFilter] = useState<string>('all');
 
@@ -731,6 +740,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               <div className="flex items-center gap-3">
                 <a 
                   href={(selectedNotice.url || '').trim()} 
+                  onClick={(e) => handleOpenNoticeUrl(e, selectedNotice.url || '')}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"

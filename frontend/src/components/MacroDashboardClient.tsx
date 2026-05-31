@@ -31,6 +31,18 @@ import {
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
+export interface TimelineItem {
+  aptName: string;
+  dong: string;
+  priceEok: string;
+  priceVal: number;
+  areaPyeong: number;
+  area: number;
+  floor: number;
+  type: string;
+  delta: number;
+}
+
 interface MacroNewsItem {
   id: number | string;
   category: string;
@@ -348,6 +360,15 @@ export default function MacroDashboardClient({
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData } = useSWR('/api/local-notices?t=' + Math.floor(Date.now() / 60000), fetcher);
+
+  const handleOpenNoticeUrl = (e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    const newWindow = window.open('about:blank', '_blank');
+    if (newWindow) {
+      newWindow.opener = null;
+      newWindow.location.href = url.trim();
+    }
+  };
 
   const renderAreaLabel = (areaPyeong: number, area?: number) => {
     if (areaUnit === 'm2' && area) {
@@ -873,7 +894,7 @@ export default function MacroDashboardClient({
 
   // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
   const dailyTimelineData = useMemo(() => {
-    const groups: Record<string, { dateStr: string; timestamp: number; items: any[] }> = {};
+    const groups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
 
     if (!sheetApartments || !txSummaryData) return [];
 
@@ -2193,6 +2214,7 @@ interface GroupedCategory {
                   <a
                     key={notice.id || index}
                     href={(notice.url || '').trim()}
+                    onClick={(e) => handleOpenNoticeUrl(e, notice.url || '')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"

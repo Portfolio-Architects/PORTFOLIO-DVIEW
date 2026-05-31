@@ -5,13 +5,13 @@ import FloatingUserBar from "./FloatingUserBar";
 import { MessageSquare } from "lucide-react";
 
 export interface PageHeroHeaderProps {
-  title: string;
-  subtitleStrong: string | React.ReactNode;
-  subtitleLight: string | React.ReactNode;
-  rightContent?: React.ReactNode;
-  rightSideContent?: React.ReactNode;
-  compactTitle?: string;
-  bottomContent?: React.ReactNode;
+  readonly title: string;
+  readonly subtitleStrong: string | React.ReactNode;
+  readonly subtitleLight: string | React.ReactNode;
+  readonly rightContent?: React.ReactNode;
+  readonly rightSideContent?: React.ReactNode;
+  readonly compactTitle?: string;
+  readonly bottomContent?: React.ReactNode;
 }
 
 export default function PageHeroHeader({

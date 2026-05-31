@@ -6,6 +6,20 @@ import { redis } from '@/lib/redis';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 import fs from 'fs';
 import path from 'path';
+import type { AptTxSummary } from '@/lib/types/transaction';
+import type { FieldReportData } from '@/lib/types/report.types';
+
+export interface LocationScore {
+  distanceToElementary?: number;
+  distanceToMiddle?: number;
+  distanceToHigh?: number;
+  nearestSchoolNames?: {
+    elementary?: string;
+    middle?: string;
+    high?: string;
+  };
+  nearestStationCoords?: string;
+}
 
 const TX_SUMMARY = (txSummaryDataRaw as any).summary;
 
@@ -135,7 +149,7 @@ function getPyeongSummaries(txs: Transaction[]): PyeongSummary[] {
   return summaries.sort((a, b) => a.pyeong - b.pyeong);
 }
 
-function generateAiBriefing(aptName: string, aptSummary: any, pyeongSummaries: PyeongSummary[]) {
+function generateAiBriefing(aptName: string, aptSummary: AptTxSummary | undefined, pyeongSummaries: PyeongSummary[]) {
   const defaultBrief = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
   
   if (pyeongSummaries.length === 0) {
@@ -421,15 +435,15 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   // Fetch report for structured data (JSON-LD)
   let structuredImages: string[] = [];
-  let matchedReportData: any = null;
+  let matchedReportData: FieldReportData | null = null;
   if (adminDb) {
     try {
       const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', decodedName).limit(1).get();
       if (!snap.empty) {
-        const data = snap.docs[0].data();
+        const data = snap.docs[0].data() as FieldReportData;
         matchedReportData = data;
         if (data.images && Array.isArray(data.images)) {
-          structuredImages = data.images.map((img: any) => img.url).filter(Boolean);
+          structuredImages = data.images.map((img: { url?: string }) => img.url).filter((url): url is string => !!url);
         }
       }
     } catch (e) {}
@@ -453,7 +467,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   } : undefined;
 
   // Load location scores dynamically to retrieve nearest school details
-  let locationScore: any = null;
+  let locationScore: LocationScore | null = null;
   try {
     const scoresPath = path.join(process.cwd(), 'public', 'data', 'location-scores.json');
     if (fs.existsSync(scoresPath)) {
@@ -466,8 +480,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   }
 
   // Dynamic Geo Coordinates Resolution
-  const lat = matchedReportData?.lat || matchedReportData?.latitude || matchedReportData?.metrics?.lat || locationScore?.nearestStationCoords?.split(',')[0]?.trim() || 37.2005;
-  const lng = matchedReportData?.lng || matchedReportData?.longitude || matchedReportData?.metrics?.lng || locationScore?.nearestStationCoords?.split(',')[1]?.trim() || 127.0985;
+  const lat = (matchedReportData as any)?.lat || (matchedReportData as any)?.latitude || (matchedReportData as any)?.metrics?.lat || locationScore?.nearestStationCoords?.split(',')[0]?.trim() || 37.2005;
+  const lng = (matchedReportData as any)?.lng || (matchedReportData as any)?.longitude || (matchedReportData as any)?.metrics?.lng || locationScore?.nearestStationCoords?.split(',')[1]?.trim() || 127.0985;
 
   const geo = lat && lng ? {
     "@type": "GeoCoordinates",
