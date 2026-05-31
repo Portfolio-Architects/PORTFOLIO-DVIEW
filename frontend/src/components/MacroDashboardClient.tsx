@@ -1441,12 +1441,19 @@ interface GroupedCategory {
                           <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
                           실거래 요약
                         </span>
-                        <span className="text-[12px] text-primary font-extrabold truncate max-w-[200px]">
-                          {selectedTimelineApt || "선택 단지"}
-                        </span>
+                        <div className="flex items-baseline gap-1.5 min-w-0">
+                          <span className="text-[12px] text-primary font-extrabold truncate max-w-[280px] sm:max-w-[360px]" title={selectedTimelineApt || "선택 단지"}>
+                            {selectedTimelineApt || "선택 단지"}
+                          </span>
+                          {selectedAptSummary.dong && (
+                            <span className="text-[10.5px] text-tertiary font-medium shrink-0">
+                              {selectedAptSummary.dong}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
-                        {selectedAptSummary.dong || "동탄"} · 단지 최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
+                        이 단지 최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
                       </span>
                     </div>
 
