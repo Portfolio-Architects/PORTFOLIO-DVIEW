@@ -135,7 +135,7 @@ const InfoBox = ({
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border h-[82px] sm:h-[88px] md:h-[96px] min-w-0 transition-all duration-300 group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
+      className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border min-h-[82px] sm:min-h-[88px] md:min-h-[96px] h-auto min-w-0 transition-all duration-300 group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
         onClick
           ? "cursor-pointer hover:-translate-y-0.5 hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_8px_20px_var(--card-glow)] dark:hover:shadow-[0_8px_24px_var(--card-glow-dark)]"
           : "cursor-default"
@@ -161,7 +161,7 @@ const InfoBox = ({
       {/* Row 2: Value & Badge Area */}
       <div className="flex items-center justify-between w-full min-w-0 gap-2 mt-auto mb-auto z-10">
         <div className="flex items-baseline gap-0.5 min-w-0">
-          <span className="text-[14px] sm:text-[15.5px] md:text-[19px] font-black text-primary tracking-tight leading-tight truncate">
+          <span className="text-[13px] sm:text-[14.5px] md:text-[18px] font-black text-primary tracking-tight leading-tight break-keep whitespace-normal">
             {value}
           </span>
           {unit && (
@@ -188,7 +188,7 @@ const InfoBox = ({
       {/* Row 3: Description Area */}
       <div className="w-full min-w-0 mt-auto z-10">
         {description ? (
-          <div className="text-[9.5px] sm:text-[10.5px] md:text-[12px] font-medium text-secondary/90 dark:text-secondary/80 tracking-tight truncate w-full">
+          <div className="text-[9.5px] sm:text-[10.5px] md:text-[11.5px] font-medium text-secondary/90 dark:text-secondary/80 tracking-tight break-keep whitespace-normal w-full">
             {description}
           </div>
         ) : (
@@ -1562,7 +1562,7 @@ interface GroupedCategory {
           </div>
 
           {/* Right Panel: Interactive Market Feed & Trend */}
-          <div className="w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[420px] min-w-0">
+          <div className="w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[420px] min-w-0 mt-2 md:mt-0">
             <div className="flex-1 flex flex-col min-h-[300px]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                 <div className="flex flex-col gap-1 min-w-0">

@@ -730,8 +730,8 @@ function FieldReportModal({
                 <span>지도보기</span>
               </a>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-[40px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
-              <span className="truncate">{displayAptName}</span>
+            <h1 className="text-2xl sm:text-3xl md:text-[36px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
+              <span className="break-keep whitespace-normal">{displayAptName}</span>
             </h1>
           </div>
 
@@ -1735,7 +1735,7 @@ function FieldReportModal({
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[9999] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
+      <div className="fixed inset-0 z-[11000] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
         
         <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
@@ -1768,7 +1768,7 @@ function FieldReportModal({
           )}
 
           {/* Mobile Sticky CTA (공유하기) */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+          <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
             <div className="flex items-center gap-2 w-full">
               <button
                 onClick={onClose}

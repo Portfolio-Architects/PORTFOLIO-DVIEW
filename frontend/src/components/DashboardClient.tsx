@@ -763,10 +763,12 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </div>
     </PullToRefresh>
 
-    <MobileDock 
-      activeTab={activeTab} 
-      onTabClick={setActiveTab}
-    />
+    {!mobileModalOpen && (
+      <MobileDock 
+        activeTab={activeTab} 
+        onTabClick={setActiveTab}
+      />
+    )}
 
     {isAdModalOpen && (
       <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
