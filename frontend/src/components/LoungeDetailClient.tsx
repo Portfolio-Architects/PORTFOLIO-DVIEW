@@ -18,6 +18,7 @@ import { dashboardFacade } from '@/lib/DashboardFacade';
 import { syncManagerPostToScoutingReport } from '@/lib/services/post.service';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface PostComment {
   id: string;
@@ -562,6 +563,14 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               </button>
             </div>
           </div>
+        </div>
+
+        {/* AdSense Placement in Lounge Details */}
+        <div className="my-2">
+          <NativeAdPlaceholder 
+            location="라운지 게시글 상세 하단" 
+            adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL || "test-lounge-detail-slot"} 
+          />
         </div>
 
         {/* Comments Section */}
