@@ -16,8 +16,19 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot }: Nati
   // Otherwise, we fallback to B2B matching.
   if (adsenseClient && adSlot) {
     return (
-      <div className="w-full rounded-[20px] p-2 bg-[#f8fafc] dark:bg-[#1e293b]/30 border border-border overflow-hidden flex items-center justify-center min-h-[82px]">
-        <AdSense adSlot={adSlot} adFormat="horizontal" responsive="true" />
+      <div className="w-full rounded-[20px] p-2 bg-[#f8fafc] dark:bg-[#1e293b]/30 border border-border overflow-hidden flex items-center justify-center min-h-[250px] md:min-h-[280px] relative">
+        {/* Shimmer Skeleton for CLS Prevention */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0 p-4">
+          <div className="w-full h-full flex flex-col items-center justify-center gap-3 animate-pulse">
+            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700/50" />
+            <div className="h-3.5 w-40 bg-slate-200 dark:bg-slate-700/50 rounded" />
+            <div className="h-3 w-56 bg-slate-100 dark:bg-slate-800/50 rounded" />
+            <span className="text-[10px] font-bold text-tertiary mt-1">DVIEW 안전 추천 광고주 매칭 중...</span>
+          </div>
+        </div>
+        <div className="w-full z-10 relative">
+          <AdSense adSlot={adSlot} adFormat="horizontal" responsive="true" />
+        </div>
       </div>
     );
   }

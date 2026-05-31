@@ -421,11 +421,13 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   // Fetch report for structured data (JSON-LD)
   let structuredImages: string[] = [];
+  let matchedReportData: any = null;
   if (adminDb) {
     try {
       const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', decodedName).limit(1).get();
       if (!snap.empty) {
         const data = snap.docs[0].data();
+        matchedReportData = data;
         if (data.images && Array.isArray(data.images)) {
           structuredImages = data.images.map((img: any) => img.url).filter(Boolean);
         }
@@ -450,6 +452,61 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     "offerCount": pyeongSummaries.reduce((sum, p) => sum + p.salesCount, 0)
   } : undefined;
 
+  // Load location scores dynamically to retrieve nearest school details
+  let locationScore: any = null;
+  try {
+    const scoresPath = path.join(process.cwd(), 'public', 'data', 'location-scores.json');
+    if (fs.existsSync(scoresPath)) {
+      const content = fs.readFileSync(scoresPath, 'utf-8');
+      const allScores = JSON.parse(content);
+      locationScore = allScores[decodedName];
+    }
+  } catch (err) {
+    console.warn(`[SEO] Failed to read location-scores for ${decodedName}:`, err);
+  }
+
+  // Dynamic Geo Coordinates Resolution
+  const lat = matchedReportData?.lat || matchedReportData?.latitude || matchedReportData?.metrics?.lat || locationScore?.nearestStationCoords?.split(',')[0]?.trim() || 37.2005;
+  const lng = matchedReportData?.lng || matchedReportData?.longitude || matchedReportData?.metrics?.lng || locationScore?.nearestStationCoords?.split(',')[1]?.trim() || 127.0985;
+
+  const geo = lat && lng ? {
+    "@type": "GeoCoordinates",
+    "latitude": Number(lat),
+    "longitude": Number(lng)
+  } : undefined;
+
+  // Build School instances forcontainedInPlace SEO property
+  const schools = [];
+  if (locationScore?.nearestSchoolNames?.elementary) {
+    schools.push({
+      "@type": "School",
+      "name": locationScore.nearestSchoolNames.elementary,
+      "description": "배정 초등학교"
+    });
+  }
+  if (locationScore?.nearestSchoolNames?.middle) {
+    schools.push({
+      "@type": "School",
+      "name": locationScore.nearestSchoolNames.middle,
+      "description": "인근 중학교"
+    });
+  }
+  if (locationScore?.nearestSchoolNames?.high) {
+    schools.push({
+      "@type": "School",
+      "name": locationScore.nearestSchoolNames.high,
+      "description": "인근 고등학교"
+    });
+  }
+
+  const address = {
+    "@type": "PostalAddress",
+    "addressCountry": "KR",
+    "addressRegion": "경기도",
+    "addressLocality": "화성시",
+    "streetAddress": `${aptSummary?.dong || matchedReportData?.dong || ""} ${decodedName}`
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ApartmentComplex",
@@ -458,7 +515,10 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     "url": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
     ...(structuredImages.length > 0 ? { "image": structuredImages } : {}),
     ...(offers ? { "offers": offers } : {}),
-    "priceRange": minSalePrice > 0 ? `₩${(minSalePrice * 10000).toLocaleString()} - ₩${(maxSalePrice * 10000).toLocaleString()}` : undefined
+    "priceRange": minSalePrice > 0 ? `₩${(minSalePrice * 10000).toLocaleString()} - ₩${(maxSalePrice * 10000).toLocaleString()}` : undefined,
+    "address": address,
+    ...(geo ? { "geo": geo } : {}),
+    ...(schools.length > 0 ? { "containedInPlace": schools } : {})
   };
 
   const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);

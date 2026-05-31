@@ -275,6 +275,16 @@ export const formatEokWithUnit = (priceMan: number) => {
   };
 };
 
+export const formatDeltaPrice = (deltaEok: number): string => {
+  const deltaMan = Math.round(deltaEok * 10000);
+  if (deltaMan >= 10000) {
+    const eok = Math.floor(deltaMan / 10000);
+    const man = deltaMan % 10000;
+    return man === 0 ? `+${eok}억` : `+${eok}억 ${man.toLocaleString()}만`;
+  }
+  return `+${deltaMan.toLocaleString()}만`;
+};
+
 const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): Date | null => {
   const clean = String(dateStr).replace(/[^0-9]/g, '');
   if (clean.length === 8) {
@@ -875,65 +885,82 @@ export default function MacroDashboardClient({
       if (txKey && txSummaryData[txKey]) {
         const sum = txSummaryData[txKey];
         if (sum.recent && sum.recent.length > 0) {
+          // Group transactions by areaKey to trace historical price trend per area size
+          const areaGroups: Record<string, any[]> = {};
           sum.recent.forEach((tx) => {
+            const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : 'default';
             const dt = parseDateHelper(tx.date, sum.latestDate);
-            if (dt) {
-              const diffMs = maxDateTime - dt.getTime();
-              const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-              // 최근 30일 내의 데이터만 타임라인에 표시
-              if (diffDays >= 0 && diffDays <= 30) {
-                const price = parsePriceEokHelper(tx.priceEok);
-                
-                // 평형별 최고가 조회
-                const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : '';
-                const maxPriceForArea = areaKey && sum.maxPriceByArea ? sum.maxPriceByArea[areaKey] : null;
-                const maxPriceEokVal = maxPriceForArea ? maxPriceForArea / 10000 : (sum.maxPrice || 0) / 10000;
+            const price = parsePriceEokHelper(tx.priceEok);
+            if (dt && price > 0) {
+              if (!areaGroups[areaKey]) {
+                areaGroups[areaKey] = [];
+              }
+              areaGroups[areaKey].push({ tx, dt, price });
+            }
+          });
 
-                if (price > 0 && maxPriceEokVal > 0) {
-                  // 신고가만 판정 (최고가 대비 500만원 이내)
-                  const isHigh = price >= maxPriceEokVal - 0.05;
+          // Process each area size ascending in time to determine strict new highs
+          Object.keys(areaGroups).forEach((areaKey) => {
+            const sorted = areaGroups[areaKey].sort((a, b) => a.dt.getTime() - b.dt.getTime());
+            let currentMax = 0;
 
-                  if (isHigh) {
-                    const dateKey = tx.date;
-                    
-                    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-                    const dayName = daysOfWeek[dt.getDay()];
-                    const month = dt.getMonth() + 1;
-                    const dateVal = dt.getDate();
-                    const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+            sorted.forEach((item, index) => {
+              const { tx, dt, price } = item;
+              let isNewHigh = false;
+              let delta = 0;
 
-                    if (!groups[dateKey]) {
-                      groups[dateKey] = {
-                        dateStr,
-                        timestamp: dt.getTime(),
-                        items: [],
-                      };
-                    }
-
-                    groups[dateKey].items.push({
-                      aptName: apt.name,
-                      dong: apt.dong || sum.dong || "",
-                      priceEok: tx.priceEok,
-                      priceVal: price,
-                      areaPyeong: tx.areaPyeong,
-                      area: tx.area,
-                      floor: tx.floor,
-                      type: "high",
-                    });
-                  }
+              if (index === 0) {
+                currentMax = price;
+              } else {
+                if (price > currentMax) {
+                  isNewHigh = true;
+                  delta = price - currentMax;
+                  currentMax = price;
                 }
               }
-            }
+
+              // Check if it is a new high and falls within the last 30 days
+              const diffMs = maxDateTime - dt.getTime();
+              const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+              if (isNewHigh && diffDays >= 0 && diffDays <= 30) {
+                const dateKey = tx.date;
+                const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+                const dayName = daysOfWeek[dt.getDay()];
+                const month = dt.getMonth() + 1;
+                const dateVal = dt.getDate();
+                const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+
+                if (!groups[dateKey]) {
+                  groups[dateKey] = {
+                    dateStr,
+                    timestamp: dt.getTime(),
+                    items: [],
+                  };
+                }
+
+                groups[dateKey].items.push({
+                  aptName: apt.name,
+                  dong: apt.dong || sum.dong || "",
+                  priceEok: tx.priceEok,
+                  priceVal: price,
+                  areaPyeong: tx.areaPyeong,
+                  area: tx.area,
+                  floor: tx.floor,
+                  type: "high",
+                  delta: delta,
+                });
+              }
+            });
           });
         }
       }
     });
 
-    // 그룹을 날짜 최신순으로 정렬
+    // Sort groups by latest date descending
     return Object.values(groups)
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((group) => {
-        // 동일 날짜 내에서 금액 높은 순 정렬
+        // Sort items inside same date by price descending
         const sortedItems = group.items.sort((a, b) => b.priceVal - a.priceVal);
         return {
           ...group,
@@ -1316,7 +1343,7 @@ interface GroupedCategory {
                                 {item.aptName}
                               </span>
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shadow-sm shrink-0 whitespace-nowrap">
-                                신고가
+                                🔥 신고가 ({formatDeltaPrice(item.delta)})
                               </span>
                             </div>
 
