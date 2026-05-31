@@ -1152,11 +1152,13 @@ interface GroupedCategory {
                                 : "bg-body hover:bg-body/80 border-transparent hover:border-border"
                             } group gap-2 md:gap-4`}
                           >
-                            <div className="flex items-center gap-1.5 min-w-0 md:pr-2 flex-1">
-                              <span className="text-secondary text-[11px] sm:text-[11.5px] font-semibold bg-white dark:bg-surface border border-border px-1.5 py-0.5 rounded shrink-0">{item.dong}</span>
-                              <span className="text-[14.5px] font-bold text-primary truncate group-hover:text-toss-blue transition-colors flex-1">{item.aptName}</span>
-                              <span className="text-[12.5px] text-tertiary font-semibold shrink-0">
-                                · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
+                            <div className="flex flex-col gap-1.5 min-w-0 md:pr-2 flex-1">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-secondary text-[11px] sm:text-[11.5px] font-semibold bg-white dark:bg-surface border border-border px-1.5 py-0.5 rounded shrink-0">{item.dong}</span>
+                                <span className="text-[14.5px] font-bold text-primary break-keep group-hover:text-toss-blue transition-colors flex-1 min-w-0">{item.aptName}</span>
+                              </div>
+                              <span className="text-[12px] text-tertiary font-medium pl-0.5">
+                                {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
                               </span>
                             </div>
                             <div className="flex items-center md:flex-col md:items-end justify-between md:justify-center gap-1.5 md:gap-1 shrink-0 mt-1 md:mt-0 pt-1.5 md:pt-0 border-t border-dashed border-border/40 md:border-none">
