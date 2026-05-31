@@ -372,15 +372,6 @@ export default function MacroDashboardClient({
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData } = useSWR('/api/local-notices?t=' + Math.floor(Date.now() / 60000), fetcher);
 
-  const handleOpenNoticeUrl = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
-    const newWindow = window.open('about:blank', '_blank');
-    if (newWindow) {
-      newWindow.opener = null;
-      newWindow.location.href = url.trim();
-    }
-  };
-
   const renderAreaLabel = (areaPyeong: number, area?: number) => {
     if (areaUnit === 'm2' && area) {
       return `${Math.round(area)}㎡`;
@@ -2229,8 +2220,7 @@ interface GroupedCategory {
                 ).map((notice: LocalNoticeItem, index: number) => (
                   <a
                     key={notice.id || index}
-                    href={(notice.url || '').trim()}
-                    onClick={(e) => handleOpenNoticeUrl(e, notice.url || '')}
+                    href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"

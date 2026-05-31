@@ -146,7 +146,8 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
     const description = customDesc || `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`;
 
     // 4002 에러 우회를 위해, 현재 브라우저가 실행중인 도메인(localhost:5000 또는 dongtanview.com)을 그대로 사용
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}`;
+    // UTM parameters automatically appended for sharing campaign analysis
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
 
     window.Kakao.Share.sendDefault({
       objectType: "feed",
@@ -164,6 +165,75 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
       buttons: [
         {
           title: "D-VIEW에서 확인하기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};
+
+export interface SharePostParams {
+  postId: string;
+  title: string;
+  category: string;
+  contentSummary: string;
+  imageUrl?: string;
+}
+
+export const sharePostToKakao = async ({ postId, title, category, contentSummary, imageUrl }: SharePostParams) => {
+  try {
+    await loadKakaoSdk();
+
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    // Default fallbacks for image URL
+    const finalImageUrl = imageUrl || "https://dongtanview.com/api/og?title=" + encodeURIComponent(title);
+
+    // Dynamic sharing URL with UTM tracking parameters
+    const shareUrl = `${window.location.origin}/lounge/${postId}?utm_source=kakaotalk&utm_medium=share&utm_campaign=lounge_detail`;
+
+    // Limit content summary length to fit nicely on Kakao feed card
+    const cleanDesc = contentSummary.replace(/[#*`_~[\]]/g, '').trim();
+    const truncatedDesc = cleanDesc.length > 80 ? cleanDesc.substring(0, 80) + "..." : cleanDesc;
+    const finalDesc = `[${category}] ${truncatedDesc}\n지금 D-VIEW 라운지에서 확인하고 소통하세요!`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: title,
+        description: finalDesc,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "라운지 글 읽기",
           link: {
             mobileWebUrl: shareUrl,
             webUrl: shareUrl,

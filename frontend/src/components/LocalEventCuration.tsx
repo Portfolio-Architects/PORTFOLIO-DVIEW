@@ -29,15 +29,6 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
   const localNotices = allNotices.filter((n: LocalNoticeItem) => n.isDongtan).slice(0, 5);
   const displayNotices = localNotices.length > 0 ? localNotices : allNotices.slice(0, 5);
 
-  const handleOpenNoticeUrl = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
-    const newWindow = window.open('about:blank', '_blank');
-    if (newWindow) {
-      newWindow.opener = null;
-      newWindow.location.href = url.trim();
-    }
-  };
-
   const handleCopyNoticeLink = async (e: React.MouseEvent, notice: LocalNoticeItem) => {
     e.stopPropagation();
     try {
@@ -298,8 +289,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
               {displayNotices.map((notice: LocalNoticeItem) => (
                 <a
                   key={notice.id}
-                  href={(notice.url || '').trim()}
-                  onClick={(e) => handleOpenNoticeUrl(e, notice.url || '')}
+                  href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex items-center justify-between gap-4 transition-all duration-300 group w-full"

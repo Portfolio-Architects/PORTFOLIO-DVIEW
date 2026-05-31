@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight, Share2 } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp, where, limit, getDocs } from 'firebase/firestore';
@@ -20,6 +20,7 @@ import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { sharePostToKakao } from '@/lib/utils/kakaoShare';
 
 // Memory backups for anonymous session in case localStorage is blocked in sandboxed frames
 let sessionAnonNickname: string | null = null;
@@ -182,6 +183,24 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         console.warn('localStorage is unavailable:', err);
       }
     }
+  };
+
+  const handleShare = async () => {
+    if (!post || !postId) return;
+    
+    // Extract first image from markdown content if exists, to use as custom thumbnail
+    const mdImageRegex = /!\[.*?\]\((.*?)\)/;
+    const content = (post.content as string) || "";
+    const match = content.match(mdImageRegex);
+    const firstImageUrl = match ? match[1] : undefined;
+
+    await sharePostToKakao({
+      postId,
+      title: (post.title as string) || "DVIEW 라운지 소식",
+      category: (post.category as string) || "자유",
+      contentSummary: content,
+      imageUrl: firstImageUrl
+    });
   };
 
   const getAnonymousNickname = () => {
@@ -612,7 +631,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                       }
                     }}
                   >
-                    {String(post.content).replace(/\n{3,}/g, '\n\n')}
+                    {autoLinkApartments(String(post.content).replace(/\n{3,}/g, '\n\n'), dongtanApartments)}
                   </ReactMarkdown>
                 </article>
               )}
@@ -636,6 +655,14 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               >
                 <Heart size={16} fill={isLiked ? "#f04452" : "none"} />
                 <span className="text-[13px] font-bold">{Number(post?.likes || 0)}</span>
+              </button>
+              <button 
+                onClick={handleShare}
+                className="flex items-center gap-1.5 text-tertiary hover:text-toss-blue transition-colors"
+                title="카카오톡으로 공유하기"
+              >
+                <Share2 size={16} />
+                <span className="text-[13px] font-bold">공유</span>
               </button>
             </div>
           </div>
@@ -703,3 +730,60 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     </>
   );
 }
+
+/**
+ * Automatically parses text, finding any mention of dongtan apartments,
+ * and wraps them in clean markdown links pointing to the apartment page,
+ * while safely ignoring existing markdown links and images.
+ */
+const autoLinkApartments = (content: string, apartments: string[]): string => {
+  if (!content || !apartments || apartments.length === 0) return content;
+
+  // 1. Extract and sort unique short names by length descending to match longest first
+  const shortNames = Array.from(
+    new Set(
+      apartments
+        .map(apt => apt.replace(/\[.*?\]\s*/, '').trim())
+        .filter(name => name.length >= 2)
+    )
+  ).sort((a, b) => b.length - a.length);
+
+  // 2. Temporarily hide existing markdown links, images, and code blocks to prevent inner replacement
+  const placeholders: string[] = [];
+  const protectionRegex = /(!?\[.*?\]\(.*?\)|`.*?`)/g;
+  
+  let protectedContent = content.replace(protectionRegex, (match) => {
+    const placeholder = `___LINK_PROTECT_${placeholders.length}___`;
+    placeholders.push(match);
+    return placeholder;
+  });
+
+  // 3. Perform apartment name replacement on the protected content
+  const newLinkPlaceholders: string[] = [];
+
+  shortNames.forEach((name) => {
+    const escapedName = name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(escapedName, 'g');
+    
+    protectedContent = protectedContent.replace(regex, (match) => {
+      const placeholder = `___NEW_APT_LINK_${newLinkPlaceholders.length}___`;
+      const url = `/#apt=${encodeURIComponent(name)}&utm_source=lounge&utm_medium=internal_link&utm_campaign=lounge_mention`;
+      newLinkPlaceholders.push(`[${match}](${url})`);
+      return placeholder;
+    });
+  });
+
+  // 4. Restore new apartment links
+  let finalContent = protectedContent;
+  for (let i = 0; i < newLinkPlaceholders.length; i++) {
+    finalContent = finalContent.replace(`___NEW_APT_LINK_${i}___`, newLinkPlaceholders[i]);
+  }
+
+  // 5. Restore original protected blocks (links, images, code)
+  for (let i = 0; i < placeholders.length; i++) {
+    finalContent = finalContent.replace(`___LINK_PROTECT_${i}___`, placeholders[i]);
+  }
+
+  return finalContent;
+};
+

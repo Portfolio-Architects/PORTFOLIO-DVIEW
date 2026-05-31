@@ -16,6 +16,7 @@ import dynamic from 'next/dynamic';
 const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
 
 export const metadata: Metadata = {
+  referrer: 'no-referrer',
   metadataBase: new URL('https://dongtanview.com'),
   title: 'D-VIEW | 동탄 아파트 가치분석',
   description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
@@ -75,6 +76,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        <meta name="referrer" content="no-referrer" />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-hidden">
         <Script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" strategy="lazyOnload" />
