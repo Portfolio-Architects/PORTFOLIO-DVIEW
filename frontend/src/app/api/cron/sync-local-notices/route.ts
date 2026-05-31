@@ -178,65 +178,81 @@ export async function GET(request: Request) {
       }
     }
 
-    // --- Source 4: 동탄구청 동별 공지사항 (BBS 1049) ---
-    for (const page of pages) {
-      const url = `${SOURCE_4_DONG_URL}&q_currPage=${page}`;
-      try {
-        const res = await fetch(url, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
-          },
-          cache: 'no-store'
-        });
+    // --- Source 4: 동탄구청 동별 공지사항 (BBS 1049) (동탄1동 ~ 동탄9동 전체) ---
+    const DONG_DEPTS = [
+      { name: '동탄1동', code: '57700100000' },
+      { name: '동탄2동', code: '57700110000' },
+      { name: '동탄3동', code: '57700120000' },
+      { name: '동탄4동', code: '57700130000' },
+      { name: '동탄5동', code: '57700140000' },
+      { name: '동탄6동', code: '57700150000' },
+      { name: '동탄7동', code: '57700160000' },
+      { name: '동탄8동', code: '57700170000' },
+      { name: '동탄9동', code: '57700180000' }
+    ];
 
-        if (!res.ok) {
-          console.error(`Failed to fetch Source 4 board page ${page}: HTTP ${res.status}`);
-          continue;
-        }
+    const dongPages = isFull ? [1, 2] : [1];
 
-        const arrayBuffer = await res.arrayBuffer();
-        const decoder = new TextDecoder('utf-8');
-        const decodedHtml = decoder.decode(arrayBuffer);
-        const $ = cheerio.load(decodedHtml);
-        const rows = $('table').first().find('tr');
+    for (const deptItem of DONG_DEPTS) {
+      for (const page of dongPages) {
+        const url = `https://www.hscity.go.kr/dongtan/user/bbs/BD_selectBbsList.do?q_bbsCode=1049&q_deptCode=${deptItem.code}&q_currPage=${page}`;
+        try {
+          const res = await fetch(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
+            },
+            cache: 'no-store'
+          });
 
-        rows.each((idx, tr) => {
-          // Skip header row
-          if (idx === 0) return;
-
-          const tds = $(tr).find('td');
-          if (tds.length < 5) return;
-
-          const originalId = $(tds[0]).text().trim();
-          const titleEl = $(tds[2]);
-          const title = titleEl.text().trim().replace(/\s+/g, ' ');
-          const link = titleEl.find('a').attr('href') || '';
-          const dept = $(tds[3]).text().trim();
-          const date = $(tds[4]).text().trim();
-
-          if (originalId && title && link) {
-            const isDongtan = checkIfDongtan(title, dept);
-            if (isDongtan) {
-              const absoluteUrl = link.startsWith('http') 
-                ? link 
-                : `https://www.hscity.go.kr${link}`;
-
-              notices.push({
-                id: `dong_${originalId}`,
-                originalId,
-                title,
-                url: absoluteUrl,
-                dept,
-                date,
-                isDongtan: true,
-                source: 'dong',
-                createdAt: new Date().toISOString()
-              });
-            }
+          if (!res.ok) {
+            console.error(`Failed to fetch Source 4 board page ${page} for ${deptItem.name}: HTTP ${res.status}`);
+            continue;
           }
-        });
-      } catch (err) {
-        console.error(`Error scraping Source 4 page ${page}:`, err);
+
+          const arrayBuffer = await res.arrayBuffer();
+          const decoder = new TextDecoder('utf-8');
+          const decodedHtml = decoder.decode(arrayBuffer);
+          const $ = cheerio.load(decodedHtml);
+          const rows = $('table').first().find('tr');
+
+          rows.each((idx, tr) => {
+            // Skip header row
+            if (idx === 0) return;
+
+            const tds = $(tr).find('td');
+            if (tds.length < 5) return;
+
+            const originalId = $(tds[0]).text().trim();
+            const titleEl = $(tds[2]);
+            const title = titleEl.text().trim().replace(/\s+/g, ' ');
+            const link = titleEl.find('a').attr('href') || '';
+            const dept = $(tds[3]).text().trim();
+            const date = $(tds[4]).text().trim();
+
+            if (originalId && title && link) {
+              const isDongtan = checkIfDongtan(title, dept);
+              if (isDongtan) {
+                const absoluteUrl = link.startsWith('http') 
+                  ? link 
+                  : `https://www.hscity.go.kr${link}`;
+
+                notices.push({
+                  id: `dong_${deptItem.code}_${originalId}`,
+                  originalId,
+                  title,
+                  url: absoluteUrl,
+                  dept,
+                  date,
+                  isDongtan: true,
+                  source: 'dong',
+                  createdAt: new Date().toISOString()
+                });
+              }
+            }
+          });
+        } catch (err) {
+          console.error(`Error scraping Source 4 page ${page} for ${deptItem.name}:`, err);
+        }
       }
     }
 
