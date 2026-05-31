@@ -89,7 +89,7 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
       </div>
 
       {/* 가로 슬라이딩 카드 리스트 (Toss 스타일 터치 캐러셀) */}
-      <div className="flex gap-3 overflow-x-auto pb-2 md:pb-4 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:custom-h-scrollbar w-full relative">
+      <div className="flex gap-3 overflow-x-auto pb-2 md:pb-4 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden custom-h-scrollbar w-full relative">
         {sortedEvents.map((event) => {
           const today = new Date().toISOString().split('T')[0];
           const isPast = event.date < today;

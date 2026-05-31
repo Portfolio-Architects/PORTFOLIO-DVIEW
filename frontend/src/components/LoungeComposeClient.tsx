@@ -232,7 +232,7 @@ export default function LoungeComposeClient({ currentTab }: Props) {
               ref={textareaRef}
               value={postContent} 
               onChange={(e) => setPostContent(e.target.value)} 
-              placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 마크다운 문법을 사용해 깔끔하게 정돈된 글을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
+              placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 줄바꿈을 활용해 자유롭게 내용을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
               rows={12} 
               className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-toss-blue/10 mb-4" 
             />
