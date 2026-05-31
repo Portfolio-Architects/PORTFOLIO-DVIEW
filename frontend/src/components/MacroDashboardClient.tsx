@@ -855,6 +855,8 @@ interface GroupedApartment {
   distToDongtan: number | null;
   dong?: string;
   txKey?: string;
+  views?: number;
+  likes?: number;
 }
 
 interface GroupedCategory {
@@ -988,6 +990,8 @@ interface GroupedCategory {
                 distToDongtan: distToDongtan,
                 dong: apt.dong,
                 txKey: apt.txKey,
+                views: fieldReportsMap.get(apt.name)?.viewCount || 0,
+                likes: favoriteCounts[apt.name] || 0,
               });
 
               grouped[themeTitle].totalValue += sales;
@@ -1014,6 +1018,7 @@ interface GroupedCategory {
         g.avgPrice = g.totalValue / g.count;
         g.avgPyeongPrice = g.totalPyeongValue / g.count;
         g.apartments.sort((a, b) => b.latestPrice - a.latestPrice);
+        (g as any).recentTxCount = g.apartments.reduce((sum, apt) => sum + (apt.liquid || 0), 0);
         return g;
       })
       .sort((a, b) => {
@@ -1623,6 +1628,11 @@ interface GroupedCategory {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                    {(group as any).recentTxCount > 0 && (
+                      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-[6px] text-[11px] font-bold bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#00b386] dark:text-[#00d29d] border border-transparent whitespace-nowrap leading-none shrink-0">
+                        90일 거래 {(group as any).recentTxCount}건
+                      </span>
+                    )}
                     <div className="flex flex-col items-end shrink-0">
                       {accordionMode === "price" ? (
                         (() => {
@@ -1637,7 +1647,10 @@ interface GroupedCategory {
                                   {unit}
                                 </span>
                               </div>
-                              <span className="text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap">
+                              <span className="text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap flex items-center gap-1 justify-end">
+                                <span className="sm:hidden text-[10px] font-bold text-[#00b386] dark:text-[#00d29d]">
+                                  (90일 {(group as any).recentTxCount}건)
+                                </span>
                                 평균 실거래가
                               </span>
                             </>
@@ -1653,7 +1666,10 @@ interface GroupedCategory {
                               만원/평
                             </span>
                           </div>
-                          <span className="text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap">
+                          <span className="text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap flex items-center gap-1 justify-end">
+                            <span className="sm:hidden text-[10px] font-bold text-[#00b386] dark:text-[#00d29d]">
+                              (90일 {(group as any).recentTxCount}건)
+                            </span>
                             평균 평단가
                           </span>
                         </>
@@ -1780,6 +1796,11 @@ interface GroupedCategory {
                                         <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
                                           {apt.name}
                                         </span>
+                                        {((apt.likes && apt.likes >= 3) || (apt.views && apt.views >= 100)) && (
+                                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[10px] font-black bg-rose-50 dark:bg-rose-950/20 text-rose-500 border border-rose-500/10 leading-none shrink-0 gap-0.5 animate-pulse">
+                                            🔥 HOT
+                                          </span>
+                                        )}
                                       </div>
                                       <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
                                     </div>
@@ -1823,6 +1844,24 @@ interface GroupedCategory {
                                     </div>
                                   </div>
                                 ))}
+
+                                {/* 커뮤니티 라운지 연결 브릿지 */}
+                                <div 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.hash = 'lounge';
+                                  }}
+                                  className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2"
+                                >
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <MessageSquare className="w-3.5 h-3.5 text-[#3182f6] shrink-0" />
+                                    <span className="truncate">"{group.title}" 권역 입주민 라운지 수다방 입장</span>
+                                  </div>
+                                  <span className="text-[11px] font-extrabold text-[#3182f6] inline-flex items-center shrink-0">
+                                    대화 참여
+                                    <ChevronRight className="w-3 h-3 ml-0.5 transform group-hover/bridge:translate-x-0.5 transition-transform" />
+                                  </span>
+                                </div>
                               </div>
                             </>
                           );
