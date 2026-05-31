@@ -374,6 +374,33 @@ export default function MacroDashboardClient({
   const [visibleNoticeCount, setVisibleNoticeCount] = useState(6);
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
+  const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
+  const [isAptTxLoading, setIsAptTxLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedTimelineApt) {
+      setAptRealTxData(null);
+      return;
+    }
+    setIsAptTxLoading(true);
+    const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
+    
+    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load tx data");
+        return res.json();
+      })
+      .then(data => {
+        setAptRealTxData(data);
+      })
+      .catch(err => {
+        console.error("Error fetching apt real tx data:", err);
+        setAptRealTxData(null);
+      })
+      .finally(() => {
+        setIsAptTxLoading(false);
+      });
+  }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
 
 
@@ -530,25 +557,152 @@ export default function MacroDashboardClient({
 
   const selectedAptChartData = useMemo(() => {
     if (!selectedAptSummary || !deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
-    
-    // Latest macro points
-    const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
-    const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
-    const macroJeonseVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
 
-    // Selected apt prices (converted to Eok)
-    const aptSaleVal = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0) / 10000;
-    const aptJeonseVal = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0) / 10000;
+    // 만약 실제 거래 데이터가 로드되지 않았거나 로딩 중이면, 안전한 fallback으로 기존의 Mock 스케일링 데이터를 제공
+    if (!aptRealTxData || aptRealTxData.length === 0) {
+      const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
+      const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
+      const macroJeonseVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
 
-    const saleFactor = aptSaleVal > 0 ? aptSaleVal / macroSaleVal : 1;
-    const jeonseFactor = aptJeonseVal > 0 ? aptJeonseVal / macroJeonseVal : (aptSaleVal > 0 ? (aptSaleVal * 0.6) / macroJeonseVal : 1);
+      const aptSaleVal = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0) / 10000;
+      const aptJeonseVal = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0) / 10000;
 
-    return deferredMacroTrendData.map(point => ({
-      name: point.name,
-      '동탄 아파트 전체': Math.round((point['동탄 아파트 전체'] * saleFactor) * 100) / 100,
-      '동탄 아파트 전세 평균': Math.round((point['동탄 아파트 전세 평균'] * jeonseFactor) * 100) / 100,
-    }));
-  }, [selectedAptSummary, deferredMacroTrendData]);
+      const saleFactor = aptSaleVal > 0 ? aptSaleVal / macroSaleVal : 1;
+      const jeonseFactor = aptJeonseVal > 0 ? aptJeonseVal / macroJeonseVal : (aptSaleVal > 0 ? (aptSaleVal * 0.6) / macroJeonseVal : 1);
+
+      return deferredMacroTrendData.map(point => ({
+        name: point.name,
+        '동탄 아파트 전체': Math.round((point['동탄 아파트 전체'] * saleFactor) * 100) / 100,
+        '동탄 아파트 전세 평균': Math.round((point['동탄 아파트 전세 평균'] * jeonseFactor) * 100) / 100,
+      }));
+    }
+
+    // 1. 실제 거래 분류 및 월별 데이터 구조 구축
+    const salesByMonth: Record<string, number[]> = {};
+    const rentsByMonth: Record<string, number[]> = {};
+
+    aptRealTxData.forEach(tx => {
+      if (!tx.contractYm) return;
+      const yy = tx.contractYm.substring(2, 4);
+      const mm = tx.contractYm.substring(4, 6);
+      const key = `${yy}.${mm}`;
+
+      if (tx.dealType === '전세') {
+        const depositVal = (tx.deposit || tx.price || 0) / 10000;
+        if (depositVal > 0) {
+          if (!rentsByMonth[key]) rentsByMonth[key] = [];
+          rentsByMonth[key].push(depositVal);
+        }
+      } else if (tx.dealType !== '월세') {
+        const priceVal = (tx.price || 0) / 10000;
+        if (priceVal > 0) {
+          if (!salesByMonth[key]) salesByMonth[key] = [];
+          salesByMonth[key].push(priceVal);
+        }
+      }
+    });
+
+    // 2. 월별 평균 구하기
+    const monthlyAverages: Record<string, { sale: number | null; rent: number | null }> = {};
+    deferredMacroTrendData.forEach(point => {
+      const monthKey = point.name;
+      const sales = salesByMonth[monthKey] || [];
+      const rents = rentsByMonth[monthKey] || [];
+
+      monthlyAverages[monthKey] = {
+        sale: sales.length > 0 ? sales.reduce((a, b) => a + b, 0) / sales.length : null,
+        rent: rents.length > 0 ? rents.reduce((a, b) => a + b, 0) / rents.length : null,
+      };
+    });
+
+    // 3. 정밀 보간 (Interpolation) 파이프라인
+    let firstSaleAnchorIndex = -1;
+    let firstRentAnchorIndex = -1;
+
+    for (let i = 0; i < deferredMacroTrendData.length; i++) {
+      const key = deferredMacroTrendData[i].name;
+      if (firstSaleAnchorIndex === -1 && monthlyAverages[key].sale !== null) {
+        firstSaleAnchorIndex = i;
+      }
+      if (firstRentAnchorIndex === -1 && monthlyAverages[key].rent !== null) {
+        firstRentAnchorIndex = i;
+      }
+    }
+
+    const fallbackSalePrice = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 80000) / 10000;
+    const fallbackRentPrice = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 48000) / 10000;
+
+    if (firstSaleAnchorIndex === -1) {
+      firstSaleAnchorIndex = deferredMacroTrendData.length - 1;
+      const key = deferredMacroTrendData[firstSaleAnchorIndex].name;
+      monthlyAverages[key].sale = fallbackSalePrice;
+    }
+    if (firstRentAnchorIndex === -1) {
+      firstRentAnchorIndex = deferredMacroTrendData.length - 1;
+      const key = deferredMacroTrendData[firstRentAnchorIndex].name;
+      monthlyAverages[key].rent = fallbackRentPrice;
+    }
+
+    const saleAnchorKey = deferredMacroTrendData[firstSaleAnchorIndex].name;
+    const rentAnchorKey = deferredMacroTrendData[firstRentAnchorIndex].name;
+    const saleAnchorValue = monthlyAverages[saleAnchorKey].sale!;
+    const rentAnchorValue = monthlyAverages[rentAnchorKey].rent!;
+
+    const macroTrendList = deferredMacroTrendData;
+    const finalChartData = macroTrendList.map((point, idx) => {
+      const key = point.name;
+      let finalSale = monthlyAverages[key].sale;
+      let finalRent = monthlyAverages[key].rent;
+
+      // --- 매매 보간 ---
+      if (finalSale === null) {
+        if (idx < firstSaleAnchorIndex) {
+          const anchorMacro = macroTrendList[firstSaleAnchorIndex]['동탄 아파트 전체'];
+          const currentMacro = point['동탄 아파트 전체'];
+          const macroRatio = anchorMacro > 0 ? currentMacro / anchorMacro : 1;
+          finalSale = saleAnchorValue * macroRatio;
+        } else {
+          let lastValidSale = saleAnchorValue;
+          for (let j = idx - 1; j >= firstSaleAnchorIndex; j--) {
+            const prevKey = macroTrendList[j].name;
+            if (monthlyAverages[prevKey].sale !== null) {
+              lastValidSale = monthlyAverages[prevKey].sale!;
+              break;
+            }
+          }
+          finalSale = lastValidSale;
+        }
+      }
+
+      // --- 전세 보간 ---
+      if (finalRent === null) {
+        if (idx < firstRentAnchorIndex) {
+          const anchorMacro = macroTrendList[firstRentAnchorIndex]['동탄 아파트 전세 평균'] || 4.3;
+          const currentMacro = point['동탄 아파트 전세 평균'] || 4.3;
+          const macroRatio = anchorMacro > 0 ? currentMacro / anchorMacro : 1;
+          finalRent = rentAnchorValue * macroRatio;
+        } else {
+          let lastValidRent = rentAnchorValue;
+          for (let j = idx - 1; j >= firstRentAnchorIndex; j--) {
+            const prevKey = macroTrendList[j].name;
+            if (monthlyAverages[prevKey].rent !== null) {
+              lastValidRent = monthlyAverages[prevKey].rent!;
+              break;
+            }
+          }
+          finalRent = lastValidRent;
+        }
+      }
+
+      return {
+        name: key,
+        '동탄 아파트 전체': Math.round(finalSale * 100) / 100,
+        '동탄 아파트 전세 평균': Math.round(finalRent * 100) / 100,
+      };
+    });
+
+    return finalChartData;
+  }, [selectedAptSummary, deferredMacroTrendData, aptRealTxData]);
 
   const lineData = useMemo(() => {
     const sourceData = selectedAptChartData || deferredMacroTrendData;
