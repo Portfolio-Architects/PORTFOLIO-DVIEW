@@ -1763,7 +1763,7 @@ interface GroupedCategory {
                                       <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
                                         {apt.name}
                                       </span>
-                                      {((apt.likes && apt.likes >= 3) || (apt.views && apt.views >= 100)) && (
+                                      {!!((apt.likes && apt.likes >= 3) || (apt.views && apt.views >= 100)) && (
                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[10px] font-black bg-rose-50 dark:bg-rose-950/20 text-rose-500 border border-rose-500/10 leading-none shrink-0 gap-0.5 animate-pulse">
                                           🔥 HOT
                                         </span>

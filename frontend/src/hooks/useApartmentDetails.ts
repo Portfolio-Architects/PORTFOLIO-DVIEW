@@ -187,6 +187,14 @@ export function useApartmentDetails(
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {
+          // Strongly protect Categories maps (restaurantCategories, academyCategories)
+          if (k.endsWith('Categories')) {
+            const hasExisting = mergedMetrics[k] && typeof mergedMetrics[k] === 'object' && Object.keys(mergedMetrics[k]).length > 0;
+            const isNewValid = v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length > 0;
+            if (hasExisting && !isNewValid) {
+              continue; // Do not overwrite populated locScore categories with empty/invalid values
+            }
+          }
           // If v is an empty object (like empty categories/schools), do not overwrite the populated values
           if (typeof v === 'object' && v !== null && Object.keys(v).length === 0) {
             continue;

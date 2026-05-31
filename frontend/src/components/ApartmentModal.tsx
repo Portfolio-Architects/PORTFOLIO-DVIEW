@@ -869,7 +869,7 @@ function FieldReportModal({
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
                       <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">단지명 / 시공사</p>
-                      <p className="text-body-normal text-primary font-bold apt-spec-value">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({report.metrics.brand})</span>}</p>
+                      <p className="text-body-normal text-primary font-bold apt-spec-value break-keep">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({report.metrics.brand})</span>}</p>
                     </div>
                     <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
                       <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">사용승인일 (연차)</p>

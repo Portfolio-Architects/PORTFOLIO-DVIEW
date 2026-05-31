@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 const SOURCE_1_BBS_URL = 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019';
 const SOURCE_2_GOSI_URL = 'https://www.hscity.go.kr/www/gosi/BD_notice.do';
 const SOURCE_3_RAIL_URL = 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1131';
+const SOURCE_4_DONG_URL = 'https://www.hscity.go.kr/dongtan/user/bbs/BD_selectBbsList.do?q_bbsCode=1049&q_deptCode=57700100000';
 
 const DONGTAN_KEYWORDS = [
   '동탄', '출장소', '호수공원', '청계', '영천', '오산동', '신동', '목동', 
@@ -15,14 +16,14 @@ const DONGTAN_KEYWORDS = [
 ];
 
 interface NoticeItem {
-  id: string; // Document ID (bbs_xxx, gosi_xxx)
+  id: string; // Document ID (bbs_xxx, gosi_xxx, dong_xxx)
   originalId: string; // 원래 글번호
   title: string;
   url: string;
   dept: string;
   date: string;
   isDongtan: boolean;
-  source: 'bbs' | 'gosi' | 'rail';
+  source: 'bbs' | 'gosi' | 'rail' | 'dong';
   createdAt: string;
 }
 
@@ -174,6 +175,68 @@ export async function GET(request: Request) {
         });
       } catch (err) {
         console.error(`Error scraping Source 3 page ${page}:`, err);
+      }
+    }
+
+    // --- Source 4: 동탄구청 동별 공지사항 (BBS 1049) ---
+    for (const page of pages) {
+      const url = `${SOURCE_4_DONG_URL}&q_currPage=${page}`;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
+          },
+          cache: 'no-store'
+        });
+
+        if (!res.ok) {
+          console.error(`Failed to fetch Source 4 board page ${page}: HTTP ${res.status}`);
+          continue;
+        }
+
+        const arrayBuffer = await res.arrayBuffer();
+        const decoder = new TextDecoder('utf-8');
+        const decodedHtml = decoder.decode(arrayBuffer);
+        const $ = cheerio.load(decodedHtml);
+        const rows = $('table').first().find('tr');
+
+        rows.each((idx, tr) => {
+          // Skip header row
+          if (idx === 0) return;
+
+          const tds = $(tr).find('td');
+          if (tds.length < 5) return;
+
+          const originalId = $(tds[0]).text().trim();
+          const titleEl = $(tds[2]);
+          const title = titleEl.text().trim().replace(/\s+/g, ' ');
+          const link = titleEl.find('a').attr('href') || '';
+          const dept = $(tds[3]).text().trim();
+          const date = $(tds[4]).text().trim();
+
+          if (originalId && title && link) {
+            const isDongtan = checkIfDongtan(title, dept);
+            if (isDongtan) {
+              const absoluteUrl = link.startsWith('http') 
+                ? link 
+                : `https://www.hscity.go.kr${link}`;
+
+              notices.push({
+                id: `dong_${originalId}`,
+                originalId,
+                title,
+                url: absoluteUrl,
+                dept,
+                date,
+                isDongtan: true,
+                source: 'dong',
+                createdAt: new Date().toISOString()
+              });
+            }
+          }
+        });
+      } catch (err) {
+        console.error(`Error scraping Source 4 page ${page}:`, err);
       }
     }
 

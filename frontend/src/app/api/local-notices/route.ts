@@ -32,10 +32,41 @@ export async function GET(request: Request) {
       return NextResponse.json({ notices: [] });
     }
 
-    let notices = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as NoticeData[];
+    const uniqueMap = new Map<string, NoticeData>();
+    const urlToKey = new Map<string, string>();
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data() as NoticeData;
+      const id = doc.id;
+      const item = { ...data, id };
+
+      const titleKey = `${(item.title || '').trim()}_${(item.date || '').trim()}`;
+      const urlKey = item.url ? item.url.trim() : '';
+
+      // Check if duplicate exists by title+date or by URL
+      let duplicateKey = uniqueMap.has(titleKey) ? titleKey : null;
+      if (!duplicateKey && urlKey && urlToKey.has(urlKey)) {
+        duplicateKey = urlToKey.get(urlKey) || null;
+      }
+
+      if (duplicateKey) {
+        const existing = uniqueMap.get(duplicateKey);
+        if (existing) {
+          const currentIsPrefixed = id.includes('_');
+          const existingIsPrefixed = existing.id.includes('_');
+          // Prefer new prefixed IDs (e.g. bbs_12525) over legacy numeric IDs (e.g. 12525)
+          if (currentIsPrefixed && !existingIsPrefixed) {
+            uniqueMap.set(duplicateKey, item);
+            if (urlKey) urlToKey.set(urlKey, duplicateKey);
+          }
+        }
+      } else {
+        uniqueMap.set(titleKey, item);
+        if (urlKey) urlToKey.set(urlKey, titleKey);
+      }
+    });
+
+    let notices = Array.from(uniqueMap.values());
 
     // If filterDongtan is true, return only dongtan related notices
     if (filterDongtan) {

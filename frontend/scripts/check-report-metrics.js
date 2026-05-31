@@ -6,17 +6,15 @@ async function main() {
     console.error('No adminDb configured!');
     return;
   }
-  const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', '동탄역 롯데캐슬').limit(1).get();
-  if (snap.empty) {
-    console.error('Report not found for 동탄역 롯데캐슬!');
-    return;
-  }
-
-  const doc = snap.docs[0];
-  console.log(`Document ID: ${doc.id}`);
-  const data = doc.data();
-  console.log('Metrics in Firestore:');
-  console.log(JSON.stringify(data.metrics, null, 2));
+  const snap = await adminDb.collection('scoutingReports').get();
+  console.log(`Found ${snap.size} documents in scoutingReports:`);
+  snap.docs.forEach(doc => {
+    const data = doc.data();
+    console.log(`- ${data.apartmentName} (ID: ${doc.id})`);
+    if (data.apartmentName.includes('한화') || data.apartmentName.includes('꿈에그린')) {
+       console.log('  Metrics:', JSON.stringify(data.metrics, null, 2));
+    }
+  });
 }
 
 main().catch(console.error);
