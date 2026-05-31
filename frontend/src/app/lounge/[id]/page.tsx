@@ -55,6 +55,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     title,
     description,
     keywords: keywords.join(', '),
+    alternates: {
+      canonical: `/lounge/${id}`,
+    },
     openGraph: {
       title,
       description,

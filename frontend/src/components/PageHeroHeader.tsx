@@ -12,6 +12,7 @@ export interface PageHeroHeaderProps {
   readonly rightSideContent?: React.ReactNode;
   readonly compactTitle?: string;
   readonly bottomContent?: React.ReactNode;
+  readonly isTitleDiv?: boolean;
 }
 
 export default function PageHeroHeader({
@@ -22,8 +23,10 @@ export default function PageHeroHeader({
   rightSideContent,
   compactTitle,
   bottomContent,
+  isTitleDiv,
 }: PageHeroHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [hasModalOpen, setHasModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,6 +35,24 @@ export default function PageHeroHeader({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const checkModal = () => {
+      if (typeof window !== "undefined") {
+        const hash = window.location.hash;
+        setHasModalOpen(
+          hash.includes("apt=") ||
+          hash.includes("post=") ||
+          hash.includes("notice=")
+        );
+      }
+    };
+    checkModal();
+    window.addEventListener("hashchange", checkModal);
+    return () => window.removeEventListener("hashchange", checkModal);
+  }, []);
+
+  const TitleTag = (isTitleDiv || hasModalOpen) ? "div" : "h1";
 
   return (
     <>
@@ -43,9 +64,9 @@ export default function PageHeroHeader({
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <h1 className="text-[16px] font-extrabold text-primary tracking-tight">
+        <div className="text-[16px] font-extrabold text-primary tracking-tight">
           {compactTitle || title}
-        </h1>
+        </div>
         <div className="flex items-center gap-3">
           <FloatingUserBar />
         </div>
@@ -63,9 +84,9 @@ export default function PageHeroHeader({
                   className="w-[30px] h-[30px] sm:w-[37px] sm:h-[37px] object-contain rounded-[8px] sm:rounded-[10px]"
                 />
               </div>
-              <h1 className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
+              <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
                 {title}
-              </h1>
+              </TitleTag>
               {rightContent}
             </div>
             

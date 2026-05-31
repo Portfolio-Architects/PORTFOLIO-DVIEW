@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata = {
   title: '개인정보처리방침 | D-VIEW',
   description: 'D-VIEW 개인정보처리방침',
+  alternates: {
+    canonical: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {

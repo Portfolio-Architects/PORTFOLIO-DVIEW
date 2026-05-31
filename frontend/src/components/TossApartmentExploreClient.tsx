@@ -323,7 +323,7 @@ export default function TossApartmentExploreClient({
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
               onClick={() => setIsMobileMenuOpen(true)}
             >
-              <h1 className="text-[20px] md:text-[28px] font-extrabold text-primary tracking-tight">
+              <h2 className="text-[20px] md:text-[28px] font-extrabold text-primary tracking-tight">
                 {currentCategory === 'favorites' ? '내 관심 단지' : 
                  currentCategory === 'rank-price' ? '평당가 높은 순' :
                  currentCategory === 'rank-abs-price' ? '가격 높은 순' :
@@ -332,7 +332,7 @@ export default function TossApartmentExploreClient({
                  currentCategory === 'rank-turnover' ? '회전율 높은 순' :
                  currentCategory === 'rank-views' ? '조회수 많은 순' :
                  `${currentCategory.replace('dong-', '')} 아파트`}
-              </h1>
+              </h2>
               <ChevronDown className="w-5 h-5 text-primary md:hidden" />
             </button>
             <p className="text-[13px] md:text-[15px] font-medium text-tertiary mt-0 md:mt-2">총 {sortedApts.length}개 단지</p>

@@ -248,6 +248,9 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
     title: seoTitle,
     description: seoDescription,
     keywords: dynamicKeywords,
+    alternates: {
+      canonical: `/apartment/${params.aptName}`,
+    },
     openGraph: {
       title: seoTitle,
       description: seoDescription,

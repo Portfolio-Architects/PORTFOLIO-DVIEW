@@ -403,13 +403,13 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         <button onClick={() => window.history.length > 2 ? router.back() : router.push('/#lounge')} className="text-primary hover:bg-body p-1.5 rounded-full transition-colors">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="text-[17px] font-bold text-primary flex-1 line-clamp-1">
+        <h2 className="text-[17px] font-bold text-primary flex-1 line-clamp-1">
           {post?.category === '임장기' ? '동탄 임장/분석' : 
            post?.category === '부동산 기초' ? '부동산 고민상담' :
            post?.category === '정책자금 대출' ? '동탄 청약/대출' :
            post?.category === '인프라' ? '동탄 교통/상권' : 
            String(post?.category || "라운지")}
-        </h1>
+        </h2>
         {(user?.uid === post?.authorUid || checkAdmin(user?.email)) && (
           <div className="flex items-center gap-1">
             {!isEditing && (

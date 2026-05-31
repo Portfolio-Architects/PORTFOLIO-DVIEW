@@ -94,9 +94,9 @@ export default function LoungeContainerClient({
         {/* Universal Top Header */}
         <div className="flex flex-col mb-6 md:mb-8 px-1 md:px-2">
           <div className="flex items-center gap-3 mb-4 md:mb-0">
-            <h1 className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight leading-none">
+            <h2 className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight leading-none">
               {currentTab}
-            </h1>
+            </h2>
           </div>
 
           {/* Mobile Horizontal Tabs */}

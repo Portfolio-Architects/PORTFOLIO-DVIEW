@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   title: 'D-VIEW | 동탄 아파트 가치분석',
   description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
   keywords: '동탄, 아파트, 실거래가, 동탄역, 롯데캐슬, 가치분석, 임장기, 부동산, 전세가율',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'D-VIEW | 동탄 아파트 가치분석',
     description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',

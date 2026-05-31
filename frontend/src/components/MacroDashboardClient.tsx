@@ -1290,8 +1290,11 @@ interface GroupedCategory {
     }
 
     const roundedMax = Math.ceil(maxVal / step) * step;
+    // Y축 최대값과 데이터 최대값의 차이가 너무 타이트할 때(step의 10% 미만)만 한 step을 추가하여 상단 여백 확보
+    const finalMax = (roundedMax - maxVal < step * 0.1) ? roundedMax + step : roundedMax;
+
     const ticks = [];
-    for (let i = 0; i <= roundedMax + step; i += step) {
+    for (let i = 0; i <= finalMax; i += step) {
       ticks.push(i);
     }
     return ticks;
@@ -1597,7 +1600,7 @@ interface GroupedCategory {
                         tickFormatter={(value: number) =>
                            value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
                         }
-                        domain={[0, "auto"]}
+                        domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
                         ticks={yTicks}
                         width={40}
                       />

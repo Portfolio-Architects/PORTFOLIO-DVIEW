@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata = {
   title: '이용약관 | D-VIEW',
   description: 'D-VIEW 서비스 이용약관',
+  alternates: {
+    canonical: '/terms',
+  },
 };
 
 export default function TermsPage() {
