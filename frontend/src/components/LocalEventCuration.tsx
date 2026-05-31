@@ -11,6 +11,7 @@ interface LocalNoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
 }
 
 interface LocalEventCurationProps {

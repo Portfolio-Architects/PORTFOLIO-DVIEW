@@ -10,6 +10,7 @@ interface NoticeData {
   dept?: string;
   date: string;
   isDongtan: boolean;
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
   createdAt?: string;
 }
 
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
 
     const query = db.collection('local_notices')
       .orderBy('date', 'desc')
-      .limit(30);
+      .limit(100);
 
     const snapshot = await query.get();
     

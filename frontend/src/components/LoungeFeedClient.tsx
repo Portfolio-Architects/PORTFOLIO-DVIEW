@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
@@ -28,6 +28,7 @@ interface LocalNoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
 }
 
 interface NewsItem {
@@ -95,6 +96,13 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(10);
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
+
+  const [activeSubCategory, setActiveSubCategory] = useState<'all' | 'city' | 'rail' | 'town'>('all');
+  const [activeDongFilter, setActiveDongFilter] = useState<string>('all');
+
+  useEffect(() => {
+    setVisibleNoticesCount(10);
+  }, [activeSubCategory, activeDongFilter]);
 
   useEffect(() => {
     const checkParams = () => {
@@ -233,6 +241,26 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
     return () => observer.disconnect();
   }, [loadMorePosts]);
+
+  // Filter notices data based on sub-category and dong filter
+  const filteredNotices = useMemo(() => {
+    return noticesData.filter(notice => {
+      // 1. Sub category filtering
+      if (activeSubCategory === 'city') {
+        if (notice.source !== 'gosi' && notice.source !== 'bbs') return false;
+      } else if (activeSubCategory === 'rail') {
+        if (notice.source !== 'rail') return false;
+      } else if (activeSubCategory === 'town') {
+        if (notice.source !== 'dong') return false;
+        
+        // 2. Dong filtering (only applicable under 'town' category)
+        if (activeDongFilter !== 'all') {
+          if (notice.dept !== activeDongFilter) return false;
+        }
+      }
+      return true;
+    });
+  }, [noticesData, activeSubCategory, activeDongFilter]);
 
   const selectedNotice = noticesData.find(n => n.id === selectedNoticeId);
 
@@ -421,6 +449,61 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
           )}
         </div>
 
+        {/* 1단계 대분류 필터 칩 */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
+          {[
+            { id: 'all', label: '전체' },
+            { id: 'city', label: '시정공고' },
+            { id: 'rail', label: '교통·철도' },
+            { id: 'town', label: '동네행정' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveSubCategory(tab.id as any);
+                setActiveDongFilter('all');
+              }}
+              className={`px-4 py-2 text-[13px] font-extrabold rounded-full transition-all shrink-0 cursor-pointer ${
+                activeSubCategory === tab.id
+                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/10'
+                  : 'bg-surface border border-border text-secondary hover:bg-body'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 2단계 소분류 행정동 필터 칩 (대분류가 'town'일 때만) */}
+        {activeSubCategory === 'town' && (
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none animate-in fade-in slide-in-from-top-2 duration-200">
+            {[
+              { id: 'all', label: '전체 동네' },
+              { id: '동탄1동', label: '동탄1동' },
+              { id: '동탄2동', label: '동탄2동' },
+              { id: '동탄3동', label: '동탄3동' },
+              { id: '동탄4동', label: '동탄4동' },
+              { id: '동탄5동', label: '동탄5동' },
+              { id: '동탄6동', label: '동탄6동' },
+              { id: '동탄7동', label: '동탄7동' },
+              { id: '동탄8동', label: '동탄8동' },
+              { id: '동탄9동', label: '동탄9동' }
+            ].map(dong => (
+              <button
+                key={dong.id}
+                onClick={() => setActiveDongFilter(dong.id)}
+                className={`px-3 py-1.5 text-[12px] font-black rounded-lg transition-all shrink-0 cursor-pointer ${
+                  activeDongFilter === dong.id
+                    ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30'
+                    : 'bg-surface border border-border text-tertiary hover:bg-body'
+                }`}
+              >
+                {dong.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {noticesLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex gap-4 p-5 rounded-2xl border border-border bg-surface animate-pulse">
@@ -433,61 +516,71 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             </div>
           ))
         ) : (
-          noticesData.slice(0, visibleNoticesCount).map((notice, idx) => (
-            <div
-              key={notice.id}
-              onClick={() => { window.location.hash = `notice=${notice.id}`; }}
-              className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-emerald-500/30 transition-all cursor-pointer group w-full"
-            >
-              <div className="flex items-center gap-3 sm:gap-0 shrink-0">
-                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-emerald-500 font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                  {idx + 1}
-                </div>
-                
-                {/* Mobile Meta */}
-                <div className="flex sm:hidden items-center gap-2">
-                  <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide">{notice.dept}</span>
-                  <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{notice.date}</span>
-                  {notice.isDongtan && (
-                    <>
+          <>
+            {filteredNotices.length === 0 ? (
+              <div className="bg-surface rounded-2xl p-12 text-center border border-border">
+                <span className="text-[14px] font-bold text-tertiary">
+                  선택하신 조건에 해당하는 공지사항이 없습니다.
+                </span>
+              </div>
+            ) : (
+              filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => (
+                <div
+                  key={notice.id}
+                  onClick={() => { window.location.hash = `notice=${notice.id}`; }}
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-emerald-500/30 transition-all cursor-pointer group w-full"
+                >
+                  <div className="flex items-center gap-3 sm:gap-0 shrink-0">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-emerald-500 font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                      {idx + 1}
+                    </div>
+                    
+                    {/* Mobile Meta */}
+                    <div className="flex sm:hidden items-center gap-2">
+                      <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide">{notice.dept}</span>
                       <span className="text-[11px] text-gray-300">|</span>
-                      <span className="bg-emerald-50 text-emerald-600 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
-                    </>
-                  )}
+                      <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{notice.date}</span>
+                      {notice.isDongtan && (
+                        <>
+                          <span className="text-[11px] text-gray-300">|</span>
+                          <span className="bg-emerald-50 text-emerald-600 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+     
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
+                    {/* Desktop Meta */}
+                    <div className="hidden sm:flex items-center gap-4 shrink-0">
+                      <span className="w-[115px] text-[13px] font-extrabold text-emerald-600 tracking-wide text-center bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1.5 rounded-lg truncate border border-emerald-100 dark:border-emerald-900/30">{notice.dept}</span>
+                      <span className="w-[96px] text-[14px] font-semibold text-tertiary text-center shrink-0">{notice.date}</span>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-emerald-600 transition-colors truncate">
+                        {notice.title}
+                      </p>
+                    </div>
+     
+                    {notice.isDongtan && (
+                      <span className="hidden sm:inline-block bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 text-[11px] font-black rounded-lg border border-emerald-100 dark:border-emerald-900/30 shrink-0">
+                        동탄 관련 소식
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
- 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
-                {/* Desktop Meta */}
-                <div className="hidden sm:flex items-center gap-4 shrink-0">
-                  <span className="w-[115px] text-[13px] font-extrabold text-emerald-600 tracking-wide text-center bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1.5 rounded-lg truncate border border-emerald-100 dark:border-emerald-900/30">{notice.dept}</span>
-                  <span className="w-[96px] text-[14px] font-semibold text-tertiary text-center shrink-0">{notice.date}</span>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-emerald-600 transition-colors truncate">
-                    {notice.title}
-                  </p>
-                </div>
- 
-                {notice.isDongtan && (
-                  <span className="hidden sm:inline-block bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 text-[11px] font-black rounded-lg border border-emerald-100 dark:border-emerald-900/30 shrink-0">
-                    동탄 관련 소식
-                  </span>
-                )}
-              </div>
-            </div>
-          ))
+              ))
+            )}
+          </>
         )}
         
-        {noticesData.length > visibleNoticesCount && (
+        {filteredNotices.length > visibleNoticesCount && (
           <div className="mt-4 flex justify-center pb-8">
             <button 
               onClick={() => setVisibleNoticesCount(prev => prev + 10)}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm cursor-pointer"
             >
-              더보기 ({visibleNoticesCount} {"/"} {noticesData.length})
+              더보기 ({visibleNoticesCount} {"/"} {filteredNotices.length})
               <ChevronDown className="w-4 h-4" />
             </button>
           </div>
