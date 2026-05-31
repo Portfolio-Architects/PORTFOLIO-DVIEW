@@ -10,9 +10,9 @@ export function useTxData() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 2000 });
+      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
     } else {
-      setTimeout(() => setShouldFetch(true), 500);
+      setTimeout(() => setShouldFetch(true), 100);
     }
   }, []);
 
@@ -40,9 +40,9 @@ export function useLocationScores() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 2000 });
+      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
     } else {
-      setTimeout(() => setShouldFetch(true), 500);
+      setTimeout(() => setShouldFetch(true), 100);
     }
   }, []);
 

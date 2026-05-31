@@ -48,17 +48,17 @@ const formatYearBuilt = (yearStr?: string | number) => {
   
   let ageStr = '';
   if (diffYears < 0) {
-    ageStr = '분양권/입주예정';
+    ageStr = '분양권';
   } else if (diffYears === 0 && diffMonths === 0) {
     ageStr = '신축';
   } else {
-    ageStr = diffMonths === 0 ? `${diffYears}년 차` : `${diffYears > 0 ? diffYears + '년 ' : ''}${diffMonths}개월 차`;
+    ageStr = diffYears === 0 ? `${diffMonths}M` : `${diffYears + 1}년차`;
   }
   
   if (str.length >= 6) {
-    return `${year}년 ${String(month).padStart(2, '0')}월 / ${ageStr}`;
+    return `${year}.${String(month).padStart(2, '0')} (${ageStr})`;
   } else {
-    return `${year}년 / ${ageStr}`;
+    return `${year} (${ageStr})`;
   }
 };
 
@@ -352,16 +352,16 @@ export default function TossApartmentExploreClient({
 
         <div className="flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-0 py-3 border-b border-border text-[14px] font-bold text-tertiary shrink-0">
+          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-0 py-3 border-b border-border text-[13px] font-bold text-tertiary shrink-0">
             <div className="w-[40px] text-center"></div>
-            <div className="w-[80px] text-center">순위</div>
-            <div className="flex-1 min-w-[180px] ml-2">단지명</div>
-            <div className="w-[180px] text-center">연식</div>
-            <div className="w-[140px] text-center">매매가</div>
-            <div className="w-[130px] text-center">평당가</div>
-            <div className="w-[140px] text-center">전세가</div>
-            <div className="w-[100px] text-center">세대수</div>
-            <div className="w-[120px] text-center">거래량 / 회전율</div>
+            <div className="w-[60px] text-center">순위</div>
+            <div className="flex-1 min-w-[200px] ml-2 text-left">단지명</div>
+            <div className="w-[150px] text-right pr-4">연식</div>
+            <div className="w-[130px] text-right pr-4">매매가</div>
+            <div className="w-[120px] text-right pr-4">평당가</div>
+            <div className="w-[140px] text-right pr-4">전세가 (전세율)</div>
+            <div className="w-[100px] text-right pr-4">세대수</div>
+            <div className="w-[130px] text-right pr-2">거래량 (회전율)</div>
           </div>
 
           {/* Table Body */}
@@ -382,68 +382,64 @@ export default function TossApartmentExploreClient({
                     </div>
                     
                     {/* Rank */}
-                    <div className="w-[80px] text-center text-[15px] font-bold text-secondary">
+                    <div className="w-[60px] text-center text-[15px] font-bold text-secondary">
                       {index + 1}
                     </div>
                     
                     {/* Name */}
-                    <div className="flex-1 min-w-[180px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
-                      <span className="text-[15px] font-extrabold text-primary leading-none">{item.apt.name}</span>
+                    <div className="flex-1 min-w-[200px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
+                      <span className="text-[15.5px] font-extrabold text-primary leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
                       {item.photoCount > 0 && (
-                        <span className="px-1.5 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-bold rounded-md leading-none flex items-center shrink-0">
+                        <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-[6px] border border-emerald-500/10 leading-none flex items-center shrink-0">
                           <Camera className="w-3 h-3 mr-1 inline-block" />
                           사진 {item.photoCount}장
                         </span>
                       )}
                       {item.likes > 0 && (
-                        <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-500 text-[11px] font-bold rounded-md leading-none flex items-center shrink-0">
-                          <Heart className="w-3 h-3 mr-1 fill-rose-500" />
+                        <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-[6px] border border-rose-500/10 leading-none flex items-center shrink-0">
+                          <Heart className="w-3 h-3 mr-1 fill-current" />
                           관심 {item.likes}
                         </span>
                       )}
                     </div>
 
                     {/* Age */}
-                    <div className="w-[180px] flex flex-col justify-center items-end text-right">
-                      <span className="text-[14px] font-medium text-secondary leading-none">{formatYearBuilt(item.apt.yearBuilt)}</span>
+                    <div className="w-[150px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
+                      {formatYearBuilt(item.apt.yearBuilt)}
                     </div>
                     
                     {/* Price */}
-                    <div className="w-[140px] text-right flex items-center justify-end">
-                      <span className="text-[15px] font-bold text-primary">
-                        {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
-                      </span>
+                    <div className="w-[130px] text-right pr-4 text-[14.5px] font-extrabold text-primary">
+                      {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
                     </div>
                     
                     {/* Pyeong */}
-                    <div className="w-[130px] text-right flex items-center justify-end">
-                      <span className="text-[14px] font-bold text-toss-blue">
-                        {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만/평` : '-'}
-                      </span>
+                    <div className="w-[120px] text-right pr-4 text-[14px] font-bold text-teal-600 dark:text-teal-400">
+                      {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만` : '-'}
                     </div>
 
                     {/* Jeonse */}
-                    <div className="w-[140px] text-right flex flex-col justify-center items-end">
-                      <span className="text-[14px] font-bold text-primary">
+                    <div className="w-[140px] text-right pr-4 flex flex-col justify-center items-end gap-1">
+                      <span className="text-[14px] font-semibold text-primary leading-none">
                         {item.jeonsePrice > 0 ? formatPrice(item.jeonsePrice) : '-'}
                       </span>
-                      <span className="text-[12px] text-tertiary mt-1.5 leading-none">
-                        {item.ratio > 0 ? `전세율 ${(item.ratio * 100).toFixed(1)}%` : '-'}
+                      <span className="text-[11px] text-tertiary font-medium leading-none">
+                        {item.ratio > 0 ? `${(item.ratio * 100).toFixed(0)}%` : '-'}
                       </span>
                     </div>
 
                     {/* Household */}
-                    <div className="w-[100px] text-right flex items-center justify-end text-[14px] text-secondary">
-                      {item.apt.householdCount ? `${item.apt.householdCount}세대` : '-'}
+                    <div className="w-[100px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
+                      {item.apt.householdCount ? `${item.apt.householdCount.toLocaleString()}세대` : '-'}
                     </div>
 
                     {/* Volume */}
-                    <div className="w-[120px] text-right flex flex-col justify-center items-end">
-                      <span className="text-[14px] font-medium text-secondary">
+                    <div className="w-[130px] text-right pr-2 flex flex-col justify-center items-end gap-1">
+                      <span className="text-[14px] font-semibold text-secondary leading-none">
                         {item.volume3M > 0 ? `${item.volume3M}건` : '-'}
                       </span>
-                      <span className="text-[12px] text-toss-blue mt-1.5 leading-none">
-                        {item.turnoverRate > 0 ? `회전율 ${item.turnoverRate.toFixed(1)}%` : ''}
+                      <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none">
+                        {item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : ''}
                       </span>
                     </div>
                   </div>
@@ -462,48 +458,52 @@ export default function TossApartmentExploreClient({
                       </div>
                       <div className="flex flex-col flex-1 min-w-0">
                         <div className="mb-1.5">
-                          <span className="text-[16px] font-extrabold text-primary leading-tight break-keep">
+                          <span className="text-[16px] font-extrabold text-primary leading-tight break-keep group-hover:text-[#00d29d] transition-colors">
                             {item.apt.name}
                           </span>
                         </div>
-                        <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-0.5 text-[13px] text-tertiary font-medium">
-                          {item.photoCount > 0 && (
-                            <span className="px-1.5 py-[2px] bg-[#e0fbf4] text-[#00b386] text-[10px] font-bold rounded flex items-center shrink-0">
-                              <Camera className="w-2.5 h-2.5 mr-0.5 inline-block" />{item.photoCount}
-                            </span>
-                          )}
-                          {item.likes > 0 && (
-                            <span className="px-1.5 py-[2px] bg-rose-50 dark:bg-rose-950/20 text-rose-500 text-[10px] font-bold rounded flex items-center shrink-0">
-                              <Heart className="w-2.5 h-2.5 mr-0.5 fill-rose-500" />{item.likes}
-                            </span>
-                          )}
-                          <span>{item.apt.dong}</span>
-                        </div>
-                        <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mb-1.5 text-[13px] text-tertiary font-medium">
-                          <span>{formatYearBuilt(item.apt.yearBuilt).split(' / ').pop()}</span>
+                        <div className="flex items-center flex-wrap gap-1.5 mb-1.5 text-[12px] text-tertiary font-medium">
+                          <span className="px-1.5 py-0.5 bg-body text-secondary text-[11px] font-semibold rounded border border-border/40 shrink-0">
+                            {item.apt.dong}
+                          </span>
+                          <span>{formatYearBuilt(item.apt.yearBuilt)}</span>
                           {item.apt.householdCount && (
                             <>
                               <span className="text-[#d1d6db]">·</span>
-                              <span>{item.apt.householdCount}세대</span>
+                              <span>{item.apt.householdCount.toLocaleString()}세대</span>
                             </>
                           )}
                         </div>
-                        <span className="text-[12px] text-secondary truncate">
-                          {item.jeonsePrice > 0 ? `전세 ${formatPrice(item.jeonsePrice)} (${(item.ratio * 100).toFixed(1)}%)` : '전세 없음'}
+                        {(item.photoCount > 0 || item.likes > 0) && (
+                          <div className="flex items-center flex-wrap gap-1.5 mb-1.5">
+                            {item.photoCount > 0 && (
+                              <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-[6px] border border-emerald-500/10 flex items-center shrink-0">
+                                <Camera className="w-2.5 h-2.5 mr-0.5" />{item.photoCount}장
+                              </span>
+                            )}
+                            {item.likes > 0 && (
+                              <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-[6px] border border-rose-500/10 flex items-center shrink-0">
+                                <Heart className="w-2.5 h-2.5 mr-0.5 fill-current" />{item.likes}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <span className="text-[12px] text-secondary font-medium mt-0.5">
+                          {item.jeonsePrice > 0 ? `전세 ${formatPrice(item.jeonsePrice)} (${(item.ratio * 100).toFixed(0)}%)` : '전세 정보 없음'}
                         </span>
                       </div>
                     </div>
                     
-                    <div className="flex flex-col items-end text-right shrink-0">
-                      <span className="text-[16px] font-bold text-primary mb-1">
+                    <div className="flex flex-col items-end text-right shrink-0 gap-0.5">
+                      <span className="text-[16px] font-extrabold text-primary mb-1">
                         {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
                       </span>
-                      <span className="text-[13px] font-bold text-toss-blue">
+                      <span className="text-[13px] font-bold text-teal-600 dark:text-teal-400">
                         {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만/평` : '-'}
                       </span>
                       {item.volume3M > 0 && (
-                        <span className="text-[12px] text-secondary mt-1">
-                          거래 {item.volume3M}건 {item.turnoverRate > 0 && `/ 회전율 ${item.turnoverRate.toFixed(1)}%`}
+                        <span className="text-[11px] text-tertiary mt-1 font-medium">
+                          거래 {item.volume3M}건 · {item.turnoverRate > 0 && `회전율 ${item.turnoverRate.toFixed(1)}%`}
                         </span>
                       )}
                     </div>

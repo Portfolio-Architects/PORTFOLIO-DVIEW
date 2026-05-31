@@ -632,7 +632,6 @@ async function main() {
   });
 
   const outputData = {
-    macroTrend: dongtanMacroTrend,
     summary: summaries
   };
 
@@ -643,6 +642,10 @@ async function main() {
 
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(outputData, null, 2), 'utf-8');
   console.log(`📁 파일 생성: ${OUTPUT_PATH}`);
+
+  const MACRO_TREND_OUTPUT_PATH = path.resolve(__dirname, '../public/data/macro-trend.json');
+  fs.writeFileSync(MACRO_TREND_OUTPUT_PATH, JSON.stringify(dongtanMacroTrend, null, 2), 'utf-8');
+  console.log(`📁 파일 생성: ${MACRO_TREND_OUTPUT_PATH}`);
   console.log(`🎉 동기화 완료!`);
   
 

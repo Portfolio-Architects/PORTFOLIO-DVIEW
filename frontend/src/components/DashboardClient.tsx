@@ -474,7 +474,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       
       {/* Main Header — Logo + Nav integrated */}
-      <header className="hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border sticky top-0 z-40" role="banner">
+      <header className="hidden md:block shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-2.5 gap-2 md:gap-0">
             

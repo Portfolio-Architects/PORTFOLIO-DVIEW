@@ -33,7 +33,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
 
   return (
     <div 
-      className="relative bg-surface border-y border-border px-3 sm:px-6 md:px-10 lg:px-16 py-2.5 min-h-[46px] flex items-center justify-between w-full shadow-sm transition-all z-40 select-none cursor-pointer"
+      className="relative bg-surface border-y border-border px-3 sm:px-6 md:px-10 lg:px-16 py-2.5 min-h-[46px] flex items-center justify-between w-full shadow-sm transition-all z-30 select-none cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -92,7 +92,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
 
         {/* Hover Popover Dropdown */}
         <div 
-          className={`absolute left-3 right-3 sm:left-6 sm:right-6 md:left-10 md:right-10 lg:left-16 lg:right-16 top-full mt-1.5 bg-white dark:bg-zinc-950 border border-border rounded-2xl shadow-xl p-3.5 z-50 flex flex-col gap-1 transition-all duration-200 ${
+          className={`absolute left-3 right-3 sm:left-6 sm:right-6 md:left-10 md:right-10 lg:left-16 lg:right-16 top-full mt-1.5 bg-white dark:bg-zinc-950 border border-border rounded-2xl shadow-xl p-3.5 z-[60] flex flex-col gap-1 transition-all duration-200 ${
             isHovered ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-1 pointer-events-none'
           }`}
           onClick={(e) => e.stopPropagation()}
