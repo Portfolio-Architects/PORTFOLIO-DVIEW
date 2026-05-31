@@ -365,8 +365,6 @@ export default function MacroDashboardClient({
     {},
   );
   const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
-  const [selectedSubModes, setSelectedSubModes] = useState<Record<string, "tiers" | "recentTxs">>({});
-  const [selectedDongs, setSelectedDongs] = useState<Record<string, string>>({});
   const [isScrolled, setIsScrolled] = useState(false);
   const [newsData, setNewsData] = useState<MacroNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -1688,342 +1686,154 @@ interface GroupedCategory {
                   <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="w-full h-[1px] bg-body mb-4" />
 
-                    {/* Sub-tab Toggle: 단지 목록 (금액대별) vs 동별 최근 실거래 */}
-                    <div className="flex bg-body p-0.5 rounded-lg w-max mb-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSubModes(prev => ({ ...prev, [group.title]: "tiers" }));
-                        }}
-                        className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${
-                          (selectedSubModes[group.title] ?? "tiers") === "tiers"
-                            ? "bg-surface text-primary shadow-sm"
-                            : "text-tertiary hover:text-secondary"
-                        }`}
-                      >
-                        금액대별 단지
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSubModes(prev => ({ ...prev, [group.title]: "recentTxs" }));
-                        }}
-                        className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${
-                          (selectedSubModes[group.title] ?? "tiers") === "recentTxs"
-                            ? "bg-surface text-primary shadow-sm"
-                            : "text-tertiary hover:text-secondary"
-                        }`}
-                      >
-                        동별 최근 실거래
-                      </button>
-                    </div>
+                    <div className="flex flex-col gap-4">
+                      {(() => {
+                        const TIERS = accordionMode === "price"
+                          ? [
+                            { name: "15억원 이상", min: 150000, max: Infinity },
+                            { name: "10억~15억원", min: 100000, max: 150000 },
+                            { name: "8억~10억원", min: 80000, max: 100000 },
+                            { name: "6억~8억원", min: 60000, max: 80000 },
+                            { name: "6억원 미만", min: 0, max: 60000 },
+                          ]
+                          : [
+                            { name: "4,000만원 이상", min: 4000, max: Infinity },
+                            { name: "3,000~4,000만원", min: 3000, max: 4000 },
+                            { name: "2,500~3,000만원", min: 2500, max: 3000 },
+                            { name: "2,000~2,500만원", min: 2000, max: 2500 },
+                            { name: "2,000만원 미만", min: 0, max: 2000 },
+                          ];
 
-                    {(selectedSubModes[group.title] ?? "tiers") === "tiers" ? (
-                      <div className="flex flex-col gap-4">
-                        {(() => {
-                          const TIERS = accordionMode === "price"
-                            ? [
-                              { name: "15억원 이상", min: 150000, max: Infinity },
-                              { name: "10억~15억원", min: 100000, max: 150000 },
-                              { name: "8억~10억원", min: 80000, max: 100000 },
-                              { name: "6억~8억원", min: 60000, max: 80000 },
-                              { name: "6억원 미만", min: 0, max: 60000 },
-                            ]
-                            : [
-                              { name: "4,000만원 이상", min: 4000, max: Infinity },
-                              { name: "3,000~4,000만원", min: 3000, max: 4000 },
-                              { name: "2,500~3,000만원", min: 2500, max: 3000 },
-                              { name: "2,000~2,500만원", min: 2000, max: 2500 },
-                              { name: "2,000만원 미만", min: 0, max: 2000 },
-                            ];
-
-                          // Compute which tiers have apartments
-                          const availableTiers = TIERS.map((tier, idx) => {
-                            const apts = group.apartments.filter((apt) => {
-                              const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
-                              return val >= tier.min && val < tier.max;
-                            }).sort((a, b) => {
-                              return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
-                            });
-                            return { ...tier, originalIndex: idx, apts };
-                          }).filter(t => t.apts.length > 0);
-
-                          if (availableTiers.length === 0) return null;
-
-                          // Default to the first available tier if none is selected
-                          const currentTierIndex = selectedTiers[group.title] ?? availableTiers[0].originalIndex;
-                          const activeTier = availableTiers.find(t => t.originalIndex === currentTierIndex) || availableTiers[0];
-
-                          return (
-                            <>
-                              {/* Tier Selection Pills */}
-                              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
-                                {availableTiers.map(t => {
-                                  const isActive = t.originalIndex === currentTierIndex;
-                                  return (
-                                    <button
-                                      key={t.originalIndex}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedTiers(prev => ({ ...prev, [group.title]: t.originalIndex }));
-                                      }}
-                                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive
-                                        ? "bg-[#333d4b] text-white shadow-sm"
-                                        : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
-                                        }`}
-                                    >
-                                      {t.name}
-                                      <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
-                                        {t.apts.length}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Active Tier Apartments List */}
-                              <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
-                                {activeTier.apts.map((apt) => (
-                                  <div
-                                    key={apt.name}
-                                    onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
-                                    className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
-                                  >
-                                    {/* Top Row: Name and Chevron */}
-                                    <div className="flex items-center justify-between w-full">
-                                      <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                                        <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors" />
-                                        <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
-                                          {apt.name}
-                                        </span>
-                                        {((apt.likes && apt.likes >= 3) || (apt.views && apt.views >= 100)) && (
-                                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[10px] font-black bg-rose-50 dark:bg-rose-950/20 text-rose-500 border border-rose-500/10 leading-none shrink-0 gap-0.5 animate-pulse">
-                                            🔥 HOT
-                                          </span>
-                                        )}
-                                      </div>
-                                      <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
-                                    </div>
-
-                                    {/* Bottom Row: Distance and Price */}
-                                    <div className="flex items-center justify-between pl-4 mt-0.5">
-                                      <div className="flex items-center min-w-0 pr-2">
-                                        {apt.distToDongtan !== null && (
-                                          <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
-                                            동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      <div className="flex flex-row items-baseline gap-1 text-right shrink-0">
-                                        {accordionMode === "price" ? (
-                                          (() => {
-                                            const { value, unit } = formatEokWithUnit(apt.latestPrice);
-                                            return (
-                                              <>
-                                                <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
-                                                  {value}
-                                                </span>
-                                                <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
-                                                  {unit}
-                                                </span>
-                                              </>
-                                            );
-                                          })()
-                                        ) : (
-                                          <>
-                                            <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
-                                              {Math.round(apt.pyeongPrice).toLocaleString()}
-                                            </span>
-                                            <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
-                                              만원/평
-                                            </span>
-                                          </>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-
-                                {/* 커뮤니티 라운지 연결 브릿지 */}
-                                <div 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.hash = 'lounge';
-                                  }}
-                                  className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2"
-                                >
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <MessageSquare className="w-3.5 h-3.5 text-[#3182f6] shrink-0" />
-                                    <span className="truncate">"{group.title}" 권역 입주민 라운지 수다방 입장</span>
-                                  </div>
-                                  <span className="text-[11px] font-extrabold text-[#3182f6] inline-flex items-center shrink-0">
-                                    대화 참여
-                                    <ChevronRight className="w-3 h-3 ml-0.5 transform group-hover/bridge:translate-x-0.5 transition-transform" />
-                                  </span>
-                                </div>
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    ) : (
-                      /* 동별 최근 실거래 UI */
-                      <div className="flex flex-col gap-4">
-                        {(() => {
-                          const uniqueDongs = Array.from(
-                            new Set(group.apartments.map(a => a.dong).filter(Boolean))
-                          ) as string[];
-
-                          const activeDong = selectedDongs[group.title] ?? "all";
-
-                          const txList: Array<{
-                            aptName: string;
-                            dong: string;
-                            date: string;
-                            priceEok: string;
-                            areaPyeong: number;
-                            floor: number;
-                            area: number;
-                            sortVal: number;
-                          }> = [];
-
-                          group.apartments.forEach(apt => {
-                            const rawTxKey = apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
-                            const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
-                            const tx = txKey ? txSummaryData[txKey] : undefined;
-
-                            if (tx && tx.recent) {
-                              tx.recent.forEach(r => {
-                                const [month, day] = r.date.split('.').map(Number);
-                                const currentYear = new Date().getFullYear();
-                                const currentMonth = new Date().getMonth() + 1;
-                                let yearOffset = 0;
-                                if (month > currentMonth) {
-                                  yearOffset = -1;
-                                }
-                                const sortVal = (currentYear + yearOffset) * 10000 + month * 100 + day;
-
-                                txList.push({
-                                  aptName: apt.name,
-                                  dong: apt.dong || tx.dong || "",
-                                  date: r.date,
-                                  priceEok: r.priceEok,
-                                  areaPyeong: r.areaPyeong,
-                                  floor: r.floor,
-                                  area: r.area,
-                                  sortVal: sortVal
-                                });
-                              });
-                            }
+                        // Compute which tiers have apartments
+                        const availableTiers = TIERS.map((tier, idx) => {
+                          const apts = group.apartments.filter((apt) => {
+                            const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
+                            return val >= tier.min && val < tier.max;
+                          }).sort((a, b) => {
+                            return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
                           });
+                          return { ...tier, originalIndex: idx, apts };
+                        }).filter(t => t.apts.length > 0);
 
-                          txList.sort((a, b) => b.sortVal - a.sortVal);
+                        if (availableTiers.length === 0) return null;
 
-                          const filteredTxList = activeDong === "all"
-                            ? txList
-                            : txList.filter(tx => tx.dong === activeDong);
+                        // Default to the first available tier if none is selected
+                        const currentTierIndex = selectedTiers[group.title] ?? availableTiers[0].originalIndex;
+                        const activeTier = availableTiers.find(t => t.originalIndex === currentTierIndex) || availableTiers[0];
 
-                          const visibleTxList = filteredTxList.slice(0, 10);
-
-                          return (
-                            <>
-                              {/* Dong Filter Pills */}
-                              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDongs(prev => ({ ...prev, [group.title]: "all" }));
-                                  }}
-                                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${
-                                    activeDong === "all"
+                        return (
+                          <>
+                            {/* Tier Selection Pills */}
+                            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
+                              {availableTiers.map(t => {
+                                const isActive = t.originalIndex === currentTierIndex;
+                                return (
+                                  <button
+                                    key={t.originalIndex}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTiers(prev => ({ ...prev, [group.title]: t.originalIndex }));
+                                    }}
+                                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${isActive
                                       ? "bg-[#333d4b] text-white shadow-sm"
                                       : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
-                                  }`}
-                                >
-                                  전체
-                                  <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === 'all' ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
-                                    {txList.length}
-                                  </span>
-                                </button>
-
-                                {uniqueDongs.map(dong => {
-                                  const count = txList.filter(tx => tx.dong === dong).length;
-                                  return (
-                                    <button
-                                      key={dong}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedDongs(prev => ({ ...prev, [group.title]: dong }));
-                                      }}
-                                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${
-                                        activeDong === dong
-                                          ? "bg-[#333d4b] text-white shadow-sm"
-                                          : "bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary"
                                       }`}
-                                    >
-                                      {dong}
-                                      <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === dong ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
-                                        {count}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                                  >
+                                    {t.name}
+                                    <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`}>
+                                      {t.apts.length}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
 
-                              {/* Recent Transactions List */}
-                              <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
-                                {visibleTxList.length > 0 ? (
-                                  visibleTxList.map((tx, idx) => (
-                                    <div
-                                      key={`${tx.aptName}-${tx.date}-${tx.priceEok}-${idx}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onSelectApt && onSelectApt(tx.aptName);
-                                      }}
-                                      className="flex flex-row items-center justify-between p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/tx"
-                                    >
-                                      <div className="flex items-center gap-3 min-w-0 pr-2">
-                                        <div className="px-2 py-1 bg-body rounded-[8px] text-[11.5px] font-extrabold text-tertiary group-hover/tx:bg-[#e8f3ff] group-hover/tx:text-[#3182f6] transition-colors shrink-0">
-                                          {tx.date}
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
-                                              {tx.aptName}
-                                            </span>
-                                            {activeDong === "all" && tx.dong && (
-                                              <span className="text-[10px] font-semibold text-tertiary bg-body px-1.5 py-[2px] rounded-[4px] shrink-0">
-                                                {tx.dong}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <span className="text-[11.5px] sm:text-[12px] font-medium text-tertiary mt-0.5">
-                                            {tx.areaPyeong}평 ({tx.area.toFixed(1)}㎡) · {tx.floor}층
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div className="text-right shrink-0">
-                                        <span className="text-[14px] sm:text-[15.5px] font-extrabold text-[#f04452]">
-                                          {tx.priceEok}
+                            {/* Active Tier Apartments List */}
+                            <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
+                              {activeTier.apts.map((apt) => (
+                                <div
+                                  key={apt.name}
+                                  onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
+                                  className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
+                                >
+                                  {/* Top Row: Name and Chevron */}
+                                  <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                                      <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors" />
+                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
+                                        {apt.name}
+                                      </span>
+                                      {((apt.likes && apt.likes >= 3) || (apt.views && apt.views >= 100)) && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[10px] font-black bg-rose-50 dark:bg-rose-950/20 text-rose-500 border border-rose-500/10 leading-none shrink-0 gap-0.5 animate-pulse">
+                                          🔥 HOT
                                         </span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-tertiary ml-0.5">
-                                          만원
-                                        </span>
-                                      </div>
+                                      )}
                                     </div>
-                                  ))
-                                ) : (
-                                  <div className="flex flex-col items-center justify-center py-8 text-tertiary text-[13.5px]">
-                                    최근 실거래 내역이 없습니다.
+                                    <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
                                   </div>
-                                )}
+
+                                  {/* Bottom Row: Distance and Price */}
+                                  <div className="flex items-center justify-between pl-4 mt-0.5">
+                                    <div className="flex items-center min-w-0 pr-2">
+                                      {apt.distToDongtan !== null && (
+                                        <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
+                                          동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex flex-row items-baseline gap-1 text-right shrink-0">
+                                      {accordionMode === "price" ? (
+                                        (() => {
+                                          const { value, unit } = formatEokWithUnit(apt.latestPrice);
+                                          return (
+                                            <>
+                                              <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
+                                                {value}
+                                              </span>
+                                              <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
+                                                {unit}
+                                              </span>
+                                            </>
+                                          );
+                                        })()
+                                      ) : (
+                                        <>
+                                          <span className="text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap">
+                                            {Math.round(apt.pyeongPrice).toLocaleString()}
+                                          </span>
+                                          <span className="text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap">
+                                            만원/평
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+
+                              {/* 커뮤니티 라운지 연결 브릿지 */}
+                              <div 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.hash = 'lounge';
+                                }}
+                                className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2"
+                              >
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <MessageSquare className="w-3.5 h-3.5 text-[#3182f6] shrink-0" />
+                                  <span className="truncate">"{group.title}" 권역 입주민 라운지 수다방 입장</span>
+                                </div>
+                                <span className="text-[11px] font-extrabold text-[#3182f6] inline-flex items-center shrink-0">
+                                  대화 참여
+                                  <ChevronRight className="w-3 h-3 ml-0.5 transform group-hover/bridge:translate-x-0.5 transition-transform" />
+                                </span>
                               </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 )}
               </div>
