@@ -57,32 +57,52 @@ const calculateEducationScore = (metrics: any) => {
   
   let score = 0;
   
-  // 1. Elementary Distance (max 45 points)
+  // 1. Elementary Distance (max 45 points) - 선형 보간 감쇄 적용
   const elemDist = metrics.distanceToElementary || 9999;
-  if (elemDist <= 200) score += 45;
-  else if (elemDist <= 300) score += 40;
-  else if (elemDist <= 500) score += 30;
-  else if (elemDist <= 800) score += 15;
-  else score += 5;
+  let elemScore = 0;
+  if (elemDist <= 150) elemScore = 45;
+  else if (elemDist <= 300) elemScore = 45 - ((elemDist - 150) / 150) * 5;
+  else if (elemDist <= 500) elemScore = 40 - ((elemDist - 300) / 200) * 10;
+  else if (elemDist <= 800) elemScore = 30 - ((elemDist - 500) / 300) * 15;
+  else if (elemDist <= 1500) elemScore = 15 - ((elemDist - 800) / 700) * 10;
+  else elemScore = 5;
+  score += Math.round(elemScore);
   
-  // 2. Middle & High School Accessibility (max 20 points)
+  // 2. Middle & High School Accessibility (max 20 points) - 선형 보간 감쇄 적용
   const midDist = metrics.distanceToMiddle || 9999;
   const highDist = metrics.distanceToHigh || 9999;
-  if (midDist <= 500) score += 10;
-  else if (midDist <= 800) score += 7;
-  else score += 3;
   
-  if (highDist <= 600) score += 10;
-  else if (highDist <= 1000) score += 7;
-  else score += 3;
+  let midScore = 0;
+  if (midDist <= 300) midScore = 10;
+  else if (midDist <= 800) midScore = 10 - ((midDist - 300) / 500) * 3;
+  else if (midDist <= 1500) midScore = 7 - ((midDist - 800) / 700) * 4;
+  else midScore = 3;
   
-  // 3. Academy Density (max 35 points)
+  let highScore = 0;
+  if (highDist <= 400) highScore = 10;
+  else if (highDist <= 1000) highScore = 10 - ((highDist - 400) / 600) * 3;
+  else if (highDist <= 2000) highScore = 7 - ((highDist - 1000) / 1000) * 4;
+  else highScore = 3;
+  
+  score += Math.round(midScore) + Math.round(highScore);
+  
+  // 3. Academy Density & Diversity (max 35 points) - 다양성 인센티브 가산
   const density = metrics.academyDensity || 0;
-  if (density >= 100) score += 35;
-  else if (density >= 50) score += 28;
-  else if (density >= 20) score += 20;
-  else if (density >= 5) score += 10;
-  else score += 2;
+  let baseDensityScore = 0;
+  if (density >= 100) baseDensityScore = 30;
+  else if (density >= 50) baseDensityScore = 24;
+  else if (density >= 20) baseDensityScore = 17;
+  else if (density >= 5) baseDensityScore = 8;
+  else baseDensityScore = 2;
+  
+  const categories = metrics.academyCategories || {};
+  const categoryCount = Object.keys(categories).length;
+  let diversityBonus = 0;
+  if (categoryCount >= 6) diversityBonus = 5;
+  else if (categoryCount >= 4) diversityBonus = 3;
+  else if (categoryCount >= 2) diversityBonus = 1;
+  
+  score += baseDensityScore + diversityBonus;
   
   // Grade
   let grade = 'C';

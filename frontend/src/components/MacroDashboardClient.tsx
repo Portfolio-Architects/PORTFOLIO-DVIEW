@@ -1394,7 +1394,7 @@ interface GroupedCategory {
                                 {item.aptName}
                               </span>
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shadow-sm shrink-0 whitespace-nowrap">
-                                🔥 신고가 {item.delta && item.delta > 0 ? `(${formatDeltaPrice(item.delta)})` : ''}
+                                신고가 {item.delta && item.delta > 0 ? `(${formatDeltaPrice(item.delta)})` : ''}
                               </span>
                             </div>
 
@@ -2080,6 +2080,7 @@ interface GroupedCategory {
             location="매크로 대시보드 하단" 
             onClick={onOpenAdModal} 
             adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM || "test-dashboard-bottom-slot"} 
+            isCompact={true}
           />
         </div>
 

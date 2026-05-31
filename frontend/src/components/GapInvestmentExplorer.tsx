@@ -103,20 +103,45 @@ export default function GapInvestmentExplorer({
       const gap = sales > 0 && jeonse > 0 ? sales - jeonse : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
 
+      // 갭투자 적합성 지수(Gap Score) 연산 도입
+      // 1) 전세가율 점수 (55%): 50%일 때 0점, 80% 이상일 때 100점
+      const ratioScore = Math.max(0, Math.min(100, ((ratio - 0.5) / 0.3) * 100));
+
+      // 2) 최근 3개월 거래 회전율 활성 점수 (25%)
+      const txCount = sum?.avg3MTxCount || 0;
+      let txScore = 0;
+      if (txCount >= 10) txScore = 100;
+      else if (txCount >= 5) txScore = 90;
+      else if (txCount >= 3) txScore = 70;
+      else if (txCount >= 1) txScore = 40;
+      else txScore = 0;
+
+      // 3) 단지 규모 세대수 점수 (20%)
+      const hh = apt.householdCount || 0;
+      let hhScore = 0;
+      if (hh >= 1000) hhScore = 100;
+      else if (hh >= 500) hhScore = 80;
+      else if (hh >= 300) hhScore = 60;
+      else if (hh >= 100) hhScore = 40;
+      else hhScore = 20;
+
+      const gapScore = Math.round(ratioScore * 0.55 + txScore * 0.25 + hhScore * 0.20);
+
       return {
         apt,
         sales,
         jeonse,
         gap,
         ratio,
+        gapScore,
       };
     });
 
     // Filter complexes that have valid transactions, positive gap, and fall below or equal to maxGap
-    // Sort by jeonse rate descending (highest rate first = best gap candidates)
+    // Sort by Gap Score descending (highest score first = best gap candidates)
     return enriched
       .filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > 0 && (maxGap >= 60000 || item.gap <= maxGap))
-      .sort((a, b) => b.ratio - a.ratio);
+      .sort((a, b) => b.gapScore - a.gapScore);
   }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, maxGap]);
 
   const visibleList = showAll ? gapList : gapList.slice(0, 6);
@@ -255,16 +280,16 @@ export default function GapInvestmentExplorer({
                       </span>
                     </div>
                     <div className="flex flex-col gap-1 items-end shrink-0">
-                      {jeonseRatePercent >= 70 && (
-                        <span className="px-2 py-0.5 bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#00b386]/20">
-                          저평가 단지
-                        </span>
-                      )}
-                      {idx === 0 && (
-                        <span className="px-2 py-0.5 bg-[#e8f3ff] dark:bg-[#3182f6]/10 text-[#3182f6] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#3182f6]/20">
-                          최선호 단지
-                        </span>
-                      )}
+                      <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border ${
+                        item.gapScore >= 80 ? 'bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] border-[#00b386]/20' :
+                        item.gapScore >= 60 ? 'bg-[#e8f3ff] dark:bg-[#3182f6]/10 text-[#3182f6] border-[#3182f6]/20' :
+                        'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
+                      }`}>
+                        {item.gapScore >= 80 ? '🔥 GAP 우수' : item.gapScore >= 60 ? '✅ GAP 보통' : '⚠️ 관망 권장'}
+                      </span>
+                      <span className="text-[10px] font-bold text-tertiary">
+                        지수 {item.gapScore}점
+                      </span>
                     </div>
                   </div>
 
