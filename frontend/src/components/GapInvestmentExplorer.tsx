@@ -48,6 +48,10 @@ export default function GapInvestmentExplorer({
       const params = new URLSearchParams(window.location.search);
       const currentVal = params.get('maxGap');
       if (currentVal !== String(maxGap)) {
+        // Only update URL if maxGap is already present in URL, or if it differs from the default 20000
+        if (currentVal === null && maxGap === 20000) {
+          return;
+        }
         params.set('maxGap', String(maxGap));
         const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
         window.history.replaceState(null, '', newUrl);
