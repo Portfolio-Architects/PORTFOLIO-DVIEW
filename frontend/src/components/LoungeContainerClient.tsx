@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
 import LoungeFeedClient from '@/components/LoungeFeedClient';
 import LoungeComposeClient from '@/components/LoungeComposeClient';
+import { LocalCalendar } from './lounge/LocalCalendar';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 // Same Post interface needed for initial posts typing
 interface Post {
@@ -27,6 +31,7 @@ export default function LoungeContainerClient({
   searchParams?: { notice?: string };
 }) {
   const [currentTab, setCurrentTab] = useState(searchParams?.notice ? '동탄구 소식' : '동탄 부동산 뉴스');
+  const { data: events } = useSWR('/data/local-events.json', fetcher);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -110,7 +115,12 @@ export default function LoungeContainerClient({
           </div>
         </div>
 
-        <LoungeFeedClient initialPosts={initialPosts} currentTab={currentTab} />
+      {/* Local Event Calendar Widget */}
+      <div className="mb-6 md:mb-8 px-1 md:px-2">
+        <LocalCalendar events={events || []} />
+      </div>
+
+      <LoungeFeedClient initialPosts={initialPosts} currentTab={currentTab} />
 
         <LoungeComposeClient currentCategory={(currentTab === '동탄 부동산 뉴스' || currentTab === '매니저 임장기') ? '우리동네 이야기' : currentTab} />
       </section>
