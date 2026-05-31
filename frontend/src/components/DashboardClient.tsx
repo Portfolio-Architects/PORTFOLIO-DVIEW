@@ -132,13 +132,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         setActiveTab('imjang');
       } else if (window.location.hash === '#gap') {
         setActiveTab('gap');
-      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) {
+      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=')) {
         setActiveTab('lounge');
       }
 
       const handleHashChange = () => {
         startTransition(() => {
-          if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=')) setActiveTab('lounge');
+          if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=')) setActiveTab('lounge');
           else if (window.location.hash === '#imjang') setActiveTab('imjang');
           else if (window.location.hash === '#gap') setActiveTab('gap');
           else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');

@@ -33,6 +33,8 @@ export default function LoungeContainerClient({
       const handleHashChange = () => {
         if (window.location.hash === '#lounge-news') {
           setCurrentTab('동탄 부동산 뉴스');
+        } else if (window.location.hash.startsWith('#lounge-notices') || window.location.hash.includes('notice=')) {
+          setCurrentTab('동탄구 소식');
         }
       };
       

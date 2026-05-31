@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X } from 'lucide-react';
+import Link from 'next/link';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
@@ -337,45 +338,51 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 summary: "우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증 데이터를 바탕으로, 교육 환경이 집값에 미치는 실증적 사례를 보여줍니다.",
                 link: "#",
               },
-            ]).map((news) => (
-              <div
-                key={news.id}
-                onClick={() => news.link !== "#" && window.open(news.link, "_blank")}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
-              >
-                <div className="flex items-center gap-3 sm:gap-0 shrink-0">
-                  <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
-                    {news.id}
+            ]).map((news) => {
+              const isPlaceholder = news.link === "#";
+              const LinkComponent = isPlaceholder ? "div" : "a";
+              return (
+                <LinkComponent
+                  key={news.id}
+                  href={isPlaceholder ? undefined : news.link}
+                  target={isPlaceholder ? undefined : "_blank"}
+                  rel={isPlaceholder ? undefined : "noopener noreferrer"}
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full text-left"
+                >
+                  <div className="flex items-center gap-3 sm:gap-0 shrink-0">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                      {news.id}
+                    </div>
+                    
+                    {/* Mobile Meta */}
+                    <div className="flex sm:hidden items-center gap-2">
+                      <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">{news.category}</span>
+                      <span className="text-[11px] text-gray-300">|</span>
+                      <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{news.sub}</span>
+                    </div>
                   </div>
-                  
-                  {/* Mobile Meta */}
-                  <div className="flex sm:hidden items-center gap-2">
-                    <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">{news.category}</span>
-                    <span className="text-[11px] text-gray-300">|</span>
-                    <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{news.sub}</span>
-                  </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
-                  {/* Desktop Meta */}
-                  <div className="hidden sm:flex items-center gap-4 shrink-0">
-                    <span className="w-[115px] text-[13px] font-extrabold text-[#00a06c] tracking-wide text-center bg-[#e8f8f0] px-2 py-1.5 rounded-lg truncate">{news.category}</span>
-                    <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{news.sub}</span>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-toss-blue transition-colors truncate">
-                      {news.title}
-                    </p>
-                    {news.summary && (
-                      <p className="text-[13.5px] text-secondary leading-[1.5] line-clamp-2 mt-1 hidden sm:block">
-                        {news.summary}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
+                    {/* Desktop Meta */}
+                    <div className="hidden sm:flex items-center gap-4 shrink-0">
+                      <span className="w-[115px] text-[13px] font-extrabold text-[#00a06c] tracking-wide text-center bg-[#e8f8f0] px-2 py-1.5 rounded-lg truncate">{news.category}</span>
+                      <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{news.sub}</span>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-toss-blue transition-colors truncate">
+                        {news.title}
                       </p>
-                    )}
+                      {news.summary && (
+                        <p className="text-[13.5px] text-secondary leading-[1.5] line-clamp-2 mt-1 hidden sm:block">
+                          {news.summary}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
+                </LinkComponent>
+              );
+            })
           )}
           
           {newsData.length > visibleNewsCount && (
@@ -655,12 +662,12 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.
                 </p>
                 <div className="mt-2 flex items-center gap-3">
-                  <a 
+                  <Link 
                     href="/" 
                     className="text-[12px] font-extrabold text-[#00a06c] hover:underline flex items-center gap-1"
                   >
                     데이터 랩 실거래 대시보드로 이동 ➔
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -668,14 +675,14 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               <div className="flex flex-col gap-3 border-t border-border pt-5">
                 <h3 className="text-[14px] font-extrabold text-primary">D-VIEW 추천 콘텐츠</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <a href="/?apt=동탄역 롯데캐슬" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                  <Link href="/?apt=동탄역 롯데캐슬" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
                     <div className="text-[12px] font-bold text-tertiary">실시간 인기 단지</div>
                     <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">동탄역 롯데캐슬 상세분석 ➔</div>
-                  </a>
-                  <a href="/engineering" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                  </Link>
+                  <Link href="/engineering" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
                     <div className="text-[12px] font-bold text-tertiary">기술 성과서</div>
                     <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">엔지니어링 리포트 보기 ➔</div>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

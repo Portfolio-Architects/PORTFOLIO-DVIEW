@@ -30,7 +30,11 @@ export async function GET() {
       const textToAnalyze = `${title} ${publisher}`;
 
       // 1. MACRO: Broad economic indicators, interest rates, financial policies
-      if (/금리|한국은행|인플레|유동성|특례|보금자리|대출|경제|파이낸셜|비즈|매경|한경/.test(textToAnalyze)) {
+      const hasMacroKeywords = /(?:^|[^가-힣])(?:금리|한국은행|인플레|유동성|특례|보금자리|대출|경제|파이낸셜)(?:$|[^가-힣])/.test(textToAnalyze);
+      const isMacroPublisher = /(매일경제|매경|한국경제|한경|조선비즈|비즈니스|비즈)/.test(publisher) || 
+                               /(?:^|[^가-힣])(?:매경|한경|비즈)(?:$|[^가-힣])/.test(title);
+
+      if (hasMacroKeywords || isMacroPublisher) {
         category = 'MACRO';
       }
       // 2. COMMERCIAL: Retail, anchor tenants, commercial zones

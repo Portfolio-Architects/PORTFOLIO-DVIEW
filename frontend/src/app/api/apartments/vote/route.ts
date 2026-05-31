@@ -8,12 +8,21 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const aptName = searchParams.get('aptName');
-    if (!aptName) {
-      return NextResponse.json({ error: 'aptName is required' }, { status: 400 });
-    }
 
     if (!adminDb) {
       return NextResponse.json({ buyCount: 0, waitCount: 0 });
+    }
+
+    if (!aptName || aptName === 'global') {
+      const snap = await adminDb.collection('apartmentVotes').get();
+      let buyCount = 0;
+      let waitCount = 0;
+      snap.forEach(doc => {
+        const data = doc.data();
+        buyCount += data.buyCount || 0;
+        waitCount += data.waitCount || 0;
+      });
+      return NextResponse.json({ buyCount, waitCount });
     }
 
     const docId = normalizeAptName(aptName);

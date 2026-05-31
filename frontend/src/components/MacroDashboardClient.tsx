@@ -39,6 +39,15 @@ interface MacroNewsItem {
   link: string;
 }
 
+interface LocalNoticeItem {
+  id: string;
+  title: string;
+  url: string;
+  dept: string;
+  date: string;
+  isDongtan: boolean;
+}
+
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
@@ -326,6 +335,9 @@ export default function MacroDashboardClient({
   onOpenAdModal,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
+  const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
+  const { data: noticesData } = useSWR('/api/local-notices', fetcher);
+
   const renderAreaLabel = (areaPyeong: number, area?: number) => {
     if (areaUnit === 'm2' && area) {
       return `${Math.round(area)}㎡`;
@@ -359,6 +371,8 @@ export default function MacroDashboardClient({
   const [newsData, setNewsData] = useState<MacroNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const [visibleNewsCount, setVisibleNewsCount] = useState(6);
+  const [newsTab, setNewsTab] = useState<"news" | "notice">("news");
+  const [visibleNoticeCount, setVisibleNoticeCount] = useState(6);
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
 
@@ -591,200 +605,6 @@ export default function MacroDashboardClient({
     return ticks;
   }, [lineData, timeframe]);
 
-  const [maxAptName, maxPriceEok] = useMemo(() => {
-    let maxPrice = 0;
-    let maxEok = "";
-    let displayAptName = "";
-
-    if (!sheetApartments) return ["", ""];
-
-    Object.values(sheetApartments)
-      .flat()
-      .forEach((apt) => {
-        if (publicRentalSet.has(apt.name)) return;
-        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-        if (txKey && txSummaryData[txKey]) {
-          const tx = txSummaryData[txKey];
-          const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
-          if (sales > maxPrice) {
-            maxPrice = sales;
-            const fmt = formatEokWithUnit(sales);
-            maxEok = `${fmt.value}${fmt.unit}`;
-            displayAptName = apt.name;
-          }
-        }
-      });
-
-    return [displayAptName, maxEok];
-  }, [txSummaryData, sheetApartments, publicRentalSet]);
-
-  const [maxPyeongAptName, maxPyeongPrice] = useMemo(() => {
-    let maxPrice = 0;
-    let displayAptName = "";
-
-    if (!sheetApartments) return ["", 0];
-
-    Object.values(sheetApartments)
-      .flat()
-      .forEach((apt) => {
-        if (publicRentalSet.has(apt.name)) return;
-        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-        if (txKey && txSummaryData[txKey]) {
-          const tx = txSummaryData[txKey];
-          const pyeongPrice =
-            tx.avg3MPerPyeong ||
-            tx.avg1MPerPyeong ||
-            (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
-          if (pyeongPrice > maxPrice) {
-            maxPrice = pyeongPrice;
-            displayAptName = apt.name;
-          }
-        }
-      });
-
-    return [displayAptName, Math.round(maxPrice)];
-  }, [txSummaryData, sheetApartments, publicRentalSet]);
-
-  // 1안 Card 1 & Card 2: 최근 신고가 단지 & 최근 최대 낙폭 단지
-  const card1And2Data = useMemo(() => {
-    let bestHigh = {
-      name: "-",
-      price: "",
-      days: 999,
-      val: 0,
-    };
-    let bestJeonse = {
-      name: "-",
-      ratioPercent: "0%",
-      gapText: "-",
-      val: 0,
-    };
-
-    if (!sheetApartments) {
-      return {
-        card1: {
-          name: "-",
-          price: "-",
-          label: "최근 7일 신고가",
-        },
-        card2: {
-          name: "-",
-          ratio: "0%",
-          gapText: "-",
-          label: "최근 90일 최고 전세가율",
-        },
-      };
-    }
-
-    Object.values(sheetApartments)
-      .flat()
-      .forEach((apt) => {
-        if (publicRentalSet.has(apt.name)) return;
-        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-        if (txKey && txSummaryData[txKey]) {
-          const sum = txSummaryData[txKey];
-          
-          // A. New High (within 500k won margin of peak) in last 90 days
-          if (sum.recent) {
-            sum.recent.forEach((tx) => {
-              const dt = parseDateHelper(tx.date, sum.latestDate);
-              if (dt) {
-                const diffMs = maxDateTime - dt.getTime();
-                const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-                if (diffDays >= 0 && diffDays <= 90) {
-                  const price = parsePriceEokHelper(tx.priceEok);
-                  const maxPriceEokVal = (sum.maxPrice || 0) / 10000;
-                  if (price > 0 && maxPriceEokVal > 0 && price >= maxPriceEokVal - 0.05) {
-                    const currentWindow = Math.max(7, Math.ceil((diffDays || 1) / 7) * 7);
-                    const bestWindow = Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7);
-                    if (
-                      bestHigh.name === "-" ||
-                      currentWindow < bestWindow ||
-                      (currentWindow === bestWindow && price > bestHigh.val)
-                    ) {
-                      const fmt = formatEokWithUnit(price * 10000);
-                      bestHigh = {
-                        name: apt.name,
-                        price: `${fmt.value}${fmt.unit === "만원" ? "만" : ""}`,
-                        days: diffDays,
-                        val: price,
-                      };
-                    }
-                  }
-                }
-              }
-            });
-          }
-
-          // B. Highest Lease-to-Sale Ratio (전세가율) in last 90 days
-          let hasRecentTx = false;
-          if (sum.recent) {
-            for (let i = 0; i < sum.recent.length; i++) {
-              const dt = parseDateHelper(sum.recent[i].date, sum.latestDate);
-              if (dt) {
-                const diffMs = maxDateTime - dt.getTime();
-                const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-                if (diffDays >= 0 && diffDays <= 90) {
-                  hasRecentTx = true;
-                  break;
-                }
-              }
-            }
-          }
-
-          if (hasRecentTx) {
-            const sales = sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0;
-            const jeonse = sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0;
-            if (sales > 0 && jeonse > 0) {
-              const ratio = jeonse / sales;
-              if (ratio > bestJeonse.val && ratio < 1.0) {
-                const gapVal = sales - jeonse;
-                const fmtGap = formatEokWithUnit(gapVal);
-                const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
-                bestJeonse = {
-                  name: apt.name,
-                  ratioPercent: `${(ratio * 100).toFixed(1)}%`,
-                  gapText: `갭 ${fmtGap.value}${gapUnitStr}`,
-                  val: ratio,
-                };
-              }
-            }
-          }
-        }
-      });
-
-    // Fallbacks
-    const card1Name = bestHigh.name !== "-" ? bestHigh.name : maxAptName;
-    const card1Price = bestHigh.name !== "-" ? bestHigh.price : maxPriceEok;
-    const card1Window = bestHigh.name !== "-" ? Math.max(7, Math.ceil((bestHigh.days || 1) / 7) * 7) : 7;
-
-    const card2Name = bestJeonse.name !== "-" ? bestJeonse.name : maxPyeongAptName;
-    const card2Ratio = bestJeonse.name !== "-" ? bestJeonse.ratioPercent : "0%";
-    const card2GapText = bestJeonse.name !== "-" ? bestJeonse.gapText : "-";
-
-    return {
-      card1: {
-        name: card1Name,
-        price: card1Price,
-        label: `최근 ${card1Window}일 신고가`,
-      },
-      card2: {
-        name: card2Name,
-        ratio: card2Ratio,
-        gapText: card2GapText,
-        label: "최근 90일 최고 전세가율",
-      },
-    };
-  }, [
-    txSummaryData,
-    sheetApartments,
-    publicRentalSet,
-    nameMapping,
-    maxDateTime,
-    maxAptName,
-    maxPriceEok,
-    maxPyeongAptName,
-  ]);
 
   // 1안 Card 3: 최근 7일 동탄 실거래량 & 추세 (WoW)
   const card3Data = useMemo(() => {
@@ -867,6 +687,24 @@ export default function MacroDashboardClient({
       badge: maxFavorites > 0 ? `관심 ${maxFavorites}명` : "관심 0명",
     };
   }, [sheetApartments, publicRentalSet, favoriteCounts]);
+
+  // 동탄 매수 심리 계산 (Card 2)
+  const globalVotes = useMemo(() => {
+    const buyCount = globalVotesData?.buyCount || 0;
+    const waitCount = globalVotesData?.waitCount || 0;
+    const totalVotes = buyCount + waitCount;
+    const buyPercent = totalVotes > 0 ? Math.round((buyCount / totalVotes) * 100) : 50;
+    
+    let sentimentText = "팽팽함";
+    if (buyPercent > 55) sentimentText = "매수 우세";
+    else if (buyPercent < 45) sentimentText = "관망 우세";
+
+    return {
+      buyPercent,
+      totalVotes,
+      sentimentText,
+    };
+  }, [globalVotesData]);
 
 
 
@@ -1355,24 +1193,25 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      {card1And2Data.card1.label}
+                      실시간 인기 1위 단지
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      최근 7일(데이터 공백 시 최대 90일) 내 직전 신고가 대비 비슷하거나 더 높은 가격에 거래가 성사된 단지입니다.
+                      DVIEW 플랫폼 사용자들에게 가장 인기가 많고 즐겨찾기(관심)가 많이 등록된 대표 단지 정보입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card1And2Data.card1.price}
-                description={card1And2Data.card1.name}
+                value={card4Data.name}
+                badge={card4Data.badge}
+                description="실시간 조회/관심 1위"
                 color="#ff4b5c"
                 onClick={() => {
-                  if (onSelectApt && card1And2Data.card1.name && card1And2Data.card1.name !== "-") {
-                    onSelectApt(card1And2Data.card1.name);
+                  if (onSelectApt && card4Data.name && card4Data.name !== "-") {
+                    onSelectApt(card4Data.name);
                   }
                 }}
               />
@@ -1380,26 +1219,24 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      {card1And2Data.card2.label}
+                      동탄 매수 심리
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      최근 90일 내 실거래가 있는 단지 중 매매가 대비 전세가 비율(전세가율)이 가장 높아 매매 대비 전세 수요가 탄탄한 단지입니다.
+                      동탄 전역 아파트들의 실시간 매수/관망 익명 투표를 집계한 결과와 투표 참여자 수입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card1And2Data.card2.ratio}
-                badge={card1And2Data.card2.gapText}
-                description={card1And2Data.card2.name}
+                value={`매수 찬성 ${globalVotes.buyPercent}%`}
+                badge={globalVotes.sentimentText}
+                description={`총 ${globalVotes.totalVotes.toLocaleString()}명 투표 참여`}
                 color="#0d9488"
                 onClick={() => {
-                  if (onSelectApt && card1And2Data.card2.name && card1And2Data.card2.name !== "-") {
-                    onSelectApt(card1And2Data.card2.name);
-                  }
+                  window.location.hash = 'imjang';
                 }}
               />
               <InfoBox
@@ -1428,24 +1265,28 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      실시간 최고 관심 단지
+                      오늘의 주요 로컬 소식
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      DVIEW 플랫폼 사용자들에게 가장 인기가 많고 즐겨찾기가 많이 등록된 대표 단지 정보입니다.
+                      화성시청 및 동탄출장소 등에서 공식 발표한 동탄 지역의 주요 행정 소식 및 행사 안내입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={card4Data.badge}
-                description={card4Data.name}
+                value={`신규 소식 ${noticesData?.notices?.length || 0}건`}
+                badge={noticesData?.notices?.[0]?.dept || "동탄구"}
+                description={noticesData?.notices?.[0]?.title || "새로운 공지사항이 없습니다"}
                 color="#00d29d"
                 onClick={() => {
-                  if (onSelectApt && card4Data.name && card4Data.name !== "-") {
-                    onSelectApt(card4Data.name);
+                  const latest = noticesData?.notices?.[0];
+                  if (latest) {
+                    window.location.hash = `notice=${encodeURIComponent(latest.id)}`;
+                  } else {
+                    window.location.hash = 'lounge-notices';
                   }
                 }}
               />
@@ -1605,7 +1446,7 @@ interface GroupedCategory {
                         </span>
                       </div>
                       <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
-                        {selectedAptSummary.dong || "동탄"} · 최근 90일 매매 {selectedAptSummary.txCount || 0}건
+                        {selectedAptSummary.dong || "동탄"} · 단지 최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
                       </span>
                     </div>
 
@@ -2152,126 +1993,224 @@ interface GroupedCategory {
           <div className="w-full h-[1px] bg-border dark:bg-slate-800/80" />
         </div>
 
-        {/* Dongtan Market Insights (News Section) */}
-        <div className="mb-8 bg-surface rounded-2xl shadow-sm border border-border p-8">
+        {/* Dongtan Market Insights (News & Notice Section) */}
+        <div className="mb-8 bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8">
           <div className="mb-6">
             <h2 className="text-[18px] md:text-[24px] font-extrabold text-primary tracking-tight whitespace-nowrap">
-              동탄 부동산 인사이트{" "}
-              <span className="text-[13px] md:text-[16px] font-semibold text-tertiary ml-1.5 md:ml-2 font-normal">
-                최신 뉴스 피드
-              </span>
+              동탄 부동산 인사이트
             </h2>
             <p className="text-[11.5px] md:text-[13px] font-medium text-tertiary mt-1 italic">
-              Dongtan real estate market latest news
+              Dongtan real estate market latest insights & news
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {newsLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex gap-4 p-5 rounded-xl border border-border bg-body animate-pulse"
-                >
-                  <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
-                  <div className="flex flex-col w-full">
-                    <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
-                    <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
-                    <div className="w-2/3 h-4 bg-gray-200 rounded" />
-                  </div>
-                </div>
-              ))
-              : (newsData.length > 0
-                ? newsData.slice(0, visibleNewsCount)
-                : [
-                  {
-                    id: 1,
-                    category: "INFRASTRUCTURE",
-                    sub: "Transportation",
-                    title:
-                      "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
-                    link: "#",
-                  },
-                  {
-                    id: 2,
-                    category: "MARKET",
-                    sub: "Supply & Demand",
-                    title:
-                      "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
-                    link: "#",
-                  },
-                  {
-                    id: 3,
-                    category: "POLICY",
-                    sub: "Urban Development",
-                    title:
-                      "동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
-                    link: "#",
-                  },
-                  {
-                    id: 4,
-                    category: "COMMERCIAL",
-                    sub: "Anchor Tenant",
-                    title:
-                      "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
-                    link: "#",
-                  },
-                  {
-                    id: 5,
-                    category: "MACRO",
-                    sub: "Liquidity",
-                    title:
-                      "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
-                    link: "#",
-                  },
-                  {
-                    id: 6,
-                    category: "COMMUNITY",
-                    sub: "Education",
-                    title:
-                      "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
-                    link: "#",
-                  },
-                ]
-              ).map((news) => (
-                <div
-                  key={news.id}
-                  onClick={() =>
-                    news.link !== "#" && window.open(news.link, "_blank")
-                  }
-                  className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"
-                >
-                  <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
-                    {news.id}
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <div className="flex items-center gap-2 mb-1.5 md:mb-2">
-                      <span className="text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide">
-                        {news.category}
-                      </span>
-                      <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
-                      <span className="text-[11px] md:text-[12px] font-semibold text-tertiary">
-                        {news.sub}
-                      </span>
-                    </div>
-                    <p className="text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2">
-                      {news.title}
-                    </p>
-                  </div>
-                </div>
-              ))}
+          {/* Switch Tabs */}
+          <div className="flex border-b border-border mb-6">
+            <button
+              onClick={() => setNewsTab("news")}
+              className={`pb-3 px-4 text-[13.5px] md:text-[15px] font-extrabold transition-all border-b-2 -mb-[1px] ${
+                newsTab === "news"
+                  ? "border-[#00d29d] text-primary"
+                  : "border-transparent text-tertiary hover:text-secondary"
+              }`}
+            >
+              부동산 뉴스
+            </button>
+            <button
+              onClick={() => setNewsTab("notice")}
+              className={`pb-3 px-4 text-[13.5px] md:text-[15px] font-extrabold transition-all border-b-2 -mb-[1px] ${
+                newsTab === "notice"
+                  ? "border-[#00d29d] text-primary"
+                  : "border-transparent text-tertiary hover:text-secondary"
+              }`}
+            >
+              동탄 소식
+            </button>
           </div>
 
+          {newsTab === "news" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {newsLoading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 p-5 rounded-xl border border-border bg-body animate-pulse"
+                  >
+                    <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
+                    <div className="flex flex-col w-full">
+                      <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
+                      <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
+                      <div className="w-2/3 h-4 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                ))
+                : (newsData.length > 0
+                  ? newsData.slice(0, visibleNewsCount)
+                  : [
+                    {
+                      id: 1,
+                      category: "INFRASTRUCTURE",
+                      sub: "Transportation",
+                      title:
+                        "GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.",
+                      link: "#",
+                    },
+                    {
+                      id: 2,
+                      category: "MARKET",
+                      sub: "Supply & Demand",
+                      title:
+                        "동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.",
+                      link: "#",
+                    },
+                    {
+                      id: 3,
+                      category: "POLICY",
+                      sub: "Urban Development",
+                      title:
+                        "동탄 트램(도시철도) 기본설계 본격화 — 1동탄 and 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.",
+                      link: "#",
+                    },
+                    {
+                      id: 4,
+                      category: "COMMERCIAL",
+                      sub: "Anchor Tenant",
+                      title:
+                        "경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.",
+                      link: "#",
+                    },
+                    {
+                      id: 5,
+                      category: "MACRO",
+                      sub: "Liquidity",
+                      title:
+                        "금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.",
+                      link: "#",
+                    },
+                    {
+                      id: 6,
+                      category: "COMMUNITY",
+                      sub: "Education",
+                      title:
+                        "동탄 내 학군 형성 가속화, '시범 커뮤니티' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.",
+                      link: "#",
+                    },
+                  ]
+                ).map((news) => {
+                  const isPlaceholder = news.link === "#";
+                  const LinkComponent = isPlaceholder ? "div" : "a";
+                  return (
+                    <LinkComponent
+                      key={news.id}
+                      href={isPlaceholder ? undefined : news.link}
+                      target={isPlaceholder ? undefined : "_blank"}
+                      rel={isPlaceholder ? undefined : "noopener noreferrer"}
+                      className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"
+                    >
+                      <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                        {news.id}
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <div className="flex items-center gap-2 mb-1.5 md:mb-2">
+                          <span className="text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide">
+                            {news.category}
+                          </span>
+                          <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
+                          <span className="text-[11px] md:text-[12px] font-semibold text-tertiary">
+                            {news.sub}
+                          </span>
+                        </div>
+                        <p className="text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2">
+                          {news.title}
+                        </p>
+                      </div>
+                    </LinkComponent>
+                  );
+                })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {!noticesData
+                ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 p-5 rounded-xl border border-border bg-body animate-pulse"
+                  >
+                    <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
+                    <div className="flex flex-col w-full">
+                      <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
+                      <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
+                      <div className="w-2/3 h-4 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                ))
+                : (noticesData.notices && noticesData.notices.length > 0
+                  ? noticesData.notices.slice(0, visibleNoticeCount)
+                  : []
+                ).map((notice: LocalNoticeItem, index: number) => (
+                  <a
+                    key={notice.id || index}
+                    href={notice.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"
+                  >
+                    <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                      {index + 1}
+                    </div>
+                    <div className="flex flex-col justify-center min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1.5 md:mb-2">
+                        <span className="text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide">
+                          {notice.dept || "동탄 소식"}
+                        </span>
+                        <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
+                        <span className="text-[11px] md:text-[12px] font-semibold text-tertiary">
+                          {notice.date}
+                        </span>
+                        {notice.isDongtan && (
+                          <>
+                            <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
+                            <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2">
+                        {notice.title}
+                      </p>
+                    </div>
+                  </a>
+                ))
+              }
+              {noticesData && (!noticesData.notices || noticesData.notices.length === 0) && (
+                <div className="col-span-1 md:col-span-2 text-center py-12 text-tertiary font-bold text-[14.5px]">
+                  최근 행정 고시공고 소식이 존재하지 않습니다.
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-6 flex flex-col gap-3 justify-center items-center">
-            <button
-              onClick={() => {
-                window.location.hash = 'lounge-news';
-              }}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
-            >
-              더보기 ({visibleNewsCount} {"/"} {newsData.length || 100})
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            {newsTab === "news" ? (
+              visibleNewsCount < (newsData.length || 100) && (
+                <button
+                  onClick={() => setVisibleNewsCount(prev => prev + 6)}
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+                >
+                  뉴스 더보기 ({visibleNewsCount} / {newsData.length || 100})
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )
+            ) : (
+              noticesData?.notices && visibleNoticeCount < noticesData.notices.length && (
+                <button
+                  onClick={() => setVisibleNoticeCount(prev => prev + 6)}
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
+                >
+                  소식 더보기 ({visibleNoticeCount} / {noticesData.notices.length})
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )
+            )}
           </div>
         </div>
       </div>

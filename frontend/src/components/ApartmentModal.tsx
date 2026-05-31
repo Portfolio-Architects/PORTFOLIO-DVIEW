@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   MapPin, X, Camera,
   Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share,
-  Crown, ChevronRight
+  Crown, ChevronRight, GraduationCap
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -51,6 +51,55 @@ interface TransactionRecord {
   rnuYn?: string;
 }
 
+
+const calculateEducationScore = (metrics: any) => {
+  if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
+  
+  let score = 0;
+  
+  // 1. Elementary Distance (max 45 points)
+  const elemDist = metrics.distanceToElementary || 9999;
+  if (elemDist <= 200) score += 45;
+  else if (elemDist <= 300) score += 40;
+  else if (elemDist <= 500) score += 30;
+  else if (elemDist <= 800) score += 15;
+  else score += 5;
+  
+  // 2. Middle & High School Accessibility (max 20 points)
+  const midDist = metrics.distanceToMiddle || 9999;
+  const highDist = metrics.distanceToHigh || 9999;
+  if (midDist <= 500) score += 10;
+  else if (midDist <= 800) score += 7;
+  else score += 3;
+  
+  if (highDist <= 600) score += 10;
+  else if (highDist <= 1000) score += 7;
+  else score += 3;
+  
+  // 3. Academy Density (max 35 points)
+  const density = metrics.academyDensity || 0;
+  if (density >= 100) score += 35;
+  else if (density >= 50) score += 28;
+  else if (density >= 20) score += 20;
+  else if (density >= 5) score += 10;
+  else score += 2;
+  
+  // Grade
+  let grade = 'C';
+  let desc = '보통 수준의 교육 여건';
+  if (score >= 90) {
+    grade = 'S';
+    desc = '최상급 초품아 + 대형 학원가 인접 (최고의 자녀 양육 환경)';
+  } else if (score >= 80) {
+    grade = 'A';
+    desc = '안심 도보 통학 및 우수한 학원가 인프라 완비';
+  } else if (score >= 70) {
+    grade = 'B';
+    desc = '양호한 통학 거리와 균형 잡힌 근린 교육 환경';
+  }
+  
+  return { score, grade, description: desc };
+};
 
 function FieldReportModal({ 
   report, 
@@ -453,7 +502,7 @@ function FieldReportModal({
       setShowScrollTop(false);
     }
 
-    const sections = ['sec-summary', 'sec-infra-metrics', 'sec-valuation', 'sec-photos', 'sec-comments'];
+    const sections = ['sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-photos', 'sec-comments'];
     let current = 'sec-summary';
     for (const id of sections) {
       if (id === 'sec-summary') continue;
@@ -751,6 +800,7 @@ function FieldReportModal({
                 const tabs = [
                   { id: 'sec-summary', label: '단지 기본정보', show: true },
                   { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
+                  { id: 'sec-education', label: '학군/육아 분석', show: !!report.metrics },
                   { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
                   { id: 'sec-photos', label: '우리 단지 갤러리', show: true },
                   { id: 'sec-comments', label: '아파트 이야기', show: true },
@@ -885,78 +935,14 @@ function FieldReportModal({
 
 
 
-          {/* 단지 입지정보 컨테이너 (인프라 + 앵커 테넌트 묶음) */}
+          {/* 단지 입지정보 컨테이너 (교통 + 생활 인프라 + 앵커 테넌트 묶음) */}
           <div id="sec-infra-metrics" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14">
             {/* Location Infrastructure Info — Enhanced Design v2 */}
-            {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
+            {report.metrics && (report.metrics.distanceToSubway || report.metrics.restaurantDensity) && (
               <div className="flex flex-col w-full">
                 <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                   <MapPin size={18} className="text-toss-blue"/> 단지 입지정보
                 </h2>
-
-                {/* ─── 🎓 학군 Section ─── */}
-                {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-toss-blue pl-2.5">
-                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">학군 정보</span>
-                    </div>
-                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
-                      {[
-                        { label: '초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
-                        { label: '중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
-                        { label: '고등학교', dist: report.metrics.distanceToHigh, name: report.metrics.nearestSchoolNames?.high },
-                      ].filter(s => s.dist && s.dist > 0).map(school => {
-                        const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
-                        const gradeStyles = {
-                          excellent: { dot: 'bg-toss-blue', timeBadge: 'bg-[#eff6ff] text-[#3182f6]', linkBadge: 'bg-surface border border-border text-secondary hover:text-toss-blue hover:border-toss-blue/30 shadow-sm' },
-                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-[#f0fdf4] text-[#16a34a]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#16a34a] hover:border-[#16a34a]/30 shadow-sm' },
-                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-[#fefce8] text-[#ca8a04]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#ca8a04] hover:border-[#ca8a04]/30 shadow-sm' },
-                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-[#fef2f2] text-[#dc2626]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#dc2626] hover:border-[#dc2626]/30 shadow-sm' },
-                        };
-                        const s = gradeStyles[grade];
-                        return (
-                          <div key={school.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                            <div className="flex items-center justify-between mb-2 md:mb-3">
-                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                                {school.label}
-                              </span>
-                              {grade === 'excellent' ? (
-                                <span className="relative flex h-2 w-2 shrink-0">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-toss-blue opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-toss-blue"></span>
-                                </span>
-                              ) : (
-                                <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
-                              )}
-                            </div>
-                            <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
-                              <div className="flex items-baseline gap-0.5">
-                                <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                                  {Math.round(school.dist!).toLocaleString()}
-                                </span>
-                                <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
-                                  m
-                                </span>
-                              </div>
-                              <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(school.dist! / 80)}분</span>
-                            </div>
-                            {school.name && (
-                              <a 
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
-                                target="_blank" rel="noopener noreferrer"
-                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.02)]`}
-                                title={`${school.name} 구글 지도에서 보기`}
-                              >
-                                <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
-                                <span className="truncate leading-tight block">{school.name}</span>
-                              </a>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {/* ─── 🚇 교통 Section ─── */}
                 {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
@@ -1019,68 +1005,38 @@ function FieldReportModal({
                 )}
 
                 {/* ─── 🏪 생활 인프라 Section ─── */}
-                {(report.metrics.academyDensity > 0 || (report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0)) && (
+                {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#f59e0b] pl-2.5">
                       <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활권 인프라</span>
                     </div>
-                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-2 md:gap-3">
-                      {/* Academy Density */}
-                      {report.metrics.academyDensity > 0 && (
-                        <div className="w-[200px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                          <div className="flex items-center justify-between mb-2 md:mb-3">
-                            <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                              학원 · 500m 반경
-                            </span>
-                            <span className="w-2 h-2 rounded-full shrink-0 bg-[#22c55e]" />
-                          </div>
-                          <div className="flex items-baseline gap-0.5 mb-3 md:mb-4 whitespace-nowrap">
-                            <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
-                            <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
-                          </div>
-                          {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
-                            <div className="flex flex-col gap-1.5 mt-auto">
-                              {Object.entries(report.metrics.academyCategories)
-                                .sort(([,a], [,b]) => (b as number) - (a as number))
-                                .slice(0, 5)
-                                .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border-0 rounded-xl px-3 py-1.5 transition-all duration-200">
-                                    <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
-                                    <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-1 md:gap-3">
                       {/* Restaurant/Cafe Density */}
-                      {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                        <div className="w-[200px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                          <div className="flex items-center justify-between mb-2 md:mb-3">
-                            <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                              음식점·카페·500m
-                            </span>
-                            <span className="w-2 h-2 rounded-full shrink-0 bg-[#f59e0b]" />
-                          </div>
-                          <div className="flex items-baseline gap-0.5 mb-3 md:mb-4 whitespace-nowrap">
-                            <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                            <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
-                          </div>
-                          {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
-                            <div className="flex flex-col gap-1.5 mt-auto">
-                              {Object.entries(report.metrics.restaurantCategories)
-                                .sort(([,a], [,b]) => (b as number) - (a as number))
-                                .slice(0, 5)
-                                .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border-0 rounded-xl px-3 py-1.5 transition-all duration-200">
-                                    <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
-                                    <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
-                                  </div>
-                                ))}
-                            </div>
-                          )}
+                      <div className="w-full bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                        <div className="flex items-center justify-between mb-2 md:mb-3">
+                          <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
+                            음식점·카페·500m
+                          </span>
+                          <span className="w-2 h-2 rounded-full shrink-0 bg-[#f59e0b]" />
                         </div>
-                      )}
+                        <div className="flex items-baseline gap-0.5 mb-3 md:mb-4 whitespace-nowrap">
+                          <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                          <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
+                        </div>
+                        {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 mt-auto">
+                            {Object.entries(report.metrics.restaurantCategories)
+                              .sort(([,a], [,b]) => (b as number) - (a as number))
+                              .slice(0, 5)
+                              .map(([cat, cnt]) => (
+                                <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border border-border/20 rounded-xl px-3 py-1.5 transition-all duration-200">
+                                  <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
+                                  <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1108,6 +1064,179 @@ function FieldReportModal({
                 mcdonaldsAddress={report.metrics.mcdonaldsAddress}
                 mcdonaldsCoordinates={report.metrics.mcdonaldsCoordinates}
               />
+            )}
+          </div>
+
+          {/* 🎓 학군 및 육아 분석 컨테이너 */}
+          <div id="sec-education" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14">
+            {report.metrics && (
+              <div className="flex flex-col w-full">
+                <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                  <GraduationCap size={18} className="text-[#0d9488]"/> 학군/육아 분석
+                </h2>
+
+                {/* ─── 👶 육아 친화도 지수 (Childcare Index) ─── */}
+                {(() => {
+                  const eduScoreInfo = calculateEducationScore(report.metrics);
+                  const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
+                    S: { bg: 'bg-[#fdf2f8]', text: 'text-[#db2777]', border: 'border-[#fbcfe8]/50', descBg: 'bg-[#db2777]/5', scoreText: 'text-[#db2777]' },
+                    A: { bg: 'bg-[#ecfdf5]', text: 'text-[#059669]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#059669]/5', scoreText: 'text-[#059669]' },
+                    B: { bg: 'bg-[#fffbeb]', text: 'text-[#d97706]', border: 'border-[#fde68a]/50', descBg: 'bg-[#d97706]/5', scoreText: 'text-[#d97706]' },
+                    C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
+                  };
+                  const colors = scoreColors[eduScoreInfo.grade] || scoreColors.C;
+                  
+                  return (
+                    <div className="mb-8">
+                      <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                        <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
+                      </div>
+                      
+                      <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
+                        <div className="flex flex-col items-center justify-center shrink-0">
+                          <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center border-4 ${colors.border} ${colors.bg} shadow-sm relative group`}>
+                            <span className="text-[12px] font-extrabold text-secondary tracking-wider">GRADE</span>
+                            <span className={`text-[36px] font-black leading-none ${colors.text} -mt-0.5`}>{eduScoreInfo.grade}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 w-full text-center md:text-left">
+                          <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
+                            <span className="text-[16px] font-bold text-secondary">종합 육아 환경 지수:</span>
+                            <div className="flex items-baseline justify-center gap-0.5">
+                              <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{eduScoreInfo.score}</span>
+                              <span className="text-[14px] font-bold text-secondary">/ 100 점</span>
+                            </div>
+                          </div>
+                          
+                          <div className={`p-4 rounded-xl ${colors.descBg} border border-[#0d9488]/10 text-left`}>
+                            <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 자녀양육 환경 리포트</p>
+                            <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
+                              {eduScoreInfo.description} (초등학교까지의 실제 도보 안심 통학 요건, 인근 중고교 접근성 및 500m 반경 내 교육 학원 인프라 밀집도를 종합 연산한 지표입니다.)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* ─── 🏫 배정 학교 정보 (Assigned Schools) ─── */}
+                {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
+                  <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 학군 배정 정보</span>
+                    </div>
+                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
+                      {[
+                        { label: '배정 초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
+                        { label: '인근 중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
+                        { label: '인근 고등학교', dist: report.metrics.distanceToHigh, name: report.metrics.nearestSchoolNames?.high },
+                      ].filter(s => s.dist && s.dist > 0).map(school => {
+                        const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
+                        const gradeStyles = {
+                          excellent: { dot: 'bg-teal-500', timeBadge: 'bg-[#f0fdfa] text-teal-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-teal-600 hover:border-teal-500/30 shadow-sm' },
+                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-[#f0fdf4] text-[#16a34a]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#16a34a] hover:border-[#16a34a]/30 shadow-sm' },
+                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-[#fefce8] text-[#ca8a04]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#ca8a04] hover:border-[#ca8a04]/30 shadow-sm' },
+                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-[#fef2f2] text-[#dc2626]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#dc2626] hover:border-[#dc2626]/30 shadow-sm' },
+                        };
+                        const s = gradeStyles[grade];
+                        return (
+                          <div key={school.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                            <div className="flex items-center justify-between mb-2 md:mb-3">
+                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
+                                {school.label}
+                              </span>
+                              {grade === 'excellent' ? (
+                                <span className="relative flex h-2 w-2 shrink-0">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                                </span>
+                              ) : (
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
+                              )}
+                            </div>
+                            <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
+                                  {Math.round(school.dist!).toLocaleString()}
+                                </span>
+                                <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
+                                  m
+                                </span>
+                              </div>
+                              <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(school.dist! / 80)}분</span>
+                            </div>
+                            {school.name && (
+                              <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.02)]`}
+                                title={`${school.name} 구글 지도에서 보기`}
+                              >
+                                <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
+                                <span className="truncate leading-tight block">{school.name}</span>
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── 📚 주변 학원가 분석 (Academy Density) ─── */}
+                {report.metrics.academyDensity > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">주변 학원가 구성 (500m 반경)</span>
+                    </div>
+                    
+                    <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col gap-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0">
+                          <GraduationCap className="text-teal-600" size={24} />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-secondary leading-none">500m 반경 교육시설</p>
+                          <div className="flex items-baseline gap-0.5 mt-1.5">
+                            <span className="text-[26px] font-black text-primary tracking-tight leading-none">{report.metrics.academyDensity}</span>
+                            <span className="text-[13px] font-bold text-secondary ml-1">개소 밀집</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                          {Object.entries(report.metrics.academyCategories)
+                            .sort(([,a], [,b]) => (b as number) - (a as number))
+                            .map(([cat, cnt]) => {
+                              let theme = { bg: 'bg-[#f0fdfa]/50 text-teal-600 border-[#ccfbf1]/40', tag: '학업' };
+                              
+                              if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용')) {
+                                theme = { bg: 'bg-[#fdf2f8]/50 text-[#db2777] border-[#fbcfe8]/40', tag: '예체능' };
+                              } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션')) {
+                                theme = { bg: 'bg-[#fff7ed]/50 text-[#ea580c] border-[#ffedd5]/40', tag: '체육/활동' };
+                              } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스')) {
+                                theme = { bg: 'bg-[#f0f9ff]/50 text-[#0284c7] border-[#e0f2fe]/40', tag: '건강/취미' };
+                              }
+                              
+                              return (
+                                <div key={cat} className={`flex justify-between items-center ${theme.bg} border rounded-xl px-4 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm`}>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{cat}</span>
+                                    <span className="text-[10px] font-bold opacity-60 mt-0.5 leading-none">{theme.tag}</span>
+                                  </div>
+                                  <span className="font-black text-[14px] shrink-0 tabular-nums pl-2">{cnt as number}개</span>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
