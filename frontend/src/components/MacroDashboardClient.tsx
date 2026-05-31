@@ -328,6 +328,17 @@ export default function MacroDashboardClient({
   const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // 바텀 시트 오픈 시 body 스크롤 방지
   useEffect(() => {
     if (isBottomSheetOpen) {
@@ -746,6 +757,63 @@ export default function MacroDashboardClient({
     return ticks;
   }, [lineData, timeframe]);
 
+  const mainLineData = useMemo(() => {
+    if (isMobileViewport) {
+      const sourceData = deferredMacroTrendData;
+      if (!sourceData) return [];
+      let count = sourceData.length;
+      switch (timeframe) {
+        case "3M": count = 3; break;
+        case "6M": count = 6; break;
+        case "1Y": count = 12; break;
+        case "3Y": count = 36; break;
+        case "5Y": count = 60; break;
+        case "ALL": count = sourceData.length; break;
+      }
+      return sourceData.slice(-Math.min(count, sourceData.length));
+    }
+    return lineData;
+  }, [isMobileViewport, lineData, deferredMacroTrendData, timeframe]);
+
+  const mainXTicks = useMemo(() => {
+    if (isMobileViewport) {
+      if (mainLineData.length === 0) return [];
+      if (timeframe === "3M" || timeframe === "6M") {
+        return mainLineData.map((d) => d.name);
+      }
+      let step = 1;
+      if (timeframe === "1Y") step = 2;
+      else if (timeframe === "3Y") step = 6;
+      else if (timeframe === "5Y") step = 12;
+      else if (timeframe === "ALL") step = 24;
+
+      const ticks = [];
+      const total = mainLineData.length;
+      for (let i = total - 1; i >= 0; i -= step) {
+        ticks.unshift(mainLineData[i].name);
+      }
+      return ticks;
+    }
+    return xTicks;
+  }, [isMobileViewport, xTicks, mainLineData, timeframe]);
+
+  const latestMacroPoint = useMemo(() => {
+    if (!deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
+    return deferredMacroTrendData[deferredMacroTrendData.length - 1];
+  }, [deferredMacroTrendData]);
+
+  const macroSalePriceText = useMemo(() => {
+    if (!latestMacroPoint) return "8.1억";
+    const val = latestMacroPoint['동탄 아파트 전체'];
+    return typeof val === 'number' ? `${val.toFixed(1)}억` : "8.1억";
+  }, [latestMacroPoint]);
+
+  const macroRentPriceText = useMemo(() => {
+    if (!latestMacroPoint) return "4.3억";
+    const val = latestMacroPoint['동탄 아파트 전세 평균'];
+    return typeof val === 'number' ? `${val.toFixed(1)}억` : "4.3억";
+  }, [latestMacroPoint]);
+
 
   // 1안 Card 3: 최근 7일 동탄 실거래량 & 추세 (WoW)
   const card3Data = useMemo(() => {
@@ -950,14 +1018,6 @@ export default function MacroDashboardClient({
       });
   }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime]);
 
-  useEffect(() => {
-    if (dailyTimelineData && dailyTimelineData.length > 0 && !selectedTimelineApt) {
-      const firstGroup = dailyTimelineData[0];
-      if (firstGroup && firstGroup.items && firstGroup.items.length > 0) {
-        setSelectedTimelineApt(firstGroup.items[0].aptName);
-      }
-    }
-  }, [dailyTimelineData, selectedTimelineApt]);
 
   const toggleGroup = (title: string) => {
     setExpandedGroups((prev) => ({ ...prev, [title]: !prev[title] }));
@@ -1244,6 +1304,35 @@ interface GroupedCategory {
     return ticks;
   }, [lineData]);
 
+  const mainYTicks = useMemo(() => {
+    if (isMobileViewport) {
+      if (!mainLineData || mainLineData.length === 0) return [0, 2, 4, 6, 8];
+      let maxVal = 0;
+      mainLineData.forEach((d) => {
+        const sale = d["동탄 아파트 전체"] || 0;
+        const rent = d["동탄 아파트 전세 평균"] || 0;
+        if (sale > maxVal) maxVal = sale;
+        if (rent > maxVal) maxVal = rent;
+      });
+
+      let step = 2;
+      if (maxVal <= 5) step = 1;
+      else if (maxVal <= 12) step = 2;
+      else if (maxVal <= 24) step = 4;
+      else step = 5;
+
+      const roundedMax = Math.ceil(maxVal / step) * step;
+      const finalMax = (roundedMax - maxVal < step * 0.1) ? roundedMax + step : roundedMax;
+
+      const ticks = [];
+      for (let i = 0; i <= finalMax; i += step) {
+        ticks.push(i);
+      }
+      return ticks;
+    }
+    return yTicks;
+  }, [isMobileViewport, yTicks, mainLineData]);
+
   return (
     <div className="w-full flex flex-col bg-surface relative">
       <PageHeroHeader 
@@ -1479,9 +1568,9 @@ interface GroupedCategory {
                 <div className="flex flex-col gap-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-[15px] font-bold text-primary tracking-tight truncate max-w-[360px] sm:max-w-none">
-                      {selectedTimelineApt ? `${selectedTimelineApt} 가격 추이` : "동탄 아파트 대표 가격 변화 추이"}
+                      {(!isMobileViewport && selectedTimelineApt) ? `${selectedTimelineApt} 가격 추이` : "동탄 아파트 대표 가격 변화 추이"}
                     </h3>
-                    {selectedTimelineApt && (
+                    {(!isMobileViewport && selectedTimelineApt) && (
                       <button
                         onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
                         className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
@@ -1509,9 +1598,9 @@ interface GroupedCategory {
 
               <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] min-h-[260px] relative">
                 <MacroTrendChart
-                  lineData={lineData}
-                  xTicks={xTicks}
-                  yTicks={yTicks}
+                  lineData={mainLineData}
+                  xTicks={mainXTicks}
+                  yTicks={mainYTicks}
                   timeframe={timeframe}
                 />
               </div>
@@ -1530,7 +1619,7 @@ interface GroupedCategory {
 
               {/* 개선된 여백 채우기용 슬림한 실거래 요약 바 */}
               <div className="mt-4 pt-3 border-t border-border/60 flex-none">
-                {selectedAptSummary ? (
+                {(!isMobileViewport && selectedAptSummary) ? (
                   <div className="bg-zinc-50/70 dark:bg-zinc-900/30 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3">
                     {/* Top Row: Title Badge & Target Info */}
                     <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
@@ -1592,22 +1681,22 @@ interface GroupedCategory {
                         </span>
                       </div>
                       <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
-                        최근 7일 기준
+                        최신 기준
                       </span>
                     </div>
 
                     {/* Bottom Row: 3-Column Grid for Metrics */}
                     <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">실거래량</span>
+                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">시장 평균가</span>
                         <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate">
-                          {card3Data.currentCount}건
+                          {macroSalePriceText}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">거래추세</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black truncate" style={{ color: card3Data.trendColor }}>
-                          {card3Data.trendText.split(" ")[0]} ({card3Data.badge.split(" ")[1]?.replace("(", "")?.replace(")", "") || "0%"})
+                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">전세 평균가</span>
+                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate">
+                          {macroRentPriceText}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
@@ -2195,7 +2284,7 @@ interface GroupedCategory {
             </div>
             
             {/* Content (Scrollable) */}
-            <div className="flex-1 overflow-y-auto p-5 pb-24 flex flex-col gap-4">
+            <div className="flex-1 overflow-y-auto p-5 pb-36 flex flex-col gap-4">
               {/* 기간 선택 버튼 (3M, 6M, 1Y, 3Y, 5Y, ALL) */}
               <div className="flex justify-between items-center mb-4 flex-wrap gap-2 shrink-0">
                 <span className="text-[11.5px] font-bold text-tertiary">조회 기간</span>

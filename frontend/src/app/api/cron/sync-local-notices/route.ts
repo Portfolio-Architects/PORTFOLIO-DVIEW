@@ -26,6 +26,9 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
+let lastSyncExecutionTime = 0;
+const DEV_SYNC_COOLDOWN_MS = 30000; // 개발 서버 쿨타임 (30초)
+
 const DONGTAN_KEYWORDS = [
   '동탄', '출장소', '호수공원', '청계', '영천', '오산동', '신동', '목동', 
   '산척', '장지', '송동', '방교', '반송', '능동', '여울', '석우',
@@ -52,6 +55,19 @@ function checkIfDongtan(title: string, dept: string): boolean {
 
 export async function GET(request: Request) {
   try {
+    // 개발 모드에서 무차별적인 호출로 인한 타겟 서버(화성시청) WAF IP 차단 및 부하 방지 (인메모리 쿨타임 가드)
+    if (process.env.NODE_ENV === 'development') {
+      const now = Date.now();
+      if (now - lastSyncExecutionTime < DEV_SYNC_COOLDOWN_MS) {
+        console.warn('[Sync-Notices] Dev mode execution throttled to prevent target WAF IP block.');
+        return NextResponse.json({ 
+          status: 'skipped', 
+          message: 'Sync throttled in dev mode to protect target IP block. Cooldown: 30s.' 
+        });
+      }
+      lastSyncExecutionTime = now;
+    }
+
     // 1. Authorization check for production
     const authHeader = request.headers.get('authorization');
     if (
@@ -66,9 +82,10 @@ export async function GET(request: Request) {
     }
 
     // 2. Fetch pages (we scrape page 1 and page 2 by default, or 1 to 10 if full is true)
+    // 개발 모드에서는 디폴트 1페이지만 조회하여 부하를 최소화
     const { searchParams } = new URL(request.url);
     const isFull = searchParams.get('full') === 'true';
-    const pages = isFull ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [1, 2, 3, 4];
+    const pages = isFull ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : (process.env.NODE_ENV === 'development' ? [1] : [1, 2, 3, 4]);
     const notices: NoticeItem[] = [];
 
     // --- Source 1: 타기관 고시공고 (BBS 1019) ---

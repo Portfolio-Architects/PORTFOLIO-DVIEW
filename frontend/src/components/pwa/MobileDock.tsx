@@ -13,7 +13,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
   const { setIsSettingsModalOpen } = useSettings();
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[999] bg-surface/95 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.06)] rounded-t-[24px] px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/95 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.06)] rounded-t-[24px] px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border">
       {/* 4개 탭 */}
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
