@@ -21,6 +21,10 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
+// Memory backups for anonymous session in case localStorage is blocked in sandboxed frames
+let sessionAnonNickname: string | null = null;
+let sessionAnonUid: string | null = null;
+
 interface PostComment {
   id: string;
   text: string;
@@ -32,6 +36,8 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   const router = useRouter();
   const { triggerCustomA2HSModal } = usePWA();
   useSwipeNavigation({ onBack: () => isModal ? router.back() : router.back() });
+
+  const lastCommentTimeRef = useRef<number>(0);
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -183,12 +189,20 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     try {
       let anonName = localStorage.getItem('dview_anon_nickname');
       if (!anonName) {
-        anonName = generateMamacafeNickname();
+        if (sessionAnonNickname) {
+          anonName = sessionAnonNickname;
+        } else {
+          anonName = generateMamacafeNickname();
+          sessionAnonNickname = anonName;
+        }
         localStorage.setItem('dview_anon_nickname', anonName);
       }
       return anonName;
     } catch (e) {
-      return '익명이웃';
+      if (!sessionAnonNickname) {
+        sessionAnonNickname = generateMamacafeNickname();
+      }
+      return sessionAnonNickname;
     }
   };
 
@@ -197,17 +211,39 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     try {
       let anonUid = localStorage.getItem('dview_anon_uid');
       if (!anonUid) {
-        anonUid = 'anon_' + Math.random().toString(36).substring(2, 10);
+        if (sessionAnonUid) {
+          anonUid = sessionAnonUid;
+        } else {
+          anonUid = 'anon_' + Math.random().toString(36).substring(2, 10);
+          sessionAnonUid = anonUid;
+        }
         localStorage.setItem('dview_anon_uid', anonUid);
       }
       return anonUid;
     } catch (e) {
-      return 'guest';
+      if (!sessionAnonUid) {
+        sessionAnonUid = 'anon_' + Math.random().toString(36).substring(2, 10);
+      }
+      return sessionAnonUid;
     }
   };
 
   const handleComment = async () => {
     if (!commentText.trim()) return;
+    
+    // 글자수 제한 방어
+    if (commentText.trim().length > 300) {
+      alert('댓글은 최대 300자까지 작성할 수 있습니다.');
+      return;
+    }
+    
+    // 도배 방지 (3초 락)
+    const now = Date.now();
+    if (now - lastCommentTimeRef.current < 3000) {
+      alert('댓글을 너무 빠르게 작성하고 있습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+
     setIsSending(true);
     try {
       let displayName = '익명이웃';
@@ -229,6 +265,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       });
       await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) });
       setCommentText('');
+      lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
     } catch {
       alert('댓글 작성에 실패했습니다.');
@@ -620,11 +657,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           </div>
 
           {/* Integrated Comment Input */}
-          <div className="px-5 py-4 bg-body border-b border-border">
+          <div className="px-5 py-4 bg-body border-b border-border flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
               <input
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
+                maxLength={300}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
                 placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
                 className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:border-toss-blue transition-colors focus:ring-2 focus:ring-toss-blue/20"
@@ -636,6 +674,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               >
                 <Send size={18} className="ml-1" />
               </button>
+            </div>
+            <div className="flex justify-end px-1">
+              <span className="text-[11.5px] font-medium text-tertiary">{commentText.length}/300자</span>
             </div>
           </div>
 
