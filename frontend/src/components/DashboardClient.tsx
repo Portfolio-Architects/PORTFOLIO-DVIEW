@@ -90,7 +90,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   
-  const { txSummary = {}, macroTrend = [], isLoading: isStaticDataLoading } = useTxData(initialDashboardData?.macroTrend);
+  const { txSummary = {}, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(initialDashboardData?.macroTrend);
   const { locationScores = {} } = useLocationScores();
   
   const getLocScore = (aptName: string) => {
@@ -561,6 +561,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               userFavorites={userFavorites}
               fieldReportsMap={fieldReportsMap}
               favoriteCounts={favoriteCounts}
+              recent7DaysVolume={recent7DaysVolume}
               onOpenAdModal={() => setIsAdModalOpen(true)}
               onSelectApt={(name: string) => {
                 userHasSelected.current = true;

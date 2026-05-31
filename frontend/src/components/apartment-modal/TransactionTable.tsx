@@ -235,7 +235,7 @@ export function TransactionTable({
                   <div className="group relative flex items-center justify-center cursor-help">
                     <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
                     <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-primary text-surface text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
-                      시세 대비 이례적 편차
+                      {tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}
                     </div>
                   </div>
                 )}

@@ -72,6 +72,13 @@ interface MacroDashboardProps {
   favoriteCounts: Record<string, number>;
   onSelectApt?: (name: string) => void;
   onOpenAdModal?: () => void;
+  recent7DaysVolume?: {
+    currentCount: number;
+    prevCount: number;
+    trendText: string;
+    trendColor: string;
+    badge: string;
+  };
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -367,6 +374,7 @@ export default function MacroDashboardClient({
   favoriteCounts,
   onSelectApt,
   onOpenAdModal,
+  recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
@@ -808,6 +816,9 @@ export default function MacroDashboardClient({
 
   // 1안 Card 3: 최근 7일 동탄 실거래량 & 추세 (WoW)
   const card3Data = useMemo(() => {
+    if (recent7DaysVolume) {
+      return recent7DaysVolume;
+    }
     const limit7 = 7 * 24 * 60 * 60 * 1000;
     const cutoff7 = maxDateTime - limit7;
     const cutoff14 = maxDateTime - 2 * limit7;
@@ -852,7 +863,7 @@ export default function MacroDashboardClient({
       trendColor,
       badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`,
     };
-  }, [txSummaryData, maxDateTime]);
+  }, [recent7DaysVolume, txSummaryData, maxDateTime]);
 
   // 1안 Card 4: 실시간 최고 관심 단지
   const card4Data = useMemo(() => {

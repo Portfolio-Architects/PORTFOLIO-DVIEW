@@ -18,6 +18,13 @@ export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
 
   const { data: summaryData, error: summaryError, isLoading: isSummaryLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
+    recent7DaysVolume?: {
+      currentCount: number;
+      prevCount: number;
+      trendText: string;
+      trendColor: string;
+      badge: string;
+    };
   }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
     revalidateOnFocus: true,
     revalidateIfStale: true,
@@ -39,6 +46,7 @@ export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
   
   return {
     txSummary: summaryData?.summary,
+    recent7DaysVolume: summaryData?.recent7DaysVolume,
     macroTrend: trendData || initialMacroTrend,
     isLoading: (!shouldFetch && !initialMacroTrend) || isSummaryLoading || (isTrendLoading && !initialMacroTrend),
     error: summaryError || trendError

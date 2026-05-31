@@ -59,6 +59,15 @@ function formatPriceEok(priceMan) {
   return `${eok}억${remainder.toLocaleString()}`;
 }
 
+function parseYYYYMMDD(str) {
+  if (!str || str.length !== 8) return null;
+  const y = parseInt(str.substring(0, 4), 10);
+  const m = parseInt(str.substring(4, 6), 10) - 1;
+  const d = parseInt(str.substring(6, 8), 10);
+  const dt = new Date(y, m, d);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
 const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
 function parseCsvLine(line) {
   const result = [];
@@ -345,6 +354,8 @@ async function main() {
   const filteredApts = Object.keys(byApt).filter(aptName => validTxKeys.has(aptName) || validTxKeys.has(normalizeAptName(aptName)));
   console.log(`🧹 전체 ${Object.keys(byApt).length}개 중 동탄 지역 ${filteredApts.length}개 아파트만 필터링 완료`);
 
+  const allSaleTxs = [];
+
   for (const aptName of filteredApts) {
     const txs = byApt[aptName];
     // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
@@ -401,6 +412,7 @@ async function main() {
 
     const saleTxs = filterOutliersRolling(rawSaleTxs);
     const rentTxs = filterOutliersRolling(rawRentTxs);
+    allSaleTxs.push(...saleTxs);
 
     // 공급면적(분양평수) 평당 가격으로 재조정 (DB의 d.areaPyeong는 전용면적 기반이므로 치명적인 왜곡 발생 방지)
     const getSupplyPyeong = (t) => {
@@ -587,8 +599,8 @@ async function main() {
       
       // 전월세 데이터
       rentTxCount: rentTxs.length,
-      latestRentDeposit: latestRentTx ? latestRentTx.deposit : 0,
-      latestRentDepositEok: latestRentTx ? formatPriceEok(latestRentTx.deposit) : "0",
+      latestRentDeposit: latestRentTx ? getConvertedDeposit(latestRentTx) : 0,
+      latestRentDepositEok: latestRentTx ? formatPriceEok(getConvertedDeposit(latestRentTx)) : "0",
       latestRentMonthly: latestRentTx ? latestRentTx.monthlyRent : 0,
       latestRentDate: latestRentTx ? `${latestRentTx.contractYm}${latestRentTx.contractDay}` : "",
       avg1MRentDeposit: avg1MDeposit,
@@ -600,6 +612,63 @@ async function main() {
   }
 
   console.log(`\n✅ 요약 완료: ${aptCount}개 아파트 (매매+전월세 통합)`);
+
+  // ── 최근 7일 거래량 및 WoW 추세 계산 (전체 매매 거래 기준) ──
+  let maxDateTime = 0;
+  allSaleTxs.forEach(t => {
+    const dt = parseYYYYMMDD(t.contractDate);
+    if (dt) {
+      const time = dt.getTime();
+      if (time > maxDateTime) {
+        maxDateTime = time;
+      }
+    }
+  });
+
+  if (maxDateTime === 0) {
+    maxDateTime = new Date().getTime(); // fallback
+  }
+
+  const limit7 = 7 * 24 * 60 * 60 * 1000;
+  const cutoff7 = maxDateTime - limit7;
+  const cutoff14 = maxDateTime - 2 * limit7;
+  let currentCount = 0;
+  let prevCount = 0;
+
+  allSaleTxs.forEach(t => {
+    const dt = parseYYYYMMDD(t.contractDate);
+    if (dt) {
+      const time = dt.getTime();
+      if (time >= cutoff7) {
+        currentCount++;
+      } else if (time >= cutoff14) {
+        prevCount++;
+      }
+    }
+  });
+
+  const diff = currentCount - prevCount;
+  const rate = prevCount > 0 ? (diff / prevCount) * 100 : 0;
+  const isUp = diff > 0;
+  const isDown = diff < 0;
+  let trendText = "보합 (0%)";
+  let trendColor = "#94a3b8";
+
+  if (isUp) {
+    trendText = `상승 (+${rate.toFixed(1)}%)`;
+    trendColor = "#ff4b5c";
+  } else if (isDown) {
+    trendText = `하락 (${rate.toFixed(1)}%)`;
+    trendColor = "#2e7cf6";
+  }
+
+  const recent7DaysVolume = {
+    currentCount,
+    prevCount,
+    trendText,
+    trendColor,
+    badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`,
+  };
 
   // ── 거시 트렌드 배열 생성 ──
   let lastValidPrice = 0;
@@ -632,7 +701,8 @@ async function main() {
   });
 
   const outputData = {
-    summary: summaries
+    summary: summaries,
+    recent7DaysVolume: recent7DaysVolume
   };
 
   const outputDir = path.dirname(OUTPUT_PATH);

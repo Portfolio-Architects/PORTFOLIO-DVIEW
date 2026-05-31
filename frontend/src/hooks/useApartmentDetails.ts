@@ -32,6 +32,7 @@ export interface TransactionRecord {
   housingType: string;
   reqGb: string;
   rnuYn: string;
+  isOutlier?: boolean;
 }
 
 interface RawTransactionRecord {
@@ -111,14 +112,25 @@ export function useApartmentDetails(
 
   const modalTransactions = useMemo(() => {
     if (!records) return [];
-    return records.map((r, i) => {
+
+    // 1단계: 평가용 거래 정보 매핑
+    const mapped = records.map((r, i) => {
+      const isRent = r.dealType === '전세' || r.dealType === '월세';
+      const evaluatedPrice = isRent
+        ? (r.deposit || 0) + (r.monthlyRent ? Math.round(r.monthlyRent * 12 / 0.055) : 0)
+        : r.price;
+      const areaKey = Math.round(r.area);
+      const typeKey = isRent ? 'rent' : 'sale';
+      const groupKey = `${areaKey}_${typeKey}`;
+
       let eokStr = '';
-      if (r.dealType === '전세' || r.dealType === '월세') {
+      if (isRent) {
          eokStr = formatPriceEok(r.deposit || 0);
          if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
       } else {
          eokStr = formatPriceEok(r.price);
       }
+
       return {
         no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
         area: r.area, areaPyeong: r.areaPyeong,
@@ -129,7 +141,55 @@ export function useApartmentDetails(
         floor: r.floor, buyer: '', seller: '', buildYear: 0, roadName: '',
         cancelDate: r.cancelDate || '', dealType: r.dealType || '',
         agentLocation: '', registrationDate: '-', housingType: '',
-        reqGb: r.reqGb || '', rnuYn: r.rnuYn || ''
+        reqGb: r.reqGb || '', rnuYn: r.rnuYn || '',
+        // IQR용 메타데이터 임시 저장
+        groupKey,
+        evaluatedPrice,
+      };
+    });
+
+    // 2단계: 그룹화하여 IQR 경계 계산
+    const groups: Record<string, number[]> = {};
+    mapped.forEach(item => {
+      if (!groups[item.groupKey]) {
+        groups[item.groupKey] = [];
+      }
+      groups[item.groupKey].push(item.evaluatedPrice);
+    });
+
+    const iqrBounds: Record<string, { lower: number; upper: number; count: number }> = {};
+    Object.entries(groups).forEach(([groupKey, prices]) => {
+      const sortedPrices = [...prices].sort((a, b) => a - b);
+      const getPercentile = (arr: number[], val: number) => {
+        if (arr.length === 0) return 0;
+        const idx = (arr.length - 1) * val;
+        const base = Math.floor(idx);
+        const rest = idx - base;
+        if (arr[base + 1] !== undefined) {
+          return arr[base] + rest * (arr[base + 1] - arr[base]);
+        } else {
+          return arr[base];
+        }
+      };
+      const q1 = getPercentile(sortedPrices, 0.25);
+      const q3 = getPercentile(sortedPrices, 0.75);
+      const iqr = q3 - q1;
+      iqrBounds[groupKey] = {
+        lower: q1 - 1.5 * iqr,
+        upper: q3 + 1.5 * iqr,
+        count: prices.length
+      };
+    });
+
+    // 3단계: 최종 modalTransactions 구성
+    return mapped.map(item => {
+      const bounds = iqrBounds[item.groupKey];
+      const isOutlier = bounds && bounds.count >= 4 && (item.evaluatedPrice < bounds.lower || item.evaluatedPrice > bounds.upper);
+      
+      const { groupKey, evaluatedPrice, ...rest } = item;
+      return {
+        ...rest,
+        isOutlier: !!isOutlier
       };
     });
   }, [records, fileKey]);
