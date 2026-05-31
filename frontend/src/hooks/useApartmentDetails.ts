@@ -184,7 +184,7 @@ export function useApartmentDetails(
     // 3단계: 최종 modalTransactions 구성
     return mapped.map(item => {
       const bounds = iqrBounds[item.groupKey];
-      const isOutlier = bounds && bounds.count >= 4 && (item.evaluatedPrice < bounds.lower || item.evaluatedPrice > bounds.upper);
+      const isOutlier = bounds && bounds.count >= 4 && (item.evaluatedPrice < bounds.lower);
       
       const { groupKey, evaluatedPrice, ...rest } = item;
       return {

@@ -135,8 +135,8 @@ export function TransactionChartSection({
   const bandHigh = q3;
   const scatterData = timeFiltered.map(d => ({
     ...d,
-    isOutlier: d.price < q1 - iqr * 2 || d.price > q3 + iqr * 2,
-  })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
+    isOutlier: d.price < q1 - iqr * 2,
+  })).filter(d => d.price >= q1 - iqr * 3);
   
   const getFloorColor = (floor: number) => '#00d29d';
 
