@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
+import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface Post {
   id: string;
@@ -525,9 +526,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               </div>
             ) : (
               filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => (
-                <div
+                <a
                   key={notice.id}
-                  onClick={() => { window.location.hash = `notice=${notice.id}`; }}
+                  href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-emerald-500/30 transition-all cursor-pointer group w-full"
                 >
                   <div className="flex items-center gap-3 sm:gap-0 shrink-0">
@@ -568,7 +571,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                       </span>
                     )}
                   </div>
-                </div>
+                </a>
               ))
             )}
           </>
@@ -598,11 +601,20 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         </div>
       )}
 
-      {filteredPosts.map((news) => {
+      {filteredPosts.map((news, index) => {
+        const renderAd = index > 0 && index % 4 === 0;
         return (
-          <div 
-            key={news.id} 
-            onClick={() => { window.location.hash = `post=${news.id}`; }} 
+          <Fragment key={news.id}>
+            {renderAd && (
+              <div onClick={(e) => e.stopPropagation()} className="w-full">
+                <NativeAdPlaceholder 
+                  location={`라운지 피드 중간 광고 ${Math.floor(index / 4)}`} 
+                  adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_FEED || "test-lounge-feed-slot"} 
+                />
+              </div>
+            )}
+            <div 
+              onClick={() => { window.location.hash = `post=${news.id}`; }} 
             className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
           >
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-0 shrink-0">
@@ -682,6 +694,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             </div>
 
           </div>
+        </Fragment>
         );
       })}
 

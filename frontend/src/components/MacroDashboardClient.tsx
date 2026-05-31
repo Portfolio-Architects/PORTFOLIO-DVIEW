@@ -737,6 +737,17 @@ export default function MacroDashboardClient({
       };
     });
 
+    let sliceIndex = -1;
+    if (realFirstSaleIndex !== -1) {
+      sliceIndex = realFirstSaleIndex;
+    } else if (realFirstRentIndex !== -1) {
+      sliceIndex = realFirstRentIndex;
+    }
+
+    if (sliceIndex !== -1) {
+      return finalChartData.slice(sliceIndex);
+    }
+
     return finalChartData;
   }, [selectedAptSummary, deferredMacroTrendData, aptRealTxData]);
 

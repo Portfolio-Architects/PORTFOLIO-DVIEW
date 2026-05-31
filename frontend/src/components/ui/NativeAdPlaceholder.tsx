@@ -67,7 +67,7 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot }: Nati
       </div>
       
       <div className="flex items-center gap-3 shrink-0 ml-4">
-        <button className="hidden sm:block text-[11px] font-bold px-3 py-1.5 bg-surface text-primary border border-border rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
+        <button className="hidden sm:block text-[11px] font-bold px-3 py-1.5 bg-surface text-primary border border-border rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
           {ad.buttonText}
         </button>
         <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest">
