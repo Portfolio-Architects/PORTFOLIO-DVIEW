@@ -96,7 +96,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SettingsProvider>
             {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
-            <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `
+            <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
               if ('serviceWorker' in navigator) {
                 if ('${process.env.NODE_ENV}' === 'development') {
                   navigator.serviceWorker.getRegistrations().then(function(registrations) {
