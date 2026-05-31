@@ -380,8 +380,9 @@ function FieldReportModal({
           const variance = prices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / prices.length;
           const stdDev = Math.sqrt(variance);
           
-          // 최소 5%의 편차 여유를 두어 안정된 가격대에서의 미세한 변동이 삭제되는 것 방지
-          return Math.abs(p - mean) <= 2 * Math.max(stdDev, mean * 0.05);
+          // 상위 가격(상승 거래)은 이상치 필터링에서 제외하고 하위 가격만 필터링 (최소 5% 편차 여유 적용)
+          if (p >= mean) return true;
+          return (mean - p) <= 2 * Math.max(stdDev, mean * 0.05);
         });
         validTxs.push(...filtered);
       });

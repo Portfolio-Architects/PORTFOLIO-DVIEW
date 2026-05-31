@@ -22,10 +22,29 @@ export function useAuth() {
         setUserProfile(up);
         const purchased = await PurchaseRepo.getUserPurchasedReportIds(currentUser.uid);
         setPurchasedReportIds(purchased);
+
+        // Sync cookie on login (HttpOnly session cookie for S+ security rating)
+        try {
+          const idToken = await currentUser.getIdToken();
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+          });
+        } catch (cookieErr) {
+          console.warn('[useAuth] Failed to set session cookie:', cookieErr);
+        }
       } else {
         setAnonProfile(null);
         setUserProfile(null);
         setPurchasedReportIds([]);
+
+        // Clear cookie on logout
+        try {
+          await fetch('/api/auth/session', { method: 'DELETE' });
+        } catch (cookieErr) {
+          console.warn('[useAuth] Failed to clear session cookie:', cookieErr);
+        }
       }
     });
     return () => unsubscribe();

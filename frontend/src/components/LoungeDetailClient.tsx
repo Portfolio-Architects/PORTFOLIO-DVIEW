@@ -601,8 +601,20 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm]}
                     components={{
+                      a: ({node, ...props}) => {
+                        const href = props.href || '';
+                        // Block dangerous protocols like javascript:, data:, vbscript: to prevent XSS
+                        const isSafe = href.startsWith('http://') || href.startsWith('https://') || href.startsWith('/') || href.startsWith('#');
+                        if (!isSafe) {
+                          return <span className="text-secondary underline break-all">{props.children}</span>;
+                        }
+                        return <a {...props} className="text-toss-blue hover:underline break-all" target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}>{props.children}</a>;
+                      },
                       img: ({node, ...props}) => {
-                        if (!props.src) return null;
+                        if (!props.src || typeof props.src !== 'string') return null;
+                        const src = props.src as string;
+                        const isSafe = src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/');
+                        if (!isSafe) return null;
                         
                         const isManagerReport = post?.category === '동탄 임장/분석' || post?.category === '임장기' || String(post?.title || '').includes('매니저') || String(post?.title || '').includes('임장기') || String(post?.content || '').includes('매니저 임장기') || String(post?.author || '').includes('매니저') || String(post?.author || '').includes('D-VIEW') || String(post?.author || '').toLowerCase().includes('admin');
                         

@@ -56,12 +56,20 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // 2. HTTP Security 헤더 주입 파이프라인
-  // CSP: ISR/Static Generation 과의 충돌(nonce 불일치)을 방지하기 위해 strict-dynamic 및 nonce를 제거.
-  // 대신 엄격한 Host 기반 Allowlist 유지.
+  // 2. HTTP Security 헤더 주입 파이프라인 (Nonce 기반 Strict CSP)
+  // Generate a cryptographically secure random nonce
+  const nonceArray = new Uint8Array(16);
+  crypto.getRandomValues(nonceArray);
+  let nonce = '';
+  if (typeof btoa !== 'undefined') {
+    nonce = btoa(String.fromCharCode.apply(null, Array.from(nonceArray)));
+  } else {
+    nonce = Buffer.from(nonceArray).toString('base64');
+  }
+
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com https://www.recaptcha.net https://cdn.jsdelivr.net https://t1.kakaocdn.net https://developers.kakao.com https://pagead2.googlesyndication.com;
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com https://www.recaptcha.net https://cdn.jsdelivr.net https://t1.kakaocdn.net https://developers.kakao.com https://pagead2.googlesyndication.com;
     worker-src 'self' blob:;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
     img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://pagead2.googlesyndication.com;
@@ -77,6 +85,7 @@ export async function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('Content-Security-Policy', cspHeader);
+  requestHeaders.set('x-nonce', nonce);
 
   const response = NextResponse.next({
     request: {
@@ -84,8 +93,9 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // 공통 보안 헤더 (A 레벨)
+  // 공통 보안 헤더 (A 레벨 및 Nonce 전송)
   response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('x-nonce', nonce);
   response.headers.set('X-Frame-Options', 'DENY'); // Clickjacking 원천 차단
   response.headers.set('X-Content-Type-Options', 'nosniff'); // MIME 타입 변조 방지 
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); // 리퍼러 보호

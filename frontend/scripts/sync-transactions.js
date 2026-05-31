@@ -403,7 +403,8 @@ async function main() {
           const variance = prices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / prices.length;
           const stdDev = Math.sqrt(variance);
           
-          return Math.abs(p - mean) <= 2 * Math.max(stdDev, mean * 0.05);
+          if (p >= mean) return true;
+          return (mean - p) <= 2 * Math.max(stdDev, mean * 0.05);
         });
         validTxs.push(...filtered);
       });

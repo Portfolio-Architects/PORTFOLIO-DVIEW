@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import Footer from '@/components/Footer';
 import AdSense from '@/components/ui/AdSense';
+import { headers } from 'next/headers';
 import dynamic from 'next/dynamic';
 
 const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
@@ -72,22 +73,30 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
+
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
         <meta name="referrer" content="no-referrer" />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-hidden pb-[50px] md:pb-0">
-        <Script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" strategy="lazyOnload" />
+        <Script 
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
+          strategy="lazyOnload" 
+          integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+          crossOrigin="anonymous"
+          nonce={nonce}
+        />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SettingsProvider>
             {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
-            <script dangerouslySetInnerHTML={{ __html: `
+            <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `
               if ('serviceWorker' in navigator) {
                 if ('${process.env.NODE_ENV}' === 'development') {
                   navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -129,6 +138,7 @@ export default function RootLayout({
                 src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
                 crossOrigin="anonymous"
                 strategy="afterInteractive"
+                nonce={nonce}
               />
             )}
 

@@ -2,6 +2,7 @@ import { initializeApp, getApps } from "firebase/app";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -27,4 +28,24 @@ export const db = (app ? initializeFirestore(app, {
 export const auth = (app ? getAuth(app) : null) as unknown as ReturnType<typeof getAuth>;
 export const googleProvider = new GoogleAuthProvider();
 export const storage = (app ? getStorage(app) : null) as unknown as ReturnType<typeof getStorage>;
+
+// 🔧 Firebase App Check Initialization (reCAPTCHA Enterprise for S+ security rating)
+if (typeof window !== 'undefined' && app) {
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) {
+    // Enable debug token for local testing in development mode
+    (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(
+        process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || '6Ld-test-key-for-dview'
+      ),
+      isTokenAutoRefreshEnabled: true
+    });
+  } catch (err) {
+    console.warn('[AppCheck] Failed to initialize App Check:', err);
+  }
+}
 

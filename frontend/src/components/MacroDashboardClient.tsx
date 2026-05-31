@@ -213,6 +213,14 @@ export const formatEokWithUnit = (priceMan: number) => {
   };
 };
 
+export const formatGapPrice = (priceMan: number) => {
+  const eok = Math.floor(priceMan / 10000);
+  const remainder = priceMan % 10000;
+  if (eok === 0) return `${remainder.toLocaleString()}만`;
+  if (remainder === 0) return `${eok}억`;
+  return `${eok}억 ${remainder.toLocaleString()}만`;
+};
+
 export const formatDeltaPrice = (deltaEok: number): string => {
   if (deltaEok === undefined || deltaEok === null || isNaN(deltaEok)) return "";
   const deltaMan = Math.round(deltaEok * 10000);
@@ -1078,6 +1086,7 @@ interface GroupedApartment {
   txKey?: string;
   views?: number;
   likes?: number;
+  latestRentDeposit?: number;
 }
 
 interface GroupedCategory {
@@ -1213,6 +1222,7 @@ interface GroupedCategory {
                 txKey: apt.txKey,
                 views: fieldReportsMap.get(apt.name)?.viewCount || 0,
                 likes: favoriteCounts[apt.name] || 0,
+                latestRentDeposit: tx.latestRentDeposit || 0,
               });
 
               grouped[themeTitle].totalValue += sales;
@@ -1952,12 +1962,22 @@ interface GroupedCategory {
                                     <ChevronRight className="w-4 h-4 text-tertiary shrink-0" />
                                   </div>
 
-                                  {/* Bottom Row: Distance and Price */}
+                                  {/* Bottom Row: Distance, High-value indicators and Price */}
                                   <div className="flex items-center justify-between pl-4 mt-0.5">
-                                    <div className="flex items-center min-w-0 pr-2">
+                                    <div className="flex flex-wrap gap-1.5 items-center min-w-0 pr-2">
                                       {apt.distToDongtan !== null && (
-                                        <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
                                           동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                                        </span>
+                                      )}
+                                      {apt.latestRentDeposit !== undefined && apt.latestPrice > apt.latestRentDeposit && apt.gap > 0 && (
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#00b386] bg-[#e0fbf4] dark:bg-[#00d29d]/10 px-2 py-[3px] rounded-[6px] border border-[#00b386]/10 inline-flex whitespace-nowrap">
+                                          갭 {formatGapPrice(apt.latestPrice - apt.latestRentDeposit)} ({Math.round(apt.gap)}%)
+                                        </span>
+                                      )}
+                                      {apt.mdd !== undefined && apt.mdd <= -5 && (
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/20 px-2 py-[3px] rounded-[6px] border border-rose-500/10 inline-flex whitespace-nowrap">
+                                          낙폭 {apt.mdd.toFixed(1)}%
                                         </span>
                                       )}
                                     </div>
