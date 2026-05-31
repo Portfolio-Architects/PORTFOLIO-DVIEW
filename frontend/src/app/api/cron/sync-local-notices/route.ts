@@ -7,10 +7,12 @@ export const dynamic = 'force-dynamic';
 
 const SOURCE_1_BBS_URL = 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019';
 const SOURCE_2_GOSI_URL = 'https://www.hscity.go.kr/www/gosi/BD_notice.do';
+const SOURCE_3_RAIL_URL = 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1131';
 
 const DONGTAN_KEYWORDS = [
   '동탄', '출장소', '호수공원', '청계', '영천', '오산동', '신동', '목동', 
-  '산척', '장지', '송동', '방교', '반송', '능동', '여울', '석우'
+  '산척', '장지', '송동', '방교', '반송', '능동', '여울', '석우',
+  'GTX', '인덕원', '트램', '동인선'
 ];
 
 interface NoticeItem {
@@ -21,7 +23,7 @@ interface NoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
-  source: 'bbs' | 'gosi';
+  source: 'bbs' | 'gosi' | 'rail';
   createdAt: string;
 }
 
@@ -108,6 +110,65 @@ export async function GET(request: Request) {
         });
       } catch (err) {
         console.error(`Error scraping Source 1 page ${page}:`, err);
+      }
+    }
+
+    // --- Source 3: 철도사업 추진현황 (BBS 1131) ---
+    for (const page of pages) {
+      const url = `${SOURCE_3_RAIL_URL}&q_currPage=${page}`;
+      try {
+        const res = await axios.get(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
+          },
+          timeout: 8000
+        });
+
+        if (res.status !== 200) {
+          console.error(`Failed to fetch Source 3 board page ${page}: HTTP ${res.status}`);
+          continue;
+        }
+
+        const $ = cheerio.load(res.data);
+        const rows = $('table').first().find('tr');
+
+        rows.each((idx, tr) => {
+          // Skip header row
+          if (idx === 0) return;
+
+          const tds = $(tr).find('td');
+          if (tds.length < 5) return;
+
+          const originalId = $(tds[0]).text().trim();
+          const titleEl = $(tds[2]);
+          const title = titleEl.text().trim().replace(/\s+/g, ' ');
+          const link = titleEl.find('a').attr('href') || '';
+          const dept = $(tds[3]).text().trim();
+          const date = $(tds[4]).text().trim();
+
+          if (originalId && title && link) {
+            const isDongtan = checkIfDongtan(title, dept);
+            if (isDongtan) {
+              const absoluteUrl = link.startsWith('http') 
+                ? link 
+                : `https://www.hscity.go.kr${link}`;
+
+              notices.push({
+                id: `rail_${originalId}`,
+                originalId,
+                title,
+                url: absoluteUrl,
+                dept,
+                date,
+                isDongtan: true,
+                source: 'rail',
+                createdAt: new Date().toISOString()
+              });
+            }
+          }
+        });
+      } catch (err) {
+        console.error(`Error scraping Source 3 page ${page}:`, err);
       }
     }
 
