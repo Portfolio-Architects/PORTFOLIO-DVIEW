@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  outputFileTracingIncludes: {
+    '/apartment/[aptName]': ['./public/tx-data/**/*.json'],
+  },
 };
 
 export default nextConfig;

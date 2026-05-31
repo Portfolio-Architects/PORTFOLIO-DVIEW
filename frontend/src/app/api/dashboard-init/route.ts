@@ -14,6 +14,7 @@ import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { redis } from '@/lib/redis';
 import fs from 'fs';
 import path from 'path';
+import typeMapStatic from '../../../../public/data/type-map.json';
 
 export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
 
@@ -72,29 +73,7 @@ export async function GET() {
 
   // 2. Type map (Static JSON Cache first -> Google Sheets Fallback)
   try {
-    const filePath = path.resolve(process.cwd(), 'public/data/type-map.json');
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, 'utf-8');
-      result.typeMap = JSON.parse(data);
-    } else {
-      const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}&_t=${Date.now()}`;
-      const res = await fetch(csvUrl, { cache: 'no-store' });
-      if (res.ok) {
-        const csvText = await res.text();
-        const lines = csvText.split('\n').filter(l => l.trim());
-        for (let i = 1; i < lines.length; i++) {
-          const cols = parseCsvLine(lines[i]);
-          if (cols.length < 3) continue;
-          const aptName = cols[1]?.trim();
-          const area = cols[2]?.trim();
-          const typeM2 = cols[3]?.trim() || '';
-          const typePyeong = cols[5]?.trim() || '';
-          if (aptName && area && (typeM2 || typePyeong)) {
-            result.typeMap.push({ aptName, area, typeM2, typePyeong });
-          }
-        }
-      }
-    }
+    result.typeMap = typeMapStatic as any;
   } catch (e) {
     console.warn('[dashboard-init] typeMap error:', e);
   }

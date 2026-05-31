@@ -1146,39 +1146,41 @@ interface GroupedCategory {
                           <div
                             key={`${item.aptName}-${idx}`}
                             onClick={() => setSelectedTimelineApt(item.aptName)}
-                            className={`flex flex-col md:flex-row md:items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
+                            className={`flex flex-col p-4 rounded-2xl cursor-pointer transition-all border ${
                               selectedTimelineApt === item.aptName
                                 ? "border-[#00d29d] bg-[#e0fbf4]/20 ring-1 ring-[#00d29d]/30"
                                 : "bg-body hover:bg-body/80 border-transparent hover:border-border"
-                            } group gap-2 md:gap-4`}
+                            } group gap-2`}
                           >
-                            <div className="flex flex-col gap-1.5 min-w-0 md:pr-2 flex-1">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="text-secondary text-[11px] sm:text-[11.5px] font-semibold bg-white dark:bg-surface border border-border px-1.5 py-0.5 rounded shrink-0">{item.dong}</span>
-                                <span className="text-[14.5px] font-bold text-primary break-keep group-hover:text-toss-blue transition-colors flex-1 min-w-0">{item.aptName}</span>
-                              </div>
-                              <span className="text-[12px] text-tertiary font-medium pl-0.5">
-                                {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
+                            {/* 1st Row: Apt Name & High Price Badge */}
+                            <div className="flex items-start justify-between gap-3">
+                              <span className="text-[14.5px] sm:text-[15px] font-extrabold text-primary break-keep group-hover:text-[#00d29d] transition-colors leading-snug">
+                                {item.aptName}
+                              </span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shadow-sm shrink-0 whitespace-nowrap">
+                                신고가
                               </span>
                             </div>
-                            <div className="flex items-center md:flex-col md:items-end justify-between md:justify-center gap-1.5 md:gap-1 shrink-0 mt-1 md:mt-0 pt-1.5 md:pt-0 border-t border-dashed border-border/40 md:border-none">
-                              <span className="text-[15.5px] font-extrabold text-[#ff4b5c]">
+
+                            {/* 2nd Row: Meta Info (Dong · Pyeong · Floor) */}
+                            <div className="text-[12px] text-tertiary font-medium pl-0.5">
+                              {item.dong} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
+                            </div>
+
+                            {/* 3rd Row: Price & Details Button */}
+                            <div className="flex items-center justify-between mt-1 pt-2.5 border-t border-border/30">
+                              <span className="text-[16.5px] sm:text-[17.5px] font-black text-[#ff4b5c] tracking-tight">
                                 {item.priceEok}
                               </span>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shadow-sm">
-                                  신고가
-                                </span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelectApt && onSelectApt(item.aptName);
-                                  }}
-                                  className="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-border text-[11px] font-bold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm hover:border-[#cbd5e1]"
-                                >
-                                  상세
-                                </button>
-                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSelectApt && onSelectApt(item.aptName);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-border text-[11.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm hover:border-[#cbd5e1]"
+                              >
+                                상세
+                              </button>
                             </div>
                           </div>
                         ))}
