@@ -132,7 +132,11 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json({ notices, lastUpdated });
+    return NextResponse.json({ notices, lastUpdated }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=300'
+      }
+    });
 
   } catch (error: unknown) {
     console.error('Error fetching local notices:', error);

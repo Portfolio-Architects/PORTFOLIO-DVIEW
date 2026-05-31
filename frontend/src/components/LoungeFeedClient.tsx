@@ -151,7 +151,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   useEffect(() => {
     if ((currentTab === '동탄구 소식' || selectedNoticeId) && noticesData.length === 0) {
       setNoticesLoading(true);
-      fetch("/api/local-notices")
+      fetch("/api/local-notices?t=" + Date.now())
         .then(res => res.json())
         .then((json: { notices?: LocalNoticeItem[]; lastUpdated?: string }) => {
           if (json.notices) {

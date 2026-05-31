@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from '@/lib/DashboardFacade';
 import { ZONES, dongToZoneId, getZoneById } from '@/lib/zones';
 import FieldReportModal from '@/components/ApartmentModal';
@@ -144,7 +145,7 @@ export default function ZoneDetailPage() {
                 <div key={report.id} onClick={() => handleSelectReport(report)} className="bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
                   {coverImage ? (
                     <div className="w-full h-[200px] shrink-0 bg-body relative overflow-hidden">
-                      <img src={coverImage} alt="Cover" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={coverImage} alt="Cover" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   ) : (
                     <div className="w-full h-[200px] shrink-0 bg-body flex items-center justify-center relative overflow-hidden">

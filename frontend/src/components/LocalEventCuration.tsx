@@ -23,7 +23,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
   const [shareStatus, setShareStatus] = useState<'copied' | 'shared' | null>(null);
   const [noticeCopiedId, setNoticeCopiedId] = useState<string | null>(null);
 
-  const { data: noticesData, error: noticesError } = useSWR('/api/local-notices');
+  const { data: noticesData, error: noticesError } = useSWR('/api/local-notices?t=' + Math.floor(Date.now() / 60000));
   const allNotices = (noticesData?.notices || []) as LocalNoticeItem[];
   // Filter for Dongtan-related ones or fallback to latest general if none found
   const localNotices = allNotices.filter((n: LocalNoticeItem) => n.isDongtan).slice(0, 5);

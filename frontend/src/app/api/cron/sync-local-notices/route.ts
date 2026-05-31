@@ -386,18 +386,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, count: 0, message: 'No notices scraped' });
     }
 
-    // 3. Batch save to Firestore (Merge with existing documents)
+    // 3. Batch save to Firestore in chunks of 500 to prevent 500 write limit crash
     const collRef = db.collection('local_notices');
-    const batch = db.batch();
     let written = 0;
 
-    for (const item of notices) {
-      const docRef = collRef.doc(item.id);
-      batch.set(docRef, item, { merge: true });
-      written++;
+    for (let i = 0; i < notices.length; i += 500) {
+      const chunk = notices.slice(i, i + 500);
+      const batch = db.batch();
+      
+      for (const item of chunk) {
+        const docRef = collRef.doc(item.id);
+        batch.set(docRef, item, { merge: true });
+        written++;
+      }
+      
+      await batch.commit();
     }
-
-    await batch.commit();
 
     return NextResponse.json({
       success: true,
