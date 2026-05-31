@@ -56,7 +56,13 @@ export async function GET(request: Request) {
 
     const getTop100 = (snapshot: any) => {
       return snapshot.docs
-        .map((doc: any) => ({ ...doc.data() as NoticeData, id: doc.id }))
+        .map((doc: any) => {
+          const data = doc.data() as NoticeData;
+          if (data.url) {
+            data.url = data.url.trim();
+          }
+          return { ...data, id: doc.id };
+        })
         .sort((a: NoticeData, b: NoticeData) => b.date.localeCompare(a.date))
         .slice(0, 100);
     };

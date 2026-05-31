@@ -32,7 +32,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
   const handleCopyNoticeLink = async (e: React.MouseEvent, notice: LocalNoticeItem) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(notice.url);
+      await navigator.clipboard.writeText((notice.url || '').trim());
       setNoticeCopiedId(notice.id);
       setTimeout(() => setNoticeCopiedId(null), 2000);
     } catch (err) {
@@ -287,10 +287,12 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
           ) : (
             <div className="flex flex-col gap-3">
               {displayNotices.map((notice: LocalNoticeItem) => (
-                <div
+                <a
                   key={notice.id}
-                  onClick={() => window.open(notice.url, '_blank')}
-                  className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex items-center justify-between gap-4 transition-all duration-300 group"
+                  href={(notice.url || '').trim()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex items-center justify-between gap-4 transition-all duration-300 group w-full"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-[10.5px] md:text-[11px] font-black shrink-0">
@@ -313,7 +315,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
                       </span>
                     </button>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           )}

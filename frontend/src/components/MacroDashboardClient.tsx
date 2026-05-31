@@ -2165,7 +2165,7 @@ interface GroupedCategory {
                 ).map((notice: LocalNoticeItem, index: number) => (
                   <a
                     key={notice.id || index}
-                    href={notice.url}
+                    href={(notice.url || '').trim()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"

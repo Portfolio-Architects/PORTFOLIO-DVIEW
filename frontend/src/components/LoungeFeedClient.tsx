@@ -730,7 +730,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               {/* 원문 이동 및 공유 버튼 */}
               <div className="flex items-center gap-3">
                 <a 
-                  href={selectedNotice.url} 
+                  href={(selectedNotice.url || '').trim()} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
