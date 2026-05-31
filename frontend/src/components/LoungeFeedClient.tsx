@@ -93,7 +93,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
   const [noticesData, setNoticesData] = useState<LocalNoticeItem[]>([]);
   const [noticesLoading, setNoticesLoading] = useState(false);
-  const [visibleNoticesCount, setVisibleNoticesCount] = useState(10);
+  const [visibleNoticesCount, setVisibleNoticesCount] = useState(20);
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
 
@@ -101,7 +101,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [activeDongFilter, setActiveDongFilter] = useState<string>('all');
 
   useEffect(() => {
-    setVisibleNoticesCount(10);
+    setVisibleNoticesCount(20);
   }, [activeSubCategory, activeDongFilter]);
 
   useEffect(() => {
@@ -577,7 +577,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         {filteredNotices.length > visibleNoticesCount && (
           <div className="mt-4 flex justify-center pb-8">
             <button 
-              onClick={() => setVisibleNoticesCount(prev => prev + 10)}
+              onClick={() => setVisibleNoticesCount(prev => prev + 80)}
               className="flex items-center gap-1.5 px-5 py-2.5 bg-surface border border-border hover:bg-body text-secondary text-[13.5px] font-bold rounded-full transition-colors shadow-sm cursor-pointer"
             >
               더보기 ({visibleNoticesCount} {"/"} {filteredNotices.length})

@@ -23,24 +23,58 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const filterDongtan = searchParams.get('dongtan') !== 'false';
 
-    const query = db.collection('local_notices')
-      .orderBy('date', 'desc')
-      .limit(100);
+    // 각 카테고리별로 개별 쿼리하여 최대 100개씩 독립적(Composite Index 회피를 위해 limit 150 후 메모리 정렬) 수집
+    // filterDongtan이 true일 때는 쿼리 단계에서 isDongtan == true 필터링을 함께 태워 데이터 손실을 원천 방지
+    let cityQuery = db!.collection('local_notices').where('source', 'in', ['gosi', 'bbs']);
+    let railQuery = db!.collection('local_notices').where('source', '==', 'rail');
 
-    const snapshot = await query.get();
-    
-    if (snapshot.empty) {
+    if (filterDongtan) {
+      cityQuery = cityQuery.where('isDongtan', '==', true);
+      railQuery = railQuery.where('isDongtan', '==', true);
+    }
+
+    cityQuery = cityQuery.limit(150);
+    railQuery = railQuery.limit(150);
+
+    // 3. 동네행정 (동탄 1동~9동의 9개 행정복지센터 부서별 병렬 쿼리로 특정 동 누락을 완전히 방지)
+    const dongs = ['동탄1동', '동탄2동', '동탄3동', '동탄4동', '동탄5동', '동탄6동', '동탄7동', '동탄8동', '동탄9동'];
+    const dongQueries = dongs.map(dong => {
+      let q = db!.collection('local_notices')
+        .where('source', '==', 'dong')
+        .where('dept', '==', dong);
+      if (filterDongtan) {
+        q = q.where('isDongtan', '==', true);
+      }
+      return q.limit(100);
+    });
+
+    const [citySnapshot, railSnapshot, ...dongSnapshots] = await Promise.all([
+      cityQuery.get(),
+      railQuery.get(),
+      ...dongQueries.map(q => q.get())
+    ]);
+
+    const getTop100 = (snapshot: any) => {
+      return snapshot.docs
+        .map((doc: any) => ({ ...doc.data() as NoticeData, id: doc.id }))
+        .sort((a: NoticeData, b: NoticeData) => b.date.localeCompare(a.date))
+        .slice(0, 100);
+    };
+
+    const cityItems = getTop100(citySnapshot);
+    const railItems = getTop100(railSnapshot);
+    const dongItems = dongSnapshots.flatMap(snap => getTop100(snap));
+
+    const allItems = [...cityItems, ...railItems, ...dongItems];
+
+    if (allItems.length === 0) {
       return NextResponse.json({ notices: [] });
     }
 
     const uniqueMap = new Map<string, NoticeData>();
     const urlToKey = new Map<string, string>();
 
-    snapshot.docs.forEach(doc => {
-      const data = doc.data() as NoticeData;
-      const id = doc.id;
-      const item = { ...data, id };
-
+    allItems.forEach(item => {
       const titleKey = `${(item.title || '').trim()}_${(item.date || '').trim()}`;
       const urlKey = item.url ? item.url.trim() : '';
 
@@ -53,9 +87,9 @@ export async function GET(request: Request) {
       if (duplicateKey) {
         const existing = uniqueMap.get(duplicateKey);
         if (existing) {
-          const currentIsPrefixed = id.includes('_');
+          const currentIsPrefixed = item.id.includes('_');
           const existingIsPrefixed = existing.id.includes('_');
-          // Prefer new prefixed IDs (e.g. bbs_12525) over legacy numeric IDs (e.g. 12525)
+          // Prefer new prefixed IDs over legacy numeric IDs
           if (currentIsPrefixed && !existingIsPrefixed) {
             uniqueMap.set(duplicateKey, item);
             if (urlKey) urlToKey.set(urlKey, duplicateKey);
@@ -72,8 +106,9 @@ export async function GET(request: Request) {
     // If filterDongtan is true, return only dongtan related notices
     if (filterDongtan) {
       notices = notices.filter((n: NoticeData) => n.isDongtan);
+      notices.sort((a: NoticeData, b: NoticeData) => b.date.localeCompare(a.date));
     } else {
-      // Sort: dongtan related ones first, then by date (already sorted by date)
+      // Sort: dongtan related ones first, then by date desc
       notices.sort((a: NoticeData, b: NoticeData) => {
         if (a.isDongtan && !b.isDongtan) return -1;
         if (!a.isDongtan && b.isDongtan) return 1;
@@ -83,11 +118,10 @@ export async function GET(request: Request) {
 
     // Find the latest sync timestamp
     let lastUpdated: string | null = null;
-    snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.createdAt) {
-        if (!lastUpdated || data.createdAt > lastUpdated) {
-          lastUpdated = data.createdAt;
+    allItems.forEach(item => {
+      if (item.createdAt) {
+        if (!lastUpdated || item.createdAt > lastUpdated) {
+          lastUpdated = item.createdAt;
         }
       }
     });
