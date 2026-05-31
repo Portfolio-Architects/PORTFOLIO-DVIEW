@@ -288,7 +288,9 @@ export const formatEokWithUnit = (priceMan: number) => {
 };
 
 export const formatDeltaPrice = (deltaEok: number): string => {
+  if (deltaEok === undefined || deltaEok === null || isNaN(deltaEok)) return "";
   const deltaMan = Math.round(deltaEok * 10000);
+  if (isNaN(deltaMan)) return "";
   if (deltaMan >= 10000) {
     const eok = Math.floor(deltaMan / 10000);
     const man = deltaMan % 10000;
@@ -298,27 +300,35 @@ export const formatDeltaPrice = (deltaEok: number): string => {
 };
 
 const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): Date | null => {
+  if (dateStr === null || dateStr === undefined) return null;
   const clean = String(dateStr).replace(/[^0-9]/g, '');
   if (clean.length === 8) {
     const y = parseInt(clean.substring(0, 4), 10);
     const m = parseInt(clean.substring(4, 6), 10) - 1;
     const d = parseInt(clean.substring(6, 8), 10);
-    return new Date(y, m, d);
+    const dt = new Date(y, m, d);
+    return isNaN(dt.getTime()) ? null : dt;
   }
   if (String(dateStr).includes('.')) {
     const parts = String(dateStr).split('.');
     if (parts.length >= 2) {
       const m = parseInt(parts[0], 10) - 1;
       const d = parseInt(parts[1], 10);
+      if (isNaN(m) || isNaN(d)) return null;
       let y = 2026;
       let latestDt: Date | null = null;
       if (parentLatestDate && parentLatestDate.length === 8) {
-        y = parseInt(parentLatestDate.substring(0, 4), 10);
+        const ly = parseInt(parentLatestDate.substring(0, 4), 10);
         const lm = parseInt(parentLatestDate.substring(4, 6), 10) - 1;
         const ld = parseInt(parentLatestDate.substring(6, 8), 10);
-        latestDt = new Date(y, lm, ld);
+        const lDt = new Date(ly, lm, ld);
+        if (!isNaN(lDt.getTime())) {
+          latestDt = lDt;
+          y = ly;
+        }
       }
       const dt = new Date(y, m, d);
+      if (isNaN(dt.getTime())) return null;
       if (latestDt && dt.getTime() > latestDt.getTime()) {
         dt.setFullYear(y - 1);
       }
@@ -329,6 +339,7 @@ const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): D
 };
 
 const parsePriceEokHelper = (priceStr: string): number => {
+  if (typeof priceStr !== 'string') return 0;
   let total = 0;
   const clean = priceStr.replace(/,/g, '').trim();
   if (clean.includes('억')) {
@@ -590,7 +601,7 @@ export default function MacroDashboardClient({
     if (!selectedAptSummary || !deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
 
     // 만약 실제 거래 데이터가 로드되지 않았거나 로딩 중이면, 안전한 fallback으로 기존의 Mock 스케일링 데이터를 제공
-    if (!aptRealTxData || aptRealTxData.length === 0) {
+    if (!Array.isArray(aptRealTxData) || aptRealTxData.length === 0) {
       const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
       const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
       const macroJeonseVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
@@ -660,6 +671,9 @@ export default function MacroDashboardClient({
       }
     }
 
+    const realFirstSaleIndex = firstSaleAnchorIndex;
+    const realFirstRentIndex = firstRentAnchorIndex;
+
     const fallbackSalePrice = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 80000) / 10000;
     const fallbackRentPrice = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 48000) / 10000;
 
@@ -688,10 +702,7 @@ export default function MacroDashboardClient({
       // --- 매매 보간 ---
       if (finalSale === null) {
         if (idx < firstSaleAnchorIndex) {
-          const anchorMacro = macroTrendList[firstSaleAnchorIndex]['동탄 아파트 전체'];
-          const currentMacro = point['동탄 아파트 전체'];
-          const macroRatio = anchorMacro > 0 ? currentMacro / anchorMacro : 1;
-          finalSale = saleAnchorValue * macroRatio;
+          finalSale = null;
         } else {
           let lastValidSale = saleAnchorValue;
           for (let j = idx - 1; j >= firstSaleAnchorIndex; j--) {
@@ -708,10 +719,7 @@ export default function MacroDashboardClient({
       // --- 전세 보간 ---
       if (finalRent === null) {
         if (idx < firstRentAnchorIndex) {
-          const anchorMacro = macroTrendList[firstRentAnchorIndex]['동탄 아파트 전세 평균'] || 4.3;
-          const currentMacro = point['동탄 아파트 전세 평균'] || 4.3;
-          const macroRatio = anchorMacro > 0 ? currentMacro / anchorMacro : 1;
-          finalRent = rentAnchorValue * macroRatio;
+          finalRent = null;
         } else {
           let lastValidRent = rentAnchorValue;
           for (let j = idx - 1; j >= firstRentAnchorIndex; j--) {
@@ -725,10 +733,16 @@ export default function MacroDashboardClient({
         }
       }
 
+      // 전세 거래내역 그래프는 첫 매매 그래프가 생긴시점부터 시작되도록
+      if (realFirstSaleIndex !== -1 && idx < realFirstSaleIndex) {
+        finalRent = null;
+        finalSale = null;
+      }
+
       return {
         name: key,
-        '동탄 아파트 전체': Math.round(finalSale * 100) / 100,
-        '동탄 아파트 전세 평균': Math.round(finalRent * 100) / 100,
+        '동탄 아파트 전체': finalSale !== null ? Math.round(finalSale * 100) / 100 : null,
+        '동탄 아파트 전세 평균': finalRent !== null ? Math.round(finalRent * 100) / 100 : null,
       };
     });
 
@@ -901,7 +915,7 @@ export default function MacroDashboardClient({
     const allApts = Object.values(sheetApartments).flat();
 
     allApts.forEach((apt) => {
-      if (publicRentalSet.has(apt.name)) return;
+      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
       const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
       if (txKey && txSummaryData[txKey]) {
         const sum = txSummaryData[txKey];
@@ -1364,7 +1378,7 @@ interface GroupedCategory {
                                 {item.aptName}
                               </span>
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shadow-sm shrink-0 whitespace-nowrap">
-                                🔥 신고가 ({formatDeltaPrice(item.delta)})
+                                🔥 신고가 {item.delta && item.delta > 0 ? `(${formatDeltaPrice(item.delta)})` : ''}
                               </span>
                             </div>
 
@@ -1593,6 +1607,8 @@ interface GroupedCategory {
                           strokeWidth: 2,
                           strokeDasharray: "3 3",
                         }}
+                        isAnimationActive={true}
+                        animationDuration={150}
                       />
                       <Line
                         key="동탄 아파트 전체"

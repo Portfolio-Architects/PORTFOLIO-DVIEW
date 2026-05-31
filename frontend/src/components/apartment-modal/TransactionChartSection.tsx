@@ -417,6 +417,8 @@ export function TransactionChartSection({
                     );
                   }}
                   cursor={{ stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  isAnimationActive={true}
+                  animationDuration={150}
                 />
                 <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
                 <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />

@@ -445,7 +445,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[16px] font-bold outline-none focus:border-toss-blue"
+                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[16px] font-bold outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300"
                 placeholder="제목"
               />
               <textarea
@@ -453,7 +453,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows={12}
-                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[15px] outline-none focus:border-toss-blue resize-none whitespace-pre-wrap"
+                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300 resize-none whitespace-pre-wrap"
                 placeholder="내용"
               />
               <div className="flex items-center justify-between mt-2">
@@ -665,7 +665,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                 maxLength={300}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
                 placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
-                className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:border-toss-blue transition-colors focus:ring-2 focus:ring-toss-blue/20"
+                className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300"
               />
               <button
                 onClick={handleComment}
