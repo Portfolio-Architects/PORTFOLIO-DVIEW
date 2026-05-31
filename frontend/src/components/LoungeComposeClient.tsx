@@ -15,13 +15,45 @@ import { compressImage } from '@/lib/utils/imageCompression';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
 
 interface Props {
-  currentCategory?: string;
+  currentTab: string;
 }
 
-export default function LoungeComposeClient({ currentCategory = '동탄 임장/분석' }: Props) {
+export default function LoungeComposeClient({ currentTab }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [footerOffset, setFooterOffset] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const footer = document.querySelector('footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const offset = windowHeight - footerRect.top;
+        if (offset > 0) {
+          setFooterOffset(offset);
+        } else {
+          setFooterOffset(0);
+        }
+      }
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
   const isUserAdmin = isAdmin(user?.email);
+  const isWritableCategory = 
+    currentTab !== '동탄 부동산 뉴스' && 
+    currentTab !== '동탄구 소식' && 
+    (currentTab !== '매니저 임장기' || isUserAdmin);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showCompose, setShowCompose] = useState(false);
   const [postTitle, setPostTitle] = useState('');
@@ -122,27 +154,34 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
   return (
     <>
 
-      {user ? (
-        <button
-          onClick={() => {
-            setPostCategory(currentCategory);
-            setCustomNickname(''); // Reset to trigger auto-generation
-            setShowCompose(true);
-            if (isUserAdmin && !postContent) {
-              setPostContent(MARKDOWN_TEMPLATE);
-            }
-          }}
-          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-toss-blue hover:bg-[#00b386] text-surface rounded-full shadow-lg shadow-[#00d29d]/30 flex items-center justify-center transition-all active:scale-95 z-20"
-        >
-          <PenLine size={22} />
-        </button>
-      ) : (
-        <button
-          onClick={handleLogin}
-          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-primary hover:bg-[#333d4b] text-surface rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-20"
-        >
-          <PenLine size={22} />
-        </button>
+      {isWritableCategory && (
+        user ? (
+          <button
+            onClick={() => {
+              const defaultCategory = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
+                ? '우리동네 이야기'
+                : currentTab;
+              setPostCategory(defaultCategory);
+              setCustomNickname(''); // Reset to trigger auto-generation
+              setShowCompose(true);
+              if (isUserAdmin && !postContent) {
+                setPostContent(MARKDOWN_TEMPLATE);
+              }
+            }}
+            className="fixed right-4 sm:right-6 w-14 h-14 bg-toss-blue hover:bg-[#00b386] text-surface rounded-full shadow-lg shadow-[#00d29d]/30 flex items-center justify-center transition-all active:scale-95 z-40"
+            style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
+          >
+            <PenLine size={22} />
+          </button>
+        ) : (
+          <button
+            onClick={handleLogin}
+            className="fixed right-4 sm:right-6 w-14 h-14 bg-primary hover:bg-[#333d4b] text-surface rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-40"
+            style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
+          >
+            <PenLine size={22} />
+          </button>
+        )
       )}
 
       {showCompose && (
@@ -188,12 +227,12 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
               </div>
             )}
 
-            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="글의 핵심 내용이나 단지명이 포함된 제목을 적어주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-toss-blue focus:bg-surface transition-colors mb-2" autoFocus />
+            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-toss-blue focus:bg-surface transition-colors mb-2" autoFocus />
             <textarea 
               ref={textareaRef}
               value={postContent} 
               onChange={(e) => setPostContent(e.target.value)} 
-              placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나눠보세요... 마크다운 문법을 사용하여 구조적인 글을 작성해보세요." : "동탄 이야기를 자유롭게 나눠보세요... 글을 작성해보세요."} 
+              placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 마크다운 문법을 사용해 깔끔하게 정돈된 글을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
               rows={12} 
               className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-toss-blue/10 mb-4" 
             />

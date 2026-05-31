@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 
@@ -58,19 +57,22 @@ export async function GET(request: Request) {
     for (const page of pages) {
       const url = `${SOURCE_1_BBS_URL}&q_currPage=${page}`;
       try {
-        const res = await axios.get(url, {
+        const res = await fetch(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
           },
-          timeout: 8000
+          cache: 'no-store'
         });
 
-        if (res.status !== 200) {
+        if (!res.ok) {
           console.error(`Failed to fetch Source 1 board page ${page}: HTTP ${res.status}`);
           continue;
         }
 
-        const $ = cheerio.load(res.data);
+        const arrayBuffer = await res.arrayBuffer();
+        const decoder = new TextDecoder('utf-8');
+        const decodedHtml = decoder.decode(arrayBuffer);
+        const $ = cheerio.load(decodedHtml);
         const rows = $('table').first().find('tr');
 
         rows.each((idx, tr) => {
@@ -117,19 +119,22 @@ export async function GET(request: Request) {
     for (const page of pages) {
       const url = `${SOURCE_3_RAIL_URL}&q_currPage=${page}`;
       try {
-        const res = await axios.get(url, {
+        const res = await fetch(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
           },
-          timeout: 8000
+          cache: 'no-store'
         });
 
-        if (res.status !== 200) {
+        if (!res.ok) {
           console.error(`Failed to fetch Source 3 board page ${page}: HTTP ${res.status}`);
           continue;
         }
 
-        const $ = cheerio.load(res.data);
+        const arrayBuffer = await res.arrayBuffer();
+        const decoder = new TextDecoder('utf-8');
+        const decodedHtml = decoder.decode(arrayBuffer);
+        const $ = cheerio.load(decodedHtml);
         const rows = $('table').first().find('tr');
 
         rows.each((idx, tr) => {
@@ -176,19 +181,22 @@ export async function GET(request: Request) {
     for (const page of pages) {
       const url = `${SOURCE_2_GOSI_URL}?q_currPage=${page}&q_cp=${page}`;
       try {
-        const res = await axios.get(url, {
+        const res = await fetch(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/120.0.0.0 Safari/537.36'
           },
-          timeout: 8000
+          cache: 'no-store'
         });
 
-        if (res.status !== 200) {
+        if (!res.ok) {
           console.error(`Failed to fetch Source 2 board page ${page}: HTTP ${res.status}`);
           continue;
         }
 
-        const $ = cheerio.load(res.data);
+        const arrayBuffer = await res.arrayBuffer();
+        const decoder = new TextDecoder('utf-8');
+        const decodedHtml = decoder.decode(arrayBuffer);
+        const $ = cheerio.load(decodedHtml);
         const rows = $('table tr');
 
         rows.each((idx, tr) => {

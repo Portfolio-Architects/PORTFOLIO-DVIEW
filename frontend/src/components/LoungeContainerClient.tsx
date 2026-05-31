@@ -122,7 +122,7 @@ export default function LoungeContainerClient({
 
       <LoungeFeedClient initialPosts={initialPosts} currentTab={currentTab} />
 
-        <LoungeComposeClient currentCategory={(currentTab === '동탄 부동산 뉴스' || currentTab === '매니저 임장기') ? '우리동네 이야기' : currentTab} />
+        <LoungeComposeClient currentTab={currentTab} />
       </section>
 
       </div>

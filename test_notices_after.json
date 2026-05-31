@@ -1,0 +1,91 @@
+﻿{
+    "notices":  [
+                    {
+                        "id":  "bbs_12525",
+                        "date":  "2026-05-13",
+                        "isDongtan":  true,
+                        "dept":  "ì¥ì ì¸ë³µì§ê³¼",
+                        "originalId":  "12525",
+                        "source":  "bbs",
+                        "title":  "ãíì±ëí2 C27ë¸ë¡ãê³µê³µë¶ì ì¥ì ì¸ í¹ë³ê³µê¸ ìë´",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1019\u0026q_bbscttSn=20260513112714690 ",
+                        "createdAt":  "2026-05-31T05:07:59.254Z"
+                    },
+                    {
+                        "id":  "12525",
+                        "date":  "2026-05-13",
+                        "isDongtan":  true,
+                        "dept":  "ì¥ì ì¸ë³µì§ê³¼",
+                        "title":  "ãíì±ëí2 C27ë¸ë¡ãê³µê³µë¶ì ì¥ì ì¸ í¹ë³ê³µê¸ ìë´",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1019\u0026q_bbscttSn=20260513112714690 ",
+                        "createdAt":  "2026-05-29T15:18:42.344Z"
+                    },
+                    {
+                        "id":  "rail_303",
+                        "date":  "2026-05-07",
+                        "isDongtan":  true,
+                        "dept":  "ì² ëì ëµê³¼",
+                        "originalId":  "303",
+                        "source":  "rail",
+                        "title":  "ëíì­ íì¹ì¼í° ì¶ì§íí©(2026ë\u0085 4ì ë§ ê¸°ì¤)",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1131\u0026q_bbscttSn=20260507113407971\u0026q_deptCode=\u0026q_searchWhereTy=\u0026q_searchVal= ",
+                        "createdAt":  "2026-05-31T05:08:00.265Z"
+                    },
+                    {
+                        "id":  "rail_298",
+                        "date":  "2026-05-07",
+                        "isDongtan":  true,
+                        "dept":  "ì² ëì ëµê³¼",
+                        "originalId":  "298",
+                        "source":  "rail",
+                        "title":  "ì¼ì±~ëí ê´ì­ê¸íì² ë ì¶ì§íí©(2026ë\u0085 4ì ë§ ê¸°ì¤)",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1131\u0026q_bbscttSn=20260507113151551\u0026q_deptCode=\u0026q_searchWhereTy=\u0026q_searchVal= ",
+                        "createdAt":  "2026-05-31T05:08:00.265Z"
+                    },
+                    {
+                        "id":  "rail_295",
+                        "date":  "2026-05-07",
+                        "isDongtan":  true,
+                        "dept":  "ì² ëì ëµê³¼",
+                        "originalId":  "295",
+                        "source":  "rail",
+                        "title":  "ëíì¸ëìì  ë³µì ì ì²  ì¶ì§íí©(2026ë\u0085 4ì ë§ ê¸°ì¤)",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1131\u0026q_bbscttSn=20260507113031579\u0026q_deptCode=\u0026q_searchWhereTy=\u0026q_searchVal= ",
+                        "createdAt":  "2026-05-31T05:08:00.266Z"
+                    },
+                    {
+                        "id":  "rail_294",
+                        "date":  "2026-05-07",
+                        "isDongtan":  true,
+                        "dept":  "ì² ëì ëµê³¼",
+                        "originalId":  "294",
+                        "source":  "rail",
+                        "title":  "ëí~ì²­ì£¼ê³µí­ ê´ì­ì² ë ì¶ì§íí©(2026ë\u0085 4ì ë§ ê¸°ì¤)",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1131\u0026q_bbscttSn=20260507112958965\u0026q_deptCode=\u0026q_searchWhereTy=\u0026q_searchVal= ",
+                        "createdAt":  "2026-05-31T05:08:00.266Z"
+                    },
+                    {
+                        "id":  "rail_292",
+                        "date":  "2026-05-07",
+                        "isDongtan":  true,
+                        "dept":  "ì² ëì ëµê³¼",
+                        "originalId":  "292",
+                        "source":  "rail",
+                        "title":  "GTX-C ë³ì  ì°ì¥ ì¶ì§íí©(2026ë\u0085 4ì ë§ ê¸°ì¤)",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1131\u0026q_bbscttSn=20260507112902603\u0026q_deptCode=\u0026q_searchWhereTy=\u0026q_searchVal= ",
+                        "createdAt":  "2026-05-31T05:08:00.500Z"
+                    },
+                    {
+                        "id":  "bbs_12521",
+                        "date":  "2026-05-07",
+                        "isDongtan":  true,
+                        "dept":  "ëìíì íµê³¼",
+                        "originalId":  "12521",
+                        "source":  "bbs",
+                        "title":  "íì±ë¡ì»¬í¸ëì§ë§¤ì¥(ë¥ëì ) ì¦ìë°ì°¬ì½ë ì´ìì ëª¨ì§ (ì¬ê³µê³ )",
+                        "url":  "https://www.hscity.go.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1019\u0026q_bbscttSn=20260507151919343 ",
+                        "createdAt":  "2026-05-31T05:07:59.627Z"
+                    }
+                ],
+    "lastUpdated":  "2026-05-31T05:08:00.500Z"
+}
