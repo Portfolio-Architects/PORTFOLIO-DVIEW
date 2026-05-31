@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { SWRConfig } from 'swr';
+
 
 
 // BeforeInstallPromptEvent type declaration
@@ -56,49 +56,7 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
-// SWR LocalStorage Cache Provider for client-side persistence (reduces Firestore reads)
-function localStorageProvider() {
-  if (typeof window === 'undefined') return new Map();
 
-  let map: Map<string, any>;
-  try {
-    const rawCache = localStorage.getItem('dview-swr-cache');
-    map = new Map(JSON.parse(rawCache || '[]'));
-  } catch (e) {
-    console.warn('Failed to load SWR cache from localStorage:', e);
-    map = new Map();
-  }
-
-  // Before unload or hide, serialize and store back to localStorage
-  const handleSave = () => {
-    // Only cache static JSON configs and transaction details
-    const entriesToPersist = Array.from(map.entries()).filter(([key]) => {
-      const keyStr = typeof key === 'string' ? key : JSON.stringify(key);
-      return (
-        keyStr.includes('/data/') ||
-        keyStr.includes('/tx-data/') ||
-        keyStr.includes('location-scores') ||
-        keyStr.includes('tx-summary') ||
-        keyStr.includes('scoutingReport')
-      );
-    });
-
-    try {
-      localStorage.setItem('dview-swr-cache', JSON.stringify(entriesToPersist));
-    } catch (err) {
-      console.warn('SWR localStorage save failed:', err);
-    }
-  };
-
-  window.addEventListener('beforeunload', handleSave);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      handleSave();
-    }
-  });
-
-  return map;
-}
 
 
 export function PWAProvider({ children }: { children: ReactNode }) {
@@ -112,6 +70,13 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    // Clear old SWR localStorage cache to ensure returning users get fresh data
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('dview-swr-cache');
+      }
+    } catch {}
+
     // 1. A2HS Logic
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -214,33 +179,31 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SWRConfig value={{ provider: localStorageProvider }}>
-      <PWAContext.Provider
-        value={{
-          isInstallable,
-          deferredPrompt,
-          triggerA2HSPrompt,
-          showCustomA2HSModal,
-          setShowCustomA2HSModal,
-          triggerCustomA2HSModal,
-          isPushSupported,
-          pushSubscription,
-          subscribeToPush,
-        }}
-      >
-        {children}
-        {toastMessage && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-toss-blue text-white font-extrabold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 select-none">
-            <span className="text-[13px] md:text-[14px]">{toastMessage}</span>
-            <button 
-              onClick={() => setToastMessage(null)} 
-              className="ml-2 hover:opacity-85 text-white/80 focus:outline-none text-[12px] font-black cursor-pointer bg-white/20 hover:bg-white/30 rounded-full w-5 h-5 flex items-center justify-center"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-      </PWAContext.Provider>
-    </SWRConfig>
+    <PWAContext.Provider
+      value={{
+        isInstallable,
+        deferredPrompt,
+        triggerA2HSPrompt,
+        showCustomA2HSModal,
+        setShowCustomA2HSModal,
+        triggerCustomA2HSModal,
+        isPushSupported,
+        pushSubscription,
+        subscribeToPush,
+      }}
+    >
+      {children}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-toss-blue text-white font-extrabold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 select-none">
+          <span className="text-[13px] md:text-[14px]">{toastMessage}</span>
+          <button 
+            onClick={() => setToastMessage(null)} 
+            className="ml-2 hover:opacity-85 text-white/80 focus:outline-none text-[12px] font-black cursor-pointer bg-white/20 hover:bg-white/30 rounded-full w-5 h-5 flex items-center justify-center"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </PWAContext.Provider>
   );
 }

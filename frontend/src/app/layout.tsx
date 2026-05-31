@@ -5,6 +5,7 @@ import OfflineBanner from '@/components/OfflineBanner';
 import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
+import InAppBrowserBypass from '@/components/pwa/InAppBrowserBypass';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
@@ -115,6 +116,7 @@ export default async function RootLayout({
             `}} />
             <NextTopLoader color="#00d29d" showSpinner={false} />
             <PWAProvider>
+              <InAppBrowserBypass />
               <OfflineBanner />
               <SiteTracker />
               <div className="flex-1 flex flex-col">
