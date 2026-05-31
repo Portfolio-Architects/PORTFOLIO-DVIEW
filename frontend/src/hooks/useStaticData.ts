@@ -4,7 +4,7 @@ import type { AptTxSummary, DongtanMacroTrendPoint } from '@/lib/types/transacti
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-export function useTxData() {
+export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
   const [shouldFetch, setShouldFetch] = useState(false);
   
   useEffect(() => {
@@ -16,21 +16,32 @@ export function useTxData() {
     }
   }, []);
 
-  const { data, error, isLoading } = useSWR<{
+  const { data: summaryData, error: summaryError, isLoading: isSummaryLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
-    macroTrend: DongtanMacroTrendPoint[];
   }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
     revalidateOnFocus: true,
     revalidateIfStale: true,
     revalidateOnReconnect: true,
     dedupingInterval: 300000 // 5분 캐시로 단축하여 실거래 갱신 반영 보장
   });
+
+  const { data: trendData, error: trendError, isLoading: isTrendLoading } = useSWR<DongtanMacroTrendPoint[]>(
+    shouldFetch ? '/data/macro-trend.json' : null,
+    fetcher,
+    {
+      fallbackData: initialMacroTrend,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 3600000 // 1 hour cache
+    }
+  );
   
   return {
-    txSummary: data?.summary,
-    macroTrend: data?.macroTrend,
-    isLoading: !shouldFetch || isLoading,
-    error
+    txSummary: summaryData?.summary,
+    macroTrend: trendData || initialMacroTrend,
+    isLoading: (!shouldFetch && !initialMacroTrend) || isSummaryLoading || (isTrendLoading && !initialMacroTrend),
+    error: summaryError || trendError
   };
 }
 

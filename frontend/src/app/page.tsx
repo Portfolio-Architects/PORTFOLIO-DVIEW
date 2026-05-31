@@ -3,8 +3,10 @@ import DashboardClient from '@/components/DashboardClient';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { createInitialKPIs } from '@/lib/services/kpi.service';
 import { fetchSheetApartmentsByDong, fetchSheetTypeMap } from '@/lib/services/googleSheets';
-
 import { redis } from '@/lib/redis';
+import fs from 'fs';
+import path from 'path';
+import type { DongtanMacroTrendPoint } from '@/lib/types/transaction';
 
 // Use Incremental Static Regeneration (ISR) to eliminate TTFB bottlenecks
 export const revalidate = 3600;
@@ -25,12 +27,14 @@ async function getInitialData() {
     sheetApartments?: Record<string, any[]>;
     fieldReports?: any[];
     kpis?: any[];
+    macroTrend?: DongtanMacroTrendPoint[];
   } = {
     favoriteCounts: {},
     typeMap: [],
     apartmentMeta: {},
     fieldReports: [],
     kpis: createInitialKPIs(),
+    macroTrend: [],
   };
 
   const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
@@ -150,12 +154,28 @@ async function getInitialData() {
     }
   };
 
+  const fetchMacroTrend = async () => {
+    try {
+      const filePath = path.resolve(process.cwd(), 'public/data/macro-trend.json');
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        result.macroTrend = JSON.parse(fileContent);
+      } else {
+        result.macroTrend = [];
+      }
+    } catch (e) {
+      console.warn('[Server] Failed to read macro-trend.json:', e);
+      result.macroTrend = [];
+    }
+  };
+
   await Promise.allSettled([
     fetchFavCounts().catch(e => console.warn('[Server] favCounts error:', e)),
     fetchMeta().catch(e => console.warn('[Server] meta error:', e)),
     fetchReports().catch(e => console.warn('[Server] reports error:', e)),
     fetchTypeMap().catch(e => console.warn('[Server] typeMap error:', e)),
     fetchApts().catch(e => console.warn('[Server] apts error:', e)),
+    fetchMacroTrend().catch(e => console.warn('[Server] macroTrend error:', e)),
   ]);
 
   (globalThis as any)._initialPageDataCache = { data: result, timestamp: Date.now() };
