@@ -147,7 +147,36 @@ function FieldReportModal({
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
-  const [shareTheme, setShareTheme] = useState<'value' | 'gap' | 'school' | 'deal'>('value');
+
+  const getAutoShareTheme = (): 'value' | 'gap' | 'school' | 'deal' => {
+    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const latestSale = saleTxs[0];
+    const latestJeonse = jeonseTxs[0];
+    const price = latestSale ? latestSale.price : 0;
+    const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+    const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+
+    if (ratio >= 65) {
+      return 'gap';
+    }
+
+    if (report.metrics) {
+      const edu = calculateEducationScore(report.metrics);
+      if (edu.score >= 80) {
+        return 'school';
+      }
+    }
+
+    if (txSummary && txSummary.maxPrice > 0 && txSummary.avg1MPrice > 0) {
+      const dropRatio = (txSummary.maxPrice - txSummary.avg1MPrice) / txSummary.maxPrice;
+      if (dropRatio >= 0.1) {
+        return 'deal';
+      }
+    }
+
+    return 'value';
+  };
 
   const getShareText = (theme: 'value' | 'gap' | 'school' | 'deal', priceEok: number, priceMan: number, ratio: number) => {
     const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
@@ -524,6 +553,7 @@ function FieldReportModal({
   const handleKakaoShare = async () => {
     if (isSharing) return;
     setIsSharing(true);
+    const shareTheme = getAutoShareTheme();
     try {
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -1450,30 +1480,6 @@ function FieldReportModal({
 
             {/* In-content Viral CTA & AdSense Placeholder */}
             <div className="flex flex-col gap-6 mt-8 mb-4">
-              {/* 카카오톡 공유 추천 문구 선택 */}
-              <div className="flex flex-col gap-2">
-                <span className="text-[12px] font-bold text-secondary">공유 메시지 테마 선택</span>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: 'value', label: '🧐 가치분석' },
-                    { id: 'gap', label: '🚀 갭투자 추천' },
-                    { id: 'school', label: '🏫 초품아 학군' },
-                    { id: 'deal', label: '📉 급매 실거래' }
-                  ].map((theme) => (
-                    <button
-                      key={theme.id}
-                      onClick={() => setShareTheme(theme.id as any)}
-                      className={`px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all cursor-pointer ${
-                        shareTheme === theme.id
-                          ? 'bg-[#00d29d] text-white border-[#00d29d] shadow-sm'
-                          : 'bg-white text-secondary border-border hover:bg-[#e0fbf4]/20'
-                      }`}
-                    >
-                      {theme.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               {/* 1. Viral Share CTA (Desktop/Mobile In-content) */}
               <button 

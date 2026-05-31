@@ -16,6 +16,7 @@ import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { syncManagerPostToScoutingReport } from '@/lib/services/post.service';
+import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
@@ -177,15 +178,53 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     }
   };
 
+  const getAnonymousNickname = () => {
+    if (typeof window === 'undefined') return '익명이웃';
+    try {
+      let anonName = localStorage.getItem('dview_anon_nickname');
+      if (!anonName) {
+        anonName = generateMamacafeNickname();
+        localStorage.setItem('dview_anon_nickname', anonName);
+      }
+      return anonName;
+    } catch (e) {
+      return '익명이웃';
+    }
+  };
+
+  const getAnonymousUid = () => {
+    if (typeof window === 'undefined') return 'guest';
+    try {
+      let anonUid = localStorage.getItem('dview_anon_uid');
+      if (!anonUid) {
+        anonUid = 'anon_' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem('dview_anon_uid', anonUid);
+      }
+      return anonUid;
+    } catch (e) {
+      return 'guest';
+    }
+  };
+
   const handleComment = async () => {
-    if (!user || !commentText.trim() || !userProfile) return;
+    if (!commentText.trim()) return;
     setIsSending(true);
     try {
-      const displayName = getDisplayName(userProfile);
+      let displayName = '익명이웃';
+      let authorUid = null;
+      
+      if (user && userProfile) {
+        displayName = getDisplayName(userProfile);
+        authorUid = user.uid;
+      } else {
+        displayName = getAnonymousNickname();
+        authorUid = getAnonymousUid();
+      }
+
       await addDoc(collection(db, `posts/${postId}/comments`), {
         text: commentText.trim(),
         authorName: displayName,
-        authorUid: user.uid,
+        authorUid: authorUid,
         createdAt: serverTimestamp(),
       });
       await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) });
@@ -581,26 +620,24 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           </div>
 
           {/* Integrated Comment Input */}
-          {user && (
-            <div className="px-5 py-4 bg-body border-b border-border">
-              <div className="flex items-center gap-3">
-                <input
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
-                  placeholder="댓글을 남겨 이웃과 소통해보세요..."
-                  className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:border-toss-blue transition-colors focus:ring-2 focus:ring-toss-blue/20"
-                />
-                <button
-                  onClick={handleComment}
-                  disabled={isSending || !commentText.trim()}
-                  className="w-[46px] h-[46px] bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#00d29d]/20"
-                >
-                  <Send size={18} className="ml-1" />
-                </button>
-              </div>
+          <div className="px-5 py-4 bg-body border-b border-border">
+            <div className="flex items-center gap-3">
+              <input
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
+                placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
+                className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:border-toss-blue transition-colors focus:ring-2 focus:ring-toss-blue/20"
+              />
+              <button
+                onClick={handleComment}
+                disabled={isSending || !commentText.trim()}
+                className="w-[46px] h-[46px] bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#00d29d]/20"
+              >
+                <Send size={18} className="ml-1" />
+              </button>
             </div>
-          )}
+          </div>
 
           {comments.length === 0 ? (
             <div className="px-5 py-12 text-center bg-surface">
