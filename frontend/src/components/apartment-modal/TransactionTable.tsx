@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
+import { useInView } from 'react-intersection-observer';
 
 export interface TransactionRecord {
   dong?: string;
@@ -41,30 +42,6 @@ export function TransactionTable({
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
   
   const INITIAL_DISPLAY_COUNT = 30;
-  const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
-
-  // 무한 스크롤 핸들러 (데스크톱 스크롤용)
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    if (target.scrollHeight - target.scrollTop <= target.clientHeight + 100) {
-      setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length));
-    }
-  };
-
-  // Reset displayed count when filters change
-  useEffect(() => {
-    setDisplayedCount(INITIAL_DISPLAY_COUNT);
-  }, [txSort, chartType]);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    if (!activeDropdown) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      setActiveDropdown(null);
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [activeDropdown]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
@@ -94,6 +71,35 @@ export function TransactionTable({
       return 0;
     });
   }, [filteredTransactions, txSort]);
+
+  const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
+
+  const { ref: loadMoreRef, inView } = useInView({
+    rootMargin: '200px',
+    threshold: 0.1,
+    triggerOnce: false,
+  });
+
+  useEffect(() => {
+    if (inView && displayedCount < sortedFilteredTransactions.length) {
+      setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length));
+    }
+  }, [inView, sortedFilteredTransactions.length, displayedCount]);
+
+  // Reset displayed count when filters change
+  useEffect(() => {
+    setDisplayedCount(INITIAL_DISPLAY_COUNT);
+  }, [txSort, chartType]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!activeDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      setActiveDropdown(null);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [activeDropdown]);
 
   // '중개거래', '직거래' 등은 거래 방식이지 유형이 아님 — 사실상 매매
   const isSaleDealType = (dealType: string | undefined) =>
@@ -153,8 +159,7 @@ export function TransactionTable({
       </div>
 
       <div 
-        onScroll={handleScroll}
-        className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]"
+      className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]"
       >
         {sortedFilteredTransactions.slice(0, displayedCount).map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
@@ -259,6 +264,12 @@ export function TransactionTable({
           );
         })}
 
+        {displayedCount < sortedFilteredTransactions.length && (
+          <div ref={loadMoreRef} className="flex justify-center py-5 shrink-0 w-full items-center">
+            <div className="w-6 h-6 rounded-full border-2 border-toss-blue border-t-transparent animate-spin" />
+          </div>
+        )}
+
         {filteredTransactions.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[200px] text-tertiary gap-2">
             <AlertCircle size={24} className="text-toss-gray" />
@@ -266,18 +277,6 @@ export function TransactionTable({
           </div>
         )}
       </div>
-
-      {/* Expand/Collapse Button */}
-      {displayedCount < filteredTransactions.length && (
-        <div className="flex md:hidden justify-center py-4 bg-surface border-t border-body">
-          <button
-            onClick={() => setDisplayedCount(prev => prev + 10)}
-            className="flex items-center justify-center gap-1.5 bg-primary text-surface py-2.5 px-6 rounded-full text-[13px] font-extrabold shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:bg-primary/90 transition-colors"
-          >
-            더보기 <ChevronDown size={14} />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
