@@ -4,3 +4,4 @@ next-env.d.ts
 
 portfolio-dtdls-firebase-adminsdk-*.json
 .vercel
+scratch/

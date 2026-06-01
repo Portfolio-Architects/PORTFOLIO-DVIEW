@@ -1657,22 +1657,22 @@ interface GroupedCategory {
                     {/* Bottom Row: 3-Column Grid for Metrics */}
                     <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">평균 매매(3M)</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate">
+                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 매매(3M)</span>
+                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
                           {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">평균 전세(3M)</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate">
+                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 전세(3M)</span>
+                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
                           {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">예상 갭투자금</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-teal-600 dark:text-teal-400 truncate">
+                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">예상 갭투자금</span>
+                        <span className="text-[14px] sm:text-[15.5px] font-black text-teal-600 dark:text-teal-400 truncate">
                           {hasValues ? gapText : "-"}
-                          {hasValues && <span className="text-[9.5px] font-bold text-secondary ml-1">({jeonseRateText})</span>}
+                          {hasValues && <span className="text-[10.5px] font-extrabold text-secondary ml-1">({jeonseRateText})</span>}
                         </span>
                       </div>
                     </div>
@@ -1698,20 +1698,20 @@ interface GroupedCategory {
                     {/* Bottom Row: 3-Column Grid for Metrics */}
                     <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">시장 평균가</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate">
+                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">시장 평균가</span>
+                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
                           {macroSalePriceText}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">전세 평균가</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate">
+                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">전세 평균가</span>
+                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
                           {macroRentPriceText}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] sm:text-[10.5px] font-bold text-tertiary">최고 관심 단지</span>
-                        <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary truncate pl-1" title={card4Data.name}>
+                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">최고 관심 단지</span>
+                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate pl-1" title={card4Data.name}>
                           {card4Data.name}
                         </span>
                       </div>
@@ -2376,22 +2376,22 @@ interface GroupedCategory {
 
                     <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-bold text-tertiary">평균 매매(3M)</span>
-                        <span className="text-[12px] font-extrabold text-primary truncate">
+                        <span className="text-[11px] font-bold text-tertiary">평균 매매(3M)</span>
+                        <span className="text-[13.5px] font-extrabold text-primary truncate">
                           {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] font-bold text-tertiary">평균 전세(3M)</span>
-                        <span className="text-[12px] font-extrabold text-primary truncate">
+                        <span className="text-[11px] font-bold text-tertiary">평균 전세(3M)</span>
+                        <span className="text-[13.5px] font-extrabold text-primary truncate">
                           {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[10px] font-bold text-tertiary">예상 갭투자금</span>
-                        <span className="text-[12px] font-extrabold text-teal-600 dark:text-teal-400 truncate">
+                        <span className="text-[11px] font-bold text-tertiary">예상 갭투자금</span>
+                        <span className="text-[13.5px] font-extrabold text-teal-600 dark:text-teal-400 truncate">
                           {hasValues ? gapText : "-"}
-                          {hasValues && <span className="text-[9px] font-bold text-secondary ml-1">({jeonseRateText})</span>}
+                          {hasValues && <span className="text-[10.5px] font-bold text-secondary ml-1">({jeonseRateText})</span>}
                         </span>
                       </div>
                     </div>
