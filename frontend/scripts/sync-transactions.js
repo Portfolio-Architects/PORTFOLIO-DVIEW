@@ -334,13 +334,15 @@ async function main() {
   const { dongMap, validTxKeys } = await fetchDongMap();
   console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료. 유효 아파트: ${validTxKeys.size}개`);
 
-  // ── 10년(120개월) 거시 트렌드 (월별 평균가) 수집용 객체 초기화 ──
+  // ── 18년(216개월) 거시 트렌드 (월별 평균가) 수집용 객체 초기화 ──
   // 상수 바스켓 지수(Constant Basket Index): 국민평형(30~36평) 단지들의 각 월별 가장 최근 실거래가를 누적합니다.
   // 실거래가 신고 지연(최대 30일)으로 인한 최근 달의 통계 왜곡(급락 착시)을 방지하기 위해 2개월 오프셋 적용
   const macroTrendData = {};
   const trendMonths = [];
   const REPORTING_LAG_MONTHS = 2; // 2개월 전을 가장 최신 달로 취급
-  for (let i = 119; i >= 0; i--) { // 10년 치 데이터
+  const YEARS_TO_SYNC = 18;
+  const MONTHS_TO_SYNC = YEARS_TO_SYNC * 12; // 216개월
+  for (let i = MONTHS_TO_SYNC - 1; i >= 0; i--) { // 18년 치 데이터 (준공년도 2008년 고려)
     const d = new Date(now.getFullYear(), now.getMonth() - REPORTING_LAG_MONTHS - i, 1);
     const ym = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
     const yy = String(d.getFullYear()).slice(-2);
