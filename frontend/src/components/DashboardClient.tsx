@@ -98,7 +98,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const [nicknameError, setNicknameError] = useState('');
   const [isSubmittingNickname, setIsSubmittingNickname] = useState(false);
 
-  const showNicknameModal = mounted && !!user && !!userProfile && userProfile.hasSetNickname === false;
+  const showNicknameModal = mounted && !!user && !!userProfile && userProfile.hasSetNickname === false && !dashboardFacade.isAdmin(user.email);
 
   const handleNicknameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
