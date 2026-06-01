@@ -480,6 +480,26 @@ export async function GET(request: Request) {
       }
     }
 
+    // 6. Trigger Web Push Notifications for New Highs if there are new transactions
+    if (totalNew > 0) {
+      try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000';
+        const pushRes = await fetch(`${appUrl}/api/push/notify-new-high`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        if (pushRes.ok) {
+          const pushResult = await pushRes.json();
+          syncLog.push(`Web Push Triggered: ${JSON.stringify(pushResult)}`);
+        } else {
+          syncLog.push(`Web Push Trigger Failed: HTTP ${pushRes.status}`);
+        }
+      } catch (err) {
+        syncLog.push(`Web Push Trigger Error: ${(err as Error).message}`);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       synced: totalNew,

@@ -73,6 +73,18 @@ export function TransactionTable({
   }, [filteredTransactions, txSort]);
 
   const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const { ref: loadMoreRef, inView } = useInView({
     rootMargin: '200px',
@@ -81,10 +93,10 @@ export function TransactionTable({
   });
 
   useEffect(() => {
-    if (inView && displayedCount < sortedFilteredTransactions.length) {
+    if (!isMobile && inView && displayedCount < sortedFilteredTransactions.length) {
       setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length));
     }
-  }, [inView, sortedFilteredTransactions.length, displayedCount]);
+  }, [inView, sortedFilteredTransactions.length, displayedCount, isMobile]);
 
   // Reset displayed count when filters change
   useEffect(() => {
@@ -264,7 +276,7 @@ export function TransactionTable({
           );
         })}
 
-        {displayedCount < sortedFilteredTransactions.length && (
+        {!isMobile && displayedCount < sortedFilteredTransactions.length && (
           <div ref={loadMoreRef} className="flex justify-center py-5 shrink-0 w-full items-center">
             <div className="w-6 h-6 rounded-full border-2 border-toss-blue border-t-transparent animate-spin" />
           </div>
@@ -277,6 +289,18 @@ export function TransactionTable({
           </div>
         )}
       </div>
+
+      {/* 모바일 뷰 전용 수동 더보기 버튼 */}
+      {mounted && isMobile && displayedCount < sortedFilteredTransactions.length && (
+        <div className="flex justify-center py-4 bg-surface border-t border-body px-4 shrink-0">
+          <button
+            onClick={() => setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length))}
+            className="flex items-center justify-center gap-1.5 bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] py-3.5 px-6 rounded-xl text-[14px] font-extrabold w-full transition-colors shadow-sm cursor-pointer hover:bg-[#e5e8eb] border-none outline-none"
+          >
+            더보기 <ChevronDown size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
