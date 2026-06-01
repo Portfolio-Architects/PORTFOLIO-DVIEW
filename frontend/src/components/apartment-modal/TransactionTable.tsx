@@ -41,7 +41,7 @@ export function TransactionTable({
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
   
-  const INITIAL_DISPLAY_COUNT = 30;
+  const INITIAL_DISPLAY_COUNT = 10;
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
@@ -94,7 +94,7 @@ export function TransactionTable({
 
   useEffect(() => {
     if (!isMobile && inView && displayedCount < sortedFilteredTransactions.length) {
-      setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length));
+      setDisplayedCount(prev => Math.min(prev + 10, sortedFilteredTransactions.length));
     }
   }, [inView, sortedFilteredTransactions.length, displayedCount, isMobile]);
 
@@ -294,7 +294,7 @@ export function TransactionTable({
       {mounted && isMobile && displayedCount < sortedFilteredTransactions.length && (
         <div className="flex justify-center py-4 bg-surface border-t border-body px-4 shrink-0">
           <button
-            onClick={() => setDisplayedCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length))}
+            onClick={() => setDisplayedCount(prev => Math.min(prev + 10, sortedFilteredTransactions.length))}
             className="flex items-center justify-center gap-1.5 bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] py-3.5 px-6 rounded-xl text-[14px] font-extrabold w-full transition-colors shadow-sm cursor-pointer hover:bg-[#e5e8eb] border-none outline-none"
           >
             더보기 <ChevronDown size={16} />
