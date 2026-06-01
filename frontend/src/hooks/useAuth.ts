@@ -16,24 +16,32 @@ export function useAuth() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const profile = await dashboardFacade.getUserProfile(currentUser.uid);
-        setAnonProfile(profile);
-        const up = await UserRepo.getOrCreateProfile(currentUser.uid);
-        setUserProfile(up);
-        const purchased = await PurchaseRepo.getUserPurchasedReportIds(currentUser.uid);
-        setPurchasedReportIds(purchased);
-
-        // Sync cookie on login (HttpOnly session cookie for S+ security rating)
-        try {
-          const idToken = await currentUser.getIdToken();
-          await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken })
+        // Parallelize session cookie synchronization and Firestore data loading to eliminate network waterfall
+        const cookiePromise = currentUser.getIdToken()
+          .then((idToken) =>
+            fetch('/api/auth/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idToken })
+            })
+          )
+          .catch((cookieErr) => {
+            console.warn('[useAuth] Failed to set session cookie:', cookieErr);
           });
-        } catch (cookieErr) {
-          console.warn('[useAuth] Failed to set session cookie:', cookieErr);
-        }
+
+        const dataPromise = Promise.all([
+          dashboardFacade.getUserProfile(currentUser.uid),
+          UserRepo.getOrCreateProfile(currentUser.uid),
+          PurchaseRepo.getUserPurchasedReportIds(currentUser.uid)
+        ]).then(([profile, up, purchased]) => {
+          setAnonProfile(profile);
+          setUserProfile(up);
+          setPurchasedReportIds(purchased);
+        }).catch((dataErr) => {
+          console.error('[useAuth] Failed to fetch user data profiles:', dataErr);
+        });
+
+        await Promise.all([cookiePromise, dataPromise]);
       } else {
         setAnonProfile(null);
         setUserProfile(null);
