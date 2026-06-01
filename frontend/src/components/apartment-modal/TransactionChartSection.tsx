@@ -385,16 +385,16 @@ export function TransactionChartSection({
         
         {/* 공시가격 연동 자산 안전성 분석 바 */}
         {chartType === 'sale' && currentMarketPrice > 0 && (
-          <div className="mb-5 p-3.5 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex items-center justify-between text-[12.5px] sm:text-[13px] font-bold">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-teal-400 text-[10.5px] px-2 py-0.5 rounded-[5px]">
+          <div className="mb-5 p-3.5 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between text-[12.5px] sm:text-[13px] font-bold">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-teal-400 text-[10.5px] px-2 py-0.5 rounded-[5px] whitespace-nowrap">
                 🛡️ 자산 안전성
               </span>
-              <span className="text-secondary">공시가 현실화율</span>
-              <span className="text-primary font-extrabold">{publicPriceRatio.toFixed(1)}%</span>
+              <span className="text-secondary whitespace-nowrap">공시가 현실화율</span>
+              <span className="text-primary font-extrabold whitespace-nowrap">{publicPriceRatio.toFixed(1)}%</span>
             </div>
-            <div className="flex items-center gap-1.5 text-secondary">
-              <span className={`px-2 py-0.5 rounded-lg text-[11.5px] ${
+            <div className="flex items-center gap-1.5 text-secondary flex-wrap sm:justify-end">
+              <span className={`px-2 py-0.5 rounded-lg text-[11.5px] whitespace-nowrap ${
                 publicPriceRatio <= 70 
                   ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
                   : publicPriceRatio <= 80 
@@ -403,7 +403,7 @@ export function TransactionChartSection({
               }`}>
                 {publicPriceRatio <= 70 ? '안전 (우수)' : publicPriceRatio <= 80 ? '보통 (안정)' : '관망 필요'}
               </span>
-              <span className="text-tertiary font-medium text-[11.5px]">공시 {formatAvgPriceEok(currentAptPublicPrice)}</span>
+              <span className="text-tertiary font-medium text-[11.5px] whitespace-nowrap">공시 {formatAvgPriceEok(currentAptPublicPrice)}</span>
             </div>
           </div>
         )}
