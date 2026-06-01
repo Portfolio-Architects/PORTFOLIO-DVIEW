@@ -9,8 +9,10 @@ export type VerificationLevel = 'none' | 'self_declared' | 'registry_verified';
 
 /** 사용자 프로필 */
 export interface UserProfile {
-  /** 닉네임 (기본값 '매니저') */
+  /** 닉네임 (기본값 '임시_임장러') */
   nickname: string;
+  /** 닉네임 명시적 설정 여부 */
+  hasSetNickname?: boolean;
   /** 프로필 사진 URL */
   photoURL?: string;
   /** 인증된 아파트명 (e.g., '[오산동] 동탄역 롯데캐슬') */
@@ -26,7 +28,7 @@ export interface UserProfile {
 }
 
 export function getDisplayName(profile: UserProfile): string {
-  return profile.nickname || '매니저';
+  return profile.nickname || '임시_임장러';
 }
 
 function createEmojiAvatar(emoji: string, gradientStart: string, gradientEnd: string): string {

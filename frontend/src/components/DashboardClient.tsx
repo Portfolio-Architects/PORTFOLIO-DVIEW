@@ -39,6 +39,8 @@ import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
+import * as UserRepo from '@/lib/repositories/user.repository';
+import { isValidNickname } from '@/lib/services/nickname.service';
 
 const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
   const [localValue, setLocalValue] = useState(value);
@@ -88,6 +90,37 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
   
+  const [mounted, setMounted] = useState(false);
+  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
+  
+  // Nickname restriction modal state
+  const [newNickname, setNewNickname] = useState('');
+  const [nicknameError, setNicknameError] = useState('');
+  const [isSubmittingNickname, setIsSubmittingNickname] = useState(false);
+
+  const showNicknameModal = mounted && !!user && !!userProfile && userProfile.hasSetNickname === false;
+
+  const handleNicknameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    const trimmed = newNickname.trim();
+    if (!isValidNickname(trimmed)) {
+      setNicknameError('닉네임은 공백 제외 한글, 영문, 숫자, _로만 2자에서 10자여야 합니다.');
+      return;
+    }
+    setIsSubmittingNickname(true);
+    setNicknameError('');
+    try {
+      await UserRepo.updateNickname(user.uid, trimmed);
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to set nickname:', error);
+      setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmittingNickname(false);
+    }
+  };
+
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   
   const { txSummary = {}, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(initialDashboardData?.macroTrend);
@@ -122,8 +155,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     });
     return map;
   }, [fieldReports, sheetApartments, nameMapping]);
-  const [mounted, setMounted] = useState(false);
-  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
+
 
   useEffect(() => {
     setMounted(true);
@@ -772,6 +804,57 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
     {isAdModalOpen && (
       <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
+    )}
+
+    {showNicknameModal && (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 backdrop-blur-md bg-white/70 dark:bg-black/70 animate-in fade-in duration-300">
+        <div className="w-full max-w-md bg-surface text-primary rounded-[24px] shadow-2xl p-6 sm:p-8 border border-border transition-all animate-in zoom-in-95 duration-200">
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 bg-toss-blue/10 dark:bg-toss-blue/20 text-toss-blue rounded-full flex items-center justify-center mx-auto mb-4">
+              <MessageSquare size={24} />
+            </div>
+            <h2 className="text-xl font-bold tracking-tight mb-2">반갑습니다! 닉네임을 설정해주세요</h2>
+            <p className="text-sm text-tertiary">
+              D-VIEW 서비스를 이용하기 위해 사용할 닉네임을 입력해주세요.
+            </p>
+          </div>
+
+          <form onSubmit={handleNicknameSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="nickname-input" className="block text-xs font-semibold text-secondary mb-1.5 ml-1">
+                닉네임
+              </label>
+              <input
+                id="nickname-input"
+                type="text"
+                placeholder="2~10자 한글, 영문, 숫자, _"
+                value={newNickname}
+                onChange={(e) => {
+                  setNewNickname(e.target.value);
+                  if (nicknameError) setNicknameError('');
+                }}
+                className="w-full bg-body text-primary border border-border focus:border-toss-blue rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-toss-blue/20 transition-all font-semibold"
+                autoComplete="off"
+                required
+                disabled={isSubmittingNickname}
+              />
+              {nicknameError && (
+                <p className="text-xs text-red-500 font-semibold mt-2 ml-1 animate-in slide-in-from-top-1 duration-200">
+                  {nicknameError}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmittingNickname || !newNickname.trim()}
+              className="w-full bg-toss-blue text-white rounded-[14px] py-3.5 text-sm font-bold shadow-lg shadow-toss-blue/10 hover:shadow-toss-blue/20 hover:bg-toss-blue-hover active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isSubmittingNickname ? '설정 중...' : '시작하기'}
+            </button>
+          </form>
+        </div>
+      </div>
     )}
     </>
   );

@@ -35,12 +35,14 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
       createdAt: data.createdAt,
       uploaderPoints: data.uploaderPoints || 0,
       uploaderTier: data.uploaderTier || '초보 임장러',
+      hasSetNickname: data.hasSetNickname,
     };
   }
 
   // First login — generate a profile
   const newProfile: UserProfile = {
     nickname: DEFAULT_NICKNAME,
+    hasSetNickname: false,
     photoURL: getRandomDefaultAvatar(),
     createdAt: serverTimestamp(),
     uploaderPoints: 0,
@@ -48,7 +50,13 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
   };
   await setDoc(userRef, newProfile);
   logger.info('UserRepository.getOrCreateProfile', 'New user profile created', { uid, nickname: newProfile.nickname });
-  return { nickname: newProfile.nickname, photoURL: newProfile.photoURL, uploaderPoints: 0, uploaderTier: '초보 임장러' };
+  return { 
+    nickname: newProfile.nickname, 
+    photoURL: newProfile.photoURL, 
+    uploaderPoints: 0, 
+    uploaderTier: '초보 임장러',
+    hasSetNickname: false
+  };
 }
 
 
@@ -71,7 +79,7 @@ export async function setApartmentVerification(
  */
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
   const userRef = doc(db, 'users', uid);
-  await updateDoc(userRef, { nickname });
+  await updateDoc(userRef, { nickname, hasSetNickname: true });
   logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
 }
 
