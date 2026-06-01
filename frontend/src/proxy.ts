@@ -104,7 +104,7 @@ export async function proxy(request: NextRequest) {
   // A+ 등급 승급용 심화 보안 헤더
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // 전 구간 강제 HTTPS화
   response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'); // Spectre 공격 방어 (Firebase OAuth 팝업을 위해 allow-popups 필수)
-  response.headers.set('Cross-Origin-Resource-Policy', 'same-origin'); // 타 도메인의 브라우저 메모리 로딩 차단
+  response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin'); // 구글 애드센스 등 외부 도메인 자원 로딩 허용
 
   return response;
 }
