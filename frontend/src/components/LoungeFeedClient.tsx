@@ -127,6 +127,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         setSelectedPostId(null);
         setSelectedNoticeId(null);
       }
+
+      // Check if routing directly to rail notices tab
+      if (window.location.hash === '#lounge-notices-rail') {
+        setActiveSubCategory('rail');
+      }
     };
     
     checkParams();

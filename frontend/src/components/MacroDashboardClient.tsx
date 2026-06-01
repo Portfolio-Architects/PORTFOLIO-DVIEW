@@ -307,6 +307,16 @@ export default function MacroDashboardClient({
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData } = useSWR('/api/local-notices?t=' + Math.floor(Date.now() / 60000), fetcher);
 
+  const railNotices = useMemo(() => {
+    if (!noticesData?.notices) return [];
+    const keywords = ['철도', '교통', 'gtx', '트램', '인동선', 'srt', '지하철', '복합환승', '대중교통', '철도교통', '동탄인덕원', '노선', '열차', '정거장', '서해선', '1호선', '신수원선'];
+    return noticesData.notices.filter((n: any) => {
+      if (n.source === 'rail') return true;
+      const titleLower = (n.title || '').toLowerCase();
+      return keywords.some(kw => titleLower.includes(kw));
+    });
+  }, [noticesData]);
+
   const renderAreaLabel = (areaPyeong: number, area?: number) => {
     if (areaUnit === 'm2' && area) {
       return `${Math.round(area)}㎡`;
@@ -1542,29 +1552,24 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      오늘의 주요 로컬 소식
+                      동탄 철도교통 소식
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      화성시청 및 동탄출장소 등에서 공식 발표한 동탄 지역의 주요 행정 소식 및 행사 안내입니다.
+                      동탄 지역의 GTX-A, 트램, 인동선, SRT 등 주요 철도 및 대중교통 관련 고시/공고 및 뉴스 소식입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={`신규 소식 ${noticesData?.notices?.length || 0}건`}
-                badge={noticesData?.notices?.[0]?.dept || "동탄구"}
-                description={noticesData?.notices?.[0]?.title || "새로운 공지사항이 없습니다"}
+                value={`신규 소식 ${railNotices.length || 0}건`}
+                badge={railNotices[0]?.dept || "철도교통"}
+                description={railNotices[0]?.title || "새로운 철도교통 소식이 없습니다"}
                 color="#00d29d"
                 onClick={() => {
-                  const latest = noticesData?.notices?.[0];
-                  if (latest) {
-                    window.location.hash = `notice=${encodeURIComponent(latest.id)}`;
-                  } else {
-                    window.location.hash = 'lounge-notices';
-                  }
+                  window.location.hash = 'lounge-notices-rail';
                 }}
               />
             </div>
