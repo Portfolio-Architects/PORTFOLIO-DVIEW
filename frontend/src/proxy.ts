@@ -23,6 +23,10 @@ try {
 }
 
 export async function proxy(request: NextRequest) {
+  // 0. 로컬 개발 환경(development)인 경우 HMR(핫 리로드) 스크립트 실행 및 디버깅을 위해 CSP 강제 설정을 우회합니다.
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.next();
+  }
   // 클라이언트 IP 추출 (Vercel 환경 지원 시 x-real-ip 최우선)
   const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
   
@@ -72,7 +76,7 @@ export async function proxy(request: NextRequest) {
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'unsafe-inline' https: http: https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com https://www.recaptcha.net https://cdn.jsdelivr.net https://t1.kakaocdn.net https://developers.kakao.com https://pagead2.googlesyndication.com;
     worker-src 'self' blob:;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-    img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://*.googlesyndication.com https://ad.doubleclick.net;
+    img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://*.googlesyndication.com https://ad.doubleclick.net https://*.adtrafficquality.google;
     font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
     connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net https://www.google.com https://*.google.com https://*.google.co.kr https://content-firebaseappcheck.googleapis.com https://apis.google.com https://www.recaptcha.net https://lh3.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://*.kakao.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://www.gstatic.com https://*.gstatic.com https://*.adtrafficquality.google https://*.firebaseapp.com;
     frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com https://apis.google.com https://www.recaptcha.net https://*.kakao.com https://googleads.g.doubleclick.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google;
