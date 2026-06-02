@@ -2,7 +2,7 @@ import { initializeApp, getApps } from "firebase/app";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -42,7 +42,7 @@ if (typeof window !== 'undefined' && app) {
   if (recaptchaKey || isDev) {
     try {
       initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(
+        provider: new ReCaptchaV3Provider(
           recaptchaKey || '6Ld-test-key-for-dview'
         ),
         isTokenAutoRefreshEnabled: true

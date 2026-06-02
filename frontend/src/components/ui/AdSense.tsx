@@ -20,13 +20,14 @@ export default function AdSense({
   className = '',
 }: AdSenseProps) {
   const initialized = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const client = adClient || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 
   useEffect(() => {
-    // Prevent double initialization in React 18/19 strict mode
-    if (initialized.current) return;
-    
-    if (typeof window !== 'undefined' && client) {
+    if (initialized.current || !client || typeof window === 'undefined') return;
+
+    const pushAd = () => {
+      if (initialized.current) return;
       try {
         (window as any).adsbygoogle = (window as any).adsbygoogle || [];
         (window as any).adsbygoogle.push({});
@@ -34,7 +35,47 @@ export default function AdSense({
       } catch (err) {
         console.warn('[AdSense] Failed to initialize ad slot:', adSlot, err);
       }
+    };
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const checkVisibilityAndPush = () => {
+      if (initialized.current) return true;
+      
+      const rect = container.getBoundingClientRect();
+      const style = window.getComputedStyle(container);
+      
+      if (rect.width > 0 && style.display !== 'none' && style.visibility !== 'hidden') {
+        pushAd();
+        return true;
+      }
+      return false;
+    };
+
+    // 1. If already visible and has non-zero width, initialize immediately
+    if (checkVisibilityAndPush()) {
+      return;
     }
+
+    // 2. Fallback if ResizeObserver is not supported
+    if (typeof ResizeObserver === 'undefined') {
+      pushAd();
+      return;
+    }
+
+    // 3. Observe visibility/width changes (e.g. tab switching or loading states)
+    const observer = new ResizeObserver(() => {
+      if (checkVisibilityAndPush()) {
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
   }, [client, adSlot]);
 
   useEffect(() => {
@@ -73,7 +114,7 @@ export default function AdSense({
   }
 
   return (
-    <div className={`adsense-container ${className}`} style={{ overflow: 'hidden' }}>
+    <div ref={containerRef} className={`adsense-container ${className}`} style={{ overflow: 'hidden' }}>
       <ins
         className="adsbygoogle"
         style={style}
