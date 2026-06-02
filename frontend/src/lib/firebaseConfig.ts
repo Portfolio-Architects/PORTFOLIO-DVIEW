@@ -37,15 +37,21 @@ if (typeof window !== 'undefined' && app) {
     (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
 
-  try {
-    initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider(
-        process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || '6Ld-test-key-for-dview'
-      ),
-      isTokenAutoRefreshEnabled: true
-    });
-  } catch (err) {
-    console.warn('[AppCheck] Failed to initialize App Check:', err);
+  const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  if (recaptchaKey || isDev) {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(
+          recaptchaKey || '6Ld-test-key-for-dview'
+        ),
+        isTokenAutoRefreshEnabled: true
+      });
+    } catch (err) {
+      console.warn('[AppCheck] Failed to initialize App Check:', err);
+    }
+  } else {
+    console.warn('[AppCheck] Skipped initialization: No recaptcha key configured.');
   }
 }
 
