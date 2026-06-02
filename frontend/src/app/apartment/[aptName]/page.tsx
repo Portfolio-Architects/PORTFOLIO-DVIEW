@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
 import { fetchSheetTypeMap } from '@/lib/services/googleSheets';
+import { headers } from 'next/headers';
 import { redis } from '@/lib/redis';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 import fs from 'fs';
@@ -434,6 +435,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const params = await props.params;
   const decodedName = decodeURIComponent(params.aptName);
   const initialData = await getInitialData();
+  const nonce = (await headers()).get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   // Fetch report for structured data (JSON-LD)
@@ -544,6 +546,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
