@@ -9,6 +9,7 @@ interface AdSenseProps {
   responsive?: string;
   style?: React.CSSProperties;
   className?: string;
+  onAdStatusChange?: (status: 'filled' | 'unfilled') => void;
 }
 
 export default function AdSense({
@@ -18,6 +19,7 @@ export default function AdSense({
   responsive = 'true',
   style = { display: 'block' },
   className = '',
+  onAdStatusChange,
 }: AdSenseProps) {
   const initialized = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -77,6 +79,42 @@ export default function AdSense({
       observer.disconnect();
     };
   }, [client, adSlot]);
+
+  // MutationObserver to watch data-ad-status attribute on the <ins> tag
+  useEffect(() => {
+    if (typeof window === 'undefined' || !onAdStatusChange) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const insElement = container.querySelector('ins.adsbygoogle');
+    if (!insElement) return;
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-ad-status') {
+          const status = insElement.getAttribute('data-ad-status');
+          if (status === 'filled' || status === 'unfilled') {
+            onAdStatusChange(status as 'filled' | 'unfilled');
+          }
+        }
+      });
+    });
+
+    observer.observe(insElement, {
+      attributes: true,
+      attributeFilter: ['data-ad-status']
+    });
+
+    const initialStatus = insElement.getAttribute('data-ad-status');
+    if (initialStatus === 'filled' || initialStatus === 'unfilled') {
+      onAdStatusChange(initialStatus as 'filled' | 'unfilled');
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [onAdStatusChange]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || process.env.NODE_ENV === 'development') return;
