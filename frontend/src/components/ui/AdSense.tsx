@@ -28,8 +28,8 @@ export default function AdSense({
     
     if (typeof window !== 'undefined' && client) {
       try {
-        const adsbygoogle = (window as any).adsbygoogle || [];
-        adsbygoogle.push({});
+        (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+        (window as any).adsbygoogle.push({});
         initialized.current = true;
       } catch (err) {
         console.warn('[AdSense] Failed to initialize ad slot:', adSlot, err);
