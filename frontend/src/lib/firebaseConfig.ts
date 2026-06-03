@@ -32,14 +32,23 @@ export const storage = (app ? getStorage(app) : null) as unknown as ReturnType<t
 // 🔧 Firebase App Check Initialization (reCAPTCHA Enterprise for S+ security rating)
 if (typeof window !== 'undefined' && app) {
   const isDev = process.env.NODE_ENV === 'development';
+  const debugToken = process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN;
+
   if (isDev) {
-    // Enable debug token for local testing in development mode
-    (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    if (debugToken) {
+      // Enable debug token for local testing in development mode
+      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken === 'true' ? true : debugToken;
+    } else {
+      // By default in dev, we don't force App Check unless a debug token is configured.
+      // This prevents console spam of 403 (Forbidden) errors.
+      console.log('[AppCheck] Local development: App Check token exchange skipped since NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN is not configured.');
+    }
   }
 
   const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  if (recaptchaKey || isDev) {
+  // Initialize App Check if we have recaptcha key, or if we are in dev and have a debug token
+  if (recaptchaKey || (isDev && debugToken)) {
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
@@ -51,7 +60,9 @@ if (typeof window !== 'undefined' && app) {
       console.warn('[AppCheck] Failed to initialize App Check:', err);
     }
   } else {
-    console.warn('[AppCheck] Skipped initialization: No recaptcha key configured.');
+    if (!isDev) {
+      console.warn('[AppCheck] Skipped initialization: No recaptcha key configured.');
+    }
   }
 }
 

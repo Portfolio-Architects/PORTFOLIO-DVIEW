@@ -1,8 +1,20 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
 
-export function useComments(selectedReport: FieldReportData | null, fullReportData: FieldReportData | null, user: User | null, requestLogin: () => void) {
+export interface UseCommentsReturn {
+  commentsData: Record<string, CommentData[]>;
+  commentInput: Record<string, string>;
+  setCommentInput: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  handleSubmitComment: (reportId: string) => Promise<void>;
+}
+
+export function useComments(
+  selectedReport: FieldReportData | null,
+  fullReportData: FieldReportData | null,
+  user: User | null,
+  requestLogin: () => void
+): UseCommentsReturn {
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 

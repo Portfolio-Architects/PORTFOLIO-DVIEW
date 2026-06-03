@@ -1,4 +1,3 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
 @import "tailwindcss";
 @source "../components/**/*.{js,ts,jsx,tsx}";
 @source "../app/**/*.{js,ts,jsx,tsx}";
@@ -21,7 +20,7 @@
   --color-toss-red: var(--toss-red);
   --color-toss-green: var(--toss-green);
   --color-toss-gray: var(--toss-gray);
-  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-sans: var(--font-sans), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   
   --font-size-title-xl: var(--fs-title-xl);
   --font-size-title-lg: var(--fs-title-lg);

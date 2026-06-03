@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search, Bell } from 'lucide-react';
+import localFont from 'next/font/local';
 import './globals.css';
+
+const pretendard = localFont({
+  src: '../../public/fonts/PretendardVariable.woff2',
+  display: 'swap',
+  weight: '45 920',
+  variable: '--font-sans',
+});
 import OfflineBanner from '@/components/OfflineBanner';
 import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
@@ -82,7 +90,7 @@ export default async function RootLayout({
   const nonce = (await headers()).get('x-nonce') || undefined;
 
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head>
         <meta name="referrer" content="no-referrer" />
       </head>

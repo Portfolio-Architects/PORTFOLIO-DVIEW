@@ -1,18 +1,26 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
-interface NoticeData {
-  id: string;
-  title?: string;
-  url?: string;
-  dept?: string;
-  date: string;
-  isDongtan: boolean;
-  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
-  createdAt?: string;
-}
+const noticeSchema = z.object({
+  id: z.string(),
+  title: z.string().optional(),
+  url: z.string().optional(),
+  dept: z.string().optional(),
+  date: z.string(),
+  isDongtan: z.boolean(),
+  source: z.enum(['bbs', 'gosi', 'rail', 'dong']).optional(),
+  createdAt: z.string().optional(),
+});
+
+type NoticeData = z.infer<typeof noticeSchema>;
+
+const localNoticesResponseSchema = z.object({
+  notices: z.array(noticeSchema),
+  lastUpdated: z.string().nullable().optional(),
+});
 
 export async function GET(request: Request) {
   try {
@@ -133,7 +141,9 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json({ notices, lastUpdated }, {
+    const responseData = localNoticesResponseSchema.parse({ notices, lastUpdated });
+
+    return NextResponse.json(responseData, {
       headers: {
         'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=300'
       }

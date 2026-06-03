@@ -1,8 +1,27 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const postItemSchema = z.object({
+  id: z.string(),
+  title: z.string().default(''),
+  category: z.string().default('기타'),
+  author: z.string().default('익명'),
+  imageUrl: z.string().nullable().default(null),
+  likes: z.number().default(0),
+  views: z.number().default(0),
+  createdAt: z.number(),
+  meta: z.string(),
+  summary: z.string().default('')
+});
+
+const postsResponseSchema = z.object({
+  status: z.string(),
+  posts: z.array(postItemSchema)
+});
 
 export async function GET(req: Request) {
   try {
@@ -60,10 +79,12 @@ export async function GET(req: Request) {
       };
     });
 
-    return NextResponse.json({
+    const responseData = postsResponseSchema.parse({
       status: 'success',
       posts
     });
+
+    return NextResponse.json(responseData);
   } catch (error: any) {
     console.error('Fetch posts api error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

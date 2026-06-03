@@ -106,8 +106,10 @@ export default function MacroTrendChart({
 }: MacroTrendChartProps) {
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== "undefined") {
       setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
     }
@@ -135,6 +137,10 @@ export default function MacroTrendChart({
         },
         onTouchEnd: () => setIsTooltipActive(false),
       };
+
+  if (!mounted) {
+    return <div className="w-full h-full bg-transparent" />;
+  }
 
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>

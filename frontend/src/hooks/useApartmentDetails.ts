@@ -52,6 +52,17 @@ interface RawTransactionRecord {
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : []);
 
+export interface UseApartmentDetailsReturn {
+  txSummaryData: Record<string, AptTxSummary>;
+  fullReportData: FieldReportData | null;
+  modalTransactions: TransactionRecord[];
+  isLoadingDetail: boolean;
+  isTxLoading: boolean;
+  resolvedReport: (FieldReportData & { metrics: import('@/lib/types/scoutingReport').ObjectiveMetrics }) | null;
+  aptTxSummary: AptTxSummary | undefined;
+  loadAllTransactions: () => void;
+}
+
 export function useApartmentDetails(
   selectedReport: FieldReportData | null,
   sheetApartments: Record<string, DongApartment[]>,
@@ -59,7 +70,7 @@ export function useApartmentDetails(
   user: User | null,
   txSummaryData: Record<string, AptTxSummary> = {},
   locationScores: Record<string, any> = {}
-) {
+): UseApartmentDetailsReturn {
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [prevReportId, setPrevReportId] = useState<string | null>(null);
