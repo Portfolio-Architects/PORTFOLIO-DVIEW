@@ -1194,7 +1194,7 @@ function FieldReportModal({
                         <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활 인프라 지표</span>
                         <button
                           onClick={() => handleShareSection('infra')}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 ${
                             copiedStatus === 'infra-link'
                               ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                               : 'bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] border-[#0284c7]/20'
@@ -1252,6 +1252,7 @@ function FieldReportModal({
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => {
                         const dist = station.dist ?? 0;
+                        const percent = Math.min((dist / 1200) * 100, 100);
                         return (
                           <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                             <div className="flex items-center justify-between mb-2 md:mb-3">
@@ -1291,11 +1292,23 @@ function FieldReportModal({
                                 도보 {Math.ceil(dist / 80)}분
                               </span>
                             </div>
+
+                            {/* Toss-style Distance Gauge Bar */}
+                            <div className="mt-3.5 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner">
+                              <div 
+                                className="h-full rounded-full transition-all duration-500 ease-out"
+                                style={{ 
+                                  width: `${percent}%`,
+                                  backgroundColor: station.color
+                                }}
+                              />
+                            </div>
+
                           {station.name && (
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 rounded-xl px-2.5 py-2 text-center text-secondary transition-all duration-300 hover:scale-[1.02] active:scale-95 bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)]"
+                              className="text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 rounded-xl px-2.5 py-2 text-center text-secondary transition-all duration-300 hover:scale-[1.02] active:scale-95 bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1"
                               style={{ '--hover-color': station.color } as React.CSSProperties}
                               title={`${station.name} 구글 지도에서 보기`}
                             >
@@ -1485,7 +1498,7 @@ function FieldReportModal({
                         <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
                         <button
                           onClick={() => handleShareSection('childcare')}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 ${
                             copiedStatus === 'edu-link'
                               ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                               : 'bg-[#fdf2f8] dark:bg-[#db2777]/10 hover:bg-[#fce7f3] dark:hover:bg-[#db2777]/20 active:bg-[#fbcfe8] text-[#db2777] border-[#db2777]/20'
@@ -1543,6 +1556,7 @@ function FieldReportModal({
                         { label: '인근 고등학교', dist: report.metrics.distanceToHigh, name: report.metrics.nearestSchoolNames?.high },
                       ].filter(s => s.dist && s.dist > 0).map(school => {
                         const dist = school.dist ?? 0;
+                        const percent = Math.min((dist / 1000) * 100, 100);
                         const grade = dist <= 300 ? 'excellent' : dist <= 700 ? 'good' : dist <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
                           excellent: { dot: 'bg-teal-500', timeBadge: 'bg-[#f0fdfa] text-teal-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-teal-600 hover:border-teal-500/30 shadow-sm' },
@@ -1597,11 +1611,24 @@ function FieldReportModal({
                               </div>
                               <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(dist / 80)}분</span>
                             </div>
+
+                            {/* Toss-style Distance Gauge Bar */}
+                            <div className="mt-3.5 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                                  grade === 'excellent' ? 'bg-teal-500' :
+                                  grade === 'good' ? 'bg-emerald-500' :
+                                  grade === 'average' ? 'bg-amber-500' : 'bg-rose-500'
+                                }`}
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+
                             {school.name && (
                               <a 
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.02)]`}
+                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1`}
                                 title={`${school.name} 구글 지도에서 보기`}
                               >
                                 <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />

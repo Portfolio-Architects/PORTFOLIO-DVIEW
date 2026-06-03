@@ -39,25 +39,33 @@ export default function CommentSection({
       
       <div className="flex flex-col gap-6">
         {/* Input Area */}
-        <div className="flex gap-3">
-          <input
-            type="text"
-            placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
-            disabled={!user}
-            className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue disabled:bg-body"
-            value={commentInput}
-            onChange={(e) => onCommentChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAction();
-            }}
-          />
-          <button 
-            onClick={handleAction}
-            disabled={!user || !commentInput.trim()}
-            className="bg-toss-blue text-surface px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            등록
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
+              disabled={!user}
+              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 disabled:bg-body transition-shadow"
+              value={commentInput}
+              onChange={(e) => onCommentChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAction();
+              }}
+            />
+            <button 
+              onClick={handleAction}
+              disabled={!user || !commentInput.trim()}
+              className="bg-toss-blue text-surface px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+            >
+              등록
+            </button>
+          </div>
+          {user && (
+            <p className="text-[12px] text-tertiary flex items-center gap-1.5 pl-1 select-none">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
+              댓글에 <strong className="text-teal-600 dark:text-teal-400 font-semibold">@작성자명</strong>을 입력하여 특정 유저를 멘션할 수 있습니다.
+            </p>
+          )}
         </div>
 
         {/* Comment List */}
@@ -119,6 +127,27 @@ export default function CommentSection({
   );
 }
 
+/** 멘션 하이라이트 파싱 헬퍼 함수 */
+function renderCommentText(text: string) {
+  if (!text) return '';
+  const mentionRegex = /(@[a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_]+)/g;
+  const parts = text.split(mentionRegex);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('@')) {
+      return (
+        <span 
+          key={index} 
+          className="text-teal-600 font-semibold bg-teal-50/80 px-1 py-0.5 rounded dark:text-teal-400 dark:bg-teal-950/40"
+        >
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 /** Single comment item */
 function CommentItem({ comment, isHighlighted }: { comment: CommentData; isHighlighted?: boolean }) {
   return (
@@ -138,7 +167,9 @@ function CommentItem({ comment, isHighlighted }: { comment: CommentData; isHighl
           <span className="font-bold text-[14px] text-primary">{comment.author}</span>
           <span className="text-[12px] text-tertiary">{String(comment.createdAt)}</span>
         </div>
-        <p className="text-[14px] text-secondary leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+        <p className="text-[14px] text-secondary leading-relaxed break-all whitespace-pre-wrap">
+          {renderCommentText(comment.text)}
+        </p>
       </div>
     </div>
   );
