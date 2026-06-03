@@ -36,6 +36,7 @@ import { shareAptToKakao } from '@/lib/utils/kakaoShare';
 import BuyOrWaitVote from './apartment-modal/BuyOrWaitVote';
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import LocalEducationAd from '@/components/LocalEducationAd';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -1760,6 +1761,15 @@ function FieldReportModal({
                     </div>
                   </div>
                 )}
+
+                {/* 🎯 학군/육아 인프라 스코어 연동 로컬 학원 및 교육 광고 */}
+                <div className="mt-8 border-t border-border/40 pt-8">
+                  <LocalEducationAd 
+                    dong={report.dong} 
+                    educationGrade={calculateEducationScore(report.metrics).grade} 
+                    apartmentName={report.apartmentName} 
+                  />
+                </div>
               </div>
             )}
           </section>
