@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles, Coins, Activity } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
 import HotComplexRanking from './HotComplexRanking';
@@ -90,6 +91,7 @@ export default function TossApartmentExploreClient({
 }: TossApartmentExploreClientProps) {
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 200);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [visibleCount, setVisibleCount] = useState(10);
@@ -195,13 +197,13 @@ export default function TossApartmentExploreClient({
     });
 
     // Search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().replace(/\s+/g, '');
+    if (debouncedSearchQuery.trim()) {
+      const q = debouncedSearchQuery.toLowerCase().replace(/\s+/g, '');
       filtered = filtered.filter(a => a.apt.name.toLowerCase().replace(/\s+/g, '').includes(q));
     }
 
     return filtered;
-  }, [enrichedApts, currentCategory, searchQuery]);
+  }, [enrichedApts, currentCategory, debouncedSearchQuery]);
 
   return (
     <div className="flex flex-col w-full bg-surface">

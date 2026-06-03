@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Sparkles, Coins, HelpCircle, ArrowRight } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -24,7 +25,9 @@ export default function GapInvestmentExplorer({
   onSelectApt,
   onOpenAdModal,
 }: GapInvestmentExplorerProps) {
-  const [maxGap, setMaxGap] = useState<number>(20000); // Default to 2억 (20,000만원)
+  const [localMaxGap, setLocalMaxGap] = useState<number>(20000);
+  const [maxGap, setMaxGap] = useState<number>(20000); // Filter value
+  const debouncedMaxGap = useDebounce(localMaxGap, 200);
   const [showAll, setShowAll] = useState<boolean>(false);
 
   // Parse initial maxGap on mount
@@ -35,12 +38,17 @@ export default function GapInvestmentExplorer({
       if (gapParam) {
         const parsed = parseInt(gapParam, 10);
         if (!isNaN(parsed) && parsed >= 3000 && parsed <= 60000) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setMaxGap(parsed);
+          setLocalMaxGap(parsed);
         }
       }
     }
   }, []);
+
+  // Sync debounced values to filter
+  useEffect(() => {
+    setMaxGap(debouncedMaxGap);
+  }, [debouncedMaxGap]);
 
   // Sync maxGap state to URL query parameter
   useEffect(() => {
@@ -174,7 +182,7 @@ export default function GapInvestmentExplorer({
             <div className="flex justify-between items-baseline">
               <span className="text-[13px] md:text-[14px] font-extrabold text-secondary">최대 투자금 (갭)</span>
               <span className="text-[18px] md:text-[20px] font-black text-toss-blue tracking-tight">
-                {formatGapLabel(maxGap)}
+                {formatGapLabel(localMaxGap)}
               </span>
             </div>
             <div className="flex items-center gap-3">
@@ -183,14 +191,14 @@ export default function GapInvestmentExplorer({
                 min="3000"
                 max="60000"
                 step="500"
-                value={maxGap}
+                value={localMaxGap}
                 onChange={(e) => {
-                  setMaxGap(Number(e.target.value));
+                  setLocalMaxGap(Number(e.target.value));
                   setShowAll(false);
                 }}
                 className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-[#3182f6] transition-all bg-slate-100 dark:bg-slate-800"
                 style={{
-                  background: `linear-gradient(to right, #3182f6 0%, #3182f6 ${((maxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((maxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
+                  background: `linear-gradient(to right, #3182f6 0%, #3182f6 ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
                 }}
               />
             </div>
@@ -204,11 +212,11 @@ export default function GapInvestmentExplorer({
                 min="0"
                 max="60000"
                 step="500"
-                value={maxGap >= 60000 ? '' : maxGap}
-                placeholder={maxGap >= 60000 ? '전체' : '예산 입력'}
+                value={localMaxGap >= 60000 ? '' : localMaxGap}
+                placeholder={localMaxGap >= 60000 ? '전체' : '예산 입력'}
                 onChange={(e) => {
                   const val = e.target.value === '' ? 60000 : Number(e.target.value);
-                  setMaxGap(Math.min(60000, val));
+                  setLocalMaxGap(Math.min(60000, val));
                   setShowAll(false);
                 }}
                 className="w-20 bg-transparent text-right font-black text-primary text-[14px] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -229,11 +237,12 @@ export default function GapInvestmentExplorer({
             <button
               key={preset.label}
               onClick={() => {
+                setLocalMaxGap(preset.value);
                 setMaxGap(preset.value);
                 setShowAll(false);
               }}
               className={`px-3.5 py-1.5 text-[12px] font-extrabold rounded-lg transition-all border ${
-                maxGap === preset.value
+                localMaxGap === preset.value
                   ? 'bg-[#3182f6] text-white border-[#3182f6] shadow-sm'
                   : 'bg-surface text-secondary hover:text-primary border-border/60'
               }`}

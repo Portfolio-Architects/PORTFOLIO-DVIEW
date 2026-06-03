@@ -16,6 +16,7 @@ import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/fire
 import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import CommentSection from '@/components/CommentSection';
+import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
 const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection), {
@@ -757,32 +758,24 @@ function FieldReportModal({
                   </div>
                 </div>
               ) : (
-                <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20 gap-0.5 overflow-x-auto max-w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {areaFilterChips.map(chip => {
-                    const isActive = selectedAreaFilter === chip;
-                    return (
-                      <button
-                        key={chip}
-                        onClick={() => setSelectedAreaFilter(chip)}
-                        className={`shrink-0 px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all cursor-pointer ${
-                          isActive
-                            ? 'bg-surface text-primary shadow-sm border-none'
-                            : 'text-tertiary hover:text-secondary'
-                        }`}
-                      >
-                        {chip}
-                      </button>
-                    );
-                  })}
-                </div>
+                <SegmentedControl
+                  options={areaFilterChips.map(chip => ({ label: chip, value: chip }))}
+                  value={selectedAreaFilter}
+                  onChange={setSelectedAreaFilter}
+                  className="max-w-full"
+                />
               )
             )}
 
             {/* 매매/전월세 토글 */}
-            <div className="bg-[#f2f4f6] p-0.5 rounded-2xl flex items-center shadow-inner border border-border/20">
-              <button onClick={() => setChartType('sale')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-              <button onClick={() => setChartType('jeonse')} className={`px-4 py-2 rounded-xl text-[13.5px] font-extrabold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-sm border-none' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
-            </div>
+            <SegmentedControl
+              options={[
+                { label: '매매', value: 'sale' },
+                { label: '전월세', value: 'jeonse' }
+              ]}
+              value={chartType}
+              onChange={setChartType}
+            />
 
             {/* 이상 거래 필터 스위치 */}
             <div className="flex items-center gap-2 bg-[#f2f4f6] px-3.5 py-2 rounded-2xl border border-border/20 shadow-sm shrink-0">

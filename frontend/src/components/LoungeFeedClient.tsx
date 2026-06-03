@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, orderBy, limit, startAfter, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
+import useSWRInfinite from 'swr/infinite';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
@@ -81,10 +80,34 @@ export function formatRelativeTime(dateInput: number | string | Date | undefined
   return `${year}.${month}.${day}`;
 }
 
+const postsFetcher = (url: string) => fetch(url).then(res => res.json()).then(json => json.posts || []);
+
+const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
+  if (previousPageData && !previousPageData.length) return null; // Reached the end
+  if (pageIndex === 0) return `/api/posts?limit=20`;
+  if (!previousPageData) return null; // Safe guard
+  const lastPost = previousPageData[previousPageData.length - 1];
+  return `/api/posts?limit=20&lastCreatedAt=${lastPost.createdAt}`;
+};
+
 export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts || []);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialPosts && initialPosts.length > 0 ? initialPosts.length === 50 : true);
+  const { data, error, size, setSize, isValidating } = useSWRInfinite<Post[]>(
+    getPostsKey,
+    postsFetcher,
+    {
+      fallbackData: initialPosts ? [initialPosts] : undefined,
+      revalidateFirstPage: false,
+      persistSize: true,
+    }
+  );
+
+  const posts = useMemo(() => {
+    return data ? data.flat() : [];
+  }, [data]);
+
+  const isReachingEnd = data && (data.length === 0 || (data[data.length - 1] && data[data.length - 1].length < 20));
+  const isLoadingMore = isValidating && size > 1 && data && typeof data[size - 1] === 'undefined';
+  const hasMore = !isReachingEnd;
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const [newsData, setNewsData] = useState<NewsItem[]>([]);
@@ -172,64 +195,10 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     }
   }, [currentTab, selectedNoticeId, noticesData.length]);
 
-  const loadMorePosts = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
-    setIsLoadingMore(true);
-
-    try {
-      let q;
-      if (posts.length > 0) {
-        const lastPost = posts[posts.length - 1];
-        q = query(
-          collection(db, 'posts'),
-          orderBy('createdAt', 'desc'),
-          startAfter(new Date(lastPost.createdAt)),
-          limit(20)
-        );
-      } else {
-        q = query(
-          collection(db, 'posts'),
-          orderBy('createdAt', 'desc'),
-          limit(20)
-        );
-      }
-
-      // We actually need the document snapshot to use startAfter safely in Firebase, but passing milliseconds might work if createdAt is a Timestamp. Wait, if we use a raw date or milliseconds on a Firestore Timestamp field, it might error.
-      // A safer client approach is to fetch again, but this will duplicate code. Let's just fetch everything limit(20) and filter on client like the server did, or use where() for category.
-      // Since it's a simple community, fetching 20 at a time and filtering works if traffic is low. 
-      // Actually, Firebase `startAfter(Date.now())` does not match Timestamp.
-      // I will just use a load-more button or observer, but for now I'll just keep it simple.
-      
-      const snap = await getDocs(q);
-      let newPosts = snap.docs.map(doc => {
-        const data = doc.data();
-        const rawContent = data.content || '';
-        const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
-        return {
-          id: doc.id,
-          ...data,
-          summary: rawContent.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*~_\-`(]/g, '').replace(/\s+/g, ' ').replace(/https?:\/\/[^\s]+/g, '').trim(),
-          imageUrl: imgMatch ? imgMatch[1] : null,
-          createdAt: data.createdAt?.toMillis() || 0,
-        };
-      }) as Post[];
-
-      // Filter duplicates
-      const existingIds = new Set(posts.map(p => p.id));
-      newPosts = newPosts.filter(p => !existingIds.has(p.id));
-
-      if (snap.empty || newPosts.length === 0) {
-        setHasMore(false);
-      } else {
-        setPosts(prev => [...prev, ...newPosts]);
-      }
-    } catch (e) {
-      console.error(e);
-      setHasMore(false); // Stop trying
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [posts, hasMore, isLoadingMore]);
+  const loadMorePosts = useCallback(() => {
+    if (isValidating || isReachingEnd) return;
+    setSize(prev => prev + 1);
+  }, [isValidating, isReachingEnd, setSize]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { TransactionRecord } from './TransactionTable';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import SegmentedControl from '../ui/SegmentedControl';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
@@ -321,14 +322,16 @@ export function TransactionChartSection({
             >
               <Camera size={15} strokeWidth={2} />
             </button>
-            <div className="flex items-center gap-1 bg-[#f2f4f6] p-0.5 rounded-xl shadow-inner shrink-0 overflow-x-auto scrollbar-hide">
-              {(['6M','1Y','3Y','ALL'] as const).map(tf => (
-                <button key={tf} onClick={() => setChartTimeframe(tf)}
-                  className={`px-3 py-1.5 rounded-lg text-[12px] sm:text-[13px] font-bold transition-all whitespace-nowrap ${
-                    chartTimeframe === tf ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:text-secondary'
-                  }`}>{tf}</button>
-              ))}
-            </div>
+            <SegmentedControl
+              options={[
+                { label: '6M', value: '6M' },
+                { label: '1Y', value: '1Y' },
+                { label: '3Y', value: '3Y' },
+                { label: 'ALL', value: 'ALL' }
+              ]}
+              value={chartTimeframe}
+              onChange={setChartTimeframe}
+            />
           </div>
         </div>
         
