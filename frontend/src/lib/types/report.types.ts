@@ -58,12 +58,7 @@ export interface FieldReportData {
   metrics?: ObjectiveMetrics;
   /** 프리미엄 콘텐츠 텍스트 */
   premiumContent?: string;
-  /** 장점 (Legacy) */
-  pros?: string;
-  /** 단점 (Legacy) */
-  cons?: string;
-  /** 평점 (Legacy, 1-5) */
-  rating?: number;
+
   /** 작성자 닉네임 */
   author: string;
   /** 좋아요 수 */
@@ -74,8 +69,7 @@ export interface FieldReportData {
   viewCount?: number;
   /** 댓글 목록 */
   comments?: CommentData[];
-  /** 대표 이미지 URL (Legacy) */
-  imageUrl?: string;
+
   /** 썸네일 이미지 URL */
   thumbnail?: string;
   /** 이미지 배열 (New Schema) */

@@ -42,7 +42,7 @@ const ApartmentCard = memo(function ApartmentCard({ apt, txSummary, report, isPu
   if (report?.images?.length) {
     photoCount = report.images.length;
   } else {
-    if (report?.imageUrl) photoCount += 1;
+    if (report?.thumbnail) photoCount += 1;
     if (report?.sections?.infra?.gateImg) photoCount += 1;
     if (report?.sections?.infra?.gateImgs?.length) photoCount += report.sections.infra.gateImgs.length;
     if (report?.sections?.infra?.landscapeImg) photoCount += 1;

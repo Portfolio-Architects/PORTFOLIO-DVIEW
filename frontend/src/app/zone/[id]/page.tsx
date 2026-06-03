@@ -135,11 +135,11 @@ export default function ZoneDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {zoneReports.map((report) => {
               const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
-                                  report.imageUrl || 
+                                  report.thumbnail || 
                                   report.sections?.infra?.gateImg || 
                                   report.sections?.infra?.landscapeImg || 
                                   report.sections?.ecosystem?.communityImg;
-              const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
+              const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : 5;
 
               return (
                 <div key={report.id} onClick={() => handleSelectReport(report)} className="bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
@@ -150,7 +150,7 @@ export default function ZoneDetailPage() {
                   ) : (
                     <div className="w-full h-[200px] shrink-0 bg-body flex items-center justify-center relative overflow-hidden">
                        <Camera size={32} className="text-toss-gray" />
-                    </div>
+                     </div>
                   )}
                   
                   <div className="p-5 flex flex-col justify-between flex-1">
@@ -162,7 +162,7 @@ export default function ZoneDetailPage() {
                          </div>
                        </div>
                        <p className="text-[14px] text-secondary line-clamp-2 leading-relaxed h-[42px] mb-4">
-                         {report.premiumContent || report.sections?.assessment?.alphaDriver || report.pros || '상세 리뷰가 접수되었습니다.'}
+                         {report.premiumContent || report.sections?.assessment?.alphaDriver || '상세 리뷰가 접수되었습니다.'}
                        </p>
                      </div>
                      
