@@ -3,6 +3,7 @@ import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { useInView } from 'react-intersection-observer';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export interface TransactionRecord {
   dong?: string;
@@ -249,12 +250,11 @@ export function TransactionTable({
               {/* 4. 거래금액 */}
               <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px]">
                 {tx.isOutlier && (
-                  <div className="group relative flex items-center justify-center cursor-help">
-                    <AlertTriangle size={13} className="text-amber-500 dark:text-amber-400 drop-shadow-sm" />
-                    <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-primary text-surface text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
-                      {tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}
+                  <Tooltip content={tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}>
+                    <div className="cursor-help flex items-center justify-center">
+                      <AlertTriangle size={13} className="text-amber-500 dark:text-amber-400 drop-shadow-sm" />
                     </div>
-                  </div>
+                  </Tooltip>
                 )}
  
                 {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (

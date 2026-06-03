@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
-import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebaseConfig';
+import { User } from 'firebase/auth';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
 import { Settings, UserCircle, Edit3, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
@@ -13,14 +12,14 @@ import { DEFAULT_AVATARS } from '@/lib/types/user.types';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function FloatingUserBar() {
   const { setIsSettingsModalOpen, areaUnit, setAreaUnit } = useSettings();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-  const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
+  const { user, anonProfile, updateLocalAnonProfile, handleLogin, handleLogout } = useAuth();
 
   // Profile modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -28,46 +27,6 @@ export default function FloatingUserBar() {
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        const profile = await dashboardFacade.getUserProfile(currentUser.uid);
-        if (profile) {
-          if (isAdmin(currentUser.email)) {
-            if (profile.nickname !== '매니저') {
-              dashboardFacade.updateNickname(currentUser.uid, '매니저');
-            }
-            profile.nickname = '매니저';
-          }
-          if (profile.photoURL && profile.photoURL.includes('api.dicebear.com')) {
-            profile.photoURL = DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)];
-            // Optionally update it in backend right away
-            dashboardFacade.updatePhotoURL(currentUser.uid, profile.photoURL);
-          }
-          setAnonProfile(profile);
-        }
-        if (isAdmin(currentUser.email)) {
-          try { localStorage.setItem('dview_is_admin', 'true'); } catch (e) { /* noop */ }
-        } else {
-          try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
-        }
-      } else {
-        setAnonProfile(null);
-        try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogin = async () => {
-    try { await signInWithPopup(auth, googleProvider); } catch (err) { console.error('Login failed:', err); }
-  };
-
-  const handleLogout = async () => {
-    try { await signOut(auth); } catch (err) { console.error('Logout failed:', err); }
-  };
 
   return (
     <>
@@ -286,7 +245,7 @@ export default function FloatingUserBar() {
                         await dashboardFacade.updatePhotoURL(user.uid, photoURL);
                       }
                       await dashboardFacade.updateNickname(user.uid, editNickname);
-                      setAnonProfile({ nickname: editNickname, photoURL });
+                      updateLocalAnonProfile({ nickname: editNickname, photoURL });
                       setShowProfileModal(false);
                     } catch (err) {
                       console.error('Profile update failed:', err);

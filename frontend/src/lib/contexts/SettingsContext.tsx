@@ -8,7 +8,7 @@ interface SettingsContextType {
   areaUnit: AreaUnit;
   setAreaUnit: (unit: AreaUnit) => void;
   isSettingsModalOpen: boolean;
-  setIsSettingsModalOpen: (isOpen: boolean) => void;
+  setIsSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
