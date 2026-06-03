@@ -80,7 +80,7 @@ export default function PageHeroHeader({
               <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden">
                 <img
                   src="/d-view-icon.png"
-                  alt="Icon"
+                  alt="D-VIEW 로고"
                   className="w-[30px] h-[30px] sm:w-[37px] sm:h-[37px] object-contain rounded-[8px] sm:rounded-[10px]"
                 />
               </div>

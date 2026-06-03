@@ -29,7 +29,8 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
              return (
                <button
                  key={tab.id}
-                 onClick={() => {
+                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                   e.preventDefault();
                    onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'gap');
                    if (tab.id === 'overview') {
                      window.history.replaceState(null, '', window.location.pathname + window.location.search);

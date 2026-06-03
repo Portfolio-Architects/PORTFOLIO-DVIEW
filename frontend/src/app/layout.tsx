@@ -24,6 +24,7 @@ import Footer from '@/components/Footer';
 import MobileBottomAd from '@/components/pwa/MobileBottomAd';
 import { headers } from 'next/headers';
 import dynamic from 'next/dynamic';
+import WelcomeModal from '@/components/ui/WelcomeModal';
 
 const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
 
@@ -134,6 +135,7 @@ export default async function RootLayout({
                 </div>
                 <Footer />
                 <CustomA2HSModal />
+                <WelcomeModal />
               </PWAProvider>
               <div id="modal-root" />
               <SettingsModal />

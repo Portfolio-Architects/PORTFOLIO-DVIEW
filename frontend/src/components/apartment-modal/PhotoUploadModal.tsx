@@ -142,7 +142,7 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
                 onClick={() => signInWithPopup(auth, googleProvider)}
                 className="flex items-center gap-2 bg-surface border border-border shadow-sm text-primary font-bold px-6 py-3 rounded-xl hover:bg-body transition-colors"
               >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="구글 로그인 로고" className="w-5 h-5" />
                 구글로 계속하기
               </button>
             </div>

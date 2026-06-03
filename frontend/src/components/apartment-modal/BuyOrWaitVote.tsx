@@ -39,7 +39,8 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
     }
   }, [aptName, localStorageKey]);
 
-  const handleVote = async (type: 'buy' | 'wait') => {
+  const handleVote = async (e: React.MouseEvent<HTMLButtonElement>, type: 'buy' | 'wait') => {
+    e.preventDefault();
     if (hasVoted || isSubmitting) return;
     setIsSubmitting(true);
 
@@ -103,7 +104,7 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
           </p>
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => handleVote('buy')}
+              onClick={(e) => handleVote(e, 'buy')}
               disabled={isSubmitting}
               className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-emerald-50 hover:bg-emerald-100 text-emerald-600 active:scale-[0.98] border border-emerald-100"
             >
@@ -111,7 +112,7 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
               <span>지금 사야 한다</span>
             </button>
             <button
-              onClick={() => handleVote('wait')}
+              onClick={(e) => handleVote(e, 'wait')}
               disabled={isSubmitting}
               className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-amber-50 hover:bg-amber-100 text-amber-600 active:scale-[0.98] border border-amber-100"
             >

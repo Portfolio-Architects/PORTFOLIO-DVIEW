@@ -2076,7 +2076,7 @@ function FieldReportModal({
             {/* Use standard img with fetchPriority for faster loading than Next/Image in this specific raw URL context */}
             <img 
               src={fullscreenImage} 
-              alt="Fullscreen view"
+              alt="임장 사진 전체 화면 확대 보기"
               fetchPriority="high"
               className="max-w-[95vw] max-h-[85vh] object-contain select-none shadow-2xl pointer-events-none transition-opacity duration-300"
             />
