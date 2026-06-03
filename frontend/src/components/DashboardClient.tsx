@@ -38,6 +38,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
@@ -92,6 +93,28 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
+  const [showAdBlockBanner, setShowAdBlockBanner] = useState(false);
+  const { isAdBlockActive } = useAdBlockDetector();
+
+  useEffect(() => {
+    if (!isAdBlockActive || !mounted) return;
+    
+    const dismissedTime = localStorage.getItem('dview-adblock-banner-dismissed');
+    if (dismissedTime) {
+      const parsedTime = parseInt(dismissedTime, 10);
+      const now = Date.now();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      if (now - parsedTime < sevenDays) {
+        return;
+      }
+    }
+    setShowAdBlockBanner(true);
+  }, [isAdBlockActive, mounted]);
+
+  const handleAdBlockBannerClose = () => {
+    localStorage.setItem('dview-adblock-banner-dismissed', Date.now().toString());
+    setShowAdBlockBanner(false);
+  };
   
   // Nickname restriction modal state
   const [newNickname, setNewNickname] = useState('');
@@ -183,9 +206,15 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       };
       window.addEventListener('scroll', handleScroll);
 
+      const handleOpenAdInquiry = () => {
+        setIsAdModalOpen(true);
+      };
+      window.addEventListener('open-ad-inquiry', handleOpenAdInquiry);
+
       return () => {
         window.removeEventListener('hashchange', handleHashChange);
         window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('open-ad-inquiry', handleOpenAdInquiry);
       };
     }
   }, []);
@@ -795,6 +824,30 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       </div>
     </PullToRefresh>
+
+    {!mobileModalOpen && showAdBlockBanner && (
+      <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[480px] bg-slate-900/95 dark:bg-slate-950/95 text-white border border-emerald-500/30 rounded-2xl px-4 py-3.5 shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
+        <div className="flex-1 flex items-start gap-2.5">
+          <span className="text-[16px] shrink-0 mt-0.5 select-none">💚</span>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-[13px] font-black tracking-tight text-emerald-400">
+              광고 차단기를 사용 중이신가요?
+            </p>
+            <p className="text-[11.5px] text-slate-300 leading-normal font-medium">
+              DVIEW는 독립적인 연구와 광고 수익으로 운영됩니다. 차단기 예외 등록(화이트리스트)을 해주시면 더 좋은 입지 분석 정보를 제공하는 데 큰 도움이 됩니다.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center shrink-0 ml-1">
+          <button 
+            onClick={handleAdBlockBannerClose}
+            className="text-[11px] font-extrabold text-emerald-400 hover:text-emerald-300 px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/20 hover:border-emerald-500/40 active:scale-95 transition-all focus:outline-none"
+          >
+            7일간 닫기
+          </button>
+        </div>
+      </div>
+    )}
 
     {!mobileModalOpen && (
       <MobileDock 
