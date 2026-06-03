@@ -19,7 +19,7 @@ const eslintConfig = defineConfig([
   ]),
   {
     linterOptions: {
-      reportUnusedDisableDirectives: "off"
+      reportUnusedDisableDirectives: "warn"
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
@@ -32,8 +32,8 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/preserve-manual-memoization": "off",
-      "@typescript-eslint/no-unused-expressions": "off",
-      "no-unused-expressions": "off"
+      "@typescript-eslint/no-unused-expressions": "warn",
+      "no-unused-expressions": "warn"
     }
   }
 ]);

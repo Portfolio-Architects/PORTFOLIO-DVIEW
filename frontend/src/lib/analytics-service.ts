@@ -132,7 +132,7 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsRow[]> {
 
   if (!response || !response.rows) return [];
 
-  return response.rows.map((row) => {
+  return response.rows.map((row: any) => {
     const rawDate = row.dimensionValues?.[0]?.value || '';
     const formattedDate = rawDate.length === 8 
       ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}` 
