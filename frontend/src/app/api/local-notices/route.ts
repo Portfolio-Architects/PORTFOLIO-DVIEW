@@ -81,14 +81,27 @@ export async function GET(request: Request) {
     ]);
 
     const getTop100 = (snapshot: any) => {
-      return snapshot.docs
-        .map((doc: any) => {
-          const data = doc.data() as NoticeData;
-          if (data.url) {
-            data.url = data.url.trim();
+      const validItems: NoticeData[] = [];
+      snapshot.docs.forEach((doc: any) => {
+        try {
+          const data = doc.data();
+          if (data && typeof data === 'object') {
+            if (data.url) {
+              data.url = data.url.trim();
+            }
+            const rawNotice = { ...data, id: doc.id };
+            const parsed = noticeSchema.safeParse(rawNotice);
+            if (parsed.success) {
+              validItems.push(parsed.data);
+            } else {
+              console.warn(`[Local Notices API] Skipping invalid notice (ID: ${doc.id}):`, parsed.error.format());
+            }
           }
-          return { ...data, id: doc.id };
-        })
+        } catch (itemErr) {
+          console.error(`[Local Notices API] Error parsing doc ${doc.id}:`, itemErr);
+        }
+      });
+      return validItems
         .sort((a: NoticeData, b: NoticeData) => b.date.localeCompare(a.date))
         .slice(0, 100);
     };
@@ -158,7 +171,8 @@ export async function GET(request: Request) {
       }
     });
 
-    const responseData = localNoticesResponseSchema.parse({ notices, lastUpdated });
+    const parsedResponse = localNoticesResponseSchema.safeParse({ notices, lastUpdated });
+    const responseData = parsedResponse.success ? parsedResponse.data : { notices: [], lastUpdated: null };
 
     if (redis) {
       redis.set(cacheKey, responseData, { ex: 3600 }).catch(e => console.warn('[Server] Redis localNotices write error:', e));

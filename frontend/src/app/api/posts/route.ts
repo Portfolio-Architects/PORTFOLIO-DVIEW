@@ -48,41 +48,58 @@ export async function GET(req: Request) {
 
     const snapshot = await q.get();
     
-    const posts = snapshot.docs.map(doc => {
-      const data = doc.data();
-      const rawContent = data.content || '';
-      
-      // Extract first markdown image
-      const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
-      
-      // Format metadata
-      const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
-      const dateStr = new Date(createdAtMs).toLocaleDateString('ko-KR');
+    const posts: z.infer<typeof postItemSchema>[] = [];
+    snapshot.docs.forEach(doc => {
+      try {
+        const data = doc.data();
+        const rawContent = data.content || '';
+        
+        // Extract first markdown image
+        const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
+        
+        // Format metadata
+        const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
+        const dateStr = new Date(createdAtMs).toLocaleDateString('ko-KR');
 
-      return {
-        id: doc.id,
-        title: data.title || '',
-        category: data.category || '기타',
-        author: data.authorName || '익명',
-        imageUrl: imgMatch ? imgMatch[1] : (data.imageUrl || null),
-        likes: data.likes || 0,
-        views: data.views || 0,
-        createdAt: createdAtMs,
-        meta: `${dateStr} · ${data.category || '기타'}`,
-        summary: rawContent
-          .replace(/!\[.*?\]\(.*?\)/g, '')
-          .replace(/\[.*?\]\(.*?\)/g, '')
-          .replace(/[#*~_\-`(]/g, '')
-          .replace(/\s+/g, ' ')
-          .replace(/https?:\/\/[^\s]+/g, '')
-          .trim()
-      };
+        const rawItem = {
+          id: doc.id,
+          title: data.title || '',
+          category: data.category || '기타',
+          author: data.authorName || '익명',
+          imageUrl: imgMatch ? imgMatch[1] : (data.imageUrl || null),
+          likes: data.likes || 0,
+          views: data.views || 0,
+          createdAt: createdAtMs,
+          meta: `${dateStr} · ${data.category || '기타'}`,
+          summary: rawContent
+            .replace(/!\[.*?\]\(.*?\)/g, '')
+            .replace(/\[.*?\]\(.*?\)/g, '')
+            .replace(/[#*~_\-`(]/g, '')
+            .replace(/\s+/g, ' ')
+            .replace(/https?:\/\/[^\s]+/g, '')
+            .trim()
+        };
+
+        const parsedItem = postItemSchema.safeParse(rawItem);
+        if (parsedItem.success) {
+          posts.push(parsedItem.data);
+        } else {
+          console.warn(`[Posts API] Skipping invalid post item (ID: ${doc.id}):`, parsedItem.error.format());
+        }
+      } catch (itemErr) {
+        console.error(`[Posts API] Error processing doc ${doc.id}:`, itemErr);
+      }
     });
 
-    const responseData = postsResponseSchema.parse({
+    const parsedResponse = postsResponseSchema.safeParse({
       status: 'success',
       posts
     });
+
+    const responseData = parsedResponse.success ? parsedResponse.data : {
+      status: 'success',
+      posts: []
+    };
 
     return NextResponse.json(responseData);
   } catch (error: any) {

@@ -5,26 +5,27 @@ import { z } from 'zod';
 export const runtime = 'edge';
 
 const ogParamsSchema = z.object({
-  title: z.preprocess((val) => val || undefined, z.string().default('동탄 아파트 가치분석')),
-  subtitle: z.preprocess((val) => val || undefined, z.string().default('실거래가 및 전문가 임장 리포트 확인하기')),
-  bgUrl: z.string().nullable().optional(),
-  price: z.string().nullable().optional(),
-  ratio: z.string().nullable().optional(),
-  status: z.string().nullable().optional(),
-  type: z.string().nullable().optional(),
-  dept: z.preprocess((val) => val || undefined, z.string().default('동탄구청')),
-  shareType: z.preprocess((val) => (val === 'childcare' || val === 'infra' ? val : null), z.enum(['childcare', 'infra']).nullable().optional()),
-  grade: z.preprocess((val) => (val === 'S' || val === 'A' || val === 'B' || val === 'C' ? val : undefined), z.enum(['S', 'A', 'B', 'C']).default('C')),
+  title: z.preprocess((val) => val || undefined, z.string().default('동탄 아파트 가치분석')).catch('동탄 아파트 가치분석'),
+  subtitle: z.preprocess((val) => val || undefined, z.string().default('실거래가 및 전문가 임장 리포트 확인하기')).catch('실거래가 및 전문가 임장 리포트 확인하기'),
+  bgUrl: z.string().nullable().optional().catch(null),
+  price: z.string().nullable().optional().catch(null),
+  ratio: z.string().nullable().optional().catch(null),
+  status: z.string().nullable().optional().catch(null),
+  type: z.string().nullable().optional().catch(null),
+  dept: z.preprocess((val) => val || undefined, z.string().default('동탄구청')).catch('동탄구청'),
+  shareType: z.preprocess((val) => (val === 'childcare' || val === 'infra' ? val : null), z.enum(['childcare', 'infra']).nullable().optional()).catch(null),
+  grade: z.preprocess((val) => (val === 'S' || val === 'A' || val === 'B' || val === 'C' ? val : undefined), z.enum(['S', 'A', 'B', 'C']).default('C')).catch('C'),
   score: z.preprocess((val) => {
     if (typeof val === 'string' && /^\d+$/.test(val)) return val;
     return undefined;
-  }, z.string().default('0')),
+  }, z.string().default('0')).catch('0'),
 });
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     
+    // Schema with individual .catch() will guarantee safeParse is always successful and defaults populated
     const parsed = ogParamsSchema.safeParse({
       title: searchParams.get('title'),
       subtitle: searchParams.get('subtitle'),
@@ -668,6 +669,43 @@ export async function GET(req: NextRequest) {
     );
   } catch (e: any) {
     console.error('OG Image Generation Error:', e);
-    return new Response('Failed to generate OG image', { status: 500 });
+    try {
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#022c22',
+              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22)',
+              color: 'white',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ background: '#00d29d', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '24px' }}>
+                D-VIEW
+              </div>
+            </div>
+            <div style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '16px' }}>
+              동탄 아파트 가치분석 D-VIEW
+            </div>
+            <div style={{ fontSize: '24px', color: '#a7f3d0' }}>
+              실거래가 및 전문가 임장 리포트 확인하기
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    } catch (fallbackErr) {
+      console.error('OG Fallback Image Generation Error:', fallbackErr);
+      return new Response('Failed to generate OG image', { status: 500 });
+    }
   }
 }

@@ -5,6 +5,7 @@ import type { AptTxSummary } from '@/lib/types/transaction';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
+import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 
 export interface TransactionRecord {
   no: number;
@@ -58,7 +59,7 @@ export interface UseApartmentDetailsReturn {
   modalTransactions: TransactionRecord[];
   isLoadingDetail: boolean;
   isTxLoading: boolean;
-  resolvedReport: (FieldReportData & { metrics: import('@/lib/types/scoutingReport').ObjectiveMetrics }) | null;
+  resolvedReport: (FieldReportData & { metrics: ObjectiveMetrics }) | null;
   aptTxSummary: AptTxSummary | undefined;
   loadAllTransactions: () => void;
 }
@@ -299,7 +300,7 @@ export function useApartmentDetails(
       }
     }
     
-    return { ...raw, metrics: mergedMetrics as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics };
+    return { ...raw, metrics: mergedMetrics as unknown as ObjectiveMetrics };
   }, [selectedReport, fullReportData, sheetApartments, nameMapping, locationScores]);
 
   const aptTxSummary = useMemo(() => {

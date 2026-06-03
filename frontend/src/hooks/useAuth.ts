@@ -1,6 +1,6 @@
-import { useAuth as useGlobalAuth } from '@/lib/contexts/AuthContext';
+import { useAuth as useGlobalAuth, AuthContextType } from '@/lib/contexts/AuthContext';
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   return useGlobalAuth();
 }
 
