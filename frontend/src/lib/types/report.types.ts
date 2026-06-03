@@ -3,7 +3,7 @@
  * @description Type definitions for Field Reports, Report Sections, and Comments.
  * Architecture Layer: Types (zero dependencies)
  */
-import type { ObjectiveMetrics } from './scoutingReport';
+import type { ObjectiveMetrics, ImageMeta } from './scoutingReport';
 
 /** 임장기 섹션별 상세 데이터 */
 export interface ReportSections {
@@ -79,7 +79,7 @@ export interface FieldReportData {
   /** 썸네일 이미지 URL */
   thumbnail?: string;
   /** 이미지 배열 (New Schema) */
-  images?: { url: string; caption: string; locationTag: string; isPremium: boolean; uploaderName?: string }[];
+  images?: (Required<Pick<ImageMeta, 'url' | 'caption' | 'locationTag' | 'isPremium'>> & Pick<ImageMeta, 'uploaderName' | 'capturedAt'>)[];
   /** 현장 촬영/임장 일자 (YYYY-MM-DD) */
   scoutingDate?: string;
   /** 작성 시각 */

@@ -56,7 +56,7 @@ export function getDisplayAptName(name: string): string {
 /**
  * 두 아파트명이 같은 단지인지 확인 (정확 일치 및 수동/예외 매핑 허용)
  */
-export function isSameApartment(reportName: string, txName: string, manualMapping?: Record<string, string>): boolean {
+export function isSameApartment(reportName: string | undefined | null, txName: string | undefined | null, manualMapping?: Record<string, string>): boolean {
   if (!reportName || !txName) return false;
   const a = normalizeAptName(reportName);
   const b = normalizeAptName(txName);

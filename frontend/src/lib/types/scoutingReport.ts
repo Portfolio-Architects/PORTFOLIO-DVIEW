@@ -4,6 +4,7 @@ export interface ImageMeta {
   locationTag?: string;
   isPremium?: boolean; // Can blur this image for non-premium
   capturedAt?: string; // EXIF DateTimeOriginal (YYYY-MM-DD)
+  uploaderName?: string;
 }
 
 export interface PhotoItem {
