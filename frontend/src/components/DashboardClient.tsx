@@ -132,7 +132,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     return matchKey ? locationScores[matchKey] : {};
   };
   
-  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary } = useApartmentDetails(
+  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions } = useApartmentDetails(
     selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
   );
   
@@ -773,6 +773,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             typeMap={typeMap}
             inline={false}
             isLoadingDetail={isLoadingDetail}
+            loadAllTransactions={loadAllTransactions}
             isPurchased={purchasedReportIds.includes(resolvedReport.id)}
             isAdmin={dashboardFacade.isAdmin(user?.email)}
             txSummary={aptTxSummary}

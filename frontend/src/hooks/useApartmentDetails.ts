@@ -87,6 +87,26 @@ export function useApartmentDetails(
     return txKey || normalizeAptName(selectedReport.apartmentName);
   }, [selectedReport, sheetApartments, txSummaryData, nameMapping]);
 
+  const [shouldFetchFull, setShouldFetchFull] = useState(false);
+
+  useEffect(() => {
+    if (!selectedReport) {
+      setShouldFetchFull(false);
+      return;
+    }
+    setShouldFetchFull(false); // Reset on new report selection
+    
+    const timer = setTimeout(() => {
+      setShouldFetchFull(true);
+    }, 1500); // 1.5s delay to keep initial mount ultra-fast
+    
+    return () => clearTimeout(timer);
+  }, [selectedReport]);
+
+  const loadAllTransactions = () => {
+    setShouldFetchFull(true);
+  };
+
   // 1. 최근 15건 실거래 데이터 초고속 로드 (보통 2KB 미만)
   const { data: recentRecords, isLoading: isRecentLoading } = useSWR<RawTransactionRecord[]>(
     fileKey ? `/tx-data/${encodeURIComponent(fileKey)}-recent.json` : null,
@@ -99,7 +119,7 @@ export function useApartmentDetails(
 
   // 2. 전체 실거래 데이터 백그라운드 지연 로드 (용량 무관하게 UX 정체 없음)
   const { data: fullRecords, isLoading: isFullLoading } = useSWR<RawTransactionRecord[]>(
-    fileKey ? `/tx-data/${encodeURIComponent(fileKey)}.json` : null,
+    fileKey && shouldFetchFull ? `/tx-data/${encodeURIComponent(fileKey)}.json` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -284,6 +304,7 @@ export function useApartmentDetails(
     isLoadingDetail,
     isTxLoading,
     resolvedReport,
-    aptTxSummary
+    aptTxSummary,
+    loadAllTransactions
   };
 }

@@ -97,7 +97,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className="hidden md:flex items-center md:px-0 h-full border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
+        className="hidden md:flex items-center md:px-4 h-[calc(100%-8px)] my-1 border-b border-body/10 hover:border-transparent hover:bg-body/60 dark:hover:bg-zinc-800/40 hover:-translate-y-[1px] hover:scale-[1.002] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] rounded-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.99]"
       >
         {/* Heart */}
         <div 
@@ -173,7 +173,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       {/* Mobile View (Hidden on Desktop) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className="flex md:hidden flex-row items-center justify-between px-0 h-full border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
+        className="flex md:hidden flex-row items-center justify-between px-3 h-[calc(100%-8px)] my-1 border-b border-body/10 hover:border-transparent hover:bg-body/60 dark:hover:bg-zinc-800/40 hover:-translate-y-[1px] hover:scale-[1.002] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] rounded-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.99]"
       >
         <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
           <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
@@ -577,6 +577,8 @@ export default function TossApartmentExploreClient({
               placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              role="searchbox"
+              aria-label="단지명 검색"
               className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
             />
           </div>
@@ -713,6 +715,8 @@ function SidebarItem({ label, active, onClick }: { label: string, active: boolea
   return (
     <button 
       onClick={onClick}
+      role="tab"
+      aria-selected={active}
       className={`text-left px-3 py-2.5 rounded-xl text-[14px] font-bold transition-all ${
         active ? 'bg-body text-primary' : 'text-secondary hover:bg-body/50'
       }`}
@@ -726,6 +730,8 @@ function MobileSidebarItem({ label, active, onClick }: { label: string, active: 
   return (
     <button 
       onClick={onClick}
+      role="tab"
+      aria-selected={active}
       className={`text-left px-4 py-3.5 rounded-2xl text-[16px] font-bold transition-all flex items-center justify-between ${
         active ? 'bg-[#e0fbf4] text-[#00b386]' : 'text-primary hover:bg-body/50'
       }`}

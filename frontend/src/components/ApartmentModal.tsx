@@ -142,7 +142,8 @@ function FieldReportModal({
   isAdmin,
   inline,
   txSummary,
-  onOpenAdModal
+  onOpenAdModal,
+  loadAllTransactions
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -160,6 +161,7 @@ function FieldReportModal({
   inline?: boolean;
   txSummary?: any;
   onOpenAdModal?: () => void;
+  loadAllTransactions?: () => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -744,11 +746,11 @@ function FieldReportModal({
                 <div className="relative shrink-0">
                   <select
                     value={selectedAreaFilter}
-                    onChange={(e) => setSelectedAreaFilter(e.target.value)}
+                    onChange={(e) => { setSelectedAreaFilter(e.target.value); loadAllTransactions?.(); }}
                     className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer"
                   >
                     {areaFilterChips.map(chip => (
-                      <option key={chip} value={chip} className="font-medium text-secondary">
+                       <option key={chip} value={chip} className="font-medium text-secondary">
                         {chip === '전체' ? '타입: 전체' : `타입: ${chip}`}
                       </option>
                     ))}
@@ -761,7 +763,7 @@ function FieldReportModal({
                 <SegmentedControl
                   options={areaFilterChips.map(chip => ({ label: chip, value: chip }))}
                   value={selectedAreaFilter}
-                  onChange={setSelectedAreaFilter}
+                  onChange={(val) => { setSelectedAreaFilter(val); loadAllTransactions?.(); }}
                   className="max-w-full"
                 />
               )
@@ -774,7 +776,7 @@ function FieldReportModal({
                 { label: '전월세', value: 'jeonse' }
               ]}
               value={chartType}
-              onChange={setChartType}
+              onChange={(val) => { setChartType(val); loadAllTransactions?.(); }}
             />
 
             {/* 이상 거래 필터 스위치 */}
@@ -846,7 +848,7 @@ function FieldReportModal({
 
           {/* Sticky Section Nav */}
           <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-[16px] md:pt-[20px] pb-0 shadow-sm shadow-[#191f28]/5">
-            <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
+            <div role="tablist" className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
               {(() => {
                 const tabs = [
                   { id: 'sec-summary', label: '단지 기본정보', show: true },
@@ -863,6 +865,8 @@ function FieldReportModal({
                     <button
                       key={tab.id}
                       onClick={() => scrollToSection(tab.id)}
+                      role="tab"
+                      aria-selected={isActive}
                       className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[14.5px] font-extrabold tracking-wider transition-all duration-200 outline-none ${
                          isActive ? 'text-primary' : 'text-tertiary hover:text-primary'
                       }`}
@@ -1732,7 +1736,11 @@ function FieldReportModal({
       <div className="fixed inset-0 z-[11000] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" onClick={onClose} />
         
-        <article className={`relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
+        <article 
+          onMouseEnter={loadAllTransactions}
+          onTouchStart={loadAllTransactions}
+          className={`relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}
+        >
 
           <header className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
             <button onClick={onClose} className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">

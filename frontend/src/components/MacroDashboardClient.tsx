@@ -135,9 +135,9 @@ const InfoBox = ({
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border min-h-[82px] sm:min-h-[88px] md:min-h-[96px] h-auto min-w-0 transition-all duration-300 group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
+      className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border min-h-[82px] sm:min-h-[88px] md:min-h-[96px] h-auto min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
         onClick
-          ? "cursor-pointer hover:-translate-y-0.5 hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_8px_20px_var(--card-glow)] dark:hover:shadow-[0_8px_24px_var(--card-glow-dark)]"
+          ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.01] hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_12px_24px_var(--card-glow)] dark:hover:shadow-[0_12px_32px_var(--card-glow-dark)] active:scale-[0.98]"
           : "cursor-default"
       }`}
       style={cardStyle}
@@ -1547,6 +1547,9 @@ interface GroupedCategory {
                 badge={card3Data.badge}
                 description={`직전 7일: ${card3Data.prevCount}건`}
                 color={card3Data.trendColor}
+                onClick={() => {
+                  window.location.hash = 'gap';
+                }}
               />
               <InfoBox
                 title={
@@ -1781,6 +1784,10 @@ interface GroupedCategory {
               >
                 {/* Group Header */}
                 <div
+                  role="button"
+                  aria-expanded={isExpanded ? "true" : "false"}
+                  aria-controls={`accordion-panel-${group.title.replace(/\s+/g, '-')}`}
+                  id={`accordion-header-${group.title.replace(/\s+/g, '-')}`}
                   className={`px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
                   onClick={() => toggleGroup(group.title)}
                 >
@@ -1878,6 +1885,9 @@ interface GroupedCategory {
 
                 {/* Expanded Content */}
                 <div
+                  id={`accordion-panel-${group.title.replace(/\s+/g, '-')}`}
+                  role="region"
+                  aria-labelledby={`accordion-header-${group.title.replace(/\s+/g, '-')}`}
                   className={`grid transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
                     isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
                   }`}
