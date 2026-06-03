@@ -3,7 +3,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   MapPin, X, Camera,
-  Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share,
+  Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
   Crown, ChevronRight, GraduationCap
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -237,6 +237,7 @@ function FieldReportModal({
   const [activeTab, setActiveTab] = useState('sec-summary');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
@@ -737,6 +738,8 @@ function FieldReportModal({
     const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(report.apartmentName)}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
+      setCopiedStatus('all-link');
+      setTimeout(() => setCopiedStatus(null), 1500);
     }).catch((err) => {
       console.error("Link copy failed:", err);
       showToast("링크 복사에 실패했습니다.");
@@ -804,11 +807,19 @@ function FieldReportModal({
           });
         } catch (err) {
           if ((err as Error).name !== 'AbortError') {
-            navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!"));
+            navigator.clipboard.writeText(shareUrl).then(() => {
+              showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
+              setCopiedStatus('edu-link');
+              setTimeout(() => setCopiedStatus(null), 1500);
+            });
           }
         }
       } else {
-        navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!"));
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
+          setCopiedStatus('edu-link');
+          setTimeout(() => setCopiedStatus(null), 1500);
+        });
       }
       
       try {
@@ -843,11 +854,19 @@ function FieldReportModal({
           });
         } catch (err) {
           if ((err as Error).name !== 'AbortError') {
-            navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!"));
+            navigator.clipboard.writeText(shareUrl).then(() => {
+              showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
+              setCopiedStatus('infra-link');
+              setTimeout(() => setCopiedStatus(null), 1500);
+            });
           }
         }
       } else {
-        navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!"));
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
+          setCopiedStatus('infra-link');
+          setTimeout(() => setCopiedStatus(null), 1500);
+        });
       }
       
       try {
@@ -952,11 +971,19 @@ function FieldReportModal({
             {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
             <button
               onClick={handleNativeShare}
-              className="bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary px-4 py-2 rounded-2xl transition-all shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border border-border/20 active:scale-[0.98] cursor-pointer"
+              className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] ${
+                copiedStatus === 'all-link'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border-border/20'
+              }`}
               title="아파트 분석 리포트 공유하기"
             >
-              <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
-              <span>공유하기</span>
+              {copiedStatus === 'all-link' ? (
+                <Check size={15} strokeWidth={2.5} className="text-emerald-500" />
+              ) : (
+                <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
+              )}
+              <span>{copiedStatus === 'all-link' ? '복사 완료!' : '공유하기'}</span>
             </button>
           </div>
         </div>
@@ -1167,11 +1194,19 @@ function FieldReportModal({
                         <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활 인프라 지표</span>
                         <button
                           onClick={() => handleShareSection('infra')}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] font-bold text-[12px] rounded-xl transition-all border border-[#0284c7]/20 shadow-sm cursor-pointer"
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] ${
+                            copiedStatus === 'infra-link'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] border-[#0284c7]/20'
+                          }`}
                           title="생활 인프라 분석 결과 카카오톡 공유하기"
                         >
-                          <Share size={12} strokeWidth={2.5} className="text-[#0284c7]/80" />
-                          <span>평가 결과 공유하기</span>
+                          {copiedStatus === 'infra-link' ? (
+                            <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
+                          ) : (
+                            <Share size={12} strokeWidth={2.5} className={copiedStatus === 'infra-link' ? 'text-emerald-500/80' : 'text-[#0284c7]/80'} />
+                          )}
+                          <span>{copiedStatus === 'infra-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
                         </button>
                       </div>
                       
@@ -1450,11 +1485,19 @@ function FieldReportModal({
                         <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
                         <button
                           onClick={() => handleShareSection('childcare')}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#fdf2f8] dark:bg-[#db2777]/10 hover:bg-[#fce7f3] dark:hover:bg-[#db2777]/20 active:bg-[#fbcfe8] text-[#db2777] font-bold text-[12px] rounded-xl transition-all border border-[#db2777]/20 shadow-sm cursor-pointer"
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] ${
+                            copiedStatus === 'edu-link'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-[#fdf2f8] dark:bg-[#db2777]/10 hover:bg-[#fce7f3] dark:hover:bg-[#db2777]/20 active:bg-[#fbcfe8] text-[#db2777] border-[#db2777]/20'
+                          }`}
                           title="학군/육아 분석 결과 카카오톡 공유하기"
                         >
-                          <Share size={12} strokeWidth={2.5} className="text-[#db2777]/80" />
-                          <span>평가 결과 공유하기</span>
+                          {copiedStatus === 'edu-link' ? (
+                            <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
+                          ) : (
+                            <Share size={12} strokeWidth={2.5} className={copiedStatus === 'edu-link' ? 'text-emerald-500/80' : 'text-[#db2777]/80'} />
+                          )}
+                          <span>{copiedStatus === 'edu-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
                         </button>
                       </div>
                       
@@ -2182,10 +2225,18 @@ function FieldReportModal({
               
               <button
                 onClick={handleNativeShare}
-                className="flex-1 h-[56px] bg-toss-blue active:bg-toss-blue/90 text-white font-extrabold text-[15px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_8px_16px_rgba(49,130,246,0.2)] hover:shadow-[0_10px_20px_rgba(49,130,246,0.3)] transition-all transform hover:-translate-y-0.5"
+                className={`flex-1 h-[56px] text-white font-extrabold text-[15px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] ${
+                  copiedStatus === 'all-link'
+                    ? 'bg-emerald-600 shadow-[0_8px_16px_rgba(16,185,129,0.2)] hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)]'
+                    : 'bg-toss-blue active:bg-toss-blue/90 shadow-[0_8px_16px_rgba(49,130,246,0.2)] hover:shadow-[0_10px_20px_rgba(49,130,246,0.3)] hover:-translate-y-0.5'
+                }`}
               >
-                <Share size={20} strokeWidth={2.5} className="mr-0.5" />
-                이 아파트 분석 리포트 공유하기
+                {copiedStatus === 'all-link' ? (
+                  <Check size={20} strokeWidth={2.5} className="mr-0.5 text-white" />
+                ) : (
+                  <Share size={20} strokeWidth={2.5} className="mr-0.5" />
+                )}
+                {copiedStatus === 'all-link' ? '공유 링크 복사 완료!' : '이 아파트 분석 리포트 공유하기'}
               </button>
             </div>
           </footer>

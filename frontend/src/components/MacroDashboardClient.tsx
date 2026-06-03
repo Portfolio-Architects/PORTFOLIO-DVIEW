@@ -25,6 +25,7 @@ import {
   ChevronUp,
   ChevronRight,
   MessageSquare,
+  Building2,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -1381,10 +1382,22 @@ interface GroupedCategory {
           )
         }
         rightSideContent={
-          <div className="flex items-center justify-center shrink-0 w-[320px] h-[80px] bg-body border border-border rounded-[12px] border-dashed cursor-pointer hover:bg-body/60 transition-colors group" onClick={onOpenAdModal}>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-[14px] font-bold text-tertiary group-hover:text-primary transition-colors">광고 구좌 (배너) 영역</span>
-              <span className="text-[12px] text-tertiary group-hover:text-secondary transition-colors">이곳을 클릭하여 제휴 문의를 남겨주세요</span>
+          <div 
+            onClick={onOpenAdModal}
+            className="flex items-center gap-4 shrink-0 w-[320px] h-[80px] px-5 bg-gradient-to-br from-teal-500/8 to-emerald-500/3 dark:from-[#0d9488]/10 dark:to-emerald-950/5 border border-[#0d9488]/20 hover:border-[#0d9488]/45 rounded-2xl shadow-[0_4px_20px_rgba(13,148,136,0.03)] hover:shadow-[0_6px_24px_rgba(13,148,136,0.08)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/15 transition-all" />
+            <div className="w-10 h-10 bg-teal-50 dark:bg-[#0d9488]/10 text-[#0d9488] dark:text-[#00d29d] rounded-xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
+              <Building2 size={20} />
+            </div>
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-extrabold text-[#0d9488] dark:text-[#00d29d] bg-teal-500/10 px-2 py-0.5 rounded-[6px] tracking-wider uppercase">제휴 모집</span>
+                <span className="text-[13px] font-extrabold text-primary tracking-tight truncate">동탄 전문 중개 파트너</span>
+              </div>
+              <span className="text-[11.5px] text-secondary font-bold group-hover:text-[#0d9488] dark:group-hover:text-[#00d29d] transition-colors leading-snug">
+                디뷰에서 귀사의 중개소를 소개해보세요 ➔
+              </span>
             </div>
           </div>
         }

@@ -120,9 +120,21 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
       console.log("Kakao SDK initialized");
     }
 
-    let finalImageUrl =
-      imageUrl ||
-      "https://dongtanview.com/api/og?title=" + encodeURIComponent("동탄 아파트 가치분석");
+    const priceStr =
+      priceMan > 0
+        ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
+        : `${priceEok}억원`;
+
+    let finalImageUrl = imageUrl;
+    if (!finalImageUrl) {
+      if (priceEok > 0) {
+        const baseUrl = window.location.origin;
+        const status = ratio >= 65 ? "갭투자추천" : "인기단지";
+        finalImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(aptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+      } else {
+        finalImageUrl = `${window.location.origin}/api/og?title=${encodeURIComponent("동탄 아파트 가치분석")}`;
+      }
+    }
 
     // html2canvas로 캡처된 파일이 있을 경우 카카오 서버에 임시 업로드 진행
     if (imageFile) {
@@ -137,11 +149,6 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
         console.warn("Kakao image upload response did not contain URL:", uploadRes);
       }
     }
-
-    const priceStr =
-      priceMan > 0
-        ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
-        : `${priceEok}억원`;
 
     const description = customDesc || `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`;
 

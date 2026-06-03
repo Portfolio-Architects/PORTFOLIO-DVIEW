@@ -39,18 +39,16 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  return (
+  };  return (
     <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border/20"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-body">
           <div className="flex items-center gap-2">
-            <Building2 className="text-toss-blue" size={20} />
+            <Building2 className="text-[#0d9488] dark:text-[#00d29d]" size={20} />
             <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
               광고 및 제휴 문의
             </h2>
@@ -63,21 +61,21 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
         {/* Content */}
         <div className="overflow-y-auto px-6 py-6 custom-scrollbar">
           {isSuccess ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="w-16 h-16 bg-toss-blue-light text-toss-blue rounded-full flex items-center justify-center mb-4">
-                <Send size={32} />
+            <div className="flex flex-col items-center justify-center py-10 text-center animate-fade-in">
+              <div className="w-16 h-16 bg-[#e6f4f2] dark:bg-[#0d9488]/10 text-[#0d9488] dark:text-[#00d29d] rounded-full flex items-center justify-center mb-4 shadow-inner">
+                <Send size={30} className="ml-0.5 mt-0.5" />
               </div>
               <h3 className="text-[20px] font-extrabold text-primary mb-2">접수 완료되었습니다!</h3>
-              <p className="text-[15px] text-secondary leading-relaxed">
-                제안해주셔서 감사합니다.<br />
-                내용 확인 후 기재해주신 연락처로<br />
-                빠르게 회신 드리겠습니다.
+              <p className="text-[14px] text-secondary leading-relaxed">
+                귀중한 제안에 깊이 감사드립니다.<br />
+                남겨주신 연락처로 담당자가 신속히 검토하여<br />
+                빠른 시일 내에 연락드리겠습니다.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <p className="text-[14px] text-secondary leading-relaxed mb-1">
-                D-VIEW의 프리미엄 유저들에게 귀사의 브랜드를 각인시킬 수 있는 기회를 놓치지 마세요.
+                D-VIEW의 고효율 프롭테크 트래픽을 활용하여 귀사의 로컬 비즈니스 브랜드를 확실하게 노출해 보세요.
               </p>
 
               <div className="space-y-1.5">
@@ -88,10 +86,10 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
                 <input
                   type="text"
                   required
-                  placeholder="예) 디뷰 / 김디뷰"
+                  placeholder="예) 디뷰 공인중개사 / 김디뷰"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-toss-blue focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all"
                 />
               </div>
 
@@ -106,7 +104,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
                   placeholder="회신 받으실 연락처를 남겨주세요."
                   value={contactInfo}
                   onChange={(e) => setContactInfo(e.target.value)}
-                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-toss-blue focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all"
                 />
               </div>
 
@@ -121,7 +119,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-toss-blue focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all resize-none"
                 />
               </div>
 
@@ -129,14 +127,14 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting || !companyName.trim() || !contactInfo.trim() || !message.trim()}
-                  className="w-full bg-toss-blue hover:bg-[#00b386] disabled:bg-toss-gray text-surface text-[15px] font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-[#0d9488] hover:bg-[#0f766e] disabled:bg-secondary/20 disabled:text-tertiary text-white text-[15px] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
                       <Send size={18} />
-                      제안서 보내기
+                      제안 접수하기
                     </>
                   )}
                 </button>
