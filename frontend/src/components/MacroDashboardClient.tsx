@@ -1877,9 +1877,14 @@ interface GroupedCategory {
                 </div>
 
                 {/* Expanded Content */}
-                {isExpanded && (
-                  <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="w-full h-[1px] bg-body mb-4" />
+                <div
+                  className={`grid transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                    isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className={`px-5 pb-5 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${isExpanded ? 'translate-y-0 scale-100' : '-translate-y-2 scale-98'}`}>
+                      <div className="w-full h-[1px] bg-body mb-4" />
 
                     <div className="flex flex-col gap-4">
                       {(() => {
@@ -2040,7 +2045,8 @@ interface GroupedCategory {
                       })()}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
               </div>
             );
           })}

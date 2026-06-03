@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
+import { VariableSizeList as List, areEqual } from 'react-window';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles, Coins, Activity } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
@@ -63,6 +64,180 @@ const formatYearBuilt = (yearStr?: string | number) => {
   }
 };
 
+interface RowData {
+  items: Array<{
+    apt: DongApartment;
+    pyeongPrice: number;
+    totalPrice: number;
+    jeonsePrice: number;
+    ratio: number;
+    dropRatio: number;
+    maxPrice: number;
+    avg1MPrice: number;
+    volume3M: number;
+    volume1M: number;
+    turnoverRate: number;
+    hasTx: boolean;
+    views: number;
+    photoCount: number;
+    likes: number;
+    isFavorited: boolean;
+  }>;
+  handleSelectApt: (name: string) => void;
+  onToggleFavorite: (name: string) => void;
+}
+
+const Row = memo(({ index, style, data }: { index: number; style: React.CSSProperties; data: RowData }) => {
+  const { items, handleSelectApt, onToggleFavorite } = data;
+  const item = items[index];
+  if (!item) return null;
+
+  return (
+    <div style={style} className="w-full">
+      {/* Desktop View (Hidden on Mobile) */}
+      <div 
+        onClick={() => handleSelectApt(item.apt.name)}
+        className="hidden md:flex items-center md:px-0 h-full border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
+      >
+        {/* Heart */}
+        <div 
+          className="w-[40px] text-center flex justify-center"
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}
+        >
+          <Heart size={18} className={item.isFavorited ? "text-toss-red fill-current" : "text-border"} />
+        </div>
+        
+        {/* Rank */}
+        <div className="w-[60px] text-center text-[15px] font-bold text-secondary">
+          {index + 1}
+        </div>
+        
+        {/* Name */}
+        <div className="flex-1 min-w-[200px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
+          <span className="text-[15.5px] font-extrabold text-primary leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
+          {item.photoCount > 0 && (
+            <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-[6px] border border-emerald-500/10 leading-none flex items-center shrink-0">
+              <Camera className="w-3 h-3 mr-1 inline-block" />
+              사진 {item.photoCount}장
+            </span>
+          )}
+          {item.likes > 0 && (
+            <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-[6px] border border-rose-500/10 leading-none flex items-center shrink-0">
+              <Heart className="w-3 h-3 mr-1 fill-current" />
+              관심 {item.likes}
+            </span>
+          )}
+        </div>
+
+        {/* Age */}
+        <div className="w-[150px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
+          {formatYearBuilt(item.apt.yearBuilt)}
+        </div>
+        
+        {/* Price */}
+        <div className="w-[130px] text-right pr-4 text-[14.5px] font-extrabold text-primary">
+          {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
+        </div>
+        
+        {/* Pyeong */}
+        <div className="w-[120px] text-right pr-4 text-[14px] font-bold text-teal-600 dark:text-teal-400">
+          {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만` : '-'}
+        </div>
+
+        {/* Jeonse */}
+        <div className="w-[140px] text-right pr-4 flex flex-col justify-center items-end gap-1">
+          <span className="text-[14px] font-semibold text-primary leading-none">
+            {item.jeonsePrice > 0 ? formatPrice(item.jeonsePrice) : '-'}
+          </span>
+          <span className="text-[11px] text-tertiary font-medium leading-none">
+            {item.ratio > 0 ? `${(item.ratio * 100).toFixed(0)}%` : '-'}
+          </span>
+        </div>
+
+        {/* Household */}
+        <div className="w-[100px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
+          {item.apt.householdCount ? `${item.apt.householdCount.toLocaleString()}세대` : '-'}
+        </div>
+
+        {/* Volume */}
+        <div className="w-[130px] text-right pr-2 flex flex-col justify-center items-end gap-1">
+          <span className="text-[14px] font-semibold text-secondary leading-none">
+            {item.volume3M > 0 ? `${item.volume3M}건` : '-'}
+          </span>
+          <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none">
+            {item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : ''}
+          </span>
+        </div>
+      </div>
+
+      {/* Mobile View (Hidden on Desktop) */}
+      <div 
+        onClick={() => handleSelectApt(item.apt.name)}
+        className="flex md:hidden flex-row items-center justify-between px-0 h-full border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
+      >
+        <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
+          <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
+            <span className="text-[15px] font-bold text-secondary mb-1">{index + 1}</span>
+            <div onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}>
+              <Heart size={16} className={item.isFavorited ? "text-toss-red fill-current" : "text-tertiary"} />
+            </div>
+          </div>
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="mb-1.5">
+              <span className="text-[16px] font-extrabold text-primary leading-tight break-keep group-hover:text-[#00d29d] transition-colors">
+                {item.apt.name}
+              </span>
+            </div>
+            <div className="flex items-center flex-wrap gap-1.5 mb-1.5 text-[12px] text-tertiary font-medium">
+              <span className="px-1.5 py-0.5 bg-body text-secondary text-[11px] font-semibold rounded border border-border/40 shrink-0">
+                {item.apt.dong}
+              </span>
+              <span>{formatYearBuilt(item.apt.yearBuilt)}</span>
+              {item.apt.householdCount && (
+                <>
+                  <span className="text-[#d1d6db]">·</span>
+                  <span>{item.apt.householdCount.toLocaleString()}세대</span>
+                </>
+              )}
+            </div>
+            {(item.photoCount > 0 || item.likes > 0) && (
+              <div className="flex items-center flex-wrap gap-1.5 mb-1.5">
+                {item.photoCount > 0 && (
+                  <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-[6px] border border-emerald-500/10 flex items-center shrink-0">
+                    <Camera className="w-2.5 h-2.5 mr-0.5" />{item.photoCount}장
+                  </span>
+                )}
+                {item.likes > 0 && (
+                  <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-[6px] border border-rose-500/10 flex items-center shrink-0">
+                    <Heart className="w-2.5 h-2.5 mr-0.5 fill-current" />{item.likes}
+                  </span>
+                )}
+              </div>
+            )}
+            <span className="text-[12px] text-secondary font-medium mt-0.5">
+              {item.jeonsePrice > 0 ? `전세 ${formatPrice(item.jeonsePrice)} (${(item.ratio * 100).toFixed(0)}%)` : '전세 정보 없음'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-end text-right shrink-0 gap-0.5">
+          <span className="text-[16px] font-extrabold text-primary mb-1">
+            {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
+          </span>
+          <span className="text-[13px] font-bold text-teal-600 dark:text-teal-400">
+            {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만/평` : '-'}
+          </span>
+          {item.volume3M > 0 && (
+            <span className="text-[11px] text-tertiary mt-1 font-medium">
+              거래 {item.volume3M}건 · {item.turnoverRate > 0 && `회전율 ${item.turnoverRate.toFixed(1)}%`}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}, areEqual);
+
 interface TossApartmentExploreClientProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
@@ -94,9 +269,8 @@ export default function TossApartmentExploreClient({
   const debouncedSearchQuery = useDebounce(searchQuery, 200);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(10);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
     };
@@ -104,9 +278,7 @@ export default function TossApartmentExploreClient({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  React.useEffect(() => {
-    setVisibleCount(10);
-  }, [currentCategory, searchQuery]);
+
   
   // Flatten and filter public rentals
   const allApts = useMemo(() => {
@@ -204,6 +376,64 @@ export default function TossApartmentExploreClient({
 
     return filtered;
   }, [enrichedApts, currentCategory, debouncedSearchQuery]);
+
+  const listRef = useRef<List>(null);
+  const [listHeight, setListHeight] = useState(600);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const updateHeight = () => {
+      const container = document.getElementById('explore-list-container');
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const topOffset = rect.top;
+        const bottomOffset = window.innerWidth < 768 ? 72 : 24; 
+        const calculatedHeight = window.innerHeight - topOffset - bottomOffset;
+        setListHeight(Math.max(300, calculatedHeight));
+      } else {
+        const headerOffset = window.innerWidth < 768 ? 260 : 220;
+        setListHeight(Math.max(300, window.innerHeight - headerOffset));
+      }
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    const timer = setTimeout(updateHeight, 100);
+    
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      clearTimeout(timer);
+    };
+  }, [sortedApts, isMobile]);
+
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.resetAfterIndex(0);
+    }
+  }, [sortedApts, isMobile]);
+
+  const getItemSize = (index: number) => {
+    if (!isMobile) return 64;
+    const item = sortedApts[index];
+    if (!item) return 100;
+    const hasBadges = item.photoCount > 0 || item.likes > 0;
+    return hasBadges ? 122 : 102;
+  };
+
+  const itemData = useMemo(() => ({
+    items: sortedApts,
+    handleSelectApt,
+    onToggleFavorite
+  }), [sortedApts, handleSelectApt, onToggleFavorite]);
 
   return (
     <div className="flex flex-col w-full bg-surface">
@@ -367,165 +597,29 @@ export default function TossApartmentExploreClient({
           </div>
 
           {/* Table Body */}
-          <div className="pb-4">
-              {sortedApts.slice(0, visibleCount).map((item, index) => (
-                <React.Fragment key={item.apt.name}>
-                  {/* Desktop View (Hidden on Mobile) */}
-                  <div 
-                    onClick={() => handleSelectApt(item.apt.name)}
-                    className="hidden md:flex items-center md:px-0 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
-                  >
-                    {/* Heart */}
-                    <div 
-                      className="w-[40px] text-center flex justify-center"
-                      onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}
-                    >
-                      <Heart size={18} className={item.isFavorited ? "text-toss-red fill-current" : "text-border"} />
-                    </div>
-                    
-                    {/* Rank */}
-                    <div className="w-[60px] text-center text-[15px] font-bold text-secondary">
-                      {index + 1}
-                    </div>
-                    
-                    {/* Name */}
-                    <div className="flex-1 min-w-[200px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
-                      <span className="text-[15.5px] font-extrabold text-primary leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
-                      {item.photoCount > 0 && (
-                        <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-[6px] border border-emerald-500/10 leading-none flex items-center shrink-0">
-                          <Camera className="w-3 h-3 mr-1 inline-block" />
-                          사진 {item.photoCount}장
-                        </span>
-                      )}
-                      {item.likes > 0 && (
-                        <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-[6px] border border-rose-500/10 leading-none flex items-center shrink-0">
-                          <Heart className="w-3 h-3 mr-1 fill-current" />
-                          관심 {item.likes}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Age */}
-                    <div className="w-[150px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
-                      {formatYearBuilt(item.apt.yearBuilt)}
-                    </div>
-                    
-                    {/* Price */}
-                    <div className="w-[130px] text-right pr-4 text-[14.5px] font-extrabold text-primary">
-                      {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
-                    </div>
-                    
-                    {/* Pyeong */}
-                    <div className="w-[120px] text-right pr-4 text-[14px] font-bold text-teal-600 dark:text-teal-400">
-                      {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만` : '-'}
-                    </div>
-
-                    {/* Jeonse */}
-                    <div className="w-[140px] text-right pr-4 flex flex-col justify-center items-end gap-1">
-                      <span className="text-[14px] font-semibold text-primary leading-none">
-                        {item.jeonsePrice > 0 ? formatPrice(item.jeonsePrice) : '-'}
-                      </span>
-                      <span className="text-[11px] text-tertiary font-medium leading-none">
-                        {item.ratio > 0 ? `${(item.ratio * 100).toFixed(0)}%` : '-'}
-                      </span>
-                    </div>
-
-                    {/* Household */}
-                    <div className="w-[100px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
-                      {item.apt.householdCount ? `${item.apt.householdCount.toLocaleString()}세대` : '-'}
-                    </div>
-
-                    {/* Volume */}
-                    <div className="w-[130px] text-right pr-2 flex flex-col justify-center items-end gap-1">
-                      <span className="text-[14px] font-semibold text-secondary leading-none">
-                        {item.volume3M > 0 ? `${item.volume3M}건` : '-'}
-                      </span>
-                      <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none">
-                        {item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : ''}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Mobile View (Hidden on Desktop) */}
-                  <div 
-                    onClick={() => handleSelectApt(item.apt.name)}
-                    className="flex md:hidden flex-row items-center justify-between px-0 py-4 border-b border-body/50 hover:bg-body/50 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
-                      <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
-                        <span className="text-[15px] font-bold text-secondary mb-1">{index + 1}</span>
-                        <div onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}>
-                          <Heart size={16} className={item.isFavorited ? "text-toss-red fill-current" : "text-tertiary"} />
-                        </div>
-                      </div>
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <div className="mb-1.5">
-                          <span className="text-[16px] font-extrabold text-primary leading-tight break-keep group-hover:text-[#00d29d] transition-colors">
-                            {item.apt.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center flex-wrap gap-1.5 mb-1.5 text-[12px] text-tertiary font-medium">
-                          <span className="px-1.5 py-0.5 bg-body text-secondary text-[11px] font-semibold rounded border border-border/40 shrink-0">
-                            {item.apt.dong}
-                          </span>
-                          <span>{formatYearBuilt(item.apt.yearBuilt)}</span>
-                          {item.apt.householdCount && (
-                            <>
-                              <span className="text-[#d1d6db]">·</span>
-                              <span>{item.apt.householdCount.toLocaleString()}세대</span>
-                            </>
-                          )}
-                        </div>
-                        {(item.photoCount > 0 || item.likes > 0) && (
-                          <div className="flex items-center flex-wrap gap-1.5 mb-1.5">
-                            {item.photoCount > 0 && (
-                              <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-[6px] border border-emerald-500/10 flex items-center shrink-0">
-                                <Camera className="w-2.5 h-2.5 mr-0.5" />{item.photoCount}장
-                              </span>
-                            )}
-                            {item.likes > 0 && (
-                              <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-[6px] border border-rose-500/10 flex items-center shrink-0">
-                                <Heart className="w-2.5 h-2.5 mr-0.5 fill-current" />{item.likes}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        <span className="text-[12px] text-secondary font-medium mt-0.5">
-                          {item.jeonsePrice > 0 ? `전세 ${formatPrice(item.jeonsePrice)} (${(item.ratio * 100).toFixed(0)}%)` : '전세 정보 없음'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-end text-right shrink-0 gap-0.5">
-                      <span className="text-[16px] font-extrabold text-primary mb-1">
-                        {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
-                      </span>
-                      <span className="text-[13px] font-bold text-teal-600 dark:text-teal-400">
-                        {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만/평` : '-'}
-                      </span>
-                      {item.volume3M > 0 && (
-                        <span className="text-[11px] text-tertiary mt-1 font-medium">
-                          거래 {item.volume3M}건 · {item.turnoverRate > 0 && `회전율 ${item.turnoverRate.toFixed(1)}%`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </React.Fragment>
-              ))}
-
-              {visibleCount < sortedApts.length && (
-                <div className="pt-4 pb-8 flex justify-center">
-                  <button
-                    onClick={() => setVisibleCount(prev => prev + 10)}
-                    className="px-8 py-3 bg-surface border border-border text-primary text-[14px] font-bold rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:bg-body transition-all active:scale-95"
-                  >
-                    더보기 ({visibleCount} / {sortedApts.length})
-                  </button>
-                </div>
-              )}
+          {sortedApts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-tertiary">
+              <span className="text-[40px] mb-2">🔍</span>
+              <span className="text-[14px] font-extrabold text-[#8b95a1] dark:text-[#9ca3af]">검색 결과가 없습니다.</span>
+              <span className="text-[12px] font-medium mt-1 text-[#8b95a1] dark:text-[#9ca3af]">단지명을 다시 확인해주세요.</span>
             </div>
-          </div>
+          ) : (
+            <div id="explore-list-container" className="w-full">
+              <List
+                ref={listRef}
+                height={listHeight}
+                itemCount={sortedApts.length}
+                itemSize={getItemSize}
+                itemData={itemData}
+                width="100%"
+                className="custom-scrollbar"
+              >
+                {Row}
+              </List>
+            </div>
+          )}
         </div>
+      </div>
 
       {/* Mobile Bottom Sheet Menu */}
       {isMobileMenuOpen && (

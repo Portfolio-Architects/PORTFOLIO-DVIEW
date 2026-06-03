@@ -135,7 +135,10 @@ export function TransactionChartSection({
     isOutlier: d.price < q1 - iqr * 2,
   })).filter(d => d.price >= q1 - iqr * 3);
   
-  const getFloorColor = (floor: number) => '#00d29d';
+  const getFloorColor = (dealType: string | undefined) => {
+    if (dealType === '전세' || dealType === '월세') return '#f9a825'; // Orange/amber for Rent/Jeonse
+    return '#00d29d'; // Emerald/green for Sale
+  };
 
   const byMonthTier = new Map<number, { all: number[] }>();
   scatterData.forEach(d => {
@@ -298,11 +301,17 @@ export function TransactionChartSection({
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                        <span className="text-toss-blue">최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
+                        <span className={dropRatio > 0 ? "text-[#f04452] dark:text-[#f26d78]" : "text-[#00b386] dark:text-[#00d29d]"}>
+                          최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})
+                        </span>
                       </div>
                       <div className="w-full h-1.5 bg-body rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-[#00d29d] to-[#00b386] rounded-full transition-all duration-1000" 
+                          className={`h-full rounded-full transition-all duration-1000 ${
+                            dropRatio > 0 
+                              ? "bg-gradient-to-r from-rose-400 to-[#f04452] dark:from-rose-500/80 dark:to-[#f26d78]" 
+                              : "bg-gradient-to-r from-[#00d29d] to-[#00b386]"
+                          }`} 
                           style={{ width: `${ratio}%` }} 
                         />
                       </div>
@@ -450,7 +459,7 @@ export function TransactionChartSection({
                           const cy = yAx.scale ? yAx.scale(d.price) : 0;
                           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
                           const isHov = hoveredDot?.data === d;
-                          const floorColor = getFloorColor(d.floor);
+                          const floorColor = getFloorColor(d.dealType);
                           return (
                             <circle key={i} cx={cx} cy={cy}
                               r={isHov ? 5 : 3} fill={floorColor}
@@ -492,7 +501,7 @@ export function TransactionChartSection({
                 </div>
                 <div className="text-tertiary text-[11px] flex gap-1.5 items-center">
                   {typeName ? <span className="text-[#00d29d] font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
-                  <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
+                  <span>·</span><span style={{ color: getFloorColor(d.dealType) }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>
               </div>

@@ -118,11 +118,11 @@ export function TransactionTable({
     !dealType || (dealType !== '전세' && dealType !== '월세');
 
   const getBadgeColorClasses = (dealType: string | undefined) => {
-    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#00b386]'; // 매매 기본
-    if (dealType === '전세') return 'bg-[#e6f4ea] text-[#0d652d]';
-    if (dealType === '월세') return 'bg-[#fef0e6] text-[#c2410c]';
+    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#00b386] dark:text-[#00d29d]'; // 매매 기본
+    if (dealType === '전세') return 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400';
+    if (dealType === '월세') return 'bg-[#fef0e6] dark:bg-orange-950/45 text-[#c2410c] dark:text-orange-400';
     // 중개거래, 직거래, 매매 등 모두 매매 계열
-    return 'bg-toss-blue-light text-[#00b386]';
+    return 'bg-toss-blue-light text-[#00b386] dark:text-[#00d29d]';
   };
 
   const getDealTypeLabel = (dealType: string | undefined) => {
@@ -133,14 +133,14 @@ export function TransactionTable({
   };
 
   return (
-    <div className="flex flex-col bg-[#F9FAFB] rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full shadow-inner">
-      <div className="flex items-center justify-between p-4 bg-[#F9FAFB] border-b border-border w-full">
+    <div className="flex flex-col bg-[#F9FAFB] dark:bg-[#1a1a1a] rounded-2xl ring-1 ring-[#e5e8eb] dark:ring-[#2d2d2d] overflow-hidden md:h-full shadow-inner">
+      <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
         <h4 className="text-[14px] font-bold text-secondary shrink-0">
           실거래가 <span className="text-toss-blue ml-1">{filteredTransactions.length}</span>건
         </h4>
         {/* 정렬 필터 */}
         <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
-          <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#6b7684] hover:text-[#191f28] transition-colors cursor-pointer bg-transparent border-none outline-none">
+          <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#6b7684] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none">
             <span>{{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가격순', 'price_asc': '낮은가격순' }[txSort as string] || '최신순'}</span>
             <ChevronDown size={14} className={`text-tertiary transition-transform duration-200 ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
           </button>
@@ -163,7 +163,7 @@ export function TransactionTable({
       </div>
 
       {/* 테이블 컬럼 헤더 추가 */}
-      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#8b95a1] select-none shrink-0 w-full gap-2">
+      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#8b95a1] dark:text-[#9ca3af] select-none shrink-0 w-full gap-2">
         <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
         <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
         <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>
@@ -222,11 +222,11 @@ export function TransactionTable({
               
               {/* 1. 날짜 */}
               <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
-                <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-red-500/60 dark:decoration-red-400/60' : 'text-[#6b7684] dark:text-[#9ca3af]'}`}>
                   {tx.contractYm.substring(2, 4)}.{m}.{d}
                 </div>
                 {isCancelled && (
-                  <div className="text-[10px] font-bold text-[#ef4444] mt-0.5 leading-tight break-keep">
+                  <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
                     취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
                   </div>
                 )}
@@ -234,14 +234,14 @@ export function TransactionTable({
               
               {/* 2. 평형 (독립 칼럼 & 칩 디자인 세련되게 정돈) */}
               <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
-                <span className={`w-full text-center text-[12.5px] tracking-tight font-bold ${isCancelled ? 'text-tertiary/60' : 'text-secondary'}`} title={typeLabel}>
+                <span className={`w-full text-center text-[12.5px] tracking-tight font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-secondary'}`} title={typeLabel}>
                   {typeLabel}
                 </span>
               </div>
  
               {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
               <div className="w-[36px] md:w-[48px] shrink-0 text-center">
-                <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
+                <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-tertiary'}`}>
                   {tx.floor}층
                 </span>
               </div>
@@ -250,7 +250,7 @@ export function TransactionTable({
               <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px]">
                 {tx.isOutlier && (
                   <div className="group relative flex items-center justify-center cursor-help">
-                    <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
+                    <AlertTriangle size={13} className="text-amber-500 dark:text-amber-400 drop-shadow-sm" />
                     <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-primary text-surface text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
                       {tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}
                     </div>
@@ -259,15 +259,15 @@ export function TransactionTable({
  
                 {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
                   <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
-                    tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
-                    tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
-                    'bg-toss-blue-light text-[#00b386]'
+                    tx.dealType === '전세' ? 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400' : 
+                    tx.dealType === '월세' ? 'bg-[#fef0e6] dark:bg-orange-950/45 text-[#c2410c] dark:text-orange-400' : 
+                    'bg-toss-blue-light text-[#00b386] dark:text-[#00d29d]'
                   }`}>
                     {tx.dealType.charAt(0)}
                   </span>
                 )}
                 
-                <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] decoration-2' : 'text-primary'}`}>
+                <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] dark:decoration-tertiary/40 decoration-2' : 'text-primary'}`}>
                   {priceText}
                 </div>
               </div>
