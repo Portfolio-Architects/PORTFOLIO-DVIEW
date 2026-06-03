@@ -30,7 +30,7 @@ export async function createPost(
   imageFile?: File,
   authorEmail?: string | null,
   customNickname?: string
-): Promise<void> {
+): Promise<string> {
   try {
     const { isAdmin } = await import('@/lib/config/admin.config');
     // 1. Resolve user profile for display name
@@ -52,7 +52,7 @@ export async function createPost(
     const verifiedApartment = isUserAdmin ? '마스터' : profile.verifiedApartment;
     const verificationLevel = isUserAdmin ? 'registry_verified' : profile.verificationLevel;
 
-    await PostRepo.createPost({
+    const postId = await PostRepo.createPost({
       title,
       category,
       content,
@@ -66,7 +66,20 @@ export async function createPost(
     // Automatically sync manager's scouting report post to scoutingReports collection
     await syncManagerPostToScoutingReport(title, content, category, authorEmail);
 
-    logger.info('PostService.createPost', 'Post created successfully', { title, category });
+    // 4. Trigger Google Search Console Indexing via Backend API asynchronously
+    if (typeof window !== 'undefined') {
+      const pageUrl = `${window.location.origin}/lounge/${postId}`;
+      fetch('/api/admin/search-console/indexing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: pageUrl, action: 'URL_UPDATED' }),
+      }).catch(err => {
+        logger.error('PostService.createPost', 'Failed to trigger Google Indexing', { pageUrl }, err);
+      });
+    }
+
+    logger.info('PostService.createPost', 'Post created successfully', { title, category, id: postId });
+    return postId;
   } catch (error) {
     logger.error('PostService.createPost', 'Failed to create post', { title, category, authorUid }, error);
     throw error;

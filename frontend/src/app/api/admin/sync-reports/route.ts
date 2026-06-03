@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { calculatePremiumScores } from '@/lib/utils/scoring';
 import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { requestGoogleIndexing } from '@/lib/utils/googleIndexing';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -126,6 +127,12 @@ export async function GET(request: NextRequest) {
         await adminDb.collection('scoutingReports').doc(doc.id).update({
           metrics: cleanMetrics,
           premiumScores: cleanPremiumScores
+        });
+        
+        // Trigger Google Search Console Indexing API asynchronously for this apartment details page
+        const pageUrl = `${baseUrl}/apartment/${encodeURIComponent(aptName)}`;
+        requestGoogleIndexing(pageUrl, 'URL_UPDATED').catch(err => {
+          console.error(`[SyncReports-Indexing-Error] Failed indexing for ${pageUrl}:`, err);
         });
         
         updatedCount++;
