@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
+import { redis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -434,6 +435,18 @@ export async function GET(request: Request) {
       }
       
       await batch.commit();
+    }
+
+    if (redis) {
+      try {
+        await Promise.all([
+          redis.del('DTDLS:cache:localNotices:filterDongtan:true'),
+          redis.del('DTDLS:cache:localNotices:filterDongtan:false')
+        ]);
+        console.log('[Sync-Notices] Redis localNotices cache invalidated successfully.');
+      } catch (err) {
+        console.warn('[Sync-Notices] Redis cache invalidation error:', err);
+      }
     }
 
     return NextResponse.json({

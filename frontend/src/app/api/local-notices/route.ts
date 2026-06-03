@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { z } from 'zod';
+import { redis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,22 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const filterDongtan = searchParams.get('dongtan') !== 'false';
+
+    const cacheKey = `DTDLS:cache:localNotices:filterDongtan:${filterDongtan}`;
+    if (redis) {
+      try {
+        const cached = await redis.get<any>(cacheKey);
+        if (cached) {
+          return NextResponse.json(cached, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=300'
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('[Server] Redis localNotices read error:', err);
+      }
+    }
 
     // 각 카테고리별로 개별 쿼리하여 최대 100개씩 독립적(Composite Index 회피를 위해 limit 150 후 메모리 정렬) 수집
     // filterDongtan이 true일 때는 쿼리 단계에서 isDongtan == true 필터링을 함께 태워 데이터 손실을 원천 방지
@@ -142,6 +159,10 @@ export async function GET(request: Request) {
     });
 
     const responseData = localNoticesResponseSchema.parse({ notices, lastUpdated });
+
+    if (redis) {
+      redis.set(cacheKey, responseData, { ex: 3600 }).catch(e => console.warn('[Server] Redis localNotices write error:', e));
+    }
 
     return NextResponse.json(responseData, {
       headers: {

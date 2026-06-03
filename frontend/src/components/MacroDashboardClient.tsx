@@ -310,7 +310,7 @@ export default function MacroDashboardClient({
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
-  const { data: noticesData } = useSWR('/api/local-notices?t=' + Math.floor(Date.now() / 60000), fetcher);
+  const { data: noticesData } = useSWR('/api/local-notices', fetcher);
 
   const railNotices = useMemo(() => {
     if (!noticesData?.notices) return [];
