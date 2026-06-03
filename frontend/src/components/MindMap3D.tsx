@@ -41,6 +41,9 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
   const [hoveredNode, setHoveredNode] = useState<Node3D | null>(null);
   const [rotationActive, setRotationActive] = useState(true);
   const [temperatureMode, setTemperatureMode] = useState<'vote' | 'ratio'>('vote');
+  const zoom = useRef(1.0);
+  const [showZoomHint, setShowZoomHint] = useState(false);
+  const zoomHintTimeout = useRef<any>(null);
 
   // 3D Engine configuration
   const cameraAngle = useRef(0);
@@ -250,7 +253,7 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         const finalY = ry * cosX - rz * sinX;
         const finalZ = ry * sinX + rz * cosX;
 
-        const scale = perspective / (perspective + finalZ + 150);
+        const scale = (perspective / (perspective + finalZ + 150)) * zoom.current;
         node.projectedX = centerX + rx * scale * 1.1;
         node.projectedY = centerY + finalY * scale * 1.1;
         node.projectedZ = finalZ;
@@ -344,8 +347,26 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
 
     render();
 
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const zoomSpeed = 0.0015;
+        zoom.current = Math.max(0.4, Math.min(2.5, zoom.current - e.deltaY * zoomSpeed));
+      } else {
+        setShowZoomHint(true);
+        if (zoomHintTimeout.current) clearTimeout(zoomHintTimeout.current);
+        zoomHintTimeout.current = setTimeout(() => {
+          setShowZoomHint(false);
+        }, 1500);
+      }
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+
     return () => {
       cancelAnimationFrame(animationFrameId);
+      canvas.removeEventListener('wheel', handleWheel);
+      if (zoomHintTimeout.current) clearTimeout(zoomHintTimeout.current);
     };
   }, [nodes, links, rotationActive, hoveredNode, temperatureMode]);
 
@@ -464,6 +485,14 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         ref={containerRef} 
         className="w-full flex items-center justify-center relative bg-slate-950/40 border border-slate-900 rounded-2xl md:max-h-[400px] overflow-hidden select-none cursor-grab active:cursor-grabbing"
       >
+        {showZoomHint && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center pointer-events-none z-30 transition-all duration-300 animate-in fade-in">
+            <div className="bg-slate-900 border border-slate-700 px-4 py-2.5 rounded-xl text-center shadow-2xl flex flex-col items-center gap-1.5">
+              <span className="text-[12px] font-black text-white">💡 Ctrl 키를 누른 채 스크롤하면 3D 맵이 확대/축소됩니다.</span>
+              <span className="text-[10px] text-slate-400 font-bold">그냥 스크롤하면 페이지가 이동합니다.</span>
+            </div>
+          </div>
+        )}
         <canvas
           ref={canvasRef}
           onMouseMove={handleMouseMove}

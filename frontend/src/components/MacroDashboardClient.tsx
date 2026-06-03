@@ -349,6 +349,7 @@ export default function MacroDashboardClient({
   );
   const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
 
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
@@ -1412,7 +1413,7 @@ interface GroupedCategory {
                     최근 30일 내 등록된 신고가 거래가 없습니다.
                   </div>
                 ) : (
-                  dailyTimelineData.map((group) => (
+                  ((!isMobileViewport || isTimelineExpanded) ? dailyTimelineData : dailyTimelineData.slice(0, 3)).map((group) => (
                     <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-[#f2f4f6]">
                       {/* Timeline Dot */}
                       <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-[#cbd5e1] border-2 border-surface" />
@@ -1476,6 +1477,25 @@ interface GroupedCategory {
                   ))
                 )}
               </div>
+
+              {isMobileViewport && dailyTimelineData.length > 3 && (
+                <button
+                  onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
+                  className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                >
+                  {isTimelineExpanded ? (
+                    <>
+                      <span>접기</span>
+                      <ChevronUp size={14} />
+                    </>
+                  ) : (
+                    <>
+                      <span>신고가 단지 더보기 ({dailyTimelineData.length - 3}개 더보기)</span>
+                      <ChevronDown size={14} />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* 4 Info Boxes Grid */}

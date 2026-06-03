@@ -173,9 +173,13 @@ function generateAiBriefing(aptName: string, aptSummary: AptTxSummary | undefine
 }
 
 // --- SEO: Dynamic Metadata Generator ---
-// Await the params Promise for Next.js 15+
-export async function generateMetadata(props: { params: Promise<{ aptName: string }> }): Promise<Metadata> {
+// Await the params and searchParams Promise for Next.js 15+
+export async function generateMetadata(props: { 
+  params: Promise<{ aptName: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}): Promise<Metadata> {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const decodedName = decodeURIComponent(params.aptName);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   
@@ -203,6 +207,20 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
   // Dynamic OG Image URL
   const ogUrl = new URL(`${baseUrl}/api/og`);
   ogUrl.searchParams.set('title', decodedName);
+  
+  const shareType = searchParams.shareType;
+  const grade = searchParams.grade;
+  const score = searchParams.score;
+  
+  if (shareType && typeof shareType === 'string') {
+    ogUrl.searchParams.set('shareType', shareType);
+  }
+  if (grade && typeof grade === 'string') {
+    ogUrl.searchParams.set('grade', grade);
+  }
+  if (score && typeof score === 'string') {
+    ogUrl.searchParams.set('score', score);
+  }
   
   let subtitleText = '동탄 실거래가 및 가치 분석';
   if (aptSummary?.dong) {

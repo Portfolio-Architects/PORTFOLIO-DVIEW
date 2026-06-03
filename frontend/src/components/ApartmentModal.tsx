@@ -129,6 +129,68 @@ const calculateEducationScore = (metrics: any) => {
   return { score, grade, description: desc };
 };
 
+const calculateInfraScore = (metrics: any) => {
+  if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
+  
+  let score = 0;
+  
+  // 1. Subway/Rail Accessibility (max 40 points)
+  const distances = [
+    metrics.distanceToSubway || 9999,
+    metrics.distanceToIndeokwon || 9999,
+    metrics.distanceToTram || 9999
+  ];
+  const minRailDist = Math.min(...distances);
+  let railScore = 0;
+  if (minRailDist <= 400) railScore = 40;
+  else if (minRailDist <= 800) railScore = 40 - ((minRailDist - 400) / 400) * 10;
+  else if (minRailDist <= 1200) railScore = 30 - ((minRailDist - 800) / 400) * 15;
+  else railScore = 10;
+  score += Math.round(railScore);
+  
+  // 2. Convenience (Anchor Tenants) (max 30 points)
+  const anchors = [
+    metrics.distanceToStarbucks || 9999,
+    metrics.distanceToOliveYoung || 9999,
+    metrics.distanceToDaiso || 9999,
+    metrics.distanceToMcDonalds || 9999
+  ];
+  let anchorScore = 0;
+  anchors.forEach(dist => {
+    if (dist <= 300) anchorScore += 7.5;
+    else if (dist <= 600) anchorScore += 6;
+    else if (dist <= 1000) anchorScore += 4.5;
+    else anchorScore += 2;
+  });
+  score += Math.round(anchorScore);
+  
+  // 3. Commercial Density (max 30 points)
+  const density = metrics.restaurantDensity || 0;
+  let densityScore = 0;
+  if (density >= 150) densityScore = 30;
+  else if (density >= 80) densityScore = 25;
+  else if (density >= 30) densityScore = 18;
+  else if (density >= 10) densityScore = 10;
+  else densityScore = 3;
+  score += densityScore;
+  
+  // Grade
+  let grade = 'C';
+  let desc = '보통 수준의 생활 인프라';
+  if (score >= 90) {
+    grade = 'S';
+    desc = '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)';
+  } else if (score >= 80) {
+    grade = 'A';
+    desc = '역세권 입지와 스타벅스 등 핵심 상권 완비';
+  } else if (score >= 70) {
+    grade = 'B';
+    desc = '안정적인 대중교통망과 풍부한 근린 상권 보유';
+  }
+  
+  return { score, grade, description: desc };
+};
+
 function FieldReportModal({ 
   report, 
   onClose,
@@ -669,7 +731,7 @@ function FieldReportModal({
   };
 
   const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(report.apartmentName)}`;
+    const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(report.apartmentName)}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
       alert("단지 링크가 복사되었습니다. 원하는 곳에 붙여넣기 하세요!");
     }).catch((err) => {
@@ -679,7 +741,7 @@ function FieldReportModal({
   };
 
   const handleNativeShare = async () => {
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(report.apartmentName)}`;
+    const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(report.apartmentName)}`;
     const title = `${displayAptName} 가치분석 리포트`;
     
     // Extract price and jeonse logic identical to kakao share
@@ -712,6 +774,92 @@ function FieldReportModal({
       }
     } else {
       handleCopyLink();
+    }
+  };
+
+  const handleShareSection = async (type: 'childcare' | 'infra') => {
+    if (!report.metrics) return;
+    
+    const baseUrl = window.location.origin;
+    
+    if (type === 'childcare') {
+      const eduScoreInfo = calculateEducationScore(report.metrics);
+      const grade = eduScoreInfo.grade;
+      const score = eduScoreInfo.score;
+      const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
+      
+      const customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
+      const customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+      const imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: customTitle,
+            text: customDesc,
+            url: shareUrl
+          });
+        } catch (err) {
+          if ((err as Error).name !== 'AbortError') {
+            navigator.clipboard.writeText(shareUrl).then(() => alert("학군 분석 공유 링크가 복사되었습니다!"));
+          }
+        }
+      } else {
+        navigator.clipboard.writeText(shareUrl).then(() => alert("학군 분석 공유 링크가 복사되었습니다!"));
+      }
+      
+      try {
+        await shareAptToKakao({
+          aptName: report.apartmentName,
+          priceEok: 0,
+          priceMan: 0,
+          ratio: 0,
+          imageUrl,
+          customTitle,
+          customDesc
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      const infraScoreInfo = calculateInfraScore(report.metrics);
+      const grade = infraScoreInfo.grade;
+      const score = infraScoreInfo.score;
+      const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
+      
+      const customTitle = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
+      const customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
+      const imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: customTitle,
+            text: customDesc,
+            url: shareUrl
+          });
+        } catch (err) {
+          if ((err as Error).name !== 'AbortError') {
+            navigator.clipboard.writeText(shareUrl).then(() => alert("인프라 분석 공유 링크가 복사되었습니다!"));
+          }
+        }
+      } else {
+        navigator.clipboard.writeText(shareUrl).then(() => alert("인프라 분석 공유 링크가 복사되었습니다!"));
+      }
+      
+      try {
+        await shareAptToKakao({
+          aptName: report.apartmentName,
+          priceEok: 0,
+          priceMan: 0,
+          ratio: 0,
+          imageUrl,
+          customTitle,
+          customDesc
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 
@@ -999,6 +1147,60 @@ function FieldReportModal({
                   <MapPin size={18} className="text-toss-blue"/> 단지 입지정보
                 </h2>
 
+                {/* ─── 🚇 생활 인프라 종합 지수 (Infra Index) ─── */}
+                {(() => {
+                  const infraScoreInfo = calculateInfraScore(report.metrics);
+                  const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
+                    S: { bg: 'bg-[#eef2ff]', text: 'text-[#3182f6]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#3182f6]/5', scoreText: 'text-[#3182f6]' },
+                    A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
+                    B: { bg: 'bg-[#f5f3ff]', text: 'text-[#4f46e5]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#4f46e5]/5', scoreText: 'text-[#4f46e5]' },
+                    C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
+                  };
+                  const colors = scoreColors[infraScoreInfo.grade] || scoreColors.C;
+                  
+                  return (
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-toss-blue pl-2.5">
+                        <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활 인프라 지표</span>
+                        <button
+                          onClick={() => handleShareSection('infra')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] font-bold text-[12px] rounded-xl transition-all border border-[#0284c7]/20 shadow-sm cursor-pointer"
+                          title="생활 인프라 분석 결과 카카오톡 공유하기"
+                        >
+                          <Share size={12} strokeWidth={2.5} className="text-[#0284c7]/80" />
+                          <span>평가 결과 공유하기</span>
+                        </button>
+                      </div>
+                      
+                      <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
+                        <div className="flex flex-col items-center justify-center shrink-0">
+                          <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center border-4 ${colors.border} ${colors.bg} shadow-sm relative group`}>
+                            <span className="text-[12px] font-extrabold text-secondary tracking-wider">GRADE</span>
+                            <span className={`text-[36px] font-black leading-none ${colors.text} -mt-0.5`}>{infraScoreInfo.grade}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 w-full text-center md:text-left">
+                          <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
+                            <span className="text-[16px] font-bold text-secondary">종합 생활 인프라 지수:</span>
+                            <div className="flex items-baseline justify-center gap-0.5">
+                              <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{infraScoreInfo.score}</span>
+                              <span className="text-[14px] font-bold text-secondary">/ 100 점</span>
+                            </div>
+                          </div>
+                          
+                          <div className={`p-4 rounded-xl ${colors.descBg} border border-toss-blue/10 text-left`}>
+                            <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 단지 생활권 리포트</p>
+                            <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
+                              {infraScoreInfo.description} (지하철·트램역까지의 대중교통 접근성과 스타벅스·올리브영·다이소·맥도날드 등 생활 편의시설 밀집도를 가중 평균하여 연산한 지표입니다.)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* ─── 🚇 교통 Section ─── */}
                 {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
                   <div className="mb-8">
@@ -1008,47 +1210,49 @@ function FieldReportModal({
                     <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
                       {[
                         { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#00d29d', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
-                        { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
+                        { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
-                      ].filter(s => s.dist != null && s.dist > 0).map(station => (
-                        <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                          <div className="flex items-center justify-between mb-2 md:mb-3">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                                {station.label}
-                              </span>
-                              {station.dist! <= 400 && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#e0f2fe] text-[#0369a1] dark:bg-[#0369a1]/30 dark:text-[#7dd3fc] shrink-0 leading-none">초역세</span>
-                              )}
-                              {station.dist! > 400 && station.dist! <= 800 && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#f0fdf4] text-[#166534] dark:bg-[#166534]/30 dark:text-[#86efac] shrink-0 leading-none">역세권</span>
+                      ].filter(s => s.dist != null && s.dist > 0).map(station => {
+                        const dist = station.dist ?? 0;
+                        return (
+                          <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                            <div className="flex items-center justify-between mb-2 md:mb-3">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
+                                  {station.label}
+                                </span>
+                                {dist <= 400 && (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#e0f2fe] text-[#0369a1] dark:bg-[#0369a1]/30 dark:text-[#7dd3fc] shrink-0 leading-none">초역세</span>
+                                )}
+                                {dist > 400 && dist <= 800 && (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#f0fdf4] text-[#166534] dark:bg-[#166534]/30 dark:text-[#86efac] shrink-0 leading-none">역세권</span>
+                                )}
+                              </div>
+                              {dist <= 400 ? (
+                                <span className="relative flex h-2 w-2 shrink-0">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: station.color }}></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: station.color }}></span>
+                                </span>
+                              ) : (
+                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
                               )}
                             </div>
-                            {station.dist! <= 400 ? (
-                              <span className="relative flex h-2 w-2 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: station.color }}></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: station.color }}></span>
-                              </span>
-                            ) : (
-                              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
-                            )}
-                          </div>
-                          <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
-                            <div className="flex items-baseline gap-0.5">
-                              <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                                {Math.round(station.dist!).toLocaleString()}
-                              </span>
-                              <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
-                                m
+                            <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
+                                  {Math.round(dist).toLocaleString()}
+                                </span>
+                                <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
+                                  m
+                                </span>
+                              </div>
+                              <span 
+                                className="text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold shadow-sm"
+                                style={{ backgroundColor: station.bgFrom, color: station.color }}
+                              >
+                                도보 {Math.ceil(dist / 80)}분
                               </span>
                             </div>
-                            <span 
-                              className="text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold shadow-sm"
-                              style={{ backgroundColor: station.bgFrom, color: station.color }}
-                            >
-                              도보 {Math.ceil(station.dist! / 80)}분
-                            </span>
-                          </div>
                           {station.name && (
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
@@ -1062,7 +1266,8 @@ function FieldReportModal({
                             </a>
                           )}
                         </div>
-                      ))}
+                      );
+                    })}
                     </div>
                   </div>
                 )}
@@ -1238,8 +1443,16 @@ function FieldReportModal({
                   
                   return (
                     <div className="mb-8">
-                      <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                      <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
                         <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
+                        <button
+                          onClick={() => handleShareSection('childcare')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#fdf2f8] dark:bg-[#db2777]/10 hover:bg-[#fce7f3] dark:hover:bg-[#db2777]/20 active:bg-[#fbcfe8] text-[#db2777] font-bold text-[12px] rounded-xl transition-all border border-[#db2777]/20 shadow-sm cursor-pointer"
+                          title="학군/육아 분석 결과 카카오톡 공유하기"
+                        >
+                          <Share size={12} strokeWidth={2.5} className="text-[#db2777]/80" />
+                          <span>평가 결과 공유하기</span>
+                        </button>
                       </div>
                       
                       <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
@@ -1283,7 +1496,8 @@ function FieldReportModal({
                         { label: '인근 중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
                         { label: '인근 고등학교', dist: report.metrics.distanceToHigh, name: report.metrics.nearestSchoolNames?.high },
                       ].filter(s => s.dist && s.dist > 0).map(school => {
-                        const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
+                        const dist = school.dist ?? 0;
+                        const grade = dist <= 300 ? 'excellent' : dist <= 700 ? 'good' : dist <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
                           excellent: { dot: 'bg-teal-500', timeBadge: 'bg-[#f0fdfa] text-teal-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-teal-600 hover:border-teal-500/30 shadow-sm' },
                           good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-[#f0fdf4] text-[#16a34a]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#16a34a] hover:border-[#16a34a]/30 shadow-sm' },
@@ -1295,13 +1509,13 @@ function FieldReportModal({
                         // Premium school badge
                         let schoolBadge = null;
                         if (school.label.includes('초등학교')) {
-                          if (school.dist! <= 300) {
+                          if (dist <= 300) {
                             schoolBadge = { text: '초품아 (극상)', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/30' };
-                          } else if (school.dist! <= 500) {
+                          } else if (dist <= 500) {
                             schoolBadge = { text: '초인접 (우수)', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
                           }
                         } else {
-                          if (school.dist! <= 500) {
+                          if (dist <= 500) {
                             schoolBadge = { text: '학세권 (우수)', bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
                           }
                         }
@@ -1329,13 +1543,13 @@ function FieldReportModal({
                             <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
                               <div className="flex items-baseline gap-0.5">
                                 <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                                  {Math.round(school.dist!).toLocaleString()}
+                                  {Math.round(dist).toLocaleString()}
                                 </span>
                                 <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
                                   m
                                 </span>
                               </div>
-                              <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(school.dist! / 80)}분</span>
+                              <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(dist / 80)}분</span>
                             </div>
                             {school.name && (
                               <a 
