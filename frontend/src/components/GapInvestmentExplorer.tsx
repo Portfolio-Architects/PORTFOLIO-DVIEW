@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Sparkles, Coins, HelpCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Coins, HelpCircle, ArrowRight, Share2, Check } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
@@ -29,6 +29,22 @@ export default function GapInvestmentExplorer({
   const [maxGap, setMaxGap] = useState<number>(20000); // Filter value
   const debouncedMaxGap = useDebounce(localMaxGap, 200);
   const [showAll, setShowAll] = useState<boolean>(false);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window === 'undefined') return;
+
+    const shareUrl = window.location.origin + window.location.pathname + window.location.search + '#gap';
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy URL:', err);
+    });
+  };
 
   // Parse initial maxGap on mount
   useEffect(() => {
@@ -158,19 +174,52 @@ export default function GapInvestmentExplorer({
     <div className="w-full bg-surface border border-border rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center text-toss-blue">
-            <Coins className="w-4 h-4" />
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center text-toss-blue">
+              <Coins className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
+                갭투자 큐레이션
+              </h3>
+              <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
+                실거래가 기준 투자금별 동탄 아파트 큐레이션
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
-              갭투자 큐레이션
-            </h3>
-            <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
-              실거래가 기준 투자금별 동탄 아파트 큐레이션
-            </p>
-          </div>
+          
+          {/* Mobile Share Button */}
+          <button
+            onClick={handleShare}
+            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-blue-500/30 hover:bg-blue-500/5 text-secondary hover:text-toss-blue active:scale-95 transition-all duration-300 relative focus:outline-none"
+            title="현재 큐레이션 조건 공유하기"
+          >
+            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+              {isCopied ? (
+                <Check size={14} className="text-toss-blue animate-in zoom-in duration-200" />
+              ) : (
+                <Share2 size={14} className="animate-in zoom-in duration-200" />
+              )}
+            </div>
+          </button>
         </div>
+
+        {/* Desktop Share Button */}
+        <button
+          onClick={handleShare}
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-blue-500/30 hover:bg-blue-500/5 text-secondary hover:text-toss-blue active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
+          title="현재 큐레이션 조건 공유하기"
+        >
+          <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+            {isCopied ? (
+              <Check size={14} className="text-toss-blue animate-in zoom-in duration-200" />
+            ) : (
+              <Share2 size={14} className="animate-in zoom-in duration-200" />
+            )}
+          </div>
+          <span>{isCopied ? '링크 복사 완료' : '필터 공유'}</span>
+        </button>
       </div>
 
       {/* Dynamic Budget Controller Panel */}

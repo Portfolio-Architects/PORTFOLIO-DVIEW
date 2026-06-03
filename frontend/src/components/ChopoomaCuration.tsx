@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { GraduationCap, MapPin, HelpCircle, ArrowRight, BookOpen } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { GraduationCap, MapPin, HelpCircle, ArrowRight, BookOpen, Share2, Check } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey, isSameApartment } from '@/lib/utils/apartmentMapping';
@@ -25,6 +25,22 @@ export default function ChopoomaCuration({
 }: ChopoomaCurationProps) {
   const [showAll, setShowAll] = useState<boolean>(false);
   const [selectedStepIndex, setSelectedStepIndex] = useState<number>(3); // Default to '전체 (300m)'
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window === 'undefined') return;
+
+    const shareUrl = window.location.origin + window.location.pathname + window.location.search + '#gap';
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy URL:', err);
+    });
+  };
 
   // Available distance filter steps (in meters)
   const DISTANCE_STEPS = useMemo(() => [
@@ -33,6 +49,36 @@ export default function ChopoomaCuration({
     { label: '200m~300m', min: 200, max: 300, inclusiveMin: true, inclusiveMax: true },
     { label: '전체 (300m)', min: 0, max: 300, inclusiveMin: false, inclusiveMax: true },
   ], []);
+
+  // Parse initial chopoomaStep on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const stepParam = params.get('chopoomaStep');
+      if (stepParam) {
+        const parsed = parseInt(stepParam, 10);
+        if (!isNaN(parsed) && parsed >= 0 && parsed < DISTANCE_STEPS.length) {
+          setSelectedStepIndex(parsed);
+        }
+      }
+    }
+  }, [DISTANCE_STEPS]);
+
+  // Sync chopoomaStep state to URL query parameter
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const currentVal = params.get('chopoomaStep');
+      if (currentVal !== String(selectedStepIndex)) {
+        if (currentVal === null && selectedStepIndex === 3) {
+          return;
+        }
+        params.set('chopoomaStep', String(selectedStepIndex));
+        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+  }, [selectedStepIndex]);
 
   // format price helper
   const formatPrice = (priceMan: number) => {
@@ -95,22 +141,55 @@ export default function ChopoomaCuration({
     <div className="w-full bg-surface border border-border rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center text-toss-green">
-            <GraduationCap className="w-4.5 h-4.5" />
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center text-toss-green">
+              <GraduationCap className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
+                초품아 큐레이션
+              </h3>
+              <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
+                초등학교 도보 5분(300m) 이내 안심 학군 단지 큐레이션
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
-              초품아 큐레이션
-            </h3>
-            <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
-              초등학교 도보 5분(300m) 이내 안심 학군 단지 큐레이션
-            </p>
-          </div>
+          
+          {/* Mobile Share Button */}
+          <button
+            onClick={handleShare}
+            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-secondary hover:text-[#0d9488] active:scale-95 transition-all duration-300 relative focus:outline-none"
+            title="현재 큐레이션 조건 공유하기"
+          >
+            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+              {isCopied ? (
+                <Check size={14} className="text-[#0d9488] animate-in zoom-in duration-200" />
+              ) : (
+                <Share2 size={14} className="animate-in zoom-in duration-200" />
+              )}
+            </div>
+          </button>
         </div>
         
         {/* Distance Selector & Match Count */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto">
+          {/* Desktop Share Button */}
+          <button
+            onClick={handleShare}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-secondary hover:text-[#0d9488] active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
+            title="현재 큐레이션 조건 공유하기"
+          >
+            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+              {isCopied ? (
+                <Check size={14} className="text-[#0d9488] animate-in zoom-in duration-200" />
+              ) : (
+                <Share2 size={14} className="animate-in zoom-in duration-200" />
+              )}
+            </div>
+            <span>{isCopied ? '링크 복사 완료' : '필터 공유'}</span>
+          </button>
+
           <div className="flex bg-body p-1 rounded-xl items-center gap-0.5 overflow-x-auto no-scrollbar w-full sm:w-auto shadow-inner border border-border/10 max-w-full">
             {DISTANCE_STEPS.map((step, idx) => (
               <button

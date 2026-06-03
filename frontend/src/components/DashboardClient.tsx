@@ -183,20 +183,33 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
-      if (window.location.hash === '#imjang') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const hasCurationParams = params.has('chopoomaStep') || params.has('maxGap');
+
+      if (window.location.hash === '#imjang' || tabParam === 'imjang') {
         setActiveTab('imjang');
-      } else if (window.location.hash === '#gap') {
+      } else if (window.location.hash === '#gap' || tabParam === 'gap' || hasCurationParams) {
         setActiveTab('gap');
-      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=')) {
+      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=') || tabParam === 'lounge') {
         setActiveTab('lounge');
       }
 
       const handleHashChange = () => {
+        const queryParams = new URLSearchParams(window.location.search);
+        const queryTab = queryParams.get('tab');
+        const hasCuration = queryParams.has('chopoomaStep') || queryParams.has('maxGap');
+
         startTransition(() => {
-          if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=')) setActiveTab('lounge');
-          else if (window.location.hash === '#imjang') setActiveTab('imjang');
-          else if (window.location.hash === '#gap') setActiveTab('gap');
-          else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');
+          if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=') || queryTab === 'lounge') {
+            setActiveTab('lounge');
+          } else if (window.location.hash === '#imjang' || queryTab === 'imjang') {
+            setActiveTab('imjang');
+          } else if (window.location.hash === '#gap' || queryTab === 'gap' || hasCuration) {
+            setActiveTab('gap');
+          } else if (window.location.hash === '#overview' || window.location.hash === '' || queryTab === 'overview') {
+            setActiveTab('overview');
+          }
         });
       };
       window.addEventListener('hashchange', handleHashChange);
