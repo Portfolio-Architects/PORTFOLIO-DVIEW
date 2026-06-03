@@ -25,6 +25,7 @@ interface PWAContextType {
   isPushSupported: boolean;
   pushSubscription: PushSubscription | null;
   subscribeToPush: (uid?: string | null) => Promise<boolean>;
+  showToast: (message: string) => void;
 }
 
 const PWAContext = createContext<PWAContextType>({
@@ -37,6 +38,7 @@ const PWAContext = createContext<PWAContextType>({
   isPushSupported: false,
   pushSubscription: null,
   subscribeToPush: async () => false,
+  showToast: () => {},
 });
 
 export const usePWA = () => useContext(PWAContext);
@@ -178,6 +180,13 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === message ? null : prev));
+    }, 3000);
+  };
+
   return (
     <PWAContext.Provider
       value={{
@@ -190,6 +199,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
         isPushSupported,
         pushSubscription,
         subscribeToPush,
+        showToast,
       }}
     >
       {children}

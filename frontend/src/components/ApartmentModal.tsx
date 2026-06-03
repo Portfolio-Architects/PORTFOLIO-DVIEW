@@ -34,6 +34,7 @@ import { useSettings } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao } from '@/lib/utils/kakaoShare';
 import BuyOrWaitVote from './apartment-modal/BuyOrWaitVote';
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -227,6 +228,7 @@ function FieldReportModal({
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
+  const { showToast } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
@@ -700,7 +702,7 @@ function FieldReportModal({
       });
     } catch (error) {
       console.error("Kakao share card generation failed:", error);
-      alert("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
+      showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
       // Fallback
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -733,10 +735,10 @@ function FieldReportModal({
   const handleCopyLink = () => {
     const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(report.apartmentName)}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
-      alert("단지 링크가 복사되었습니다. 원하는 곳에 붙여넣기 하세요!");
+      showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
     }).catch((err) => {
       console.error("Link copy failed:", err);
-      alert("링크 복사에 실패했습니다.");
+      showToast("링크 복사에 실패했습니다.");
     });
   };
 
@@ -801,11 +803,11 @@ function FieldReportModal({
           });
         } catch (err) {
           if ((err as Error).name !== 'AbortError') {
-            navigator.clipboard.writeText(shareUrl).then(() => alert("학군 분석 공유 링크가 복사되었습니다!"));
+            navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!"));
           }
         }
       } else {
-        navigator.clipboard.writeText(shareUrl).then(() => alert("학군 분석 공유 링크가 복사되었습니다!"));
+        navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!"));
       }
       
       try {
@@ -840,11 +842,11 @@ function FieldReportModal({
           });
         } catch (err) {
           if ((err as Error).name !== 'AbortError') {
-            navigator.clipboard.writeText(shareUrl).then(() => alert("인프라 분석 공유 링크가 복사되었습니다!"));
+            navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!"));
           }
         }
       } else {
-        navigator.clipboard.writeText(shareUrl).then(() => alert("인프라 분석 공유 링크가 복사되었습니다!"));
+        navigator.clipboard.writeText(shareUrl).then(() => showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!"));
       }
       
       try {
@@ -1954,22 +1956,23 @@ function FieldReportModal({
   );
 
   // --- Image Navigation Logic ---
-  const currentImageIndex = report?.images?.findIndex(img => img.url === fullscreenImage) ?? -1;
-  const hasImages = report?.images && report.images.length > 0;
+  const images = report?.images || [];
+  const currentImageIndex = images.findIndex(img => img.url === fullscreenImage);
+  const hasImages = images.length > 0;
   
   const handleNextImage = React.useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (hasImages && currentImageIndex !== -1 && currentImageIndex < report.images!.length - 1) {
-      setFullscreenImage(report.images![currentImageIndex + 1].url);
+    if (hasImages && currentImageIndex !== -1 && currentImageIndex < images.length - 1) {
+      setFullscreenImage(images[currentImageIndex + 1].url);
     }
-  }, [hasImages, currentImageIndex, report?.images]);
+  }, [hasImages, currentImageIndex, images]);
 
   const handlePrevImage = React.useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (hasImages && currentImageIndex > 0) {
-      setFullscreenImage(report.images![currentImageIndex - 1].url);
+      setFullscreenImage(images[currentImageIndex - 1].url);
     }
-  }, [hasImages, currentImageIndex, report?.images]);
+  }, [hasImages, currentImageIndex, images]);
 
   // Keyboard navigation & preloading
   React.useEffect(() => {
@@ -1987,16 +1990,16 @@ function FieldReportModal({
     if (currentImageIndex !== -1) {
       if (currentImageIndex > 0) {
         const prevImg = new window.Image();
-        prevImg.src = report.images![currentImageIndex - 1].url;
+        prevImg.src = images[currentImageIndex - 1].url;
       }
-      if (currentImageIndex < report.images!.length - 1) {
+      if (currentImageIndex < images.length - 1) {
         const nextImg = new window.Image();
-        nextImg.src = report.images![currentImageIndex + 1].url;
+        nextImg.src = images[currentImageIndex + 1].url;
       }
     }
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [fullscreenImage, hasImages, currentImageIndex, handleNextImage, handlePrevImage, report?.images]);
+  }, [fullscreenImage, hasImages, currentImageIndex, handleNextImage, handlePrevImage, images]);
 
   const FullscreenOverlay = () => {
     if (!fullscreenImage) return null;
@@ -2058,7 +2061,7 @@ function FieldReportModal({
         )}
 
         {/* Right Arrow */}
-        {hasImages && currentImageIndex < report!.images!.length - 1 && (
+        {hasImages && currentImageIndex < images.length - 1 && (
           <button
             className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-surface/50 hover:text-surface p-3 rounded-full bg-black/20 hover:bg-surface/20 transition-colors"
             onClick={handleNextImage}
@@ -2088,7 +2091,7 @@ function FieldReportModal({
           <div className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
             <div className="bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full flex items-center gap-3 border border-white/10 shadow-lg">
               <span className="text-surface/90 text-[13px] font-bold">
-                {currentImageIndex + 1} <span className="text-surface/40 font-normal">/ {report!.images!.length}</span>
+                {currentImageIndex + 1} <span className="text-surface/40 font-normal">/ {images.length}</span>
               </span>
               {currentImgData?.locationTag && (
                 <>

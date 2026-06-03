@@ -265,7 +265,9 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
       simulationLinks.forEach((link) => {
         const source = simulationNodes.find((n) => n.id === link.source);
         const target = simulationNodes.find((n) => n.id === link.target);
-        if (!source || !target || source.projectedX === undefined || target.projectedX === undefined) return;
+        if (!source || !target || 
+            source.projectedX === undefined || target.projectedX === undefined ||
+            source.projectedY === undefined || target.projectedY === undefined) return;
 
         // Compute average depth
         const avgDepth = ((source.projectedZ || 0) + (target.projectedZ || 0)) / 2;
@@ -273,8 +275,8 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
 
         ctx.strokeStyle = `rgba(148, 163, 184, ${alpha})`;
         ctx.beginPath();
-        ctx.moveTo(source.projectedX, source.projectedY!);
-        ctx.lineTo(target.projectedX, target.projectedY!);
+        ctx.moveTo(source.projectedX, source.projectedY);
+        ctx.lineTo(target.projectedX, target.projectedY);
         ctx.stroke();
       });
 

@@ -227,7 +227,7 @@ export function TransactionTable({
                 </div>
                 {isCancelled && (
                   <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
-                    취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
+                    취소 {(tx.cancelDate || '').substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
                   </div>
                 )}
               </div>

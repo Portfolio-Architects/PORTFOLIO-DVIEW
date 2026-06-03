@@ -19,14 +19,15 @@ export async function GET(request: Request) {
     if (!db) {
       return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
     }
+    const localDb = db;
 
     const { searchParams } = new URL(request.url);
     const filterDongtan = searchParams.get('dongtan') !== 'false';
 
     // 각 카테고리별로 개별 쿼리하여 최대 100개씩 독립적(Composite Index 회피를 위해 limit 150 후 메모리 정렬) 수집
     // filterDongtan이 true일 때는 쿼리 단계에서 isDongtan == true 필터링을 함께 태워 데이터 손실을 원천 방지
-    let cityQuery = db!.collection('local_notices').where('source', 'in', ['gosi', 'bbs']);
-    let railQuery = db!.collection('local_notices').where('source', '==', 'rail');
+    let cityQuery = localDb.collection('local_notices').where('source', 'in', ['gosi', 'bbs']);
+    let railQuery = localDb.collection('local_notices').where('source', '==', 'rail');
 
     if (filterDongtan) {
       cityQuery = cityQuery.where('isDongtan', '==', true);
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
     // 3. 동네행정 (동탄 1동~9동의 9개 행정복지센터 부서별 병렬 쿼리로 특정 동 누락을 완전히 방지)
     const dongs = ['동탄1동', '동탄2동', '동탄3동', '동탄4동', '동탄5동', '동탄6동', '동탄7동', '동탄8동', '동탄9동'];
     const dongQueries = dongs.map(dong => {
-      let q = db!.collection('local_notices')
+      let q = localDb.collection('local_notices')
         .where('source', '==', 'dong')
         .where('dept', '==', dong);
       if (filterDongtan) {

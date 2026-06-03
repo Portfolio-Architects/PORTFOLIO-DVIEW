@@ -7,6 +7,7 @@ import useSWRInfinite from 'swr/infinite';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface Post {
   id: string;
@@ -91,6 +92,7 @@ const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
 };
 
 export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
+  const { showToast } = usePWA();
   const { data, error, size, setSize, isValidating } = useSWRInfinite<Post[]>(
     getPostsKey,
     postsFetcher,
@@ -249,7 +251,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       }).catch(err => console.error(err));
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => {
-        alert("공유 링크가 클립보드에 복사되었습니다! 카카오톡이나 다른 SNS에 전달하여 공유해보세요.");
+        showToast("🎉 소식 공유 링크가 클립보드에 복사되었습니다!");
       });
     }
   };

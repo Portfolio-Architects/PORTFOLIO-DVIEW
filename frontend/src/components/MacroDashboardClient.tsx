@@ -656,8 +656,8 @@ export default function MacroDashboardClient({
 
     const saleAnchorKey = deferredMacroTrendData[firstSaleAnchorIndex].name;
     const rentAnchorKey = deferredMacroTrendData[firstRentAnchorIndex].name;
-    const saleAnchorValue = monthlyAverages[saleAnchorKey].sale!;
-    const rentAnchorValue = monthlyAverages[rentAnchorKey].rent!;
+    const saleAnchorValue = monthlyAverages[saleAnchorKey].sale ?? 0;
+    const rentAnchorValue = monthlyAverages[rentAnchorKey].rent ?? 0;
 
     const macroTrendList = deferredMacroTrendData;
     const finalChartData = macroTrendList.map((point, idx) => {
@@ -674,7 +674,7 @@ export default function MacroDashboardClient({
           for (let j = idx - 1; j >= firstSaleAnchorIndex; j--) {
             const prevKey = macroTrendList[j].name;
             if (monthlyAverages[prevKey].sale !== null) {
-              lastValidSale = monthlyAverages[prevKey].sale!;
+              lastValidSale = monthlyAverages[prevKey].sale ?? lastValidSale;
               break;
             }
           }
@@ -691,7 +691,7 @@ export default function MacroDashboardClient({
           for (let j = idx - 1; j >= firstRentAnchorIndex; j--) {
             const prevKey = macroTrendList[j].name;
             if (monthlyAverages[prevKey].rent !== null) {
-              lastValidRent = monthlyAverages[prevKey].rent!;
+              lastValidRent = monthlyAverages[prevKey].rent ?? lastValidRent;
               break;
             }
           }

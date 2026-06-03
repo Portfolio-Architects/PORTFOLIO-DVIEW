@@ -192,10 +192,12 @@ const ApartmentCard = memo(function ApartmentCard({ apt, txSummary, report, isPu
                 }
 
                 // 1. If we have 3-month average, display the accurate 3-month per-pyeong calculation
-                if ((txSummary.avg3MPrice || 0) > 0 && (txSummary.avg3MPerPyeong || 0) > 0) {
-                  return <span className="text-xs font-bold text-toss-blue">{txSummary.avg3MPerPyeong!.toLocaleString()}만/평</span>;
-                } else if ((txSummary.avg1MPrice || 0) > 0 && (txSummary.avg1MPerPyeong || 0) > 0) {
-                  return <span className="text-xs font-bold text-toss-blue">{txSummary.avg1MPerPyeong!.toLocaleString()}만/평</span>;
+                const avg3MPerPyeong = txSummary.avg3MPerPyeong;
+                const avg1MPerPyeong = txSummary.avg1MPerPyeong;
+                if ((txSummary.avg3MPrice || 0) > 0 && typeof avg3MPerPyeong === 'number' && avg3MPerPyeong > 0) {
+                  return <span className="text-xs font-bold text-toss-blue">{avg3MPerPyeong.toLocaleString()}만/평</span>;
+                } else if ((txSummary.avg1MPrice || 0) > 0 && typeof avg1MPerPyeong === 'number' && avg1MPerPyeong > 0) {
+                  return <span className="text-xs font-bold text-toss-blue">{avg1MPerPyeong.toLocaleString()}만/평</span>;
                 }
 
                 // 2. Otherwise, if we have recent transaction, calculate per-pyeong of that specific transaction

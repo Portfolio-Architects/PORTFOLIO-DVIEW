@@ -140,7 +140,7 @@ export async function safeHtml2canvas(
   if (typeof window !== 'undefined') {
     originalGetComputedStyle = window.getComputedStyle;
     window.getComputedStyle = function(el, pseudoElt) {
-      const style = originalGetComputedStyle!.call(window, el, pseudoElt);
+      const style = originalGetComputedStyle ? originalGetComputedStyle.call(window, el, pseudoElt) : window.getComputedStyle(el, pseudoElt);
       return proxyStyleDeclaration(style);
     };
   }
@@ -171,7 +171,7 @@ export async function safeHtml2canvasPro(
   if (typeof window !== 'undefined') {
     originalGetComputedStyle = window.getComputedStyle;
     window.getComputedStyle = function(el, pseudoElt) {
-      const style = originalGetComputedStyle!.call(window, el, pseudoElt);
+      const style = originalGetComputedStyle ? originalGetComputedStyle.call(window, el, pseudoElt) : window.getComputedStyle(el, pseudoElt);
       return proxyStyleDeclaration(style);
     };
   }

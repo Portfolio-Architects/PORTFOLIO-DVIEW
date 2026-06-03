@@ -11,10 +11,12 @@ export function useComments(selectedReport: FieldReportData | null, fullReportDa
     const actualReportId = fullReportData ? fullReportData.id : selectedReport?.id;
     
     if (actualReportId && !actualReportId.startsWith('stub-') && !commentsData[actualReportId]) {
-      const unsubscribe = dashboardFacade.listenToComments!(actualReportId, (comments) => {
-        setCommentsData(prev => ({ ...prev, [actualReportId]: comments }));
-      });
-      return () => unsubscribe();
+      if (dashboardFacade.listenToComments) {
+        const unsubscribe = dashboardFacade.listenToComments(actualReportId, (comments) => {
+          setCommentsData(prev => ({ ...prev, [actualReportId]: comments }));
+        });
+        return () => unsubscribe();
+      }
     }
   }, [selectedReport, fullReportData, commentsData]);
 
@@ -27,11 +29,16 @@ export function useComments(selectedReport: FieldReportData | null, fullReportDa
     const text = commentInput[reportId];
     if (!text?.trim()) return;
 
-    await dashboardFacade.addFieldReportComment!(reportId, text, user.uid);
+    if (dashboardFacade.addFieldReportComment) {
+      await dashboardFacade.addFieldReportComment(reportId, text, user.uid);
+    }
     
     // Trigger push notification to report author
     try {
-      const profile = await dashboardFacade.getUserProfile!(user.uid);
+      let profile = null;
+      if (dashboardFacade.getUserProfile) {
+        profile = await dashboardFacade.getUserProfile(user.uid);
+      }
       const nickname = profile?.nickname || user.displayName || user.email || '익명';
       await fetch('/api/push/notify-comment', {
         method: 'POST',

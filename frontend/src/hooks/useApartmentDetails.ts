@@ -222,12 +222,16 @@ export function useApartmentDetails(
     // Fetch Full Report & View count
     const isStubReport = selectedReport.id.startsWith('stub-');
     if (!isStubReport) {
-      dashboardFacade.getFullReport!(selectedReport.id).then((data) => {
-        if (!unmounted) {
-          setFullReportData(data);
-          setIsLoadingDetail(false);
-        }
-      }).catch(() => { if (!unmounted) setIsLoadingDetail(false); });
+      if (dashboardFacade.getFullReport) {
+        dashboardFacade.getFullReport(selectedReport.id).then((data) => {
+          if (!unmounted) {
+            setFullReportData(data);
+            setIsLoadingDetail(false);
+          }
+        }).catch(() => { if (!unmounted) setIsLoadingDetail(false); });
+      } else {
+        setIsLoadingDetail(false);
+      }
 
       const trackView = () => {
         fetch('/api/report-view', { method: 'POST', body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }) }).catch(() => {});

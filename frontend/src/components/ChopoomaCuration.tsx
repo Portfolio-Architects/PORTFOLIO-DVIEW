@@ -75,7 +75,7 @@ export default function ChopoomaCuration({
     // 거리 오름차순(가장 가까운 곳 우선) 정렬
     return enriched
       .filter(item => item.dist !== undefined && item.dist > 0 && item.dist <= 300)
-      .sort((a, b) => a.dist! - b.dist!);
+      .sort((a, b) => (a.dist || 0) - (b.dist || 0));
   }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, locationScores]);
 
   // Filter based on selected distance step
@@ -155,7 +155,8 @@ export default function ChopoomaCuration({
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {visibleList.map((item, idx) => {
-              const walkTime = Math.ceil(item.dist! / 80);
+              const dist = item.dist || 0;
+              const walkTime = Math.ceil(dist / 80);
               return (
                 <div
                   key={item.apt.name}
@@ -172,7 +173,7 @@ export default function ChopoomaCuration({
                       </span>
                     </div>
                     <div className="flex flex-col gap-1 items-end shrink-0">
-                      {item.dist! <= 150 ? (
+                      {dist <= 150 ? (
                         <span className="px-2 py-0.5 bg-[#e0fbf4] dark:bg-[#03c75a]/10 text-[#03c75a] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#03c75a]/20">
                           초인접 학군
                         </span>
@@ -189,7 +190,7 @@ export default function ChopoomaCuration({
                     <div className="flex flex-col">
                       <span className="text-[11px] font-bold text-toss-green dark:text-emerald-400">초등학교 최단거리</span>
                       <span className="text-[18px] md:text-[20px] font-black text-toss-green tracking-tight">
-                        {item.dist}m
+                        {dist}m
                       </span>
                     </div>
                     
@@ -198,7 +199,7 @@ export default function ChopoomaCuration({
                       <div className="w-16 h-1.5 bg-border/50 dark:bg-emerald-950 rounded-full mt-1.5 overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-emerald-400 to-[#03c75a] rounded-full" 
-                          style={{ width: `${Math.max(10, 100 - (item.dist! / 3))}%` }}
+                          style={{ width: `${Math.max(10, 100 - (dist / 3))}%` }}
                         />
                       </div>
                     </div>

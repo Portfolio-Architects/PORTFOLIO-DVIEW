@@ -1,26 +1,73 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
+import { z } from 'zod';
 
 export const runtime = 'edge';
+
+const ogParamsSchema = z.object({
+  title: z.preprocess((val) => val || undefined, z.string().default('동탄 아파트 가치분석')),
+  subtitle: z.preprocess((val) => val || undefined, z.string().default('실거래가 및 전문가 임장 리포트 확인하기')),
+  bgUrl: z.string().nullable().optional(),
+  price: z.string().nullable().optional(),
+  ratio: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  type: z.string().nullable().optional(),
+  dept: z.preprocess((val) => val || undefined, z.string().default('동탄구청')),
+  shareType: z.preprocess((val) => (val === 'childcare' || val === 'infra' ? val : null), z.enum(['childcare', 'infra']).nullable().optional()),
+  grade: z.preprocess((val) => (val === 'S' || val === 'A' || val === 'B' || val === 'C' ? val : undefined), z.enum(['S', 'A', 'B', 'C']).default('C')),
+  score: z.preprocess((val) => {
+    if (typeof val === 'string' && /^\d+$/.test(val)) return val;
+    return undefined;
+  }, z.string().default('0')),
+});
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     
-    // Fallback values
-    const title = searchParams.get('title') || '동탄 아파트 가치분석';
-    const subtitle = searchParams.get('subtitle') || '실거래가 및 전문가 임장 리포트 확인하기';
-    const bgUrl = searchParams.get('bgUrl');
-    const price = searchParams.get('price');
-    const ratio = searchParams.get('ratio');
-    const status = searchParams.get('status');
-    const type = searchParams.get('type');
-    const dept = searchParams.get('dept') || '동탄구청';
-    const shareType = searchParams.get('shareType');
+    const parsed = ogParamsSchema.safeParse({
+      title: searchParams.get('title'),
+      subtitle: searchParams.get('subtitle'),
+      bgUrl: searchParams.get('bgUrl'),
+      price: searchParams.get('price'),
+      ratio: searchParams.get('ratio'),
+      status: searchParams.get('status'),
+      type: searchParams.get('type'),
+      dept: searchParams.get('dept'),
+      shareType: searchParams.get('shareType'),
+      grade: searchParams.get('grade'),
+      score: searchParams.get('score'),
+    });
+
+    const validatedData = parsed.success ? parsed.data : {
+      title: '동탄 아파트 가치분석',
+      subtitle: '실거래가 및 전문가 임장 리포트 확인하기',
+      bgUrl: null,
+      price: null,
+      ratio: null,
+      status: null,
+      type: null,
+      dept: '동탄구청',
+      shareType: null,
+      grade: 'C' as const,
+      score: '0',
+    };
+
+    const {
+      title,
+      subtitle,
+      bgUrl,
+      price,
+      ratio,
+      status,
+      type,
+      dept,
+      shareType,
+      grade,
+      score,
+    } = validatedData;
 
     if (shareType === 'childcare') {
-      const grade = searchParams.get('grade') || 'C';
-      const score = searchParams.get('score') || '0';
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {
         S: { bg: '#db2777', border: '#fbcfe8', glow: 'rgba(219, 39, 119, 0.4)', desc: '최상급 초품아 + 대형 학원가 인접 (최고의 자녀 양육 환경)' },
         A: { bg: '#059669', border: '#a7f3d0', glow: 'rgba(5, 150, 105, 0.4)', desc: '안심 도보 통학 및 우수한 학원가 인프라 완비' },
@@ -166,8 +213,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (shareType === 'infra') {
-      const grade = searchParams.get('grade') || 'C';
-      const score = searchParams.get('score') || '0';
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {
         S: { bg: '#3182f6', border: '#cbdcfb', glow: 'rgba(49, 130, 246, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
         A: { bg: '#0284c7', border: '#bae6fd', glow: 'rgba(2, 132, 199, 0.4)', desc: '역세권 입지와 스타벅스 등 핵심 상권 완비' },

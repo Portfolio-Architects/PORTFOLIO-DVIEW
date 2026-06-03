@@ -42,23 +42,23 @@ export default function HotComplexRanking({
       };
     });
 
-    const filtered = enriched.filter(item => item.sum && item.sum.latestDate);
+    const filtered = enriched.filter((item): item is { apt: DongApartment; sum: AptTxSummary } => !!(item.sum && item.sum.latestDate));
 
     return filtered
       .sort((a, b) => {
-        const dateA = String(a.sum!.latestDate).replace(/[^0-9]/g, '');
-        const dateB = String(b.sum!.latestDate).replace(/[^0-9]/g, '');
+        const dateA = String(a.sum.latestDate).replace(/[^0-9]/g, '');
+        const dateB = String(b.sum.latestDate).replace(/[^0-9]/g, '');
         if (dateA !== dateB) {
           return dateB.localeCompare(dateA); // 최신 거래일 순
         }
         // 일자가 같으면 실거래가 높은 순
-        const priceA = a.sum!.latestPrice || 0;
-        const priceB = b.sum!.latestPrice || 0;
+        const priceA = a.sum.latestPrice || 0;
+        const priceB = b.sum.latestPrice || 0;
         return priceB - priceA;
       })
       .slice(0, 5)
       .map(item => {
-        const sum = item.sum!;
+        const sum = item.sum;
         
         // 날짜 포맷팅: "20260522" or "2026-05-22" -> "5.22"
         let formattedDate = '';
