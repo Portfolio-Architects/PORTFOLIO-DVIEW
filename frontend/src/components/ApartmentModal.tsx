@@ -717,7 +717,7 @@ function FieldReportModal({
   const content = (
     <>
       {/* ── Unified Header ── */}
-      <div className="w-full bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20">
+      <header className={`w-full ${inline ? 'bg-surface' : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md'} pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20`}>
         <div className="w-full flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[450px]">
             <div className="flex items-center gap-2">
@@ -807,10 +807,10 @@ function FieldReportModal({
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Hero Section — Layout: 35% table / 65% chart */}
-      <div className={`bg-surface w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:px-10 md:py-6'} gap-4 md:gap-8 shrink-0 ${inline ? 'border-b border-body' : 'border-b border-border'}`}>
+      <section className={`w-full flex flex-col md:flex-row p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} gap-4 md:gap-8 shrink-0`}>
         
         {/* Left: 실거래가 전체 리스트 (35%) */}
         <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch">
@@ -835,7 +835,7 @@ function FieldReportModal({
             txSummary={txSummary}
           />
         </div>
-      </div>
+      </section>
 
           {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
           <TransactionSummaryMetrics 
@@ -883,7 +883,7 @@ function FieldReportModal({
 
             {/* 1. 단지 기본 명세 (Specs) */}
             {report.metrics && (
-              <div id="sec-specs" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border">
+              <section id="sec-specs" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}>
                  <h2 className="text-title-lg font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
                    <Building size={18} className="text-toss-blue"/> 단지 기본정보
                  </h2>
@@ -974,8 +974,8 @@ function FieldReportModal({
                      </button>
                    </div>
                  )}
-              </div>
-            )}
+               </section>
+             )}
 
             {/* ── PAYWALL GATE — 비활성화 (프리미엄 콘텐츠 전면 공개 중) ──
              * TODO: 유료 모델 전환 시 이 블록 복원
@@ -987,7 +987,7 @@ function FieldReportModal({
 
 
           {/* 단지 입지정보 컨테이너 (교통 + 생활 인프라 + 앵커 테넌트 묶음) */}
-          <div id="sec-infra-metrics" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14">
+          <section id="sec-infra-metrics" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14`}>
             {/* Location Infrastructure Info — Enhanced Design v2 */}
             {report.metrics && (report.metrics.distanceToSubway || report.metrics.restaurantDensity) && (
               <div className="flex flex-col w-full">
@@ -1116,10 +1116,10 @@ function FieldReportModal({
                 mcdonaldsCoordinates={report.metrics.mcdonaldsCoordinates}
               />
             )}
-          </div>
+          </section>
 
           {/* 🎓 학군 및 육아 분석 컨테이너 */}
-          <div id="sec-education" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14">
+          <section id="sec-education" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14`}>
             {report.metrics && (
               <div className="flex flex-col w-full">
                 <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
@@ -1289,13 +1289,13 @@ function FieldReportModal({
                 )}
               </div>
             )}
-          </div>
+          </section>
 
             {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
-            <div id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
+            <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
               <AdvancedValuationMetrics report={report} transactions={transactions} />
               <BuyOrWaitVote aptName={report.apartmentName} />
-            </div>
+            </section>
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}
             {report.images && report.images.length > 0 ? (() => {
@@ -1305,7 +1305,7 @@ function FieldReportModal({
               };
               const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
               return (
-                <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative">
+                <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative`}>
                   <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
                     <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
                     <button 
@@ -1328,10 +1328,10 @@ function FieldReportModal({
                     {/* Category Filter Chips */}
                     <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
                   </details>
-                </div>
+                </section>
               );
             })() : (
-              <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group">
+              <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group`}>
                 <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                   <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
                 </h2>
@@ -1368,7 +1368,7 @@ function FieldReportModal({
                     * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
                   </p>
                 </div>
-              </div>
+              </section>
             )}
 
             {!s ? null : (() => {
@@ -1387,7 +1387,7 @@ function FieldReportModal({
               <>
 
                 {/* 2. 단지 기본정보 (Specs) */}
-                <div id="sec-specs" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                <section id="sec-specs" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
                    <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Building size={20} className="text-toss-blue"/> 단지 기본정보</h2>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-body p-4 rounded-xl border border-border">
@@ -1407,10 +1407,10 @@ function FieldReportModal({
                         <p className="text-[15px] text-primary font-medium">{s.specs.parkingRatio || '-'}</p>
                       </div>
                    </div>
-                </div>
+                </section>
 
                 {/* 3. 물리적 인프라 & 조경 */}
-                <div id="sec-infra" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                <section id="sec-infra" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
                    <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Camera size={20} className="text-toss-blue"/> 현장 인프라 둘러보기</h2>
                    <div className="flex flex-col gap-8">
                       {/* Gate */}
@@ -1444,10 +1444,10 @@ function FieldReportModal({
                         </div>
                       )}
                    </div>
-                </div>
+                </section>
 
                  {/* 4. Ecosystem */}
-                <div id="sec-eco" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                <section id="sec-eco" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
                    <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Info size={20} className="text-toss-blue"/> 생활 편의시설 및 거시 입지</h2>
                    <div className="flex flex-col gap-8">
                       {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
@@ -1469,10 +1469,10 @@ function FieldReportModal({
                         </div>
                       )}
                    </div>
-                </div>
+                </section>
 
                  {/* 5. 최종 결론 */}
-                <div id="sec-conclusion" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                <section id="sec-conclusion" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
                    <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><ShieldAlert size={20} className="text-toss-blue"/> 최종 매수 타당성 평가</h2>
                    <div className="flex flex-col gap-4">
                       <div className="bg-primary p-6 rounded-2xl text-surface">
@@ -1495,7 +1495,7 @@ function FieldReportModal({
                         )}
                       </div>
                    </div>
-                </div>
+                </section>
               </>
             )})()}
 
@@ -1537,7 +1537,7 @@ function FieldReportModal({
             </div>
 
             {/* Comments Section */}
-            <div id="sec-comments">
+            <section id="sec-comments">
               <CommentSection
                 comments={comments}
                 commentInput={commentInput}
@@ -1547,7 +1547,7 @@ function FieldReportModal({
                 isUnlocked={isUnlocked}
                 selectedCommentId={selectedCommentId}
               />
-            </div>
+            </section>
 
           </div>
     </>
@@ -1730,18 +1730,18 @@ function FieldReportModal({
   return createPortal(
     <>
       <div className="fixed inset-0 z-[11000] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
-        <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" onClick={onClose} />
         
-        <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
+        <article className={`relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}>
 
-          <div className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
+          <header className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
             <button onClick={onClose} className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
-          </div>
+          </header>
           
           <div ref={modalRef} onScroll={handleScroll} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
-            <div id="pdf-report-content" className="flex flex-col bg-body w-full">
+            <div id="pdf-report-content" className={`flex flex-col ${inline ? 'bg-body' : 'bg-transparent'} w-full`}>
               {content}
             </div>
             {/* 하단 고정 버튼 영역 침범 방지용 여백 (모바일 전용) */}
@@ -1762,7 +1762,7 @@ function FieldReportModal({
           )}
 
           {/* Mobile Sticky CTA (공유하기) */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+          <footer className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
             <div className="flex items-center gap-2 w-full">
               <button
                 onClick={onClose}
@@ -1780,8 +1780,8 @@ function FieldReportModal({
                 이 아파트 분석 리포트 공유하기
               </button>
             </div>
-          </div>
-        </div>
+          </footer>
+        </article>
       </div>
       
       {/* Upload Modal */}

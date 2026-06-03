@@ -2,6 +2,22 @@ import { Metadata } from 'next';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import { adminDb } from '@/lib/firebaseAdmin';
 
+export const revalidate = 60; // Cache and revalidate page at most once every 60 seconds
+export const dynamicParams = true; // Enable on-demand generation for posts not pre-rendered
+
+export async function generateStaticParams() {
+  if (!adminDb) return [];
+  try {
+    const snap = await adminDb.collection('posts').orderBy('createdAt', 'desc').limit(10).get();
+    return snap.docs.map((doc) => ({
+      id: doc.id,
+    }));
+  } catch (error) {
+    console.error('Failed to generateStaticParams for lounge posts', error);
+    return [];
+  }
+}
+
 interface Props {
   params: Promise<{ id: string }>;
 }
