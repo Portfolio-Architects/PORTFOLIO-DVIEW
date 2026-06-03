@@ -173,14 +173,18 @@ const InfoBox = ({
 
         {badge && (
           <div
-            className="px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[6px] text-[9.5px] md:text-[11px] tracking-tight font-extrabold whitespace-nowrap leading-none shrink-0"
+            className="px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-[6px] text-[9.5px] md:text-[11px] tracking-tight font-extrabold whitespace-nowrap leading-none shrink-0 border"
             style={{
               backgroundColor: hexToRgba(color, 0.08),
-              color: color,
-              border: `1px solid ${hexToRgba(color, 0.15)}`,
+              borderColor: hexToRgba(color, 0.15),
             }}
           >
-            {badge}
+            <span 
+              style={{ color: color }}
+              className="dark:brightness-125 dark:saturate-150"
+            >
+              {badge}
+            </span>
           </div>
         )}
       </div>
@@ -865,7 +869,7 @@ export default function MacroDashboardClient({
     const isUp = diff > 0;
     const isDown = diff < 0;
     let trendText = "보합 (0%)";
-    let trendColor = "#94a3b8";
+    let trendColor = "#5d6d7e";
 
     if (isUp) {
       trendText = `상승 (+${rate.toFixed(1)}%)`;

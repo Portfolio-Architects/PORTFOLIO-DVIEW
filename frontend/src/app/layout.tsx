@@ -12,7 +12,7 @@ import Script from 'next/script';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import Footer from '@/components/Footer';
-import AdSense from '@/components/ui/AdSense';
+import MobileBottomAd from '@/components/pwa/MobileBottomAd';
 import { headers } from 'next/headers';
 import dynamic from 'next/dynamic';
 
@@ -86,7 +86,7 @@ export default async function RootLayout({
       <head>
         <meta name="referrer" content="no-referrer" />
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-hidden pb-[50px] md:pb-0">
+      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-hidden">
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 
@@ -145,16 +145,7 @@ export default async function RootLayout({
 
             {/* Mobile Bottom Sticky Anchor Ad (Renders in production if AdSense client ID exists, or in dev mode for preview) */}
             {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'development') && (
-              <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-border flex items-center justify-center h-[50px] w-full shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                <div className="w-[320px] h-[50px] overflow-hidden flex items-center justify-center">
-                  <AdSense 
-                    adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR || "test-anchor-slot"} 
-                    adFormat="horizontal"
-                    responsive="false"
-                    style={{ display: 'inline-block', width: '320px', height: '50px', minHeight: '50px' }}
-                  />
-                </div>
-              </div>
+              <MobileBottomAd adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR || "test-anchor-slot"} />
             )}
           </SettingsProvider>
         </ThemeProvider>

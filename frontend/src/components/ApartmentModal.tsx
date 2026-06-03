@@ -1013,9 +1013,17 @@ function FieldReportModal({
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
                         <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
                           <div className="flex items-center justify-between mb-2 md:mb-3">
-                            <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                              {station.label}
-                            </span>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
+                                {station.label}
+                              </span>
+                              {station.dist! <= 400 && (
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#e0f2fe] text-[#0369a1] dark:bg-[#0369a1]/30 dark:text-[#7dd3fc] shrink-0 leading-none">초역세</span>
+                              )}
+                              {station.dist! > 400 && station.dist! <= 800 && (
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#f0fdf4] text-[#166534] dark:bg-[#166534]/30 dark:text-[#86efac] shrink-0 leading-none">역세권</span>
+                              )}
+                            </div>
                             {station.dist! <= 400 ? (
                               <span className="relative flex h-2 w-2 shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: station.color }}></span>
@@ -1066,32 +1074,119 @@ function FieldReportModal({
                       <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활권 인프라</span>
                     </div>
                     <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-1 md:gap-3">
-                      {/* Restaurant/Cafe Density */}
-                      <div className="w-full bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                        <div className="flex items-center justify-between mb-2 md:mb-3">
-                          <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                            음식점·카페·500m
-                          </span>
-                          <span className="w-2 h-2 rounded-full shrink-0 bg-[#f59e0b]" />
-                        </div>
-                        <div className="flex items-baseline gap-0.5 mb-3 md:mb-4 whitespace-nowrap">
-                          <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                          <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
-                        </div>
-                        {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 mt-auto">
-                            {Object.entries(report.metrics.restaurantCategories)
-                              .sort(([,a], [,b]) => (b as number) - (a as number))
-                              .slice(0, 5)
-                              .map(([cat, cnt]) => (
-                                <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border border-border/20 rounded-xl px-3 py-1.5 transition-all duration-200">
-                                  <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
-                                  <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
+                      {(() => {
+                        const restaurantData = Object.entries(report.metrics.restaurantCategories || {}).map(([cat, cnt]) => {
+                          let tag = '기타';
+                          let color = '#64748b'; // slate-500
+                          let bg = 'bg-[#64748b]';
+                          
+                          if (cat.includes('한식') || cat.includes('구이') || cat.includes('갈비') || cat.includes('삼겹살') || cat.includes('육류') || cat.includes('탕') || cat.includes('찌개') || cat.includes('백반')) {
+                            tag = '한식/고기';
+                            color = '#e11d48'; // rose-600
+                            bg = 'bg-[#e11d48]';
+                          } else if (cat.includes('커피') || cat.includes('카페') || cat.includes('디저트') || cat.includes('찻집') || cat.includes('제과') || cat.includes('빵')) {
+                            tag = '카페/음료';
+                            color = '#b45309'; // amber-700
+                            bg = 'bg-[#b45309]';
+                          } else if (cat.includes('일식') || cat.includes('회') || cat.includes('초밥') || cat.includes('돈까스') || cat.includes('스시')) {
+                            tag = '일식/일반';
+                            color = '#0284c7'; // sky-600
+                            bg = 'bg-[#0284c7]';
+                          } else if (cat.includes('중식') || cat.includes('중국') || cat.includes('짜장') || cat.includes('짬뽕')) {
+                            tag = '중식/아시안';
+                            color = '#ea580c'; // orange-600
+                            bg = 'bg-[#ea580c]';
+                          } else if (cat.includes('양식') || cat.includes('경양식') || cat.includes('피자') || cat.includes('파스타') || cat.includes('스테이크') || cat.includes('뷔페') || cat.includes('패스트')) {
+                            tag = '양식/양식';
+                            color = '#7c3aed'; // purple-600
+                            bg = 'bg-[#7c3aed]';
+                          } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
+                            tag = '분식/간식';
+                            color = '#0d9488'; // teal-600
+                            bg = 'bg-[#0d9488]';
+                          } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
+                            tag = '치킨/주점';
+                            color = '#f59e0b'; // amber-500
+                            bg = 'bg-[#f59e0b]';
+                          }
+                          return { cat, cnt: cnt as number, tag, color, bg };
+                        });
+
+                        const totalRestaurantCount = restaurantData.reduce((sum, item) => sum + item.cnt, 0);
+                        const restTagSums: Record<string, { count: number; color: string; bg: string }> = {};
+                        restaurantData.forEach(item => {
+                          if (!restTagSums[item.tag]) {
+                            restTagSums[item.tag] = { count: 0, color: item.color, bg: item.bg };
+                          }
+                          restTagSums[item.tag].count += item.cnt;
+                        });
+
+                        const sortedRestTags = Object.entries(restTagSums).sort((a, b) => b[1].count - a[1].count);
+
+                        return (
+                          <div className="w-full bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                            <div className="flex items-center justify-between mb-2 md:mb-3">
+                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
+                                음식점·카페·500m
+                              </span>
+                              <span className="w-2 h-2 rounded-full shrink-0 bg-[#f59e0b]" />
+                            </div>
+                            
+                            <div className="flex items-baseline gap-0.5 mb-4 whitespace-nowrap">
+                              <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                              <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
+                            </div>
+
+                            {totalRestaurantCount > 0 && (
+                              <div className="mb-4">
+                                {/* 수평 비율 게이지 바 */}
+                                <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner mb-3">
+                                  {sortedRestTags.map(([tag, data]) => {
+                                    const percent = (data.count / totalRestaurantCount) * 100;
+                                    return (
+                                      <div 
+                                        key={tag} 
+                                        className={`${data.bg} h-full transition-all duration-300`}
+                                        style={{ width: `${percent}%` }}
+                                        title={`${tag}: ${data.count}개 (${Math.round(percent)}%)`}
+                                      />
+                                    );
+                                  })}
                                 </div>
-                              ))}
+                                
+                                {/* 범례 */}
+                                <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
+                                  {sortedRestTags.map(([tag, data]) => {
+                                    const percent = (data.count / totalRestaurantCount) * 100;
+                                    return (
+                                      <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary">
+                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
+                                        <span>{tag}</span>
+                                        <span className="text-primary">{data.count}개</span>
+                                        <span className="opacity-60 text-[10px]">({Math.round(percent)}%)</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 border-t border-border/40 pt-4 mt-2">
+                                {Object.entries(report.metrics.restaurantCategories)
+                                  .sort(([,a], [,b]) => (b as number) - (a as number))
+                                  .slice(0, 5)
+                                  .map(([cat, cnt]) => (
+                                    <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border border-border/20 rounded-xl px-3 py-1.5 transition-all duration-200">
+                                      <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
+                                      <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
@@ -1196,20 +1291,40 @@ function FieldReportModal({
                           far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-[#fef2f2] text-[#dc2626]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#dc2626] hover:border-[#dc2626]/30 shadow-sm' },
                         };
                         const s = gradeStyles[grade];
+                        
+                        // Premium school badge
+                        let schoolBadge = null;
+                        if (school.label.includes('초등학교')) {
+                          if (school.dist! <= 300) {
+                            schoolBadge = { text: '초품아 (극상)', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/30' };
+                          } else if (school.dist! <= 500) {
+                            schoolBadge = { text: '초인접 (우수)', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
+                          }
+                        } else {
+                          if (school.dist! <= 500) {
+                            schoolBadge = { text: '학세권 (우수)', bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
+                          }
+                        }
+
                         return (
                           <div key={school.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                            <div className="flex items-center justify-between mb-2 md:mb-3">
+                            <div className="flex items-center justify-between mb-2 md:mb-3 min-w-0 gap-1">
                               <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
                                 {school.label}
                               </span>
-                              {grade === 'excellent' ? (
+                              {schoolBadge && (
+                                <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none shrink-0 ${schoolBadge.bg}`}>
+                                  {schoolBadge.text}
+                                </span>
+                              )}
+                              {grade === 'excellent' && !schoolBadge ? (
                                 <span className="relative flex h-2 w-2 shrink-0">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75"></span>
                                   <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
                                 </span>
-                              ) : (
+                              ) : !schoolBadge ? (
                                 <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
-                              )}
+                              ) : null}
                             </div>
                             <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
                               <div className="flex items-baseline gap-0.5">
@@ -1247,7 +1362,7 @@ function FieldReportModal({
                       <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">주변 학원가 구성 (500m 반경)</span>
                     </div>
                     
-                    <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col gap-6">
+                    <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col gap-5">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0">
                           <GraduationCap className="text-teal-600" size={24} />
@@ -1260,19 +1375,86 @@ function FieldReportModal({
                           </div>
                         </div>
                       </div>
+
+                      {(() => {
+                        const academyData = Object.entries(report.metrics.academyCategories || {}).map(([cat, cnt]) => {
+                          let tag = '일반학원';
+                          let color = '#0d9488'; // teal-600
+                          let bg = 'bg-[#0d9488]';
+                          if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
+                            tag = '예체능';
+                            color = '#db2777'; // pink-600
+                            bg = 'bg-[#db2777]';
+                          } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
+                            tag = '체육/활동';
+                            color = '#ea580c'; // orange-600
+                            bg = 'bg-[#ea580c]';
+                          } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
+                            tag = '건강/취미';
+                            color = '#0284c7'; // sky-600
+                            bg = 'bg-[#0284c7]';
+                          }
+                          return { cat, cnt: cnt as number, tag, color, bg };
+                        });
+
+                        const totalAcademyCount = academyData.reduce((sum, item) => sum + item.cnt, 0);
+                        const tagSums: Record<string, { count: number; color: string; bg: string }> = {};
+                        academyData.forEach(item => {
+                          if (!tagSums[item.tag]) {
+                            tagSums[item.tag] = { count: 0, color: item.color, bg: item.bg };
+                          }
+                          tagSums[item.tag].count += item.cnt;
+                        });
+
+                        const sortedTags = Object.entries(tagSums).sort((a, b) => b[1].count - a[1].count);
+
+                        return totalAcademyCount > 0 ? (
+                          <div className="mb-2">
+                            {/* 수평 비율 게이지 바 */}
+                            <div className="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner mb-3">
+                              {sortedTags.map(([tag, data]) => {
+                                const percent = (data.count / totalAcademyCount) * 100;
+                                return (
+                                  <div 
+                                    key={tag} 
+                                    className={`${data.bg} h-full transition-all duration-300`}
+                                    style={{ width: `${percent}%` }}
+                                    title={`${tag}: ${data.count}개 (${Math.round(percent)}%)`}
+                                  />
+                                );
+                              })}
+                            </div>
+                            
+                            {/* 범례 */}
+                            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
+                              {sortedTags.map(([tag, data]) => {
+                                const percent = (data.count / totalAcademyCount) * 100;
+                                return (
+                                  <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary">
+                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
+                                    <span>{tag}</span>
+                                    <span className="text-primary">{data.count}개</span>
+                                    <span className="opacity-60 text-[10px]">({Math.round(percent)}%)</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : null;
+                      })()}
                       
                       {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 border-t border-border/40 pt-4 mt-1">
                           {Object.entries(report.metrics.academyCategories)
                             .sort(([,a], [,b]) => (b as number) - (a as number))
                             .map(([cat, cnt]) => {
                               let theme = { bg: 'bg-[#f0fdfa]/50 text-teal-600 border-[#ccfbf1]/40', tag: '학업' };
                               
-                              if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용')) {
+                              if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
                                 theme = { bg: 'bg-[#fdf2f8]/50 text-[#db2777] border-[#fbcfe8]/40', tag: '예체능' };
-                              } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션')) {
+                              } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
                                 theme = { bg: 'bg-[#fff7ed]/50 text-[#ea580c] border-[#ffedd5]/40', tag: '체육/활동' };
-                              } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스')) {
+                              } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
                                 theme = { bg: 'bg-[#f0f9ff]/50 text-[#0284c7] border-[#e0f2fe]/40', tag: '건강/취미' };
                               }
                               
