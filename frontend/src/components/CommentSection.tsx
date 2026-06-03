@@ -2,6 +2,7 @@ import { UserCircle, MessageSquare } from 'lucide-react';
 import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { useRef, useState, useEffect } from 'react';
 
 interface CommentSectionProps {
   comments: CommentData[];
@@ -23,11 +24,95 @@ export default function CommentSection({
   selectedCommentId,
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Suggestion states for autocomplete mentions
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
 
   const handleAction = () => {
     onSubmitComment();
-    // 댓글 달면 A2HS 모달 트리거 (조건은 Provider 내부에서 알아서 필터링됨)
+    // 댓글 달면 A2HS 모달 트리거
     triggerCustomA2HSModal();
+  };
+
+  const handleMentionAuthor = (author: string) => {
+    if (!user) return;
+    const mentionText = `@${author} `;
+    
+    // Only append if it's not already in the input
+    if (!commentInput.includes(mentionText)) {
+      onCommentChange(commentInput + mentionText);
+    }
+    
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 50);
+  };
+
+  const handleInputChange = (text: string) => {
+    onCommentChange(text);
+
+    // Auto-suggest triggered by typing '@'
+    const words = text.split(/\s+/);
+    const lastWord = words[words.length - 1];
+
+    if (lastWord.startsWith('@')) {
+      const query = lastWord.slice(1).toLowerCase();
+      // Get unique authors from comments to suggest
+      const authors = Array.from(new Set(comments.map(c => c.author)));
+      const filtered = authors.filter(authName => 
+        authName.toLowerCase().includes(query)
+      );
+
+      if (filtered.length > 0) {
+        setSuggestions(filtered);
+        setShowSuggestions(true);
+        setSuggestionIndex(0);
+      } else {
+        setShowSuggestions(false);
+      }
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectSuggestion = (nickname: string) => {
+    const words = commentInput.split(/\s+/);
+    words[words.length - 1] = `@${nickname} `;
+    onCommentChange(words.join(' '));
+    setShowSuggestions(false);
+
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 50);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSuggestionIndex(prev => (prev + 1) % suggestions.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSuggestionIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        selectSuggestion(suggestions[suggestionIndex]);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowSuggestions(false);
+      }
+    } else {
+      if (e.key === 'Enter') {
+        handleAction();
+      }
+    }
   };
 
   return (
@@ -39,18 +124,45 @@ export default function CommentSection({
       
       <div className="flex flex-col gap-6">
         {/* Input Area */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 relative">
+          
+          {/* Autocomplete Suggestion Popover */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-slate-900/95 dark:bg-slate-950/95 border border-emerald-500/30 rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="text-[11px] font-bold text-emerald-400 px-3.5 py-2 border-b border-emerald-500/10 uppercase tracking-widest bg-emerald-950/30">
+                멘션할 대상을 선택하세요
+              </div>
+              <ul className="max-h-[160px] overflow-y-auto py-1 divide-y divide-emerald-500/5">
+                {suggestions.map((nickname, idx) => (
+                  <li 
+                    key={nickname}
+                    onClick={() => selectSuggestion(nickname)}
+                    className={`px-3.5 py-2.5 text-[13px] font-semibold cursor-pointer transition-colors flex items-center justify-between ${
+                      suggestionIndex === idx 
+                        ? 'bg-emerald-500/20 text-emerald-200' 
+                        : 'text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-300'
+                    }`}
+                  >
+                    <span>@{nickname}</span>
+                    {suggestionIndex === idx && (
+                      <span className="text-[10px] bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-black">ENTER</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="flex gap-3">
             <input
+              ref={inputRef}
               type="text"
               placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
               disabled={!user}
               className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 disabled:bg-body transition-shadow"
               value={commentInput}
-              onChange={(e) => onCommentChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAction();
-              }}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
             <button 
               onClick={handleAction}
@@ -63,7 +175,7 @@ export default function CommentSection({
           {user && (
             <p className="text-[12px] text-tertiary flex items-center gap-1.5 pl-1 select-none">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
-              댓글에 <strong className="text-teal-600 dark:text-teal-400 font-semibold">@작성자명</strong>을 입력하여 특정 유저를 멘션할 수 있습니다.
+              댓글에 <strong className="text-teal-600 dark:text-teal-400 font-semibold">@작성자명</strong>을 입력하거나 작성자명을 눌러 멘션할 수 있습니다.
             </p>
           )}
         </div>
@@ -78,6 +190,7 @@ export default function CommentSection({
                   key={comment.id} 
                   comment={comment} 
                   isHighlighted={comment.id === selectedCommentId} 
+                  onClickAuthor={handleMentionAuthor}
                 />
               ))}
 
@@ -89,6 +202,7 @@ export default function CommentSection({
                       key={comment.id} 
                       comment={comment} 
                       isHighlighted={comment.id === selectedCommentId} 
+                      onClickAuthor={handleMentionAuthor}
                     />
                   ))
                 ) : (
@@ -149,7 +263,15 @@ function renderCommentText(text: string) {
 }
 
 /** Single comment item */
-function CommentItem({ comment, isHighlighted }: { comment: CommentData; isHighlighted?: boolean }) {
+function CommentItem({ 
+  comment, 
+  isHighlighted, 
+  onClickAuthor 
+}: { 
+  comment: CommentData; 
+  isHighlighted?: boolean; 
+  onClickAuthor?: (author: string) => void;
+}) {
   return (
     <div 
       id={`comment-${comment.id}`}
@@ -164,7 +286,12 @@ function CommentItem({ comment, isHighlighted }: { comment: CommentData; isHighl
       </div>
       <div className="flex-1">
         <div className="flex items-baseline gap-2 mb-1">
-          <span className="font-bold text-[14px] text-primary">{comment.author}</span>
+          <span 
+            onClick={() => onClickAuthor && onClickAuthor(comment.author)}
+            className="font-bold text-[14px] text-primary hover:text-teal-600 dark:hover:text-teal-400 hover:underline cursor-pointer transition-colors"
+          >
+            {comment.author}
+          </span>
           <span className="text-[12px] text-tertiary">{String(comment.createdAt)}</span>
         </div>
         <p className="text-[14px] text-secondary leading-relaxed break-all whitespace-pre-wrap">
