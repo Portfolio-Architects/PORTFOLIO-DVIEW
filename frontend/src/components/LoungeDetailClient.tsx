@@ -10,6 +10,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp, where, limit, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
+import { postConverter, commentConverter } from '@/lib/utils/firestoreConverters';
 import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
 import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
@@ -101,7 +102,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     let viewIncremented = false;
 
     const fetchPost = async () => {
-      const snap = await getDoc(doc(db, 'posts', postId));
+      const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
       if (snap.exists()) {
         const data = snap.data();
         setPost({
@@ -146,7 +147,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   // Listen to comments
   useEffect(() => {
     if (!postId) return;
-    const q = query(collection(db, `posts/${postId}/comments`), orderBy('createdAt', 'asc'));
+    const q = query(collection(db, `posts/${postId}/comments`).withConverter(commentConverter), orderBy('createdAt', 'asc'));
     const unsub = onSnapshot(q, (snapshot) => {
       const list: PostComment[] = [];
       snapshot.forEach((d) => {
@@ -172,7 +173,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       } catch (err) {
         console.warn('localStorage is unavailable:', err);
       }
-      await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
+      await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { likes: increment(1) });
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
       triggerCustomA2HSModal();
     } catch(e) {
@@ -276,13 +277,13 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         authorUid = getAnonymousUid();
       }
 
-      await addDoc(collection(db, `posts/${postId}/comments`), {
+      await addDoc(collection(db, `posts/${postId}/comments`).withConverter(commentConverter), {
         text: commentText.trim(),
         authorName: displayName,
-        authorUid: authorUid,
+        authorUid: authorUid || '',
         createdAt: serverTimestamp(),
       });
-      await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) });
+      await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { commentCount: increment(1) });
       setCommentText('');
       lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
@@ -296,7 +297,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   const handleSaveEdit = async () => {
     if (!postId || !editTitle.trim()) return;
     try {
-      await updateDoc(doc(db, 'posts', postId), {
+      await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), {
         title: editTitle.trim(),
         content: editContent.trim(),
         category: editCategory,
@@ -430,7 +431,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               onClick={async () => {
                 if (!confirm('이 글을 삭제하시겠습니까?')) return;
                 try {
-                  await deleteDoc(doc(db, 'posts', postId));
+                  await deleteDoc(doc(db, 'posts', postId).withConverter(postConverter));
                   router.push('/lounge');
                 } catch {
                   alert('삭제에 실패했습니다.');
@@ -536,7 +537,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                         onClick={async () => {
                           if (!confirm('이 글을 삭제하시겠습니까?')) return;
                           try {
-                            await deleteDoc(doc(db, 'posts', postId));
+                            await deleteDoc(doc(db, 'posts', postId).withConverter(postConverter));
                             router.back();
                           } catch {
                             alert('삭제에 실패했습니다.');

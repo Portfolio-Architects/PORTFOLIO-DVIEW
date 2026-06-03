@@ -11,6 +11,7 @@ import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, 
 import { logger } from '@/lib/services/logger';
 import type { NewsItemData } from '@/lib/types/dashboard.types';
 import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
+import { postConverter, PostDocument } from '@/lib/utils/firestoreConverters';
 
 /**
  * Listens to the 'posts' collection in real-time.
@@ -18,7 +19,11 @@ import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
  * @returns Unsubscribe function
  */
 export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => void {
-  const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(30));
+  const q = query(
+    collection(db, 'posts').withConverter(postConverter),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
 
   return onSnapshot(q, (snapshot) => {
     const posts: NewsItemData[] = [];
@@ -41,7 +46,7 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
         meta: `${dateStr} · ${data.category}`,
         content: data.content || undefined,
         author: data.authorName || '익명',
-        imageUrl: data.imageUrl,
+        imageUrl: data.imageUrl || undefined,
         tagClass,
         icon,
         likes: data.likes || 0,
@@ -72,12 +77,12 @@ export async function createPost(data: {
   verifiedApartment?: string;
   verificationLevel?: string;
 }): Promise<string> {
-  const docRef = await addDoc(collection(db, 'posts'), {
+  const docRef = await addDoc(collection(db, 'posts').withConverter(postConverter), {
     ...data,
     likes: 0,
     views: 0,
     createdAt: serverTimestamp(),
-  });
+  } as PostDocument);
   logger.info('PostRepository.createPost', 'Post created', { id: docRef.id });
   return docRef.id;
 }
@@ -88,7 +93,7 @@ export async function createPost(data: {
  * @throws FirestoreError if update fails
  */
 export async function incrementPostLike(postId: string): Promise<void> {
-  const postRef = doc(db, 'posts', postId);
+  const postRef = doc(db, 'posts', postId).withConverter(postConverter);
   await updateDoc(postRef, { likes: increment(1) });
 }
 
@@ -101,7 +106,7 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
  * @throws FirestoreError if update fails
  */
 export async function incrementPostView(postId: string, title: string = '알 수 없는 글'): Promise<void> {
-  const postRef = doc(db, 'posts', postId);
+  const postRef = doc(db, 'posts', postId).withConverter(postConverter);
   await updateDoc(postRef, { views: increment(1) });
   await TrafficRepo.incrementContentView(postId, title, 'lounge');
 }
@@ -112,7 +117,8 @@ export async function incrementPostView(postId: string, title: string = '알 수
  * @throws FirestoreError if delete fails
  */
 export async function deletePost(postId: string): Promise<void> {
-  const postRef = doc(db, 'posts', postId);
+  const postRef = doc(db, 'posts', postId).withConverter(postConverter);
   await deleteDoc(postRef);
   logger.info('PostRepository.deletePost', 'Post deleted', { postId });
 }
+

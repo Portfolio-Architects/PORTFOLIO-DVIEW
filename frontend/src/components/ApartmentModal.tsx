@@ -15,6 +15,7 @@ import type { User } from 'firebase/auth';
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
+import { postConverter } from '@/lib/utils/firestoreConverters';
 import CommentSection from '@/components/CommentSection';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
@@ -358,12 +359,12 @@ function FieldReportModal({
         const shortName = report.apartmentName.replace(/\[.*?\]\s*/, '');
         
         // 1. Try querying category "매니저 임장기"
-        const q1 = query(collection(db, 'posts'), where('category', '==', '매니저 임장기'));
+        const q1 = query(collection(db, 'posts').withConverter(postConverter), where('category', '==', '매니저 임장기'));
         const snap1 = await getDocs(q1);
         let matchedId = null;
         let matchedTitle = '';
         
-        snap1.forEach((d: any) => {
+        snap1.forEach((d) => {
           const data = d.data();
           const t = data.title || '';
           const c = data.content || '';
@@ -375,9 +376,9 @@ function FieldReportModal({
 
         // 2. Try querying category "동탄 임장/분석" if not found
         if (!matchedId) {
-          const q2 = query(collection(db, 'posts'), where('category', '==', '동탄 임장/분석'));
+          const q2 = query(collection(db, 'posts').withConverter(postConverter), where('category', '==', '동탄 임장/분석'));
           const snap2 = await getDocs(q2);
-          snap2.forEach((d: any) => {
+          snap2.forEach((d) => {
             const data = d.data();
             const t = data.title || '';
             const c = data.content || '';

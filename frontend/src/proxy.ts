@@ -23,6 +23,19 @@ try {
 }
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // 정적 자원 및 JSON 청크 요청에 대한 에지 미들웨어 고속 탈출 가드(Fast Path)
+  if (
+    pathname.startsWith('/data/') ||
+    pathname.startsWith('/tx-data/') ||
+    pathname === '/sw.js' ||
+    pathname === '/manifest.webmanifest' ||
+    /\.(json|png|jpg|jpeg|gif|svg|ico|css|js|map)$/.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
   // 0. 로컬 개발 환경(development)인 경우 HMR(핫 리로드) 스크립트 실행 및 디버깅을 위해 CSP 강제 설정을 우회합니다.
   if (process.env.NODE_ENV === 'development') {
     return NextResponse.next();
@@ -116,6 +129,7 @@ export async function proxy(request: NextRequest) {
 // 미들웨어 구동 범위 (정적 에셋 등 불필요한 연산 방지)
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|_vercel|assets|css|js|images).*)',
+    '/((?!_next/static|_next/image|favicon.ico|_vercel|assets|css|js|images|data|tx-data|sw\\.js|manifest\\.webmanifest).*)',
   ],
 };
+

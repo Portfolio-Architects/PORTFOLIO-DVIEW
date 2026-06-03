@@ -7,6 +7,8 @@ import { ref, deleteObject } from 'firebase/storage';
 import { Camera, Check, X, Loader2, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
+import { userProfileConverter } from '@/lib/utils/firestoreConverters';
+
 interface PendingPhoto {
   id: string;
   apartmentId: string;
@@ -76,7 +78,7 @@ export default function PendingPhotosPage() {
       let uploaderTier = '초보 임장러';
 
       if (photo.uploaderUid && photo.uploaderUid !== 'anonymous') {
-        const userRef = doc(db, 'users', photo.uploaderUid);
+        const userRef = doc(db, 'users', photo.uploaderUid).withConverter(userProfileConverter);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           const userData = userSnap.data();
@@ -96,6 +98,7 @@ export default function PendingPhotosPage() {
           });
         }
       }
+
 
       // 3. Add new image with uploader points and tier tags
       const newImage = {

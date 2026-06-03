@@ -10,11 +10,7 @@ import {
 } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { Purchase } from '@/lib/types/purchase.types';
-import { z } from 'zod';
-
-const PurchaseDataSchema = z.object({
-  reportId: z.string()
-});
+import { purchaseConverter } from '@/lib/utils/firestoreConverters';
 
 const COLLECTION = 'purchases';
 
@@ -25,7 +21,7 @@ const COLLECTION = 'purchases';
 export async function hasPurchased(userId: string, reportId: string): Promise<boolean> {
   try {
     const q = query(
-      collection(db, COLLECTION),
+      collection(db, COLLECTION).withConverter(purchaseConverter),
       where('userId', '==', userId),
       where('reportId', '==', reportId),
       where('status', '==', 'DONE')
@@ -42,10 +38,10 @@ export async function hasPurchased(userId: string, reportId: string): Promise<bo
  * Creates a purchase record after successful payment confirmation.
  */
 export async function createPurchase(purchase: Omit<Purchase, 'id' | 'purchasedAt'>): Promise<string> {
-  const docRef = await addDoc(collection(db, COLLECTION), {
+  const docRef = await addDoc(collection(db, COLLECTION).withConverter(purchaseConverter), {
     ...purchase,
     purchasedAt: serverTimestamp(),
-  });
+  } as Purchase);
   logger.info('PurchaseRepo.createPurchase', 'Purchase created', {
     userId: purchase.userId,
     reportId: purchase.reportId,
@@ -61,17 +57,15 @@ export async function createPurchase(purchase: Omit<Purchase, 'id' | 'purchasedA
 export async function getUserPurchasedReportIds(userId: string): Promise<string[]> {
   try {
     const q = query(
-      collection(db, COLLECTION),
+      collection(db, COLLECTION).withConverter(purchaseConverter),
       where('userId', '==', userId),
       where('status', '==', 'DONE')
     );
     const snap = await getDocs(q);
-    return snap.docs
-      .map(d => PurchaseDataSchema.safeParse(d.data()))
-      .filter(result => result.success)
-      .map(result => result.data.reportId);
+    return snap.docs.map(d => d.data().reportId);
   } catch (e) {
     logger.error('PurchaseRepo.getUserPurchasedReportIds', 'Query failed', { userId }, e);
     throw e;
   }
 }
+

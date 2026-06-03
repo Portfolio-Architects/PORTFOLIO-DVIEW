@@ -9,6 +9,7 @@ import { logger } from '@/lib/services/logger';
 import type { UserProfile, VerificationLevel } from '@/lib/types/user.types';
 import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
 import { getRandomDefaultAvatar } from '@/lib/types/user.types';
+import { userProfileConverter } from '@/lib/utils/firestoreConverters';
 
 /**
  * Gets or creates a user profile. On first login, a default nickname is assigned.
@@ -16,7 +17,7 @@ import { getRandomDefaultAvatar } from '@/lib/types/user.types';
  * @returns The user's profile
  */
 export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
-  const userRef = doc(db, 'users', uid);
+  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
   const userSnap = await getDoc(userRef);
 
   if (userSnap.exists()) {
@@ -27,16 +28,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
       await updateDoc(userRef, { photoURL: randomAvatar });
       data.photoURL = randomAvatar;
     }
-    return {
-      nickname: data.nickname || DEFAULT_NICKNAME,
-      photoURL: data.photoURL,
-      verifiedApartment: data.verifiedApartment,
-      verificationLevel: data.verificationLevel,
-      createdAt: data.createdAt,
-      uploaderPoints: data.uploaderPoints || 0,
-      uploaderTier: data.uploaderTier || '초보 임장러',
-      hasSetNickname: data.hasSetNickname,
-    };
+    return data;
   }
 
   // First login — generate a profile
@@ -59,8 +51,6 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
   };
 }
 
-
-
 /**
  * Sets the user's apartment verification.
  */
@@ -69,7 +59,7 @@ export async function setApartmentVerification(
   apartment: string,
   level: VerificationLevel
 ): Promise<void> {
-  const userRef = doc(db, 'users', uid);
+  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
   await updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level });
   logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
 }
@@ -78,7 +68,7 @@ export async function setApartmentVerification(
  * Updates the user's nickname.
  */
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
-  const userRef = doc(db, 'users', uid);
+  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
   await updateDoc(userRef, { nickname, hasSetNickname: true });
   logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
 }
@@ -87,8 +77,9 @@ export async function updateNickname(uid: string, nickname: string): Promise<voi
  * Updates the user's profile photo URL.
  */
 export async function updatePhotoURL(uid: string, photoURL: string): Promise<void> {
-  const userRef = doc(db, 'users', uid);
+  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
   await updateDoc(userRef, { photoURL });
   logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
 }
+
 

@@ -13,7 +13,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
   const { setIsSettingsModalOpen } = useSettings();
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/95 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.06)] rounded-t-[24px] px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.04)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40">
       {/* 4개 탭 */}
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
@@ -37,14 +37,14 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
                      window.history.replaceState(null, '', window.location.pathname + window.location.search + `#${tab.id}`);
                    }
                  }}
-                 className={`flex flex-col items-center justify-center w-full min-h-[44px] rounded-[18px] transition-all duration-300 relative ${
+                 className={`group flex flex-col items-center justify-center w-full min-h-[44px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] relative ${
                    isActive ? 'text-toss-blue' : 'text-tertiary hover:text-secondary'
                  }`}
                >
                  {isActive && (
-                    <div className="absolute inset-0 bg-toss-blue/10 rounded-[18px] transition-opacity" />
+                    <div className="absolute inset-0 bg-[hsla(165,100%,41%,0.08)] border border-[hsla(165,100%,41%,0.15)] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95" />
                  )}
-                 <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className="mb-0.5 relative z-10" />
+                 <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
                  <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
                </button>
              );
@@ -55,14 +55,14 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
             <Link
               key={tab.id}
               href={tab.href}
-              className={`flex flex-col items-center justify-center w-full min-h-[44px] rounded-[18px] transition-all duration-300 relative ${
+              className={`group flex flex-col items-center justify-center w-full min-h-[44px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] relative ${
                 isActive ? 'text-toss-blue' : 'text-tertiary hover:text-secondary'
               }`}
             >
               {isActive && (
-                 <div className="absolute inset-0 bg-toss-blue/10 rounded-[18px] transition-opacity" />
+                 <div className="absolute inset-0 bg-[hsla(165,100%,41%,0.08)] border border-[hsla(165,100%,41%,0.15)] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95" />
               )}
-              <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className="mb-0.5 relative z-10" />
+              <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
               <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
             </Link>
           );

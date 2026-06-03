@@ -7,6 +7,7 @@ import { db } from '@/lib/firebaseConfig';
 import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { CommentData } from '@/lib/types/report.types';
+import { commentConverter } from '@/lib/utils/firestoreConverters';
 
 /**
  * Adds a comment to a field report's subcollection and increments the comment count.
@@ -22,7 +23,7 @@ export async function addComment(
   authorName: string,
   authorUid: string
 ): Promise<void> {
-  const commentsRef = collection(db, `field_reports/${reportId}/comments`);
+  const commentsRef = collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter);
   await addDoc(commentsRef, {
     text,
     authorName,
@@ -49,7 +50,7 @@ export function listenToComments(
   callback: (comments: CommentData[]) => void
 ): () => void {
   const q = query(
-    collection(db, `field_reports/${reportId}/comments`),
+    collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter),
     orderBy('createdAt', 'asc')
   );
 
@@ -67,3 +68,4 @@ export function listenToComments(
     callback(comments);
   });
 }
+
