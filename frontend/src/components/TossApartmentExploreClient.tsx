@@ -101,19 +101,19 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       >
         {/* Heart */}
         <div 
-          className="w-[40px] text-center flex justify-center"
+          className="w-[36px] text-center flex justify-center shrink-0"
           onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}
         >
           <Heart size={18} className={item.isFavorited ? "text-toss-red fill-current" : "text-border"} />
         </div>
         
         {/* Rank */}
-        <div className="w-[60px] text-center text-[15px] font-bold text-secondary">
+        <div className="w-[40px] text-center text-[15px] font-bold text-secondary shrink-0">
           {index + 1}
         </div>
         
         {/* Name */}
-        <div className="flex-1 min-w-[200px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
+        <div className="flex-1 min-w-[120px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
           <span className="text-[15.5px] font-extrabold text-primary leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
           {item.photoCount > 0 && (
             <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-[6px] border border-emerald-500/10 leading-none flex items-center shrink-0">
@@ -129,23 +129,23 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
           )}
         </div>
 
-        {/* Age */}
-        <div className="w-[150px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
+        {/* Age (shown at xl) */}
+        <div className="w-[105px] text-right pr-4 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block">
           {formatYearBuilt(item.apt.yearBuilt)}
         </div>
         
         {/* Price */}
-        <div className="w-[130px] text-right pr-4 text-[14.5px] font-extrabold text-primary">
+        <div className="w-[95px] text-right pr-4 text-[14.5px] font-extrabold text-primary shrink-0">
           {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
         </div>
         
         {/* Pyeong */}
-        <div className="w-[120px] text-right pr-4 text-[14px] font-bold text-teal-600 dark:text-teal-400">
+        <div className="w-[85px] text-right pr-4 text-[14px] font-bold text-teal-600 dark:text-teal-400 shrink-0">
           {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만` : '-'}
         </div>
 
-        {/* Jeonse */}
-        <div className="w-[140px] text-right pr-4 flex flex-col justify-center items-end gap-1">
+        {/* Jeonse (shown at lg) */}
+        <div className="w-[110px] text-right pr-4 flex-col justify-center items-end gap-1 shrink-0 hidden lg:flex">
           <span className="text-[14px] font-semibold text-primary leading-none">
             {item.jeonsePrice > 0 ? formatPrice(item.jeonsePrice) : '-'}
           </span>
@@ -154,13 +154,13 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
           </span>
         </div>
 
-        {/* Household */}
-        <div className="w-[100px] text-right pr-4 text-[14px] font-medium text-secondary leading-none">
+        {/* Household (shown at xl) */}
+        <div className="w-[80px] text-right pr-4 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block">
           {item.apt.householdCount ? `${item.apt.householdCount.toLocaleString()}세대` : '-'}
         </div>
 
-        {/* Volume */}
-        <div className="w-[130px] text-right pr-2 flex flex-col justify-center items-end gap-1">
+        {/* Volume (shown at xl) */}
+        <div className="w-[100px] text-right pr-2 flex-col justify-center items-end gap-1 shrink-0 hidden xl:flex">
           <span className="text-[14px] font-semibold text-secondary leading-none">
             {item.volume3M > 0 ? `${item.volume3M}건` : '-'}
           </span>
@@ -586,16 +586,16 @@ export default function TossApartmentExploreClient({
 
         <div className="flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-0 py-3 border-b border-border text-[13px] font-bold text-tertiary shrink-0">
-            <div className="w-[40px] text-center"></div>
-            <div className="w-[60px] text-center">순위</div>
-            <div className="flex-1 min-w-[200px] ml-2 text-left">단지명</div>
-            <div className="w-[150px] text-right pr-4">연식</div>
-            <div className="w-[130px] text-right pr-4">매매가</div>
-            <div className="w-[120px] text-right pr-4">평당가</div>
-            <div className="w-[140px] text-right pr-4">전세가 (전세율)</div>
-            <div className="w-[100px] text-right pr-4">세대수</div>
-            <div className="w-[130px] text-right pr-2">거래량 (회전율)</div>
+          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-4 py-3 border-b border-border text-[13px] font-bold text-tertiary shrink-0">
+            <div className="w-[36px] text-center shrink-0"></div>
+            <div className="w-[40px] text-center shrink-0">순위</div>
+            <div className="flex-1 min-w-[120px] ml-2 text-left">단지명</div>
+            <div className="w-[105px] text-right pr-4 shrink-0 hidden xl:block">연식</div>
+            <div className="w-[95px] text-right pr-4 shrink-0">매매가</div>
+            <div className="w-[85px] text-right pr-4 shrink-0">평당가</div>
+            <div className="w-[110px] text-right pr-4 shrink-0 hidden lg:block">전세가 (전세율)</div>
+            <div className="w-[80px] text-right pr-4 shrink-0 hidden xl:block">세대수</div>
+            <div className="w-[100px] text-right pr-2 shrink-0 hidden xl:block">거래량 (회전율)</div>
           </div>
 
           {/* Table Body */}

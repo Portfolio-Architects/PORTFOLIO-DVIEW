@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, Camera,
   Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
@@ -194,6 +194,46 @@ const calculateInfraScore = (metrics: any) => {
   return { score, grade, description: desc };
 };
 
+function ViralPaywallGate({ 
+  shareCount, 
+  onShare 
+}: { 
+  shareCount: number; 
+  onShare: () => void 
+}) {
+  const percent = Math.min(100, (shareCount / 3) * 100);
+  return (
+    <div className="flex flex-col items-center justify-center p-6 text-center bg-slate-900/95 dark:bg-slate-950/95 rounded-2xl border border-emerald-500/30 shadow-xl max-w-md mx-auto my-6 animate-in fade-in zoom-in-95 duration-300 relative z-20">
+      <div className="w-11 h-11 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-3 animate-bounce">
+        <Crown size={22} className="fill-emerald-400/20" />
+      </div>
+      <h3 className="text-[15px] font-black text-white tracking-tight mb-1.5 flex items-center gap-1.5">
+        <span>🔒 프리미엄 단지 가치분석 잠김</span>
+      </h3>
+      <p className="text-[12px] text-slate-300 leading-normal max-w-sm mb-4 break-keep font-medium">
+        카카오톡으로 D-VIEW의 아파트 평가 결과를 단 <strong>3번만 공유</strong>해주시면, 24시간 동안 이 단지의 모든 프리미엄 분석 리포트가 무료로 즉시 잠금 해제됩니다!
+      </p>
+      
+      <div className="w-full bg-slate-800 rounded-full h-2 mb-2 overflow-hidden">
+        <div 
+          className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500" 
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <span className="text-[11.5px] font-bold text-emerald-400 mb-4">
+        현재 미션 완료도: {shareCount} / 3회 공유 완료
+      </span>
+
+      <button
+        onClick={onShare}
+        className="w-full bg-[#fee500] hover:bg-[#fee500]/90 text-[#191919] font-black text-[13px] py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer border-none shadow-md"
+      >
+        <span>💬 카카오톡으로 공유하고 해금하기</span>
+      </button>
+    </div>
+  );
+}
+
 function FieldReportModal({ 
   report, 
   onClose,
@@ -209,7 +249,8 @@ function FieldReportModal({
   txSummary,
   onOpenAdModal,
   loadAllTransactions,
-  onRequestLogin
+  onRequestLogin,
+  isPurchased
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -246,6 +287,54 @@ function FieldReportModal({
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
+
+  const [viralShareCount, setViralShareCount] = useState<number>(0);
+  const [isUnlockedByViral, setIsUnlockedByViral] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && report?.apartmentName) {
+      const aptName = report.apartmentName;
+      const shareKey = `dview-viral-share-count-${aptName}`;
+      const unlockKey = `dview-unlocked-apt-${aptName}`;
+      
+      const savedCount = parseInt(localStorage.getItem(shareKey) || '0', 10);
+      setViralShareCount(savedCount);
+      
+      const unlockedTime = localStorage.getItem(unlockKey);
+      if (unlockedTime) {
+        const parsedTime = parseInt(unlockedTime, 10);
+        if (Date.now() < parsedTime) {
+          setIsUnlockedByViral(true);
+        } else {
+          localStorage.removeItem(unlockKey);
+          setIsUnlockedByViral(false);
+        }
+      } else {
+        setIsUnlockedByViral(false);
+      }
+    }
+  }, [report?.apartmentName]);
+
+  const incrementViralShareCount = useCallback(() => {
+    if (isUnlockedByViral) return;
+    const aptName = report.apartmentName;
+    const shareKey = `dview-viral-share-count-${aptName}`;
+    const unlockKey = `dview-unlocked-apt-${aptName}`;
+    
+    const currentCount = parseInt(localStorage.getItem(shareKey) || '0', 10);
+    const nextCount = currentCount + 1;
+    localStorage.setItem(shareKey, nextCount.toString());
+    setViralShareCount(nextCount);
+    
+    if (nextCount >= 3) {
+      const lockExpiry = Date.now() + 24 * 60 * 60 * 1000;
+      localStorage.setItem(unlockKey, lockExpiry.toString());
+      setIsUnlockedByViral(true);
+      showToast("🎉 공유 미션 달성! 24시간 동안 모든 리포트가 무료로 잠금 해제되었습니다.");
+    } else {
+      showToast(`📢 카카오톡 공유 완료 (${nextCount}/3). 3회 완료 시 무료로 열립니다!`);
+    }
+  }, [report?.apartmentName, isUnlockedByViral, showToast]);
 
   const getAutoShareTheme = (): 'value' | 'gap' | 'school' | 'deal' => {
     const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
@@ -523,7 +612,7 @@ function FieldReportModal({
 
   // TODO: 유료 모델 전환 시 아래 라인 복원
   // const isUnlocked = !!(isPurchased || isAdmin);
-  const isUnlocked = true; // 프리미엄 콘텐츠 전면 개방 (Vercel Hobby Plan 대응)
+  const isUnlocked = !!(isPurchased || isAdmin || isUnlockedByViral);
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
@@ -705,6 +794,7 @@ function FieldReportModal({
         customTitle: shareTexts.title,
         customDesc: shareTexts.desc
       });
+      incrementViralShareCount();
     } catch (error) {
       console.error("Kakao share card generation failed:", error);
       showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
@@ -732,6 +822,7 @@ function FieldReportModal({
         customTitle: shareTexts.title,
         customDesc: shareTexts.desc
       });
+      incrementViralShareCount();
     } finally {
       setIsSharing(false);
     }
@@ -835,6 +926,7 @@ function FieldReportModal({
           customTitle,
           customDesc
         });
+        incrementViralShareCount();
       } catch (e) {
         console.error(e);
       }
@@ -882,6 +974,7 @@ function FieldReportModal({
           customTitle,
           customDesc
         });
+        incrementViralShareCount();
       } catch (e) {
         console.error(e);
       }
@@ -1484,6 +1577,9 @@ function FieldReportModal({
                   <GraduationCap size={18} className="text-[#0d9488]"/> 학군/육아 분석
                 </h2>
 
+                <div className="relative w-full">
+                  <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40 flex flex-col w-full gap-8' : 'flex flex-col w-full gap-8'}>
+
                 {/* ─── 👶 육아 친화도 지수 (Childcare Index) ─── */}
                 {(() => {
                   const eduScoreInfo = calculateEducationScore(report.metrics);
@@ -1772,14 +1868,30 @@ function FieldReportModal({
                     apartmentName={report.apartmentName} 
                   />
                 </div>
+                </div>
+                {!isUnlocked && (
+                  <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
+                    <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
+                  </div>
+                )}
+                </div>
               </div>
             )}
           </section>
 
             {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
             <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
-              <AdvancedValuationMetrics report={report} transactions={transactions} />
-              <BuyOrWaitVote aptName={report.apartmentName} />
+              <div className="relative w-full">
+                <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
+                  <AdvancedValuationMetrics report={report} transactions={transactions} />
+                  <BuyOrWaitVote aptName={report.apartmentName} />
+                </div>
+                {!isUnlocked && (
+                  <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
+                    <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
+                  </div>
+                )}
+              </div>
             </section>
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}
