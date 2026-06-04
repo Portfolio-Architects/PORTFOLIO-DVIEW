@@ -3,10 +3,6 @@
     {
       "path": "/api/cron/sync-transactions",
       "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/sync-local-notices",
-      "schedule": "0 3 * * *"
     }
   ]
 }

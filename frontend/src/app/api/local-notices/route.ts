@@ -102,7 +102,11 @@ export async function GET(request: Request) {
         }
       });
       return validItems
-        .sort((a: NoticeData, b: NoticeData) => b.date.localeCompare(a.date))
+        .sort((a: NoticeData, b: NoticeData) => {
+          const dateCompare = b.date.localeCompare(a.date);
+          if (dateCompare !== 0) return dateCompare;
+          return b.id.localeCompare(a.id);
+        })
         .slice(0, 100);
     };
 
@@ -151,13 +155,19 @@ export async function GET(request: Request) {
     // If filterDongtan is true, return only dongtan related notices
     if (filterDongtan) {
       notices = notices.filter((n: NoticeData) => n.isDongtan);
-      notices.sort((a: NoticeData, b: NoticeData) => b.date.localeCompare(a.date));
+      notices.sort((a: NoticeData, b: NoticeData) => {
+        const dateCompare = b.date.localeCompare(a.date);
+        if (dateCompare !== 0) return dateCompare;
+        return b.id.localeCompare(a.id);
+      });
     } else {
       // Sort: dongtan related ones first, then by date desc
       notices.sort((a: NoticeData, b: NoticeData) => {
         if (a.isDongtan && !b.isDongtan) return -1;
         if (!a.isDongtan && b.isDongtan) return 1;
-        return b.date.localeCompare(a.date);
+        const dateCompare = b.date.localeCompare(a.date);
+        if (dateCompare !== 0) return dateCompare;
+        return b.id.localeCompare(a.id);
       });
     }
 

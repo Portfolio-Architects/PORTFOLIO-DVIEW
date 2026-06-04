@@ -40,6 +40,7 @@ import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
+import LoginGateModal from '@/components/ui/LoginGateModal';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
 
@@ -145,6 +146,14 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   };
 
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
+  
+  const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
+  const [loginGateMessage, setLoginGateMessage] = useState('');
+
+  const handleRequestLogin = useCallback((message: string) => {
+    setLoginGateMessage(message);
+    setIsLoginGateOpen(true);
+  }, []);
   
   const { txSummary = {}, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(initialDashboardData?.macroTrend);
   const { locationScores = {} } = useLocationScores();
@@ -390,11 +399,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   }, [sheetApartments, nameMapping, handleAptClick]);
 
   const handleAptToggleFavorite = useCallback((aptName: string) => {
-    handleToggleFavorite(aptName, handleLogin);
-    if (!userFavorites.has(aptName)) {
+    handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
+    if (user && !userFavorites.has(aptName)) {
       triggerCustomA2HSModal();
     }
-  }, [handleToggleFavorite, handleLogin, userFavorites, triggerCustomA2HSModal]);
+  }, [handleToggleFavorite, handleRequestLogin, user, userFavorites, triggerCustomA2HSModal]);
 
   const dongAptCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -699,7 +708,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                 }
               }}
-              onToggleFavorite={(name: string) => handleToggleFavorite(name, handleLogin)}
+              onToggleFavorite={handleAptToggleFavorite}
             />
           </section>
         )}
@@ -781,7 +790,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         {mounted && (
           <section className={`w-full bg-surface ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
-            <LoungeContainerClient initialPosts={[]} />
+            <LoungeContainerClient initialPosts={[]} onRequestLogin={handleRequestLogin} />
           </section>
         )}
 
@@ -825,6 +834,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               }
             }}
             onOpenAdModal={() => setIsAdModalOpen(true)}
+            onRequestLogin={handleRequestLogin}
           />
         )}
 
@@ -923,6 +933,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         </div>
       </div>
     )}
+
+    <LoginGateModal
+      isOpen={isLoginGateOpen}
+      onClose={() => setIsLoginGateOpen(false)}
+      message={loginGateMessage}
+      onLogin={handleLogin}
+    />
     </>
   );
 }

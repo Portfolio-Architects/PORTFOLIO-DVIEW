@@ -12,6 +12,7 @@ interface CommentSectionProps {
   user: User | null;
   isUnlocked: boolean;
   selectedCommentId?: string;
+  onRequestLogin?: (message: string) => void;
 }
 
 export default function CommentSection({
@@ -22,6 +23,7 @@ export default function CommentSection({
   user,
   isUnlocked,
   selectedCommentId,
+  onRequestLogin,
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -157,16 +159,38 @@ export default function CommentSection({
             <input
               ref={inputRef}
               type="text"
-              placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
-              disabled={!user}
-              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 disabled:bg-body transition-shadow"
+              placeholder="임장기에 대한 생각이나 궁금한 점을 남겨주세요."
+              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 transition-shadow"
               value={commentInput}
-              onChange={(e) => handleInputChange(e.target.value)}
+              onChange={(e) => {
+                if (!user) {
+                  onRequestLogin?.('댓글을 작성하여 이웃 주민들과 소통해 보세요.');
+                  return;
+                }
+                handleInputChange(e.target.value);
+              }}
+              onFocus={(e) => {
+                if (!user) {
+                  e.target.blur();
+                  onRequestLogin?.('댓글을 작성하여 이웃 주민들과 소통해 보세요.');
+                }
+              }}
+              onClick={() => {
+                if (!user) {
+                  onRequestLogin?.('댓글을 작성하여 이웃 주민들과 소통해 보세요.');
+                }
+              }}
               onKeyDown={handleKeyDown}
             />
             <button 
-              onClick={handleAction}
-              disabled={!user || !commentInput.trim()}
+              onClick={() => {
+                if (!user) {
+                  onRequestLogin?.('댓글을 작성하여 이웃 주민들과 소통해 보세요.');
+                  return;
+                }
+                handleAction();
+              }}
+              disabled={!commentInput.trim()}
               className="bg-toss-blue text-surface px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
             >
               등록

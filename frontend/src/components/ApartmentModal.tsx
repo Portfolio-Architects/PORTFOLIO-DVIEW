@@ -208,7 +208,8 @@ function FieldReportModal({
   inline,
   txSummary,
   onOpenAdModal,
-  loadAllTransactions
+  loadAllTransactions,
+  onRequestLogin
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -227,6 +228,7 @@ function FieldReportModal({
   txSummary?: any;
   onOpenAdModal?: () => void;
   loadAllTransactions?: () => void;
+  onRequestLogin?: (message: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -2029,6 +2031,7 @@ function FieldReportModal({
                 user={user}
                 isUnlocked={isUnlocked}
                 selectedCommentId={selectedCommentId}
+                onRequestLogin={onRequestLogin}
               />
             </section>
 

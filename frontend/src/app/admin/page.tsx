@@ -52,6 +52,7 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isNoticeSyncing, setIsNoticeSyncing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'unmatched'|'public'|'private'|'analyzed'|'verified'>('all');
   const [expandedDongs, setExpandedDongs] = useState<Set<string>>(new Set());
@@ -211,6 +212,27 @@ export default function AdminDashboard() {
       alert('동기화 중 오류가 발생했습니다: ' + e.message);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleNoticeSync = async () => {
+    if (!confirm('화성시청/행정복지센터 최신 소식을 수동으로 가져오시겠습니까?\n이 작업은 약 5~10초 소요될 수 있습니다.')) return;
+    
+    setIsNoticeSyncing(true);
+    try {
+      const res = await fetch('/api/cron/sync-local-notices');
+      const data = await res.json();
+      
+      if (res.ok) {
+        alert(`동기화 완료!\n- 수집된 소식: ${data.scrapedCount || 0}건\n- 저장된 소식: ${data.writtenCount || 0}건`);
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (e: any) {
+      console.error('Notice sync error:', e);
+      alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsNoticeSyncing(false);
     }
   };
 
@@ -453,6 +475,11 @@ export default function AdminDashboard() {
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#00b386] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
             <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> 
             {isSyncing ? '동기화 중...' : '실거래가 수동 동기화'}
+          </button>
+          <button onClick={handleNoticeSync} disabled={isNoticeSyncing}
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#00d29d] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
+            <RefreshCw size={16} className={isNoticeSyncing ? "animate-spin" : ""} /> 
+            {isNoticeSyncing ? '동기화 중...' : '소식 수동 동기화'}
           </button>
           <button onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue hover:text-surface transition-all text-[13px]">

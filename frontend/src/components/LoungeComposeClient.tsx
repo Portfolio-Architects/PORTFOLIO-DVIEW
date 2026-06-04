@@ -16,9 +16,10 @@ import { generateMamacafeNickname } from '@/lib/utils/nickname';
 
 interface Props {
   currentTab: string;
+  onRequestLogin?: (message: string) => void;
 }
 
-export default function LoungeComposeClient({ currentTab }: Props) {
+export default function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [footerOffset, setFooterOffset] = useState(0);
@@ -175,7 +176,7 @@ export default function LoungeComposeClient({ currentTab }: Props) {
           </button>
         ) : (
           <button
-            onClick={handleLogin}
+            onClick={() => onRequestLogin?.('라운지에 글을 작성하여 유용한 부동산 정보를 나눠보세요.')}
             className="fixed right-4 sm:right-6 w-14 h-14 bg-primary hover:bg-[#333d4b] text-surface rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-40"
             style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
           >

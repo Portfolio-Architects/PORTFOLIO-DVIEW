@@ -26,9 +26,11 @@ interface Post {
 export default function LoungeContainerClient({ 
   initialPosts,
   searchParams,
+  onRequestLogin,
 }: { 
   initialPosts: Post[];
   searchParams?: { notice?: string };
+  onRequestLogin?: (message: string) => void;
 }) {
   const [currentTab, setCurrentTab] = useState(searchParams?.notice ? '동탄구 소식' : '동탄 부동산 뉴스');
   const { data: events } = useSWR('/data/local-events.json', fetcher);
@@ -122,7 +124,7 @@ export default function LoungeContainerClient({
 
       <LoungeFeedClient initialPosts={initialPosts} currentTab={currentTab} />
 
-        <LoungeComposeClient currentTab={currentTab} />
+        <LoungeComposeClient currentTab={currentTab} onRequestLogin={onRequestLogin} />
       </section>
 
       </div>
