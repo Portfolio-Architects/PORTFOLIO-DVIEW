@@ -396,30 +396,19 @@ export default function TossApartmentExploreClient({
       if (window.innerWidth < 768) {
         setListHeight(Math.max(300, window.innerHeight - 260));
       } else {
-        // 데스크톱 뷰: 브라우저 뷰포트 크기에 연동
-        const container = document.getElementById('explore-list-container');
-        if (container) {
-          // container의 document 기준 절대 top 좌표 계산 (스크롤 영향 제거)
-          const rect = container.getBoundingClientRect();
-          const absoluteTop = rect.top + window.scrollY;
-          
-          // 화면 전체 높이에서 absoluteTop과 푸터 위쪽 마진(약 40px)을 차감하여 화면 뷰포트에 딱 들어맞는 높이 계산
-          const bottomOffset = 40;
-          const calculatedHeight = window.innerHeight - absoluteTop - bottomOffset;
-          setListHeight(Math.max(400, calculatedHeight));
-        } else {
-          // container를 아직 찾을 수 없을 때의 안전한 폴백
-          const headerOffset = 340; 
-          setListHeight(Math.max(400, window.innerHeight - headerOffset));
-        }
+        // 데스크톱 뷰: 브라우저 뷰포트 크기에 연동하되, 테이블 헤더가 sticky 상단에 붙었을 때 
+        // 하단 푸터 영역 위까지 리스트가 채워지도록 headerOffset을 180px로 설정하여 
+        // 950px 높이 기준 약 12개 단지(770px 높이)가 적절하게 노출되도록 보장합니다.
+        const headerOffset = 180;
+        setListHeight(Math.max(400, window.innerHeight - headerOffset));
       }
     };
 
     updateHeight();
     window.addEventListener('resize', updateHeight);
     
-    // 컴포넌트 마운트 후 및 렌더링 후 정확한 절대 top 계산을 위해 약간의 지연 처리
-    const timer = setTimeout(updateHeight, 150);
+    // 레이아웃 렌더링 지연에 따른 정합 처리를 위한 타이머
+    const timer = setTimeout(updateHeight, 100);
     
     return () => {
       window.removeEventListener('resize', updateHeight);
