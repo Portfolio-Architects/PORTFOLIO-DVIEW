@@ -45,6 +45,7 @@ export interface TimelineItem {
   floor: number;
   type: string;
   delta: number;
+  prevPriceVal?: number;
 }
 
 interface MacroNewsItem {
@@ -1040,6 +1041,7 @@ export default function MacroDashboardClient({
                   floor: tx.floor,
                   type: "high",
                   delta: delta,
+                  prevPriceVal: delta && delta > 0 ? price - delta : undefined,
                 });
               }
             });
@@ -1482,7 +1484,7 @@ interface GroupedCategory {
                                 {item.aptName}
                               </span>
                               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shrink-0 whitespace-nowrap">
-                                {item.delta && item.delta > 0 ? `+${formatDeltaPrice(item.delta)}` : '신고가'}
+                                {item.delta && item.delta > 0 ? formatDeltaPrice(item.delta) : '신고가'}
                               </span>
                             </div>
 
@@ -1496,9 +1498,19 @@ interface GroupedCategory {
                                 <span>{item.floor}층</span>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[14.5px] font-black text-[#ff4b5c] tracking-tight">
-                                  {item.priceEok}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  {item.delta && item.delta > 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
+                                    <>
+                                      <span className="text-[11px] text-tertiary font-bold line-through opacity-75">
+                                        {formatEokWithUnit(item.prevPriceVal * 10000).value}
+                                      </span>
+                                      <span className="text-[10px] text-tertiary font-bold opacity-60">➔</span>
+                                    </>
+                                  )}
+                                  <span className="text-[14.5px] font-black text-[#ff4b5c] tracking-tight">
+                                    {item.priceEok}
+                                  </span>
+                                </div>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1797,93 +1809,123 @@ interface GroupedCategory {
           </div>
         </div>
 
-        {/* 나만의 동탄 찰떡 아파트 찾기 배너 위젯 */}
-        <div 
-          onClick={() => setIsQuizOpen(true)}
-          className="mt-6 w-full p-6 sm:p-8 bg-gradient-to-r from-[#00d29d]/10 via-[#4196f7]/5 to-surface border border-[#00d29d]/25 dark:border-[#00d29d]/30 rounded-[24px] shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#00d29d]/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-          <div className="flex items-center gap-4 relative z-10">
-            <div className="w-14 h-14 bg-gradient-to-tr from-[#00d29d] to-[#4196f7] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#00d29d]/10 group-hover:rotate-3 transition-transform duration-300">
-              <Sparkles size={26} className="animate-pulse" />
-            </div>
-            <div className="flex flex-col gap-1.5 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-0.5 rounded-full tracking-wide uppercase">New 콘텐츠</span>
-                <span className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기 Quiz 🔎</span>
+        {/* 프리미엄 유틸리티 툴킷 그리드 영역 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 w-full">
+          {/* Card 1: AI Quiz */}
+          <div 
+            onClick={() => setIsQuizOpen(true)}
+            className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#00d29d]/8 to-surface dark:from-[#00d29d]/4 border border-[#00d29d]/15 hover:border-[#00d29d]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#00d29d]/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative z-10 flex flex-col gap-4">
+              {/* Icon & Badge Row */}
+              <div className="flex items-center justify-between">
+                <div className="w-11 h-11 bg-gradient-to-tr from-[#00d29d] to-[#4196f7] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-[#00d29d]/10 group-hover:scale-105 transition-transform duration-300">
+                  <Sparkles size={20} className="animate-pulse" />
+                </div>
+                <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">New 콘텐츠</span>
               </div>
-              <p className="text-[12px] sm:text-[13px] text-secondary font-semibold leading-relaxed break-keep">
-                5가지 초간단 질문으로 당신의 라이프스타일, 예산, 교육 환경에 가장 완벽하게 어우러지는 아파트 3곳을 AI 데이터 매칭으로 즉시 추천받아 보세요!
-              </p>
+              
+              {/* Title & Desc */}
+              <div className="flex flex-col gap-2 mt-2">
+                <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
+                  나만의 동탄 찰떡 아파트 찾기 Quiz 🔎
+                </h3>
+                <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
+                  5가지 초간단 질문으로 당신의 라이프스타일, 예산, 교육 환경에 가장 완벽하게 어우러지는 아파트 3곳을 AI 데이터 매칭으로 즉시 추천받아 보세요!
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom Button */}
+            <div className="mt-6 relative z-10">
+              <button 
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#00d29d] dark:hover:bg-[#00d29d] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+              >
+                <span>지금 추천 받기</span>
+                <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
             </div>
           </div>
-          <button 
-            className="px-5 py-3 bg-primary group-hover:bg-[#00d29d] text-surface group-hover:text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10"
-          >
-            <span>지금 추천 받기</span>
-            <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-          </button>
+
+          {/* Card 2: Jeonse Safety */}
+          {onOpenJeonseSafety && (
+            <div 
+              onClick={() => onOpenJeonseSafety()}
+              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div className="relative z-10 flex flex-col gap-4">
+                {/* Icon & Badge Row */}
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 bg-gradient-to-tr from-emerald-500 to-[#00d29d] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-300">
+                    <ShieldAlert size={20} className="animate-pulse" />
+                  </div>
+                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 안전</span>
+                </div>
+
+                {/* Title & Desc */}
+                <div className="flex flex-col gap-2 mt-2">
+                  <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
+                    전세금 안전진단 & 깡통전세 계산기 🛡️
+                  </h3>
+                  <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
+                    내가 입주할 혹은 거주 중인 아파트의 보증금과 등기부상 근저당권을 실시간 시세와 연동 분석하여 대항력 획득 여부와 깡통전세 위험률을 안전도 4단계로 즉시 분석합니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom Button */}
+              <div className="mt-6 relative z-10">
+                <button 
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+                >
+                  <span>보증금 진단하기</span>
+                  <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Card 3: Mortgage Calculator */}
+          {onOpenMortgage && (
+            <div 
+              onClick={() => onOpenMortgage()}
+              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-blue-500/8 to-surface dark:from-blue-500/4 border border-blue-500/15 hover:border-blue-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div className="relative z-10 flex flex-col gap-4">
+                {/* Icon & Badge Row */}
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 bg-gradient-to-tr from-blue-500 to-[#4196f7] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-blue-500/10 group-hover:scale-105 transition-transform duration-300">
+                    <Calculator size={20} className="animate-pulse" />
+                  </div>
+                  <span className="text-[10px] font-black bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 금융</span>
+                </div>
+
+                {/* Title & Desc */}
+                <div className="flex flex-col gap-2 mt-2">
+                  <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
+                    내 집 마련 대출 계산기 & 시뮬레이터 💸
+                  </h3>
+                  <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
+                    가구 소득, 순자산, 자녀 수에 따라 신생아 특례대출, 디딤돌, 보금자리론 등 최적의 정부 저금리 정책 대출 자격을 진단하고 월 원리금 상환 계획을 즉시 설계합니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom Button */}
+              <div className="mt-6 relative z-10">
+                <button 
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+                >
+                  <span>대출 한도 조회</span>
+                  <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* 전세 안전진단 및 깡통전세 계산기 배너 위젯 */}
-        {onOpenJeonseSafety && (
-          <div 
-            onClick={() => onOpenJeonseSafety()}
-            className="mt-6 w-full p-6 sm:p-8 bg-gradient-to-r from-emerald-500/10 via-[#00d29d]/5 to-surface border border-emerald-500/25 dark:border-emerald-500/30 rounded-[24px] shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-14 h-14 bg-gradient-to-tr from-emerald-500 to-[#00d29d] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:rotate-3 transition-transform duration-300 animate-in spin-in-12 duration-700">
-                <ShieldAlert size={26} className="animate-pulse" />
-              </div>
-              <div className="flex flex-col gap-1.5 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-0.5 rounded-full tracking-wide uppercase">D-VIEW 안전</span>
-                  <span className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight">전세금 안전진단 & 깡통전세 계산기 🛡️</span>
-                </div>
-                <p className="text-[12px] sm:text-[13px] text-secondary font-semibold leading-relaxed break-keep">
-                  내가 입주할 혹은 거주 중인 아파트의 보증금과 등기부상 근저당권을 실시간 시세와 연동 분석하여 대항력 획득 여부와 깡통전세 위험률을 안전도 4단계로 즉시 분석합니다.
-                </p>
-              </div>
-            </div>
-            <button 
-              className="px-5 py-3 bg-emerald-600 group-hover:bg-emerald-500 text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10 border-none cursor-pointer"
-            >
-              <span>보증금 진단하기</span>
-              <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
-        )}
-
-        {/* 내 집 마련 대출 자가진단 계산기 배너 위젯 */}
-        {onOpenMortgage && (
-          <div 
-            onClick={() => onOpenMortgage()}
-            className="mt-6 w-full p-6 sm:p-8 bg-gradient-to-r from-blue-500/10 via-[#4196f7]/5 to-surface border border-blue-500/25 dark:border-blue-500/30 rounded-[24px] shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-14 h-14 bg-gradient-to-tr from-blue-500 to-[#4196f7] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/10 group-hover:rotate-3 transition-transform duration-300 animate-in spin-in-12 duration-700">
-                <Calculator size={26} className="animate-pulse" />
-              </div>
-              <div className="flex flex-col gap-1.5 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-black bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full tracking-wide uppercase">D-VIEW 금융</span>
-                  <span className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight">내 집 마련 대출 계산기 & 자금 조달 시뮬레이터 💸</span>
-                </div>
-                <p className="text-[12px] sm:text-[13px] text-secondary font-semibold leading-relaxed break-keep">
-                  가구 소득, 순자산, 자녀 수에 따라 신생아 특례대출, 디딤돌, 보금자리론 등 최적의 정부 저금리 정책 대출 자격을 진단하고 월 원리금 상환 계획을 즉시 설계합니다.
-                </p>
-              </div>
-            </div>
-            <button 
-              className="px-5 py-3 bg-blue-600 group-hover:bg-blue-500 text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10 border-none cursor-pointer"
-            >
-              <span>대출 한도 조회</span>
-              <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
-        )}
 
         {/* Detailed Real Estate Portfolio Section */}
         <div className="mt-12 mb-6 flex items-center justify-between px-0">
