@@ -67,8 +67,16 @@ export async function POST(req: NextRequest) {
     // Refresh rows after delete
     const currentRows = await sheet.getRows();
 
-    // 2. Updates
+    // 2. Updates — Batch Cell updates to prevent timeouts and quota limits
     if (updates.length > 0) {
+      // Load all cells into memory at once
+      await sheet.loadCells({
+        startRowIndex: 0,
+        endRowIndex: rows.length + 1,
+        startColumnIndex: 0,
+        endColumnIndex: sheet.headerValues.length
+      });
+
       for (const updateObj of updates) {
         // Try finding by ticker first, then by name
         let targetRow = null;
@@ -80,24 +88,36 @@ export async function POST(req: NextRequest) {
         }
 
         if (targetRow) {
+          const rowIndex = currentRows.indexOf(targetRow) + 1; // 0-based sheet row index (offset by 1 for header)
           let dirty = false;
+
           for (const key of Object.keys(updateObj.updates)) {
-            const exactHeader = sheet.headerValues.find(h => h === key || h.toLowerCase().trim() === key.toLowerCase().trim());
-            if (exactHeader) {
-              targetRow.set(exactHeader, String(updateObj.updates[key]));
-              dirty = true;
+            const headerIdx = sheet.headerValues.findIndex(
+              h => h === key || h.toLowerCase().trim() === key.toLowerCase().trim()
+            );
+            if (headerIdx !== -1) {
+              const cell = sheet.getCell(rowIndex, headerIdx);
+              const newValue = String(updateObj.updates[key]);
+              if (cell.value !== newValue) {
+                cell.value = newValue;
+                dirty = true;
+              }
             }
           }
           if (dirty) {
-            await targetRow.save();
             updatedCount++;
           }
         }
       }
+
+      if (updatedCount > 0) {
+        await sheet.saveUpdatedCells();
+      }
     }
 
-    // 3. Adds — 전체 메타데이터 필드 지원
+    // 3. Adds — Batch row insertions
     if (adds.length > 0) {
+      const newRowsArray: Record<string, string>[] = [];
       for (const addObj of adds) {
         const newRow: Record<string, string> = {};
         newRow[nameCol] = addObj.name;
@@ -114,8 +134,13 @@ export async function POST(req: NextRequest) {
         if (addObj.maxFloor) newRow[col(['최고층', 'maxfloor'])] = String(addObj.maxFloor);
         if (addObj.isPublicRental != null) newRow[col(['공공임대', 'ispublicrental'])] = addObj.isPublicRental ? 'Y' : 'N';
         if (addObj.ticker) newRow[col(['ticker', '티커'])] = addObj.ticker;
-        await sheet.addRow(newRow);
+        
+        newRowsArray.push(newRow);
         addedCount++;
+      }
+
+      if (newRowsArray.length > 0) {
+        await sheet.addRows(newRowsArray);
       }
     }
 
