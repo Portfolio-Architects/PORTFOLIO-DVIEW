@@ -379,6 +379,7 @@ export default function TossApartmentExploreClient({
   }, [enrichedApts, currentCategory, debouncedSearchQuery]);
 
   const listRef = useRef<List>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
   const [listHeight, setListHeight] = useState(600);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -393,15 +394,25 @@ export default function TossApartmentExploreClient({
 
   useEffect(() => {
     const updateHeight = () => {
-      const headerOffset = window.innerWidth < 768 ? 260 : 220;
-      setListHeight(Math.max(300, window.innerHeight - headerOffset));
+      if (window.innerWidth < 768) {
+        setListHeight(Math.max(300, window.innerHeight - 260));
+      } else {
+        // 데스크톱 뷰: 왼쪽 사이드바가 '석우동'까지 다 나올 수 있도록 최소 높이를 사이드바 scrollHeight(약 760~800px)로 설정
+        const sidebarHeight = sidebarRef.current ? sidebarRef.current.scrollHeight : 800;
+        const calculatedHeight = window.innerHeight - 220;
+        setListHeight(Math.max(sidebarHeight, calculatedHeight));
+      }
     };
 
     updateHeight();
     window.addEventListener('resize', updateHeight);
     
+    // 컴포넌트 마운트 후 레이아웃이 완전히 잡힌 뒤 높이를 재계산하기 위해 타임아웃 추가
+    const timer = setTimeout(updateHeight, 150);
+    
     return () => {
       window.removeEventListener('resize', updateHeight);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -449,7 +460,7 @@ export default function TossApartmentExploreClient({
 
       {/* Main Content Area */}
       <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-4 md:pb-8 bg-surface items-stretch">
-      <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
+      <aside ref={sidebarRef} className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
