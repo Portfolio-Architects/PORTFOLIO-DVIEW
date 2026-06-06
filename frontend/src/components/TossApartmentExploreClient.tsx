@@ -379,7 +379,6 @@ export default function TossApartmentExploreClient({
   }, [enrichedApts, currentCategory, debouncedSearchQuery]);
 
   const listRef = useRef<List>(null);
-  const sidebarRef = useRef<HTMLElement>(null);
   const [listHeight, setListHeight] = useState(600);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -397,17 +396,29 @@ export default function TossApartmentExploreClient({
       if (window.innerWidth < 768) {
         setListHeight(Math.max(300, window.innerHeight - 260));
       } else {
-        // 데스크톱 뷰: 왼쪽 사이드바가 '석우동'까지 다 나올 수 있도록 최소 높이를 사이드바 scrollHeight(약 760~800px)로 설정
-        const sidebarHeight = sidebarRef.current ? sidebarRef.current.scrollHeight : 800;
-        const calculatedHeight = window.innerHeight - 220;
-        setListHeight(Math.max(sidebarHeight, calculatedHeight));
+        // 데스크톱 뷰: 브라우저 뷰포트 크기에 연동
+        const container = document.getElementById('explore-list-container');
+        if (container) {
+          // container의 document 기준 절대 top 좌표 계산 (스크롤 영향 제거)
+          const rect = container.getBoundingClientRect();
+          const absoluteTop = rect.top + window.scrollY;
+          
+          // 화면 전체 높이에서 absoluteTop과 푸터 위쪽 마진(약 40px)을 차감하여 화면 뷰포트에 딱 들어맞는 높이 계산
+          const bottomOffset = 40;
+          const calculatedHeight = window.innerHeight - absoluteTop - bottomOffset;
+          setListHeight(Math.max(400, calculatedHeight));
+        } else {
+          // container를 아직 찾을 수 없을 때의 안전한 폴백
+          const headerOffset = 340; 
+          setListHeight(Math.max(400, window.innerHeight - headerOffset));
+        }
       }
     };
 
     updateHeight();
     window.addEventListener('resize', updateHeight);
     
-    // 컴포넌트 마운트 후 레이아웃이 완전히 잡힌 뒤 높이를 재계산하기 위해 타임아웃 추가
+    // 컴포넌트 마운트 후 및 렌더링 후 정확한 절대 top 계산을 위해 약간의 지연 처리
     const timer = setTimeout(updateHeight, 150);
     
     return () => {
@@ -460,7 +471,7 @@ export default function TossApartmentExploreClient({
 
       {/* Main Content Area */}
       <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-4 md:pb-8 bg-surface items-stretch">
-      <aside ref={sidebarRef} className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
+      <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
