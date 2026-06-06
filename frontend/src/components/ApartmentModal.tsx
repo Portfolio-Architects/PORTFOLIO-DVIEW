@@ -17,6 +17,7 @@ import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
 import CommentSection from '@/components/CommentSection';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
@@ -1180,7 +1181,6 @@ function FieldReportModal({
                 className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
                 title="전세 보증금 안전성 진단 및 깡통전세 계산기 실행"
               >
-                <span className="text-[14px]">🛡️</span>
                 <span>전세 안전진단</span>
               </button>
             )}
@@ -1192,7 +1192,6 @@ function FieldReportModal({
                 className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 border border-blue-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
                 title="정책 대출 자격 조회 및 원리금 상환 시뮬레이터 실행"
               >
-                <span className="text-[14px]">💸</span>
                 <span>대출 계산기</span>
               </button>
             )}
@@ -1233,16 +1232,18 @@ function FieldReportModal({
 
         {/* Right: 실거래가 차트 (65%) */}
         <div className="w-full md:w-[65%] flex flex-col">
-          <TransactionChartSection 
-            transactions={filteredTransactions} 
-            chartType={chartType} 
-            setChartType={setChartType}
-            displayAptName={displayAptName} 
-            dong={report.dong || '동탄'}
-            typeMap={typeMap} 
-            normalizeAptName={normalizeAptName} 
-            txSummary={txSummary}
-          />
+          <ErrorBoundary name="실거래 차트">
+            <TransactionChartSection 
+              transactions={filteredTransactions} 
+              chartType={chartType} 
+              setChartType={setChartType}
+              displayAptName={displayAptName} 
+              dong={report.dong || '동탄'}
+              typeMap={typeMap} 
+              normalizeAptName={normalizeAptName} 
+              txSummary={txSummary}
+            />
+          </ErrorBoundary>
         </div>
       </section>
 
@@ -2016,7 +2017,9 @@ function FieldReportModal({
             <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
               <div className="relative w-full">
                 <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
-                  <AdvancedValuationMetrics report={report} transactions={transactions} />
+                  <ErrorBoundary name="밸류에이션 분석">
+                    <AdvancedValuationMetrics report={report} transactions={transactions} />
+                  </ErrorBoundary>
                   <BuyOrWaitVote aptName={report.apartmentName} />
                 </div>
                 {!isUnlocked && (
@@ -2268,16 +2271,18 @@ function FieldReportModal({
 
             {/* Comments Section */}
             <section id="sec-comments">
-              <CommentSection
-                comments={comments}
-                commentInput={commentInput}
-                onCommentChange={onCommentChange}
-                onSubmitComment={onSubmitComment}
-                user={user}
-                isUnlocked={isUnlocked}
-                selectedCommentId={selectedCommentId}
-                onRequestLogin={onRequestLogin}
-              />
+              <ErrorBoundary name="임장기 댓글">
+                <CommentSection
+                  comments={comments}
+                  commentInput={commentInput}
+                  onCommentChange={onCommentChange}
+                  onSubmitComment={onSubmitComment}
+                  user={user}
+                  isUnlocked={isUnlocked}
+                  selectedCommentId={selectedCommentId}
+                  onRequestLogin={onRequestLogin}
+                />
+              </ErrorBoundary>
             </section>
 
           </div>

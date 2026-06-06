@@ -11,6 +11,7 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal'), { ssr: false });
@@ -676,52 +677,54 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         {mounted && (
           <section className={`w-full bg-surface pb-8 md:pb-0 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
-            <MacroDashboardClient 
-              sheetApartments={sheetApartments} 
-              txSummaryData={txSummaryData}
-              macroTrendData={macroTrend}
-              nameMapping={nameMapping || {}}
-              publicRentalSet={publicRentalSet}
-              userFavorites={userFavorites}
-              fieldReportsMap={fieldReportsMap}
-              favoriteCounts={favoriteCounts}
-              recent7DaysVolume={recent7DaysVolume}
-              onOpenAdModal={() => setIsAdModalOpen(true)}
-              onOpenCompare={() => {
-                setCompareInitialApt(undefined);
-                setIsCompareOpen(true);
-              }}
-              onOpenJeonseSafety={(aptName) => {
-                setJeonseSafetyInitialApt(aptName);
-                setIsJeonseSafetyOpen(true);
-              }}
-              onOpenMortgage={(aptName) => {
-                setMortgageInitialApt(aptName);
-                setIsMortgageOpen(true);
-              }}
-              onSelectApt={(name: string) => {
-                userHasSelected.current = true;
-                const report = fieldReportsMap.get(name);
-                if (report) {
-                  setSelectedReport(report);
-                } else {
-                  const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                  setSelectedReport({
-                    id: `stub-${name.replace(/\s+/g, '')}`,
-                    apartmentName: name,
-                    dong: targetApt.dong,
-                    author: '',
-                    likes: 0,
-                    commentCount: 0,
-                    createdAt: null,
-                    metrics: { ...targetApt } as any,
-                  });
-                }
-                // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
-                History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                setMobileModalOpen(true);
-              }}
-            />
+            <ErrorBoundary name="마크로 대시보드">
+              <MacroDashboardClient 
+                sheetApartments={sheetApartments} 
+                txSummaryData={txSummaryData}
+                macroTrendData={macroTrend}
+                nameMapping={nameMapping || {}}
+                publicRentalSet={publicRentalSet}
+                userFavorites={userFavorites}
+                fieldReportsMap={fieldReportsMap}
+                favoriteCounts={favoriteCounts}
+                recent7DaysVolume={recent7DaysVolume}
+                onOpenAdModal={() => setIsAdModalOpen(true)}
+                onOpenCompare={() => {
+                  setCompareInitialApt(undefined);
+                  setIsCompareOpen(true);
+                }}
+                onOpenJeonseSafety={(aptName) => {
+                  setJeonseSafetyInitialApt(aptName);
+                  setIsJeonseSafetyOpen(true);
+                }}
+                onOpenMortgage={(aptName) => {
+                  setMortgageInitialApt(aptName);
+                  setIsMortgageOpen(true);
+                }}
+                onSelectApt={(name: string) => {
+                  userHasSelected.current = true;
+                  const report = fieldReportsMap.get(name);
+                  if (report) {
+                    setSelectedReport(report);
+                  } else {
+                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                    setSelectedReport({
+                      id: `stub-${name.replace(/\s+/g, '')}`,
+                      apartmentName: name,
+                      dong: targetApt.dong,
+                      author: '',
+                      likes: 0,
+                      commentCount: 0,
+                      createdAt: null,
+                      metrics: { ...targetApt } as any,
+                    });
+                  }
+                  // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
+                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                  setMobileModalOpen(true);
+                }}
+              />
+            </ErrorBoundary>
           </section>
         )}
 
@@ -1007,40 +1010,133 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     />
 
     {isCompareOpen && (
-      <AptCompareModal
-        isOpen={isCompareOpen}
-        onClose={() => setIsCompareOpen(false)}
-        initialAptName={compareInitialApt}
-        sheetApartments={sheetApartments}
-        txSummaryData={txSummary}
-        nameMapping={nameMapping || {}}
-        fieldReportsMap={fieldReportsMap}
-        typeMap={typeMap}
-      />
+      <ErrorBoundary
+        name="아파트 비교 분석"
+        fallback={(error, reset) => (
+          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <span className="text-xl">⚖️</span>
+              </div>
+              <h3 className="text-[15px] font-black text-primary mb-1">비교 분석기 로드 실패</h3>
+              <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                비교 분석기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+              </p>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={reset}
+                  className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                >
+                  다시 시도
+                </button>
+                <button
+                  onClick={() => setIsCompareOpen(false)}
+                  className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      >
+        <AptCompareModal
+          isOpen={isCompareOpen}
+          onClose={() => setIsCompareOpen(false)}
+          initialAptName={compareInitialApt}
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummary}
+          nameMapping={nameMapping || {}}
+          fieldReportsMap={fieldReportsMap}
+          typeMap={typeMap}
+        />
+      </ErrorBoundary>
     )}
 
     {isJeonseSafetyOpen && (
-      <JeonseSafetyCalculator
-        isOpen={isJeonseSafetyOpen}
-        onClose={() => setIsJeonseSafetyOpen(false)}
-        initialAptName={jeonseSafetyInitialApt}
-        sheetApartments={sheetApartments}
-        txSummaryData={txSummary}
-        nameMapping={nameMapping || {}}
-        fieldReportsMap={fieldReportsMap}
-      />
+      <ErrorBoundary
+        name="전세 안전진단"
+        fallback={(error, reset) => (
+          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <span className="text-xl">🛡️</span>
+              </div>
+              <h3 className="text-[15px] font-black text-primary mb-1">전세 안전진단 로드 실패</h3>
+              <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                전세 안전진단 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+              </p>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={reset}
+                  className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                >
+                  다시 시도
+                </button>
+                <button
+                  onClick={() => setIsJeonseSafetyOpen(false)}
+                  className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      >
+        <JeonseSafetyCalculator
+          isOpen={isJeonseSafetyOpen}
+          onClose={() => setIsJeonseSafetyOpen(false)}
+          initialAptName={jeonseSafetyInitialApt}
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummary}
+          nameMapping={nameMapping || {}}
+          fieldReportsMap={fieldReportsMap}
+        />
+      </ErrorBoundary>
     )}
 
     {isMortgageOpen && (
-      <MortgageCalculator
-        isOpen={isMortgageOpen}
-        onClose={() => setIsMortgageOpen(false)}
-        initialAptName={mortgageInitialApt}
-        sheetApartments={sheetApartments}
-        txSummaryData={txSummary}
-        nameMapping={nameMapping || {}}
-        fieldReportsMap={fieldReportsMap}
-      />
+      <ErrorBoundary
+        name="대출 한도진단"
+        fallback={(error, reset) => (
+          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <span className="text-xl">💸</span>
+              </div>
+              <h3 className="text-[15px] font-black text-primary mb-1">대출 계산기 로드 실패</h3>
+              <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                대출 한도진단 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+              </p>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={reset}
+                  className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                >
+                  다시 시도
+                </button>
+                <button
+                  onClick={() => setIsMortgageOpen(false)}
+                  className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      >
+        <MortgageCalculator
+          isOpen={isMortgageOpen}
+          onClose={() => setIsMortgageOpen(false)}
+          initialAptName={mortgageInitialApt}
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummary}
+          nameMapping={nameMapping || {}}
+          fieldReportsMap={fieldReportsMap}
+        />
+      </ErrorBoundary>
     )}
     </>
   );

@@ -1404,7 +1404,7 @@ interface GroupedCategory {
                 onClick={() => onOpenJeonseSafety()}
                 className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 text-[13px] font-bold rounded-[8px] shadow-sm hover:shadow transition-all transform active:scale-95 cursor-pointer border border-emerald-500/25"
               >
-                <span>🛡️ 전세 안전진단</span>
+                <span>전세 안전진단</span>
               </button>
             )}
             {onOpenMortgage && (
@@ -1412,7 +1412,7 @@ interface GroupedCategory {
                 onClick={() => onOpenMortgage()}
                 className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 text-[13px] font-bold rounded-[8px] shadow-sm hover:shadow transition-all transform active:scale-95 cursor-pointer border border-blue-500/25"
               >
-                <span>💸 대출 한도진단</span>
+                <span>대출 한도진단</span>
               </button>
             )}
             {onOpenAdModal && (
