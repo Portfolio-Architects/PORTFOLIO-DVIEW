@@ -164,6 +164,16 @@ export default function AptCompareModal({
   const [isFocused1, setIsFocused1] = useState(false);
   const [isFocused2, setIsFocused2] = useState(false);
 
+  // Price metric: 'absolute' (절대 가격) vs 'perPyeong' (평당 가격)
+  const [priceMetric, setPriceMetric] = useState<'absolute' | 'perPyeong'>('absolute');
+
+  // Recently compared apartments state
+  const [recentApts, setRecentApts] = useState<DongApartment[]>([]);
+
+  // Autocomplete active indexes for keyboard navigation
+  const [activeIndex1, setActiveIndex1] = useState(-1);
+  const [activeIndex2, setActiveIndex2] = useState(-1);
+
   // Transaction data states
   const [txData1, setTxData1] = useState<TxDataPoint[]>([]);
   const [txData2, setTxData2] = useState<TxDataPoint[]>([]);
@@ -178,6 +188,137 @@ export default function AptCompareModal({
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef1 = useRef<HTMLDivElement>(null);
   const dropdownRef2 = useRef<HTMLDivElement>(null);
+
+  // Load recent apartments from localStorage on mount/isOpen
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const stored = localStorage.getItem('dview_compare_recent');
+        if (stored) {
+          const parsedNames = JSON.parse(stored) as string[];
+          const matched = parsedNames
+            .map(name => allApartments.find(a => a.name === name))
+            .filter((a): a is DongApartment => !!a);
+          setRecentApts(matched);
+        }
+      } catch (e) {
+        console.error('Error loading recent apartments', e);
+      }
+    }
+  }, [isOpen, allApartments]);
+
+  // Helper to save selected apartment to localStorage
+  const saveToRecent = React.useCallback((apt: DongApartment) => {
+    setRecentApts(prev => {
+      const filtered = prev.filter(a => a.name !== apt.name);
+      const updated = [apt, ...filtered].slice(0, 5); // Keep last 5
+      try {
+        localStorage.setItem('dview_compare_recent', JSON.stringify(updated.map(a => a.name)));
+      } catch (e) {
+        console.error('Error saving recent apartment', e);
+      }
+      return updated;
+    });
+  }, []);
+
+  // Options to render in dropdown 1 (prepends recent apartments when search query is empty)
+  const dropdownOptions1 = useMemo(() => {
+    if (searchQuery1.trim() === '') {
+      const recentNames = new Set(recentApts.map(a => a.name));
+      const remaining = allApartments.filter(a => !recentNames.has(a.name));
+      return [...recentApts, ...remaining];
+    }
+    const query = normalizeAptName(searchQuery1);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery1));
+  }, [searchQuery1, allApartments, recentApts]);
+
+  // Options to render in dropdown 2 (prepends recent apartments when search query is empty)
+  const dropdownOptions2 = useMemo(() => {
+    if (searchQuery2.trim() === '') {
+      const recentNames = new Set(recentApts.map(a => a.name));
+      const remaining = allApartments.filter(a => !recentNames.has(a.name));
+      return [...recentApts, ...remaining];
+    }
+    const query = normalizeAptName(searchQuery2);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery2));
+  }, [searchQuery2, allApartments, recentApts]);
+
+  // Reset active index when dropdown states change
+  useEffect(() => {
+    setActiveIndex1(-1);
+  }, [searchQuery1, isFocused1]);
+
+  useEffect(() => {
+    setActiveIndex2(-1);
+  }, [searchQuery2, isFocused2]);
+
+  // Scroll active elements into view
+  useEffect(() => {
+    if (activeIndex1 >= 0 && dropdownRef1.current) {
+      const activeEl = dropdownRef1.current.querySelector(`[data-index="${activeIndex1}"]`);
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeIndex1]);
+
+  useEffect(() => {
+    if (activeIndex2 >= 0 && dropdownRef2.current) {
+      const activeEl = dropdownRef2.current.querySelector(`[data-index="${activeIndex2}"]`);
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeIndex2]);
+
+  // Keyboard navigation handlers
+  const handleKeyDown1 = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isFocused1 || dropdownOptions1.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex1(prev => (prev + 1) % dropdownOptions1.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex1(prev => (prev - 1 + dropdownOptions1.length) % dropdownOptions1.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex1 >= 0 && activeIndex1 < dropdownOptions1.length) {
+        const selected = dropdownOptions1[activeIndex1];
+        setApt1(selected);
+        setSearchQuery1(getDisplayAptName(selected.name));
+        setIsFocused1(false);
+        saveToRecent(selected);
+      }
+    } else if (e.key === 'Escape') {
+      setIsFocused1(false);
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const handleKeyDown2 = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isFocused2 || dropdownOptions2.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex2(prev => (prev + 1) % dropdownOptions2.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex2(prev => (prev - 1 + dropdownOptions2.length) % dropdownOptions2.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex2 >= 0 && activeIndex2 < dropdownOptions2.length) {
+        const selected = dropdownOptions2[activeIndex2];
+        setApt2(selected);
+        setSearchQuery2(getDisplayAptName(selected.name));
+        setIsFocused2(false);
+        saveToRecent(selected);
+      }
+    } else if (e.key === 'Escape') {
+      setIsFocused2(false);
+      (e.target as HTMLInputElement).blur();
+    }
+  };
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -197,9 +338,10 @@ export default function AptCompareModal({
       if (matched) {
         setApt1(matched);
         setSearchQuery1(getDisplayAptName(matched.name));
+        saveToRecent(matched);
       }
     }
-  }, [initialAptName, allApartments, isOpen]);
+  }, [initialAptName, allApartments, isOpen, saveToRecent]);
 
   // Handle clicking outside of dropdowns to close them
   useEffect(() => {
@@ -588,6 +730,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     if (apt1) setApt1(null);
                   }}
                   onFocus={() => setIsFocused1(true)}
+                  onKeyDown={handleKeyDown1}
                   className="w-full bg-surface border border-border/40 focus:border-[#00d29d] rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                 />
                 {searchQuery1 && (
@@ -604,23 +747,43 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
               </div>
 
               {isFocused1 && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[200px] py-1">
-                  {filteredApts1.length > 0 ? (
-                    filteredApts1.map(apt => (
-                      <button
-                        key={apt.name}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setApt1(apt);
-                          setSearchQuery1(getDisplayAptName(apt.name));
-                          setIsFocused1(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-[12.5px] font-bold hover:bg-body text-secondary flex items-center justify-between"
-                      >
-                        <span>{getDisplayAptName(apt.name)}</span>
-                        <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
-                      </button>
-                    ))
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[220px] py-1">
+                  {dropdownOptions1.length > 0 ? (
+                    <>
+                      {searchQuery1.trim() === '' && recentApts.length > 0 && (
+                        <div className="px-3 py-1 text-[10px] font-black text-tertiary uppercase tracking-wider border-b border-border/10 mb-1">
+                          최근 선택 단지
+                        </div>
+                      )}
+                      {dropdownOptions1.map((apt, index) => {
+                        const isFirstRemaining = searchQuery1.trim() === '' && recentApts.length > 0 && index === recentApts.length;
+                        return (
+                          <React.Fragment key={apt.name}>
+                            {isFirstRemaining && (
+                              <div className="px-3 py-1 mt-2 text-[10px] font-black text-tertiary uppercase tracking-wider border-t border-b border-border/10 mb-1 pt-1.5">
+                                전체 단지 리스트
+                              </div>
+                            )}
+                            <button
+                              data-index={index}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setApt1(apt);
+                                setSearchQuery1(getDisplayAptName(apt.name));
+                                setIsFocused1(false);
+                                saveToRecent(apt);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-[12.5px] font-bold hover:bg-body text-secondary flex items-center justify-between transition-all ${
+                                activeIndex1 === index ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : ''
+                              }`}
+                            >
+                              <span>{getDisplayAptName(apt.name)}</span>
+                              <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                    </>
                   ) : (
                     <div className="px-3 py-2 text-[12px] font-bold text-tertiary text-center">검색 결과가 없습니다</div>
                   )}
@@ -648,6 +811,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     if (apt2) setApt2(null);
                   }}
                   onFocus={() => setIsFocused2(true)}
+                  onKeyDown={handleKeyDown2}
                   className="w-full bg-surface border border-border/40 focus:border-[#00d29d] rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                 />
                 {searchQuery2 && (
@@ -664,23 +828,43 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
               </div>
 
               {isFocused2 && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[200px] py-1">
-                  {filteredApts2.length > 0 ? (
-                    filteredApts2.map(apt => (
-                      <button
-                        key={apt.name}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setApt2(apt);
-                          setSearchQuery2(getDisplayAptName(apt.name));
-                          setIsFocused2(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-[12.5px] font-bold hover:bg-body text-secondary flex items-center justify-between"
-                      >
-                        <span>{getDisplayAptName(apt.name)}</span>
-                        <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
-                      </button>
-                    ))
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[220px] py-1">
+                  {dropdownOptions2.length > 0 ? (
+                    <>
+                      {searchQuery2.trim() === '' && recentApts.length > 0 && (
+                        <div className="px-3 py-1 text-[10px] font-black text-tertiary uppercase tracking-wider border-b border-border/10 mb-1">
+                          최근 선택 단지
+                        </div>
+                      )}
+                      {dropdownOptions2.map((apt, index) => {
+                        const isFirstRemaining = searchQuery2.trim() === '' && recentApts.length > 0 && index === recentApts.length;
+                        return (
+                          <React.Fragment key={apt.name}>
+                            {isFirstRemaining && (
+                              <div className="px-3 py-1 mt-2 text-[10px] font-black text-tertiary uppercase tracking-wider border-t border-b border-border/10 mb-1 pt-1.5">
+                                전체 단지 리스트
+                              </div>
+                            )}
+                            <button
+                              data-index={index}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setApt2(apt);
+                                setSearchQuery2(getDisplayAptName(apt.name));
+                                setIsFocused2(false);
+                                saveToRecent(apt);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-[12.5px] font-bold hover:bg-body text-secondary flex items-center justify-between transition-all ${
+                                activeIndex2 === index ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : ''
+                              }`}
+                            >
+                              <span>{getDisplayAptName(apt.name)}</span>
+                              <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                    </>
                   ) : (
                     <div className="px-3 py-2 text-[12px] font-bold text-tertiary text-center">검색 결과가 없습니다</div>
                   )}
@@ -753,9 +937,9 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   <div className="text-center truncate">{apt2Label}</div>
                 </div>
 
-                {/* --- Section: 입지 인프라 --- */}
+                {/* --- Section: 역세권 인프라 --- */}
                 <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-                  <MapPin size={12} className="text-[#0284c7]" /> 입지 인프라 (역세권·학세권)
+                  <MapPin size={12} className="text-[#0284c7]" /> 역세권 인프라 (철도 및 트램)
                 </div>
 
                 <div className="divide-y divide-border/20">
@@ -767,19 +951,6 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     </div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.subway)}`}>
                       {metrics2.distanceToSubway ? `${metrics2.distanceToSubway}m` : '-'}
-                    </div>
-                  </div>
-
-                  {/* School Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
-                    <div className="text-secondary font-bold flex items-center gap-1">
-                      <span>초등학교 도보 통학 거리</span>
-                    </div>
-                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.elementary)}`}>
-                      {metrics1.distanceToElementary ? `${metrics1.distanceToElementary}m` : '-'}
-                    </div>
-                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.elementary)}`}>
-                      {metrics2.distanceToElementary ? `${metrics2.distanceToElementary}m` : '-'}
                     </div>
                   </div>
 
@@ -804,6 +975,26 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                       {metrics2.distanceToTram ? `${metrics2.distanceToTram}m` : '-'}
                     </div>
                   </div>
+                </div>
+
+                {/* --- Section: 교육 및 생활 인프라 --- */}
+                <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+                  <School size={12} className="text-[#0ea5e9]" /> 교육 및 생활 인프라 (학교 및 편의시설)
+                </div>
+
+                <div className="divide-y divide-border/20">
+                  {/* School Distance */}
+                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                    <div className="text-secondary font-bold flex items-center gap-1">
+                      <span>초등학교 도보 통학 거리</span>
+                    </div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.elementary)}`}>
+                      {metrics1.distanceToElementary ? `${metrics1.distanceToElementary}m` : '-'}
+                    </div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.elementary)}`}>
+                      {metrics2.distanceToElementary ? `${metrics2.distanceToElementary}m` : '-'}
+                    </div>
+                  </div>
 
                   {/* Starbucks Distance */}
                   <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
@@ -817,7 +1008,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
                 </div>
 
-                {/* --- Section: 단지 스펙 --- */}
+                                {/* --- Section: 단지 스펙 --- */}
                 <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
                   <Building2 size={12} className="text-[#db2777]" /> 단지 스펙 (규모·연식)
                 </div>
@@ -955,26 +1146,45 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
           {/* Historical Price Trend Dual Chart */}
           {apt1 && apt2 && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between px-1 flex-wrap gap-2">
+              <div className="flex items-center justify-between px-1 flex-wrap gap-3">
                 <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5">
                   <TrendingUp size={16} className="text-[#4196f7]" />
                   <span>실거래 시계열 가격 트렌드 (월별 평균 거래가)</span>
                 </h3>
                 
-                {/* Sale / Rent Toggle */}
-                <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10 shrink-0">
-                  <button
-                    onClick={() => setChartType('sale')}
-                    className={`px-3 py-1 rounded-[10px] text-[12px] font-bold transition-all cursor-pointer ${chartType === 'sale' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary'}`}
-                  >
-                    매매 가격
-                  </button>
-                  <button
-                    onClick={() => setChartType('jeonse')}
-                    className={`px-3 py-1 rounded-[10px] text-[12px] font-bold transition-all cursor-pointer ${chartType === 'jeonse' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary'}`}
-                  >
-                    전세 보증금
-                  </button>
+                {/* Chart Toggle Group */}
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  {/* Absolute / Per-Pyeong Toggle */}
+                  <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10">
+                    <button
+                      onClick={() => setPriceMetric('absolute')}
+                      className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${priceMetric === 'absolute' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+                    >
+                      절대 가격
+                    </button>
+                    <button
+                      onClick={() => setPriceMetric('perPyeong')}
+                      className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${priceMetric === 'perPyeong' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+                    >
+                      평당 가격
+                    </button>
+                  </div>
+
+                  {/* Sale / Rent Toggle */}
+                  <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10">
+                    <button
+                      onClick={() => setChartType('sale')}
+                      className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${chartType === 'sale' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+                    >
+                      매매 가격
+                    </button>
+                    <button
+                      onClick={() => setChartType('jeonse')}
+                      className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${chartType === 'jeonse' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+                    >
+                      전세 보증금
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1002,7 +1212,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                           fontWeight="bold"
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={(value) => `${value}억`}
+                          tickFormatter={(value) => priceMetric === 'perPyeong' ? `${value.toLocaleString()}만` : `${value}억`}
                           domain={yAxisDomain as any}
                           allowDataOverflow={true}
                         />
@@ -1015,7 +1225,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                           }}
                           labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}
                           itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                          formatter={(value: any) => [`${value}억원`]}
+                          formatter={(value: any) => [priceMetric === 'perPyeong' ? `${value.toLocaleString()}만 원` : `${value}억원`]}
                           useTranslate3d={true}
                           animationDuration={150}
                         />
