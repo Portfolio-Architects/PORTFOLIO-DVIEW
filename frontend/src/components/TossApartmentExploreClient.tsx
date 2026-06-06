@@ -666,8 +666,17 @@ export default function TossApartmentExploreClient({
     if (!isMobile) return 64;
     const item = sortedApts[index];
     if (!item) return 100;
+    
+    // 1. 베이스 높이 결정 (뱃지 여부 반영하여 기존 대비 약간 상향)
     const hasBadges = item.photoCount > 0 || item.likes > 0;
-    return hasBadges ? 122 : 102;
+    let size = hasBadges ? 130 : 110;
+    
+    // 2. 글자 수 11자 이상인 경우 모바일에서 2줄로 줄바꿈되어 늘어나는 높이(약 22px)를 추가 반영
+    if (item.apt.name.length >= 11) {
+      size += 22;
+    }
+    
+    return size;
   };
 
   const itemData = useMemo(() => ({
