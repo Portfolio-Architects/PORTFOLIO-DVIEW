@@ -64,6 +64,52 @@ const formatYearBuilt = (yearStr?: string | number) => {
   }
 };
 
+const InteractiveHeart = memo(({ 
+  isFavorited, 
+  name, 
+  onToggle, 
+  size = 18 
+}: { 
+  isFavorited: boolean; 
+  name: string; 
+  onToggle: (name: string) => void; 
+  size?: number; 
+}) => {
+  const [localFavorited, setLocalFavorited] = useState(isFavorited);
+  const [animate, setAnimate] = useState(false);
+
+  // 상위 상태와 동기화
+  useEffect(() => {
+    setLocalFavorited(isFavorited);
+  }, [isFavorited]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocalFavorited(prev => !prev);
+    setAnimate(true);
+    onToggle(name);
+    setTimeout(() => setAnimate(false), 300);
+  };
+
+  return (
+    <button 
+      onClick={handleClick}
+      aria-label={`${name} 즐겨찾기 ${localFavorited ? '해제' : '추가'}`}
+      className="focus:outline-none p-1 rounded-full hover:bg-body/80 active:scale-95 transition-all duration-150 shrink-0 flex items-center justify-center"
+    >
+      <Heart 
+        size={size} 
+        className={`transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+          localFavorited 
+            ? "text-toss-red fill-current" 
+            : "text-border dark:text-zinc-600 hover:text-rose-400"
+        } ${animate ? "scale-[1.4] rotate-[12deg]" : "scale-100"}`}
+      />
+    </button>
+  );
+});
+InteractiveHeart.displayName = 'InteractiveHeart';
+
 interface RowData {
   items: Array<{
     apt: DongApartment;
@@ -110,11 +156,13 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         className="hidden md:flex items-center md:px-4 h-[calc(100%-8px)] my-1 border-b border-body/10 hover:border-transparent hover:bg-body/60 dark:hover:bg-zinc-800/40 hover:-translate-y-[1px] hover:scale-[1.002] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] rounded-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.99]"
       >
         {/* Heart */}
-        <div 
-          className="w-[36px] text-center flex justify-center shrink-0"
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}
-        >
-          <Heart size={18} className={item.isFavorited ? "text-toss-red fill-current" : "text-border"} />
+        <div className="w-[36px] text-center flex justify-center items-center shrink-0">
+          <InteractiveHeart 
+            isFavorited={item.isFavorited} 
+            name={item.apt.name} 
+            onToggle={onToggleFavorite} 
+            size={18} 
+          />
         </div>
         
         {/* Rank */}
@@ -188,8 +236,13 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
           <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
             <span className="text-[15px] font-bold text-secondary mb-1">{index + 1}</span>
-            <div onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.apt.name); }}>
-              <Heart size={16} className={item.isFavorited ? "text-toss-red fill-current" : "text-tertiary"} />
+            <div className="mt-0.5">
+              <InteractiveHeart 
+                isFavorited={item.isFavorited} 
+                name={item.apt.name} 
+                onToggle={onToggleFavorite} 
+                size={15} 
+              />
             </div>
           </div>
           <div className="flex flex-col flex-1 min-w-0">
