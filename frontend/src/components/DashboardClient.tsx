@@ -1016,7 +1016,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
             <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
               <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
-                <span className="text-xl">⚖️</span>
+                <span className="text-xl font-black">!</span>
               </div>
               <h3 className="text-[15px] font-black text-primary mb-1">비교 분석기 로드 실패</h3>
               <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
