@@ -30,6 +30,7 @@ import {
   MessageSquare,
   Building2,
   Sparkles,
+  ShieldAlert,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -75,6 +76,7 @@ interface MacroDashboardProps {
   onSelectApt?: (name: string) => void;
   onOpenAdModal?: () => void;
   onOpenCompare?: () => void;
+  onOpenJeonseSafety?: (aptName?: string) => void;
   recent7DaysVolume?: {
     currentCount: number;
     prevCount: number;
@@ -312,6 +314,7 @@ export default function MacroDashboardClient({
   onSelectApt,
   onOpenAdModal,
   onOpenCompare,
+  onOpenJeonseSafety,
   recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
@@ -1393,6 +1396,14 @@ interface GroupedCategory {
                 <span>단지 비교분석</span>
               </button>
             )}
+            {onOpenJeonseSafety && (
+              <button
+                onClick={() => onOpenJeonseSafety()}
+                className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 text-[13px] font-bold rounded-[8px] shadow-sm hover:shadow transition-all transform active:scale-95 cursor-pointer border border-emerald-500/25"
+              >
+                <span>🛡️ 전세 안전진단</span>
+              </button>
+            )}
             {onOpenAdModal && (
               <button
                 onClick={onOpenAdModal}
@@ -1824,6 +1835,36 @@ interface GroupedCategory {
             <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
+
+        {/* 전세 안전진단 및 깡통전세 계산기 배너 위젯 */}
+        {onOpenJeonseSafety && (
+          <div 
+            onClick={() => onOpenJeonseSafety()}
+            className="mt-6 w-full p-6 sm:p-8 bg-gradient-to-r from-emerald-500/10 via-[#00d29d]/5 to-surface border border-emerald-500/25 dark:border-emerald-500/30 rounded-[24px] shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-14 h-14 bg-gradient-to-tr from-emerald-500 to-[#00d29d] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:rotate-3 transition-transform duration-300 animate-in spin-in-12 duration-700">
+                <ShieldAlert size={26} className="animate-pulse" />
+              </div>
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-0.5 rounded-full tracking-wide uppercase">D-VIEW 안전</span>
+                  <span className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight">전세금 안전진단 & 깡통전세 계산기 🛡️</span>
+                </div>
+                <p className="text-[12px] sm:text-[13px] text-secondary font-semibold leading-relaxed break-keep">
+                  내가 입주할 혹은 거주 중인 아파트의 보증금과 등기부상 근저당권을 실시간 시세와 연동 분석하여 대항력 획득 여부와 깡통전세 위험률을 안전도 4단계로 즉시 분석합니다.
+                </p>
+              </div>
+            </div>
+            <button 
+              className="px-5 py-3 bg-emerald-600 group-hover:bg-emerald-500 text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10 border-none cursor-pointer"
+            >
+              <span>보증금 진단하기</span>
+              <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+        )}
 
         {/* Detailed Real Estate Portfolio Section */}
         <div className="mt-12 mb-6 flex items-center justify-between px-0">

@@ -255,7 +255,8 @@ function FieldReportModal({
   loadAllTransactions,
   onRequestLogin,
   isPurchased,
-  onOpenCompare
+  onOpenCompare,
+  onOpenJeonseSafety
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -276,6 +277,7 @@ function FieldReportModal({
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
   onOpenCompare?: (aptName: string) => void;
+  onOpenJeonseSafety?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -1166,6 +1168,18 @@ function FieldReportModal({
               >
                 <span className="text-[14px]">⚖️</span>
                 <span>단지 비교</span>
+              </button>
+            )}
+
+            {/* 전세 안전진단 버튼 */}
+            {onOpenJeonseSafety && (
+              <button
+                onClick={() => onOpenJeonseSafety(report.apartmentName)}
+                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                title="전세 보증금 안전성 진단 및 깡통전세 계산기 실행"
+              >
+                <span className="text-[14px]">🛡️</span>
+                <span>전세 안전진단</span>
               </button>
             )}
 

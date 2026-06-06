@@ -32,6 +32,16 @@ const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareMo
     </div>
   )
 });
+const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
+      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
+        전세 안전진단 계산기 로드 중...
+      </div>
+    </div>
+  )
+});
 
 
 import { DONGS, getAllDongNames } from '@/lib/dongs';
@@ -160,6 +170,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   // 1:1 아파트 비교 대시보드 상태
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [compareInitialApt, setCompareInitialApt] = useState<string | undefined>(undefined);
+  
+  // 전세 안전진단 계산기 상태
+  const [isJeonseSafetyOpen, setIsJeonseSafetyOpen] = useState(false);
+  const [jeonseSafetyInitialApt, setJeonseSafetyInitialApt] = useState<string | undefined>(undefined);
   
   const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
   const [loginGateMessage, setLoginGateMessage] = useState('');
@@ -663,6 +677,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 setCompareInitialApt(undefined);
                 setIsCompareOpen(true);
               }}
+              onOpenJeonseSafety={(aptName) => {
+                setJeonseSafetyInitialApt(aptName);
+                setIsJeonseSafetyOpen(true);
+              }}
               onSelectApt={(name: string) => {
                 userHasSelected.current = true;
                 const report = fieldReportsMap.get(name);
@@ -856,6 +874,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               setCompareInitialApt(aptName);
               setIsCompareOpen(true);
             }}
+            onOpenJeonseSafety={(aptName) => {
+              setJeonseSafetyInitialApt(aptName);
+              setIsJeonseSafetyOpen(true);
+            }}
           />
         )}
 
@@ -972,6 +994,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         nameMapping={nameMapping || {}}
         fieldReportsMap={fieldReportsMap}
         typeMap={typeMap}
+      />
+    )}
+
+    {isJeonseSafetyOpen && (
+      <JeonseSafetyCalculator
+        isOpen={isJeonseSafetyOpen}
+        onClose={() => setIsJeonseSafetyOpen(false)}
+        initialAptName={jeonseSafetyInitialApt}
+        sheetApartments={sheetApartments}
+        txSummaryData={txSummary}
+        nameMapping={nameMapping || {}}
+        fieldReportsMap={fieldReportsMap}
       />
     )}
     </>
