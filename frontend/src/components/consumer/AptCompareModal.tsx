@@ -406,6 +406,48 @@ export default function AptCompareModal({
     });
   }, [txData1, txData2, chartType, apt1, apt2]);
 
+  // Dynamic Y-axis domain based on min and max of combined chart data
+  const yAxisDomain = useMemo(() => {
+    if (combinedChartData.length === 0 || (!apt1 && !apt2)) return [0, 'auto'];
+
+    const label1 = apt1 ? getDisplayAptName(apt1.name) : '단지 1';
+    const label2 = apt2 ? getDisplayAptName(apt2.name) : '단지 2';
+
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+
+    combinedChartData.forEach(item => {
+      const val1 = item[label1];
+      const val2 = item[label2];
+      if (val1 !== null && val1 !== undefined && typeof val1 === 'number') {
+        if (val1 < minVal) minVal = val1;
+        if (val1 > maxVal) maxVal = val1;
+      }
+      if (val2 !== null && val2 !== undefined && typeof val2 === 'number') {
+        if (val2 < minVal) minVal = val2;
+        if (val2 > maxVal) maxVal = val2;
+      }
+    });
+
+    if (minVal === Infinity || maxVal === -Infinity) {
+      return [0, 'auto'];
+    }
+
+    // Apply a margin/padding (e.g. 10% of diff, or at least 0.5 billion to avoid cutting off labels/line dots)
+    const diff = maxVal - minVal;
+    const padding = diff > 0 ? diff * 0.1 : 0.5;
+    
+    // Ensure min value doesn't go below 0
+    const calculatedMin = Math.max(0, minVal - padding);
+    const calculatedMax = maxVal + padding;
+
+    // Return rounded domain values (to 1 decimal place) for clean UI labels
+    return [
+      Math.floor(calculatedMin * 10) / 10,
+      Math.ceil(calculatedMax * 10) / 10
+    ];
+  }, [combinedChartData, apt1, apt2]);
+
   if (!isOpen) return null;
 
   const displayPrice = (val: number) => {
@@ -961,6 +1003,8 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                           tickLine={false}
                           axisLine={false}
                           tickFormatter={(value) => `${value}억`}
+                          domain={yAxisDomain as any}
+                          allowDataOverflow={true}
                         />
                         <Tooltip
                           contentStyle={{
@@ -984,7 +1028,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                           type="monotone"
                           dataKey={getDisplayAptName(apt1.name)}
                           stroke="#00d29d"
-                          strokeWidth={2.5}
+                          strokeWidth={3}
                           dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
                           activeDot={{ r: 5 }}
                           connectNulls
@@ -993,7 +1037,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                           type="monotone"
                           dataKey={getDisplayAptName(apt2.name)}
                           stroke="#4196f7"
-                          strokeWidth={2.5}
+                          strokeWidth={3}
                           dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
                           activeDot={{ r: 5 }}
                           connectNulls
