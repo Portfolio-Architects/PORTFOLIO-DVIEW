@@ -379,6 +379,7 @@ export default function TossApartmentExploreClient({
   }, [enrichedApts, currentCategory, debouncedSearchQuery]);
 
   const listRef = useRef<List>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
   const [listHeight, setListHeight] = useState(600);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -415,6 +416,61 @@ export default function TossApartmentExploreClient({
       clearTimeout(timer);
     };
   }, []);
+
+  // [자기개선] iOS Safari 등 구형 모바일 브라우저 및 하이브리드 웹뷰 환경에서
+  // overscrollBehavior: 'contain'이 오작동하거나 지원되지 않는 경우를 대비한 
+  // JS 레벨의 하이브리드 스크롤 격리(Zero-Scroll-Chaining) 폴백 차단기 구축.
+  useEffect(() => {
+    const outerEl = outerRef.current;
+    if (!outerEl) return;
+
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 0) return;
+      const touchY = e.touches[0].clientY;
+      const deltaY = touchStartY - touchY; // 터치 위로 드래그 = 아래로 스크롤 (deltaY > 0)
+      const { scrollTop, scrollHeight, clientHeight } = outerEl;
+
+      // 1. 최상단 도달 시 터치 다운(위로 스크롤 시도) 차단
+      if (scrollTop <= 0 && deltaY < 0) {
+        if (e.cancelable) e.preventDefault();
+      }
+      // 2. 최하단 도달 시 터치 업(아래로 스크롤 시도) 차단
+      else if (scrollTop + clientHeight >= scrollHeight - 1 && deltaY > 0) {
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = outerEl;
+      
+      // 1. 최상단 도달 시 위로 휠 굴림 차단
+      if (scrollTop <= 0 && e.deltaY < 0) {
+        if (e.cancelable) e.preventDefault();
+      } 
+      // 2. 최하단 도달 시 아래로 휠 굴림 차단
+      else if (scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0) {
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+
+    outerEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+    outerEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+    outerEl.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      outerEl.removeEventListener('touchstart', handleTouchStart);
+      outerEl.removeEventListener('touchmove', handleTouchMove);
+      outerEl.removeEventListener('wheel', handleWheel);
+    };
+  }, [sortedApts]);
 
   useEffect(() => {
     if (listRef.current) {
@@ -610,6 +666,7 @@ export default function TossApartmentExploreClient({
             <div id="explore-list-container" className="w-full">
               <List
                 ref={listRef}
+                outerRef={outerRef}
                 height={listHeight}
                 itemCount={sortedApts.length}
                 itemSize={getItemSize}
