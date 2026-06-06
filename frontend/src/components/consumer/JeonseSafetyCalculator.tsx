@@ -156,7 +156,7 @@ export default function JeonseSafetyCalculator({
     const totalLien = lEok * 10000 + lMan;
     const totalDebt = totalJeonse + totalLien;
 
-    const debtRatio = (totalDebt / marketPrice) * 100;
+    const debtRatio = marketPrice > 0 ? (totalDebt / marketPrice) * 100 : 0;
 
     // Classify risk level
     let riskLevel: 'safe' | 'caution' | 'warning' | 'danger' = 'safe';
@@ -220,7 +220,7 @@ export default function JeonseSafetyCalculator({
   const handleShare = () => {
     if (!selectedApt || !calculationResult) return;
     const aptLabel = getDisplayAptName(selectedApt.name);
-    const text = `🛡️ [D-VIEW 전세 안전진단 보고서]
+    const text = `[D-VIEW 전세 안전진단 보고서]
 단지명: ${aptLabel} (${selectedApt.dong})
 최근 3M 매매시세: ${(marketPrice / 10000).toFixed(1)}억원
 내 입력 보증금: ${(calculationResult.totalJeonse / 10000).toFixed(1)}억원
@@ -253,7 +253,6 @@ export default function JeonseSafetyCalculator({
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
           <div className="flex flex-col gap-0.5">
             <h2 className="text-[17px] font-black text-primary flex items-center gap-1.5">
-              <span>🛡️</span>
               <span>전세금 깡통전세 안전진단기</span>
             </h2>
             <p className="text-[12px] font-medium text-tertiary">
@@ -417,7 +416,6 @@ export default function JeonseSafetyCalculator({
                       </>
                     ) : (
                       <>
-                        <span>🛡️</span>
                         <span>안전진단 시뮬레이션 개시</span>
                       </>
                     )}

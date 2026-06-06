@@ -23,7 +23,11 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer'), { ssr: false });
 const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration'), { ssr: false });
 const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration'), { ssr: false });
-const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal'), {
+const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
+  console.warn('AptCompareModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
@@ -33,7 +37,11 @@ const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareMo
     </div>
   )
 });
-const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator'), {
+const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
+  console.warn('JeonseSafetyCalculator Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
@@ -43,7 +51,11 @@ const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/Jeons
     </div>
   )
 });
-const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator'), {
+const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
+  console.warn('MortgageCalculator Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
@@ -919,7 +931,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     {!mobileModalOpen && showAdBlockBanner && (
       <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[480px] bg-slate-900/95 dark:bg-slate-950/95 text-white border border-emerald-500/30 rounded-2xl px-4 py-3.5 shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
         <div className="flex-1 flex items-start gap-2.5">
-          <span className="text-[16px] shrink-0 mt-0.5 select-none">💚</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 mt-2 select-none" />
           <div className="flex flex-col gap-0.5">
             <p className="text-[13px] font-black tracking-tight text-emerald-400">
               광고 차단기를 사용 중이신가요?
@@ -1012,33 +1024,42 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     {isCompareOpen && (
       <ErrorBoundary
         name="아파트 비교 분석"
-        fallback={(error, reset) => (
-          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
-                <span className="text-xl font-black">!</span>
-              </div>
-              <h3 className="text-[15px] font-black text-primary mb-1">비교 분석기 로드 실패</h3>
-              <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
-                비교 분석기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
-              </p>
-              <div className="flex gap-2 w-full">
-                <button
-                  onClick={reset}
-                  className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
-                >
-                  다시 시도
-                </button>
-                <button
-                  onClick={() => setIsCompareOpen(false)}
-                  className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
-                >
-                  닫기
-                </button>
+        fallback={(error, reset) => {
+          if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
+            if (typeof window !== 'undefined') {
+              console.warn('ChunkLoadError caught in AptCompareModal. Reloading page...');
+              window.location.reload();
+            }
+            return null;
+          }
+          return (
+            <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                  <span className="text-xl font-black">!</span>
+                </div>
+                <h3 className="text-[15px] font-black text-primary mb-1">비교 분석기 로드 실패</h3>
+                <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                  비교 분석기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+                </p>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={reset}
+                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                  >
+                    다시 시도
+                  </button>
+                  <button
+                    onClick={() => setIsCompareOpen(false)}
+                    className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                  >
+                    닫기
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        }}
       >
         <AptCompareModal
           isOpen={isCompareOpen}
@@ -1056,33 +1077,42 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     {isJeonseSafetyOpen && (
       <ErrorBoundary
         name="전세 안전진단"
-        fallback={(error, reset) => (
-          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
-                <span className="text-xl">🛡️</span>
-              </div>
-              <h3 className="text-[15px] font-black text-primary mb-1">전세 안전진단 로드 실패</h3>
-              <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
-                전세 안전진단 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
-              </p>
-              <div className="flex gap-2 w-full">
-                <button
-                  onClick={reset}
-                  className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
-                >
-                  다시 시도
-                </button>
-                <button
-                  onClick={() => setIsJeonseSafetyOpen(false)}
-                  className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
-                >
-                  닫기
-                </button>
+        fallback={(error, reset) => {
+          if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
+            if (typeof window !== 'undefined') {
+              console.warn('ChunkLoadError caught in JeonseSafetyCalculator. Reloading page...');
+              window.location.reload();
+            }
+            return null;
+          }
+          return (
+            <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                  <span className="text-xl font-black">!</span>
+                </div>
+                <h3 className="text-[15px] font-black text-primary mb-1">전세 안전진단 로드 실패</h3>
+                <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                  전세 안전진단 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+                </p>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={reset}
+                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                  >
+                    다시 시도
+                  </button>
+                  <button
+                    onClick={() => setIsJeonseSafetyOpen(false)}
+                    className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                  >
+                    닫기
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        }}
       >
         <JeonseSafetyCalculator
           isOpen={isJeonseSafetyOpen}
@@ -1099,33 +1129,42 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     {isMortgageOpen && (
       <ErrorBoundary
         name="대출 한도진단"
-        fallback={(error, reset) => (
-          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
-                <span className="text-xl">💸</span>
-              </div>
-              <h3 className="text-[15px] font-black text-primary mb-1">대출 계산기 로드 실패</h3>
-              <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
-                대출 한도진단 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
-              </p>
-              <div className="flex gap-2 w-full">
-                <button
-                  onClick={reset}
-                  className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
-                >
-                  다시 시도
-                </button>
-                <button
-                  onClick={() => setIsMortgageOpen(false)}
-                  className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
-                >
-                  닫기
-                </button>
+        fallback={(error, reset) => {
+          if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
+            if (typeof window !== 'undefined') {
+              console.warn('ChunkLoadError caught in MortgageCalculator. Reloading page...');
+              window.location.reload();
+            }
+            return null;
+          }
+          return (
+            <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                  <span className="text-xl font-black">!</span>
+                </div>
+                <h3 className="text-[15px] font-black text-primary mb-1">대출 계산기 로드 실패</h3>
+                <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                  대출 한도진단 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+                </p>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={reset}
+                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                  >
+                    다시 시도
+                  </button>
+                  <button
+                    onClick={() => setIsMortgageOpen(false)}
+                    className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                  >
+                    닫기
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        }}
       >
         <MortgageCalculator
           isOpen={isMortgageOpen}

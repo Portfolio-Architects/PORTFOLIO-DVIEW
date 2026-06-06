@@ -349,7 +349,7 @@ export default function MortgageCalculator({
   const handleShare = () => {
     if (!selectedApt || !loanResults || !repaymentDetails) return;
     const aptLabel = getDisplayAptName(selectedApt.name);
-    const text = `💸 [D-VIEW 내 집 마련 자금 조달 보고서]
+    const text = `[D-VIEW 내 집 마련 자금 조달 보고서]
 단지명: ${aptLabel} (${selectedApt.dong})
 최근 매매 평균시세: ${(marketPrice / 10000).toFixed(1)}억원
 
@@ -385,7 +385,6 @@ export default function MortgageCalculator({
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
           <div className="flex flex-col gap-0.5">
             <h2 className="text-[17px] font-black text-primary flex items-center gap-1.5">
-              <span>💸</span>
               <span>내 집 마련 대출 자가진단</span>
             </h2>
             <p className="text-[12px] font-medium text-tertiary">
@@ -490,10 +489,10 @@ export default function MortgageCalculator({
 
               <div className="grid grid-cols-1 gap-2.5">
                 {[
-                  { id: 'newborn', label: '👶 신생아 출산 가구', desc: '최근 2년 이내 출산(입양) 가구 (가장 이율이 낮음)' },
-                  { id: 'newweds', label: '💍 신혼부부 가구', desc: '혼인 신고 7년 이내인 부부' },
-                  { id: 'firsttime', label: '🏠 생애최초 무주택 가구', desc: '세대원 전원이 주택을 소유한 적이 없는 가구' },
-                  { id: 'normal', label: '👥 일반 무주택 가구', desc: '현재 주택이 없는 무주택 세대주' },
+                  { id: 'newborn', label: '신생아 출산 가구', desc: '최근 2년 이내 출산(입양) 가구 (가장 이율이 낮음)' },
+                  { id: 'newweds', label: '신혼부부 가구', desc: '혼인 신고 7년 이내인 부부' },
+                  { id: 'firsttime', label: '생애최초 무주택 가구', desc: '세대원 전원이 주택을 소유한 적이 없는 가구' },
+                  { id: 'normal', label: '일반 무주택 가구', desc: '현재 주택이 없는 무주택 세대주' },
                 ].map(type => (
                   <button
                     key={type.id}
@@ -615,7 +614,6 @@ export default function MortgageCalculator({
                     </>
                   ) : (
                     <>
-                      <span>📊</span>
                       <span>자금 조달 보고서 생성</span>
                     </>
                   )}

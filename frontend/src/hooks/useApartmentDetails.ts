@@ -139,19 +139,35 @@ export function useApartmentDetails(
     }
   );
 
-  const records = fullRecords || recentRecords;
+  const records = Array.isArray(fullRecords) ? fullRecords : (Array.isArray(recentRecords) ? recentRecords : []);
   const isTxLoading = isRecentLoading && !recentRecords; // 최근 데이터가 왔거나 이미 캐시가 있으면 로딩 해제
 
   const modalTransactions = useMemo(() => {
-    if (!records) return [];
+    if (!records || records.length === 0) return [];
 
     // 1단계: 평가용 거래 정보 매핑
     const mapped = records.map((r, i) => {
+      if (!r || typeof r !== 'object') {
+        return {
+          no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
+          area: 0, areaPyeong: 0,
+          contractYm: '', contractDay: '1',
+          contractDate: '',
+          price: 0, priceEok: '-',
+          deposit: 0, monthlyRent: 0,
+          floor: 0, buyer: '', seller: '', buildYear: 0, roadName: '',
+          cancelDate: '', dealType: '',
+          agentLocation: '', registrationDate: '-', housingType: '',
+          reqGb: '', rnuYn: '',
+          groupKey: '0_sale',
+          evaluatedPrice: 0,
+        };
+      }
       const isRent = r.dealType === '전세' || r.dealType === '월세';
       const evaluatedPrice = isRent
         ? (r.deposit || 0) + (r.monthlyRent ? Math.round(r.monthlyRent * 12 / 0.055) : 0)
-        : r.price;
-      const areaKey = Math.round(r.area);
+        : (r.price || 0);
+      const areaKey = Math.round(r.area || 0);
       const typeKey = isRent ? 'rent' : 'sale';
       const groupKey = `${areaKey}_${typeKey}`;
 
@@ -160,17 +176,17 @@ export function useApartmentDetails(
          eokStr = formatPriceEok(r.deposit || 0);
          if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
       } else {
-         eokStr = formatPriceEok(r.price);
+         eokStr = formatPriceEok(r.price || 0);
       }
 
       return {
         no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
-        area: r.area, areaPyeong: r.areaPyeong,
-        contractYm: r.contractYm, contractDay: String(r.contractDay),
-        contractDate: `${r.contractYm}${String(r.contractDay).padStart(2, '0')}`,
-        price: r.price, priceEok: eokStr,
+        area: r.area || 0, areaPyeong: r.areaPyeong || 0,
+        contractYm: r.contractYm || '', contractDay: String(r.contractDay || '1'),
+        contractDate: r.contractYm ? `${r.contractYm}${String(r.contractDay || '1').padStart(2, '0')}` : '',
+        price: r.price || 0, priceEok: eokStr,
         deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
-        floor: r.floor, buyer: '', seller: '', buildYear: 0, roadName: '',
+        floor: r.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
         cancelDate: r.cancelDate || '', dealType: r.dealType || '',
         agentLocation: '', registrationDate: '-', housingType: '',
         reqGb: r.reqGb || '', rnuYn: r.rnuYn || '',

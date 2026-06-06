@@ -67,20 +67,30 @@ export async function GET() {
 
     if (riskFreeRes.ok) {
       const riskData = await riskFreeRes.json();
-      if (riskData.StatisticSearch && riskData.StatisticSearch.row && riskData.StatisticSearch.row.length > 0) {
+      if (riskData && riskData.StatisticSearch && riskData.StatisticSearch.row && riskData.StatisticSearch.row.length > 0) {
         const latest = riskData.StatisticSearch.row[riskData.StatisticSearch.row.length - 1];
-        riskFreeRate = parseFloat(latest.DATA_VALUE);
-        riskFreeDateStr = latest.TIME; // YYYYMMDD
-        isLive = true;
+        if (latest && latest.DATA_VALUE) {
+          const val = parseFloat(latest.DATA_VALUE);
+          if (!isNaN(val)) {
+            riskFreeRate = val;
+            riskFreeDateStr = latest.TIME || riskFreeDateStr; // YYYYMMDD
+            isLive = true;
+          }
+        }
       }
     }
 
     if (fundingCostRes.ok) {
       const fundingData = await fundingCostRes.json();
-      if (fundingData.StatisticSearch && fundingData.StatisticSearch.row && fundingData.StatisticSearch.row.length > 0) {
+      if (fundingData && fundingData.StatisticSearch && fundingData.StatisticSearch.row && fundingData.StatisticSearch.row.length > 0) {
         const latest = fundingData.StatisticSearch.row[fundingData.StatisticSearch.row.length - 1];
-        fundingCost = parseFloat(latest.DATA_VALUE);
-        isLive = true;
+        if (latest && latest.DATA_VALUE) {
+          const val = parseFloat(latest.DATA_VALUE);
+          if (!isNaN(val)) {
+            fundingCost = val;
+            isLive = true;
+          }
+        }
       }
     }
 

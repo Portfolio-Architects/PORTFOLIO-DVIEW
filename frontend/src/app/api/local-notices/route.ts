@@ -26,7 +26,8 @@ const localNoticesResponseSchema = z.object({
 export async function GET(request: Request) {
   try {
     if (!db) {
-      return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
+      console.warn('[Local Notices API] Firebase Admin DB not initialized. Returning empty notices array.');
+      return NextResponse.json({ notices: [], lastUpdated: null, source: 'fallback_error_db' });
     }
     const localDb = db;
 
@@ -196,6 +197,11 @@ export async function GET(request: Request) {
 
   } catch (error: unknown) {
     console.error('Error fetching local notices:', error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ 
+      notices: [], 
+      lastUpdated: null, 
+      source: 'fallback_error', 
+      error: error instanceof Error ? error.message : String(error) 
+    });
   }
 }

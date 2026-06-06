@@ -13,33 +13,40 @@ import { MacroEnvironment, SupplyPipeline } from '../types/macro.types';
  * @param riskPremium 자산 고유 리스크 프리미엄 (기본 1.5%)
  */
 export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironment, riskPremium: number = 1.5, utilityScore: number = 50) {
+  const m = macro || {
+    riskFreeRate: 3.25,
+    fundingCost: 3.8,
+    jeonseConversionRate: 0.055,
+    baseInflationRate: 2.0,
+    baseDate: ''
+  };
+
   // 1. Discount Rate (r) 산출: 국채금리 + 리스크 프리미엄 + 조달비용 스프레드
   // 전세대출금리가 4.0%를 초과할 경우 유동성 프리미엄 가산
-  const fundingSpread = Math.max(0, macro.fundingCost - 4.0) * 0.5;
-  const discountRate = (macro.riskFreeRate + riskPremium + fundingSpread) / 100; // e.g. (3.25 + 1.5 + 0.05) / 100 = 0.048
+  const fundingCostVal = typeof m.fundingCost === 'number' ? m.fundingCost : 3.8;
+  const riskFreeRateVal = typeof m.riskFreeRate === 'number' ? m.riskFreeRate : 3.25;
+  const baseInflationRateVal = typeof m.baseInflationRate === 'number' ? m.baseInflationRate : 2.0;
+  const jeonseConversionRateVal = typeof m.jeonseConversionRate === 'number' ? m.jeonseConversionRate : 0.055;
+
+  const fundingSpread = Math.max(0, fundingCostVal - 4.0) * 0.5;
+  const discountRate = (riskFreeRateVal + riskPremium + fundingSpread) / 100;
 
   // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 + 유틸리티 점수 기반 성장 프리미엄
-  // 0점 = 0.0%p, 200점 = +2.0%p 프리미엄 부여
-  // (예: 180점 = +1.8%p = 3.8%, 200점 = +2.0%p = 4.0%)
-  // 제한: 최소 0.0%, 최대 4.0%
   const growthPremium = utilityScore * 0.0001;
-  const growthRate = Math.max(0.000, Math.min(0.040, macro.baseInflationRate + growthPremium));
+  const growthRate = Math.max(0.000, Math.min(0.040, baseInflationRateVal + growthPremium));
 
   // 3. Cap Rate (자본환원율) 산출: r - g
-  // 최고 등급 단지의 성장 프리미엄을 온전히 반영하기 위해 최소 1.0% 하한선 설정 (기존 2.0%에서 완화)
   const capRate = Math.max(0.01, discountRate - growthRate);
 
   // 4. Implied Annual Rent (연간 예상 환산 임대료)
-  const annualRent = currentJeonse * macro.jeonseConversionRate;
+  const annualRent = currentJeonse * jeonseConversionRateVal;
 
   // 5. Implied Value (적정 매매가) = 연간 임대료 / Cap Rate
   const impliedValue = annualRent / capRate;
 
   // 6. 도출된 지표들
-  // - Fair PER (수익 대비 배수) = 1 / Cap Rate
-  // - Fair Jeonse Multiple (전세가 대비 배수) = impliedValue / currentJeonse
   const fairPER = 1 / capRate;
-  const fairJeonseMultiple = impliedValue / currentJeonse;
+  const fairJeonseMultiple = currentJeonse > 0 ? impliedValue / currentJeonse : 0;
 
   return {
     capRate: capRate * 100, // %
@@ -82,8 +89,18 @@ export function calculateDongSpread(targetPER: number, dongPERs: number[]) {
  * @param pipeline 지역 내 공급 파이프라인 데이터
  */
 export function calculateForwardJeonseTrajectory(currentJeonse: number, pipeline: SupplyPipeline) {
+  const p = pipeline || {
+    expectedMoveInVolume: 1000,
+    historicalAvgVolume: 1000,
+    populationTrend: '보합'
+  };
+
+  const expectedMoveInVolumeVal = typeof p.expectedMoveInVolume === 'number' ? p.expectedMoveInVolume : 1000;
+  const historicalAvgVolumeVal = typeof p.historicalAvgVolume === 'number' ? p.historicalAvgVolume : 1000;
+  const populationTrendVal = p.populationTrend || '보합';
+
   // 공급 비율 (예정물량 / 과거 평균)
-  const supplyRatio = pipeline.expectedMoveInVolume / pipeline.historicalAvgVolume;
+  const supplyRatio = historicalAvgVolumeVal > 0 ? expectedMoveInVolumeVal / historicalAvgVolumeVal : 1;
   
   // 모의 로직: 공급 비율이 1.2(120%)를 초과하면 초과분 10%당 전세가 1.5% 하방 압력 발생
   let jeonseDiscountFactor = 1.0;
@@ -101,8 +118,8 @@ export function calculateForwardJeonseTrajectory(currentJeonse: number, pipeline
   }
 
   // 인구 유입 트렌드에 따른 추가 보정
-  if (pipeline.populationTrend === '증가') jeonseDiscountFactor += 0.02;
-  else if (pipeline.populationTrend === '감소') jeonseDiscountFactor -= 0.02;
+  if (populationTrendVal === '증가') jeonseDiscountFactor += 0.02;
+  else if (populationTrendVal === '감소') jeonseDiscountFactor -= 0.02;
 
   const predictedJeonse = currentJeonse * jeonseDiscountFactor;
   const pressure = jeonseDiscountFactor > 1.02 ? '상방 (공급부족)' : jeonseDiscountFactor < 0.98 ? '하방 (공급과잉)' : '보합';

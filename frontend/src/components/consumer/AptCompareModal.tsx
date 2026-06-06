@@ -28,7 +28,22 @@ interface TxDataPoint {
 }
 
 // Fallback metrics estimator for apartments without Firestore scouting reports
-function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undefined) {
+function getEffectiveMetrics(apt: DongApartment | null | undefined, report: FieldReportData | undefined) {
+  if (!apt || typeof apt !== 'object') {
+    return {
+      brand: '',
+      householdCount: 800,
+      parkingPerHousehold: 1.25,
+      yearBuilt: 2018,
+      rawYearBuilt: 2018,
+      distanceToSubway: 2000,
+      distanceToElementary: 350,
+      distanceToPark: 500,
+      distanceToStarbucks: 800,
+      distanceToIndeokwon: 2000,
+      distanceToTram: 1000,
+    };
+  }
   const reportYearRaw = report?.metrics?.yearBuilt;
   const aptYearRaw = apt.yearBuilt ? parseInt(apt.yearBuilt) : 2018;
   const rawYearBuilt = reportYearRaw || aptYearRaw;
@@ -296,9 +311,14 @@ export default function AptCompareModal({
   const wins = useMemo(() => {
     if (!metrics1 || !metrics2) return {} as Record<string, boolean | null>;
 
-    const compare = (val1: number, val2: number, lowerIsBetter = false) => {
-      if (val1 === val2) return null;
-      return lowerIsBetter ? val1 < val2 : val1 > val2;
+    const compare = (val1: any, val2: any, lowerIsBetter = false) => {
+      const v1 = typeof val1 === 'number' ? val1 : parseFloat(val1);
+      const v2 = typeof val2 === 'number' ? val2 : parseFloat(val2);
+      if (isNaN(v1) && isNaN(v2)) return null;
+      if (isNaN(v1)) return false;
+      if (isNaN(v2)) return true;
+      if (v1 === v2) return null;
+      return lowerIsBetter ? v1 < v2 : v1 > v2;
     };
 
     return {
@@ -334,7 +354,9 @@ export default function AptCompareModal({
 
     const groupDataByMonth = (txs: TxDataPoint[]) => {
       const grouped: Record<string, number[]> = {};
-      txs.forEach(tx => {
+      const txsList = Array.isArray(txs) ? txs : [];
+      txsList.forEach(tx => {
+        if (!tx || typeof tx !== 'object') return;
         if (!tx.contractYm) return;
         const yy = tx.contractYm.substring(2, 4);
         const mm = tx.contractYm.substring(4, 6);

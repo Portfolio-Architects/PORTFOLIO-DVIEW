@@ -176,8 +176,9 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   };
 
   // 1. Transaction 분리
-  const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
-  const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+  const txList = Array.isArray(transactions) ? transactions : [];
+  const sales = txList.filter(t => t && t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+  const rents = txList.filter(t => t && (t.dealType === '전세' || t.dealType === '월세')).sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
   
   const recentSales = sales.filter(isRecent);
   const recentRents = rents.filter(isRecent);
@@ -208,29 +209,33 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   let conversionRateSpread = 0;
   const spreadReasons: string[] = [];
   
-  if (report.metrics) {
+  if (report && report.metrics) {
     const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
     
     // 교통 (역세권 프리미엄 vs 외곽 패널티)
-    if (m.distanceToSubway <= 500) {
-      conversionRateSpread -= 0.005;
-      spreadReasons.push('역세권(-0.5%p)');
-    } else if (m.distanceToSubway > 1200) {
-      conversionRateSpread += 0.005;
-      spreadReasons.push('외곽(+0.5%p)');
+    if (m && typeof m.distanceToSubway === 'number') {
+      if (m.distanceToSubway <= 500) {
+        conversionRateSpread -= 0.005;
+        spreadReasons.push('역세권(-0.5%p)');
+      } else if (m.distanceToSubway > 1200) {
+        conversionRateSpread += 0.005;
+        spreadReasons.push('외곽(+0.5%p)');
+      }
     }
 
     // 연식 및 브랜드 (신축/랜드마크 프리미엄 vs 구축 패널티)
-    const year = m.yearBuilt ? parseInt(String(m.yearBuilt).substring(0, 4)) : new Date().getFullYear();
-    const age = new Date().getFullYear() - year + 1;
-    const mu = getBrandMultiplier(m.brand || report.apartmentName || '');
-    
-    if (age <= 5 || mu >= 1.09) {
-      conversionRateSpread -= 0.005;
-      spreadReasons.push('신축/1군(-0.5%p)');
-    } else if (age > 15) {
-      conversionRateSpread += 0.005;
-      spreadReasons.push('구축감가(+0.5%p)');
+    if (m) {
+      const year = m.yearBuilt ? parseInt(String(m.yearBuilt).substring(0, 4)) : new Date().getFullYear();
+      const age = !isNaN(year) ? new Date().getFullYear() - year + 1 : 10;
+      const mu = getBrandMultiplier(m.brand || report.apartmentName || '');
+      
+      if (age <= 5 || mu >= 1.09) {
+        conversionRateSpread -= 0.005;
+        spreadReasons.push('신축/1군(-0.5%p)');
+      } else if (age > 15) {
+        conversionRateSpread += 0.005;
+        spreadReasons.push('구축감가(+0.5%p)');
+      }
     }
   }
 
