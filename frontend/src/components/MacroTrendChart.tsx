@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -46,7 +46,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         <div className="text-[13.5px] font-bold text-tertiary mb-1">
           {label}
         </div>
-        {payload.map((entry, index: number) => {
+        {payload
+          .filter((entry) => entry.value !== undefined && entry.value !== null && entry.value > 0)
+          .map((entry, index: number) => {
           const isRent =
             entry.dataKey === "동탄 아파트 전세 평균" ||
             entry.name === "평균 전세가";
@@ -117,6 +119,17 @@ export default function MacroTrendChart({
 
   const fontSize = isBottomSheet ? 11 : 12;
   const yWidth = isBottomSheet ? 35 : 40;
+
+  // 0원 또는 null인 전세 데이터를 null로 필터링하여 라인이 바닥에 붙지 않게 처리
+  const processedData = useMemo(() => {
+    return lineData.map((d) => ({
+      ...d,
+      "동탄 아파트 전세 평균":
+        d["동탄 아파트 전세 평균"] === 0 || d["동탄 아파트 전세 평균"] === null
+          ? null
+          : d["동탄 아파트 전세 평균"],
+    }));
+  }, [lineData]);
   
   const desktopEventHandlers = isBottomSheet
     ? {}
@@ -145,7 +158,7 @@ export default function MacroTrendChart({
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
       <LineChart
-        data={lineData}
+        data={processedData}
         margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         {...desktopEventHandlers}
       >

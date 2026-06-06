@@ -208,3 +208,187 @@ export const sharePostToKakao = async ({ postId, title, category, contentSummary
     alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
   }
 };
+
+export interface ShareJeonseSafetyParams {
+  aptName: string;
+  dong: string;
+  marketPrice: number; // in man-won
+  jeonseAmount: number; // in man-won
+  lienAmount: number; // in man-won
+  debtRatio: number;
+  riskLabel: string;
+  riskLevel: 'safe' | 'caution' | 'warning' | 'danger';
+}
+
+export const shareJeonseSafetyToKakao = async ({
+  aptName,
+  dong,
+  marketPrice,
+  jeonseAmount,
+  lienAmount,
+  debtRatio,
+  riskLabel,
+  riskLevel,
+}: ShareJeonseSafetyParams) => {
+  try {
+    await loadKakaoSdk();
+
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    const formatEokMan = (manWon: number) => {
+      const eok = Math.floor(manWon / 10000);
+      const man = Math.round(manWon % 10000);
+      if (eok > 0) {
+        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+      }
+      return `${man.toLocaleString()}만원`;
+    };
+
+    const marketPriceStr = formatEokMan(marketPrice);
+    const jeonseStr = formatEokMan(jeonseAmount);
+    const lienStr = formatEokMan(lienAmount);
+    const totalDebt = jeonseAmount + lienAmount;
+    const totalDebtStr = formatEokMan(totalDebt);
+
+    const baseUrl = window.location.origin;
+    const finalImageUrl = `${baseUrl}/api/og?type=jeonse&title=${encodeURIComponent(aptName)}&status=${encodeURIComponent(riskLabel)}&ratio=${debtRatio.toFixed(1)}&price=${encodeURIComponent(marketPriceStr)}&lien=${encodeURIComponent(lienStr)}&totalDebt=${encodeURIComponent(totalDebtStr)}`;
+
+    const description = `매매시세: ${marketPriceStr}\n보증금: ${jeonseStr} | 융자금: ${lienStr}\n부채비율: ${debtRatio.toFixed(1)}% [${riskLabel}]`;
+
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=kakaotalk&utm_medium=share&utm_campaign=jeonse_share`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: `[전세 안전진단] ${aptName} (${dong})`,
+        description: description,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "안전진단 상세 보기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};
+
+export interface ShareMortgageParams {
+  aptName: string;
+  dong: string;
+  marketPrice: number; // in man-won
+  bestProduct: string;
+  maxLoanAmount: number; // in man-won
+  finalRate: number;
+  monthlyPayment: number; // in absolute Won
+  ownCapitalRequired: number; // in man-won
+}
+
+export const shareMortgageToKakao = async ({
+  aptName,
+  dong,
+  marketPrice,
+  bestProduct,
+  maxLoanAmount,
+  finalRate,
+  monthlyPayment,
+  ownCapitalRequired,
+}: ShareMortgageParams) => {
+  try {
+    await loadKakaoSdk();
+
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    const formatEokMan = (manWon: number) => {
+      const eok = Math.floor(manWon / 10000);
+      const man = Math.round(manWon % 10000);
+      if (eok > 0) {
+        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+      }
+      return `${man.toLocaleString()}만원`;
+    };
+
+    const marketPriceStr = formatEokMan(marketPrice);
+    const maxLoanStr = formatEokMan(maxLoanAmount);
+    const monthlyPayStr = `${Math.round(monthlyPayment / 10000).toLocaleString()}만원`;
+    const ownCapitalStr = formatEokMan(ownCapitalRequired);
+
+    const baseUrl = window.location.origin;
+    const finalImageUrl = `${baseUrl}/api/og?type=mortgage&title=${encodeURIComponent(aptName)}&bestProduct=${encodeURIComponent(bestProduct)}&price=${encodeURIComponent(maxLoanStr)}&ratio=${finalRate.toFixed(2)}&status=${encodeURIComponent(ownCapitalStr)}&subtitle=${encodeURIComponent(monthlyPayStr)}`;
+
+    const description = `추천 상품: ${bestProduct}\n대출 한도: ${maxLoanStr} (금리 ${finalRate.toFixed(2)}%)\n필요 자기자본: ${ownCapitalStr} | 월 상환액: ${monthlyPayStr}`;
+
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=kakaotalk&utm_medium=share&utm_campaign=mortgage_share`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: `[대출·자금조달 진단] ${aptName} (${dong})`,
+        description: description,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "자가진단 상세 보기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};
+

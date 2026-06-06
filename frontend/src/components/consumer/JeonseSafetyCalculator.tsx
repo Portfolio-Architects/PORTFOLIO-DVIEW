@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, ShieldAlert, Check, Share2, Clipboard, ChevronDown, Award, HelpCircle, ArrowLeft, RefreshCw } from 'lucide-react';
+import { X, Search, ShieldAlert, Check, Share2, Clipboard, ChevronDown, Award, HelpCircle, ArrowLeft, RefreshCw, MessageSquare } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
 
 interface JeonseSafetyCalculatorProps {
   isOpen: boolean;
@@ -234,6 +235,20 @@ export default function JeonseSafetyCalculator({
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
+    });
+  };
+
+  const handleKakaoShare = () => {
+    if (!selectedApt || !calculationResult) return;
+    shareJeonseSafetyToKakao({
+      aptName: getDisplayAptName(selectedApt.name),
+      dong: selectedApt.dong,
+      marketPrice: marketPrice,
+      jeonseAmount: calculationResult.totalJeonse,
+      lienAmount: calculationResult.totalLien,
+      debtRatio: calculationResult.debtRatio,
+      riskLabel: calculationResult.riskLabel,
+      riskLevel: calculationResult.riskLevel,
     });
   };
 
@@ -580,19 +595,27 @@ export default function JeonseSafetyCalculator({
 
                   <button
                     onClick={handleShare}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-surface py-3 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                    className="flex-1 bg-body hover:bg-border/30 text-secondary py-3 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1.5 active:scale-95"
                   >
                     {isCopied ? (
                       <>
-                        <Check size={15} className="text-[#00d29d]" />
+                        <Check size={15} className="text-emerald-500" />
                         <span>복사 완료!</span>
                       </>
                     ) : (
                       <>
                         <Share2 size={15} />
-                        <span>결과 텍스트 공유</span>
+                        <span>텍스트 복사</span>
                       </>
                     )}
+                  </button>
+
+                  <button
+                    onClick={handleKakaoShare}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-surface py-3 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                  >
+                    <MessageSquare size={15} />
+                    <span>카카오톡 공유</span>
                   </button>
                 </div>
               </div>

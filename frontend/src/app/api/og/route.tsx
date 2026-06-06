@@ -19,6 +19,9 @@ const ogParamsSchema = z.object({
     if (typeof val === 'string' && /^\d+$/.test(val)) return val;
     return undefined;
   }, z.string().default('0')).catch('0'),
+  lien: z.string().nullable().optional().catch(null),
+  totalDebt: z.string().nullable().optional().catch(null),
+  bestProduct: z.string().nullable().optional().catch(null),
 });
 
 export async function GET(req: NextRequest) {
@@ -38,6 +41,9 @@ export async function GET(req: NextRequest) {
       shareType: searchParams.get('shareType'),
       grade: searchParams.get('grade'),
       score: searchParams.get('score'),
+      lien: searchParams.get('lien'),
+      totalDebt: searchParams.get('totalDebt'),
+      bestProduct: searchParams.get('bestProduct'),
     });
 
     const validatedData = parsed.success ? parsed.data : {
@@ -52,6 +58,9 @@ export async function GET(req: NextRequest) {
       shareType: null,
       grade: 'C' as const,
       score: '0',
+      lien: null,
+      totalDebt: null,
+      bestProduct: null,
     };
 
     const {
@@ -66,7 +75,349 @@ export async function GET(req: NextRequest) {
       shareType,
       grade,
       score,
+      lien,
+      totalDebt,
+      bestProduct,
     } = validatedData;
+
+    if (type === 'jeonse') {
+      let statusColor = '#10b981'; // Green
+      let statusBg = 'rgba(16, 185, 129, 0.1)';
+      let statusBorder = 'rgba(16, 185, 129, 0.3)';
+      if (status?.includes('위험')) {
+        statusColor = '#ef4444';
+        statusBg = 'rgba(239, 68, 68, 0.1)';
+        statusBorder = 'rgba(239, 68, 68, 0.3)';
+      } else if (status?.includes('경고')) {
+        statusColor = '#f97316';
+        statusBg = 'rgba(249, 115, 22, 0.1)';
+        statusBorder = 'rgba(249, 115, 22, 0.3)';
+      } else if (status?.includes('주의')) {
+        statusColor = '#f59e0b';
+        statusBg = 'rgba(245, 158, 11, 0.1)';
+        statusBorder = 'rgba(245, 158, 11, 0.3)';
+      }
+
+      const debtRatioNum = parseFloat(ratio || '0') || 0;
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#022c22',
+              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '30px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#00d29d',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#34d399',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  전세 깡통전세 안전진단 리포트
+                </span>
+              </div>
+
+              {/* Title & Status Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '24px' }}>
+                <div
+                  style={{
+                    fontSize: '48px',
+                    fontWeight: 800,
+                    letterSpacing: '-1.5px',
+                    lineHeight: 1.2,
+                    color: '#f0fdf4',
+                    flex: 1,
+                  }}
+                >
+                  {title}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '12px 28px',
+                    borderRadius: '30px',
+                    backgroundColor: statusBg,
+                    border: `2px solid ${statusBorder}`,
+                    marginLeft: '40px',
+                  }}
+                >
+                  <span style={{ fontSize: '28px', fontWeight: 900, color: statusColor }}>{status || '안전'}</span>
+                </div>
+              </div>
+
+              {/* LTV ratio bar */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  marginBottom: '24px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#a7f3d0' }}>부채비율(LTV):</span>
+                  <span style={{ fontSize: '26px', fontWeight: 900, color: '#ffffff', marginLeft: '10px' }}>{ratio || '0'}%</span>
+                </div>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '16px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${Math.min(debtRatioNum, 100)}%`,
+                      height: '100%',
+                      backgroundColor: statusColor,
+                      borderRadius: '8px',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Metrics Table Grid */}
+              <div
+                style={{
+                  display: 'flex',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  padding: '20px 30px',
+                  borderRadius: '20px',
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  marginBottom: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#a7f3d0', fontWeight: 'bold', marginBottom: '4px' }}>매매 평균시세</span>
+                  <span style={{ fontSize: '22px', color: '#ffffff', fontWeight: 'black' }}>{price || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#a7f3d0', fontWeight: 'bold', marginBottom: '4px' }}>선순위 융자금</span>
+                  <span style={{ fontSize: '22px', color: '#ffffff', fontWeight: 'black' }}>{lien || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#a7f3d0', fontWeight: 'bold', marginBottom: '4px' }}>총 부채액</span>
+                  <span style={{ fontSize: '22px', color: '#ff8a9a', fontWeight: 'black' }}>{totalDebt || '0원'}</span>
+                </div>
+              </div>
+              
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#34d399',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
+
+    if (type === 'mortgage') {
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#0f172a',
+              backgroundImage: 'linear-gradient(to bottom right, #1e1b4b, #0f172a)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '30px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#3182f6',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#93c5fd',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  내 집 마련 자금조달 진단 리포트
+                </span>
+              </div>
+
+              {/* Title & Best Product Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '24px' }}>
+                <div
+                  style={{
+                    fontSize: '48px',
+                    fontWeight: 800,
+                    letterSpacing: '-1.5px',
+                    lineHeight: 1.2,
+                    color: '#f8fafc',
+                    flex: 1,
+                  }}
+                >
+                  {title}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '12px 24px',
+                    borderRadius: '30px',
+                    backgroundColor: 'rgba(49, 130, 246, 0.1)',
+                    border: '2px solid rgba(49, 130, 246, 0.3)',
+                    marginLeft: '40px',
+                  }}
+                >
+                  <span style={{ fontSize: '22px', fontWeight: 900, color: '#60a5fa' }}>{bestProduct || '추천 상품 없음'}</span>
+                </div>
+              </div>
+
+              {/* Metrics Grid */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  padding: '24px 30px',
+                  borderRadius: '20px',
+                  width: '100%',
+                  marginBottom: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', width: '50%', flexDirection: 'column', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '15px', color: '#93c5fd', fontWeight: 'bold', marginBottom: '4px' }}>추천 대출한도</span>
+                  <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'black' }}>{price || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', width: '50%', flexDirection: 'column', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '15px', color: '#93c5fd', fontWeight: 'bold', marginBottom: '4px' }}>적용 금리</span>
+                  <span style={{ fontSize: '24px', color: '#38bdf8', fontWeight: 'black' }}>{ratio || '0.0'}%</span>
+                </div>
+                <div style={{ display: 'flex', width: '50%', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '15px', color: '#93c5fd', fontWeight: 'bold', marginBottom: '4px' }}>필요 자기자본</span>
+                  <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'black' }}>{status || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', width: '50%', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '15px', color: '#93c5fd', fontWeight: 'bold', marginBottom: '4px' }}>월 예상 상환금</span>
+                  <span style={{ fontSize: '24px', color: '#818cf8', fontWeight: 'black' }}>{subtitle || '0원'}</span>
+                </div>
+              </div>
+              
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#38bdf8',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
 
     if (shareType === 'childcare') {
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {

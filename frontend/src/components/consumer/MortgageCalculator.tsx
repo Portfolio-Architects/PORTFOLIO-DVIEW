@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, ShieldAlert, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, Users, Award, ChevronDown } from 'lucide-react';
+import { X, Search, ShieldAlert, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, Users, Award, ChevronDown, MessageSquare } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { shareMortgageToKakao } from '@/lib/utils/kakaoShare';
 
 interface MortgageCalculatorProps {
   isOpen: boolean;
@@ -366,6 +367,20 @@ export default function MortgageCalculator({
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
+    });
+  };
+
+  const handleKakaoShare = () => {
+    if (!selectedApt || !loanResults || !repaymentDetails) return;
+    shareMortgageToKakao({
+      aptName: getDisplayAptName(selectedApt.name),
+      dong: selectedApt.dong,
+      marketPrice: marketPrice,
+      bestProduct: loanResults.bestProduct,
+      maxLoanAmount: loanResults.maxLoanAmount,
+      finalRate: loanResults.finalRate,
+      monthlyPayment: repaymentDetails.monthlyPayment,
+      ownCapitalRequired: loanResults.ownCapitalRequired,
     });
   };
 
@@ -747,7 +762,7 @@ export default function MortgageCalculator({
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-2 pt-2 border-t border-border/30">
+               <div className="flex gap-2 pt-2 border-t border-border/30">
                 <button
                   onClick={() => setStep(3)}
                   className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1 active:scale-95"
@@ -758,19 +773,27 @@ export default function MortgageCalculator({
 
                 <button
                   onClick={handleShare}
-                  className="flex-[2] bg-primary hover:bg-primary/90 text-surface py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                  className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1.5 active:scale-95"
                 >
                   {isCopied ? (
                     <>
-                      <Check size={14} className="text-[#00d29d]" />
-                      <span>클립보드 복사 완료!</span>
+                      <Check size={14} className="text-emerald-500" />
+                      <span>복사 완료!</span>
                     </>
                   ) : (
                     <>
                       <Share2 size={14} />
-                      <span>자금계획 공유하기</span>
+                      <span>텍스트 복사</span>
                     </>
                   )}
+                </button>
+
+                <button
+                  onClick={handleKakaoShare}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-surface py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                >
+                  <MessageSquare size={14} />
+                  <span>카카오톡 공유</span>
                 </button>
               </div>
 
