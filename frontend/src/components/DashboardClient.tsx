@@ -777,6 +777,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 }
               }}
               onToggleFavorite={handleAptToggleFavorite}
+              onOpenCompare={() => {
+                setCompareInitialApt(undefined);
+                setIsCompareOpen(true);
+              }}
+              onOpenJeonseSafety={(aptName) => {
+                setJeonseSafetyInitialApt(aptName);
+                setIsJeonseSafetyOpen(true);
+              }}
+              onOpenMortgage={(aptName) => {
+                setMortgageInitialApt(aptName);
+                setIsMortgageOpen(true);
+              }}
             />
           </section>
         )}

@@ -313,6 +313,9 @@ interface TossApartmentExploreClientProps {
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   handleSelectApt: (name: string) => void;
   onToggleFavorite: (name: string) => void;
+  onOpenCompare?: () => void;
+  onOpenJeonseSafety?: (aptName?: string) => void;
+  onOpenMortgage?: (aptName?: string) => void;
 }
 
 // Using similar props to what was passed to the left panel before
@@ -327,6 +330,9 @@ export default function TossApartmentExploreClient({
   typeMap,
   handleSelectApt,
   onToggleFavorite,
+  onOpenCompare,
+  onOpenJeonseSafety,
+  onOpenMortgage,
 }: TossApartmentExploreClientProps) {
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
@@ -805,9 +811,10 @@ export default function TossApartmentExploreClient({
             <p className="text-[13px] md:text-[15px] font-medium text-tertiary mt-0 md:mt-2">총 {sortedApts.length}개 단지</p>
           </div>
 
-          <div className="relative w-full md:w-[280px] shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
-            <input 
+          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto shrink-0">
+            <div className="relative w-full md:w-[220px] shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
+              <input 
               type="text" 
               placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
@@ -977,6 +984,34 @@ export default function TossApartmentExploreClient({
                 )}
               </div>
             )}
+            </div>
+            
+            <div className="grid grid-cols-3 md:flex md:items-center gap-1.5 md:gap-2 w-full md:w-auto shrink-0">
+              {onOpenCompare && (
+                <button
+                  onClick={onOpenCompare}
+                  className="px-2 py-2 md:px-3.5 md:py-2.5 bg-[#00d29d] hover:bg-[#00b585] text-white text-[11px] md:text-[13px] font-bold rounded-xl transition-all active:scale-95 cursor-pointer border-none whitespace-nowrap shrink-0 shadow-sm text-center"
+                >
+                  단지 비교분석
+                </button>
+              )}
+              {onOpenJeonseSafety && (
+                <button
+                  onClick={() => onOpenJeonseSafety()}
+                  className="px-2 py-2 md:px-3.5 md:py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 text-[11px] md:text-[13px] font-bold rounded-xl transition-all active:scale-95 cursor-pointer border border-emerald-500/25 whitespace-nowrap shrink-0 text-center"
+                >
+                  전세 안전진단
+                </button>
+              )}
+              {onOpenMortgage && (
+                <button
+                  onClick={() => onOpenMortgage()}
+                  className="px-2 py-2 md:px-3.5 md:py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 text-[11px] md:text-[13px] font-bold rounded-xl transition-all active:scale-95 cursor-pointer border border-blue-500/25 whitespace-nowrap shrink-0 text-center"
+                >
+                  대출 한도진단
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
