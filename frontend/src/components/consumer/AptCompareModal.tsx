@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, Search, Building2, TrendingUp, Sparkles, Award, Star, School, TreePine, MapPin, Check, Share2 } from 'lucide-react';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
@@ -513,6 +513,9 @@ export default function AptCompareModal({
     };
   }, [metrics1, metrics2]);
 
+  const apt1Label = apt1 ? getDisplayAptName(apt1.name) : '단지 1';
+  const apt2Label = apt2 ? getDisplayAptName(apt2.name) : '단지 2';
+
   const score = useMemo(() => {
     if (!wins) return { apt1: 0, apt2: 0 };
     let apt1Count = 0;
@@ -523,6 +526,69 @@ export default function AptCompareModal({
     });
     return { apt1: apt1Count, apt2: apt2Count };
   }, [wins]);
+
+  // 5대 핵심 지표 레이더 차트 데이터 연산
+  const radarChartData = useMemo(() => {
+    if (!metrics1 || !metrics2 || !apt1 || !apt2) return [];
+
+    const getSubwayScore = (m: any) => {
+      const distSubway = m.distanceToSubway || 2000;
+      const distTram = m.distanceToTram || 1000;
+      return Math.min(100, Math.max(10, Math.round(100 - (distSubway / 25 + distTram / 15))));
+    };
+
+    const getSchoolScore = (m: any) => {
+      const distElem = m.distanceToElementary || 350;
+      const distMiddle = m.distanceToMiddle || 600;
+      const acadDensity = m.academyDensity || 30;
+      return Math.min(100, Math.max(10, Math.round(100 - (distElem / 6 + distMiddle / 12) + Math.min(20, acadDensity / 3))));
+    };
+
+    const getConvenienceScore = (m: any) => {
+      const distSb = m.distanceToStarbucks || 800;
+      const distOy = m.distanceToOliveYoung || 600;
+      return Math.min(100, Math.max(10, Math.round(100 - (distSb / 15 + distOy / 12))));
+    };
+
+    const getScaleScore = (m: any) => {
+      const hh = m.householdCount || 800;
+      const pkg = m.parkingPerHousehold || 1.25;
+      return Math.min(100, Math.max(15, Math.round(Math.min(60, hh / 25) + Math.min(40, pkg * 30))));
+    };
+
+    const getAgeScore = (m: any) => {
+      const yb = m.yearBuilt || 2018;
+      return Math.min(100, Math.max(10, Math.round((yb - 2005) * 5)));
+    };
+
+    return [
+      {
+        subject: '역세권 (철도/트램)',
+        [apt1Label]: getSubwayScore(metrics1),
+        [apt2Label]: getSubwayScore(metrics2),
+      },
+      {
+        subject: '학군 (초/중등)',
+        [apt1Label]: getSchoolScore(metrics1),
+        [apt2Label]: getSchoolScore(metrics2),
+      },
+      {
+        subject: '슬세권 (편의/상권)',
+        [apt1Label]: getConvenienceScore(metrics1),
+        [apt2Label]: getConvenienceScore(metrics2),
+      },
+      {
+        subject: '단지 스펙 (규모/주차)',
+        [apt1Label]: getScaleScore(metrics1),
+        [apt2Label]: getScaleScore(metrics2),
+      },
+      {
+        subject: '신축/연식',
+        [apt1Label]: getAgeScore(metrics1),
+        [apt2Label]: getAgeScore(metrics2),
+      },
+    ];
+  }, [metrics1, metrics2, apt1, apt2, apt1Label, apt2Label]);
 
   // Aggregate monthly transaction averages for the compared charts
   const combinedChartData = useMemo(() => {
@@ -744,9 +810,6 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
       ? 'border-[#00d29d] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 shadow-[0_0_0_1px_#00d29d_inset]'
       : 'border-border/30 text-tertiary opacity-70 bg-surface/10';
   };
-
-  const apt1Label = apt1 ? getDisplayAptName(apt1.name) : '단지 1';
-  const apt2Label = apt2 ? getDisplayAptName(apt2.name) : '단지 2';
 
   return (
     <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
@@ -1011,6 +1074,57 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                       복사되었습니다. 이제 카카오톡방이나 메모장에 붙여넣기(Ctrl + V) 하실 수 있습니다.
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Radar Chart Section */}
+              <div className="bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 border border-border/40 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center gap-6">
+                <div className="flex-1 space-y-2">
+                  <h4 className="text-[13px] font-black text-[#00d29d] tracking-wider uppercase">단지 가치 오각형 분석</h4>
+                  <h3 className="text-[16px] font-black text-primary">5대 지표 스펙트럼 대조</h3>
+                  <p className="text-[12px] font-medium text-tertiary leading-relaxed break-keep">
+                    철도교통, 초·중등 학군, 상권 인프라, 세대당 주차 및 단지 규모, 준공 연식 등 입지를 구성하는 5가지 다차원 가치를 정량화한 분석 차트입니다. 다각형 면적이 넓고 균형 잡힐수록 완성도 높은 입지를 뜻합니다.
+                  </p>
+                </div>
+                
+                {/* Radar Chart Container */}
+                <div className="w-full md:w-[360px] h-[260px] shrink-0 flex items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarChartData}>
+                      <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" className="dark:stroke-zinc-800" />
+                      <PolarAngleAxis 
+                        dataKey="subject" 
+                        tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
+                      />
+                      <PolarRadiusAxis 
+                        angle={30} 
+                        domain={[0, 100]} 
+                        tick={{ fill: '#94a3b8', fontSize: 8 }}
+                        axisLine={false}
+                      />
+                      <Radar
+                        name={apt1Label}
+                        dataKey={apt1Label}
+                        stroke="#00d29d"
+                        fill="#00d29d"
+                        fillOpacity={0.25}
+                      />
+                      <Radar
+                        name={apt2Label}
+                        dataKey={apt2Label}
+                        stroke="#3182f6"
+                        fill="#3182f6"
+                        fillOpacity={0.25}
+                      />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={24}
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ fontSize: '10.5px', fontWeight: 800, color: '#475569' }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
