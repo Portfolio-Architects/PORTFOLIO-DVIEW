@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip as RechartsTooltip,
@@ -41,47 +41,62 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
       ratio = (rentPrice / salePrice) * 100;
     }
 
+    const gapPrice = salePrice > 0 && rentPrice > 0 ? salePrice - rentPrice : 0;
+    const gapPriceStr = gapPrice > 0 ? `${gapPrice.toFixed(1)}억` : null;
+
     return (
-      <div className="bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[150px]">
+      <div className="bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[160px]">
         <div className="text-[13.5px] font-bold text-tertiary mb-1">
           {label}
         </div>
         {payload
           .filter((entry) => entry.value !== undefined && entry.value !== null && entry.value > 0)
           .map((entry, index: number) => {
-          const isRent =
-            entry.dataKey === "동탄 아파트 전세 평균" ||
-            entry.name === "평균 전세가";
-          return (
-            <div
-              key={index}
-              className="flex items-center justify-between gap-6"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-[14px] font-bold text-secondary">
-                  {isRent ? "전세가" : "매매가"}
+            const isRent =
+              entry.dataKey === "동탄 아파트 전세 평균" ||
+              entry.name === "평균 전세가";
+            return (
+              <div
+                key={index}
+                className="flex items-center justify-between gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-[14px] font-bold text-secondary">
+                    {isRent ? "전세가" : "매매가"}
+                  </span>
+                </div>
+                <span className="text-[14px] font-extrabold text-primary">
+                  {entry.value}억
                 </span>
               </div>
-              <span className="text-[14px] font-extrabold text-primary">
-                {entry.value}억
-              </span>
-            </div>
-          );
-        })}
+            );
+          })}
         {ratio > 0 && (
           <>
             <div className="w-full h-[1px] bg-body my-1" />
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-[13px] font-bold text-tertiary pl-4">
-                전세가율
-              </span>
-              <span className="text-[14.5px] font-extrabold text-[#00d29d] tracking-tight">
-                {ratio.toFixed(1)}%
-              </span>
+            <div className="flex flex-col gap-1.5">
+              {gapPriceStr && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[13px] font-bold text-tertiary">
+                    예상 갭차이
+                  </span>
+                  <span className="text-[14.5px] font-extrabold text-teal-600 dark:text-teal-400">
+                    {gapPriceStr}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[13px] font-bold text-tertiary">
+                  전세가율
+                </span>
+                <span className="text-[14.5px] font-extrabold text-[#f9a825]">
+                  {ratio.toFixed(1)}%
+                </span>
+              </div>
             </div>
           </>
         )}
@@ -98,6 +113,14 @@ interface MacroTrendChartProps {
   timeframe: string;
   isBottomSheet?: boolean;
 }
+
+const formatXAxisTick = (value: string) => {
+  if (typeof value === "string" && /^\d{2}\.\d{2}$/.test(value)) {
+    const parts = value.split(".");
+    return `${parts[0]}년 ${parts[1]}월`;
+  }
+  return value;
+};
 
 export default function MacroTrendChart({
   lineData,
@@ -130,7 +153,7 @@ export default function MacroTrendChart({
           : d["동탄 아파트 전세 평균"],
     }));
   }, [lineData]);
-  
+
   const desktopEventHandlers = isBottomSheet
     ? {}
     : {
@@ -157,11 +180,21 @@ export default function MacroTrendChart({
 
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-      <LineChart
+      <AreaChart
         data={processedData}
         margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         {...desktopEventHandlers}
       >
+        <defs>
+          <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
+          </linearGradient>
+          <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#f9a825" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
+          </linearGradient>
+        </defs>
         <CartesianGrid
           strokeWidth={0.7}
           vertical={false}
@@ -175,6 +208,7 @@ export default function MacroTrendChart({
           tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
           dy={10}
           ticks={xTicks}
+          tickFormatter={formatXAxisTick}
         />
         <YAxis
           axisLine={false}
@@ -198,41 +232,43 @@ export default function MacroTrendChart({
           isAnimationActive={!isBottomSheet}
           animationDuration={isBottomSheet ? undefined : 150}
         />
-        <Line
+        <Area
           key="동탄 아파트 전체"
           type="monotone"
           name="평균 매매가"
           dataKey="동탄 아파트 전체"
           stroke="#00d29d"
           strokeWidth={isBottomSheet ? 3 : 4}
+          fill="url(#colorSale)"
           animationDuration={isBottomSheet ? undefined : 300}
           dot={
             isBottomSheet
               ? false
               : timeframe === "ALL" || timeframe === "5Y"
               ? false
-              : { r: 5, strokeWidth: 2 }
+              : { r: 5, strokeWidth: 2, fill: "var(--bg-surface)" }
           }
           activeDot={{ r: isBottomSheet ? 6 : 7 }}
         />
-        <Line
+        <Area
           key="동탄 아파트 전세 평균"
           type="monotone"
           name="평균 전세가"
           dataKey="동탄 아파트 전세 평균"
           stroke="#f9a825"
           strokeWidth={2}
+          fill="url(#colorRent)"
           animationDuration={isBottomSheet ? undefined : 300}
           dot={
             isBottomSheet
               ? false
               : timeframe === "ALL" || timeframe === "5Y"
               ? false
-              : { r: 3, strokeWidth: 2 }
+              : { r: 3, strokeWidth: 2, fill: "var(--bg-surface)" }
           }
           activeDot={{ r: isBottomSheet ? 4 : 5 }}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 }
