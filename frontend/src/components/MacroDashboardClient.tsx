@@ -10,6 +10,9 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart"), {
     </div>
   )
 });
+const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder"), {
+  ssr: false,
+});
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
@@ -26,6 +29,7 @@ import {
   ChevronRight,
   MessageSquare,
   Building2,
+  Sparkles,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -385,6 +389,13 @@ export default function MacroDashboardClient({
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
+      setIsQuizOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!selectedTimelineApt) {
@@ -1770,6 +1781,34 @@ interface GroupedCategory {
           </div>
         </div>
 
+        {/* 나만의 동탄 찰떡 아파트 찾기 배너 위젯 */}
+        <div 
+          onClick={() => setIsQuizOpen(true)}
+          className="mt-6 w-full p-6 sm:p-8 bg-gradient-to-r from-[#00d29d]/10 via-[#4196f7]/5 to-surface border border-[#00d29d]/25 dark:border-[#00d29d]/30 rounded-[24px] shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#00d29d]/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-14 h-14 bg-gradient-to-tr from-[#00d29d] to-[#4196f7] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#00d29d]/10 group-hover:rotate-3 transition-transform duration-300">
+              <Sparkles size={26} className="animate-pulse" />
+            </div>
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-0.5 rounded-full tracking-wide uppercase">New 콘텐츠</span>
+                <span className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기 Quiz 🔎</span>
+              </div>
+              <p className="text-[12px] sm:text-[13px] text-secondary font-semibold leading-relaxed break-keep">
+                5가지 초간단 질문으로 당신의 라이프스타일, 예산, 교육 환경에 가장 완벽하게 어우러지는 아파트 3곳을 AI 데이터 매칭으로 즉시 추천받아 보세요!
+              </p>
+            </div>
+          </div>
+          <button 
+            className="px-5 py-3 bg-primary group-hover:bg-[#00d29d] text-surface group-hover:text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10"
+          >
+            <span>지금 추천 받기</span>
+            <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
+
         {/* Detailed Real Estate Portfolio Section */}
         <div className="mt-12 mb-6 flex items-center justify-between px-0">
           <div className="flex items-center gap-2">
@@ -2340,6 +2379,19 @@ interface GroupedCategory {
           </div>
         </div>
       </div>
+
+      {isQuizOpen && (
+        <AptFitFinder
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummaryData}
+          nameMapping={nameMapping || {}}
+          publicRentalSet={publicRentalSet}
+          fieldReportsMap={fieldReportsMap}
+          onSelectApt={onSelectApt || (() => {})}
+          isOpen={isQuizOpen}
+          onClose={() => setIsQuizOpen(false)}
+        />
+      )}
 
       {/* Mobile Bottom Sheet Modal */}
       {isBottomSheetOpen && typeof window !== 'undefined' && createPortal(
