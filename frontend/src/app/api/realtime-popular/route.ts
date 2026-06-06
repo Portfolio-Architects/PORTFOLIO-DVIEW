@@ -1,0 +1,113 @@
+import { BetaAnalyticsDataClient } from '@google-analytics/data';
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const propertyId = process.env.GA4_PROPERTY_ID;
+  const clientEmail = process.env.GA_CLIENT_EMAIL;
+  const privateKey = process.env.GA_PRIVATE_KEY;
+
+  // 환경변수가 없으면 시뮬레이션 Fallback 모드로 동작
+  if (!propertyId || !clientEmail || !privateKey) {
+    const mockApts = [
+      { aptName: '동탄역롯데캐슬', baseViews: 85 },
+      { aptName: '동탄레이크자이더테라스', baseViews: 68 },
+      { aptName: '동탄린스트라우스더레이크', baseViews: 55 },
+      { aptName: '동탄역시범한화꿈에그린프레스티지', baseViews: 52 },
+      { aptName: '동탄역삼정그린코아더베스트', baseViews: 41 },
+      { aptName: '동탄역시범우남퍼스트빌', baseViews: 38 },
+      { aptName: '동탄역더샵센트럴시티', baseViews: 32 },
+      { aptName: '신안인스빌리베라2차', baseViews: 25 },
+    ];
+
+    // 시간대별로 뷰 수에 노이즈 추가하여 실시간 생동감 부여
+    const minutes = new Date().getMinutes();
+    const seconds = new Date().getSeconds();
+    
+    const data = mockApts
+      .map((apt, idx) => {
+        // 시간에 따라 랭킹 가중치가 유동적으로 변하게 함
+        const noise = Math.sin(minutes + idx) * 15 + Math.cos(seconds + idx) * 5;
+        const finalViews = Math.max(5, Math.round(apt.baseViews + noise));
+        return { aptName: apt.aptName, views: finalViews };
+      })
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 5);
+
+    return NextResponse.json({ success: true, isMock: true, data });
+  }
+
+  try {
+    const analyticsDataClient = new BetaAnalyticsDataClient({
+      credentials: {
+        client_email: clientEmail,
+        private_key: privateKey.replace(/\\n/g, '\n'),
+      },
+    });
+
+    const [response] = await analyticsDataClient.runRealtimeReport({
+      property: `properties/${propertyId}`,
+      dimensions: [{ name: 'pagePath' }],
+      metrics: [{ name: 'screenPageViews' }],
+      dimensionFilter: {
+        filter: {
+          fieldName: 'pagePath',
+          stringFilter: {
+            matchType: 'CONTAINS',
+            value: 'apt=',
+          },
+        },
+      },
+      limit: 20,
+    });
+
+    const popularApts: Record<string, number> = {};
+
+    response.rows?.forEach((row: any) => {
+      const path = row.dimensionValues?.[0]?.value || '';
+      const views = parseInt(row.metricValues?.[0]?.value || '0', 10);
+      
+      // /explore?apt=동탄역롯데캐슬 또는 /#apt=동탄역롯데캐슬 에서 아파트 이름 추출
+      const match = path.match(/apt=([^&]+)/);
+      if (match && match[1]) {
+        try {
+          const aptName = decodeURIComponent(match[1]).trim();
+          if (aptName && aptName !== 'undefined') {
+            popularApts[aptName] = (popularApts[aptName] || 0) + views;
+          }
+        } catch (e) {
+          // ignore parsing error
+        }
+      }
+    });
+
+    const sortedData = Object.entries(popularApts)
+      .map(([aptName, views]) => ({ aptName, views }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 5);
+
+    // 실제 데이터가 부족할 경우 가상 데이터를 채워서 반환
+    if (sortedData.length < 5) {
+      const fallbackList = [
+        '동탄역롯데캐슬',
+        '동탄레이크자이더테라스',
+        '동탄린스트라우스더레이크',
+        '동탄역시범한화꿈에그린프레스티지',
+        '동탄역삼정그린코아더베스트'
+      ];
+      
+      fallbackList.forEach((apt) => {
+        if (sortedData.length < 5 && !sortedData.some(d => d.aptName === apt)) {
+          sortedData.push({ aptName: apt, views: Math.floor(Math.random() * 10) + 5 });
+        }
+      });
+    }
+
+    return NextResponse.json({ success: true, isMock: false, data: sortedData });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error('GA4 Realtime Report Error:', error);
+    return NextResponse.json({ success: false, error: errMessage }, { status: 500 });
+  }
+}

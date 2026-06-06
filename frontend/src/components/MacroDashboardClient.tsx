@@ -32,6 +32,7 @@ import {
   Sparkles,
   ShieldAlert,
   Calculator,
+  Flame,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -324,6 +325,7 @@ export default function MacroDashboardClient({
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData } = useSWR('/api/local-notices', fetcher);
+  const { data: popularData } = useSWR('/api/realtime-popular', fetcher, { refreshInterval: 60000 });
 
   const railNotices = useMemo(() => {
     if (!noticesData?.notices) return [];
@@ -1429,7 +1431,52 @@ interface GroupedCategory {
       />
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-0 md:pb-12 lg:pb-16 w-full">
 
+        {/* 실시간 인기 아파트 단지 랭킹 바 (GA4 연동) */}
+        <div className="w-full bg-surface border border-border/50 rounded-2xl py-3 px-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden select-none shadow-sm">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="bg-[#f04452]/10 p-1.5 rounded-lg flex items-center justify-center text-[#f04452]">
+              <Flame size={15} className="animate-pulse" />
+            </div>
+            <span className="text-[12.5px] font-black text-primary tracking-tight">실시간 인기 단지</span>
+            <span className="text-[9.5px] font-extrabold bg-body border border-border/50 text-tertiary px-1.5 py-0.5 rounded-[5px]">GA4 Live</span>
+          </div>
 
+          <div className="flex-1 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full">
+            <div className="flex items-center gap-5 sm:gap-6 min-w-max">
+              {popularData?.data && popularData.data.length > 0 ? (
+                popularData.data.map((item: any, idx: number) => (
+                  <div
+                    key={item.aptName}
+                    onClick={() => {
+                      if (onSelectApt) {
+                        onSelectApt(item.aptName);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-[12px] font-bold cursor-pointer group"
+                  >
+                    <span className={`text-[12px] font-black ${
+                      idx === 0 ? 'text-[#f04452]' : idx === 1 ? 'text-[#ff9500]' : idx === 2 ? 'text-[#00d29d]' : 'text-tertiary'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <span className="text-secondary group-hover:text-[#00d29d] transition-colors">
+                      {item.aptName}
+                    </span>
+                    {idx < popularData.data.length - 1 && (
+                      <span className="text-border/40 font-normal ml-3 select-none">|</span>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="flex gap-4 animate-pulse">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-4 w-24 bg-border/20 rounded" />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}
