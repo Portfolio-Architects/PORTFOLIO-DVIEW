@@ -112,6 +112,9 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const [isScoreAccordionOpen, setIsScoreAccordionOpen] = useState(false);
   const [macroConfig, setMacroConfig] = useState(MACRO_CONFIG.macroEnvironment);
   const [overrideScore, setOverrideScore] = useState(0);
+  const [simBaseRate, setSimBaseRate] = useState(3.25);
+  const [simGrowthRate, setSimGrowthRate] = useState(2.0);
+  const [isCopiedScenario, setIsCopiedScenario] = useState(false);
 
   useEffect(() => {
     const fetchOverrides = async () => {
@@ -262,7 +265,78 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const trajectory = calculateForwardJeonseTrajectory(avg3MRent, pipeline);
   // ---------------------------------------------------
 
-  // 3. 상태 평가 로직
+  useEffect(() => {
+    if (dcf.growthRate > 0) {
+      setSimGrowthRate(Math.round(dcf.growthRate * 10) / 10);
+    }
+  }, [dcf.growthRate, report.apartmentName]);
+
+  // 4. 거시경제 시나리오 시뮬레이션
+  const simulatedDCF = useMemo(() => {
+    const baseRateDiff = simBaseRate - 3.25;
+    const simRiskFree = Math.max(0.5, macroConfig.riskFreeRate + baseRateDiff);
+    const simFunding = Math.max(1.0, macroConfig.fundingCost + baseRateDiff);
+
+    const fundingSpread = Math.max(0, simFunding - 4.0) * 0.5;
+    const discountRate = (simRiskFree + 1.5 + fundingSpread) / 100;
+
+    const growthRate = simGrowthRate / 100;
+    const capRate = Math.max(0.01, discountRate - growthRate);
+    const annualRent = avg3MRent * dynamicConversionRate;
+    const impliedValue = annualRent / capRate;
+
+    const simJeonsePrice = Math.max(0, Math.round(avg3MRent * (1 - baseRateDiff * 0.06)));
+    const simGap = Math.max(0, avg3MSale - simJeonsePrice);
+    const simJeonseRatio = avg3MSale > 0 ? (simJeonsePrice / avg3MSale) * 100 : 0;
+
+    return {
+      discountRate: discountRate * 100,
+      growthRate: growthRate * 100,
+      capRate: capRate * 100,
+      impliedValue,
+      simJeonsePrice,
+      simGap,
+      simJeonseRatio
+    };
+  }, [simBaseRate, simGrowthRate, macroConfig, avg3MRent, dynamicConversionRate, avg3MSale]);
+
+  const handleCopyScenario = () => {
+    const rateStatus = simBaseRate > 3.25 ? '금리 인상기' : simBaseRate < 3.25 ? '금리 인하기' : '금리 유지';
+    const fairChangePercent = dcf.impliedValue > 0 ? ((simulatedDCF.impliedValue - dcf.impliedValue) / dcf.impliedValue) * 100 : 0;
+    const fairChangeText = fairChangePercent > 0 
+      ? `현재 대비 +${fairChangePercent.toFixed(1)}% 상승` 
+      : fairChangePercent < 0 
+        ? `현재 대비 ${fairChangePercent.toFixed(1)}% 하락` 
+        : '변동 없음';
+
+    const currentGap = avg3MSale - avg3MRent;
+    const gapDiff = simulatedDCF.simGap - currentGap;
+    const gapDiffText = gapDiff > 0 
+      ? `필요한 갭투자금 ${formatPrice(gapDiff)} 증가` 
+      : gapDiff < 0 
+        ? `필요한 갭투자금 ${formatPrice(Math.abs(gapDiff))} 감소 (절감)` 
+        : '갭투자금 변동 없음';
+
+    const reportText = `[D-VIEW 가치평가 시나리오 분석 리포트]
+단지명: ${report.apartmentName}
+시나리오 적용: 기준금리 ${simBaseRate.toFixed(2)}% (상태: ${rateStatus}), 기대상승률 ${simGrowthRate.toFixed(1)}%
+
+[분석 결과]
+- 시뮬레이션 적정가 (DCF): ${formatPrice(simulatedDCF.impliedValue)} (${fairChangeText})
+- 시뮬레이션 전세가: ${formatPrice(simulatedDCF.simJeonsePrice)} (전세가율: ${simulatedDCF.simJeonseRatio.toFixed(1)}%)
+- 시뮬레이션 갭투자금: ${formatPrice(simulatedDCF.simGap)} (${gapDiffText})
+
+본 리포트는 D-VIEW 밸류에이션 엔진으로 작성되었습니다.`;
+
+    navigator.clipboard.writeText(reportText).then(() => {
+      setIsCopiedScenario(true);
+      setTimeout(() => setIsCopiedScenario(false), 2000);
+    }).catch(err => {
+      console.error('시나리오 복사 실패:', err);
+    });
+  };
+
+  // 5. 상태 평가 로직
   let statusText = '데이터 부족';
   let statusColor = 'text-tertiary';
   let statusBg = 'bg-body';
@@ -555,12 +629,184 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
               </div>
             )}
 
-            {/* Section 3: 단지 상품성 & 인프라 가치평가 (Utility Score) */}
+            {/* Section 3: 거시경제 시나리오 시뮬레이터 & 갭투자 분석 */}
+            {realEstatePER > 0 && (
+              <div className="p-6">
+                <h4 className="text-[14.5px] md:text-[15px] font-extrabold text-primary mb-4 flex items-center gap-1.5">
+                  <span className="w-1.5 h-3.5 bg-toss-blue rounded-full inline-block" />
+                  3. 거시경제 시나리오 시뮬레이터 & 갭투자 분석
+                </h4>
+                
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Left Column: Sliders */}
+                  <div className="flex-1 flex flex-col gap-5 bg-body border border-border rounded-2xl p-5">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-center text-[13px] font-extrabold text-secondary">
+                        <span>기준금리 시나리오</span>
+                        <span className="text-toss-blue">{simBaseRate.toFixed(2)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1.00"
+                        max="5.00"
+                        step="0.25"
+                        value={simBaseRate}
+                        onChange={(e) => setSimBaseRate(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-[#e5e8eb] rounded-lg appearance-none cursor-pointer accent-toss-blue"
+                      />
+                      <div className="flex justify-between text-[11px] text-tertiary font-medium">
+                        <span>금리인하 (1.00%)</span>
+                        <span>현재 (3.25%)</span>
+                        <span>금리인상 (5.00%)</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-center text-[13px] font-extrabold text-secondary">
+                        <span>기대상승률 시나리오</span>
+                        <span className="text-toss-blue">{simGrowthRate.toFixed(1)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.0"
+                        max="5.0"
+                        step="0.1"
+                        value={simGrowthRate}
+                        onChange={(e) => setSimGrowthRate(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-[#e5e8eb] rounded-lg appearance-none cursor-pointer accent-toss-blue"
+                      />
+                      <div className="flex justify-between text-[11px] text-tertiary font-medium">
+                        <span>보수적 (0.0%)</span>
+                        <span>기본 ({dcf.growthRate.toFixed(1)}%)</span>
+                        <span>긍정적 (5.0%)</span>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-border/40 my-1" />
+
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[12px] text-secondary font-extrabold">시나리오 기본 논리</span>
+                      <p className="text-[11.5px] text-tertiary leading-relaxed font-medium">
+                        금리 하락 시 전세대출 유동성이 증가하여 전세가가 상승하고, 할인율이 낮아져 자산 적정가가 크게 오릅니다. 반대로 금리 상승 시에는 적정가가 조정을 받으며 필요한 갭투자금 부담이 늘어납니다.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Comparison Cards */}
+                  <div className="flex-1 flex flex-col gap-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Sim Fair Value Card */}
+                      <div className="bg-body border border-border rounded-2xl p-4 flex flex-col gap-1.5">
+                        <span className="text-[12px] font-extrabold text-secondary">시뮬레이션 적정가</span>
+                        <span className="text-[18px] font-black text-primary">
+                          {formatPrice(simulatedDCF.impliedValue)}
+                        </span>
+                        {dcf.impliedValue > 0 && (
+                          <span className={`text-[11.5px] font-bold ${
+                            simulatedDCF.impliedValue > dcf.impliedValue ? 'text-toss-green' : simulatedDCF.impliedValue < dcf.impliedValue ? 'text-toss-red' : 'text-secondary'
+                          }`}>
+                            {simulatedDCF.impliedValue > dcf.impliedValue ? '+' : ''}
+                            {(((simulatedDCF.impliedValue - dcf.impliedValue) / dcf.impliedValue) * 100).toFixed(1)}% 변동
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Sim Jeonse Price Card */}
+                      <div className="bg-body border border-border rounded-2xl p-4 flex flex-col gap-1.5">
+                        <span className="text-[12px] font-extrabold text-secondary">시뮬레이션 전세가</span>
+                        <span className="text-[18px] font-black text-toss-blue">
+                          {formatPrice(simulatedDCF.simJeonsePrice)}
+                        </span>
+                        <span className="text-[11.5px] text-tertiary font-bold">
+                          전세가율 {simulatedDCF.simJeonseRatio.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Gap Investment Analyzer Card */}
+                    <div className="bg-body border border-border rounded-2xl p-4 flex flex-col gap-2.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[12.5px] font-extrabold text-secondary font-bold">필요한 갭투자금</span>
+                        <span className="text-[16px] font-black text-primary">
+                          {formatPrice(simulatedDCF.simGap)}
+                        </span>
+                      </div>
+                      <div className="h-px bg-border/40" />
+                      <div className="flex justify-between items-center text-[12px]">
+                        <span className="text-tertiary font-semibold">현재 대비 갭투자금 변동</span>
+                        {(() => {
+                          const currentGap = avg3MSale - avg3MRent;
+                          const gapDiff = simulatedDCF.simGap - currentGap;
+                          if (gapDiff < 0) {
+                            return (
+                              <span className="font-extrabold text-toss-green">
+                                {formatPrice(Math.abs(gapDiff))} 절감 (투자 매력 상승)
+                              </span>
+                            );
+                          } else if (gapDiff > 0) {
+                            return (
+                              <span className="font-extrabold text-toss-red">
+                                {formatPrice(gapDiff)} 추가 필요 (자금 부담 증가)
+                              </span>
+                            );
+                          } else {
+                            return <span className="font-bold text-secondary">변동 없음</span>;
+                          }
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Scenario Copy CTA */}
+                    <button
+                      onClick={handleCopyScenario}
+                      className={`w-full py-3 rounded-xl font-extrabold text-[13.5px] transition-all text-center cursor-pointer border ${
+                        isCopiedScenario 
+                          ? 'bg-emerald-50 border-emerald-500/30 text-emerald-600'
+                          : 'bg-[#f2f4f6] border-border/20 text-secondary hover:bg-[#e5e8eb]'
+                      }`}
+                    >
+                      {isCopiedScenario ? '시나리오 분석 보고서 복사 완료!' : '시나리오 분석 보고서 복사하기'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contextual Sponsored Mortgage Banner */}
+                <div className="mt-4 p-4 rounded-2xl border bg-body/30 border-border/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="text-[12px] font-extrabold text-tertiary">
+                      [광고] D-VIEW 주택금융 파트너스 추천 대출
+                    </div>
+                    <div className="text-[13.5px] font-extrabold text-primary">
+                      {simBaseRate >= 3.25 
+                        ? '금리 상승기 추천: 고정금리 안심 전환대출'
+                        : '금리 하락기 추천: 변동금리 최적화 대환대출'
+                      }
+                    </div>
+                    <p className="text-[11.5px] text-secondary font-medium">
+                      {simBaseRate >= 3.25
+                        ? '금리 추가 인상 우려에 대비하여 향후 이자 부담을 고정형으로 동결하는 D-VIEW 단독 제휴 우대상품 (연 3.85%, 중도상환수수료 면제)'
+                        : '금리 인하 기조의 혜택을 즉각 수혜받을 수 있는 신규 코픽스 연동형 대출 대환 특가 (연 3.45%, 중도상환수수료 면제)'
+                      }
+                    </p>
+                  </div>
+                  <a
+                    href="https://dview-loan.toss.im"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto text-center px-4 py-2.5 bg-toss-blue text-surface font-extrabold text-[12.5px] rounded-xl hover:bg-toss-blue/90 transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
+                  >
+                    우대금리 조회하기
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Section 4: 단지 상품성 & 인프라 가치평가 (Utility Score) */}
             {utilityScoreResult.total > 0 && (
               <div id="utility-score-section" className="p-6 scroll-mt-20">
                 <h4 className="text-[14.5px] md:text-[15px] font-extrabold text-primary mb-4 flex items-center gap-1.5">
                   <span className="w-1.5 h-3.5 bg-[#f59e0b] rounded-full inline-block" />
-                  3. 단지 상품성 & 인프라 가치평가 (Utility Score)
+                  4. 단지 상품성 & 인프라 가치평가 (Utility Score)
                 </h4>
                 <div className="flex flex-col md:flex-row items-stretch gap-6">
                   {/* Left: Big Score & Progress Bar */}

@@ -29,23 +29,31 @@ interface TxDataPoint {
 
 // Fallback metrics estimator for apartments without Firestore scouting reports
 function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undefined) {
+  const reportYearRaw = report?.metrics?.yearBuilt;
+  const aptYearRaw = apt.yearBuilt ? parseInt(apt.yearBuilt) : 2018;
+  const rawYearBuilt = reportYearRaw || aptYearRaw;
+  const ybStr = String(rawYearBuilt);
+  const yearBuilt = ybStr.length >= 4 ? parseInt(ybStr.substring(0, 4)) : parseInt(ybStr) || 2018;
+
   if (report?.metrics) {
     return {
       brand: report.metrics.brand || apt.brand || '',
       householdCount: report.metrics.householdCount || apt.householdCount || 800,
       parkingPerHousehold: report.metrics.parkingPerHousehold || (report.sections?.specs?.parkingRatio ? parseFloat(report.sections.specs.parkingRatio) : 1.25),
-      yearBuilt: report.metrics.yearBuilt || (apt.yearBuilt ? parseInt(apt.yearBuilt.substring(0, 4)) : 2018),
+      yearBuilt,
+      rawYearBuilt,
       distanceToSubway: report.metrics.distanceToSubway || 2000,
       distanceToElementary: report.metrics.distanceToElementary || 350,
       distanceToPark: report.metrics.distanceToPark || 500,
       distanceToStarbucks: report.metrics.distanceToStarbucks || 800,
+      distanceToIndeokwon: report.metrics.distanceToIndeokwon || 2000,
+      distanceToTram: report.metrics.distanceToTram || 1000,
     };
   }
 
   // Estimate based on brand, dong, and basic info
   const brand = apt.brand || '';
   const householdCount = apt.householdCount || 800;
-  const yearBuilt = apt.yearBuilt ? parseInt(apt.yearBuilt.substring(0, 4)) : 2018;
   const parkingPerHousehold = 1.25; // default fallback
 
   // Approximate distance based on dong
@@ -53,6 +61,8 @@ function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undef
   let distanceToElementary = 350;
   let distanceToPark = 500;
   let distanceToStarbucks = 800;
+  let distanceToIndeokwon = 2000;
+  let distanceToTram = 1000;
 
   const dong = apt.dong || '';
   if (dong.includes('오산동')) {
@@ -60,31 +70,43 @@ function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undef
     distanceToPark = 400; // 여울공원
     distanceToStarbucks = 400;
     distanceToElementary = 300;
+    distanceToIndeokwon = 500; // Dongtan Station terminus
+    distanceToTram = 400;
   } else if (dong.includes('송동') || dong.includes('산척동')) {
     distanceToSubway = 2500;
     distanceToPark = 250; // 동탄호수공원
     distanceToStarbucks = 450;
     distanceToElementary = 400;
+    distanceToIndeokwon = 2500;
+    distanceToTram = 300; // Close to Lake Park Tram stop
   } else if (dong.includes('청계동')) {
     distanceToSubway = 1200; // 시범단지
     distanceToPark = 350; // 청계중앙공원
     distanceToStarbucks = 300;
     distanceToElementary = 200;
+    distanceToIndeokwon = 1200;
+    distanceToTram = 400;
   } else if (dong.includes('영천동')) {
     distanceToSubway = 1800;
     distanceToPark = 500;
     distanceToStarbucks = 500;
     distanceToElementary = 300;
+    distanceToIndeokwon = 1000; // Near 102 station
+    distanceToTram = 500;
   } else if (dong.includes('목동')) {
     distanceToSubway = 2800;
     distanceToPark = 400;
     distanceToStarbucks = 600;
     distanceToElementary = 250;
+    distanceToIndeokwon = 2800;
+    distanceToTram = 500;
   } else if (dong.includes('방교동') || dong.includes('금곡동')) {
     distanceToSubway = 3000;
     distanceToPark = 800;
     distanceToStarbucks = 1200;
     distanceToElementary = 600;
+    distanceToIndeokwon = 3000;
+    distanceToTram = 1500;
   }
 
   return {
@@ -92,10 +114,13 @@ function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undef
     householdCount,
     parkingPerHousehold,
     yearBuilt,
+    rawYearBuilt,
     distanceToElementary,
     distanceToSubway,
     distanceToPark,
     distanceToStarbucks,
+    distanceToIndeokwon,
+    distanceToTram,
   };
 }
 
@@ -235,12 +260,14 @@ export default function AptCompareModal({
     const avg3MPriceVal = summary ? (summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0) : 0;
     const avg3MRentVal = summary ? (summary.avg3MRentDeposit || summary.avg1MRentDeposit || summary.latestRentDeposit || 0) : 0;
     const jeonseRatioVal = avg3MPriceVal > 0 && avg3MRentVal > 0 ? (avg3MRentVal / avg3MPriceVal) * 100 : 0;
+    const avg3MPerPyeongVal = summary ? (summary.avg3MPerPyeong || summary.avg1MPerPyeong || 0) : 0;
 
     return {
       ...effective,
       avg3MPrice: avg3MPriceVal,
       avg3MRent: avg3MRentVal,
       jeonseRatio: jeonseRatioVal,
+      avg3MPerPyeong: avg3MPerPyeongVal,
     };
   }, [apt1, fieldReportsMap, txSummaryData, nameMapping]);
 
@@ -254,12 +281,14 @@ export default function AptCompareModal({
     const avg3MPriceVal = summary ? (summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0) : 0;
     const avg3MRentVal = summary ? (summary.avg3MRentDeposit || summary.avg1MRentDeposit || summary.latestRentDeposit || 0) : 0;
     const jeonseRatioVal = avg3MPriceVal > 0 && avg3MRentVal > 0 ? (avg3MRentVal / avg3MPriceVal) * 100 : 0;
+    const avg3MPerPyeongVal = summary ? (summary.avg3MPerPyeong || summary.avg1MPerPyeong || 0) : 0;
 
     return {
       ...effective,
       avg3MPrice: avg3MPriceVal,
       avg3MRent: avg3MRentVal,
       jeonseRatio: jeonseRatioVal,
+      avg3MPerPyeong: avg3MPerPyeongVal,
     };
   }, [apt2, fieldReportsMap, txSummaryData, nameMapping]);
 
@@ -275,14 +304,16 @@ export default function AptCompareModal({
     return {
       subway: compare(metrics1.distanceToSubway, metrics2.distanceToSubway, true),
       elementary: compare(metrics1.distanceToElementary, metrics2.distanceToElementary, true),
-      park: compare(metrics1.distanceToPark, metrics2.distanceToPark, true),
       starbucks: compare(metrics1.distanceToStarbucks, metrics2.distanceToStarbucks, true),
+      indeokwon: compare(metrics1.distanceToIndeokwon, metrics2.distanceToIndeokwon, true),
+      tram: compare(metrics1.distanceToTram, metrics2.distanceToTram, true),
       households: compare(metrics1.householdCount, metrics2.householdCount),
       year: compare(metrics1.yearBuilt, metrics2.yearBuilt),
       parking: compare(metrics1.parkingPerHousehold, metrics2.parkingPerHousehold),
       price: compare(metrics1.avg3MPrice, metrics2.avg3MPrice), // Higher valuation
       rent: compare(metrics1.avg3MRent, metrics2.avg3MRent),     // Higher rent
       ratio: compare(metrics1.jeonseRatio, metrics2.jeonseRatio), // Higher jeonse ratio
+      perPyeong: compare(metrics1.avg3MPerPyeong, metrics2.avg3MPerPyeong), // Higher value per pyeong
     };
   }, [metrics1, metrics2]);
 
@@ -365,6 +396,19 @@ export default function AptCompareModal({
     return `${man.toLocaleString()}`;
   };
 
+  const formatYearBuilt = (rawYb: any, yb: number) => {
+    if (!rawYb) return '-';
+    const ybStr = String(rawYb);
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - yb;
+    if (ybStr.length >= 6) {
+      const year = ybStr.substring(0, 4);
+      const month = parseInt(ybStr.substring(4, 6));
+      return `${year}년 ${month}월 (${age}년차)`;
+    }
+    return `${yb}년 (${age}년차)`;
+  };
+
   const handleShare = () => {
     if (!apt1 || !apt2 || !metrics1 || !metrics2) return;
     
@@ -390,21 +434,29 @@ ${apt2Label} 우세 항목: ${score.apt2}개
 단지 A: ${metrics1.distanceToSubway ? `${metrics1.distanceToSubway}m` : '-'}
 단지 B: ${metrics2.distanceToSubway ? `${metrics2.distanceToSubway}m` : '-'}
 
-2. 초등학교 도보 통학 거리
+2. 동인선 예정역 거리
+단지 A: ${metrics1.distanceToIndeokwon ? `${metrics1.distanceToIndeokwon}m` : '-'}
+단지 B: ${metrics2.distanceToIndeokwon ? `${metrics2.distanceToIndeokwon}m` : '-'}
+
+3. 동탄트램 예정역 거리
+단지 A: ${metrics1.distanceToTram ? `${metrics1.distanceToTram}m` : '-'}
+단지 B: ${metrics2.distanceToTram ? `${metrics2.distanceToTram}m` : '-'}
+
+4. 초등학교 도보 통학 거리
 단지 A: ${metrics1.distanceToElementary ? `${metrics1.distanceToElementary}m` : '-'}
 단지 B: ${metrics2.distanceToElementary ? `${metrics2.distanceToElementary}m` : '-'}
 
-3. 공원 도보 통학 거리
-단지 A: ${metrics1.distanceToPark ? `${metrics1.distanceToPark}m` : '-'}
-단지 B: ${metrics2.distanceToPark ? `${metrics2.distanceToPark}m` : '-'}
+5. 세대수 및 연식
+단지 A: ${metrics1.householdCount ? `${metrics1.householdCount.toLocaleString()}세대` : '-'} (${metrics1.yearBuilt ? `${metrics1.yearBuilt}년` : '-'})
+단지 B: ${metrics2.householdCount ? `${metrics2.householdCount.toLocaleString()}세대` : '-'} (${metrics2.yearBuilt ? `${metrics2.yearBuilt}년` : '-'})
 
-4. 세대수 및 연식
-단지 A: ${metrics1.householdCount ? `${metrics1.householdCount.toLocaleString()}세대` : '-'} (${metrics1.yearBuilt ? `${metrics1.yearBuilt}년식` : '-'})
-단지 B: ${metrics2.householdCount ? `${metrics2.householdCount.toLocaleString()}세대` : '-'} (${metrics2.yearBuilt ? `${metrics2.yearBuilt}년식` : '-'})
-
-5. 평균 매매시세 (최근 3개월)
+6. 평균 매매시세 (최근 3개월)
 단지 A: ${displayPrice(metrics1.avg3MPrice)}
 단지 B: ${displayPrice(metrics2.avg3MPrice)}
+
+7. 평균 평당가 (최근 3개월)
+단지 A: ${metrics1.avg3MPerPyeong ? `${metrics1.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
+단지 B: ${metrics2.avg3MPerPyeong ? `${metrics2.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
 
 D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보세요.`;
 
@@ -667,14 +719,25 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     </div>
                   </div>
 
-                  {/* Park Distance */}
+                  {/* Indeokwon Line Distance */}
                   <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
-                    <div className="text-secondary font-bold">공원 도보 통학 거리</div>
-                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.park)}`}>
-                      {metrics1.distanceToPark ? `${metrics1.distanceToPark}m` : '-'}
+                    <div className="text-secondary font-bold">동인선 예정역 거리</div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.indeokwon)}`}>
+                      {metrics1.distanceToIndeokwon ? `${metrics1.distanceToIndeokwon}m` : '-'}
                     </div>
-                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.park)}`}>
-                      {metrics2.distanceToPark ? `${metrics2.distanceToPark}m` : '-'}
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.indeokwon)}`}>
+                      {metrics2.distanceToIndeokwon ? `${metrics2.distanceToIndeokwon}m` : '-'}
+                    </div>
+                  </div>
+
+                  {/* Tram Distance */}
+                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                    <div className="text-secondary font-bold">동탄트램 예정역 거리</div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.tram)}`}>
+                      {metrics1.distanceToTram ? `${metrics1.distanceToTram}m` : '-'}
+                    </div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.tram)}`}>
+                      {metrics2.distanceToTram ? `${metrics2.distanceToTram}m` : '-'}
                     </div>
                   </div>
 
@@ -711,10 +774,10 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
                     <div className="text-secondary font-bold">준공년도 (연식)</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.year)}`}>
-                      {metrics1.yearBuilt ? `${metrics1.yearBuilt}년 (${new Date().getFullYear() - metrics1.yearBuilt}년차)` : '-'}
+                      {formatYearBuilt(metrics1.rawYearBuilt, metrics1.yearBuilt)}
                     </div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.year)}`}>
-                      {metrics2.yearBuilt ? `${metrics2.yearBuilt}년 (${new Date().getFullYear() - metrics2.yearBuilt}년차)` : '-'}
+                      {formatYearBuilt(metrics2.rawYearBuilt, metrics2.yearBuilt)}
                     </div>
                   </div>
 
@@ -755,6 +818,17 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     </div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.price)}`}>
                       {displayPrice(metrics2.avg3MPrice)}
+                    </div>
+                  </div>
+
+                  {/* Price per Pyeong */}
+                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                    <div className="text-secondary font-bold">평균 평당가 (3M)</div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.perPyeong)}`}>
+                      {metrics1.avg3MPerPyeong ? `${metrics1.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
+                    </div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.perPyeong)}`}>
+                      {metrics2.avg3MPerPyeong ? `${metrics2.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
                     </div>
                   </div>
 
