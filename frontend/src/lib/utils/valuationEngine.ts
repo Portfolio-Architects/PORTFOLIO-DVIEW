@@ -25,7 +25,10 @@ export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironme
   // 전세대출금리가 4.0%를 초과할 경우 유동성 프리미엄 가산
   const fundingCostVal = typeof m.fundingCost === 'number' ? m.fundingCost : 3.8;
   const riskFreeRateVal = typeof m.riskFreeRate === 'number' ? m.riskFreeRate : 3.25;
-  const baseInflationRateVal = typeof m.baseInflationRate === 'number' ? m.baseInflationRate : 2.0;
+  let baseInflationRateVal = typeof m.baseInflationRate === 'number' ? m.baseInflationRate : 2.0;
+  if (baseInflationRateVal > 0 && baseInflationRateVal <= 0.1) {
+    baseInflationRateVal = baseInflationRateVal * 100;
+  }
   const jeonseConversionRateVal = typeof m.jeonseConversionRate === 'number' ? m.jeonseConversionRate : 0.055;
 
   const fundingSpread = Math.max(0, fundingCostVal - 4.0) * 0.5;
