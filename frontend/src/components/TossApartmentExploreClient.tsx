@@ -82,6 +82,16 @@ interface RowData {
     photoCount: number;
     likes: number;
     isFavorited: boolean;
+    
+    // [자기개선] Row 렌더링 CPU/GC 부하를 줄이기 위한 선연산 포맷 필드
+    formattedYearBuilt: string;
+    formattedPrice: string;
+    formattedJeonse: string;
+    formattedRatio: string;
+    formattedPyeong: string;
+    formattedHousehold: string;
+    formattedVolume: string;
+    formattedTurnover: string;
   }>;
   handleSelectApt: (name: string) => void;
   onToggleFavorite: (name: string) => void;
@@ -131,41 +141,41 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
 
         {/* Age (shown at xl) */}
         <div className="w-[105px] text-right pr-2 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block whitespace-nowrap">
-          {formatYearBuilt(item.apt.yearBuilt)}
+          {item.formattedYearBuilt}
         </div>
         
         {/* Price */}
         <div className="w-[100px] text-right pr-2 text-[14.5px] font-extrabold text-primary shrink-0 whitespace-nowrap">
-          {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
+          {item.formattedPrice}
         </div>
         
         {/* Pyeong */}
         <div className="w-[85px] text-right pr-2 text-[14px] font-bold text-teal-600 dark:text-teal-400 shrink-0 whitespace-nowrap">
-          {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만` : '-'}
+          {item.formattedPyeong}
         </div>
 
         {/* Jeonse (shown at lg) */}
         <div className="w-[110px] text-right pr-2 flex-col justify-center items-end gap-0.5 shrink-0 hidden lg:flex">
           <span className="text-[14px] font-semibold text-primary leading-none whitespace-nowrap">
-            {item.jeonsePrice > 0 ? formatPrice(item.jeonsePrice) : '-'}
+            {item.formattedJeonse}
           </span>
           <span className="text-[11px] text-tertiary font-medium leading-none whitespace-nowrap">
-            {item.ratio > 0 ? `${(item.ratio * 100).toFixed(0)}%` : '-'}
+            {item.formattedRatio}
           </span>
         </div>
 
         {/* Household (shown at xl) */}
         <div className="w-[80px] text-right pr-2 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block whitespace-nowrap">
-          {item.apt.householdCount ? `${item.apt.householdCount.toLocaleString()}세대` : '-'}
+          {item.formattedHousehold}
         </div>
 
         {/* Volume (shown at xl) */}
         <div className="w-[100px] text-right pr-2 flex-col justify-center items-end gap-0.5 shrink-0 hidden xl:flex">
           <span className="text-[14px] font-semibold text-secondary leading-none whitespace-nowrap">
-            {item.volume3M > 0 ? `${item.volume3M}건` : '-'}
+            {item.formattedVolume}
           </span>
           <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none whitespace-nowrap">
-            {item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : ''}
+            {item.formattedTurnover}
           </span>
         </div>
       </div>
@@ -192,11 +202,11 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
               <span className="px-1.5 py-0.5 bg-body text-secondary text-[11px] font-semibold rounded border border-border/40 shrink-0">
                 {item.apt.dong}
               </span>
-              <span>{formatYearBuilt(item.apt.yearBuilt)}</span>
+              <span>{item.formattedYearBuilt}</span>
               {item.apt.householdCount && (
                 <>
                   <span className="text-[#d1d6db]">·</span>
-                  <span>{item.apt.householdCount.toLocaleString()}세대</span>
+                  <span>{item.formattedHousehold}</span>
                 </>
               )}
             </div>
@@ -215,21 +225,21 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
               </div>
             )}
             <span className="text-[12px] text-secondary font-medium mt-0.5">
-              {item.jeonsePrice > 0 ? `전세 ${formatPrice(item.jeonsePrice)} (${(item.ratio * 100).toFixed(0)}%)` : '전세 정보 없음'}
+              {item.jeonsePrice > 0 ? `전세 ${item.formattedJeonse} (${item.formattedRatio})` : '전세 정보 없음'}
             </span>
           </div>
         </div>
         
         <div className="flex flex-col items-end text-right shrink-0 gap-0.5">
           <span className="text-[16px] font-extrabold text-primary mb-1">
-            {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
+            {item.formattedPrice}
           </span>
           <span className="text-[13px] font-bold text-teal-600 dark:text-teal-400">
-            {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만/평` : '-'}
+            {item.pyeongPrice > 0 ? `${item.formattedPyeong}/평` : '-'}
           </span>
           {item.volume3M > 0 && (
             <span className="text-[11px] text-tertiary mt-1 font-medium">
-              거래 {item.volume3M}건 · {item.turnoverRate > 0 && `회전율 ${item.turnoverRate.toFixed(1)}%`}
+              거래 {item.formattedVolume} · {item.turnoverRate > 0 && `회전율 ${item.formattedTurnover}`}
             </span>
           )}
         </div>
@@ -299,6 +309,18 @@ export default function TossApartmentExploreClient({
       const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
       const dropRatio = sum && sum.maxPrice && sum.avg1MPrice && sum.maxPrice > sum.avg1MPrice ? (sum.maxPrice - sum.avg1MPrice) / sum.maxPrice : 0;
+      const volume3M = sum?.avg3MTxCount || 0;
+      const turnoverRate = apt.householdCount && volume3M ? (volume3M / apt.householdCount) * 100 : 0;
+
+      // [자기개선] 렌더링 성능 최적화: 포맷팅을 렌더 단계가 아닌 데이터 바인딩 단계에서 1회만 선연산하여 캐싱
+      const formattedYearBuilt = formatYearBuilt(apt.yearBuilt);
+      const formattedPrice = sales > 0 ? formatPrice(sales) : '-';
+      const formattedJeonse = jeonse > 0 ? formatPrice(jeonse) : '-';
+      const formattedRatio = ratio > 0 ? `${(ratio * 100).toFixed(0)}%` : '-';
+      const formattedPyeong = pyeongPrice > 0 ? `${Math.floor(pyeongPrice).toLocaleString()}만` : '-';
+      const formattedHousehold = apt.householdCount ? `${apt.householdCount.toLocaleString()}세대` : '-';
+      const formattedVolume = volume3M > 0 ? `${volume3M}건` : '-';
+      const formattedTurnover = turnoverRate > 0 ? `${turnoverRate.toFixed(1)}%` : '';
       
       return {
         apt,
@@ -309,14 +331,23 @@ export default function TossApartmentExploreClient({
         dropRatio,
         maxPrice: sum?.maxPrice || 0,
         avg1MPrice: sum?.avg1MPrice || 0,
-        volume3M: sum?.avg3MTxCount || 0,
+        volume3M,
         volume1M: sum?.avg1MTxCount || 0,
-        turnoverRate: apt.householdCount && sum?.avg3MTxCount ? (sum.avg3MTxCount / apt.householdCount) * 100 : 0,
+        turnoverRate,
         hasTx: !!sum && !!(sum.avg1MPrice || sum.latestPrice) && !!(sum.avg1MRentDeposit || sum.latestRentDeposit),
         views: fieldReportsMap.get(apt.name)?.viewCount || 0,
         photoCount: fieldReportsMap.get(apt.name)?.images?.length || 0,
         likes: favoriteCounts[apt.name] || 0,
-        isFavorited: userFavorites.has(apt.name)
+        isFavorited: userFavorites.has(apt.name),
+
+        formattedYearBuilt,
+        formattedPrice,
+        formattedJeonse,
+        formattedRatio,
+        formattedPyeong,
+        formattedHousehold,
+        formattedVolume,
+        formattedTurnover
       };
     });
   }, [allApts, txSummaryData, nameMapping, fieldReportsMap, favoriteCounts, userFavorites]);
@@ -657,10 +688,13 @@ export default function TossApartmentExploreClient({
 
           {/* Table Body */}
           {sortedApts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-tertiary">
-              <span className="text-[40px] mb-2">🔍</span>
-              <span className="text-[14px] font-extrabold text-[#8b95a1] dark:text-[#9ca3af]">검색 결과가 없습니다.</span>
-              <span className="text-[12px] font-medium mt-1 text-[#8b95a1] dark:text-[#9ca3af]">단지명을 다시 확인해주세요.</span>
+            <div 
+              style={{ height: listHeight }} 
+              className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 transition-all duration-300"
+            >
+              <span className="text-[40px] mb-3 animate-bounce">🔍</span>
+              <span className="text-[15px] font-extrabold text-primary">검색 결과가 없습니다</span>
+              <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
             </div>
           ) : (
             <div id="explore-list-container" className="w-full">
