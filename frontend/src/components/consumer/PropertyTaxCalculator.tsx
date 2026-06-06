@@ -271,7 +271,7 @@ export default function PropertyTaxCalculator({
       {/* Modal Container */}
       <div
         ref={containerRef}
-        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl transition-transform duration-300 slide-in-from-bottom overflow-hidden"
+        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl transition-transform duration-300 slide-in-from-bottom overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
@@ -325,27 +325,27 @@ export default function PropertyTaxCalculator({
                       <X size={14} />
                     </button>
                   )}
-                </div>
 
-                {isFocused && (
-                  <div className="absolute left-6 right-6 mt-1 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[180px] py-1">
-                    {filteredApts.length > 0 ? (
-                      filteredApts.map(apt => (
-                        <button
-                          key={apt.name}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => handleAptSelect(apt)}
-                          className="w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body text-secondary flex items-center justify-between"
-                        >
-                          <span>{getDisplayAptName(apt.name)}</span>
-                          <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-2.5 text-[12px] font-bold text-tertiary text-center">검색 결과가 없습니다</div>
-                    )}
-                  </div>
-                )}
+                  {isFocused && (
+                    <div className="absolute left-0 right-0 mt-1 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[180px] py-1">
+                      {filteredApts.length > 0 ? (
+                        filteredApts.map(apt => (
+                          <button
+                            key={apt.name}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleAptSelect(apt)}
+                            className="w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body text-secondary flex items-center justify-between"
+                          >
+                            <span>{getDisplayAptName(apt.name)}</span>
+                            <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2.5 text-[12px] font-bold text-tertiary text-center">검색 결과가 없습니다</div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {selectedApt && (

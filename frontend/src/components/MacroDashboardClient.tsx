@@ -13,9 +13,7 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart"), {
 const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder"), {
   ssr: false,
 });
-const AIRecommendations = dynamic(() => import("./consumer/AIRecommendations"), {
-  ssr: false,
-});
+
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
@@ -32,7 +30,7 @@ import {
   ChevronRight,
   MessageSquare,
   Building2,
-  Sparkles,
+  Compass,
   ShieldAlert,
   Calculator,
 } from "lucide-react";
@@ -1899,7 +1897,7 @@ interface GroupedCategory {
               {/* Icon & Badge Row */}
               <div className="flex items-center justify-between">
                 <div className="w-11 h-11 bg-gradient-to-tr from-[#00d29d] to-[#4196f7] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-[#00d29d]/10 group-hover:scale-105 transition-transform duration-300">
-                  <Sparkles size={20} className="animate-pulse" />
+                  <Compass size={20} className="animate-pulse" />
                 </div>
                 <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">New 콘텐츠</span>
               </div>
@@ -2005,20 +2003,7 @@ interface GroupedCategory {
           )}
         </div>
 
-        {/* AI Personalized Recommendations Section */}
-        <div className="mt-6 w-full">
-          <AIRecommendations
-            sheetApartments={sheetApartments}
-            txSummaryData={txSummaryData}
-            nameMapping={nameMapping}
-            publicRentalSet={publicRentalSet}
-            fieldReportsMap={fieldReportsMap}
-            userFavorites={userFavorites || new Set()}
-            onSelectApt={onSelectApt}
-            onOpenTaxCalculator={onOpenTaxCalculator}
-            onOpenMortgage={onOpenMortgage}
-          />
-        </div>
+
 
         {/* Detailed Real Estate Portfolio Section */}
         <div className="mt-12 mb-6 flex items-center justify-between px-0">

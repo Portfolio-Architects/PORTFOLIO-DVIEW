@@ -1439,11 +1439,41 @@ export async function GET(req: NextRequest) {
               alignItems: 'flex-start',
               justifyContent: 'center',
               backgroundColor: '#022c22',
-              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22)',
+              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22, #021f18)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
+            {/* Background Compass Watermark */}
+            <div
+              style={{
+                position: 'absolute',
+                right: '-80px',
+                bottom: '-80px',
+                display: 'flex',
+                opacity: 0.04,
+                color: '#ffffff',
+              }}
+            >
+              <svg
+                width="360"
+                height="360"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" />
+                <line x1="12" y1="2" x2="12" y2="4" />
+                <line x1="12" y1="20" x2="12" y2="22" />
+                <line x1="2" y1="12" x2="4" y2="12" />
+                <line x1="20" y1="12" x2="22" y2="12" />
+              </svg>
+            </div>
+
             <div
               style={{
                 display: 'flex',
@@ -1454,6 +1484,7 @@ export async function GET(req: NextRequest) {
                 width: '100%',
                 height: '100%',
                 justifyContent: 'center',
+                zIndex: 10,
               }}
             >
               {/* Header Logo Row */}
@@ -1477,17 +1508,38 @@ export async function GET(req: NextRequest) {
                 >
                   D-VIEW
                 </div>
-                <span
+                <div
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     marginLeft: '14px',
-                    fontSize: '20px',
-                    fontWeight: 600,
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    letterSpacing: '-0.5px',
                   }}
                 >
-                  AI 맞춤 아파트 매칭 리포트
-                </span>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#00d29d"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ marginRight: '8px' }}
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(0, 210, 157, 0.2)" />
+                  </svg>
+                  <span
+                    style={{
+                      fontSize: '20px',
+                      fontWeight: 600,
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      letterSpacing: '-0.5px',
+                    }}
+                  >
+                    라이프스타일 나침반 분석 리포트
+                  </span>
+                </div>
               </div>
 
               {/* Title */}
@@ -1500,7 +1552,7 @@ export async function GET(req: NextRequest) {
                   lineHeight: '1.2',
                 }}
               >
-                나의 라이프스타일 찰떡 단지 TOP 3
+                나만의 주거 나침반 매칭 결과 TOP 3
               </div>
 
               {/* Recommendations list */}

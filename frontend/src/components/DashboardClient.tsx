@@ -23,6 +23,7 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer'), { ssr: false });
 const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration'), { ssr: false });
 const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration'), { ssr: false });
+const AIRecommendations = dynamic(() => import('@/components/consumer/AIRecommendations'), { ssr: false });
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   console.warn('AptCompareModal Chunk Load failure, initiating fallback reload', err);
   if (typeof window !== 'undefined') window.location.reload();
@@ -869,6 +870,44 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
             />
             <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
+              <AIRecommendations
+                sheetApartments={sheetApartments}
+                txSummaryData={txSummary}
+                nameMapping={nameMapping || {}}
+                publicRentalSet={publicRentalSet}
+                fieldReportsMap={fieldReportsMap}
+                userFavorites={userFavorites || new Set()}
+                onSelectApt={(name: string) => {
+                  userHasSelected.current = true;
+                  const report = fieldReportsMap.get(name);
+                  if (report) {
+                    setSelectedReport(report);
+                  } else {
+                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                    setSelectedReport({
+                      id: `stub-${name.replace(/\s+/g, '')}`,
+                      apartmentName: name,
+                      dong: targetApt.dong,
+                      author: '',
+                      likes: 0,
+                      commentCount: 0,
+                      createdAt: null,
+                      metrics: { ...targetApt } as any,
+                    });
+                  }
+                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                  setMobileModalOpen(true);
+                }}
+                onOpenTaxCalculator={(aptName) => {
+                  setTaxCalcInitialApt(aptName);
+                  setIsTaxCalcOpen(true);
+                }}
+                onOpenMortgage={(aptName) => {
+                  setMortgageInitialApt(aptName);
+                  setIsMortgageOpen(true);
+                }}
+              />
+
               <ChopoomaCuration
                 sheetApartments={sheetApartments}
                 txSummaryData={txSummary}
