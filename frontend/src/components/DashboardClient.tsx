@@ -73,6 +73,7 @@ interface StaticApartment { name: string; dong: string; householdCount?: number;
 import { isSameApartment, normalizeAptName, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
 import { getDisplayName } from '@/lib/types/user.types';
 import { FixedSizeList } from 'react-window';
 import { useAuth } from '@/hooks/useAuth';
@@ -125,6 +126,8 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
   );
 };
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
@@ -134,6 +137,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { user, userProfile, anonProfile, purchasedReportIds, handleLogin, handleLogout, refreshPurchasedReports } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
+  const { data: popularData } = useSWR('/api/realtime-popular', fetcher, { refreshInterval: 60000 });
   
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -497,6 +501,35 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const popularAptItems = useMemo(() => {
     if (!sheetApartments || !favoriteCounts || !txSummary) return [];
 
+    // GA4 실시간 랭킹 데이터가 존재하고 성공적인 경우 하이브리드 병합
+    if (popularData?.success && Array.isArray(popularData.data) && popularData.data.length > 0) {
+      const allAptMap = new Map<string, any>();
+      Object.values(sheetApartments).flat().forEach((apt) => {
+        allAptMap.set(apt.name, apt);
+      });
+
+      return popularData.data.map((gaItem: any, index: number) => {
+        const name = gaItem.aptName;
+        const apt = allAptMap.get(name);
+        const favCount = favoriteCounts[name] || 0;
+        const txKey = findTxKey(name, txSummary, nameMapping);
+        const summary = txKey ? txSummary[txKey] : undefined;
+        const avg3M = summary?.avg3MTxCount || 0;
+        const latestPrice = summary?.latestPriceEok || "";
+        const dong = apt?.dong || summary?.dong || "";
+
+        return {
+          name,
+          dong,
+          favCount,
+          avg3M,
+          latestPrice,
+          rank: index + 1,
+        };
+      });
+    }
+
+    // GA4 API 로딩 중이거나 데이터가 없는 경우 Fallback (기존 관심도 랭킹 산출식)
     const apts = Object.values(sheetApartments)
       .flat()
       .filter((apt) => !publicRentalSet.has(apt.name));
@@ -517,7 +550,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       };
     });
 
-    // 1차: 관심 등록 수(favCount) 내림차순, 2차: 3개월 거래 회전율(avg3M) 내림차순
     items.sort((a, b) => {
       if (b.favCount !== a.favCount) return b.favCount - a.favCount;
       return b.avg3M - a.avg3M;
@@ -531,7 +563,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         rank: index + 1,
       };
     });
-  }, [sheetApartments, favoriteCounts, txSummary, nameMapping, publicRentalSet]);
+  }, [sheetApartments, favoriteCounts, txSummary, nameMapping, publicRentalSet, popularData]);
 
   const enrichedApts = useMemo(() => {
     return allApts.map(apt => {
