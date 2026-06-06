@@ -330,6 +330,7 @@ export default function TossApartmentExploreClient({
 }: TossApartmentExploreClientProps) {
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 200);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -522,6 +523,38 @@ export default function TossApartmentExploreClient({
 
     return filtered;
   }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection]);
+
+  // Suggestions data for autocomplete
+  const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
+    const q = searchQuery.toLowerCase().replace(/\s+/g, '');
+    if (!q) {
+      return { suggestionsApts: [], suggestionsDongs: [], suggestionsBrands: [] };
+    }
+
+    // 1. Matching apartments (max 5)
+    const matchingApts = enrichedApts.filter(item => 
+      item.apt.name.toLowerCase().replace(/\s+/g, '').includes(q)
+    ).slice(0, 5);
+
+    // 2. Matching dongs
+    const matchingDongs = DONGS.filter(dong => 
+      dong.name.toLowerCase().includes(q) || q.includes(dong.name.toLowerCase())
+    );
+
+    // 3. Matching brands
+    const BRANDS = ["롯데캐슬", "포스코", "더샵", "자이", "푸르지오", "힐스테이트", "반도유보라", "금강펜테리움", "우남퍼스트빌", "호반베르디움", "신안인스빌", "KCC", "스위첸", "e편한세상", "아이파크", "데시앙", "하우스디", "중흥"];
+    const matchingBrands = BRANDS.filter(brand => 
+      brand.toLowerCase().includes(q) && brand.toLowerCase() !== q
+    ).slice(0, 3);
+
+    return {
+      suggestionsApts: matchingApts,
+      suggestionsDongs: matchingDongs,
+      suggestionsBrands: matchingBrands
+    };
+  }, [enrichedApts, searchQuery]);
+
+  const recommendedKeywords = ['동탄역', '시범단지', '롯데캐슬', '반도유보라', '자이', '더샵'];
 
   const listRef = useRef<List>(null);
   const outerRef = useRef<HTMLDivElement>(null);
@@ -779,10 +812,171 @@ export default function TossApartmentExploreClient({
               placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
               role="searchbox"
               aria-label="단지명 검색"
-              className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
+              className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
             />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary p-1 focus:outline-none rounded-full hover:bg-body"
+                aria-label="검색어 지우기"
+              >
+                <X size={16} />
+              </button>
+            )}
+
+            {/* Premium Autocomplete & Suggestions Dropdown */}
+            {isSearchFocused && (
+              <div 
+                className="absolute top-full left-0 md:left-auto md:right-0 mt-2 w-full md:w-[360px] bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border border-border/80 shadow-2xl rounded-2xl z-50 overflow-y-auto max-h-[480px] p-4 flex flex-col gap-4"
+                role="listbox"
+                aria-label="검색 추천 및 자동완성"
+              >
+                {!searchQuery.trim() ? (
+                  <>
+                    {/* Recommended Keywords */}
+                    <div>
+                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <Sparkles size={12} className="text-[#00d29d]" /> 추천 검색어
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {recommendedKeywords.map((kw) => (
+                          <button
+                            key={kw}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => setSearchQuery(kw)}
+                            className="bg-body hover:bg-black/5 dark:hover:bg-white/5 text-secondary text-[12px] font-bold px-3 py-1.5 rounded-full transition-all active:scale-95 border border-transparent hover:border-border"
+                          >
+                            {kw}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Dongs Shortcuts */}
+                    <div className="border-t border-border/40 pt-3">
+                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
+                        📍 법정동 바로가기
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {DONGS.map((dong) => (
+                          <button
+                            key={dong.id}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setCurrentCategory(`dong-${dong.name}`);
+                              setSearchQuery('');
+                              setIsSearchFocused(false);
+                            }}
+                            className="flex items-center gap-2 bg-body hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-xl text-left transition-all active:scale-95 border border-transparent hover:border-border"
+                          >
+                            <span className="text-[16px]">{dong.emoji}</span>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-primary text-[12px] font-bold truncate">{dong.name}</span>
+                              <span className="text-tertiary text-[9.5px] truncate max-w-[120px]">{dong.description}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Matching Apartments */}
+                    <div>
+                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
+                        🏢 아파트 단지 바로가기
+                      </h4>
+                      {suggestionsApts.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {suggestionsApts.map((item) => (
+                            <button
+                              key={item.apt.name}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                handleSelectApt(item.apt.name);
+                                setIsSearchFocused(false);
+                              }}
+                              className="flex items-center justify-between p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-all text-left group active:scale-99 border border-transparent hover:border-border"
+                            >
+                              <div className="flex flex-col min-w-0 pr-2">
+                                <span className="text-primary text-[13px] font-bold group-hover:text-[#00d29d] transition-colors truncate">
+                                  🏢 {item.apt.name}
+                                </span>
+                                <span className="text-tertiary text-[11px] mt-0.5">
+                                  {item.apt.dong} · {item.formattedHousehold} · {item.formattedYearBuilt}
+                                </span>
+                              </div>
+                              <div className="text-right shrink-0">
+                                {item.totalPrice > 0 ? (
+                                  <span className="text-[#00d29d] text-[13px] font-extrabold">{item.formattedPrice}</span>
+                                ) : (
+                                  <span className="text-tertiary text-[12px]">-</span>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-tertiary text-[12px]">
+                          검색 결과와 일치하는 아파트가 없습니다.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Matching Dongs or Brands */}
+                    {(suggestionsDongs.length > 0 || suggestionsBrands.length > 0) && (
+                      <div className="border-t border-border/40 pt-3 flex flex-col gap-3">
+                        {suggestionsDongs.length > 0 && (
+                          <div className="flex flex-col gap-1.5">
+                            {suggestionsDongs.map((dong) => (
+                              <button
+                                key={dong.id}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setCurrentCategory(`dong-${dong.name}`);
+                                  setSearchQuery('');
+                                  setIsSearchFocused(false);
+                                }}
+                                className="flex items-center justify-between p-2.5 bg-toss-blue/5 hover:bg-toss-blue/10 border border-toss-blue/20 rounded-xl text-left transition-all active:scale-98"
+                              >
+                                <span className="text-toss-blue text-[13px] font-bold flex items-center gap-1.5">
+                                  📍 {dong.emoji} {dong.name} 카테고리로 바로 이동
+                                </span>
+                                <ChevronRight size={14} className="text-toss-blue" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {suggestionsBrands.length > 0 && (
+                          <div>
+                            <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
+                              🔍 브랜드 검색 완성
+                            </h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {suggestionsBrands.map((brand) => (
+                                <button
+                                  key={brand}
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => setSearchQuery(brand)}
+                                  className="bg-body hover:bg-black/5 dark:hover:bg-white/5 text-primary text-[12px] font-bold px-3 py-1.5 rounded-full border border-border/80 transition-all active:scale-95"
+                                >
+                                  🔍 {brand}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
