@@ -18,6 +18,7 @@ interface AptCompareModalProps {
   nameMapping: Record<string, string>;
   fieldReportsMap: Map<string, FieldReportData>;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  locationScores?: Record<string, any>;
 }
 
 interface TxDataPoint {
@@ -29,7 +30,12 @@ interface TxDataPoint {
 }
 
 // Fallback metrics estimator for apartments without Firestore scouting reports
-function getEffectiveMetrics(apt: DongApartment | null | undefined, report: FieldReportData | undefined) {
+function getEffectiveMetrics(
+  apt: DongApartment | null | undefined,
+  report: FieldReportData | undefined,
+  locationScores?: Record<string, any>,
+  nameMapping?: Record<string, string>
+) {
   if (!apt || typeof apt !== 'object') {
     return {
       brand: '',
@@ -73,83 +79,95 @@ function getEffectiveMetrics(apt: DongApartment | null | undefined, report: Fiel
     };
   }
 
-  // Estimate based on brand, dong, and basic info
+  // Estimate/Look up based on locationScores
   const brand = apt.brand || '';
   const householdCount = apt.householdCount || 800;
   const parkingPerHousehold = 1.25; // default fallback
 
-  // Approximate distance based on dong
-  let distanceToSubway = 2000;
-  let distanceToElementary = 350;
-  let distanceToMiddle = 600;
-  let distanceToHigh = 800;
-  let distanceToPark = 500;
-  let distanceToStarbucks = 800;
-  let distanceToOliveYoung = 600;
-  let distanceToIndeokwon = 2000;
-  let distanceToTram = 1000;
+  // Find exact coordinate scores if locationScores is provided
+  let locScore: any = null;
+  if (locationScores) {
+    const matchKey = findTxKey(apt.name, locationScores, nameMapping || {});
+    if (matchKey) {
+      locScore = locationScores[matchKey];
+    }
+  }
 
-  const dong = apt.dong || '';
-  if (dong.includes('오산동')) {
-    distanceToSubway = 500; // Close to Dongtan Station
-    distanceToPark = 400; // 여울공원
-    distanceToStarbucks = 400;
-    distanceToElementary = 300;
-    distanceToMiddle = 400;
-    distanceToHigh = 600;
-    distanceToOliveYoung = 300;
-    distanceToIndeokwon = 500; // Dongtan Station terminus
-    distanceToTram = 400;
-  } else if (dong.includes('송동') || dong.includes('산척동')) {
-    distanceToSubway = 2500;
-    distanceToPark = 250; // 동탄호수공원
-    distanceToStarbucks = 450;
-    distanceToElementary = 400;
-    distanceToMiddle = 500;
-    distanceToHigh = 700;
-    distanceToOliveYoung = 400;
-    distanceToIndeokwon = 2500;
-    distanceToTram = 300; // Close to Lake Park Tram stop
-  } else if (dong.includes('청계동')) {
-    distanceToSubway = 1200; // 시범단지
-    distanceToPark = 350; // 청계중앙공원
-    distanceToStarbucks = 300;
-    distanceToElementary = 200;
-    distanceToMiddle = 300;
-    distanceToHigh = 500;
-    distanceToOliveYoung = 300;
-    distanceToIndeokwon = 1200;
-    distanceToTram = 400;
-  } else if (dong.includes('영천동')) {
-    distanceToSubway = 1800;
-    distanceToPark = 500;
-    distanceToStarbucks = 500;
-    distanceToElementary = 300;
-    distanceToMiddle = 450;
-    distanceToHigh = 650;
-    distanceToOliveYoung = 400;
-    distanceToIndeokwon = 1000; // Near 102 station
-    distanceToTram = 500;
-  } else if (dong.includes('목동')) {
-    distanceToSubway = 2800;
-    distanceToPark = 400;
-    distanceToStarbucks = 600;
-    distanceToElementary = 250;
-    distanceToMiddle = 400;
-    distanceToHigh = 600;
-    distanceToOliveYoung = 500;
-    distanceToIndeokwon = 2800;
-    distanceToTram = 500;
-  } else if (dong.includes('방교동') || dong.includes('금곡동')) {
-    distanceToSubway = 3000;
-    distanceToPark = 800;
-    distanceToStarbucks = 1200;
-    distanceToElementary = 600;
-    distanceToMiddle = 800;
-    distanceToHigh = 1000;
-    distanceToOliveYoung = 1000;
-    distanceToIndeokwon = 3000;
-    distanceToTram = 1500;
+  // Default values before dong-based fallback
+  let distanceToSubway = locScore?.distanceToSubway ?? 2000;
+  let distanceToElementary = locScore?.distanceToElementary ?? 350;
+  let distanceToMiddle = locScore?.distanceToMiddle ?? 600;
+  let distanceToHigh = locScore?.distanceToHigh ?? 800;
+  let distanceToPark = 500;
+  let distanceToStarbucks = locScore?.distanceToStarbucks ?? 800;
+  let distanceToOliveYoung = locScore?.distanceToOliveYoung ?? 600;
+  let distanceToIndeokwon = locScore?.distanceToIndeokwon ?? 2000;
+  let distanceToTram = locScore?.distanceToTram ?? 1000;
+
+  // Only fall back to dong-based approximations if NOT found in locationScores
+  if (!locScore) {
+    const dong = apt.dong || '';
+    if (dong.includes('오산동')) {
+      distanceToSubway = 500;
+      distanceToPark = 400;
+      distanceToStarbucks = 400;
+      distanceToElementary = 300;
+      distanceToMiddle = 400;
+      distanceToHigh = 600;
+      distanceToOliveYoung = 300;
+      distanceToIndeokwon = 500;
+      distanceToTram = 400;
+    } else if (dong.includes('송동') || dong.includes('산척동')) {
+      distanceToSubway = 2500;
+      distanceToPark = 250;
+      distanceToStarbucks = 450;
+      distanceToElementary = 400;
+      distanceToMiddle = 500;
+      distanceToHigh = 700;
+      distanceToOliveYoung = 400;
+      distanceToIndeokwon = 2500;
+      distanceToTram = 300;
+    } else if (dong.includes('청계동')) {
+      distanceToSubway = 1200;
+      distanceToPark = 350;
+      distanceToStarbucks = 300;
+      distanceToElementary = 200;
+      distanceToMiddle = 300;
+      distanceToHigh = 500;
+      distanceToOliveYoung = 300;
+      distanceToIndeokwon = 1200;
+      distanceToTram = 400;
+    } else if (dong.includes('영천동')) {
+      distanceToSubway = 1800;
+      distanceToPark = 500;
+      distanceToStarbucks = 500;
+      distanceToElementary = 300;
+      distanceToMiddle = 450;
+      distanceToHigh = 650;
+      distanceToOliveYoung = 400;
+      distanceToIndeokwon = 1000;
+      distanceToTram = 500;
+    } else if (dong.includes('목동')) {
+      distanceToSubway = 2800;
+      distanceToPark = 400;
+      distanceToStarbucks = 600;
+      distanceToElementary = 250;
+      distanceToMiddle = 400;
+      distanceToHigh = 600;
+      distanceToOliveYoung = 500;
+      distanceToIndeokwon = 2800;
+      distanceToTram = 500;
+    } else if (dong.includes('방교동') || dong.includes('금곡동')) {
+      distanceToSubway = 3000;
+      distanceToPark = 800;
+      distanceToStarbucks = 1200;
+      distanceToElementary = 600;
+      distanceToMiddle = 800;
+      distanceToHigh = 1000;
+      distanceToOliveYoung = 1000;
+      distanceToIndeokwon = 3000;
+      distanceToTram = 1500;
+    }
   }
 
   return {
@@ -179,6 +197,7 @@ export default function AptCompareModal({
   nameMapping,
   fieldReportsMap,
   typeMap,
+  locationScores = {},
 }: AptCompareModalProps) {
   // Flatten list of all apartments
   const allApartments = useMemo(() => {
@@ -441,7 +460,7 @@ export default function AptCompareModal({
   const metrics1 = useMemo(() => {
     if (!apt1) return null;
     const report = fieldReportsMap.get(apt1.name);
-    const effective = getEffectiveMetrics(apt1, report);
+    const effective = getEffectiveMetrics(apt1, report, locationScores, nameMapping);
     const txKey = findTxKey(apt1.name, txSummaryData, nameMapping);
     const summary = txKey ? txSummaryData[txKey] : null;
 
@@ -457,12 +476,12 @@ export default function AptCompareModal({
       jeonseRatio: jeonseRatioVal,
       avg3MPerPyeong: avg3MPerPyeongVal,
     };
-  }, [apt1, fieldReportsMap, txSummaryData, nameMapping]);
+  }, [apt1, fieldReportsMap, txSummaryData, nameMapping, locationScores]);
 
   const metrics2 = useMemo(() => {
     if (!apt2) return null;
     const report = fieldReportsMap.get(apt2.name);
-    const effective = getEffectiveMetrics(apt2, report);
+    const effective = getEffectiveMetrics(apt2, report, locationScores, nameMapping);
     const txKey = findTxKey(apt2.name, txSummaryData, nameMapping);
     const summary = txKey ? txSummaryData[txKey] : null;
 
@@ -478,7 +497,7 @@ export default function AptCompareModal({
       jeonseRatio: jeonseRatioVal,
       avg3MPerPyeong: avg3MPerPyeongVal,
     };
-  }, [apt2, fieldReportsMap, txSummaryData, nameMapping]);
+  }, [apt2, fieldReportsMap, txSummaryData, nameMapping, locationScores]);
 
   // Determine comparison highlight wins (true means Apt1 wins, false means Apt2 wins, null means tie or N/A)
   const wins = useMemo(() => {

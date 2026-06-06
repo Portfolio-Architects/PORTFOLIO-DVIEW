@@ -153,7 +153,9 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className="hidden md:flex items-center md:px-4 h-[calc(100%-8px)] my-1 border-b border-body/10 hover:border-transparent hover:bg-body/60 dark:hover:bg-zinc-800/40 hover:-translate-y-[1px] hover:scale-[1.002] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] rounded-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.99]"
+        className={`hidden md:flex items-center md:px-4 h-[calc(100%-8px)] my-1 border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
+          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
+        } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]`}
       >
         {/* Heart */}
         <div className="w-[36px] text-center flex justify-center items-center shrink-0">
@@ -166,135 +168,198 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         </div>
         
         {/* Rank */}
-        <div className="w-[40px] text-center text-[15px] font-bold text-secondary shrink-0">
-          {index + 1}
+        <div className="w-[40px] text-center shrink-0 flex items-center justify-center">
+          {index < 3 ? (
+            <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-black tracking-tight shadow-sm ${
+              index === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 text-white shadow-amber-500/20' :
+              index === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/20' :
+              'bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white shadow-amber-700/20'
+            }`}>
+              {index + 1}
+            </span>
+          ) : (
+            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100/40 dark:bg-neutral-800/30">{index + 1}</span>
+          )}
         </div>
         
         {/* Name */}
         <div className="flex-1 min-w-[120px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
-          <span className="text-[15.5px] font-extrabold text-primary leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
+          <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-100 leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
           {item.photoCount > 0 && (
-            <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold rounded-[6px] border border-emerald-500/10 leading-none flex items-center shrink-0">
-              <Camera className="w-3 h-3 mr-1 inline-block" />
+            <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
+              <Camera className="w-2.5 h-2.5" />
               사진 {item.photoCount}장
             </span>
           )}
           {item.likes > 0 && (
-            <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[11px] font-bold rounded-[6px] border border-rose-500/10 leading-none flex items-center shrink-0">
-              <Heart className="w-3 h-3 mr-1 fill-current" />
+            <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-full border border-rose-100/50 dark:border-rose-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
+              <Heart className="w-2.5 h-2.5 fill-current" />
               관심 {item.likes}
             </span>
           )}
         </div>
 
         {/* Age (shown at xl) */}
-        <div className="w-[105px] text-right pr-2 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block whitespace-nowrap">
+        <div className="w-[105px] text-right pr-2 text-[13.5px] font-semibold text-neutral-600 dark:text-neutral-400 leading-none shrink-0 hidden xl:block whitespace-nowrap">
           {item.formattedYearBuilt}
         </div>
         
         {/* Price */}
-        <div className="w-[100px] text-right pr-2 text-[14.5px] font-extrabold text-primary shrink-0 whitespace-nowrap">
+        <div className="w-[100px] text-right pr-2 text-[15.5px] font-black text-neutral-950 dark:text-neutral-50 shrink-0 whitespace-nowrap">
           {item.formattedPrice}
         </div>
         
         {/* Pyeong */}
-        <div className="w-[85px] text-right pr-2 text-[14px] font-bold text-teal-600 dark:text-teal-400 shrink-0 whitespace-nowrap">
+        <div className="w-[85px] text-right pr-2 text-[14.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] shrink-0 whitespace-nowrap">
           {item.formattedPyeong}
         </div>
 
         {/* Jeonse (shown at lg) */}
-        <div className="w-[110px] text-right pr-2 flex-col justify-center items-end gap-0.5 shrink-0 hidden lg:flex">
-          <span className="text-[14px] font-semibold text-primary leading-none whitespace-nowrap">
+        <div className="w-[110px] text-right pr-2 flex flex-col justify-center items-end gap-1 shrink-0 hidden lg:flex">
+          <span className="text-[14px] font-bold text-neutral-900 dark:text-neutral-100 leading-none whitespace-nowrap">
             {item.formattedJeonse}
           </span>
-          <span className="text-[11px] text-tertiary font-medium leading-none whitespace-nowrap">
+          <span className={`text-[9.5px] font-extrabold leading-none whitespace-nowrap px-1.5 py-0.5 rounded ${
+            item.ratio >= 0.6 
+              ? 'bg-teal-50 dark:bg-teal-950/20 text-teal-600 dark:text-teal-400' 
+              : 'bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400'
+          }`}>
             {item.formattedRatio}
           </span>
         </div>
 
         {/* Household (shown at xl) */}
-        <div className="w-[80px] text-right pr-2 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block whitespace-nowrap">
+        <div className="w-[80px] text-right pr-2 text-[13.5px] font-medium text-neutral-500 dark:text-neutral-400 leading-none shrink-0 hidden xl:block whitespace-nowrap">
           {item.formattedHousehold}
         </div>
 
         {/* Volume (shown at xl) */}
-        <div className="w-[100px] text-right pr-2 flex-col justify-center items-end gap-0.5 shrink-0 hidden xl:flex">
-          <span className="text-[14px] font-semibold text-secondary leading-none whitespace-nowrap">
+        <div className="w-[100px] text-right pr-2 flex flex-col justify-center items-end gap-1 shrink-0 hidden xl:flex">
+          <span className="text-[13.5px] font-bold text-neutral-800 dark:text-neutral-200 leading-none whitespace-nowrap">
             {item.formattedVolume}
           </span>
-          <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none whitespace-nowrap">
-            {item.formattedTurnover}
-          </span>
+          {item.formattedTurnover && (
+            <span className={`text-[9.5px] font-extrabold leading-none whitespace-nowrap px-1.5 py-0.5 rounded ${
+              item.turnoverRate >= 2.5 
+                ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' 
+                : 'bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400'
+            }`}>
+              회전율 {item.formattedTurnover}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Mobile View (Hidden on Desktop) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className="flex md:hidden flex-row items-center justify-between px-3 h-[calc(100%-8px)] my-1 border-b border-body/10 hover:border-transparent hover:bg-body/60 dark:hover:bg-zinc-800/40 hover:-translate-y-[1px] hover:scale-[1.002] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] rounded-xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.99]"
+        className={`flex md:hidden flex-col justify-between p-3.5 h-[calc(100%-8px)] my-1 border border-neutral-100/70 dark:border-zinc-900/40 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.985] ${
+          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
+        } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 shadow-sm`}
       >
-        <div className="flex items-start gap-3 flex-1 min-w-0 pr-3">
-          <div className="flex flex-col items-center justify-center min-w-[24px] pt-0.5 shrink-0">
-            <span className="text-[15px] font-bold text-secondary mb-1">{index + 1}</span>
-            <div className="mt-0.5">
-              <InteractiveHeart 
-                isFavorited={item.isFavorited} 
-                name={item.apt.name} 
-                onToggle={onToggleFavorite} 
-                size={15} 
-              />
-            </div>
-          </div>
-          <div className="flex flex-col flex-1 min-w-0">
-            <div className="mb-1.5">
-              <span className="text-[16px] font-extrabold text-primary leading-tight break-keep group-hover:text-[#00d29d] transition-colors">
-                {item.apt.name}
+        {/* Mobile Top Info */}
+        <div className="flex items-start gap-2.5 w-full min-w-0 mb-3">
+          {/* Rank & Favorite */}
+          <div className="flex flex-col items-center gap-1.5 shrink-0 pt-0.5">
+            {index < 3 ? (
+              <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tight ${
+                index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm' :
+                index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white shadow-sm' :
+                'bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-sm'
+              }`}>
+                {index + 1}
               </span>
-            </div>
-            <div className="flex items-center flex-wrap gap-1.5 mb-1.5 text-[12px] text-tertiary font-medium">
-              <span className="px-1.5 py-0.5 bg-body text-secondary text-[11px] font-semibold rounded border border-border/40 shrink-0">
+            ) : (
+              <span className="w-[20px] text-center text-[12px] font-bold text-neutral-400 dark:text-neutral-500">{index + 1}</span>
+            )}
+            <InteractiveHeart 
+              isFavorited={item.isFavorited} 
+              name={item.apt.name} 
+              onToggle={onToggleFavorite} 
+              size={15} 
+            />
+          </div>
+          
+          {/* Name & Metadata */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-50 leading-tight mb-1.5 break-keep group-hover:text-[#00d29d] transition-colors">
+              {item.apt.name}
+            </span>
+            
+            {/* Meta tags */}
+            <div className="flex items-center flex-wrap gap-1.5 text-[11px] text-neutral-500 dark:text-neutral-400 font-bold mb-1.5">
+              <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-[10px] font-extrabold rounded">
                 {item.apt.dong}
               </span>
               <span>{item.formattedYearBuilt}</span>
               {item.apt.householdCount && (
                 <>
-                  <span className="text-[#d1d6db]">·</span>
+                  <span className="text-neutral-300">·</span>
                   <span>{item.formattedHousehold}</span>
                 </>
               )}
             </div>
+
+            {/* Micro badges */}
             {(item.photoCount > 0 || item.likes > 0) && (
-              <div className="flex items-center flex-wrap gap-1.5 mb-1.5">
+              <div className="flex items-center flex-wrap gap-1.5">
                 {item.photoCount > 0 && (
-                  <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-[6px] border border-emerald-500/10 flex items-center shrink-0">
-                    <Camera className="w-2.5 h-2.5 mr-0.5" />{item.photoCount}장
+                  <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-extrabold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 flex items-center gap-0.5 shrink-0">
+                    <Camera className="w-2 h-2" />{item.photoCount}장
                   </span>
                 )}
                 {item.likes > 0 && (
-                  <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-[6px] border border-rose-500/10 flex items-center shrink-0">
-                    <Heart className="w-2.5 h-2.5 mr-0.5 fill-current" />{item.likes}
+                  <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[9px] font-extrabold rounded-full border border-rose-100/50 dark:border-rose-900/30 flex items-center gap-0.5 shrink-0">
+                    <Heart className="w-2 h-2 fill-current" />{item.likes}
                   </span>
                 )}
               </div>
             )}
-            <span className="text-[12px] text-secondary font-medium mt-0.5">
-              {item.jeonsePrice > 0 ? `전세 ${item.formattedJeonse} (${item.formattedRatio})` : '전세 정보 없음'}
-            </span>
           </div>
         </div>
-        
-        <div className="flex flex-col items-end text-right shrink-0 gap-0.5">
-          <span className="text-[16px] font-extrabold text-primary mb-1">
-            {item.formattedPrice}
-          </span>
-          <span className="text-[13px] font-bold text-teal-600 dark:text-teal-400">
-            {item.pyeongPrice > 0 ? `${item.formattedPyeong}/평` : '-'}
-          </span>
-          {item.volume3M > 0 && (
-            <span className="text-[11px] text-tertiary mt-1 font-medium">
-              거래 {item.formattedVolume} · {item.turnoverRate > 0 && `회전율 ${item.formattedTurnover}`}
+
+        {/* Mobile 3-Column Metrics Grid */}
+        <div className="grid grid-cols-3 gap-2 w-full pt-2.5 border-t border-neutral-100/80 dark:border-zinc-900/30">
+          {/* Price Block */}
+          <div className="bg-neutral-50/80 dark:bg-zinc-900/40 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">매매가</span>
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1">
+              {item.formattedPrice}
             </span>
-          )}
+            <span className="text-[9.5px] font-bold text-[#00b386] dark:text-[#00d29d] leading-none">
+              {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
+            </span>
+          </div>
+
+          {/* Jeonse Block */}
+          <div className="bg-neutral-50/80 dark:bg-zinc-900/40 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">전세가</span>
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1">
+              {item.jeonsePrice > 0 ? item.formattedJeonse : '-'}
+            </span>
+            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded leading-none ${
+              item.ratio >= 0.6 
+                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500'
+            }`}>
+              {item.ratio > 0 ? item.formattedRatio : '-'}
+            </span>
+          </div>
+
+          {/* Volume Block */}
+          <div className="bg-neutral-50/80 dark:bg-zinc-900/40 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">거래량(3M)</span>
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1">
+              {item.volume3M > 0 ? item.formattedVolume : '-'}
+            </span>
+            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded leading-none ${
+              item.turnoverRate >= 2.5 
+                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' 
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500'
+            }`}>
+              {item.formattedTurnover ? `${item.formattedTurnover}` : '-'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -663,15 +728,19 @@ export default function TossApartmentExploreClient({
   }, [sortedApts, isMobile]);
 
   const getItemSize = (index: number) => {
-    if (!isMobile) return 64;
+    if (!isMobile) return 66;
     const item = sortedApts[index];
-    if (!item) return 100;
+    if (!item) return 145;
     
-    // 1. 베이스 높이 결정 (뱃지 여부 반영하여 기존 대비 약간 상향)
-    const hasBadges = item.photoCount > 0 || item.likes > 0;
-    let size = hasBadges ? 130 : 110;
+    // 1. 기본 3분할 메트릭 카드 높이 설정
+    let size = 145;
     
-    // 2. 글자 수 11자 이상인 경우 모바일에서 2줄로 줄바꿈되어 늘어나는 높이(약 22px)를 추가 반영
+    // 2. 사진/관심 뱃지 노출에 따른 높이 추가
+    if (item.photoCount > 0 || item.likes > 0) {
+      size += 16;
+    }
+    
+    // 3. 아파트명이 11자 이상으로 긴 경우 모바일 타이틀 2줄 대응
     if (item.apt.name.length >= 11) {
       size += 22;
     }
@@ -1026,55 +1095,67 @@ export default function TossApartmentExploreClient({
 
         <div className="flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-4 py-3 border-b border-border text-[13px] font-bold text-tertiary shrink-0 select-none">
+          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface/90 backdrop-blur-md items-center md:pl-4 md:pr-[31px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-400 dark:text-neutral-500 shrink-0 select-none shadow-sm shadow-black/[0.01]">
             <div className="w-[36px] text-center shrink-0"></div>
             <button 
               onClick={() => handleHeaderSort('views')}
-              className={`w-[40px] text-center shrink-0 focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'views' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              순위{sortKey === 'views' && (sortDirection === 'desc' ? '↓' : '↑')}
+              <span className="w-full text-center">순위</span>
+              {sortKey === 'views' && (
+                <span className="absolute -right-0.5 top-1/2 -translate-y-1/2">
+                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-[#00d29d]" /> : <ArrowUp className="w-2.5 h-2.5 text-[#00d29d]" />}
+                </span>
+              )}
             </button>
             <button 
               onClick={() => handleHeaderSort('name')}
-              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'name' ? 'text-[#00d29d]' : ''}`}
+              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              단지명{sortKey === 'name' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              <span>단지명</span>
+              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
             </button>
             <button 
               onClick={() => handleHeaderSort('yearBuilt')}
-              className={`w-[105px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[105px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              연식{sortKey === 'yearBuilt' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              <span>연식</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('totalPrice')}
-              className={`w-[100px] text-right pr-2 shrink-0 whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              매매가{sortKey === 'totalPrice' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              <span>매매가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('pyeongPrice')}
-              className={`w-[85px] text-right pr-2 shrink-0 whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[85px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              평당가{sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              <span>평당가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('ratio')}
-              className={`w-[110px] text-right pr-2 shrink-0 hidden lg:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'ratio' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[110px] text-right pr-2 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              전세가{sortKey === 'ratio' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              <span>전세가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('householdCount')}
-              className={`w-[80px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'householdCount' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[80px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              세대수{sortKey === 'householdCount' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              <span>세대수</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('volume3M')}
-              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'volume3M' ? 'text-[#00d29d]' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
             >
-              거래량{sortKey === 'volume3M' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              <span>거래량</span>
             </button>
           </div>
 

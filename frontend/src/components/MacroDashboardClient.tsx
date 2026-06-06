@@ -327,6 +327,7 @@ export default function MacroDashboardClient({
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData, error: noticesError } = useSWR('/api/local-notices', fetcher);
+  const { data: locationScores } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher);
   const noticesLoading = !noticesData && !noticesError;
 
   const railNotices = useMemo(() => {
@@ -2586,6 +2587,7 @@ interface GroupedCategory {
           onSelectApt={onSelectApt || (() => {})}
           isOpen={isQuizOpen}
           onClose={() => setIsQuizOpen(false)}
+          locationScores={locationScores || {}}
         />
       )}
 

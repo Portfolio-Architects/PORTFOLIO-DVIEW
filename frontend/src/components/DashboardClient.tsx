@@ -1187,6 +1187,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           nameMapping={nameMapping || {}}
           fieldReportsMap={fieldReportsMap}
           typeMap={typeMap}
+          locationScores={locationScores}
         />
       </ErrorBoundary>
     )}

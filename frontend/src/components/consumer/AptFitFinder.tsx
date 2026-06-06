@@ -18,6 +18,7 @@ interface AptFitFinderProps {
   onSelectApt: (name: string) => void;
   isOpen: boolean;
   onClose: () => void;
+  locationScores?: Record<string, any>;
 }
 
 interface QuizAnswer {
@@ -31,12 +32,17 @@ interface QuizAnswer {
 }
 
 // Fallback metrics estimator for apartments without Firestore scouting reports
-function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undefined) {
+function getEffectiveMetrics(
+  apt: DongApartment,
+  report: FieldReportData | undefined,
+  locationScores?: Record<string, any>,
+  nameMapping?: Record<string, string>
+) {
   if (report?.metrics) {
     return report.metrics;
   }
   
-  // Estimate based on brand, dong, and basic info
+  // Estimate/Look up based on locationScores
   const name = apt.name;
   const brand = apt.brand || '';
   const householdCount = apt.householdCount || 800;
@@ -44,52 +50,63 @@ function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undef
   const yearBuilt = parseInt(yearBuiltStr.substring(0, 4)) || 2018;
   const parkingPerHousehold = 1.25; // default fallback
   
-  // Approximate distance based on dong
-  let distanceToSubway = 2000;
-  let distanceToElementary = 350;
+  // Find exact coordinate scores if locationScores is provided
+  let locScore: any = null;
+  if (locationScores) {
+    const matchKey = findTxKey(name, locationScores, nameMapping || {});
+    if (matchKey) {
+      locScore = locationScores[matchKey];
+    }
+  }
+
+  // Default values before dong-based fallback
+  let distanceToSubway = locScore?.distanceToSubway ?? 2000;
+  let distanceToElementary = locScore?.distanceToElementary ?? 350;
   let distanceToPark = 500;
-  let academyDensity = 15;
-  const distanceToIndeokwon = 2000;
-  const distanceToTram = 500;
-  let distanceToStarbucks = 800;
+  let academyDensity = locScore?.academyDensity ?? 15;
+  const distanceToIndeokwon = locScore?.distanceToIndeokwon ?? 2000;
+  const distanceToTram = locScore?.distanceToTram ?? 500;
+  let distanceToStarbucks = locScore?.distanceToStarbucks ?? 800;
   
-  const dong = apt.dong || '';
-  if (dong.includes('오산동')) {
-    distanceToSubway = 500; // Close to Dongtan Station
-    distanceToPark = 400; // 여울공원
-    academyDensity = 25;
-    distanceToStarbucks = 400;
-    distanceToElementary = 300;
-  } else if (dong.includes('송동') || dong.includes('산척동')) {
-    distanceToSubway = 2500; 
-    distanceToPark = 250; // 동탄호수공원
-    academyDensity = 30; // 호수공원 상권
-    distanceToStarbucks = 450;
-    distanceToElementary = 400;
-  } else if (dong.includes('청계동')) {
-    distanceToSubway = 1200; // 시범단지
-    distanceToPark = 350; // 청계중앙공원
-    academyDensity = 75; // 카림애비뉴 학원가 밀집
-    distanceToStarbucks = 300;
-    distanceToElementary = 200;
-  } else if (dong.includes('영천동')) {
-    distanceToSubway = 1800;
-    distanceToPark = 500;
-    academyDensity = 45; // 11자 상가 학원가
-    distanceToStarbucks = 500;
-    distanceToElementary = 300;
-  } else if (dong.includes('목동')) {
-    distanceToSubway = 2800;
-    distanceToPark = 400;
-    academyDensity = 55; // 목동 항아리 상권 학원가
-    distanceToStarbucks = 600;
-    distanceToElementary = 250;
-  } else if (dong.includes('방교동') || dong.includes('금곡동')) {
-    distanceToSubway = 3000;
-    distanceToPark = 800;
-    academyDensity = 5;
-    distanceToStarbucks = 1200;
-    distanceToElementary = 600;
+  if (!locScore) {
+    const dong = apt.dong || '';
+    if (dong.includes('오산동')) {
+      distanceToSubway = 500; // Close to Dongtan Station
+      distanceToPark = 400; // 여울공원
+      academyDensity = 25;
+      distanceToStarbucks = 400;
+      distanceToElementary = 300;
+    } else if (dong.includes('송동') || dong.includes('산척동')) {
+      distanceToSubway = 2500; 
+      distanceToPark = 250; // 동탄호수공원
+      academyDensity = 30; // 호수공원 상권
+      distanceToStarbucks = 450;
+      distanceToElementary = 400;
+    } else if (dong.includes('청계동')) {
+      distanceToSubway = 1200; // 시범단지
+      distanceToPark = 350; // 청계중앙공원
+      academyDensity = 75; // 카림애비뉴 학원가 밀집
+      distanceToStarbucks = 300;
+      distanceToElementary = 200;
+    } else if (dong.includes('영천동')) {
+      distanceToSubway = 1800;
+      distanceToPark = 500;
+      academyDensity = 45; // 11자 상가 학원가
+      distanceToStarbucks = 500;
+      distanceToElementary = 300;
+    } else if (dong.includes('목동')) {
+      distanceToSubway = 2800;
+      distanceToPark = 400;
+      academyDensity = 55; // 목동 항아리 상권 학원가
+      distanceToStarbucks = 600;
+      distanceToElementary = 250;
+    } else if (dong.includes('방교동') || dong.includes('금곡동')) {
+      distanceToSubway = 3000;
+      distanceToPark = 800;
+      academyDensity = 5;
+      distanceToStarbucks = 1200;
+      distanceToElementary = 600;
+    }
   }
   
   return {
@@ -115,7 +132,8 @@ export default function AptFitFinder({
   fieldReportsMap,
   onSelectApt,
   isOpen,
-  onClose
+  onClose,
+  locationScores,
 }: AptFitFinderProps) {
   const [step, setStep] = useState<number>(0); // 0: Intro, 1-7: Qs, 8: Calculating, 9: Results
   const [answers, setAnswers] = useState<QuizAnswer>({
@@ -197,7 +215,7 @@ export default function AptFitFinder({
 
     const scoredApts = apts.map(apt => {
       const report = fieldReportsMap.get(apt.name);
-      const m = getEffectiveMetrics(apt, report);
+      const m = getEffectiveMetrics(apt, report, locationScores, nameMapping);
       
       const normName = normalizeAptName(apt.name);
       const overrideKey = HARDCODED_MAPPING[normName];
@@ -490,7 +508,7 @@ export default function AptFitFinder({
     return scoredApts
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
       .slice(0, 3);
-  }, [step, sheetApartments, publicRentalSet, fieldReportsMap, nameMapping, txSummaryData, answers]);
+  }, [step, sheetApartments, publicRentalSet, fieldReportsMap, nameMapping, txSummaryData, answers, locationScores]);
 
   const priceFormatter = (priceMan: number) => {
     if (!priceMan || priceMan === 0) return '실거래 정보 없음';
