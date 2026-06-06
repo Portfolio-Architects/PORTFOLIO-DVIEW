@@ -1390,7 +1390,7 @@ interface GroupedCategory {
         }
         subtitleLight="실시간 실거래 분석과 입지 점수로 보는 동탄의 오늘"
         rightContent={
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             {onOpenCompare && (
               <button
                 onClick={onOpenCompare}
