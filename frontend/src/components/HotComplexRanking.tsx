@@ -125,11 +125,6 @@ export default function HotComplexRanking({
                     <div className={`px-1.5 py-0.5 rounded-md text-[10px] shrink-0 ${badgeStyle}`}>
                       {item.latestDate}
                     </div>
-                    {index === 0 && (
-                      <span className="text-[9px] font-bold text-toss-red bg-red-50 dark:bg-red-950/20 px-1 py-0.5 rounded animate-pulse">
-                        NEW
-                      </span>
-                    )}
                   </div>
  
                   <div className="flex flex-col min-w-0">
