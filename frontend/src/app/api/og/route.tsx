@@ -26,6 +26,10 @@ const ogParamsSchema = z.object({
   date: z.string().nullable().optional().catch(null),
   location: z.string().nullable().optional().catch(null),
   tip: z.string().nullable().optional().catch(null),
+  apt1: z.string().nullable().optional().catch(null),
+  apt2: z.string().nullable().optional().catch(null),
+  score1: z.string().nullable().optional().catch(null),
+  score2: z.string().nullable().optional().catch(null),
 });
 
 export async function GET(req: NextRequest) {
@@ -52,6 +56,10 @@ export async function GET(req: NextRequest) {
       date: searchParams.get('date'),
       location: searchParams.get('location'),
       tip: searchParams.get('tip'),
+      apt1: searchParams.get('apt1'),
+      apt2: searchParams.get('apt2'),
+      score1: searchParams.get('score1'),
+      score2: searchParams.get('score2'),
     });
 
     const validatedData = parsed.success ? parsed.data : {
@@ -73,6 +81,10 @@ export async function GET(req: NextRequest) {
       date: null,
       location: null,
       tip: null,
+      apt1: null,
+      apt2: null,
+      score1: null,
+      score2: null,
     };
 
     const {
@@ -94,7 +106,233 @@ export async function GET(req: NextRequest) {
       date,
       location,
       tip,
+      apt1,
+      apt2,
+      score1,
+      score2,
     } = validatedData;
+
+    if (type === 'compare') {
+      const s1 = parseInt(score1 || '0') || 0;
+      const s2 = parseInt(score2 || '0') || 0;
+      
+      let winnerText = '두 단지 팽팽한 대조 분석';
+      if (s1 > s2) {
+        winnerText = `${apt1} 단지가 ${s1}개 지표 우세`;
+      } else if (s2 > s1) {
+        winnerText = `${apt2} 단지가 ${s2}개 지표 우세`;
+      }
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#0b1329',
+              backgroundImage: 'linear-gradient(to bottom right, #1c2541, #0b1329)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#3182f6',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#93c5fd',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  1:1 아파트 단지 비교 리포트
+                </span>
+              </div>
+
+              {/* Title / Winner Announcement */}
+              <div
+                style={{
+                  fontSize: '32px',
+                  fontWeight: 800,
+                  color: '#38bdf8',
+                  marginBottom: '30px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                  paddingBottom: '12px',
+                  width: '100%',
+                }}
+              >
+                {winnerText}
+              </div>
+
+              {/* VS Infographic Dual Grid */}
+              <div
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '20px',
+                }}
+              >
+                {/* Left Apt */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: s1 >= s2 ? 'rgba(0, 210, 157, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                    border: `2px solid ${s1 >= s2 ? 'rgba(0, 210, 157, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                    padding: '24px',
+                    borderRadius: '20px',
+                    width: '44%',
+                    height: '200px',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '28px',
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      textAlign: 'center',
+                      marginBottom: '16px',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {apt1}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '48px',
+                      fontWeight: 900,
+                      color: s1 >= s2 ? '#00d29d' : '#94a3b8',
+                    }}
+                  >
+                    {s1}개 우세
+                  </span>
+                </div>
+
+                {/* VS Badge */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '30px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                    fontSize: '24px',
+                    fontWeight: 900,
+                    color: '#94a3b8',
+                  }}
+                >
+                  VS
+                </div>
+
+                {/* Right Apt */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: s2 >= s1 ? 'rgba(65, 150, 247, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                    border: `2px solid ${s2 >= s1 ? 'rgba(65, 150, 247, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
+                    padding: '24px',
+                    borderRadius: '20px',
+                    width: '44%',
+                    height: '200px',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '28px',
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      textAlign: 'center',
+                      marginBottom: '16px',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {apt2}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '48px',
+                      fontWeight: 900,
+                      color: s2 >= s1 ? '#4196f7' : '#94a3b8',
+                    }}
+                  >
+                    {s2}개 우세
+                  </span>
+                </div>
+              </div>
+
+              {/* Bottom Brand */}
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#38bdf8',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
 
     if (type === 'event') {
       let categoryBg = 'rgba(13, 148, 136, 0.1)';

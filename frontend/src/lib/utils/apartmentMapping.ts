@@ -36,6 +36,7 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '센트럴힐조동탄': '여울동센트럴힐즈',
   '동탄2신도시금강펜테리움': '여울동금강펜테리움센트럴파크',
   '동탄나루마을동탄역유보라': '나루마을동탄역유보라여울숲1.0',
+  '동탄역시범우남퍼스트빌': '동탄역시범우남퍼스트빌아파트',
 };
 
 const DISPLAY_NAME_MAPPING: Record<string, string> = {

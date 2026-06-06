@@ -197,20 +197,20 @@ export default function AptFitFinder({
           else if (salesPrice <= 40000) score += 10;
           else score -= 15;
         } else if (answers.budget === '5eok') {
-          if (salesPrice > 30000 && salesPrice <= 53000) score += 25;
-          else if (salesPrice > 25000 && salesPrice <= 60000) score += 12;
+          if (salesPrice > 30000 && salesPrice <= 63000) score += 25;
+          else if (salesPrice > 25000 && salesPrice <= 70000) score += 12;
           else score -= 10;
         } else if (answers.budget === '8eok') {
-          if (salesPrice > 50000 && salesPrice <= 83000) score += 25;
-          else if (salesPrice > 42000 && salesPrice <= 92000) score += 12;
+          if (salesPrice > 60000 && salesPrice <= 93000) score += 25;
+          else if (salesPrice > 50000 && salesPrice <= 105000) score += 12;
           else score -= 10;
         } else if (answers.budget === '12eok') {
-          if (salesPrice > 80000 && salesPrice <= 125000) score += 25;
-          else if (salesPrice > 70000 && salesPrice <= 140000) score += 12;
+          if (salesPrice > 90000 && salesPrice <= 145000) score += 25;
+          else if (salesPrice > 80000 && salesPrice <= 165000) score += 12;
           else score -= 10;
         } else if (answers.budget === 'unlimited') {
-          if (salesPrice > 120000) score += 25;
-          else if (salesPrice > 95000) score += 15;
+          if (salesPrice > 140000) score += 25;
+          else if (salesPrice > 110000) score += 15;
           else score += 5;
         }
       } else {
@@ -219,7 +219,7 @@ export default function AptFitFinder({
 
       // 2. Family Question Matching (Total: 20pts)
       if (answers.family === 'baby') {
-        if ((m.distanceToPark ?? 9999) <= 500) score += 10;
+        if ((m.distanceToPark ?? 9999) <= 400) score += 10;
         if (m.parkingPerHousehold >= 1.3) score += 5;
         if (m.householdCount >= 1000) score += 5;
       } else if (answers.family === 'elementary') {
@@ -231,14 +231,15 @@ export default function AptFitFinder({
         else if (m.academyDensity >= 25) score += 12;
         else if (m.academyDensity >= 10) score += 5;
       } else if (answers.family === 'none') {
-        score += 8; // neutral
+        if (m.distanceToStarbucks && m.distanceToStarbucks <= 500) score += 10;
+        if (m.academyDensity <= 25) score += 10;
       }
 
       // 3. Transit Question Matching (Total: 20pts)
       if (answers.transit === 'gtx') {
-        if (m.distanceToSubway <= 500) score += 20;
-        else if (m.distanceToSubway <= 900) score += 12;
-        else if (m.distanceToSubway <= 1400) score += 5;
+        if (m.distanceToSubway <= 600) score += 20;
+        else if (m.distanceToSubway <= 1000) score += 12;
+        else if (m.distanceToSubway <= 1500) score += 5;
       } else if (answers.transit === 'indeokwon') {
         if (m.distanceToIndeokwon && m.distanceToIndeokwon <= 600) score += 20;
         else if (m.distanceToIndeokwon && m.distanceToIndeokwon <= 1100) score += 10;
@@ -246,9 +247,11 @@ export default function AptFitFinder({
         if (m.distanceToTram && m.distanceToTram <= 400) score += 20;
         else if (m.distanceToTram && m.distanceToTram <= 800) score += 10;
       } else if (answers.transit === 'car') {
-        if (m.parkingPerHousehold >= 1.45) score += 20;
-        else if (m.parkingPerHousehold >= 1.3) score += 12;
-        else if (m.parkingPerHousehold >= 1.2) score += 5;
+        const isNearExpressway = ['오산동', '청계동', '영천동'].includes(apt.dong || '');
+        if (m.parkingPerHousehold >= 1.4) score += 12;
+        else if (m.parkingPerHousehold >= 1.25) score += 6;
+        if (isNearExpressway) score += 8;
+        else score += 3;
       }
 
       // 4. Lifestyle Question Matching (Total: 15pts)
@@ -259,8 +262,8 @@ export default function AptFitFinder({
         if (m.distanceToStarbucks && m.distanceToStarbucks <= 500) score += 8;
         if (m.academyDensity + (m.householdCount / 100) >= 30) score += 7;
       } else if (answers.lifestyle === 'quiet') {
-        if (m.householdCount >= 1200) score += 8;
-        if (m.yearBuilt >= 2017) score += 7;
+        if (m.householdCount >= 1000) score += 5;
+        if (m.distanceToSubway >= 800) score += 10;
       }
 
       // 5. Priority Question Matching (Total: 20pts)
@@ -274,9 +277,9 @@ export default function AptFitFinder({
         if (m.householdCount >= 1500) score += 10;
         else if (m.householdCount >= 1000) score += 5;
       } else if (answers.priority === 'gap') {
-        if (jeonseRatio >= 72) score += 20;
-        else if (jeonseRatio >= 65) score += 12;
-        else if (jeonseRatio >= 60) score += 5;
+        if (jeonseRatio >= 70) score += 20;
+        else if (jeonseRatio >= 64) score += 12;
+        else if (jeonseRatio >= 58) score += 5;
       }
 
       // Calculate dynamic matching labels
@@ -383,11 +386,11 @@ export default function AptFitFinder({
               </h3>
               <div className="flex flex-col gap-2.5 mt-2">
                 {[
-                  { value: '3eok', label: '3억 원 이하', desc: '실속형 가성비 내 집 마련 / 갭투자' },
-                  { value: '5eok', label: '3억 ~ 5억 원', desc: '안정적인 가격대의 가성비 대표 단지' },
-                  { value: '8eok', label: '5억 ~ 8억 원', desc: '역세권 및 동탄 중심부 준신축 대표 단지' },
-                  { value: '12eok', label: '8억 ~ 12억 원', desc: '동탄역 인근 시범단지 등 최고 인프라 선호 단지' },
-                  { value: 'unlimited', label: '12억 원 초과 / 무제한', desc: '초고가 동탄 대장 랜드마크 뷰 단지' },
+                  { value: '3eok', label: '3억 원 이하', desc: '남동탄·능동의 실속형 가성비 단지 및 소형 갭투자' },
+                  { value: '5eok', label: '3억 ~ 6억 원', desc: '대중적인 인기의 신도시 준신축 및 남동탄 실속 대표 단지' },
+                  { value: '8eok', label: '6억 ~ 9억 원', desc: '동탄역 접근성이 우수한 준신축 및 호수공원 인기 단지' },
+                  { value: '12eok', label: '9억 ~ 14억 원', desc: '동탄역 시범단지 등 우수한 입지의 핵심 대장 단지' },
+                  { value: 'unlimited', label: '14억 원 초과 / 무제한', desc: '동탄역 초역세권 및 호수공원 조망의 하이엔드 랜드마크' },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -414,10 +417,10 @@ export default function AptFitFinder({
               </h3>
               <div className="flex flex-col gap-2.5 mt-2">
                 {[
-                  { value: 'none', label: '1인 가구 / 자녀 없음', desc: '상권 생활 편의 및 조용하고 아늑한 생활', icon: Heart },
-                  { value: 'baby', label: '영유아 자녀 (보육/안전 중심)', desc: '단지 내 어린이집, 넉넉한 주차, 인접 공원', icon: TreePine },
-                  { value: 'elementary', label: '초등학생 자녀 (안심 도보 통학)', desc: '단지 바로 옆 초등학교(초품아) 우선 배정 단지', icon: GraduationCap },
-                  { value: 'middleHigh', label: '중고등 자녀 (대형 학원가 인접)', desc: '밀집된 학원가 셔틀 도보 접근성 및 사교육 학군', icon: Award },
+                  { value: 'none', label: '1인 가구 / 자녀 없음', desc: '편리한 역세권 슬세권 상권과 조용하고 쾌적한 나만의 쉼터', icon: Heart },
+                  { value: 'baby', label: '영유아 자녀 (보육 및 안심 환경)', desc: '단지 내 국공립 어린이집, 지상 차 없는 도로, 유모차 산책 공원', icon: TreePine },
+                  { value: 'elementary', label: '초등학생 자녀 (안전한 초품아)', desc: '큰길을 건너지 않고 안전하게 등교할 수 있는 초품아 단지', icon: GraduationCap },
+                  { value: 'middleHigh', label: '중·고등 자녀 (명문 학원가 인접)', desc: '카림애비뉴·남동탄·11자 상가 등 밀집된 학원가 셔틀 및 도보 접근성', icon: Award },
                 ].map(opt => {
                   const Icon = opt.icon;
                   return (
@@ -455,10 +458,10 @@ export default function AptFitFinder({
               </h3>
               <div className="flex flex-col gap-2.5 mt-2">
                 {[
-                  { value: 'gtx', label: 'GTX-A / SRT (광역 초고속 교통)', desc: '동탄역 도보권 / 서울 강남 20분대 속성 출퇴근', icon: Train },
-                  { value: 'indeokwon', label: '동탄인덕원선 (경기서남부 연결)', desc: '수원, 인덕원 연동 개통 예정지 인접', icon: Train },
-                  { value: 'tram', label: '동탄 트램 (도시 내부 순환)', desc: '도심 속을 순환하는 미래형 노면전차 인접', icon: Train },
-                  { value: 'car', label: '자차 운행 위주 (쾌적한 주차)', desc: '세대당 주차 대수 1.4대 이상의 넓은 주차 공간', icon: Building2 },
+                  { value: 'gtx', label: '서울 강남 / 삼성역 광역 통근', desc: '동탄역 GTX-A 및 SRT 도보 역세권으로 서울 강남 20분대 도달', icon: Train },
+                  { value: 'indeokwon', label: '수원 / 판교 / 경기서남부 통근', desc: '개통 예정인 동탄인덕원선 역세권으로 인근 주요 도시 연계', icon: Train },
+                  { value: 'tram', label: '동탄 신도시 내부 순환 통근', desc: '단지 바로 앞 동탄 트램(정거장) 예정으로 시내 대중교통 최적화', icon: Train },
+                  { value: 'car', label: '자차 위주 통근 및 편리한 주차', desc: '세대당 주차 1.4대 이상 여유 공간 및 고속도로 IC 진입 최적', icon: Building2 },
                 ].map(opt => {
                   const Icon = opt.icon;
                   return (
@@ -496,9 +499,9 @@ export default function AptFitFinder({
               </h3>
               <div className="flex flex-col gap-2.5 mt-2">
                 {[
-                  { value: 'nature', label: '공원 및 호수공원 숲세권 산책', desc: '동탄호수공원, 여울공원 등 도보 300m 이내 산책로', icon: TreePine },
-                  { value: 'shop', label: '스타벅스 / 롯데백화점 중심가 쇼핑', desc: '도보로 커피, 브런치, 쇼핑이 가능한 슬세권 상권', icon: Coins },
-                  { value: 'quiet', label: '단지 내 조경 및 넓은 쾌적한 쉼', desc: '소음 없는 동간 배치, 조용한 분위기, 대단지 산책', icon: Building2 },
+                  { value: 'nature', label: '동탄호수공원 & 여울공원 숲세권', desc: '도보 300m 이내의 호수공원 랜드마크 및 대규모 공원 산책', icon: TreePine },
+                  { value: 'shop', label: '롯데백화점 & 카림상권 중심 인프라', desc: '스타벅스, 롯데백화점, 앨리스빌 등 편리한 도보 슬세권 쇼핑', icon: Coins },
+                  { value: 'quiet', label: '넓은 동간 거리와 공원형 조경 쉼터', desc: '동탄순환대로 인접 소음이 없고 단지 내 웅장한 조경 산책로', icon: Building2 },
                 ].map(opt => {
                   const Icon = opt.icon;
                   return (
@@ -536,9 +539,9 @@ export default function AptFitFinder({
               </h3>
               <div className="flex flex-col gap-2.5 mt-2">
                 {[
-                  { value: 'new', label: '무조건 신축! 세련된 설계', desc: '감가 없는 연식, 첨단 스마트홈, 최신 커뮤니티', icon: Sparkles },
-                  { value: 'brandScale', label: '대단지 스펙 & 1군 브랜드', desc: '1000세대 이상의 환금성과 리딩 랜드마크 브랜드', icon: Award },
-                  { value: 'gap', label: '안전마진 가성비 & 갭투자', desc: '전세가율 65% 이상으로 하방 가격 방어가 탄탄한 곳', icon: Coins },
+                  { value: 'new', label: '준공 5년 이내의 트렌디한 신축', desc: '감가 없는 깨끗한 연식, 첨단 스마트홈, 세련된 하이엔드 커뮤니티', icon: Sparkles },
+                  { value: 'brandScale', label: '1,500세대 이상 대단지 & 1군 브랜드', desc: '자이·힐스테이트·더샵 등 환금성 높은 대장 랜드마크 브랜드', icon: Award },
+                  { value: 'gap', label: '전세가율 70% 이상의 갭투자 & 가성비', desc: '높은 전세가 비율로 소액 투자가 가능하고 하방 지지가 탄탄한 단지', icon: Coins },
                 ].map(opt => {
                   const Icon = opt.icon;
                   return (

@@ -102,6 +102,15 @@ describe('ApartmentMapping Unit Tests', () => {
       
       expect(findTxKey('[오산동] 동탄역 푸르지오', dbKeys, manualMapping)).toBe('금강펜테리움');
     });
+
+    it('should correctly map Dongtan Station Sibeom Wunam Firstville using hardcoded mapping without matching Sibeom Daeun Town Wunam Firstville', () => {
+      const dbKeys = {
+        '동탄역시범우남퍼스트빌아파트': { count: 1 },
+        '시범다은마을우남퍼스트빌': { count: 2 }
+      };
+      expect(findTxKey('동탄역 시범 우남퍼스트빌', dbKeys)).toBe('동탄역시범우남퍼스트빌아파트');
+      expect(findTxKey('시범다은마을 우남퍼스트빌', dbKeys)).toBe('시범다은마을우남퍼스트빌');
+    });
   });
 
   describe('getAreaType()', () => {

@@ -467,4 +467,74 @@ export const shareLocalEventToKakao = async ({
   }
 };
 
+export interface ShareCompareParams {
+  apt1Name: string;
+  apt2Name: string;
+  scoreApt1: number;
+  scoreApt2: number;
+}
+
+export const shareCompareToKakao = async ({
+  apt1Name,
+  apt2Name,
+  scoreApt1,
+  scoreApt2,
+}: ShareCompareParams) => {
+  try {
+    await loadKakaoSdk();
+
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    const baseUrl = window.location.origin;
+    const finalImageUrl = `${baseUrl}/api/og?type=compare&apt1=${encodeURIComponent(apt1Name)}&apt2=${encodeURIComponent(apt2Name)}&score1=${scoreApt1}&score2=${scoreApt2}`;
+
+    const description = `종합 비교 판정\n${apt1Name} 우세: ${scoreApt1}개 항목\n${apt2Name} 우세: ${scoreApt2}개 항목`;
+
+    const shareUrl = `${window.location.origin}/#explore?compare=${encodeURIComponent(apt1Name)}:${encodeURIComponent(apt2Name)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=compare_share`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: `[비교 리포트] ${apt1Name} VS ${apt2Name}`,
+        description: description,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "비교 보고서 확인하기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};
+
+
 
