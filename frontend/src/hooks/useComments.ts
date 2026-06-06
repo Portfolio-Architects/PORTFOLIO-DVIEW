@@ -21,16 +21,15 @@ export function useComments(
   useEffect(() => {
     // Determine the actual ID to use for fetching comments.
     const actualReportId = fullReportData ? fullReportData.id : selectedReport?.id;
+    if (!actualReportId || actualReportId.startsWith('stub-')) return;
     
-    if (actualReportId && !actualReportId.startsWith('stub-') && !commentsData[actualReportId]) {
-      if (dashboardFacade.listenToComments) {
-        const unsubscribe = dashboardFacade.listenToComments(actualReportId, (comments) => {
-          setCommentsData(prev => ({ ...prev, [actualReportId]: comments }));
-        });
-        return () => unsubscribe();
-      }
+    if (dashboardFacade.listenToComments) {
+      const unsubscribe = dashboardFacade.listenToComments(actualReportId, (comments) => {
+        setCommentsData(prev => ({ ...prev, [actualReportId]: comments }));
+      });
+      return () => unsubscribe();
     }
-  }, [selectedReport, fullReportData, commentsData]);
+  }, [selectedReport?.id, fullReportData?.id]);
 
   const handleSubmitComment = async (reportId: string) => {
     if (!user) { 

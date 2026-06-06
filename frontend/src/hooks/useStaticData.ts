@@ -38,8 +38,8 @@ function parsePriceEokToMan(priceStr: string): number {
 // 3. 매매 평균값 및 건수 재산출 헬퍼
 function recalculateSaleAverages(target: AptTxSummary) {
   if (!target.recent || target.recent.length === 0) return;
-  const latestDateStr = target.latestDate;
-  if (!latestDateStr || latestDateStr.length !== 8) return;
+  const latestDateStr = target.latestDate ? String(target.latestDate) : '';
+  if (latestDateStr.length !== 8) return;
   
   const latestYear = parseInt(latestDateStr.substring(0, 4), 10);
   const latestMonth = parseInt(latestDateStr.substring(4, 6), 10);
@@ -137,8 +137,11 @@ function mergeTransactions(
     const target = merged[aptKey];
     if (!target) return; // Google Sheet상 승인된 동탄 아파트 단지가 아니면 패스
 
+    const contractYmStr = String(tx.contractYm || '');
+    if (contractYmStr.length < 6) return;
+
     const isSale = tx.dealType !== '전세' && tx.dealType !== '월세';
-    const txDateFormatted = `${tx.contractYm.substring(4)}.${tx.contractDay}`; // MM.DD 포맷
+    const txDateFormatted = `${contractYmStr.substring(4)}.${tx.contractDay}`; // MM.DD 포맷
 
     if (isSale) {
       // 1. 매매 중복 검증
@@ -197,10 +200,12 @@ function mergeTransactions(
 
     } else {
       // 2. 임대차 (전세/월세) 처리
-      const txFullDate = tx.contractDate || `${tx.contractYm}${tx.contractDay}`;
+      const txFullDate = tx.contractDate || `${contractYmStr}${tx.contractDay}`;
       const isJeonse = tx.dealType === '전세';
-      const convertedDeposit = tx.deposit + (tx.monthlyRent ? Math.round(tx.monthlyRent * 12 / 0.055) : 0);
-      const priceDisplay = formatPriceEok(convertedDeposit) + (tx.monthlyRent ? `/${tx.monthlyRent}` : '');
+      const deposit = Number(tx.deposit) || 0;
+      const monthlyRent = Number(tx.monthlyRent) || 0;
+      const convertedDeposit = deposit + (monthlyRent ? Math.round(monthlyRent * 12 / 0.055) : 0);
+      const priceDisplay = formatPriceEok(convertedDeposit) + (monthlyRent ? `/${monthlyRent}` : '');
 
       // 중복 체크 및 업데이트 판정 (latestRentDate보다 최신이거나 같을 때)
       if (!target.latestRentDate || txFullDate >= target.latestRentDate) {
