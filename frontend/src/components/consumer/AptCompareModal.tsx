@@ -132,6 +132,7 @@ export default function AptCompareModal({
 
   // Chart type: 'sale' (매매) vs 'jeonse' (전세)
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
+  const [isCopied, setIsCopied] = useState(false);
 
   // Input refs for clicking outside
   const containerRef = useRef<HTMLDivElement>(null);
@@ -285,6 +286,17 @@ export default function AptCompareModal({
     };
   }, [metrics1, metrics2]);
 
+  const score = useMemo(() => {
+    if (!wins) return { apt1: 0, apt2: 0 };
+    let apt1Count = 0;
+    let apt2Count = 0;
+    Object.values(wins).forEach((val) => {
+      if (val === true) apt1Count++;
+      if (val === false) apt2Count++;
+    });
+    return { apt1: apt1Count, apt2: apt2Count };
+  }, [wins]);
+
   // Aggregate monthly transaction averages for the compared charts
   const combinedChartData = useMemo(() => {
     if ((txData1.length === 0 && txData2.length === 0) || (!apt1 && !apt2)) return [];
@@ -351,6 +363,55 @@ export default function AptCompareModal({
       return man > 0 ? `${eok}억 ${man.toLocaleString()}` : `${eok}억`;
     }
     return `${man.toLocaleString()}`;
+  };
+
+  const handleShare = () => {
+    if (!apt1 || !apt2 || !metrics1 || !metrics2) return;
+    
+    const text = `[D-VIEW 단지 1:1 비교 분석 리포트]
+
+- 비교 대상
+단지 A: ${apt1Label}
+단지 B: ${apt2Label}
+
+- 종합 비교 결과
+${apt1Label} 우세 항목: ${score.apt1}개
+${apt2Label} 우세 항목: ${score.apt2}개
+최종 결과: ${
+      score.apt1 > score.apt2
+        ? `${apt1Label} 단지가 더 많은 지표에서 우세합니다.`
+        : score.apt2 > score.apt1
+        ? `${apt2Label} 단지가 더 많은 지표에서 우세합니다.`
+        : '두 단지의 우세 지표 개수가 동일합니다.'
+    }
+
+- 주요 입지 및 스펙 비교
+1. SRT/GTX-A 역 거리
+단지 A: ${metrics1.distanceToSubway ? `${metrics1.distanceToSubway}m` : '-'}
+단지 B: ${metrics2.distanceToSubway ? `${metrics2.distanceToSubway}m` : '-'}
+
+2. 초등학교 도보 통학 거리
+단지 A: ${metrics1.distanceToElementary ? `${metrics1.distanceToElementary}m` : '-'}
+단지 B: ${metrics2.distanceToElementary ? `${metrics2.distanceToElementary}m` : '-'}
+
+3. 공원 도보 통학 거리
+단지 A: ${metrics1.distanceToPark ? `${metrics1.distanceToPark}m` : '-'}
+단지 B: ${metrics2.distanceToPark ? `${metrics2.distanceToPark}m` : '-'}
+
+4. 세대수 및 연식
+단지 A: ${metrics1.householdCount ? `${metrics1.householdCount.toLocaleString()}세대` : '-'} (${metrics1.yearBuilt ? `${metrics1.yearBuilt}년식` : '-'})
+단지 B: ${metrics2.householdCount ? `${metrics2.householdCount.toLocaleString()}세대` : '-'} (${metrics2.yearBuilt ? `${metrics2.yearBuilt}년식` : '-'})
+
+5. 평균 매매시세 (최근 3개월)
+단지 A: ${displayPrice(metrics1.avg3MPrice)}
+단지 B: ${displayPrice(metrics2.avg3MPrice)}
+
+D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보세요.`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
   };
 
   const getCompareClass = (isApt1: boolean, winValue: boolean | null) => {
@@ -524,11 +585,50 @@ export default function AptCompareModal({
 
           {/* Comparison Matrix Table */}
           {apt1 && apt2 && metrics1 && metrics2 && (
-            <div className="space-y-4">
-              <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 px-1">
-                <Award size={16} className="text-[#00d29d]" />
-                <span>1:1 지표 매트릭스 비교</span>
-              </h3>
+            <div className="space-y-6">
+              {/* Verdict Summary Card */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-500/20 dark:border-emerald-500/10 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="text-[12px] font-extrabold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
+                    종합 분석 결과 판정
+                  </div>
+                  <div className="text-[15px] font-extrabold text-primary leading-snug">
+                    {score.apt1 > score.apt2 ? (
+                      <span>
+                        {apt1Label} 단지가 총 {score.apt1}개 지표에서 우위에 있습니다. (상대 단지 {score.apt2}개)
+                      </span>
+                    ) : score.apt2 > score.apt1 ? (
+                      <span>
+                        {apt2Label} 단지가 총 {score.apt2}개 지표에서 우위에 있습니다. (상대 단지 {score.apt1}개)
+                      </span>
+                    ) : (
+                      <span>
+                        두 단지가 각각 {score.apt1}개 지표에서 동률로 팽팽합니다.
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11.5px] font-medium text-tertiary">
+                    10대 핵심 인프라 및 가치 지표를 종합 분석한 정량적 비교 결과입니다.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleShare}
+                  className={`px-4 py-2.5 rounded-xl text-[12.5px] font-black transition-all duration-200 select-none shrink-0 ${
+                    isCopied
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg'
+                  }`}
+                >
+                  {isCopied ? '복사 완료' : '비교 보고서 복사'}
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 px-1">
+                  <Award size={16} className="text-[#00d29d]" />
+                  <span>1:1 지표 매트릭스 비교</span>
+                </h3>
 
               <div className="overflow-hidden border border-border/30 rounded-2xl shadow-sm bg-surface/40">
                 {/* Header row */}
@@ -683,7 +783,37 @@ export default function AptCompareModal({
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Sponsored moving/interior helper card */}
+            <div className="bg-gradient-to-br from-sky-50 to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/10 border border-sky-500/10 dark:border-sky-500/5 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded">
+                    AD
+                  </span>
+                  <span className="text-[12px] font-black text-secondary">
+                    제휴 혜택 안내
+                  </span>
+                </div>
+                <div className="text-[14px] font-extrabold text-primary leading-snug">
+                  동탄역 대단지 전문 이사 및 고품격 인테리어 무료 견적
+                </div>
+                <p className="text-[11.5px] font-medium text-tertiary">
+                  D-VIEW 제휴 파트너사를 통해 제공되는 매칭 특별 할인 혜택을 비교와 동시에 만나보세요.
+                </p>
+              </div>
+              
+              <a
+                href="https://dview-moving.toss.im"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-xl text-[12.5px] font-black text-center bg-sky-500 hover:bg-sky-600 text-white shadow-md hover:shadow-lg transition-all duration-200 select-none shrink-0"
+              >
+                무료 견적 받기
+              </a>
+            </div>
+          </div>
+        )}
 
           {/* Historical Price Trend Dual Chart */}
           {apt1 && apt2 && (
