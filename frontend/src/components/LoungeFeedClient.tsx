@@ -8,6 +8,7 @@ import LoungeDetailClient from '@/components/LoungeDetailClient';
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { shareLocalNoticeToKakao } from '@/lib/utils/kakaoShare';
 
 interface Post {
   id: string;
@@ -251,7 +252,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       }).catch(err => console.error(err));
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => {
-        showToast("🎉 소식 공유 링크가 클립보드에 복사되었습니다!");
+        showToast("소식 공유 링크가 클립보드에 복사되었습니다!");
       });
     }
   };
@@ -717,7 +718,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             {/* Content Body */}
             <div className="p-5 sm:p-6 flex flex-col gap-6">
               {/* 원문 이동 및 공유 버튼 */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <a 
                   href={`/api/bypass-notice?url=${encodeURIComponent((selectedNotice.url || '').trim())}`} 
                   target="_blank" 
@@ -726,12 +727,20 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 >
                   <ExternalLink size={16} /> 원문 고시공고 사이트 이동
                 </a>
-                <button
-                  onClick={() => handleShareNotice(selectedNotice)}
-                  className="px-5 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
-                >
-                  <Share2 size={16} /> 카카오톡 공유
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => shareLocalNoticeToKakao(selectedNotice)}
+                    className="flex-1 sm:flex-none px-4 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                  >
+                    <Share2 size={16} /> 카카오톡 공유
+                  </button>
+                  <button
+                    onClick={() => handleShareNotice(selectedNotice)}
+                    className="flex-1 sm:flex-none px-4 py-3 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                  >
+                    <Share2 size={16} /> 링크 복사
+                  </button>
+                </div>
               </div>
 
               {/* D-VIEW AI Insight Section */}
