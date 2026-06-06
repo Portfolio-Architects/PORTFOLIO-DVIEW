@@ -1476,7 +1476,9 @@ interface GroupedCategory {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onSelectApt && onSelectApt(item.aptName);
+                                  if (onSelectApt) {
+                                    onSelectApt(item.aptName);
+                                  }
                                 }}
                                 className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-border text-[11.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm hover:border-[#cbd5e1]"
                               >
@@ -2000,7 +2002,12 @@ interface GroupedCategory {
                               {activeTier.apts.map((apt) => (
                                 <div
                                   key={apt.name}
-                                  onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onSelectApt) {
+                                      onSelectApt(apt.name);
+                                    }
+                                  }}
                                   className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
                                 >
                                   {/* Top Row: Name and Chevron */}

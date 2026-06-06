@@ -130,41 +130,41 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         </div>
 
         {/* Age (shown at xl) */}
-        <div className="w-[105px] text-right pr-4 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block">
+        <div className="w-[105px] text-right pr-2 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block whitespace-nowrap">
           {formatYearBuilt(item.apt.yearBuilt)}
         </div>
         
         {/* Price */}
-        <div className="w-[95px] text-right pr-4 text-[14.5px] font-extrabold text-primary shrink-0">
+        <div className="w-[100px] text-right pr-2 text-[14.5px] font-extrabold text-primary shrink-0 whitespace-nowrap">
           {item.totalPrice > 0 ? formatPrice(item.totalPrice) : '-'}
         </div>
         
         {/* Pyeong */}
-        <div className="w-[85px] text-right pr-4 text-[14px] font-bold text-teal-600 dark:text-teal-400 shrink-0">
+        <div className="w-[85px] text-right pr-2 text-[14px] font-bold text-teal-600 dark:text-teal-400 shrink-0 whitespace-nowrap">
           {item.pyeongPrice > 0 ? `${Math.floor(item.pyeongPrice).toLocaleString()}만` : '-'}
         </div>
 
         {/* Jeonse (shown at lg) */}
-        <div className="w-[110px] text-right pr-4 flex-col justify-center items-end gap-1 shrink-0 hidden lg:flex">
-          <span className="text-[14px] font-semibold text-primary leading-none">
+        <div className="w-[110px] text-right pr-2 flex-col justify-center items-end gap-0.5 shrink-0 hidden lg:flex">
+          <span className="text-[14px] font-semibold text-primary leading-none whitespace-nowrap">
             {item.jeonsePrice > 0 ? formatPrice(item.jeonsePrice) : '-'}
           </span>
-          <span className="text-[11px] text-tertiary font-medium leading-none">
+          <span className="text-[11px] text-tertiary font-medium leading-none whitespace-nowrap">
             {item.ratio > 0 ? `${(item.ratio * 100).toFixed(0)}%` : '-'}
           </span>
         </div>
 
         {/* Household (shown at xl) */}
-        <div className="w-[80px] text-right pr-4 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block">
+        <div className="w-[80px] text-right pr-2 text-[14px] font-medium text-secondary leading-none shrink-0 hidden xl:block whitespace-nowrap">
           {item.apt.householdCount ? `${item.apt.householdCount.toLocaleString()}세대` : '-'}
         </div>
 
         {/* Volume (shown at xl) */}
-        <div className="w-[100px] text-right pr-2 flex-col justify-center items-end gap-1 shrink-0 hidden xl:flex">
-          <span className="text-[14px] font-semibold text-secondary leading-none">
+        <div className="w-[100px] text-right pr-2 flex-col justify-center items-end gap-0.5 shrink-0 hidden xl:flex">
+          <span className="text-[14px] font-semibold text-secondary leading-none whitespace-nowrap">
             {item.volume3M > 0 ? `${item.volume3M}건` : '-'}
           </span>
-          <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none">
+          <span className="text-[11px] text-teal-600 dark:text-teal-400 font-medium leading-none whitespace-nowrap">
             {item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : ''}
           </span>
         </div>
@@ -237,6 +237,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
     </div>
   );
 }, areEqual);
+Row.displayName = 'Row';
 
 interface TossApartmentExploreClientProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -392,28 +393,17 @@ export default function TossApartmentExploreClient({
 
   useEffect(() => {
     const updateHeight = () => {
-      const container = document.getElementById('explore-list-container');
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const topOffset = rect.top;
-        const bottomOffset = window.innerWidth < 768 ? 72 : 24; 
-        const calculatedHeight = window.innerHeight - topOffset - bottomOffset;
-        setListHeight(Math.max(300, calculatedHeight));
-      } else {
-        const headerOffset = window.innerWidth < 768 ? 260 : 220;
-        setListHeight(Math.max(300, window.innerHeight - headerOffset));
-      }
+      const headerOffset = window.innerWidth < 768 ? 260 : 220;
+      setListHeight(Math.max(300, window.innerHeight - headerOffset));
     };
 
     updateHeight();
     window.addEventListener('resize', updateHeight);
-    const timer = setTimeout(updateHeight, 100);
     
     return () => {
       window.removeEventListener('resize', updateHeight);
-      clearTimeout(timer);
     };
-  }, [sortedApts, isMobile]);
+  }, []);
 
   useEffect(() => {
     if (listRef.current) {
@@ -590,12 +580,12 @@ export default function TossApartmentExploreClient({
             <div className="w-[36px] text-center shrink-0"></div>
             <div className="w-[40px] text-center shrink-0">순위</div>
             <div className="flex-1 min-w-[120px] ml-2 text-left">단지명</div>
-            <div className="w-[105px] text-right pr-4 shrink-0 hidden xl:block">연식</div>
-            <div className="w-[95px] text-right pr-4 shrink-0">매매가</div>
-            <div className="w-[85px] text-right pr-4 shrink-0">평당가</div>
-            <div className="w-[110px] text-right pr-4 shrink-0 hidden lg:block">전세가 (전세율)</div>
-            <div className="w-[80px] text-right pr-4 shrink-0 hidden xl:block">세대수</div>
-            <div className="w-[100px] text-right pr-2 shrink-0 hidden xl:block">거래량 (회전율)</div>
+            <div className="w-[105px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap">연식</div>
+            <div className="w-[100px] text-right pr-2 shrink-0 whitespace-nowrap">매매가</div>
+            <div className="w-[85px] text-right pr-2 shrink-0 whitespace-nowrap">평당가</div>
+            <div className="w-[110px] text-right pr-2 shrink-0 hidden lg:block whitespace-nowrap">전세가 (전세율)</div>
+            <div className="w-[80px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap">세대수</div>
+            <div className="w-[100px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap">거래량 (회전율)</div>
           </div>
 
           {/* Table Body */}
@@ -615,6 +605,7 @@ export default function TossApartmentExploreClient({
                 itemData={itemData}
                 width="100%"
                 className="custom-scrollbar"
+                style={{ overflowX: 'hidden', overscrollBehavior: 'contain' }}
               >
                 {Row}
               </List>

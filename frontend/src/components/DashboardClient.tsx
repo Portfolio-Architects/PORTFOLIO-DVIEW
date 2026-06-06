@@ -349,7 +349,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
 
     // Auto-select is disabled so that the Ad slot placeholder remains visible on desktop until a user actively clicks an apartment.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldReports, preselectedAptName]);
 
   // Handle Browser Back Button for soft-navigation URL routing

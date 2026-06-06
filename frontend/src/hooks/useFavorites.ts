@@ -43,7 +43,11 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     const wasFavorited = userFavorites.has(aptName);
     setUserFavorites(prev => {
       const next = new Set(prev);
-      wasFavorited ? next.delete(aptName) : next.add(aptName);
+      if (wasFavorited) {
+        next.delete(aptName);
+      } else {
+        next.add(aptName);
+      }
       return next;
     });
     setFavoriteCounts(prev => ({ ...prev, [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1)) }));
@@ -59,7 +63,11 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     } catch {
       setUserFavorites(prev => {
         const next = new Set(prev);
-        wasFavorited ? next.add(aptName) : next.delete(aptName);
+        if (wasFavorited) {
+          next.add(aptName);
+        } else {
+          next.delete(aptName);
+        }
         return next;
       });
       setFavoriteCounts(prev => ({ ...prev, [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1)) }));

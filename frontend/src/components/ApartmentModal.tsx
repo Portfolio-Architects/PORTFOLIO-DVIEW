@@ -743,6 +743,8 @@ function FieldReportModal({
     if (isSharing) return;
     setIsSharing(true);
     const shareTheme = getAutoShareTheme();
+    const baseUrl = window.location.origin;
+
     try {
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -755,6 +757,7 @@ function FieldReportModal({
       const priceEok = Math.floor(price / 10000);
       const priceMan = price % 10000;
       const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+      const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
 
       let imageFile: File | undefined = undefined;
 
@@ -780,24 +783,48 @@ function FieldReportModal({
         }
       }
 
-      const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
-      const encodedTitle = encodeURIComponent(shareTexts.title);
-      const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
+      // activeTab에 기반한 동적 분기 처리
+      let imageUrl = '';
+      let customTitle = '';
+      let customDesc = '';
+
+      if (activeTab === 'sec-education' && report.metrics) {
+        const eduScoreInfo = calculateEducationScore(report.metrics);
+        const grade = eduScoreInfo.grade;
+        const score = eduScoreInfo.score;
+        imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
+        customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
+        customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+      } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
+        const infraScoreInfo = calculateInfraScore(report.metrics);
+        const grade = infraScoreInfo.grade;
+        const score = infraScoreInfo.score;
+        imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
+        customTitle = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
+        customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
+      } else {
+        const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
+        const status = ratio >= 65 ? "갭투자추천" : "인기단지";
+        imageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+        customTitle = shareTexts.title;
+        customDesc = shareTexts.desc;
+      }
 
       await shareAptToKakao({
         aptName: displayAptName,
         priceEok,
         priceMan,
         ratio,
-        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`,
+        imageUrl,
         imageFile,
-        customTitle: shareTexts.title,
-        customDesc: shareTexts.desc
+        customTitle,
+        customDesc
       });
       incrementViralShareCount();
     } catch (error) {
       console.error("Kakao share card generation failed:", error);
       showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
+      
       // Fallback
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -808,19 +835,42 @@ function FieldReportModal({
       const priceEok = Math.floor(price / 10000);
       const priceMan = price % 10000;
       const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
-      
-      const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
-      const encodedTitle = encodeURIComponent(shareTexts.title);
-      const encodedDesc = encodeURIComponent(`실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%`);
+      const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
+
+      let imageUrl = '';
+      let customTitle = '';
+      let customDesc = '';
+
+      if (activeTab === 'sec-education' && report.metrics) {
+        const eduScoreInfo = calculateEducationScore(report.metrics);
+        const grade = eduScoreInfo.grade;
+        const score = eduScoreInfo.score;
+        imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
+        customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
+        customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+      } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
+        const infraScoreInfo = calculateInfraScore(report.metrics);
+        const grade = infraScoreInfo.grade;
+        const score = infraScoreInfo.score;
+        imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
+        customTitle = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
+        customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
+      } else {
+        const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
+        const status = ratio >= 65 ? "갭투자추천" : "인기단지";
+        imageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+        customTitle = shareTexts.title;
+        customDesc = shareTexts.desc;
+      }
 
       await shareAptToKakao({
         aptName: displayAptName,
         priceEok,
         priceMan,
         ratio,
-        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`,
-        customTitle: shareTexts.title,
-        customDesc: shareTexts.desc
+        imageUrl,
+        customTitle,
+        customDesc
       });
       incrementViralShareCount();
     } finally {
@@ -829,7 +879,16 @@ function FieldReportModal({
   };
 
   const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(report.apartmentName)}`;
+    const baseUrl = window.location.origin;
+    let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
+    if (activeTab === 'sec-education' && report.metrics) {
+      const eduScoreInfo = calculateEducationScore(report.metrics);
+      shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${eduScoreInfo.grade}&score=${eduScoreInfo.score}`;
+    } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
+      const infraScoreInfo = calculateInfraScore(report.metrics);
+      shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${infraScoreInfo.grade}&score=${infraScoreInfo.score}`;
+    }
+
     navigator.clipboard.writeText(shareUrl).then(() => {
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
       setCopiedStatus('all-link');
@@ -841,23 +900,41 @@ function FieldReportModal({
   };
 
   const handleNativeShare = async () => {
-    const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(report.apartmentName)}`;
-    const title = `${displayAptName} 가치분석 리포트`;
-    
-    // Extract price and jeonse logic identical to kakao share
-    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
-    const latestSale = saleTxs[0];
-    const latestJeonse = jeonseTxs[0];
+    const baseUrl = window.location.origin;
+    let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
+    let title = `${displayAptName} 가치분석 리포트`;
+    let desc = '';
 
-    const price = latestSale ? latestSale.price : 0;
-    const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
-    
-    const priceEok = Math.floor(price / 10000);
-    const priceMan = price % 10000;
-    const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+    if (activeTab === 'sec-education' && report.metrics) {
+      const eduScoreInfo = calculateEducationScore(report.metrics);
+      const grade = eduScoreInfo.grade;
+      const score = eduScoreInfo.score;
+      shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
+      title = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
+      desc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+    } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
+      const infraScoreInfo = calculateInfraScore(report.metrics);
+      const grade = infraScoreInfo.grade;
+      const score = infraScoreInfo.score;
+      shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
+      title = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
+      desc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
+    } else {
+      const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+      const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+      const latestSale = saleTxs[0];
+      const latestJeonse = jeonseTxs[0];
 
-    const desc = `실거래가 ${priceEok}억${priceMan > 0 ? ` ${priceMan.toLocaleString()}만` : ''}원, 전세가율 ${ratio.toFixed(1)}%\nDVIEW에서 ${displayAptName} 단지의 입지, 학군, 실거래가 밸류에이션 리포트를 지금 확인해보세요.`;
+      const price = latestSale ? latestSale.price : 0;
+      const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+      
+      const priceEok = Math.floor(price / 10000);
+      const priceMan = price % 10000;
+      const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+      const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
+
+      desc = `실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\nDVIEW에서 ${displayAptName} 단지의 입지, 학군, 실거래가 밸류에이션 리포트를 지금 확인해보세요.`;
+    }
 
     if (navigator.share) {
       try {
@@ -986,7 +1063,7 @@ function FieldReportModal({
     <>
       {/* ── Unified Header ── */}
       <header className={`w-full ${inline ? 'bg-surface' : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md'} pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20`}>
-        <div className="w-full flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[450px]">
             <div className="flex items-center gap-2">
               <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{report.dong || '동탄'}</span>
@@ -1000,8 +1077,8 @@ function FieldReportModal({
                 <span>지도보기</span>
               </a>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-[36px] font-extrabold leading-tight tracking-tight text-primary flex items-center gap-2 w-full min-w-0 flex-wrap">
-              <span className="break-keep whitespace-normal">{displayAptName}</span>
+            <h1 className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px] font-extrabold leading-[1.25] tracking-tight text-primary w-full min-w-0">
+              <span className="break-keep break-words block w-full">{displayAptName}</span>
             </h1>
           </div>
 

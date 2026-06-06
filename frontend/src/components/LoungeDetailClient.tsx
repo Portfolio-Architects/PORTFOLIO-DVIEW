@@ -621,7 +621,6 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                         
                         return (
                           <span className="block relative w-full rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px] group">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                               src={props.src} 
                               alt={props.alt || '첨부 이미지'} 

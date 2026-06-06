@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           UserRepo.getOrCreateProfile(currentUser.uid),
           PurchaseRepo.getUserPurchasedReportIds(currentUser.uid)
         ]).then(([profile, up, purchased]) => {
-          let normalizedProfile = profile;
+          const normalizedProfile = profile;
           if (normalizedProfile) {
             if (isAdmin(currentUser.email)) {
               if (normalizedProfile.nickname !== '매니저') {

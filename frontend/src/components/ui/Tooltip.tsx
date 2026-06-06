@@ -102,6 +102,7 @@ export function Tooltip({ content, children, delay = 300, className = '' }: Tool
       if (typeof childRef === 'function') {
         childRef(node);
       } else if (childRef && 'current' in childRef) {
+        // eslint-disable-next-line react-hooks/immutability
         childRef.current = node;
       }
     }

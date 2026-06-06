@@ -216,6 +216,7 @@
   .custom-scrollbar {
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: #d1d6db transparent;
+    overflow-x: hidden !important;
   }
 
   /* Hide scrollbar for clean horizontal scrolls */

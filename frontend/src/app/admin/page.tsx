@@ -397,7 +397,13 @@ export default function AdminDashboard() {
 
   const toggleDong = useCallback((dong: string) => {
     setExpandedDongs(prev => {
-      const next = new Set(prev); next.has(dong) ? next.delete(dong) : next.add(dong); return next;
+      const next = new Set(prev);
+      if (next.has(dong)) {
+        next.delete(dong);
+      } else {
+        next.add(dong);
+      }
+      return next;
     });
   }, []);
 

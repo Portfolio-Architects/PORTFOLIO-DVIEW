@@ -307,10 +307,10 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
                     <span className="text-[11px] md:text-[12px] text-tertiary font-extrabold">{notice.date}</span>
                     <button
                       onClick={(e) => handleCopyNoticeLink(e, notice)}
-                      className="p-2 bg-secondary hover:bg-border rounded-xl text-secondary hover:text-primary transition-all active:scale-90"
+                      className="p-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400 border border-emerald-100/40 dark:border-emerald-900/30 transition-all active:scale-90"
                       title="공지 링크 복사"
                     >
-                      <span className="text-[11.5px] font-black text-emerald-600 dark:text-emerald-400">
+                      <span className="text-[11.5px] font-black flex items-center justify-center">
                         {noticeCopiedId === notice.id ? '복사됨!' : <ExternalLink size={13} />}
                       </span>
                     </button>
