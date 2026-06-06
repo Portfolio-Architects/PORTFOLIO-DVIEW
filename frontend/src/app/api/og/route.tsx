@@ -22,6 +22,10 @@ const ogParamsSchema = z.object({
   lien: z.string().nullable().optional().catch(null),
   totalDebt: z.string().nullable().optional().catch(null),
   bestProduct: z.string().nullable().optional().catch(null),
+  category: z.string().nullable().optional().catch(null),
+  date: z.string().nullable().optional().catch(null),
+  location: z.string().nullable().optional().catch(null),
+  tip: z.string().nullable().optional().catch(null),
 });
 
 export async function GET(req: NextRequest) {
@@ -44,6 +48,10 @@ export async function GET(req: NextRequest) {
       lien: searchParams.get('lien'),
       totalDebt: searchParams.get('totalDebt'),
       bestProduct: searchParams.get('bestProduct'),
+      category: searchParams.get('category'),
+      date: searchParams.get('date'),
+      location: searchParams.get('location'),
+      tip: searchParams.get('tip'),
     });
 
     const validatedData = parsed.success ? parsed.data : {
@@ -61,6 +69,10 @@ export async function GET(req: NextRequest) {
       lien: null,
       totalDebt: null,
       bestProduct: null,
+      category: null,
+      date: null,
+      location: null,
+      tip: null,
     };
 
     const {
@@ -78,7 +90,174 @@ export async function GET(req: NextRequest) {
       lien,
       totalDebt,
       bestProduct,
+      category,
+      date,
+      location,
+      tip,
     } = validatedData;
+
+    if (type === 'event') {
+      let categoryBg = 'rgba(13, 148, 136, 0.1)';
+      let categoryText = '#0d9488';
+      let categoryBorder = 'rgba(13, 148, 136, 0.3)';
+      
+      if (category === '공연/축제') {
+        categoryBg = 'rgba(22, 163, 74, 0.1)';
+        categoryText = '#16a34a';
+        categoryBorder = 'rgba(22, 163, 74, 0.3)';
+      } else if (category === '마켓/플리마켓') {
+        categoryBg = 'rgba(219, 39, 119, 0.1)';
+        categoryText = '#db2777';
+        categoryBorder = 'rgba(219, 39, 119, 0.3)';
+      } else if (category === '체험/교육') {
+        categoryBg = 'rgba(2, 132, 199, 0.1)';
+        categoryText = '#0284c7';
+        categoryBorder = 'rgba(2, 132, 199, 0.3)';
+      }
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#042f2e',
+              backgroundImage: 'linear-gradient(to bottom right, #0f172a, #042f2e)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '30px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#0d9488',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#2dd4bf',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  동탄 로컬 소식 & 일정 큐레이션
+                </span>
+              </div>
+
+              {/* Title & Category Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '24px' }}>
+                <div
+                  style={{
+                    fontSize: '44px',
+                    fontWeight: 800,
+                    letterSpacing: '-1.5px',
+                    lineHeight: 1.2,
+                    color: '#f0fdfa',
+                    flex: 1,
+                  }}
+                >
+                  {title}
+                </div>
+                {category && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '10px 24px',
+                      borderRadius: '30px',
+                      backgroundColor: categoryBg,
+                      border: `2px solid ${categoryBorder}`,
+                      marginLeft: '40px',
+                    }}
+                  >
+                    <span style={{ fontSize: '20px', fontWeight: 900, color: categoryText }}>{category}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Event Info Details */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  padding: '24px 30px',
+                  borderRadius: '20px',
+                  width: '100%',
+                  marginBottom: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', marginBottom: '16px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '18px', color: '#9cc3cf', fontWeight: 'bold', width: '80px' }}>일시</span>
+                  <span style={{ fontSize: '20px', color: '#ffffff', fontWeight: 600 }}>{date || '미정'}</span>
+                </div>
+                <div style={{ display: 'flex', marginBottom: '16px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '18px', color: '#9cc3cf', fontWeight: 'bold', width: '80px' }}>장소</span>
+                  <span style={{ fontSize: '20px', color: '#ffffff', fontWeight: 600 }}>{location || '미정'}</span>
+                </div>
+                {tip && (
+                  <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '16px' }}>
+                    <span style={{ fontSize: '16px', color: '#2dd4bf', fontWeight: 'bold', marginBottom: '6px' }}>D-VIEW 추천 현장 꿀팁</span>
+                    <span style={{ fontSize: '18px', color: '#cbd5e1', fontWeight: 500, lineHeight: 1.4 }}>{tip}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#2dd4bf',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
 
     if (type === 'jeonse') {
       let statusColor = '#10b981'; // Green

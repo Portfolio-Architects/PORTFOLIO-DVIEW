@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Share2, X, ChevronRight, ExternalLink } from 'lucide-react';
-import { shareAptToKakao } from '@/lib/utils/kakaoShare';
+import { Calendar, Clock, MapPin, Share2, X, ChevronRight, ExternalLink, Lightbulb } from 'lucide-react';
+import { shareLocalEventToKakao } from '@/lib/utils/kakaoShare';
 
 export interface LocalEvent {
   id: string;
@@ -44,18 +44,14 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
   const handleShareKakao = async (e: React.MouseEvent, event: LocalEvent) => {
     e.stopPropagation();
     try {
-      // 카카오 공유 브릿지 활용
-      const encodedTitle = encodeURIComponent(`🏫 D-VIEW 로컬 소식: ${event.title}`);
-      const encodedDesc = encodeURIComponent(`${event.date} (${event.time}) @ ${event.location}`);
-      
-      await shareAptToKakao({
-        aptName: event.title,
-        priceEok: 0,
-        priceMan: 0,
-        ratio: 0,
-        imageUrl: `https://dongtanview.com/api/og?title=${encodedTitle}&subtitle=${encodedDesc}`,
-        customTitle: `📣 동탄 로컬 소식: ${event.title}`,
-        customDesc: `📍 장소: ${event.location}\n⏰ 일시: ${event.date} (${event.time})\n💡 꿀팁: ${event.tip.substring(0, 50)}...`
+      await shareLocalEventToKakao({
+        id: event.id,
+        title: event.title,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        category: event.category,
+        tip: event.tip
       });
     } catch (err) {
       console.error('Failed to share via Kakao Link:', err);
@@ -209,7 +205,10 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <h5 className="text-[12px] font-black text-primary">💡 D-VIEW 추천 현장 꿀팁</h5>
+              <h5 className="text-[12px] font-black text-primary flex items-center gap-1.5">
+                <Lightbulb size={14} className="text-[#0d9488] shrink-0" />
+                <span>D-VIEW 추천 현장 꿀팁</span>
+              </h5>
               <div className="bg-[#f0f9ff]/70 border border-[#0284c7]/15 rounded-2xl p-4 text-[13.5px] text-secondary leading-relaxed font-medium break-keep">
                 {selectedEvent.tip}
               </div>

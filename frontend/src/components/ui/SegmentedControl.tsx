@@ -78,7 +78,7 @@ export default function SegmentedControl<T extends string | number>({
             key={opt.value}
             ref={isActive ? activeTabRef : null}
             onClick={() => onChange(opt.value)}
-            className={`relative flex-1 z-10 px-4 py-1.5 rounded-lg text-[13.5px] font-extrabold text-center border-none outline-none transition-colors duration-200 cursor-pointer bg-transparent ${
+            className={`relative flex-1 z-10 px-4 py-1.5 rounded-lg text-[13.5px] font-extrabold text-center whitespace-nowrap border-none outline-none transition-colors duration-200 cursor-pointer bg-transparent ${
               isActive ? 'text-primary' : 'text-tertiary hover:text-secondary'
             }`}
           >

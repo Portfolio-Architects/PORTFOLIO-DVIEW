@@ -254,14 +254,14 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
         ))}
       </div>
 
-      {/* 🏛️ 실시간 동탄구정 소식통 */}
+      {/* 실시간 동탄구정 소식통 */}
       <div className="mt-8 pt-8 border-t border-border/60 flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <div className="bg-emerald-100 dark:bg-emerald-950/30 p-1.5 rounded-lg">
               <Building2 size={18} className="text-emerald-600 dark:text-emerald-400" />
             </div>
-            <h4 className="text-[17px] md:text-[18px] font-black text-primary tracking-tight">🏛️ 실시간 동탄구정 소식통</h4>
+            <h4 className="text-[17px] md:text-[18px] font-black text-primary tracking-tight">실시간 동탄구정 소식통</h4>
             <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] md:text-[11px] font-extrabold shrink-0 animate-pulse">
               Live
             </span>
