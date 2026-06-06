@@ -334,6 +334,51 @@ export default function TossApartmentExploreClient({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // [자기개선] 테이블 직접 정렬용 상태값 추가
+  const [sortKey, setSortKey] = useState<string>('totalPrice'); // 'totalPrice' | 'pyeongPrice' | 'ratio' | 'volume3M' | 'turnoverRate' | 'views' | 'yearBuilt' | 'householdCount' | 'name'
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // 사이드바 카테고리 전환 시 정렬 Key 동기화
+  useEffect(() => {
+    if (currentCategory === 'rank-abs-price') {
+      setSortKey('totalPrice');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-price' || currentCategory.startsWith('dong-')) {
+      setSortKey('pyeongPrice');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-jeonse') {
+      setSortKey('ratio');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-volume') {
+      setSortKey('volume3M');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-turnover') {
+      setSortKey('turnoverRate');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-views') {
+      setSortKey('views');
+      setSortDirection('desc');
+    }
+  }, [currentCategory]);
+
+  const handleHeaderSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortKey(key);
+      setSortDirection('desc');
+    }
+    
+    // 카테고리 하이라이트 동기화
+    if (key === 'totalPrice') setCurrentCategory('rank-abs-price');
+    else if (key === 'pyeongPrice') setCurrentCategory('rank-price');
+    else if (key === 'ratio') setCurrentCategory('rank-jeonse');
+    else if (key === 'volume3M') setCurrentCategory('rank-volume');
+    else if (key === 'turnoverRate') setCurrentCategory('rank-turnover');
+    else if (key === 'views') setCurrentCategory('rank-views');
+    else setCurrentCategory('custom-sort');
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
@@ -426,31 +471,47 @@ export default function TossApartmentExploreClient({
 
     // Sort logic
     filtered.sort((a, b) => {
+      // 테마별 임시 예외 정렬
       if (currentCategory === 'theme-over-12') return b.avg1MPrice - a.avg1MPrice;
       if (currentCategory === 'theme-biggest-drop') return b.dropRatio - a.dropRatio;
       if (currentCategory === 'theme-high-jeonse') return b.ratio - a.ratio;
       if (currentCategory === 'theme-most-traded') return b.volume3M - a.volume3M;
 
-      if (currentCategory === 'rank-price' || currentCategory.startsWith('dong-')) {
-        return b.pyeongPrice - a.pyeongPrice;
+      let valA = 0;
+      let valB = 0;
+      
+      if (sortKey === 'totalPrice') {
+        valA = a.totalPrice;
+        valB = b.totalPrice;
+      } else if (sortKey === 'pyeongPrice') {
+        valA = a.pyeongPrice;
+        valB = b.pyeongPrice;
+      } else if (sortKey === 'ratio') {
+        valA = a.ratio;
+        valB = b.ratio;
+      } else if (sortKey === 'volume3M') {
+        valA = a.volume3M;
+        valB = b.volume3M;
+      } else if (sortKey === 'turnoverRate') {
+        valA = a.turnoverRate;
+        valB = b.turnoverRate;
+      } else if (sortKey === 'views') {
+        valA = a.views;
+        valB = b.views;
+      } else if (sortKey === 'householdCount') {
+        valA = a.apt.householdCount || 0;
+        valB = b.apt.householdCount || 0;
+      } else if (sortKey === 'yearBuilt') {
+        valA = a.apt.yearBuilt ? parseInt(String(a.apt.yearBuilt).replace(/[^0-9]/g, '')) || 0 : 0;
+        valB = b.apt.yearBuilt ? parseInt(String(b.apt.yearBuilt).replace(/[^0-9]/g, '')) || 0 : 0;
+      } else if (sortKey === 'name') {
+        return sortDirection === 'asc' 
+          ? a.apt.name.localeCompare(b.apt.name, 'ko') 
+          : b.apt.name.localeCompare(a.apt.name, 'ko');
       }
-      if (currentCategory === 'rank-abs-price') {
-        return b.totalPrice - a.totalPrice;
-      }
-      if (currentCategory === 'rank-jeonse') {
-        return b.ratio - a.ratio;
-      }
-      if (currentCategory === 'rank-views') {
-        return b.views - a.views;
-      }
-      if (currentCategory === 'rank-volume') {
-        return b.volume3M - a.volume3M;
-      }
-      if (currentCategory === 'rank-turnover') {
-        return b.turnoverRate - a.turnoverRate;
-      }
-      // default: absolute price (totalPrice)
-      return b.totalPrice - a.totalPrice;
+
+      if (valA === valB) return 0;
+      return sortDirection === 'desc' ? valB - valA : valA - valB;
     });
 
     // Search filter
@@ -460,7 +521,7 @@ export default function TossApartmentExploreClient({
     }
 
     return filtered;
-  }, [enrichedApts, currentCategory, debouncedSearchQuery]);
+  }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection]);
 
   const listRef = useRef<List>(null);
   const outerRef = useRef<HTMLDivElement>(null);
@@ -727,16 +788,56 @@ export default function TossApartmentExploreClient({
 
         <div className="flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-4 py-3 border-b border-border text-[13px] font-bold text-tertiary shrink-0">
+          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface items-center md:px-4 py-3 border-b border-border text-[13px] font-bold text-tertiary shrink-0 select-none">
             <div className="w-[36px] text-center shrink-0"></div>
-            <div className="w-[40px] text-center shrink-0">순위</div>
-            <div className="flex-1 min-w-[120px] ml-2 text-left">단지명</div>
-            <div className="w-[105px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap">연식</div>
-            <div className="w-[100px] text-right pr-2 shrink-0 whitespace-nowrap">매매가</div>
-            <div className="w-[85px] text-right pr-2 shrink-0 whitespace-nowrap">평당가</div>
-            <div className="w-[110px] text-right pr-2 shrink-0 hidden lg:block whitespace-nowrap">전세가 (전세율)</div>
-            <div className="w-[80px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap">세대수</div>
-            <div className="w-[100px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap">거래량 (회전율)</div>
+            <button 
+              onClick={() => handleHeaderSort('views')}
+              className={`w-[40px] text-center shrink-0 focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'views' ? 'text-[#00d29d]' : ''}`}
+            >
+              순위{sortKey === 'views' && (sortDirection === 'desc' ? '↓' : '↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('name')}
+              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'name' ? 'text-[#00d29d]' : ''}`}
+            >
+              단지명{sortKey === 'name' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('yearBuilt')}
+              className={`w-[105px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#00d29d]' : ''}`}
+            >
+              연식{sortKey === 'yearBuilt' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('totalPrice')}
+              className={`w-[100px] text-right pr-2 shrink-0 whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#00d29d]' : ''}`}
+            >
+              매매가{sortKey === 'totalPrice' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('pyeongPrice')}
+              className={`w-[85px] text-right pr-2 shrink-0 whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#00d29d]' : ''}`}
+            >
+              평당가{sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('ratio')}
+              className={`w-[110px] text-right pr-2 shrink-0 hidden lg:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'ratio' ? 'text-[#00d29d]' : ''}`}
+            >
+              전세가{sortKey === 'ratio' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('householdCount')}
+              className={`w-[80px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'householdCount' ? 'text-[#00d29d]' : ''}`}
+            >
+              세대수{sortKey === 'householdCount' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
+            <button 
+              onClick={() => handleHeaderSort('volume3M')}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:block whitespace-nowrap focus:outline-none hover:text-primary transition-colors cursor-pointer ${sortKey === 'volume3M' ? 'text-[#00d29d]' : ''}`}
+            >
+              거래량{sortKey === 'volume3M' && (sortDirection === 'desc' ? ' ↓' : ' ↑')}
+            </button>
           </div>
 
           {/* Table Body */}
