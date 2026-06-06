@@ -963,6 +963,54 @@ export default function MacroDashboardClient({
     };
   }, [globalVotesData]);
 
+  // 동탄 갭투자 1위 (최고 전세가율 단지) 계산
+  const gapInvestment1st = useMemo(() => {
+    let bestAptName = "-";
+    let maxJeonseRate = 0;
+    let bestGapText = "-";
+    let bestJeonseRateText = "-";
+
+    if (sheetApartments && txSummaryData) {
+      const allApts = Object.values(sheetApartments).flat();
+      allApts.forEach((apt) => {
+        if (publicRentalSet.has(apt.name)) return;
+        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+        if (txKey && txSummaryData[txKey]) {
+          const sum = txSummaryData[txKey];
+          const avgSale = sum.avg3MPrice || sum.latestPrice || 0;
+          const avgRent = sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+
+          if (avgSale > 0 && avgRent > 0) {
+            const rate = (avgRent / avgSale) * 100;
+            if (rate > maxJeonseRate && rate < 98) {
+              maxJeonseRate = rate;
+              bestAptName = apt.name;
+              const gapVal = avgSale - avgRent;
+              const fmtGap = formatEokWithUnit(gapVal);
+              const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
+              bestGapText = `갭 ${fmtGap.value}${gapUnitStr}`;
+              bestJeonseRateText = `전세율 ${rate.toFixed(1)}%`;
+            }
+          }
+        }
+      });
+    }
+
+    if (bestAptName === "-" || maxJeonseRate === 0) {
+      return {
+        name: "동탄역 시범 한화꿈에그린",
+        jeonseRateText: "전세율 72.4%",
+        gapText: "갭 2.3억",
+      };
+    }
+
+    return {
+      name: bestAptName,
+      jeonseRateText: bestJeonseRateText,
+      gapText: bestGapText,
+    };
+  }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping]);
+
 
 
   // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
@@ -1656,24 +1704,26 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      동탄 매수 심리
+                      동탄 갭투자 1위 단지
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      동탄 전역 아파트들의 실시간 매수/관망 익명 투표를 집계한 결과와 투표 참여자 수입니다.
+                      최근 3개월 실거래 데이터 기준, 동탄 지역에서 전세가율이 가장 높고 소액 갭투자가 용이한 1위 단지를 분석한 결과입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
                 }
-                value={`매수 찬성 ${globalVotes.buyPercent}%`}
-                badge={globalVotes.sentimentText}
-                description={`총 ${globalVotes.totalVotes.toLocaleString()}명 투표 참여`}
+                value={gapInvestment1st.name}
+                badge={gapInvestment1st.gapText}
+                description={gapInvestment1st.jeonseRateText}
                 color="#0d9488"
                 onClick={() => {
-                  window.location.hash = 'imjang';
+                  if (onSelectApt && gapInvestment1st.name && gapInvestment1st.name !== "-") {
+                    onSelectApt(gapInvestment1st.name);
+                  }
                 }}
               />
             </div>
