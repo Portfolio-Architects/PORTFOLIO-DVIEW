@@ -137,6 +137,40 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
           badge: '서측 수혜 단지'
         }
       ]
+    },
+    {
+      id: 'waterpark',
+      title: '동탄 무료 어린이 물놀이장 & 공원 개장',
+      subtitle: '2026 여름 시즌 개장 소식',
+      desc: '여름철 무료로 개방되는 여울공원, 신리천공원, 동탄호수공원 어린이 물놀이장! 주말 가족 나들이 및 아이들 물놀이에 최고입니다. 주차가 편리하고 인접한 수혜 단지들이 주목받습니다.',
+      eventColor: 'text-teal-600',
+      badgeColor: 'text-teal-700',
+      bgColor: 'from-teal-50/50 to-emerald-50/30 dark:from-teal-950/20 dark:to-emerald-950/10 border-teal-100/50 dark:border-teal-900/30',
+      infoBorderColor: 'border-teal-100',
+      infoColor: 'text-teal-600',
+      infoList: [
+        { label: '운영 기간', value: '7월 초 ~ 8월 말 (월요 휴무)', highlight: true },
+        { label: '운영 시간', value: '10:00 ~ 17:00 (매시간 45분 가동)', highlight: true },
+        { label: '이용 요금', value: '무료 (화성시 공원관리과 주관)', highlight: false }
+      ],
+      listTitle: '공원 물놀이장 초인접 & 직접 생활권 아파트 리스트',
+      apts: [
+        {
+          name: '동탄역시범대원칸타빌1차',
+          desc: '단지 바로 앞에 신리천 어린이 물놀이장 및 수변공원이 넓게 펼쳐진 쾌적한 물세권 단지',
+          badge: '신리천 물세권'
+        },
+        {
+          name: '동탄역유림노르웨이숲',
+          desc: '여울공원 대규모 어린이 물놀이장 및 공원 인프라와 단지 뒤편이 도보 2분 거리로 직결된 친환경 단지',
+          badge: '여울공원 직결'
+        },
+        {
+          name: '동탄역반도유보라아이비파크7.0',
+          desc: '여울공원 축제광장 및 물놀이 시설 접근성이 매우 뛰어나 여름철 공원 시설 이용이 극히 편리한 단지',
+          badge: '여울공원 도보권'
+        }
+      ]
     }
   ];
 
