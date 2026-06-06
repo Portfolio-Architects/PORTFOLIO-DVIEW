@@ -181,6 +181,16 @@ function deepNormalize(name: string): string {
   return result;
 }
 
+// WeakMap caches for findTxKey performance optimization
+const txMapNormalizedKeysCache = new WeakMap<object, Record<string, string>>();
+const resolvedTxKeyCache = new WeakMap<object, Map<string, string | null>>();
+
+function getManualMappingKey(manualMapping?: Record<string, string>): string {
+  if (!manualMapping) return '';
+  const keys = Object.keys(manualMapping).sort();
+  return keys.map(k => `${k}:${manualMapping[k]}`).join('|');
+}
+
 /**
  * 4단계 캐스케이딩 매칭으로 TX_SUMMARY / TX_RECORDS 키를 찾는 함수
  * 
@@ -191,48 +201,88 @@ function deepNormalize(name: string): string {
  * 
  * @returns 매칭된 키 (없으면 null)
  */
-
 export function findTxKey<T>(
   aptName: string, 
   txMap: Record<string, T>, 
   manualMapping?: Record<string, string>,
   isRetry = false
 ): string | null {
-  if (!aptName || !txMap) return null;
-  const norm = normalizeAptName(aptName);
+  if (!aptName || !txMap || typeof txMap !== 'object') return null;
 
-  // Helper map: normalized key -> original key in txMap
-  const normalizedTxMap: Record<string, string> = {};
-  for (const key of Object.keys(txMap)) {
-    normalizedTxMap[normalizeAptName(key)] = key;
+  // 1. Get or build normalized txMap keys cache
+  let normalizedTxMap = txMapNormalizedKeysCache.get(txMap);
+  if (!normalizedTxMap) {
+    normalizedTxMap = {};
+    for (const key of Object.keys(txMap)) {
+      normalizedTxMap[normalizeAptName(key)] = key;
+    }
+    txMapNormalizedKeysCache.set(txMap, normalizedTxMap);
   }
+
+  // 2. Get or build resolved tx keys cache
+  let resolvedMap = resolvedTxKeyCache.get(txMap);
+  if (!resolvedMap) {
+    resolvedMap = new Map<string, string | null>();
+    resolvedTxKeyCache.set(txMap, resolvedMap);
+  }
+
+  const manualMappingKey = getManualMappingKey(manualMapping);
+  const cacheKey = `${aptName}\x1E${manualMappingKey}\x1E${isRetry}`;
+  if (resolvedMap.has(cacheKey)) {
+    return resolvedMap.get(cacheKey) ?? null;
+  }
+
+  const norm = normalizeAptName(aptName);
 
   // 0.5단계: 하드코딩 매핑
   const hardcoded = HARDCODED_MAPPING[norm];
   if (hardcoded) {
-    if (hardcoded in normalizedTxMap) return normalizedTxMap[hardcoded];
+    if (hardcoded in normalizedTxMap) {
+      const res = normalizedTxMap[hardcoded];
+      resolvedMap.set(cacheKey, res);
+      return res;
+    }
     if (!isRetry) {
       const resolved = findTxKey(hardcoded, txMap, manualMapping, true);
-      if (resolved) return resolved;
+      if (resolved) {
+        resolvedMap.set(cacheKey, resolved);
+        return resolved;
+      }
     }
   }
 
   // 0단계: 수동 매핑 (최우선)
   if (manualMapping) {
     const mapped = manualMapping[aptName] || manualMapping[norm];
-    if (mapped && mapped in normalizedTxMap) return normalizedTxMap[mapped];
+    if (mapped && mapped in normalizedTxMap) {
+      const res = normalizedTxMap[mapped];
+      resolvedMap.set(cacheKey, res);
+      return res;
+    }
   }
 
   // 1단계: 정확 매칭
-  if (norm in normalizedTxMap) return normalizedTxMap[norm];
+  if (norm in normalizedTxMap) {
+    const res = normalizedTxMap[norm];
+    resolvedMap.set(cacheKey, res);
+    return res;
+  }
 
   // 2단계: 접두사 및 접미사 제거 후 매칭
   const stripped = stripLocationSuffix(stripLocationPrefix(norm));
-  if (stripped !== norm && stripped in normalizedTxMap) return normalizedTxMap[stripped];
+  if (stripped !== norm && stripped in normalizedTxMap) {
+    const res = normalizedTxMap[stripped];
+    resolvedMap.set(cacheKey, res);
+    return res;
+  }
 
   for (const key of Object.keys(txMap)) {
     const normKey = normalizeAptName(key);
-    if (stripLocationSuffix(stripLocationPrefix(normKey)) === stripped) return key;
+    if (stripLocationSuffix(stripLocationPrefix(normKey)) === stripped) {
+      const res = key;
+      resolvedMap.set(cacheKey, res);
+      return res;
+    }
   }
 
   // 3단계: 심층 정규화
@@ -240,9 +290,14 @@ export function findTxKey<T>(
   for (const key of Object.keys(txMap)) {
     const normKey = normalizeAptName(key);
     const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
-    if (keyDeep === deepNorm || deepNormalize(stripLocationSuffix(stripLocationPrefix(normKey))) === deepNorm) return key;
+    if (keyDeep === deepNorm || deepNormalize(stripLocationSuffix(stripLocationPrefix(normKey))) === deepNorm) {
+      const res = key;
+      resolvedMap.set(cacheKey, res);
+      return res;
+    }
   }
 
+  resolvedMap.set(cacheKey, null);
   return null;
 }
 
