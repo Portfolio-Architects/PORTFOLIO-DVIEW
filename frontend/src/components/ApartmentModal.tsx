@@ -39,6 +39,9 @@ import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import LocalEducationAd from '@/components/LocalEducationAd';
 
+import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
+import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
+
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
@@ -588,6 +591,125 @@ function FieldReportModal({
     });
   }, [rawTransactions, filterOutliers, typeMap]);
 
+  const valuation = useMemo(() => {
+    if (!transactions || transactions.length === 0) {
+      return { status: 'fair', amount: '0', ratio: 0, priceStr: '0' };
+    }
+
+    const now = new Date();
+    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+
+    const isRecent = (t: TransactionRecord) => {
+      if (!t.contractYm || t.contractYm.length < 6) return false;
+      const y = parseInt(t.contractYm.slice(0, 4));
+      const m = parseInt(t.contractYm.slice(4, 6));
+      const d = parseInt(t.contractDay || '1');
+      const txDate = new Date(y, m - 1, d);
+      return txDate >= threeMonthsAgo;
+    };
+
+    const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+    const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
+
+    const recentSales = sales.filter(isRecent);
+    const recentRents = rents.filter(isRecent);
+
+    const avg3MSale = recentSales.length > 0
+      ? Math.round(recentSales.reduce((sum, t) => sum + t.price, 0) / recentSales.length)
+      : (sales.length > 0 ? sales[0].price : 0);
+
+    const getJeonseEq = (t: TransactionRecord) => t.dealType === '월세' 
+      ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
+      : (t.deposit || t.price || 0);
+
+    const avg3MRent = recentRents.length > 0
+      ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
+      : (rents.length > 0 ? getJeonseEq(rents[0]) : 0);
+
+    const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
+
+    const macroConfig = {
+      riskFreeRate: 3.25,
+      fundingCost: 3.8,
+      jeonseConversionRate: 0.055,
+      baseInflationRate: 2.0,
+      baseDate: ''
+    };
+
+    let conversionRateSpread = 0;
+    if (report.metrics) {
+      const m = report.metrics as any;
+      if (m.distanceToSubway && m.distanceToSubway <= 500) {
+        conversionRateSpread -= 0.005;
+      } else if (m.distanceToSubway && m.distanceToSubway > 1200) {
+        conversionRateSpread += 0.005;
+      }
+
+      const year = m.yearBuilt ? parseInt(String(m.yearBuilt).substring(0, 4)) : new Date().getFullYear();
+      const age = !isNaN(year) ? new Date().getFullYear() - year + 1 : 10;
+      const mu = getBrandMultiplier(m.brand || report.apartmentName || '');
+      
+      if (age <= 5 || mu >= 1.09) {
+        conversionRateSpread -= 0.005;
+      } else if (age > 15) {
+        conversionRateSpread += 0.005;
+      }
+    }
+
+    const dynamicConversionRate = Math.max(0.035, Math.min(0.065, macroConfig.jeonseConversionRate + conversionRateSpread));
+    const dynamicMacroConfig = { ...macroConfig, jeonseConversionRate: dynamicConversionRate };
+
+    let utilityScore = 50;
+    if (report.metrics) {
+      const premium = calculatePremiumScores(report.metrics);
+      utilityScore = premium.totalScore;
+    }
+
+    let savedTime = 0;
+    if (report.metrics) {
+      const m = report.metrics as any;
+      const distSubway = typeof m.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
+      const distTram = typeof m.distanceToTram === 'number' ? m.distanceToTram : 1000;
+      const walkToSubway = distSubway / 80;
+      const tramToSubway = distTram / 250 + 5;
+      const linkTimeToSubway = Math.min(walkToSubway, tramToSubway);
+      const totalTime = Math.round(linkTimeToSubway) + 42 + 8;
+      savedTime = Math.max(0, 60 - totalTime);
+    }
+    const transitPremium = savedTime * 0.015;
+
+    const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScore, transitPremium);
+
+    const priceEok = Math.floor(avg3MSale / 10000);
+    const priceMan = avg3MSale % 10000;
+    const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
+
+    let status = 'fair';
+    let amount = '0';
+
+    if (avg3MSale > 0 && dcf.impliedValue > 0) {
+      const diff = Math.abs(avg3MSale - dcf.impliedValue);
+      const diffEok = Math.floor(diff / 10000);
+      const diffMan = Math.round(diff % 10000);
+      
+      let amountStr = '';
+      if (diffEok > 0) {
+        amountStr = diffMan > 0 ? `${diffEok}억 ${diffMan.toLocaleString()}만원` : `${diffEok}억원`;
+      } else {
+        amountStr = `${diffMan.toLocaleString()}만원`;
+      }
+      amount = amountStr;
+
+      if (avg3MSale > dcf.impliedValue) {
+        status = 'overvalued';
+      } else if (avg3MSale < dcf.impliedValue) {
+        status = 'undervalued';
+      }
+    }
+
+    return { status, amount, ratio: jeonseRatio, priceStr };
+  }, [transactions, report]);
+
   // 특정 평형 필터 칩 목록 (사전 계산된 필드 활용)
   const areaFilterChips = useMemo(() => {
     const rawAreas = Array.from(new Set(transactions.map(tx => {
@@ -819,7 +941,7 @@ function FieldReportModal({
       } else {
         const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
         const status = ratio >= 65 ? "갭투자추천" : "인기단지";
-        imageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+        imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status}&valAmount=${encodeURIComponent(valuation.amount)}`;
         customTitle = shareTexts.title;
         customDesc = shareTexts.desc;
       }
@@ -832,7 +954,9 @@ function FieldReportModal({
         imageUrl,
         imageFile,
         customTitle,
-        customDesc
+        customDesc,
+        valStatus: valuation.status,
+        valAmount: valuation.amount
       });
       incrementViralShareCount();
     } catch (error) {
@@ -872,7 +996,7 @@ function FieldReportModal({
       } else {
         const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
         const status = ratio >= 65 ? "갭투자추천" : "인기단지";
-        imageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+        imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status}&valAmount=${encodeURIComponent(valuation.amount)}`;
         customTitle = shareTexts.title;
         customDesc = shareTexts.desc;
       }
@@ -884,7 +1008,9 @@ function FieldReportModal({
         ratio,
         imageUrl,
         customTitle,
-        customDesc
+        customDesc,
+        valStatus: valuation.status,
+        valAmount: valuation.amount
       });
       incrementViralShareCount();
     } finally {

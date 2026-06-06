@@ -51,9 +51,11 @@ export interface ShareAptParams {
   imageFile?: File;
   customTitle?: string;
   customDesc?: string;
+  valStatus?: string;
+  valAmount?: string;
 }
 
-export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imageUrl, imageFile, customTitle, customDesc }: ShareAptParams) => {
+export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imageUrl, imageFile, customTitle, customDesc, valStatus, valAmount }: ShareAptParams) => {
   try {
     // 1. 강제 스크립트 로드 대기
     await loadKakaoSdk();
@@ -84,7 +86,14 @@ export const shareAptToKakao = async ({ aptName, priceEok, priceMan, ratio, imag
       if (priceEok > 0) {
         const baseUrl = window.location.origin;
         const status = ratio >= 65 ? "갭투자추천" : "인기단지";
-        finalImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(aptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+        let url = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(aptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
+        if (valStatus) {
+          url += `&valStatus=${valStatus}`;
+        }
+        if (valAmount) {
+          url += `&valAmount=${encodeURIComponent(valAmount)}`;
+        }
+        finalImageUrl = url;
       } else {
         finalImageUrl = `${window.location.origin}/api/og?title=${encodeURIComponent("동탄 아파트 가치분석")}`;
       }

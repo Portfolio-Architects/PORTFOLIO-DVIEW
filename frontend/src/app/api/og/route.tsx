@@ -30,6 +30,8 @@ const ogParamsSchema = z.object({
   apt2: z.string().nullable().optional().catch(null),
   score1: z.string().nullable().optional().catch(null),
   score2: z.string().nullable().optional().catch(null),
+  valStatus: z.string().nullable().optional().catch(null),
+  valAmount: z.string().nullable().optional().catch(null),
 });
 
 export async function GET(req: NextRequest) {
@@ -60,6 +62,8 @@ export async function GET(req: NextRequest) {
       apt2: searchParams.get('apt2'),
       score1: searchParams.get('score1'),
       score2: searchParams.get('score2'),
+      valStatus: searchParams.get('valStatus'),
+      valAmount: searchParams.get('valAmount'),
     });
 
     const validatedData = parsed.success ? parsed.data : {
@@ -85,6 +89,8 @@ export async function GET(req: NextRequest) {
       apt2: null,
       score1: null,
       score2: null,
+      valStatus: null,
+      valAmount: null,
     };
 
     const {
@@ -110,6 +116,8 @@ export async function GET(req: NextRequest) {
       apt2,
       score1,
       score2,
+      valStatus,
+      valAmount,
     } = validatedData;
 
     if (type === 'compare') {
@@ -1242,6 +1250,227 @@ export async function GET(req: NextRequest) {
                   alignItems: 'center',
                   color: '#34d399',
                   fontSize: '28px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
+
+    if (type === 'apartment') {
+      const isUnder = valStatus === 'undervalued';
+      const isOver = valStatus === 'overvalued';
+      const isFair = valStatus === 'fair';
+
+      let valText = '적정 가격 수준';
+      let valBg = '#1e293b';
+      let valBorder = '#475569';
+      let valColor = '#cbd5e1';
+
+      if (isUnder) {
+        valText = `적정가 대비 ${valAmount} 저평가`;
+        valBg = '#064e3b';
+        valBorder = '#059669';
+        valColor = '#34d399';
+      } else if (isOver) {
+        valText = `적정가 대비 ${valAmount} 고평가`;
+        valBg = '#7f1d1d';
+        valBorder = '#dc2626';
+        valColor = '#fca5a5';
+      } else if (isFair) {
+        valText = '적정 가격 수준';
+        valBg = '#1e3a8a';
+        valBorder = '#2563eb';
+        valColor = '#93c5fd';
+      }
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#070a13',
+              backgroundImage: 'linear-gradient(to bottom right, #0b1529, #022c22)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '28px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#00d29d',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#94a3b8',
+                    fontWeight: 500,
+                  }}
+                >
+                  Dongtan Data Lab
+                </span>
+              </div>
+
+              {/* Title and Valuation Badge Grid */}
+              <div
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '32px',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '60px',
+                    fontWeight: 950,
+                    letterSpacing: '-2px',
+                    lineHeight: 1.2,
+                    color: '#f8fafc',
+                    maxWidth: '650px',
+                  }}
+                >
+                  {title}
+                </div>
+
+                {valStatus && (
+                  <div
+                    style={{
+                      background: valBg,
+                      border: `2.5px solid ${valBorder}`,
+                      color: valColor,
+                      padding: '12px 28px',
+                      borderRadius: '30px',
+                      fontSize: '24px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    {valText}
+                  </div>
+                )}
+              </div>
+
+              {/* Price & Ratio Grid */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '24px',
+                  width: '100%',
+                  marginBottom: '32px',
+                }}
+              >
+                {/* Price Block */}
+                {price && (
+                  <div
+                    style={{
+                      flex: 1,
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '20px',
+                      padding: '24px 30px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <span style={{ fontSize: '18px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '8px' }}>
+                      최근 매매가 (3M 평균)
+                    </span>
+                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#f8fafc' }}>
+                      {price}
+                    </span>
+                  </div>
+                )}
+
+                {/* Ratio Block */}
+                {ratio && (
+                  <div
+                    style={{
+                      flex: 1,
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1.5px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '20px',
+                      padding: '24px 30px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <span style={{ fontSize: '18px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '8px' }}>
+                      전세가율
+                    </span>
+                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#3182f6' }}>
+                      {ratio}%
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Subtitle */}
+              <div
+                style={{
+                  fontSize: '24px',
+                  color: '#94a3b8',
+                  fontWeight: 500,
+                  letterSpacing: '-0.5px',
+                  lineHeight: 1.4,
+                }}
+              >
+                {subtitle || '실거래 배수 및 금리 연동 적정가 분석 리포트'}
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#34d399',
+                  fontSize: '26px',
                   fontWeight: 'bold',
                 }}
               >
