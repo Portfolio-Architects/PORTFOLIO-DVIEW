@@ -138,6 +138,17 @@ export default function AptCompareModal({
   const dropdownRef1 = useRef<HTMLDivElement>(null);
   const dropdownRef2 = useRef<HTMLDivElement>(null);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   // Set initial apartment if passed
   useEffect(() => {
     if (initialAptName && isOpen) {
@@ -201,15 +212,15 @@ export default function AptCompareModal({
 
   // Filter lists for Autocomplete
   const filteredApts1 = useMemo(() => {
-    if (!searchQuery1.trim()) return allApartments.slice(0, 15);
+    if (!searchQuery1.trim()) return allApartments;
     const query = normalizeAptName(searchQuery1);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery1)).slice(0, 15);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery1));
   }, [searchQuery1, allApartments]);
 
   const filteredApts2 = useMemo(() => {
-    if (!searchQuery2.trim()) return allApartments.slice(0, 15);
+    if (!searchQuery2.trim()) return allApartments;
     const query = normalizeAptName(searchQuery2);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery2)).slice(0, 15);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery2));
   }, [searchQuery2, allApartments]);
 
   // Retrieve metrics & summary stats for compared apartments
@@ -354,7 +365,7 @@ export default function AptCompareModal({
   const apt2Label = apt2 ? getDisplayAptName(apt2.name) : '단지 2';
 
   return (
-    <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" onClick={onClose} />
 

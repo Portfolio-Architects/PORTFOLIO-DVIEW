@@ -111,6 +111,17 @@ export default function MortgageCalculator({
     }
   }, [initialAptName, allApartments, isOpen]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   // Handle clicking outside of dropdown to close it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -124,9 +135,9 @@ export default function MortgageCalculator({
 
   // Filter list for Autocomplete
   const filteredApts = useMemo(() => {
-    if (!searchQuery.trim()) return allApartments.slice(0, 15);
+    if (!searchQuery.trim()) return allApartments;
     const query = normalizeAptName(searchQuery);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery)).slice(0, 15);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery));
   }, [searchQuery, allApartments]);
 
   // Retrieve market price
@@ -361,7 +372,7 @@ export default function MortgageCalculator({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" onClick={onClose} />
 
