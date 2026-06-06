@@ -6,7 +6,6 @@ import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
 import * as UserRepo from '@/lib/repositories/user.repository';
-import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { DEFAULT_AVATARS, type UserProfile } from '@/lib/types/user.types';
 
 export interface AnonProfile {
@@ -19,11 +18,9 @@ export interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   anonProfile: AnonProfile | null;
-  purchasedReportIds: string[];
   isLoading: boolean;
   handleLogin: () => Promise<void>;
   handleLogout: () => Promise<void>;
-  refreshPurchasedReports: () => Promise<void>;
   updateLocalAnonProfile: (profile: AnonProfile) => void;
 }
 
@@ -33,7 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<AnonProfile | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [purchasedReportIds, setPurchasedReportIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -55,9 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const dataPromise = Promise.all([
           dashboardFacade.getUserProfile(currentUser.uid),
-          UserRepo.getOrCreateProfile(currentUser.uid),
-          PurchaseRepo.getUserPurchasedReportIds(currentUser.uid)
-        ]).then(([profile, up, purchased]) => {
+          UserRepo.getOrCreateProfile(currentUser.uid)
+        ]).then(([profile, up]) => {
           const normalizedProfile = profile;
           if (normalizedProfile) {
             if (isAdmin(currentUser.email)) {
@@ -73,7 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           setAnonProfile(normalizedProfile);
           setUserProfile(up);
-          setPurchasedReportIds(purchased);
 
           if (isAdmin(currentUser.email)) {
             try { localStorage.setItem('dview_is_admin', 'true'); } catch (e) { /* noop */ }
@@ -88,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setAnonProfile(null);
         setUserProfile(null);
-        setPurchasedReportIds([]);
         try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
 
         // Clear cookie on logout
@@ -120,13 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const refreshPurchasedReports = async () => {
-    if (user) {
-      const ids = await PurchaseRepo.getUserPurchasedReportIds(user.uid);
-      setPurchasedReportIds(ids);
-    }
-  };
-
   const updateLocalAnonProfile = (profile: AnonProfile) => {
     setAnonProfile(profile);
   };
@@ -137,11 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         userProfile,
         anonProfile,
-        purchasedReportIds,
         isLoading,
         handleLogin,
         handleLogout,
-        refreshPurchasedReports,
         updateLocalAnonProfile
       }}
     >

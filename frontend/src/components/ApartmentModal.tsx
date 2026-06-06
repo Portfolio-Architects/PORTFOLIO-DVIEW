@@ -41,8 +41,6 @@ import LocalEducationAd from '@/components/LocalEducationAd';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
-// PaymentButton 비활성화 (Vercel Hobby Plan 호환성 — 추후 유료 모델 전환 시 복원)
-// const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr: false });
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface TransactionRecord {
@@ -255,7 +253,6 @@ function FieldReportModal({
   onOpenAdModal,
   loadAllTransactions,
   onRequestLogin,
-  isPurchased,
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage
@@ -270,9 +267,7 @@ function FieldReportModal({
   transactions: TransactionRecord[];
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   isLoadingDetail?: boolean;
-  isPurchased?: boolean;
   isAdmin?: boolean;
-  onPurchaseComplete?: () => void;
   inline?: boolean;
   txSummary?: any;
   onOpenAdModal?: () => void;
@@ -631,9 +626,7 @@ function FieldReportModal({
   }, [inline, mounted]);
 
 
-  // TODO: 유료 모델 전환 시 아래 라인 복원
-  // const isUnlocked = !!(isPurchased || isAdmin);
-  const isUnlocked = !!(isPurchased || isAdmin || isUnlockedByViral);
+  const isUnlocked = true;
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {

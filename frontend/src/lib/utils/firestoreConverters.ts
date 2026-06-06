@@ -1,7 +1,6 @@
 import { FirestoreDataConverter, DocumentData, QueryDocumentSnapshot, SnapshotOptions } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types/user.types';
 import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
-import type { Purchase } from '@/lib/types/purchase.types';
 
 /**
  * Firestore Converter for UserProfile collection.
@@ -34,35 +33,7 @@ export const userProfileConverter: FirestoreDataConverter<UserProfile> = {
   }
 };
 
-/**
- * Firestore Converter for Purchase collection.
- */
-export const purchaseConverter: FirestoreDataConverter<Purchase> = {
-  toFirestore(purchase: Purchase): DocumentData {
-    return {
-      userId: purchase.userId,
-      reportId: purchase.reportId,
-      orderId: purchase.orderId,
-      paymentKey: purchase.paymentKey,
-      amount: purchase.amount,
-      status: purchase.status,
-      purchasedAt: purchase.purchasedAt ?? null,
-    };
-  },
-  fromFirestore(snapshot: QueryDocumentSnapshot, options?: SnapshotOptions): Purchase {
-    const data = snapshot.data(options);
-    return {
-      id: snapshot.id,
-      userId: data.userId,
-      reportId: data.reportId,
-      orderId: data.orderId,
-      paymentKey: data.paymentKey,
-      amount: data.amount,
-      status: data.status,
-      purchasedAt: data.purchasedAt,
-    };
-  }
-};
+
 
 /**
  * Type representing a comment document in Firestore.

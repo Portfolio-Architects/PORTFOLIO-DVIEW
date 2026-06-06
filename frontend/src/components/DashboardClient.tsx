@@ -134,7 +134,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const fieldReports = initialDashboardData?.fieldReports || [];
   const adBanner = dashboardFacade.getAdBanner();
   // Moduled Hooks Architecture
-  const { user, userProfile, anonProfile, purchasedReportIds, handleLogin, handleLogout, refreshPurchasedReports } = useAuth();
+  const { user, userProfile, anonProfile, handleLogin, handleLogout } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
   const { data: popularData } = useSWR('/api/realtime-popular', fetcher, { refreshInterval: 60000 });
@@ -937,14 +937,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             inline={false}
             isLoadingDetail={isLoadingDetail}
             loadAllTransactions={loadAllTransactions}
-            isPurchased={purchasedReportIds.includes(resolvedReport.id)}
             isAdmin={dashboardFacade.isAdmin(user?.email)}
             txSummary={aptTxSummary}
-            onPurchaseComplete={() => {
-              if (user) {
-                refreshPurchasedReports();
-              }
-            }}
             onOpenAdModal={() => setIsAdModalOpen(true)}
             onRequestLogin={handleRequestLogin}
             onOpenCompare={(aptName) => {
