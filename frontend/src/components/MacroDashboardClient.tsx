@@ -31,6 +31,7 @@ import {
   Building2,
   Sparkles,
   ShieldAlert,
+  Calculator,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -77,6 +78,7 @@ interface MacroDashboardProps {
   onOpenAdModal?: () => void;
   onOpenCompare?: () => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
+  onOpenMortgage?: (aptName?: string) => void;
   recent7DaysVolume?: {
     currentCount: number;
     prevCount: number;
@@ -315,6 +317,7 @@ export default function MacroDashboardClient({
   onOpenAdModal,
   onOpenCompare,
   onOpenJeonseSafety,
+  onOpenMortgage,
   recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
@@ -1404,6 +1407,14 @@ interface GroupedCategory {
                 <span>🛡️ 전세 안전진단</span>
               </button>
             )}
+            {onOpenMortgage && (
+              <button
+                onClick={() => onOpenMortgage()}
+                className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 text-[13px] font-bold rounded-[8px] shadow-sm hover:shadow transition-all transform active:scale-95 cursor-pointer border border-blue-500/25"
+              >
+                <span>💸 대출 한도진단</span>
+              </button>
+            )}
             {onOpenAdModal && (
               <button
                 onClick={onOpenAdModal}
@@ -1861,6 +1872,36 @@ interface GroupedCategory {
               className="px-5 py-3 bg-emerald-600 group-hover:bg-emerald-500 text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10 border-none cursor-pointer"
             >
               <span>보증금 진단하기</span>
+              <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+        )}
+
+        {/* 내 집 마련 대출 자가진단 계산기 배너 위젯 */}
+        {onOpenMortgage && (
+          <div 
+            onClick={() => onOpenMortgage()}
+            className="mt-6 w-full p-6 sm:p-8 bg-gradient-to-r from-blue-500/10 via-[#4196f7]/5 to-surface border border-blue-500/25 dark:border-blue-500/30 rounded-[24px] shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-14 h-14 bg-gradient-to-tr from-blue-500 to-[#4196f7] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/10 group-hover:rotate-3 transition-transform duration-300 animate-in spin-in-12 duration-700">
+                <Calculator size={26} className="animate-pulse" />
+              </div>
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full tracking-wide uppercase">D-VIEW 금융</span>
+                  <span className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight">내 집 마련 대출 계산기 & 자금 조달 시뮬레이터 💸</span>
+                </div>
+                <p className="text-[12px] sm:text-[13px] text-secondary font-semibold leading-relaxed break-keep">
+                  가구 소득, 순자산, 자녀 수에 따라 신생아 특례대출, 디딤돌, 보금자리론 등 최적의 정부 저금리 정책 대출 자격을 진단하고 월 원리금 상환 계획을 즉시 설계합니다.
+                </p>
+              </div>
+            </div>
+            <button 
+              className="px-5 py-3 bg-blue-600 group-hover:bg-blue-500 text-white text-[13px] font-extrabold rounded-xl shadow-sm transition-all shrink-0 flex items-center gap-1.5 relative z-10 border-none cursor-pointer"
+            >
+              <span>대출 한도 조회</span>
               <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>

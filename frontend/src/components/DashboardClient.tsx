@@ -42,6 +42,16 @@ const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/Jeons
     </div>
   )
 });
+const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
+      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
+        대출 계산기 로드 중...
+      </div>
+    </div>
+  )
+});
 
 
 import { DONGS, getAllDongNames } from '@/lib/dongs';
@@ -174,6 +184,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   // 전세 안전진단 계산기 상태
   const [isJeonseSafetyOpen, setIsJeonseSafetyOpen] = useState(false);
   const [jeonseSafetyInitialApt, setJeonseSafetyInitialApt] = useState<string | undefined>(undefined);
+  
+  // 대출 계산기 상태
+  const [isMortgageOpen, setIsMortgageOpen] = useState(false);
+  const [mortgageInitialApt, setMortgageInitialApt] = useState<string | undefined>(undefined);
   
   const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
   const [loginGateMessage, setLoginGateMessage] = useState('');
@@ -681,6 +695,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 setJeonseSafetyInitialApt(aptName);
                 setIsJeonseSafetyOpen(true);
               }}
+              onOpenMortgage={(aptName) => {
+                setMortgageInitialApt(aptName);
+                setIsMortgageOpen(true);
+              }}
               onSelectApt={(name: string) => {
                 userHasSelected.current = true;
                 const report = fieldReportsMap.get(name);
@@ -878,6 +896,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               setJeonseSafetyInitialApt(aptName);
               setIsJeonseSafetyOpen(true);
             }}
+            onOpenMortgage={(aptName) => {
+              setMortgageInitialApt(aptName);
+              setIsMortgageOpen(true);
+            }}
           />
         )}
 
@@ -1002,6 +1024,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         isOpen={isJeonseSafetyOpen}
         onClose={() => setIsJeonseSafetyOpen(false)}
         initialAptName={jeonseSafetyInitialApt}
+        sheetApartments={sheetApartments}
+        txSummaryData={txSummary}
+        nameMapping={nameMapping || {}}
+        fieldReportsMap={fieldReportsMap}
+      />
+    )}
+
+    {isMortgageOpen && (
+      <MortgageCalculator
+        isOpen={isMortgageOpen}
+        onClose={() => setIsMortgageOpen(false)}
+        initialAptName={mortgageInitialApt}
         sheetApartments={sheetApartments}
         txSummaryData={txSummary}
         nameMapping={nameMapping || {}}

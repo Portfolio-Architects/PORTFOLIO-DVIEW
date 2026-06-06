@@ -256,7 +256,8 @@ function FieldReportModal({
   onRequestLogin,
   isPurchased,
   onOpenCompare,
-  onOpenJeonseSafety
+  onOpenJeonseSafety,
+  onOpenMortgage
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -278,6 +279,7 @@ function FieldReportModal({
   onRequestLogin?: (message: string) => void;
   onOpenCompare?: (aptName: string) => void;
   onOpenJeonseSafety?: (aptName: string) => void;
+  onOpenMortgage?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -1180,6 +1182,18 @@ function FieldReportModal({
               >
                 <span className="text-[14px]">🛡️</span>
                 <span>전세 안전진단</span>
+              </button>
+            )}
+
+            {/* 대출 계산기 버튼 */}
+            {onOpenMortgage && (
+              <button
+                onClick={() => onOpenMortgage(report.apartmentName)}
+                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 border border-blue-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                title="정책 대출 자격 조회 및 원리금 상환 시뮬레이터 실행"
+              >
+                <span className="text-[14px]">💸</span>
+                <span>대출 계산기</span>
               </button>
             )}
 
