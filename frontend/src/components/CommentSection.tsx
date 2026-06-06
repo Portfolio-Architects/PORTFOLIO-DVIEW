@@ -27,11 +27,27 @@ export default function CommentSection({
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
   const inputRef = useRef<HTMLInputElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   
   // Suggestion states for autocomplete mentions
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [suggestionIndex, setSuggestionIndex] = useState(0);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        popoverRef.current && 
+        !popoverRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleAction = () => {
     onSubmitComment();
@@ -130,24 +146,28 @@ export default function CommentSection({
           
           {/* Autocomplete Suggestion Popover */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-slate-900/95 dark:bg-slate-950/95 border border-emerald-500/30 rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="text-[11px] font-bold text-emerald-400 px-3.5 py-2 border-b border-emerald-500/10 uppercase tracking-widest bg-emerald-950/30">
+            <div 
+              ref={popoverRef}
+              className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-white/95 dark:bg-zinc-950/95 border border-[#00d29d]/30 dark:border-emerald-500/30 rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200"
+            >
+              <div className="text-[10px] font-extrabold text-[#00d29d] dark:text-emerald-400 px-3.5 py-2 border-b border-border/40 dark:border-zinc-800/40 uppercase tracking-widest bg-body/50 dark:bg-zinc-950/30">
                 멘션할 대상을 선택하세요
               </div>
-              <ul className="max-h-[160px] overflow-y-auto py-1 divide-y divide-emerald-500/5">
+              <ul className="max-h-[160px] overflow-y-auto py-1 divide-y divide-border/20 dark:divide-zinc-800/20">
                 {suggestions.map((nickname, idx) => (
                   <li 
                     key={nickname}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => selectSuggestion(nickname)}
-                    className={`px-3.5 py-2.5 text-[13px] font-semibold cursor-pointer transition-colors flex items-center justify-between ${
+                    className={`px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors flex items-center justify-between ${
                       suggestionIndex === idx 
-                        ? 'bg-emerald-500/20 text-emerald-200' 
-                        : 'text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-300'
+                        ? 'bg-[#00d29d]/15 text-[#00a06c] dark:bg-emerald-500/20 dark:text-emerald-300' 
+                        : 'text-secondary dark:text-zinc-300 hover:bg-body dark:hover:bg-zinc-900/50 hover:text-primary dark:hover:text-zinc-100'
                     }`}
                   >
                     <span>@{nickname}</span>
                     {suggestionIndex === idx && (
-                      <span className="text-[10px] bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-black">ENTER</span>
+                      <span className="text-[9px] bg-[#00d29d]/20 dark:bg-emerald-500/30 text-[#00a06c] dark:text-emerald-300 px-1.5 py-0.5 rounded font-black tracking-wider">ENTER</span>
                     )}
                   </li>
                 ))}
