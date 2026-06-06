@@ -401,6 +401,104 @@ export const shareMortgageToKakao = async ({
   }
 };
 
+export interface ShareTaxParams {
+  aptName: string;
+  dong: string;
+  marketPrice: number; // in man-won
+  ownedHouses: number;
+  exclusiveArea: '85under' | '85over';
+  acquisitionTax: number; // in man-won
+  localEducationTax: number; // in man-won
+  ruralSpecialTax: number; // in man-won
+  brokerFee: number; // in man-won
+  totalCost: number; // in man-won
+}
+
+export const shareTaxToKakao = async ({
+  aptName,
+  dong,
+  marketPrice,
+  ownedHouses,
+  exclusiveArea,
+  acquisitionTax,
+  localEducationTax,
+  ruralSpecialTax,
+  brokerFee,
+  totalCost,
+}: ShareTaxParams) => {
+  try {
+    await loadKakaoSdk();
+
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    const formatEokMan = (manWon: number) => {
+      const eok = Math.floor(manWon / 10000);
+      const man = Math.round(manWon % 10000);
+      if (eok > 0) {
+        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+      }
+      return `${man.toLocaleString()}만원`;
+    };
+
+    const marketPriceStr = formatEokMan(marketPrice);
+    const totalTax = acquisitionTax + localEducationTax + ruralSpecialTax;
+    const totalTaxStr = formatEokMan(totalTax);
+    const brokerFeeStr = formatEokMan(brokerFee);
+    const totalCostStr = formatEokMan(totalCost);
+    const ownedHousesStr = `${ownedHouses}주택`;
+    const areaStr = exclusiveArea === '85under' ? '전용 85㎡ 이하' : '전용 85㎡ 초과';
+
+    const baseUrl = window.location.origin;
+    const finalImageUrl = `${baseUrl}/api/og?type=tax&title=${encodeURIComponent(aptName)}&subtitle=${encodeURIComponent(dong)}&price=${encodeURIComponent(marketPriceStr)}&ratio=${encodeURIComponent(totalCostStr)}&status=${encodeURIComponent(ownedHousesStr)}&lien=${encodeURIComponent(totalTaxStr)}&totalDebt=${encodeURIComponent(brokerFeeStr)}&bestProduct=${encodeURIComponent(areaStr)}`;
+
+    const description = `매매가: ${marketPriceStr}\n취득세 등 세금: ${totalTaxStr}\n중개보수: ${brokerFeeStr}\n총 부대비용: ${totalCostStr} (${ownedHousesStr} | ${areaStr})`;
+
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=tax&utm_source=kakaotalk&utm_medium=share&utm_campaign=tax_share`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: `[취득세·중개보수 계산] ${aptName} (${dong})`,
+        description: description,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "부대비용 상세 보기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};
+
 export interface ShareLocalEventParams {
   id: string;
   title: string;

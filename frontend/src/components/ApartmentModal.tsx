@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import {
   MapPin, X, Camera,
   Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
-  Crown, ChevronRight, GraduationCap
+  Crown, ChevronRight, GraduationCap, Calculator
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -258,7 +258,8 @@ function FieldReportModal({
   onRequestLogin,
   onOpenCompare,
   onOpenJeonseSafety,
-  onOpenMortgage
+  onOpenMortgage,
+  onOpenTaxCalculator
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -279,6 +280,7 @@ function FieldReportModal({
   onOpenCompare?: (aptName: string) => void;
   onOpenJeonseSafety?: (aptName: string) => void;
   onOpenMortgage?: (aptName: string) => void;
+  onOpenTaxCalculator?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -1314,6 +1316,17 @@ function FieldReportModal({
               </button>
             )}
 
+            {/* 취득세 계산기 버튼 */}
+            {onOpenTaxCalculator && (
+              <button
+                onClick={() => onOpenTaxCalculator(report.apartmentName)}
+                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                title="부동산 취득세 및 부동산 중개수수료 모의 연산 실행"
+              >
+                <span>취득세 계산기</span>
+              </button>
+            )}
+
             {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
             <button
               onClick={handleNativeShare}
@@ -2205,6 +2218,19 @@ function FieldReportModal({
                   </div>
                 )}
               </div>
+
+              {/* 취득세 및 복비 계산기 연동 버튼 */}
+              {onOpenTaxCalculator && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    onClick={() => onOpenTaxCalculator(report.apartmentName)}
+                    className="w-full max-w-md py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                  >
+                    <Calculator size={16} />
+                    <span>나의 예상 취득세 및 복비 계산하기</span>
+                  </button>
+                </div>
+              )}
             </section>
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}

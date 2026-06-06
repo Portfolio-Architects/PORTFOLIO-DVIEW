@@ -66,6 +66,21 @@ const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageC
   )
 });
 
+const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
+  console.warn('PropertyTaxCalculator Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
+      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
+        취득세 계산기 로드 중...
+      </div>
+    </div>
+  )
+});
+
 
 import { DONGS, getAllDongNames } from '@/lib/dongs';
 
@@ -205,6 +220,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   // 대출 계산기 상태
   const [isMortgageOpen, setIsMortgageOpen] = useState(false);
   const [mortgageInitialApt, setMortgageInitialApt] = useState<string | undefined>(undefined);
+  
+  // 취득세 계산기 상태
+  const [isTaxCalcOpen, setIsTaxCalcOpen] = useState(false);
+  const [taxCalcInitialApt, setTaxCalcInitialApt] = useState<string | undefined>(undefined);
   
   const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
   const [loginGateMessage, setLoginGateMessage] = useState('');
@@ -953,6 +972,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               setMortgageInitialApt(aptName);
               setIsMortgageOpen(true);
             }}
+            onOpenTaxCalculator={(aptName) => {
+              setTaxCalcInitialApt(aptName);
+              setIsTaxCalcOpen(true);
+            }}
           />
         )}
 
@@ -1212,6 +1235,57 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           txSummaryData={txSummary}
           nameMapping={nameMapping || {}}
           fieldReportsMap={fieldReportsMap}
+        />
+      </ErrorBoundary>
+    )}
+
+    {isTaxCalcOpen && (
+      <ErrorBoundary
+        name="취득세 및 중개보수 계산기"
+        fallback={(error, reset) => {
+          if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
+            if (typeof window !== 'undefined') {
+              console.warn('ChunkLoadError caught in PropertyTaxCalculator. Reloading page...');
+              window.location.reload();
+            }
+            return null;
+          }
+          return (
+            <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+              <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                  <span className="text-xl font-black">!</span>
+                </div>
+                <h3 className="text-[15px] font-black text-primary mb-1">계산기 로드 실패</h3>
+                <p className="text-[12px] font-medium text-tertiary mb-5 leading-normal">
+                  취득세 및 중개보수 계산기를 불러오는 도중 오류가 발생했습니다. 다시 시도해 주시기 바랍니다.
+                </p>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={reset}
+                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                  >
+                    다시 시도
+                  </button>
+                  <button
+                    onClick={() => setIsTaxCalcOpen(false)}
+                    className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }}
+      >
+        <PropertyTaxCalculator
+          isOpen={isTaxCalcOpen}
+          onClose={() => setIsTaxCalcOpen(false)}
+          initialAptName={taxCalcInitialApt}
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummary}
+          nameMapping={nameMapping || {}}
         />
       </ErrorBoundary>
     )}

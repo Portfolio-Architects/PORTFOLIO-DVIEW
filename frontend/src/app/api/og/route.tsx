@@ -1265,6 +1265,153 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (type === 'tax') {
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#022c22',
+              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '28px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#00d29d',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#34d399',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  부동산 취득세 및 중개보수 진단 리포트
+                </span>
+              </div>
+
+              {/* Title / Apartment Name */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '24px' }}>
+                <div
+                  style={{
+                    fontSize: '44px',
+                    fontWeight: 800,
+                    letterSpacing: '-1.5px',
+                    lineHeight: 1.2,
+                    color: '#f0fdf4',
+                    flex: 1,
+                  }}
+                >
+                  {title}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '10px 24px',
+                    borderRadius: '30px',
+                    backgroundColor: 'rgba(0, 210, 157, 0.1)',
+                    border: '2px solid rgba(0, 210, 157, 0.3)',
+                    marginLeft: '40px',
+                  }}
+                >
+                  <span style={{ fontSize: '20px', fontWeight: 900, color: '#00d29d' }}>
+                    {status || '1주택'} | {bestProduct || '85㎡ 이하'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Summary of Costs */}
+              <div
+                style={{
+                  display: 'flex',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  padding: '24px 32px',
+                  borderRadius: '20px',
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  marginBottom: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#a7f3d0', fontWeight: 'bold', marginBottom: '4px' }}>매매 가액</span>
+                  <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'black' }}>{price || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#a7f3d0', fontWeight: 'bold', marginBottom: '4px' }}>취득세 등 세금 합계</span>
+                  <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'black' }}>{lien || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#a7f3d0', fontWeight: 'bold', marginBottom: '4px' }}>중개수수료 (최대)</span>
+                  <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'black' }}>{totalDebt || '0원'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '16px', color: '#ff8a9a', fontWeight: 'bold', marginBottom: '4px' }}>총 부대비용</span>
+                  <span style={{ fontSize: '24px', color: '#ff8a9a', fontWeight: 'black' }}>{ratio || '0원'}</span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#34d399',
+                  fontSize: '28px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
+
     if (type === 'apartment') {
       const isUnder = valStatus === 'undervalued';
       const isOver = valStatus === 'overvalued';
