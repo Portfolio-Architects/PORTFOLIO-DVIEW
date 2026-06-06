@@ -1931,8 +1931,27 @@ function FieldReportModal({
                           }
                         }
 
+                        // Safety tier info for elementary school
+                        let safetyBadge = null;
+                        let safetyGuide = null;
+                        if (school.label === '배정 초등학교') {
+                          if (dist <= 300) {
+                            safetyBadge = { text: '안심 1등급', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30' };
+                            safetyGuide = '단지 직결 안심통학로';
+                          } else if (dist <= 500) {
+                            safetyBadge = { text: '안심 2등급', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
+                            safetyGuide = '신호횡단 최소화 구간';
+                          } else if (dist <= 1000) {
+                            safetyBadge = { text: '일반 3등급', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100/50 dark:border-amber-900/30' };
+                            safetyGuide = '스쿨존 펜스 통학 권장';
+                          } else {
+                            safetyBadge = { text: '주의 4등급', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/30' };
+                            safetyGuide = '차량 동행 통학 권장';
+                          }
+                        }
+
                         return (
-                          <div key={school.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
+                          <div key={school.label} className={`w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10 ${school.label === '배정 초등학교' ? 'border border-teal-500/30 dark:border-teal-500/20 bg-teal-50/5 dark:bg-teal-950/5' : ''}`}>
                             <div className="flex items-center justify-between mb-2 md:mb-3 min-w-0 gap-1">
                               <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
                                 {school.label}
@@ -1951,6 +1970,16 @@ function FieldReportModal({
                                 <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
                               ) : null}
                             </div>
+                            
+                            {/* Detailed safety badge for elementary school */}
+                            {school.label === '배정 초등학교' && safetyBadge && (
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded leading-none ${safetyBadge.bg}`}>
+                                  {safetyBadge.text}
+                                </span>
+                              </div>
+                            )}
+
                             <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
                               <div className="flex items-baseline gap-0.5">
                                 <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
@@ -1975,11 +2004,17 @@ function FieldReportModal({
                               />
                             </div>
 
+                            {school.label === '배정 초등학교' && safetyGuide && (
+                              <p className="text-[11px] font-bold text-teal-600 dark:text-teal-400 mt-3 bg-teal-50/50 dark:bg-teal-950/20 p-2 rounded-xl border border-teal-100/30 dark:border-teal-900/10 text-center leading-normal">
+                                {safetyGuide}
+                              </p>
+                            )}
+
                             {school.name && (
                               <a 
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1`}
+                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-[95] shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1`}
                                 title={`${school.name} 구글 지도에서 보기`}
                               >
                                 <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
@@ -1993,6 +2028,30 @@ function FieldReportModal({
                   </div>
                 )}
 
+                {/* ─── 📝 전문가 학군 및 통학로 분석 (Expert School/Route Review) ─── */}
+                {(report.sections?.ecosystem?.schoolText || report.sections?.ecosystem?.schoolImg) && (
+                  <div className="mb-8 bg-body rounded-2xl p-5 md:p-6 border border-border">
+                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">전문가 임장 분석 및 통학로 리포트</span>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                      {report.sections.ecosystem.schoolImg && (
+                        <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
+                          <Image src={report.sections.ecosystem.schoolImg} alt="학군 및 통학로 실사" fill sizes="280px" className="object-cover" />
+                          <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
+                            <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
+                              D-VIEW
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <h4 className="text-[14px] font-bold text-primary mb-2 bg-[#f0fdfa] text-teal-800 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30 inline-block px-3 py-1 rounded-lg">학군 및 통학 안정성 평가</h4>
+                        <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{report.sections.ecosystem.schoolText}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* ─── 📚 주변 학원가 분석 (Academy Density) ─── */}
                 {report.metrics.academyDensity > 0 && (
                   <div>
@@ -2297,31 +2356,21 @@ function FieldReportModal({
                    </div>
                 </section>
 
-                 {/* 4. Ecosystem */}
-                <section id="sec-eco" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
-                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Info size={20} className="text-toss-blue"/> 생활 편의시설 및 거시 입지</h2>
-                   <div className="flex flex-col gap-8">
-                      {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
-                        <div className="flex flex-col md:flex-row gap-6">
-                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
-                          <div>
-                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
-                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
+                  {/* 4. Ecosystem */}
+                  {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
+                    <section id="sec-eco" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
+                       <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Info size={20} className="text-toss-blue"/> 생활 편의시설 및 거시 입지</h2>
+                       <div className="flex flex-col gap-8">
+                          <div className="flex flex-col md:flex-row gap-6">
+                            {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
+                            <div>
+                              <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">동네 상권</h4>
+                              <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
-                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
-                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
-                          <div>
-                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">동네 상권</h4>
-                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
-                          </div>
-                        </div>
-                      )}
-                   </div>
-                </section>
-
+                       </div>
+                    </section>
+                  )}
                  {/* 5. 최종 결론 */}
                 <section id="sec-conclusion" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
                    <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><ShieldAlert size={20} className="text-toss-blue"/> 최종 매수 타당성 평가</h2>
