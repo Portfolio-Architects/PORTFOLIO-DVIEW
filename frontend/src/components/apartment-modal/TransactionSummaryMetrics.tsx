@@ -18,6 +18,10 @@ interface TransactionRecord {
   dealType: string;
   reqGb?: string;
   rnuYn?: string;
+  cancelDate?: string;
+  isOutlier?: boolean;
+  areaLabelM2?: string;
+  areaLabelPyeong?: string;
 }
 
 interface TransactionSummaryMetricsProps {
@@ -40,9 +44,11 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
     transactions.forEach(tx => {
       const key = String(tx.area);
       if (!byArea.has(key)) {
-        const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-        const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
-        const label = typeName || (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+        const label = (areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong) || (() => {
+          const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+          const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
+          return typeName || (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+        })();
         byArea.set(key, { label, area: tx.area });
       }
     });
@@ -89,9 +95,12 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       : periodTransactions.filter(tx => String(tx.area) === priceTypeFilter);
 
     const getTxSupplyPyeong = (tx: TransactionRecord) => {
-      const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-      if (typeData?.typeM2) {
-        const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
+      const label = tx.areaLabelM2 || (() => {
+        const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+        return typeData?.typeM2;
+      })();
+      if (label) {
+        const supplyM2Match = label.match(/\d+(\.\d+)?/);
         if (supplyM2Match) return parseFloat(supplyM2Match[0]) * 0.3025;
       }
       return tx.area * 0.3025 * 1.33; 

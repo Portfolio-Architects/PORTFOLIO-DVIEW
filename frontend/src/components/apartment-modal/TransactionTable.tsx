@@ -23,6 +23,8 @@ export interface TransactionRecord {
   rnuYn?: string;
   cancelDate?: string;
   isOutlier?: boolean;
+  areaLabelM2?: string;
+  areaLabelPyeong?: string;
 }
 
 interface TransactionTableProps {
@@ -182,13 +184,15 @@ export function TransactionTable({
           const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
           const eok = Math.floor(displayPrice / 10000);
           const rem = displayPrice % 10000;
-          const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-          let typeLabel = '';
-          if (typeData) {
-            typeLabel = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);
-          }
+          let typeLabel = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
           if (!typeLabel) {
-             typeLabel = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
+            const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+            if (typeData) {
+              typeLabel = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);
+            }
+            if (!typeLabel) {
+               typeLabel = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
+            }
           }
 
           // cancelDate가 유효한 날짜(6자리 이상 숫자)인 경우에만 취소 거래로 판정

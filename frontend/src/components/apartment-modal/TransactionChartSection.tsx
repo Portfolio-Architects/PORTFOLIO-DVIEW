@@ -51,6 +51,8 @@ export function TransactionChartSection({
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
     rawArea: number; floor: number; priceEok: string; dealType: string; fullDate: string; isOutlier: boolean;
+    areaLabelM2?: string;
+    areaLabelPyeong?: string;
   };
 
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
@@ -95,6 +97,8 @@ export function TransactionChartSection({
       floor: tx.floor, priceEok: tx.priceEok || `${priceEokNum >= 1 ? Math.floor(priceEokNum)+'억' : ''}${Math.round((priceEokNum%1)*10000)||''}`,
       dealType: tx.dealType,
       fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
+      areaLabelM2: tx.areaLabelM2,
+      areaLabelPyeong: tx.areaLabelPyeong,
     };
   });
 
@@ -485,8 +489,10 @@ export function TransactionChartSection({
           )}
           {hoveredDot && (() => {
             const d = hoveredDot.data;
-            const typeData = findTypeMapEntry(typeMap, displayAptName, d.rawArea);
-            const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
+            const typeName = (areaUnit === 'm2' ? d.areaLabelM2 : d.areaLabelPyeong) || (() => {
+              const typeData = findTypeMapEntry(typeMap, displayAptName, d.rawArea);
+              return typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
+            })();
             return (
               <div 
                 className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-10 whitespace-nowrap text-left"

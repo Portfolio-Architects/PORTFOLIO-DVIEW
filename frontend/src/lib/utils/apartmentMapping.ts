@@ -275,6 +275,9 @@ export interface TypeMapEntry {
   typePyeong: string;
 }
 
+// A module-level cache to avoid repeating findTxKey scans on every transaction lookup
+const resolvedAptEntryCache = new Map<string, Record<string, TypeMapEntry> | null>();
+
 /**
  * 4단계 캐스케이딩 매칭과 numeric tolerance를 결합하여
  * 구글 시트 TYPE_MAP에서 아파트 면적에 매칭되는 타입(TypeMapEntry)을 찾는 강인한 헬퍼 함수
@@ -286,16 +289,21 @@ export function findTypeMapEntry(
 ): TypeMapEntry | null {
   if (!typeMap || !aptName || !area) return null;
 
-  // 1. 아파트명 매칭 시도
-  const normApt = normalizeAptName(aptName);
-  let aptEntry = typeMap[normApt];
+  // Cache lookups using aptName as key
+  let aptEntry = resolvedAptEntryCache.get(aptName);
 
-  if (!aptEntry) {
-    // exact match 실패 시 findTxKey와 유사한 캐스케이딩 매칭 수행
-    const matchedKey = findTxKey(aptName, typeMap);
-    if (matchedKey) {
-      aptEntry = typeMap[matchedKey];
+  if (aptEntry === undefined) {
+    const normApt = normalizeAptName(aptName);
+    aptEntry = typeMap[normApt] || null;
+
+    if (!aptEntry) {
+      // exact match 실패 시 findTxKey와 유사한 캐스케이딩 매칭 수행
+      const matchedKey = findTxKey(aptName, typeMap);
+      if (matchedKey) {
+        aptEntry = typeMap[matchedKey] || null;
+      }
     }
+    resolvedAptEntryCache.set(aptName, aptEntry);
   }
 
   if (!aptEntry) return null;

@@ -60,6 +60,10 @@ interface TransactionRecord {
   dealType: string;
   reqGb?: string;
   rnuYn?: string;
+  cancelDate?: string;
+  isOutlier?: boolean;
+  areaLabelM2?: string;
+  areaLabelPyeong?: string;
 }
 
 
@@ -562,36 +566,46 @@ function FieldReportModal({
 
     const combined = [...finalSale, ...finalJeonse];
 
-    return combined.sort((a, b) => {
+    const sorted = combined.sort((a, b) => {
       const da = a.contractYm + String(a.contractDay).padStart(2, '0');
       const db = b.contractYm + String(b.contractDay).padStart(2, '0');
       if (da !== db) return parseInt(db) - parseInt(da);
       return b.price - a.price;
     });
-  }, [rawTransactions, filterOutliers]);
 
-  // 특정 평형 필터 칩 목록
+    // 1회성 사전 연산: 각 거래 건의 타입맵 매핑 및 라벨을 생성하여 캐싱
+    return sorted.map(tx => {
+      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+      const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
+      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
+      return {
+        ...tx,
+        areaLabelM2: labelM2,
+        areaLabelPyeong: labelPyeong
+      };
+    });
+  }, [rawTransactions, filterOutliers, typeMap]);
+
+  // 특정 평형 필터 칩 목록 (사전 계산된 필드 활용)
   const areaFilterChips = useMemo(() => {
     const rawAreas = Array.from(new Set(transactions.map(tx => {
-      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-      return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+      return areaUnit === 'm2' ? tx.areaLabelM2! : tx.areaLabelPyeong!;
     })));
     return ['전체', ...rawAreas.sort((a, b) => {
       const numA = parseInt(a.match(/\d+/)?.[0] || '0');
       const numB = parseInt(b.match(/\d+/)?.[0] || '0');
       return numA - numB;
     })];
-  }, [transactions, typeMap, areaUnit]);
+  }, [transactions, areaUnit]);
 
-  // 필터링된 실거래 목록
+  // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {
     if (selectedAreaFilter === '전체') return transactions;
     return transactions.filter(tx => {
-      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-      const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+      const label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
       return label === selectedAreaFilter;
     });
-  }, [transactions, selectedAreaFilter, typeMap, areaUnit]);
+  }, [transactions, selectedAreaFilter, areaUnit]);
 
   // Hydration-safe portal mount
   useEffect(() => {
