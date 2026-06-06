@@ -11,7 +11,8 @@ import {
   Bar,
   Line,
   Area,
-  Customized
+  Customized,
+  ReferenceArea
 } from 'recharts';
 import { TransactionRecord } from './TransactionTable';
 import { useSettings } from '@/lib/contexts/SettingsContext';
@@ -58,6 +59,43 @@ export function TransactionChartSection({
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+
+  // [자기개선] 실거래 차트 드래그 줌용 상태 및 핸들러 추가
+  const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
+  const [refAreaRight, setRefAreaRight] = useState<number | null>(null);
+  const [zoomDomain, setZoomDomain] = useState<{ left: number | 'dataMin'; right: number | 'dataMax' }>({
+    left: 'dataMin',
+    right: 'dataMax',
+  });
+
+  const handleTimeframeChange = (val: string) => {
+    setChartTimeframe(val as '6M' | '1Y' | '3Y' | 'ALL');
+    setZoomDomain({ left: 'dataMin', right: 'dataMax' });
+  };
+
+  const handleZoom = () => {
+    if (refAreaLeft === null || refAreaRight === null || refAreaLeft === refAreaRight) {
+      setRefAreaLeft(null);
+      setRefAreaRight(null);
+      return;
+    }
+
+    let left = refAreaLeft;
+    let right = refAreaRight;
+    if (left > right) {
+      const temp = left;
+      left = right;
+      right = temp;
+    }
+
+    setZoomDomain({ left, right });
+    setRefAreaLeft(null);
+    setRefAreaRight(null);
+  };
+
+  const handleResetZoom = () => {
+    setZoomDomain({ left: 'dataMin', right: 'dataMax' });
+  };
 
   const relevantTxs = transactions.filter(tx => 
     chartType === 'sale' 
@@ -216,8 +254,25 @@ export function TransactionChartSection({
     if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
     return Math.round(priceEokNum * 1000) / 1000;
   };
-  const sPrices = transactions.filter(tx => parseInt(tx.contractYm) >= cutoffYm && tx.dealType !== '전세' && tx.dealType !== '월세').map(tx => getEokPrice(tx, false)).sort((a,b)=>a-b);
-  const jPrices = transactions.filter(tx => parseInt(tx.contractYm) >= cutoffYm && (tx.dealType === '전세' || tx.dealType === '월세')).map(tx => getEokPrice(tx, true)).sort((a,b)=>a-b);
+  const sPrices = transactions.filter(tx => {
+    if (parseInt(tx.contractYm) < cutoffYm) return false;
+    if (tx.dealType === '전세' || tx.dealType === '월세') return false;
+    
+    const ts = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15).getTime();
+    if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
+    if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
+    return true;
+  }).map(tx => getEokPrice(tx, false)).sort((a,b)=>a-b);
+
+  const jPrices = transactions.filter(tx => {
+    if (parseInt(tx.contractYm) < cutoffYm) return false;
+    if (tx.dealType !== '전세' && tx.dealType !== '월세') return false;
+    
+    const ts = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15).getTime();
+    if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
+    if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
+    return true;
+  }).map(tx => getEokPrice(tx, true)).sort((a,b)=>a-b);
   
   const getValid = (arr: number[]) => {
     if (!arr.length) return [];
@@ -328,6 +383,14 @@ export function TransactionChartSection({
           </div>
           
           <div className="flex items-center gap-2 md:gap-3 md:ml-auto">
+            {zoomDomain.left !== 'dataMin' && (
+              <button 
+                onClick={handleResetZoom}
+                className="text-[12px] font-extrabold text-toss-blue hover:text-toss-blue/80 transition-colors bg-toss-blue/10 px-2.5 py-1.5 rounded-lg border-none cursor-pointer active:scale-95"
+              >
+                줌 초기화
+              </button>
+            )}
             <button 
               onClick={handleCaptureChart}
               className="w-8 h-8 flex items-center justify-center bg-transparent hover:bg-body text-secondary hover:text-primary rounded-lg transition-colors border border-border shrink-0 cursor-pointer"
@@ -343,7 +406,7 @@ export function TransactionChartSection({
                 { label: 'ALL', value: 'ALL' }
               ]}
               value={chartTimeframe}
-              onChange={setChartTimeframe}
+              onChange={handleTimeframeChange}
             />
           </div>
         </div>
@@ -377,7 +440,15 @@ export function TransactionChartSection({
         <div className="flex-1 min-h-[300px] w-full relative">
           {isMounted ? (
             <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
-              <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+              <ComposedChart 
+                data={monthlyData} 
+                margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+                onMouseDown={(e) => { if (e) setRefAreaLeft(e.activeLabel ? Number(e.activeLabel) : null); }}
+                onMouseMove={(e) => { if (refAreaLeft !== null && e) setRefAreaRight(e.activeLabel ? Number(e.activeLabel) : null); }}
+                onMouseUp={handleZoom}
+                onDoubleClick={handleResetZoom}
+                className="select-none cursor-crosshair"
+              >
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
@@ -385,7 +456,7 @@ export function TransactionChartSection({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
+                <XAxis dataKey="ts" type="number" scale="time" domain={[zoomDomain.left, zoomDomain.right]}
                   tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
                   tickLine={false} tickMargin={6}
                   tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
@@ -398,6 +469,16 @@ export function TransactionChartSection({
                 <YAxis yAxisId="volume" orientation="right" domain={[0, maxVol * 4]}
                   tick={false} axisLine={false} tickLine={false} width={0}
                 />
+                {refAreaLeft && refAreaRight && (
+                  <ReferenceArea
+                    yAxisId="price"
+                    x1={refAreaLeft}
+                    x2={refAreaRight}
+                    strokeOpacity={0.3}
+                    fill="#3182f6"
+                    fillOpacity={0.15}
+                  />
+                )}
                 <RechartsTooltip
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
