@@ -22,6 +22,16 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer'), { ssr: false });
 const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration'), { ssr: false });
 const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration'), { ssr: false });
+const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
+      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
+        비교 대시보드 로드 중...
+      </div>
+    </div>
+  )
+});
 
 
 import { DONGS, getAllDongNames } from '@/lib/dongs';
@@ -146,6 +156,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   };
 
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
+  
+  // 1:1 아파트 비교 대시보드 상태
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [compareInitialApt, setCompareInitialApt] = useState<string | undefined>(undefined);
   
   const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
   const [loginGateMessage, setLoginGateMessage] = useState('');
@@ -645,6 +659,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               favoriteCounts={favoriteCounts}
               recent7DaysVolume={recent7DaysVolume}
               onOpenAdModal={() => setIsAdModalOpen(true)}
+              onOpenCompare={() => {
+                setCompareInitialApt(undefined);
+                setIsCompareOpen(true);
+              }}
               onSelectApt={(name: string) => {
                 userHasSelected.current = true;
                 const report = fieldReportsMap.get(name);
@@ -834,6 +852,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             }}
             onOpenAdModal={() => setIsAdModalOpen(true)}
             onRequestLogin={handleRequestLogin}
+            onOpenCompare={(aptName) => {
+              setCompareInitialApt(aptName);
+              setIsCompareOpen(true);
+            }}
           />
         )}
 
@@ -939,6 +961,19 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       message={loginGateMessage}
       onLogin={handleLogin}
     />
+
+    {isCompareOpen && (
+      <AptCompareModal
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
+        initialAptName={compareInitialApt}
+        sheetApartments={sheetApartments}
+        txSummaryData={txSummary}
+        nameMapping={nameMapping || {}}
+        fieldReportsMap={fieldReportsMap}
+        typeMap={typeMap}
+      />
+    )}
     </>
   );
 }

@@ -254,7 +254,8 @@ function FieldReportModal({
   onOpenAdModal,
   loadAllTransactions,
   onRequestLogin,
-  isPurchased
+  isPurchased,
+  onOpenCompare
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -274,6 +275,7 @@ function FieldReportModal({
   onOpenAdModal?: () => void;
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
+  onOpenCompare?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -1154,6 +1156,18 @@ function FieldReportModal({
                 />
               </button>
             </div>
+
+            {/* 단지 비교 버튼 */}
+            {onOpenCompare && (
+              <button
+                onClick={() => onOpenCompare(report.apartmentName)}
+                className="px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border border-border/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                title="다른 아파트 단지와 1:1 비교하기"
+              >
+                <span className="text-[14px]">⚖️</span>
+                <span>단지 비교</span>
+              </button>
+            )}
 
             {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
             <button

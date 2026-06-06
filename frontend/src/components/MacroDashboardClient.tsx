@@ -74,6 +74,7 @@ interface MacroDashboardProps {
   favoriteCounts: Record<string, number>;
   onSelectApt?: (name: string) => void;
   onOpenAdModal?: () => void;
+  onOpenCompare?: () => void;
   recent7DaysVolume?: {
     currentCount: number;
     prevCount: number;
@@ -310,6 +311,7 @@ export default function MacroDashboardClient({
   favoriteCounts,
   onSelectApt,
   onOpenAdModal,
+  onOpenCompare,
   recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
@@ -1382,15 +1384,26 @@ interface GroupedCategory {
         }
         subtitleLight="실시간 실거래 분석과 입지 점수로 보는 동탄의 오늘"
         rightContent={
-          onOpenAdModal && (
-            <button
-              onClick={onOpenAdModal}
-              className="hidden md:flex ml-4 px-3 py-1.5 bg-body hover:bg-body/80 text-secondary text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5"
-            >
-              <MessageSquare size={14} />
-              광고/제휴 문의
-            </button>
-          )
+          <div className="flex items-center gap-2">
+            {onOpenCompare && (
+              <button
+                onClick={onOpenCompare}
+                className="px-3 py-1.5 bg-[#00d29d] hover:bg-[#00b585] text-white text-[13px] font-bold rounded-[8px] shadow-sm hover:shadow transition-all flex items-center gap-1 transform active:scale-95 cursor-pointer border-none"
+              >
+                <span>⚖️</span>
+                <span>단지 비교분석</span>
+              </button>
+            )}
+            {onOpenAdModal && (
+              <button
+                onClick={onOpenAdModal}
+                className="hidden md:flex px-3 py-1.5 bg-body hover:bg-body/80 text-secondary text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5"
+              >
+                <MessageSquare size={14} />
+                광고/제휴 문의
+              </button>
+            )}
+          </div>
         }
         rightSideContent={
           <div 
