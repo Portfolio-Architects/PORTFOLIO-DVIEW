@@ -323,7 +323,8 @@ export default function MacroDashboardClient({
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
-  const { data: noticesData } = useSWR('/api/local-notices', fetcher);
+  const { data: noticesData, error: noticesError } = useSWR('/api/local-notices', fetcher);
+  const noticesLoading = !noticesData && !noticesError;
 
   const railNotices = useMemo(() => {
     if (!noticesData?.notices) return [];
@@ -1556,6 +1557,79 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
+                      최근 7일 동탄 실거래량
+                    </span>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                    <div 
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
+                    >
+                      최근 7일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(8~14일 전) 대비 거래량 증감 추세입니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
+                    </div>
+                  </div>
+                }
+                value={card3Data.currentCount}
+                unit="건"
+                badge={card3Data.badge}
+                description={`직전 7일: ${card3Data.prevCount}건`}
+                color={card3Data.trendColor}
+                onClick={() => {
+                  window.location.hash = 'gap';
+                }}
+              />
+              <InfoBox
+                title={
+                  <div className="relative group/title flex items-center gap-1 w-full">
+                    <span className="break-keep whitespace-nowrap tracking-tight">
+                      동탄 철도교통 소식
+                    </span>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                    <div 
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
+                    >
+                      동탄 지역의 GTX-A, 트램, 인동선, SRT 등 주요 철도 및 대중교통 관련 고시/공고 및 뉴스 소식입니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
+                    </div>
+                  </div>
+                }
+                value={
+                  noticesLoading ? (
+                    <span className="inline-block h-5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
+                  ) : noticesError || noticesData?.error ? (
+                    "정보 로드 실패"
+                  ) : (
+                    `신규 소식 ${railNotices.length || 0}건`
+                  )
+                }
+                badge={
+                  noticesLoading ? (
+                    <span className="inline-block h-3.5 w-12 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
+                  ) : noticesError || noticesData?.error ? (
+                    "점검 중"
+                  ) : (
+                    railNotices[0]?.dept || "철도교통"
+                  )
+                }
+                description={
+                  noticesLoading ? (
+                    <span className="inline-block h-3 w-36 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mt-0.5" />
+                  ) : noticesError || noticesData?.error ? (
+                    "소식을 불러올 수 없습니다"
+                  ) : (
+                    railNotices[0]?.title || "새로운 철도교통 소식이 없습니다"
+                  )
+                }
+                color="#00d29d"
+                onClick={() => {
+                  window.location.hash = '#lounge-notices-rail';
+                }}
+              />
+              <InfoBox
+                title={
+                  <div className="relative group/title flex items-center gap-1 w-full">
+                    <span className="break-keep whitespace-nowrap tracking-tight">
                       실시간 인기 1위 단지
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
@@ -1600,55 +1674,6 @@ interface GroupedCategory {
                 color="#0d9488"
                 onClick={() => {
                   window.location.hash = 'imjang';
-                }}
-              />
-              <InfoBox
-                title={
-                  <div className="relative group/title flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">
-                      최근 7일 동탄 실거래량
-                    </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                    >
-                      최근 7일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(8~14일 전) 대비 거래량 증감 추세입니다.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
-                    </div>
-                  </div>
-                }
-                value={card3Data.currentCount}
-                unit="건"
-                badge={card3Data.badge}
-                description={`직전 7일: ${card3Data.prevCount}건`}
-                color={card3Data.trendColor}
-                onClick={() => {
-                  window.location.hash = 'gap';
-                }}
-              />
-              <InfoBox
-                title={
-                  <div className="relative group/title flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">
-                      동탄 철도교통 소식
-                    </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                    >
-                      동탄 지역의 GTX-A, 트램, 인동선, SRT 등 주요 철도 및 대중교통 관련 고시/공고 및 뉴스 소식입니다.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
-                    </div>
-                  </div>
-                }
-                value={`신규 소식 ${railNotices.length || 0}건`}
-                badge={railNotices[0]?.dept || "철도교통"}
-                description={railNotices[0]?.title || "새로운 철도교통 소식이 없습니다"}
-                color="#00d29d"
-                onClick={() => {
-                  window.location.hash = 'lounge-notices-rail';
                 }}
               />
             </div>
