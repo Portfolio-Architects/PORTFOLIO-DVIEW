@@ -115,6 +115,59 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const [simBaseRate, setSimBaseRate] = useState(3.25);
   const [simGrowthRate, setSimGrowthRate] = useState(2.0);
   const [isCopiedScenario, setIsCopiedScenario] = useState(false);
+  const [commuteDest, setCommuteDest] = useState<'gangnam' | 'pangyo' | 'samseong'>('gangnam');
+  const [isCopiedCommute, setIsCopiedCommute] = useState(false);
+
+  // 1. 단지별 출퇴근 시간 및 교통 프리미엄 계산
+  const commuteAnalysis = useMemo(() => {
+    if (!report || !report.metrics) {
+      return {
+        linkTime: 20,
+        transitTime: 42,
+        totalTime: 70,
+        savedTime: 0,
+        premium: 0,
+        method: '도보/트램 연계 + 광역버스'
+      };
+    }
+
+    const m = report.metrics as any;
+    const distSubway = typeof m.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
+    const distTram = typeof m.distanceToTram === 'number' ? m.distanceToTram : 1000;
+
+    // 동탄역까지의 최적 연계 시간 (분)
+    const walkToSubway = distSubway / 80; // 분 (도보 80m/min)
+    const tramToSubway = distTram / 250 + 5; // 분 (트램 250m/min + 대기/환승 5분)
+    const linkTimeToSubway = Math.min(walkToSubway, tramToSubway);
+
+    let transitTime = 42; // 기본 강남역
+    let method = '동탄역 연계 + GTX-A';
+
+    if (commuteDest === 'gangnam') {
+      transitTime = 42; // GTX-A 수서 + 수인분당선/2호선 환승
+      method = '동탄역 연계 + GTX-A + 수인분당선';
+    } else if (commuteDest === 'pangyo') {
+      transitTime = 20; // GTX-A 성남 + 경강선 환승
+      method = '동탄역 연계 + GTX-A + 경강선';
+    } else if (commuteDest === 'samseong') {
+      transitTime = 22; // GTX-A 삼성역 직통
+      method = '동탄역 연계 + GTX-A';
+    }
+
+    const linkTime = Math.round(linkTimeToSubway);
+    const totalTime = linkTime + transitTime + 8; // 목적지 도보 8분 고정 가산
+    const savedTime = Math.max(0, 60 - totalTime); // 60분 기준 단축 시간
+    const premium = savedTime * 0.015; // 10분 단축 시 +0.15%p 성장률 프리미엄
+
+    return {
+      linkTime,
+      transitTime,
+      totalTime,
+      savedTime,
+      premium,
+      method
+    };
+  }, [report, commuteDest]);
 
   useEffect(() => {
     const fetchOverrides = async () => {
@@ -244,7 +297,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
   // 1. Dynamic DCF (거시 금리 연동 및 동적 전환율 적용)
   const utilityScoreResult = calculateUtilityScoreV2(report, overrideScore);
-  const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScoreResult.total);
+  const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScoreResult.total, commuteAnalysis.premium);
   // 2. Dong Spread (인접 단지 상대평가) - 실제 데이터 연동
   const targetDongMatch = report.apartmentName.match(/\[(.*?)\]/);
   let targetDong = targetDongMatch ? targetDongMatch[1] : '';
@@ -285,7 +338,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
     const fundingSpread = Math.max(0, simFunding - 4.0) * 0.5;
     const discountRate = (simRiskFree + 1.5 + fundingSpread) / 100;
 
-    const growthRate = simGrowthRate / 100;
+    const growthRate = (simGrowthRate + commuteAnalysis.premium) / 100;
     const capRate = Math.max(0.01, discountRate - growthRate);
     const annualRent = avg3MRent * dynamicConversionRate;
     const impliedValue = annualRent / capRate;
@@ -482,6 +535,120 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
                 실거래 데이터 부족으로 배수 분석을 제공하지 않습니다.
               </div>
             )}
+
+            {/* Section 1-2: 핵심지 출퇴근 시뮬레이터 */}
+            {realEstatePER > 0 ? (
+              <div className="p-6 border-t border-body">
+                <h4 className="text-[14.5px] md:text-[15px] font-extrabold text-primary mb-4 flex items-center gap-1.5">
+                  <span className="w-1.5 h-3.5 bg-[#4196f7] rounded-full inline-block" />
+                  교통 입지 가치 및 핵심지 출퇴근 시뮬레이터
+                </h4>
+
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Left: Destination tabs & Simulator details */}
+                  <div className="flex-1 flex flex-col gap-4">
+                    <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10">
+                      {[
+                        { id: 'gangnam', label: '강남역' },
+                        { id: 'pangyo', label: '판교역' },
+                        { id: 'samseong', label: '삼성역' }
+                      ].map(dest => (
+                        <button
+                          key={dest.id}
+                          type="button"
+                          onClick={() => setCommuteDest(dest.id as any)}
+                          className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-all cursor-pointer border-none ${
+                            commuteDest === dest.id
+                              ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm'
+                              : 'text-secondary hover:text-primary bg-transparent'
+                          }`}
+                        >
+                          {dest.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="bg-body border border-border rounded-2xl p-5 flex flex-col gap-3.5">
+                      <div className="flex justify-between items-center text-[12.5px]">
+                        <span className="text-tertiary font-bold">최적 대중교통 경로</span>
+                        <span className="font-bold text-secondary text-right">{commuteAnalysis.method}</span>
+                      </div>
+                      <div className="h-px w-full bg-border/40" />
+                      <div className="flex justify-between items-center text-[12.5px]">
+                        <span className="text-tertiary font-bold">동탄역 연계 (트램/도보)</span>
+                        <span className="font-extrabold text-primary">{commuteAnalysis.linkTime}분</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[12.5px]">
+                        <span className="text-tertiary font-bold">광역철도 탑승 (GTX-A 등)</span>
+                        <span className="font-extrabold text-primary">{commuteAnalysis.transitTime}분</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[12.5px]">
+                        <span className="text-tertiary font-bold">목적지 하차 후 이동</span>
+                        <span className="font-extrabold text-primary">8분 (고정)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Simulation result Box */}
+                  <div className="flex-1 flex flex-col justify-center gap-4">
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-[13px] font-bold text-tertiary mb-1">예상 출퇴근 시간</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[40px] font-black text-primary leading-none tracking-tighter">
+                          {commuteAnalysis.totalTime}
+                        </span>
+                        <span className="text-[16px] font-extrabold text-tertiary">분</span>
+                      </div>
+                    </div>
+
+                    {/* Premium Impact Box */}
+                    <div className="p-4 rounded-xl border border-border bg-body/20 flex flex-col gap-1.5">
+                      <h5 className="text-[13px] font-extrabold text-secondary">출퇴근 입지 프리미엄</h5>
+                      <div className="text-[12.5px] text-secondary leading-relaxed font-semibold">
+                        {commuteAnalysis.savedTime > 0 ? (
+                          <span className="text-toss-green">
+                            대중교통 60분 기준선 대비 {commuteAnalysis.savedTime}분 단축! DCF 성장률 프리미엄 +{commuteAnalysis.premium.toFixed(3)}%p가 가산되어 자산 가치를 견인합니다.
+                          </span>
+                        ) : (
+                          <span className="text-tertiary">
+                            소요 시간이 60분을 상회하여 자산 가치에 추가 교통 프리미엄이 부여되지 않습니다.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Report Copy Button */}
+                    <button
+                      onClick={() => {
+                        const destName = commuteDest === 'gangnam' ? '강남역' : commuteDest === 'pangyo' ? '판교역' : '삼성역';
+                        const premiumText = commuteAnalysis.savedTime > 0 
+                          ? `성장률 프리미엄 +${commuteAnalysis.premium.toFixed(3)}%p 반영` 
+                          : '추가 프리미엄 없음';
+                        const reportText = `[D-VIEW 핵심지 출퇴근 가치 분석 리포트]
+단지명: ${report.apartmentName}
+목적지: ${destName}
+출퇴근 최적 경로: ${commuteAnalysis.method}
+소요 시간: 연계 ${commuteAnalysis.linkTime}분 + 철도 ${commuteAnalysis.transitTime}분 + 하차 후 도보 8분 = 총 ${commuteAnalysis.totalTime}분
+가치 반영: ${premiumText} (60분선 대비 ${commuteAnalysis.savedTime}분 단축)
+
+D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과입니다.`;
+                        navigator.clipboard.writeText(reportText).then(() => {
+                          setIsCopiedCommute(true);
+                          setTimeout(() => setIsCopiedCommute(false), 2000);
+                        });
+                      }}
+                      className={`w-full py-2.5 rounded-xl font-bold text-[12.5px] transition-all text-center cursor-pointer border ${
+                        isCopiedCommute
+                          ? 'bg-emerald-50 border-emerald-500/30 text-emerald-600'
+                          : 'bg-[#f2f4f6] border-border/20 text-secondary hover:bg-[#e5e8eb]'
+                      }`}
+                    >
+                      {isCopiedCommute ? '출퇴근 분석 보고서 복사 완료!' : '출퇴근 분석 보고서 복사'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {/* Section 2: 금리 연동 적정가 (DCF) */}
             {realEstatePER > 0 ? (

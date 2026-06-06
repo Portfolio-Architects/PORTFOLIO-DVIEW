@@ -12,7 +12,7 @@ import { MacroEnvironment, SupplyPipeline } from '../types/macro.types';
  * @param macro 거시 경제 지표
  * @param riskPremium 자산 고유 리스크 프리미엄 (기본 1.5%)
  */
-export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironment, riskPremium: number = 1.5, utilityScore: number = 50) {
+export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironment, riskPremium: number = 1.5, utilityScore: number = 50, transitPremium: number = 0) {
   const m = macro || {
     riskFreeRate: 3.25,
     fundingCost: 3.8,
@@ -31,9 +31,9 @@ export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironme
   const fundingSpread = Math.max(0, fundingCostVal - 4.0) * 0.5;
   const discountRate = (riskFreeRateVal + riskPremium + fundingSpread) / 100;
 
-  // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 + 유틸리티 점수 기반 성장 프리미엄
+  // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 + 유틸리티 점수 기반 성장 프리미엄 + 교통 호재 프리미엄
   const growthPremium = utilityScore * 0.0001;
-  const growthRate = Math.max(0.000, Math.min(0.040, baseInflationRateVal + growthPremium));
+  const growthRate = Math.max(0.000, Math.min(0.050, (baseInflationRateVal + transitPremium) / 100 + growthPremium));
 
   // 3. Cap Rate (자본환원율) 산출: r - g
   const capRate = Math.max(0.01, discountRate - growthRate);
