@@ -460,6 +460,19 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
       });
     }
+
+    // Record viewed history for AI recommendation engine
+    if (typeof window !== 'undefined') {
+      try {
+        const history = JSON.parse(localStorage.getItem('dview_viewed_apts') || '[]');
+        const updated = [apt.name, ...history.filter((h: string) => h !== apt.name)].slice(0, 10);
+        localStorage.setItem('dview_viewed_apts', JSON.stringify(updated));
+        window.dispatchEvent(new Event('dview_viewed_apts_changed'));
+      } catch (e) {
+        console.warn('LocalStorage write error:', e);
+      }
+    }
+
     // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
     History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
     setMobileModalOpen(true);
@@ -763,6 +776,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 onOpenMortgage={(aptName) => {
                   setMortgageInitialApt(aptName);
                   setIsMortgageOpen(true);
+                }}
+                onOpenTaxCalculator={(aptName) => {
+                  setTaxCalcInitialApt(aptName);
+                  setIsTaxCalcOpen(true);
                 }}
                 onSelectApt={(name: string) => {
                   userHasSelected.current = true;

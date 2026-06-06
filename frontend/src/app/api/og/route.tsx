@@ -28,8 +28,10 @@ const ogParamsSchema = z.object({
   tip: z.string().nullable().optional().catch(null),
   apt1: z.string().nullable().optional().catch(null),
   apt2: z.string().nullable().optional().catch(null),
+  apt3: z.string().nullable().optional().catch(null),
   score1: z.string().nullable().optional().catch(null),
   score2: z.string().nullable().optional().catch(null),
+  score3: z.string().nullable().optional().catch(null),
   valStatus: z.string().nullable().optional().catch(null),
   valAmount: z.string().nullable().optional().catch(null),
 });
@@ -60,8 +62,10 @@ export async function GET(req: NextRequest) {
       tip: searchParams.get('tip'),
       apt1: searchParams.get('apt1'),
       apt2: searchParams.get('apt2'),
+      apt3: searchParams.get('apt3'),
       score1: searchParams.get('score1'),
       score2: searchParams.get('score2'),
+      score3: searchParams.get('score3'),
       valStatus: searchParams.get('valStatus'),
       valAmount: searchParams.get('valAmount'),
     });
@@ -87,8 +91,10 @@ export async function GET(req: NextRequest) {
       tip: null,
       apt1: null,
       apt2: null,
+      apt3: null,
       score1: null,
       score2: null,
+      score3: null,
       valStatus: null,
       valAmount: null,
     };
@@ -114,8 +120,10 @@ export async function GET(req: NextRequest) {
       tip,
       apt1,
       apt2,
+      apt3,
       score1,
       score2,
+      score3,
       valStatus,
       valAmount,
     } = validatedData;
@@ -1401,6 +1409,171 @@ export async function GET(req: NextRequest) {
                 }}
               >
                 dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
+
+    if (type === 'recommend') {
+      const parsedApt1 = apt1 || '시범단지 대표 아파트';
+      const parsedApt2 = apt2 || '호수공원 조경 아파트';
+      const parsedApt3 = apt3 || '신축 역세권 아파트';
+      const parsedScore1 = score1 || '98';
+      const parsedScore2 = score2 || '95';
+      const parsedScore3 = score3 || '91';
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#022c22',
+              backgroundImage: 'linear-gradient(to bottom right, #064e3b, #022c22)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '50px 70px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#00d29d',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '22px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '14px',
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  AI 맞춤 아파트 매칭 리포트
+                </span>
+              </div>
+
+              {/* Title */}
+              <div
+                style={{
+                  fontSize: '38px',
+                  fontWeight: 900,
+                  marginBottom: '24px',
+                  letterSpacing: '-1.5px',
+                  lineHeight: '1.2',
+                }}
+              >
+                나의 라이프스타일 찰떡 단지 TOP 3
+              </div>
+
+              {/* Recommendations list */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  width: '100%',
+                }}
+              >
+                {[
+                  { name: parsedApt1, score: parsedScore1, rank: 1 },
+                  { name: parsedApt2, score: parsedScore2, rank: 2 },
+                  { name: parsedApt3, score: parsedScore3, rank: 3 }
+                ].map((item) => (
+                  <div
+                    key={item.rank}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '16px',
+                      padding: '16px 28px',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '16px',
+                          backgroundColor: item.rank === 1 ? '#00d29d' : 'rgba(255, 255, 255, 0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          marginRight: '16px',
+                        }}
+                      >
+                        {item.rank}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '22px',
+                          fontWeight: 'bold',
+                          color: '#ffffff',
+                          maxWidth: '650px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {item.name}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                      }}
+                    >
+                      <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 'bold' }}>매칭률</span>
+                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#00d29d' }}>{item.score}%</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

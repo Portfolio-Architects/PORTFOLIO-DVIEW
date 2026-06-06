@@ -13,6 +13,9 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart"), {
 const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder"), {
   ssr: false,
 });
+const AIRecommendations = dynamic(() => import("./consumer/AIRecommendations"), {
+  ssr: false,
+});
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
@@ -80,6 +83,7 @@ interface MacroDashboardProps {
   onOpenCompare?: () => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
+  onOpenTaxCalculator?: (aptName?: string) => void;
   recent7DaysVolume?: {
     currentCount: number;
     prevCount: number;
@@ -319,6 +323,7 @@ export default function MacroDashboardClient({
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
+  onOpenTaxCalculator,
   recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
@@ -1998,6 +2003,21 @@ interface GroupedCategory {
               </div>
             </div>
           )}
+        </div>
+
+        {/* AI Personalized Recommendations Section */}
+        <div className="mt-6 w-full">
+          <AIRecommendations
+            sheetApartments={sheetApartments}
+            txSummaryData={txSummaryData}
+            nameMapping={nameMapping}
+            publicRentalSet={publicRentalSet}
+            fieldReportsMap={fieldReportsMap}
+            userFavorites={userFavorites || new Set()}
+            onSelectApt={onSelectApt}
+            onOpenTaxCalculator={onOpenTaxCalculator}
+            onOpenMortgage={onOpenMortgage}
+          />
         </div>
 
         {/* Detailed Real Estate Portfolio Section */}

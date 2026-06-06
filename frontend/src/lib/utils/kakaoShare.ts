@@ -712,5 +712,83 @@ export const shareLocalNoticeToKakao = async ({
   }
 };
 
+export interface ShareRecommendationsParams {
+  apt1: string;
+  score1: number;
+  apt2: string;
+  score2: number;
+  apt3: string;
+  score3: number;
+  fallback?: boolean;
+}
+
+export const shareRecommendationsToKakao = async ({
+  apt1,
+  score1,
+  apt2,
+  score2,
+  apt3,
+  score3,
+  fallback = false,
+}: ShareRecommendationsParams) => {
+  try {
+    await loadKakaoSdk();
+
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    const baseUrl = window.location.origin;
+    const finalImageUrl = `${baseUrl}/api/og?type=recommend&apt1=${encodeURIComponent(apt1)}&score1=${score1}&apt2=${encodeURIComponent(apt2)}&score2=${score2}&apt3=${encodeURIComponent(apt3)}&score3=${score3}`;
+
+    const title = fallback
+      ? "동탄 실시간 인기 & 가치 단지 TOP 3"
+      : "나를 위한 동탄 AI 맞춤 아파트 TOP 3";
+    const description = `AI 분석 결과: 1위 ${apt1} (${score1}%), 2위 ${apt2} (${score2}%), 3위 ${apt3} (${score3}%)\nD-VIEW에서 내 조건에 맞는 단지를 확인하세요.`;
+
+    const shareUrl = `${window.location.origin}/?from=share_recommend&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_recommendation`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: title,
+        description: description,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "D-VIEW에서 확인하기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share Recommendations Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};
+
 
 
