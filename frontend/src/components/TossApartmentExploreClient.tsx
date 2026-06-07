@@ -449,9 +449,6 @@ export default function TossApartmentExploreClient({
     } else if (currentCategory === 'rank-jeonse') {
       setSortKey('ratio');
       setSortDirection('desc');
-    } else if (currentCategory === 'rank-volume') {
-      setSortKey('volume3M');
-      setSortDirection('desc');
     } else if (currentCategory === 'rank-turnover') {
       setSortKey('turnoverRate');
       setSortDirection('desc');
@@ -473,7 +470,7 @@ export default function TossApartmentExploreClient({
     if (key === 'totalPrice') setCurrentCategory('rank-abs-price');
     else if (key === 'pyeongPrice') setCurrentCategory('rank-price');
     else if (key === 'ratio') setCurrentCategory('rank-jeonse');
-    else if (key === 'volume3M') setCurrentCategory('rank-volume');
+    else if (key === 'volume3M') setCurrentCategory('custom-sort');
     else if (key === 'turnoverRate') setCurrentCategory('rank-turnover');
     else if (key === 'views') setCurrentCategory('rank-views');
     else setCurrentCategory('custom-sort');
@@ -842,11 +839,6 @@ export default function TossApartmentExploreClient({
               onClick={() => setCurrentCategory('rank-jeonse')} 
             />
             <SidebarItem 
-              label="최근 거래량 많은 순" 
-              active={currentCategory === 'rank-volume'} 
-              onClick={() => setCurrentCategory('rank-volume')} 
-            />
-            <SidebarItem 
               label="회전율 높은 순" 
               active={currentCategory === 'rank-turnover'} 
               onClick={() => setCurrentCategory('rank-turnover')} 
@@ -889,7 +881,6 @@ export default function TossApartmentExploreClient({
              currentCategory === 'rank-price' ? '평당가 높은 순' :
              currentCategory === 'rank-abs-price' ? '가격 높은 순' :
              currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
-             currentCategory === 'rank-volume' ? '최근 거래량 많은 순' :
              currentCategory === 'rank-turnover' ? '회전율 높은 순' :
              currentCategory === 'rank-views' ? '조회수 많은 순' :
              `${currentCategory.replace('dong-', '')} 아파트`}
@@ -917,7 +908,6 @@ export default function TossApartmentExploreClient({
                  currentCategory === 'rank-price' ? '평당가 높은 순' :
                  currentCategory === 'rank-abs-price' ? '가격 높은 순' :
                  currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
-                 currentCategory === 'rank-volume' ? '최근 거래량 많은 순' :
                  currentCategory === 'rank-turnover' ? '회전율 높은 순' :
                  currentCategory === 'rank-views' ? '조회수 많은 순' :
                  `${currentCategory.replace('dong-', '')} 아파트`}
@@ -1289,11 +1279,6 @@ export default function TossApartmentExploreClient({
                     label="전세가율 높은 순" 
                     active={currentCategory === 'rank-jeonse'} 
                     onClick={() => { setCurrentCategory('rank-jeonse'); setIsMobileMenuOpen(false); }} 
-                  />
-                  <MobileSidebarItem 
-                    label="최근 거래량 많은 순" 
-                    active={currentCategory === 'rank-volume'} 
-                    onClick={() => { setCurrentCategory('rank-volume'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
                     label="회전율 높은 순" 
