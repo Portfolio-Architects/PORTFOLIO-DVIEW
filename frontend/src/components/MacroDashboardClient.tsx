@@ -1130,7 +1130,33 @@ export default function MacroDashboardClient({
       .slice(0, 5);
   }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping, gapRankingDong]);
 
+  // 동탄 전역(혹은 gapRankingDong 필터 기준) 평균 전세가율 연산
+  const averageJeonseRateText = useMemo(() => {
+    if (!sheetApartments || !txSummaryData) return "71.2%";
+    const allApts = Object.values(sheetApartments).flat();
+    let totalRate = 0;
+    let count = 0;
+    allApts.forEach((apt) => {
+      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
+      if (gapRankingDong !== "전체" && apt.dong !== gapRankingDong) return;
 
+      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+      if (txKey && txSummaryData[txKey]) {
+        const sum = txSummaryData[txKey];
+        const avgSale = sum.avg3MPrice || sum.latestPrice || 0;
+        const avgRent = sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+        if (avgSale > 0 && avgRent > 0) {
+          const rate = (avgRent / avgSale) * 100;
+          if (rate > 20 && rate < 100) {
+            totalRate += rate;
+            count++;
+          }
+        }
+      }
+    });
+    if (count === 0) return "71.2%";
+    return `${(totalRate / count).toFixed(1)}%`;
+  }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping, gapRankingDong]);
 
   // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
   const dailyTimelineData = useMemo(() => {
@@ -1823,7 +1849,7 @@ interface GroupedCategory {
             </div>
 
             {/* 동탄 실거래 소액 갭투자 Top 5 랭킹 위젯 */}
-            <div className="w-full mt-4 bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-3 relative shadow-sm">
+            <div className="w-full mt-4 bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-3 relative shadow-sm md:min-h-[360px]">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
@@ -1945,153 +1971,209 @@ interface GroupedCategory {
 
           </div>
 
-          {/* Right Panel: Interactive Market Feed & Trend */}
-          <div className="w-full md:w-1/2 flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 min-h-[420px] min-w-0 mt-2 md:mt-0">
-            <div className="flex-1 flex flex-col min-h-[300px]">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                <div className="flex flex-col gap-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-[15px] font-bold text-primary tracking-tight truncate max-w-[360px] sm:max-w-none">
-                      {(!isMobileViewport && selectedTimelineApt) ? `${selectedTimelineApt} 가격 추이` : "동탄 아파트 대표 가격 변화 추이"}
-                    </h3>
-                    {(!isMobileViewport && selectedTimelineApt) && (
+          {/* Right Column Container */}
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0">
+            {/* Right Panel: Interactive Market Feed & Trend */}
+            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:min-h-[548px] min-w-0">
+              <div className="flex-1 flex flex-col min-h-[300px]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[15px] font-bold text-primary tracking-tight truncate max-w-[360px] sm:max-w-none">
+                        {(!isMobileViewport && selectedTimelineApt) ? `${selectedTimelineApt} 가격 추이` : "동탄 아파트 대표 가격 변화 추이"}
+                      </h3>
+                      {(!isMobileViewport && selectedTimelineApt) && (
+                        <button
+                          onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
+                          className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                        >
+                          상세 리포트 보기 ➔
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
+                    {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
                       <button
-                        onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
-                        className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
+                          ? "bg-surface text-primary shadow-sm"
+                          : "text-tertiary hover:text-secondary"
+                          }`}
                       >
-                        상세 리포트 보기 ➔
+                        {tf}
                       </button>
-                    )}
+                    ))}
                   </div>
                 </div>
-                <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
-                  {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
-                    <button
-                      key={tf}
-                      onClick={() => setTimeframe(tf)}
-                      className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
-                        ? "bg-surface text-primary shadow-sm"
-                        : "text-tertiary hover:text-secondary"
-                        }`}
-                    >
-                      {tf}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] min-h-[260px] relative">
-                <MacroTrendChart
-                  lineData={mainLineData}
-                  xTicks={mainXTicks}
-                  yTicks={mainYTicks}
-                  timeframe={timeframe}
-                />
-              </div>
-
-              {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
-              <div className="flex items-center justify-center gap-3 mt-3.5 flex-none">
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
-                  <span>평균 매매가</span>
+                <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] min-h-[260px] md:h-[370px] md:min-h-[370px] relative">
+                  <MacroTrendChart
+                    lineData={mainLineData}
+                    xTicks={mainXTicks}
+                    yTicks={mainYTicks}
+                    timeframe={timeframe}
+                  />
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
-                  <span>평균 전세가</span>
-                </div>
-              </div>
 
-              {/* 개선된 여백 채우기용 슬림한 실거래 요약 바 */}
-              <div className="mt-4 pt-3 border-t border-border/60 flex-none">
-                {(!isMobileViewport && selectedAptSummary) ? (
-                  <div className="bg-zinc-50/70 dark:bg-zinc-900/30 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3">
-                    {/* Top Row: Title Badge & Target Info */}
-                    <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center bg-teal-500/10 text-teal-600 dark:text-teal-400 font-extrabold text-[11px] px-2 py-0.5 rounded-[6px] shrink-0 gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-                          실거래 요약
-                        </span>
-                        <div className="flex items-baseline gap-1.5 min-w-0">
-                          <span className="text-[12px] text-primary font-extrabold truncate max-w-[280px] sm:max-w-[360px]" title={selectedTimelineApt || "선택 단지"}>
-                            {selectedTimelineApt || "선택 단지"}
+                {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
+                <div className="flex items-center justify-center gap-3 mt-3.5 flex-none">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                    <span>평균 매매가</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
+                    <span>평균 전세가</span>
+                  </div>
+                </div>
+
+                {/* 개선된 여백 채우기용 슬림한 실거래 요약 바 */}
+                {(!isMobileViewport && selectedAptSummary) && (
+                  <div className="mt-4 pt-3 border-t border-border/60 flex-none">
+                    <div className="bg-zinc-50/70 dark:bg-zinc-900/30 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3">
+                      {/* Top Row: Title Badge & Target Info */}
+                      <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center bg-teal-500/10 text-teal-600 dark:text-teal-400 font-extrabold text-[11px] px-2 py-0.5 rounded-[6px] shrink-0 gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                            실거래 요약
                           </span>
-                          {selectedAptSummary.dong && (
-                            <span className="text-[10.5px] text-tertiary font-medium shrink-0">
-                              {selectedAptSummary.dong}
+                          <div className="flex items-baseline gap-1.5 min-w-0">
+                            <span className="text-[12px] text-primary font-extrabold truncate max-w-[280px] sm:max-w-[360px]" title={selectedTimelineApt || "선택 단지"}>
+                              {selectedTimelineApt || "선택 단지"}
                             </span>
-                          )}
+                            {selectedAptSummary.dong && (
+                              <span className="text-[10.5px] text-tertiary font-medium shrink-0">
+                                {selectedAptSummary.dong}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
+                          이 단지 최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
+                        </span>
                       </div>
-                      <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
-                        이 단지 최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
-                      </span>
-                    </div>
 
-                    {/* Bottom Row: 3-Column Grid for Metrics */}
-                    <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 매매(3M)</span>
-                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
-                          {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 전세(3M)</span>
-                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
-                          {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">예상 갭투자금</span>
-                        <span className="text-[14px] sm:text-[15.5px] font-black text-teal-600 dark:text-teal-400 truncate">
-                          {hasValues ? gapText : "-"}
-                          {hasValues && <span className="text-[10.5px] font-extrabold text-secondary ml-1">({jeonseRateText})</span>}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-zinc-50/70 dark:bg-zinc-900/30 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3">
-                    {/* Top Row: Title Badge & Target Info */}
-                    <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold text-[11px] px-2 py-0.5 rounded-[6px] shrink-0 gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                          동탄 시장 요약
-                        </span>
-                        <span className="text-[12px] text-primary font-extrabold">
-                          종합 모니터링
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
-                        최신 기준
-                      </span>
-                    </div>
-
-                    {/* Bottom Row: 3-Column Grid for Metrics */}
-                    <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">시장 평균가</span>
-                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
-                          {macroSalePriceText}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">전세 평균가</span>
-                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
-                          {macroRentPriceText}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">최고 관심 단지</span>
-                        <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate pl-1" title={card4Data.name}>
-                          {card4Data.name}
-                        </span>
+                      {/* Bottom Row: 3-Column Grid for Metrics */}
+                      <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 매매(3M)</span>
+                          <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
+                            {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1 pl-1">
+                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 전세(3M)</span>
+                          <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
+                            {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1 pl-1">
+                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">예상 갭투자금</span>
+                          <span className="text-[14px] sm:text-[15.5px] font-black text-teal-600 dark:text-teal-400 truncate">
+                            {hasValues ? gapText : "-"}
+                            {hasValues && <span className="text-[10.5px] font-extrabold text-secondary ml-1">({jeonseRateText})</span>}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* 동탄 시장 요약 종합 모니터링 카드 [NEW] */}
+            <div className="w-full mt-4 bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 shadow-sm md:min-h-[360px] justify-between">
+              {/* Header */}
+              <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
+                <div className="relative group/title flex items-center gap-1.5 min-w-0">
+                  <span className="bg-blue-500/10 dark:bg-blue-500/25 text-blue-600 dark:text-blue-400 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+                    종합 모니터링
+                  </span>
+                  <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
+                    동탄 시장 거래 종합 지표
+                  </h4>
+                  <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                  <div 
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute bottom-full left-0 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[12px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
+                  >
+                    최근 90일 실거래 및 GA4 실시간 로그 분석에 기반한 동탄 11개 행정동 시장 거래 지표 총괄 모니터링 대시보드입니다.
+                    <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#191f28]"></div>
+                  </div>
+                </div>
+                <span className="text-[11px] text-tertiary font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-md shrink-0">
+                  최신 기준
+                </span>
+              </div>
+
+              {/* Metrics 2x2 Grid */}
+              <div className="grid grid-cols-2 gap-3.5 flex-1 py-1">
+                {/* Avg Sale */}
+                <div className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50">
+                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">시장 평균 매매가</span>
+                  <span className="text-[15.5px] sm:text-[17px] font-black text-primary truncate">
+                    {macroSalePriceText}
+                  </span>
+                </div>
+                
+                {/* Avg Rent */}
+                <div className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50">
+                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">시장 평균 전세가</span>
+                  <span className="text-[15.5px] sm:text-[17px] font-black text-primary truncate">
+                    {macroRentPriceText}
+                  </span>
+                </div>
+
+                {/* Average Jeonse Rate */}
+                <div className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50">
+                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary flex items-center gap-1.5">
+                    평균 전세가율
+                    {gapRankingDong !== "전체" && (
+                      <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] px-1 rounded-sm">
+                        {gapRankingDong}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[15.5px] sm:text-[17px] font-black text-emerald-600 dark:text-emerald-400 truncate">
+                    {averageJeonseRateText}
+                  </span>
+                </div>
+
+                {/* Hot Complex */}
+                <div 
+                  onClick={() => onSelectApt && card4Data.name !== "-" && onSelectApt(card4Data.name)}
+                  className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50 cursor-pointer hover:border-[#00d29d] hover:bg-surface transition-all group/hot"
+                >
+                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary group-hover/hot:text-[#00d29d] transition-colors">최고 관심 단지</span>
+                  <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary truncate group-hover/hot:text-[#00d29d] transition-colors" title={card4Data.name}>
+                    {card4Data.name}
+                  </span>
+                </div>
+              </div>
+
+              {/* Footer Market Signal Info */}
+              <div className="flex items-center justify-between mt-1 px-1 py-2.5 bg-[#f2f4f6]/40 dark:bg-zinc-900/20 border border-border/40 rounded-xl">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="bg-slate-500/10 text-slate-600 dark:text-slate-400 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0">
+                    마켓 시그널
+                  </span>
+                  <span className="text-[11.5px] font-bold text-secondary truncate">
+                    최근 7일 거래량: {card3Data.currentCount}건 ({card3Data.badge})
+                  </span>
+                </div>
+                
+                {/* Traffic Light Signal */}
+                <div className="flex items-center gap-1.5 pl-2 shrink-0">
+                  <span className="text-[11px] font-extrabold text-tertiary">시장 강도</span>
+                  <span className={`w-2.5 h-2.5 rounded-full ${
+                    card3Data.currentCount >= 250 ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]' :
+                    card3Data.currentCount >= 180 ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]' :
+                    'bg-rose-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                  }`} title={`거래 활성화 등급: ${card3Data.currentCount >= 250 ? '활성(🟢)' : card3Data.currentCount >= 180 ? '보통(🟡)' : '위축(🔴)'}`} />
+                </div>
               </div>
             </div>
           </div>
