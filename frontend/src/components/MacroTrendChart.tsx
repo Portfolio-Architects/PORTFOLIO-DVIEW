@@ -122,7 +122,7 @@ const formatXAxisTick = (value: string) => {
   return value;
 };
 
-export default function MacroTrendChart({
+const MacroTrendChart = React.memo(function MacroTrendChart({
   lineData,
   xTicks,
   yTicks,
@@ -271,4 +271,6 @@ export default function MacroTrendChart({
       </AreaChart>
     </ResponsiveContainer>
   );
-}
+});
+
+export default MacroTrendChart;

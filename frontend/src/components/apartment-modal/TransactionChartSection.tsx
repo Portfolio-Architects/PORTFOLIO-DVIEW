@@ -32,7 +32,7 @@ interface TransactionChartSectionProps {
   txSummary?: AptTxSummary;
 }
 
-export function TransactionChartSection({
+export const TransactionChartSection = React.memo(function TransactionChartSection({
   transactions,
   chartType,
   setChartType,
@@ -604,4 +604,4 @@ export function TransactionChartSection({
       </div>
     </div>
   );
-}
+});

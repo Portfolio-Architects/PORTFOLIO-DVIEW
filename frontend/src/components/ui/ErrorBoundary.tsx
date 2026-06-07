@@ -26,6 +26,25 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error, showDetails: false };
   }
 
+  public componentDidMount() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.handleOnline);
+    }
+  }
+
+  public componentWillUnmount() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.handleOnline);
+    }
+  }
+
+  private handleOnline = () => {
+    if (this.state.hasError) {
+      console.log(`[ErrorBoundary:${this.props.name || 'Global'}] Network restored. Triggering self-healing auto-recovery...`);
+      this.handleReset();
+    }
+  };
+
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(`[ErrorBoundary:${this.props.name || 'Global'}] Caught error:`, error, errorInfo);
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { Sparkles, Share2, Check, ChevronRight, TrendingUp } from 'lucide-react';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/types/transaction';
@@ -250,6 +250,10 @@ export default function AIRecommendations({
   const [quizAnswers, setQuizAnswers] = useState<QuizAnswer | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
+  // Defer updates of viewed history and quiz answers to maintain 60fps interaction speed
+  const deferredViewedApts = useDeferredValue(viewedApts);
+  const deferredQuizAnswers = useDeferredValue(quizAnswers);
+
   useEffect(() => {
     const loadViewed = () => {
       try {
@@ -281,12 +285,12 @@ export default function AIRecommendations({
   const recommendationResult = useMemo(() => {
     const refsSet = new Set<string>();
     userFavorites.forEach(x => refsSet.add(x));
-    viewedApts.forEach(x => refsSet.add(x));
+    deferredViewedApts.forEach(x => refsSet.add(x));
 
     const allApts = Object.values(sheetApartments).flat();
 
     // If no history and no quiz answers exist, output fallback popular complexes
-    if (refsSet.size === 0 && !quizAnswers) {
+    if (refsSet.size === 0 && !deferredQuizAnswers) {
       const fallbackNames = ['동탄역더샵센트럴시티', '동탄역시범우남퍼스트빌', '동탄호수공원하우스디더레이크'];
       const items = fallbackNames.map((name, index) => {
         const apt = allApts.find(a => normalizeAptName(a.name) === normalizeAptName(name));
@@ -476,30 +480,30 @@ export default function AIRecommendations({
 
       // 2. Calculate Quiz-based Preference Score
       let quizScoreNormalized = 0;
-      if (quizAnswers) {
-        const quizRawScore = calculateQuizScore(apt, m, jeonseRatio, price, quizAnswers);
+      if (deferredQuizAnswers) {
+        const quizRawScore = calculateQuizScore(apt, m, jeonseRatio, price, deferredQuizAnswers);
         quizScoreNormalized = Math.min(99, Math.max(50, Math.round((quizRawScore / 145) * 100)));
       }
 
       // 3. Merge Scores using Hybrid Weights
       let finalScore = 50;
-      if (hasHistory && quizAnswers) {
+      if (hasHistory && deferredQuizAnswers) {
         // Hybrid weighting (50% history, 50% quiz)
         finalScore = Math.round(historyScoreNormalized * 0.5 + quizScoreNormalized * 0.5);
-      } else if (quizAnswers) {
+      } else if (deferredQuizAnswers) {
         finalScore = quizScoreNormalized;
       } else if (hasHistory) {
         finalScore = historyScoreNormalized;
       }
 
       // Phase 101: Risk integration penalties and bonuses
-      if (quizAnswers) {
-        if (quizAnswers.investmentStyle === 'gap') {
+      if (deferredQuizAnswers) {
+        if (deferredQuizAnswers.investmentStyle === 'gap') {
           if (isJeonseRisk) finalScore -= 15;
           else if (isJeonseWarning) finalScore -= 5;
           
           if (isLiquidityRisk) finalScore -= 8;
-        } else if (quizAnswers.investmentStyle === 'residence') {
+        } else if (deferredQuizAnswers.investmentStyle === 'residence') {
           if (isVolatilitySafe) finalScore += 8;
         }
       } else if (hasHistory) {
@@ -513,28 +517,28 @@ export default function AIRecommendations({
       let reason = '선호하시는 가격대와 연식 조건에 부합하는 균형 잡힌 단지입니다.';
       let tag = '선호매치';
 
-      if (quizAnswers) {
-        if (quizAnswers.family === 'elementary' && (m.distanceToElementary ?? 350) <= 250) {
+      if (deferredQuizAnswers) {
+        if (deferredQuizAnswers.family === 'elementary' && (m.distanceToElementary ?? 350) <= 250) {
           reason = '자녀의 안전한 도보 등하교를 보장하는 단지 직결 안심 초품아 단지입니다.';
           tag = '초품아';
-        } else if (quizAnswers.transit === 'gtx' && (m.distanceToSubway ?? 2000) <= 700) {
+        } else if (deferredQuizAnswers.transit === 'gtx' && (m.distanceToSubway ?? 2000) <= 700) {
           reason = '동탄역 GTX-A 및 SRT 광역 노선 도보 이용이 편리한 역세권 대단지입니다.';
           tag = '광역역세';
-        } else if (quizAnswers.lifestyle === 'nature' && (m.distanceToPark ?? 9999) <= 300) {
+        } else if (deferredQuizAnswers.lifestyle === 'nature' && (m.distanceToPark ?? 9999) <= 300) {
           reason = '도보 거리 내 호수공원 및 대형 조경 녹지가 인접해 쾌적한 웰빙 입지입니다.';
           tag = '공세권';
-        } else if (quizAnswers.investmentStyle === 'gap' && jeonseRatio >= 70) {
+        } else if (deferredQuizAnswers.investmentStyle === 'gap' && jeonseRatio >= 70) {
           reason = '높은 전세가율로 예상 필요 갭이 최소화되는 실투자성 우수 단지입니다.';
           tag = '갭투자';
-        } else if (quizAnswers.yearBuilt === 'new' && (m.yearBuilt ?? 2018) >= 2021) {
+        } else if (deferredQuizAnswers.yearBuilt === 'new' && (m.yearBuilt ?? 2018) >= 2021) {
           reason = '신축 5년 이내의 준공 연식으로 커뮤니티와 주차 인프라가 우수한 단지입니다.';
           tag = '최신축';
-        } else if (quizAnswers.budget !== 'unlimited' && price > 0) {
+        } else if (deferredQuizAnswers.budget !== 'unlimited' && price > 0) {
           let budgetLimit = 999999;
-          if (quizAnswers.budget === '3eok') budgetLimit = 33000;
-          else if (quizAnswers.budget === '5eok') budgetLimit = 63000;
-          else if (quizAnswers.budget === '8eok') budgetLimit = 93000;
-          else if (quizAnswers.budget === '12eok') budgetLimit = 145000;
+          if (deferredQuizAnswers.budget === '3eok') budgetLimit = 33000;
+          else if (deferredQuizAnswers.budget === '5eok') budgetLimit = 63000;
+          else if (deferredQuizAnswers.budget === '8eok') budgetLimit = 93000;
+          else if (deferredQuizAnswers.budget === '12eok') budgetLimit = 145000;
           
           if (price <= budgetLimit) {
             reason = '설정하신 매수 가용 예산 범위에 꼭 맞춘 실속형 추천 단지입니다.';
@@ -589,7 +593,7 @@ export default function AIRecommendations({
 
     const sorted = scoredCandidates.sort((a, b) => b.score - a.score).slice(0, 3);
     return { items: sorted, isFallback: false };
-  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, fieldReportsMap, userFavorites, viewedApts, quizAnswers]);
+  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, fieldReportsMap, userFavorites, deferredViewedApts, deferredQuizAnswers]);
 
   const handleShare = () => {
     if (recommendationResult.items.length < 3) return;

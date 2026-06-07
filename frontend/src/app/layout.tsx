@@ -10,6 +10,7 @@ const pretendard = localFont({
   variable: '--font-sans',
 });
 import OfflineBanner from '@/components/OfflineBanner';
+import SWRProvider from '@/components/pwa/SWRProvider';
 import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
@@ -106,62 +107,76 @@ export default async function RootLayout({
           nonce={nonce}
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SettingsProvider>
-            <AuthProvider>
-              {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
-              <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
-                if ('serviceWorker' in navigator) {
-                  if ('${process.env.NODE_ENV}' === 'development') {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                      for(let registration of registrations) {
-                        registration.unregister();
+          <SWRProvider>
+            <SettingsProvider>
+              <AuthProvider>
+                {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
+                <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
+                  if ('serviceWorker' in navigator) {
+                    if ('${process.env.NODE_ENV}' === 'development') {
+                      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for(let registration of registrations) {
+                          registration.unregister();
+                        }
+                      });
+                    } else {
+                      window.addEventListener('load', function() {
+                        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                          console.log('ServiceWorker registration failed: ', err);
+                        });
+                      });
+                    }
+                  }
+                `}} />
+                
+                {/* 🔧 ResizeObserver loop error shield to prevent janks in charts */}
+                <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
+                  if (typeof window !== 'undefined') {
+                    window.addEventListener('error', function(e) {
+                      if (e && (e.message === 'ResizeObserver loop limit exceeded' || e.message === 'ResizeObserver loop completed with undelivered notifications.' || (e.reason && e.reason.message && e.reason.message.includes('ResizeObserver')))) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
                       }
                     });
-                  } else {
-                    window.addEventListener('load', function() {
-                      navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                        console.log('ServiceWorker registration failed: ', err);
-                      });
-                    });
                   }
-                }
-              `}} />
-              <NextTopLoader color="#00d29d" showSpinner={false} />
-              <PWAProvider>
-                <InAppBrowserBypass />
-                <OfflineBanner />
-                <SiteTracker />
-                <div className="flex-1 flex flex-col">
-                  {children}
-                </div>
-                <Footer />
-                <CustomA2HSModal />
-                <WelcomeModal />
-              </PWAProvider>
-              <div id="modal-root" />
-              <SettingsModal />
-              
-              {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
-              {process.env.NEXT_PUBLIC_GA_ID && (
-                <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-              )}
-              
-              {/* Google AdSense Script (Only renders if NEXT_PUBLIC_ADSENSE_CLIENT_ID exists) */}
-              {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
-                <script
-                  async
-                  src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
-                  crossOrigin="anonymous"
-                  nonce={nonce}
-                />
-              )}
+                `}} />
+                <NextTopLoader color="#00d29d" showSpinner={false} />
+                <PWAProvider>
+                  <InAppBrowserBypass />
+                  <OfflineBanner />
+                  <SiteTracker />
+                  <div className="flex-1 flex flex-col">
+                    {children}
+                  </div>
+                  <Footer />
+                  <CustomA2HSModal />
+                  <WelcomeModal />
+                </PWAProvider>
+                <div id="modal-root" />
+                <SettingsModal />
+                
+                {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
+                {process.env.NEXT_PUBLIC_GA_ID && (
+                  <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+                )}
+                
+                {/* Google AdSense Script (Only renders if NEXT_PUBLIC_ADSENSE_CLIENT_ID exists) */}
+                {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+                  <script
+                    async
+                    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+                    crossOrigin="anonymous"
+                    nonce={nonce}
+                  />
+                )}
 
-              {/* Mobile Bottom Sticky Anchor Ad (Renders in production if AdSense client ID exists, or in dev mode for preview) */}
-              {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'development') && (
-                <MobileBottomAd adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR || "test-anchor-slot"} />
-              )}
-            </AuthProvider>
-          </SettingsProvider>
+                {/* Mobile Bottom Sticky Anchor Ad (Renders in production if AdSense client ID exists, or in dev mode for preview) */}
+                {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'development') && (
+                  <MobileBottomAd adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR || "test-anchor-slot"} />
+                )}
+              </AuthProvider>
+            </SettingsProvider>
+          </SWRProvider>
         </ThemeProvider>
       </body>
     </html>

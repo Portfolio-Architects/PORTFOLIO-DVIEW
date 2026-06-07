@@ -30,21 +30,21 @@ export default function OfflineBanner() {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 px-4 text-[13px] font-bold transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 px-4 text-[13px] md:text-[13.5px] font-extrabold shadow-sm border-b backdrop-blur-md transition-all duration-300 animate-in slide-in-from-top ${
         isOnline
-          ? 'bg-toss-green text-surface animate-in slide-in-from-top'
-          : 'bg-[#333d4b] text-surface animate-in slide-in-from-top'
+          ? 'bg-[#e0fbf4]/90 dark:bg-[#003829]/80 text-[#00b386] dark:text-[#00d29d] border-[#00d29d]/15 dark:border-[#00d29d]/25'
+          : 'bg-rose-50/95 dark:bg-rose-950/85 text-[#df223b] dark:text-[#f87171] border-rose-100 dark:border-rose-900/30'
       }`}
     >
       {isOnline ? (
         <>
-          <Wifi size={15} />
+          <Wifi size={15} strokeWidth={2.5} />
           네트워크가 다시 연결되었습니다
         </>
       ) : (
         <>
-          <WifiOff size={15} />
-          오프라인 상태입니다 — 일부 기능이 제한됩니다
+          <WifiOff size={15} strokeWidth={2.5} />
+          오프라인 상태입니다 — 일부 기능이 제한될 수 있습니다
         </>
       )}
     </div>

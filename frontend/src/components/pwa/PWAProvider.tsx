@@ -79,6 +79,25 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
 
+    // 🔧 Multi-tab LocalStorage synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dview_quiz_answers') {
+        window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+      } else if (e.key === 'dview_viewed_apts') {
+        window.dispatchEvent(new Event('dview_viewed_apts_changed'));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // 🔧 Multi-tab Service Worker lifecycle update synchronization
+    const handleControllerChange = () => {
+      console.log('[PWAProvider] Service Worker controller changed. Reloading page to apply updates...');
+      window.location.reload();
+    };
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    }
+
     // 1. A2HS Logic
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -117,6 +136,10 @@ export function PWAProvider({ children }: { children: ReactNode }) {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('storage', handleStorageChange);
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      }
     };
   }, []);
 
