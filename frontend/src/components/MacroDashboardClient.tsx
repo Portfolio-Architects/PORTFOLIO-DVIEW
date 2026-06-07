@@ -124,6 +124,7 @@ interface InfoBoxProps {
   color?: string;
   description?: React.ReactNode;
   onClick?: () => void;
+  className?: string;
 }
 
 const InfoBox = ({
@@ -134,6 +135,7 @@ const InfoBox = ({
   color = "#00d29d",
   description,
   onClick,
+  className,
 }: InfoBoxProps) => {
   const cardStyle = {
     "--card-color": color,
@@ -154,7 +156,7 @@ const InfoBox = ({
         onClick
           ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.01] hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_12px_24px_var(--card-glow)] dark:hover:shadow-[0_12px_32px_var(--card-glow-dark)] active:scale-[0.98]"
           : "cursor-default"
-      }`}
+      } ${className || ""}`}
       style={cardStyle}
     >
       {/* Background glow wrapper to clip the glow blob while keeping tooltip visible */}
@@ -429,6 +431,7 @@ export default function MacroDashboardClient({
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
@@ -1040,6 +1043,93 @@ export default function MacroDashboardClient({
     };
   }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping]);
 
+  // 동탄 갭투자 Top 5 계산 (필터링 및 리스크 포함)
+  const gapInvestmentTop5 = useMemo(() => {
+    if (!sheetApartments || !txSummaryData) return [];
+
+    const allApts = Object.values(sheetApartments).flat();
+    const result: Array<{
+      name: string;
+      dong: string;
+      gap: number;
+      gapText: string;
+      jeonseRate: number;
+      jeonseRateText: string;
+      avgSale: number;
+      avgRent: number;
+      risks: {
+        reverseJeonse: 'safe' | 'warning' | 'danger';
+        liquidity: 'safe' | 'warning' | 'danger';
+        volatility: 'safe' | 'warning' | 'danger';
+      }
+    }> = [];
+
+    allApts.forEach((apt) => {
+      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
+      if (gapRankingDong !== "전체" && apt.dong !== gapRankingDong) return;
+
+      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+      if (txKey && txSummaryData[txKey]) {
+        const sum = txSummaryData[txKey];
+        const avgSale = sum.avg3MPrice || sum.latestPrice || 0;
+        const avgRent = sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+
+        if (avgSale > 0 && avgRent > 0) {
+          const rate = (avgRent / avgSale) * 100;
+          if (rate > 50 && rate < 98) {
+            const gapVal = avgSale - avgRent;
+            const fmtGap = formatEokWithUnit(gapVal);
+            const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
+
+            // 3대 리스크 판정
+            // 1) 역전세 리스크
+            let reverseJeonse: 'safe' | 'warning' | 'danger' = 'safe';
+            if (rate >= 80) reverseJeonse = 'danger';
+            else if (rate >= 70) reverseJeonse = 'warning';
+
+            // 2) 유동성 리스크 (3개월 거래수 기준)
+            const vol3M = sum.avg3MTxCount || 0;
+            let liquidity: 'safe' | 'warning' | 'danger' = 'safe';
+            if (vol3M <= 2) liquidity = 'danger';
+            else if (vol3M <= 5) liquidity = 'warning';
+
+            // 3) 가격 변동성 리스크 (세대수 기준)
+            const household = apt.householdCount || 0;
+            let volatility: 'safe' | 'warning' | 'danger' = 'safe';
+            if (household < 500) volatility = 'danger';
+            else if (household < 1000) volatility = 'warning';
+
+            result.push({
+              name: apt.name,
+              dong: apt.dong,
+              gap: gapVal,
+              gapText: `${fmtGap.value}${gapUnitStr}`,
+              jeonseRate: rate,
+              jeonseRateText: `${rate.toFixed(1)}%`,
+              avgSale,
+              avgRent,
+              risks: {
+                reverseJeonse,
+                liquidity,
+                volatility
+              }
+            });
+          }
+        }
+      }
+    });
+
+    // 정렬: 전세가율 높은 순 -> 갭 금액 적은 순
+    return result
+      .sort((a, b) => {
+        if (Math.abs(b.jeonseRate - a.jeonseRate) > 0.01) {
+          return b.jeonseRate - a.jeonseRate;
+        }
+        return a.gap - b.gap;
+      })
+      .slice(0, 5);
+  }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping, gapRankingDong]);
+
 
 
   // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
@@ -1628,8 +1718,8 @@ interface GroupedCategory {
               )}
             </div>
 
-            {/* 4 Info Boxes Grid */}
-            <div className="grid grid-cols-2 gap-3 mt-2">
+            {/* 3 Info Boxes Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
               <InfoBox
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
@@ -1728,33 +1818,129 @@ interface GroupedCategory {
                     onSelectApt(card4Data.name);
                   }
                 }}
+                className="col-span-2 md:col-span-1"
               />
-              <InfoBox
-                title={
-                  <div className="relative group/title flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">
-                      동탄 갭투자 1위 단지
-                    </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                    >
-                      최근 3개월 실거래 데이터 기준, 동탄 지역에서 전세가율이 가장 높고 소액 갭투자가 용이한 1위 단지를 분석한 결과입니다.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
-                    </div>
+            </div>
+
+            {/* 동탄 실거래 소액 갭투자 Top 5 랭킹 위젯 */}
+            <div className="w-full mt-4 bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-3 relative shadow-sm">
+              {/* Header */}
+              <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
+                <div className="relative group/title flex items-center gap-1.5 min-w-0">
+                  <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
+                    동탄 실거래 소액 갭투자 Top 5
+                  </h4>
+                  <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
+                  <div 
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute bottom-full left-0 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[12px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
+                  >
+                    최근 3개월 매매/전세 실거래가 기준, 전세가율이 높고 소액 갭투자가 가장 용이한 단지 순위입니다. (LTV 50%~98% 기준)
+                    <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#191f28]"></div>
                   </div>
-                }
-                value={gapInvestment1st.name}
-                badge={gapInvestment1st.gapText}
-                description={gapInvestment1st.jeonseRateText}
-                color="#0d9488"
-                onClick={() => {
-                  if (onSelectApt && gapInvestment1st.name && gapInvestment1st.name !== "-") {
-                    onSelectApt(gapInvestment1st.name);
-                  }
-                }}
-              />
+                </div>
+
+                {/* Dong Selector Dropdown */}
+                <select
+                  value={gapRankingDong}
+                  onChange={(e) => setGapRankingDong(e.target.value)}
+                  className="bg-body border border-border/85 focus:border-[#00d29d] rounded-xl px-2 py-0.5 text-[11px] font-extrabold text-primary outline-none cursor-pointer hover:bg-neutral-50 dark:hover:bg-zinc-900/50 transition-colors shrink-0"
+                  aria-label="행정동 필터"
+                >
+                  <option value="전체">전체 동탄</option>
+                  <option value="청계동">청계동</option>
+                  <option value="영천동">영천동</option>
+                  <option value="오산동">오산동</option>
+                  <option value="반송동">반송동</option>
+                  <option value="석우동">석우동</option>
+                  <option value="능동">능동</option>
+                  <option value="송동">송동</option>
+                  <option value="산척동">산척동</option>
+                  <option value="목동">목동</option>
+                  <option value="장지동">장지동</option>
+                  <option value="신동">신동</option>
+                  <option value="방교동">방교동</option>
+                  <option value="금곡동">금곡동</option>
+                </select>
+              </div>
+
+              {/* Ranking List */}
+              <div className="flex flex-col gap-1 mt-1">
+                {gapInvestmentTop5.length === 0 ? (
+                  <div className="text-center py-6 text-tertiary text-[12.5px] font-medium">
+                    해당 지역 내 최근 3개월 실거래 데이터가 없습니다.
+                  </div>
+                ) : (
+                  gapInvestmentTop5.map((item, idx) => (
+                    <div
+                      key={item.name}
+                      onClick={() => onSelectApt && onSelectApt(item.name)}
+                      className="flex items-center justify-between py-2 px-2 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30"
+                    >
+                      {/* Left: Rank & Complex Name */}
+                      <div className="flex items-center gap-2.5 min-w-0 mr-3">
+                        <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10.5px] font-black tracking-tight shrink-0 shadow-sm ${
+                          idx === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-amber-500/20' :
+                          idx === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-400/20' :
+                          idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-amber-700/20' :
+                          'bg-neutral-100 dark:bg-neutral-800 text-tertiary font-bold'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <div className="flex items-baseline min-w-0">
+                          <span className="text-[13px] font-black text-primary group-hover/item:text-[#00d29d] transition-colors truncate">
+                            {item.name}
+                          </span>
+                          <span className="text-[10.5px] text-tertiary font-bold ml-1.5 shrink-0">
+                            {item.dong}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Metrics & Risk Indicators */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        {/* Gap Price Badge */}
+                        <span className="bg-emerald-500/10 dark:bg-emerald-500/25 text-[#00b386] dark:text-[#00d29d] font-black text-[11px] px-2 py-0.5 rounded-lg shrink-0">
+                          갭 {item.gapText}
+                        </span>
+                        
+                        {/* Jeonse Rate */}
+                        <span className="text-[11.5px] font-bold text-secondary shrink-0 hidden sm:inline">
+                          전세율 {item.jeonseRateText}
+                        </span>
+
+                        {/* 3-Axis Risk Micro traffic lights */}
+                        <div className="flex items-center gap-2 border-l border-border/60 pl-3 shrink-0">
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-tertiary">
+                            <span>역</span>
+                            <span className={`w-2 h-2 rounded-full inline-block ${
+                              item.risks.reverseJeonse === 'danger' ? 'bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' :
+                              item.risks.reverseJeonse === 'warning' ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]' :
+                              'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]'
+                            }`} title={`역전세 리스크: ${item.risks.reverseJeonse === 'danger' ? '위험' : item.risks.reverseJeonse === 'warning' ? '주의' : '안전'}`} />
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-tertiary">
+                            <span>유</span>
+                            <span className={`w-2 h-2 rounded-full inline-block ${
+                              item.risks.liquidity === 'danger' ? 'bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' :
+                              item.risks.liquidity === 'warning' ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]' :
+                              'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]'
+                            }`} title={`유동성 리스크: ${item.risks.liquidity === 'danger' ? '위험' : item.risks.liquidity === 'warning' ? '주의' : '안전'}`} />
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-tertiary">
+                            <span>변</span>
+                            <span className={`w-2 h-2 rounded-full inline-block ${
+                              item.risks.volatility === 'danger' ? 'bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' :
+                              item.risks.volatility === 'warning' ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]' :
+                              'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]'
+                            }`} title={`변동성 리스크: ${item.risks.volatility === 'danger' ? '위험' : item.risks.volatility === 'warning' ? '주의' : '안전'}`} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
           </div>
