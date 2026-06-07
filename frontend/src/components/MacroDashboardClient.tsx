@@ -64,7 +64,7 @@ interface LocalNoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
-  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
 interface MacroDashboardProps {
@@ -338,6 +338,28 @@ export default function MacroDashboardClient({
       const titleLower = (n.title || '').toLowerCase();
       return keywords.some(kw => titleLower.includes(kw));
     });
+  }, [noticesData]);
+
+  const nextCultureEvent = useMemo(() => {
+    if (!noticesData?.notices) return null;
+    const cultureNotices = noticesData.notices.filter((n: any) => n.source === 'culture');
+    if (cultureNotices.length === 0) return null;
+    
+    const today = new Date('2026-06-07');
+    today.setHours(0, 0, 0, 0);
+    
+    const upcoming = cultureNotices
+      .map((n: any) => {
+        const target = new Date(n.date);
+        target.setHours(0, 0, 0, 0);
+        const diff = target.getTime() - today.getTime();
+        const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        return { notice: n, diffDays };
+      })
+      .filter((item: any) => item.diffDays >= 0)
+      .sort((a: any, b: any) => a.diffDays - b.diffDays);
+      
+    return upcoming[0] || null;
   }, [noticesData]);
 
   const renderAreaLabel = (areaPyeong: number, area?: number) => {
@@ -1634,14 +1656,14 @@ interface GroupedCategory {
                 title={
                   <div className="relative group/title flex items-center gap-1 w-full">
                     <span className="break-keep whitespace-nowrap tracking-tight">
-                      동탄 철도교통 소식
+                      동탄 루나쇼 & 문화 행사
                     </span>
                     <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                     >
-                      동탄 지역의 GTX-A, 트램, 인동선, SRT 등 주요 철도 및 대중교통 관련 고시/공고 및 뉴스 소식입니다.
+                      동탄호수공원 루나쇼 일정 및 여울공원 버스킹, 신리천 어린이 축제 등 하이퍼로컬 행사 D-Day 스케줄러입니다.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
                     </div>
                   </div>
@@ -1649,33 +1671,33 @@ interface GroupedCategory {
                 value={
                   noticesLoading ? (
                     <span className="inline-block h-5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
-                  ) : noticesError || noticesData?.error ? (
-                    "정보 로드 실패"
+                  ) : noticesError || !nextCultureEvent ? (
+                    "진행 행사 없음"
                   ) : (
-                    `신규 소식 ${railNotices.length || 0}건`
+                    nextCultureEvent.diffDays === 0 ? "오늘 개최!" : `행사 D-${nextCultureEvent.diffDays}`
                   )
                 }
                 badge={
                   noticesLoading ? (
                     <span className="inline-block h-3.5 w-12 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
-                  ) : noticesError || noticesData?.error ? (
-                    "점검 중"
+                  ) : noticesError || !nextCultureEvent ? (
+                    "축제·문화"
                   ) : (
-                    railNotices[0]?.dept || "철도교통"
+                    nextCultureEvent.notice.dept || "동탄호수공원"
                   )
                 }
                 description={
                   noticesLoading ? (
                     <span className="inline-block h-3 w-36 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mt-0.5" />
-                  ) : noticesError || noticesData?.error ? (
-                    "소식을 불러올 수 없습니다"
+                  ) : noticesError || !nextCultureEvent ? (
+                    "새로운 문화 행사가 없습니다"
                   ) : (
-                    railNotices[0]?.title || "새로운 철도교통 소식이 없습니다"
+                    nextCultureEvent.notice.title || "행사 예정"
                   )
                 }
-                color="#00d29d"
+                color="#10b981"
                 onClick={() => {
-                  window.location.hash = '#lounge-notices-rail';
+                  window.location.href = '/lounge#lounge-notices-culture';
                 }}
               />
               <InfoBox

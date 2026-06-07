@@ -5,8 +5,9 @@ import { Sparkles, Share2, Check, ChevronRight, TrendingUp } from 'lucide-react'
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
-import { findTxKey, normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { findTxKey, normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
+import { getBrandMultiplier } from '@/lib/utils/scoring';
 
 interface AIRecommendationsProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -93,6 +94,147 @@ function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undef
   };
 }
 
+interface QuizAnswer {
+  budget: string;
+  family: string;
+  transit: string;
+  lifestyle: string;
+  scaleBrand: string;
+  yearBuilt: string;
+  investmentStyle: string;
+}
+
+function calculateQuizScore(
+  apt: DongApartment,
+  m: any,
+  jeonseRatio: number,
+  salesPrice: number,
+  answers: QuizAnswer
+): number {
+  let score = 35; // baseline
+
+  // 1. Budget Question Matching (Total: 25pts)
+  if (salesPrice > 0) {
+    if (answers.budget === '3eok') {
+      if (salesPrice <= 33000) score += 25;
+      else if (salesPrice <= 40000) score += 10;
+      else score -= 15;
+    } else if (answers.budget === '5eok') {
+      if (salesPrice > 30000 && salesPrice <= 63000) score += 25;
+      else if (salesPrice > 25000 && salesPrice <= 70000) score += 12;
+      else score -= 10;
+    } else if (answers.budget === '8eok') {
+      if (salesPrice > 60000 && salesPrice <= 93000) score += 25;
+      else if (salesPrice > 50000 && salesPrice <= 105000) score += 12;
+      else score -= 10;
+    } else if (answers.budget === '12eok') {
+      if (salesPrice > 90000 && salesPrice <= 145000) score += 25;
+      else if (salesPrice > 80000 && salesPrice <= 165000) score += 12;
+      else score -= 10;
+    } else if (answers.budget === 'unlimited') {
+      if (salesPrice > 140000) score += 25;
+      else if (salesPrice > 110000) score += 15;
+      else score += 5;
+    }
+  } else {
+    score += 12; // neutral fallback
+  }
+
+  // 2. Family Question Matching (Total: 20pts)
+  if (answers.family === 'baby') {
+    if ((m.distanceToPark ?? 9999) <= 400) score += 10;
+    if (m.parkingPerHousehold >= 1.3) score += 5;
+    if (m.householdCount >= 1000) score += 5;
+  } else if (answers.family === 'elementary') {
+    if (m.distanceToElementary <= 250) score += 20;
+    else if (m.distanceToElementary <= 450) score += 12;
+    else if (m.distanceToElementary <= 800) score += 5;
+  } else if (answers.family === 'middleHigh') {
+    if (m.academyDensity >= 50) score += 20;
+    else if (m.academyDensity >= 25) score += 12;
+    else if (m.academyDensity >= 10) score += 5;
+  } else if (answers.family === 'none') {
+    if (m.distanceToStarbucks && m.distanceToStarbucks <= 500) score += 10;
+    if (m.academyDensity <= 25) score += 10;
+  }
+
+  // 3. Transit Question Matching (Total: 20pts)
+  if (answers.transit === 'gtx') {
+    if (m.distanceToSubway <= 600) score += 20;
+    else if (m.distanceToSubway <= 1000) score += 12;
+    else if (m.distanceToSubway <= 1500) score += 5;
+  } else if (answers.transit === 'indeokwon') {
+    if (m.distanceToIndeokwon && m.distanceToIndeokwon <= 600) score += 20;
+    else if (m.distanceToIndeokwon && m.distanceToIndeokwon <= 1100) score += 10;
+  } else if (answers.transit === 'tram') {
+    if (m.distanceToTram && m.distanceToTram <= 400) score += 20;
+    else if (m.distanceToTram && m.distanceToTram <= 800) score += 10;
+  } else if (answers.transit === 'car') {
+    const isNearExpressway = ['오산동', '청계동', '영천동'].includes(apt.dong || '');
+    if (m.parkingPerHousehold >= 1.4) score += 12;
+    else if (m.parkingPerHousehold >= 1.25) score += 6;
+    if (isNearExpressway) score += 8;
+    else score += 3;
+  }
+
+  // 4. Lifestyle Question Matching (Total: 15pts)
+  if (answers.lifestyle === 'nature') {
+    if ((m.distanceToPark ?? 9999) <= 300) score += 15;
+    else if ((m.distanceToPark ?? 9999) <= 600) score += 8;
+  } else if (answers.lifestyle === 'shop') {
+    if (m.distanceToStarbucks && m.distanceToStarbucks <= 500) score += 8;
+    if (m.academyDensity + (m.householdCount / 100) >= 30) score += 7;
+  } else if (answers.lifestyle === 'quiet') {
+    if (m.householdCount >= 1000) score += 5;
+    if (m.distanceToSubway >= 800) score += 10;
+  }
+
+  // 5. Scale & Brand Preference (Total: 10pts)
+  if (answers.scaleBrand === 'mega') {
+    if (m.householdCount >= 1500) score += 10;
+    else if (m.householdCount >= 1000) score += 6;
+    else score += 2;
+  } else if (answers.scaleBrand === 'brand') {
+    const mu = getBrandMultiplier(apt.name);
+    if (mu >= 1.05) score += 10;
+    else if (mu >= 1.01) score += 6;
+    else score += 3;
+  } else if (answers.scaleBrand === 'costEffective') {
+    if (m.householdCount >= 700 && m.householdCount < 1500) score += 10;
+    else score += 4;
+  }
+
+  // 6. Year Built Preference (Total: 10pts)
+  if (answers.yearBuilt === 'new') {
+    if (m.yearBuilt >= 2021) score += 10;
+    else if (m.yearBuilt >= 2018) score += 6;
+    else score += 2;
+  } else if (answers.yearBuilt === 'middle') {
+    if (m.yearBuilt >= 2015 && m.yearBuilt < 2021) score += 10;
+    else score += 4;
+  } else if (answers.yearBuilt === 'established') {
+    if (m.yearBuilt < 2015) score += 10;
+    else if (m.yearBuilt < 2018) score += 6;
+    else score += 2;
+  }
+
+  // 7. Investment Style Preference (Total: 10pts)
+  if (answers.investmentStyle === 'residence') {
+    if (m.distanceToStarbucks && m.distanceToStarbucks <= 600) score += 5;
+    if (m.distanceToElementary <= 300) score += 5;
+  } else if (answers.investmentStyle === 'gap') {
+    if (jeonseRatio >= 70) score += 10;
+    else if (jeonseRatio >= 64) score += 6;
+    else score += 2;
+  } else if (answers.investmentStyle === 'value') {
+    const isNearPlannedSubway = (m.distanceToTram && m.distanceToTram <= 400) || (m.distanceToIndeokwon && m.distanceToIndeokwon <= 500);
+    if (isNearPlannedSubway) score += 10;
+    else score += 4;
+  }
+
+  return score;
+}
+
 export default function AIRecommendations({
   sheetApartments,
   txSummaryData,
@@ -105,6 +247,7 @@ export default function AIRecommendations({
   onOpenMortgage,
 }: AIRecommendationsProps) {
   const [viewedApts, setViewedApts] = useState<string[]>([]);
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswer | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
@@ -121,6 +264,20 @@ export default function AIRecommendations({
     return () => window.removeEventListener('dview_viewed_apts_changed', loadViewed);
   }, []);
 
+  useEffect(() => {
+    const loadQuizAnswers = () => {
+      try {
+        const answers = JSON.parse(localStorage.getItem('dview_quiz_answers') || 'null');
+        setQuizAnswers(answers);
+      } catch (e) {
+        console.warn('LocalStorage load error (quiz answers):', e);
+      }
+    };
+    loadQuizAnswers();
+    window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+    return () => window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+  }, []);
+
   const recommendationResult = useMemo(() => {
     const refsSet = new Set<string>();
     userFavorites.forEach(x => refsSet.add(x));
@@ -128,7 +285,8 @@ export default function AIRecommendations({
 
     const allApts = Object.values(sheetApartments).flat();
 
-    if (refsSet.size === 0) {
+    // If no history and no quiz answers exist, output fallback popular complexes
+    if (refsSet.size === 0 && !quizAnswers) {
       const fallbackNames = ['동탄역더샵센트럴시티', '동탄역시범우남퍼스트빌', '동탄호수공원하우스디더레이크'];
       const items = fallbackNames.map((name, index) => {
         const apt = allApts.find(a => normalizeAptName(a.name) === normalizeAptName(name));
@@ -155,73 +313,90 @@ export default function AIRecommendations({
           price,
           tag,
           isFallback: true,
+          risks: {
+            jeonse: 'safe' as const,
+            liquidity: 'safe' as const,
+          }
         };
       });
       return { items, isFallback: true };
     }
 
-    const refAptsData = allApts.filter(apt => refsSet.has(apt.name));
+    // Determine if we have history to score against
+    const hasHistory = refsSet.size > 0;
     
-    let totalPrice = 0;
-    let priceCount = 0;
-    let totalYear = 0;
-    let yearCount = 0;
-    let totalSubway = 0;
-    let totalElementary = 0;
-    let totalPark = 0;
-    let totalAcademy = 0;
-    let totalJeonseRatio = 0;
-    let jeonseCount = 0;
-    const dongFreq: Record<string, number> = {};
-
-    refAptsData.forEach(apt => {
-      const report = fieldReportsMap.get(apt.name);
-      const m = getEffectiveMetrics(apt, report);
-      
-      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-      const summary = txKey ? txSummaryData[txKey] : null;
-      const price = summary ? (summary.avg3MPrice || summary.latestPrice || 0) : 0;
-      const rent = summary ? (summary.avg3MRentDeposit || summary.latestRentDeposit || 0) : 0;
-      
-      if (price > 0) {
-        totalPrice += price;
-        priceCount++;
-      }
-      if ((m.yearBuilt ?? 0) > 0) {
-        totalYear += m.yearBuilt ?? 2018;
-        yearCount++;
-      }
-      if (price > 0 && rent > 0) {
-        totalJeonseRatio += (rent / price) * 100;
-        jeonseCount++;
-      }
-
-      totalSubway += m.distanceToSubway ?? 2000;
-      totalElementary += m.distanceToElementary ?? 350;
-      totalPark += m.distanceToPark ?? 500;
-      totalAcademy += m.academyDensity ?? 15;
-
-      const dong = apt.dong || '';
-      dongFreq[dong] = (dongFreq[dong] || 0) + 1;
-    });
-
-    const count = refAptsData.length;
-    const targetPrice = priceCount > 0 ? totalPrice / priceCount : 75000;
-    const targetYear = yearCount > 0 ? totalYear / yearCount : 2018;
-    const targetSubway = totalSubway / count;
-    const targetElementary = totalElementary / count;
-    const targetPark = totalPark / count;
-    const targetAcademy = totalAcademy / count;
-    const targetJeonseRatio = jeonseCount > 0 ? totalJeonseRatio / jeonseCount : 65;
-
+    let targetPrice = 75000;
+    let targetYear = 2018;
+    let targetSubway = 2000;
+    let targetElementary = 350;
+    let targetPark = 500;
+    let targetAcademy = 15;
+    let targetJeonseRatio = 65;
     let primaryDong = '';
-    let maxFreq = 0;
-    Object.entries(dongFreq).forEach(([dong, freq]) => {
-      if (freq > maxFreq) {
-        maxFreq = freq;
-        primaryDong = dong;
-      }
-    });
+
+    if (hasHistory) {
+      const refAptsData = allApts.filter(apt => refsSet.has(apt.name));
+      
+      let totalPrice = 0;
+      let priceCount = 0;
+      let totalYear = 0;
+      let yearCount = 0;
+      let totalSubway = 0;
+      let totalElementary = 0;
+      let totalPark = 0;
+      let totalAcademy = 0;
+      let totalJeonseRatio = 0;
+      let jeonseCount = 0;
+      const dongFreq: Record<string, number> = {};
+
+      refAptsData.forEach(apt => {
+        const report = fieldReportsMap.get(apt.name);
+        const m = getEffectiveMetrics(apt, report);
+        
+        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+        const summary = txKey ? txSummaryData[txKey] : null;
+        const price = summary ? (summary.avg3MPrice || summary.latestPrice || 0) : 0;
+        const rent = summary ? (summary.avg3MRentDeposit || summary.latestRentDeposit || 0) : 0;
+        
+        if (price > 0) {
+          totalPrice += price;
+          priceCount++;
+        }
+        if ((m.yearBuilt ?? 0) > 0) {
+          totalYear += m.yearBuilt ?? 2018;
+          yearCount++;
+        }
+        if (price > 0 && rent > 0) {
+          totalJeonseRatio += (rent / price) * 100;
+          jeonseCount++;
+        }
+
+        totalSubway += m.distanceToSubway ?? 2000;
+        totalElementary += m.distanceToElementary ?? 350;
+        totalPark += m.distanceToPark ?? 500;
+        totalAcademy += m.academyDensity ?? 15;
+
+        const dong = apt.dong || '';
+        dongFreq[dong] = (dongFreq[dong] || 0) + 1;
+      });
+
+      const count = refAptsData.length;
+      targetPrice = priceCount > 0 ? totalPrice / priceCount : 75000;
+      targetYear = yearCount > 0 ? totalYear / yearCount : 2018;
+      targetSubway = totalSubway / count;
+      targetElementary = totalElementary / count;
+      targetPark = totalPark / count;
+      targetAcademy = totalAcademy / count;
+      targetJeonseRatio = jeonseCount > 0 ? totalJeonseRatio / jeonseCount : 65;
+
+      let maxFreq = 0;
+      Object.entries(dongFreq).forEach(([dong, freq]) => {
+        if (freq > maxFreq) {
+          maxFreq = freq;
+          primaryDong = dong;
+        }
+      });
+    }
 
     const candidates = allApts.filter(apt => !refsSet.has(apt.name) && !publicRentalSet.has(apt.name));
     
@@ -235,86 +410,186 @@ export default function AIRecommendations({
       const rent = summary ? (summary.avg3MRentDeposit || summary.latestRentDeposit || 0) : 0;
       const jeonseRatio = price > 0 && rent > 0 ? (rent / price) * 100 : 0;
 
-      let score = 50;
+      // Compute 3-axis risk metrics
+      const jeonseRatePercent = Math.round(jeonseRatio);
+      const txCount = summary?.avg3MTxCount || 0;
+      const hh = apt.householdCount || 0;
 
-      if (primaryDong && apt.dong === primaryDong) {
-        score += 15;
+      const isJeonseRisk = jeonseRatePercent >= 80;
+      const isJeonseWarning = jeonseRatePercent >= 70 && jeonseRatePercent < 80;
+      const isJeonseSafe = jeonseRatePercent < 70;
+
+      const isLiquidityRisk = txCount <= 2;
+      const isLiquidityWarning = txCount > 2 && txCount <= 5;
+      const isLiquiditySafe = txCount > 5;
+
+      const isVolatilitySafe = hh >= 700;
+
+      const allSafe = isJeonseSafe && isLiquiditySafe && isVolatilitySafe;
+
+      // 1. Calculate History-based Location Fit Score
+      let historyScoreNormalized = 0;
+      if (hasHistory) {
+        let score = 50;
+
+        if (primaryDong && apt.dong === primaryDong) {
+          score += 15;
+        }
+
+        if (price > 0 && targetPrice > 0) {
+          const priceDiffRatio = Math.abs(price - targetPrice) / targetPrice;
+          if (priceDiffRatio <= 0.1) score += 25;
+          else if (priceDiffRatio <= 0.25) score += 15;
+          else if (priceDiffRatio <= 0.4) score += 8;
+        }
+
+        const yearDiff = Math.abs((m.yearBuilt ?? 2018) - targetYear);
+        if (yearDiff <= 2) score += 12;
+        else if (yearDiff <= 5) score += 6;
+
+        if (targetSubway <= 700 && (m.distanceToSubway ?? 2000) <= 700) {
+          score += 15;
+        } else {
+          const subwayDiff = Math.abs((m.distanceToSubway ?? 2000) - targetSubway);
+          if (subwayDiff <= 300) score += 10;
+          else if (subwayDiff <= 600) score += 5;
+        }
+
+        if (targetElementary <= 250 && (m.distanceToElementary ?? 350) <= 250) {
+          score += 15;
+        } else {
+          const schoolDiff = Math.abs((m.distanceToElementary ?? 350) - targetElementary);
+          if (schoolDiff <= 100) score += 10;
+          else if (schoolDiff <= 250) score += 5;
+        }
+
+        if (targetPark <= 350 && (m.distanceToPark ?? 500) <= 350) {
+          score += 8;
+        }
+
+        if (targetJeonseRatio >= 70 && jeonseRatio >= 70) {
+          score += 10;
+        }
+
+        historyScoreNormalized = Math.min(99, Math.max(52, Math.round((score / 150) * 100)));
       }
 
-      if (price > 0 && targetPrice > 0) {
-        const priceDiffRatio = Math.abs(price - targetPrice) / targetPrice;
-        if (priceDiffRatio <= 0.1) score += 25;
-        else if (priceDiffRatio <= 0.25) score += 15;
-        else if (priceDiffRatio <= 0.4) score += 8;
+      // 2. Calculate Quiz-based Preference Score
+      let quizScoreNormalized = 0;
+      if (quizAnswers) {
+        const quizRawScore = calculateQuizScore(apt, m, jeonseRatio, price, quizAnswers);
+        quizScoreNormalized = Math.min(99, Math.max(50, Math.round((quizRawScore / 145) * 100)));
       }
 
-      const yearDiff = Math.abs((m.yearBuilt ?? 2018) - targetYear);
-      if (yearDiff <= 2) score += 12;
-      else if (yearDiff <= 5) score += 6;
-
-      if (targetSubway <= 700 && (m.distanceToSubway ?? 2000) <= 700) {
-        score += 15;
-      } else {
-        const subwayDiff = Math.abs((m.distanceToSubway ?? 2000) - targetSubway);
-        if (subwayDiff <= 300) score += 10;
-        else if (subwayDiff <= 600) score += 5;
+      // 3. Merge Scores using Hybrid Weights
+      let finalScore = 50;
+      if (hasHistory && quizAnswers) {
+        // Hybrid weighting (50% history, 50% quiz)
+        finalScore = Math.round(historyScoreNormalized * 0.5 + quizScoreNormalized * 0.5);
+      } else if (quizAnswers) {
+        finalScore = quizScoreNormalized;
+      } else if (hasHistory) {
+        finalScore = historyScoreNormalized;
       }
 
-      if (targetElementary <= 250 && (m.distanceToElementary ?? 350) <= 250) {
-        score += 15;
-      } else {
-        const schoolDiff = Math.abs((m.distanceToElementary ?? 350) - targetElementary);
-        if (schoolDiff <= 100) score += 10;
-        else if (schoolDiff <= 250) score += 5;
+      // Phase 101: Risk integration penalties and bonuses
+      if (quizAnswers) {
+        if (quizAnswers.investmentStyle === 'gap') {
+          if (isJeonseRisk) finalScore -= 15;
+          else if (isJeonseWarning) finalScore -= 5;
+          
+          if (isLiquidityRisk) finalScore -= 8;
+        } else if (quizAnswers.investmentStyle === 'residence') {
+          if (isVolatilitySafe) finalScore += 8;
+        }
+      } else if (hasHistory) {
+        if (isJeonseRisk) finalScore -= 5;
+        if (isLiquidityRisk) finalScore -= 3;
       }
 
-      if (targetPark <= 350 && (m.distanceToPark ?? 500) <= 350) {
-        score += 8;
-      }
+      finalScore = Math.min(99, Math.max(50, finalScore));
 
-      if (targetJeonseRatio >= 70 && jeonseRatio >= 70) {
-        score += 10;
-      }
-
+      // 4. Formulate personalized reasons and tags based on quiz parameters
       let reason = '선호하시는 가격대와 연식 조건에 부합하는 균형 잡힌 단지입니다.';
       let tag = '선호매치';
 
-      if (primaryDong && apt.dong === primaryDong && (m.distanceToSubway ?? 2000) <= 700) {
-        reason = `선호하시는 ${apt.dong} 생활권 내 교통이 편리한 역세권 단지입니다.`;
-        tag = '생활권역';
-      } else if ((m.distanceToElementary ?? 350) <= 250 && (m.distanceToSubway ?? 2000) <= 800) {
-        reason = '초등학교 등하교가 안전하고 지하철역 접근성도 뛰어난 복합 추천 단지입니다.';
-        tag = '초품역세';
-      } else if ((m.distanceToElementary ?? 350) <= 250) {
-        reason = '아이들이 큰 길을 건너지 않고 안전하게 통학할 수 있는 안심 초품아 단지입니다.';
-        tag = '초품아';
-      } else if ((m.distanceToSubway ?? 2000) <= 600) {
-        reason = '동탄역 및 대중교통 노선이 가까워 강남권 출퇴근이 용이한 추천 단지입니다.';
-        tag = '역세권';
-      } else if (jeonseRatio >= 70) {
-        reason = '높은 전세가율로 갭투자가 용이하며 매매 가격 하방 지지력이 탄탄한 단지입니다.';
-        tag = '투자우수';
-      } else if ((m.yearBuilt ?? 2018) >= 2021) {
-        reason = '연식이 매우 짧고 스마트 인프라가 완비된 쾌적한 최신축 아파트 단지입니다.';
-        tag = '최신축';
+      if (quizAnswers) {
+        if (quizAnswers.family === 'elementary' && (m.distanceToElementary ?? 350) <= 250) {
+          reason = '자녀의 안전한 도보 등하교를 보장하는 단지 직결 안심 초품아 단지입니다.';
+          tag = '초품아';
+        } else if (quizAnswers.transit === 'gtx' && (m.distanceToSubway ?? 2000) <= 700) {
+          reason = '동탄역 GTX-A 및 SRT 광역 노선 도보 이용이 편리한 역세권 대단지입니다.';
+          tag = '광역역세';
+        } else if (quizAnswers.lifestyle === 'nature' && (m.distanceToPark ?? 9999) <= 300) {
+          reason = '도보 거리 내 호수공원 및 대형 조경 녹지가 인접해 쾌적한 웰빙 입지입니다.';
+          tag = '공세권';
+        } else if (quizAnswers.investmentStyle === 'gap' && jeonseRatio >= 70) {
+          reason = '높은 전세가율로 예상 필요 갭이 최소화되는 실투자성 우수 단지입니다.';
+          tag = '갭투자';
+        } else if (quizAnswers.yearBuilt === 'new' && (m.yearBuilt ?? 2018) >= 2021) {
+          reason = '신축 5년 이내의 준공 연식으로 커뮤니티와 주차 인프라가 우수한 단지입니다.';
+          tag = '최신축';
+        } else if (quizAnswers.budget !== 'unlimited' && price > 0) {
+          let budgetLimit = 999999;
+          if (quizAnswers.budget === '3eok') budgetLimit = 33000;
+          else if (quizAnswers.budget === '5eok') budgetLimit = 63000;
+          else if (quizAnswers.budget === '8eok') budgetLimit = 93000;
+          else if (quizAnswers.budget === '12eok') budgetLimit = 145000;
+          
+          if (price <= budgetLimit) {
+            reason = '설정하신 매수 가용 예산 범위에 꼭 맞춘 실속형 추천 단지입니다.';
+            tag = '예산최적';
+          }
+        }
       }
 
-      const matchPercentage = Math.min(99, Math.max(52, Math.round((score / 150) * 100)));
+      if (tag === '선호매치') {
+        if (primaryDong && apt.dong === primaryDong && (m.distanceToSubway ?? 2000) <= 700) {
+          reason = `선호하시는 ${apt.dong} 생활권 내 교통이 편리한 역세권 단지입니다.`;
+          tag = '생활권역';
+        } else if ((m.distanceToElementary ?? 350) <= 250 && (m.distanceToSubway ?? 2000) <= 800) {
+          reason = '초등학교 등하교가 안전하고 지하철역 접근성도 뛰어난 복합 추천 단지입니다.';
+          tag = '초품역세';
+        } else if ((m.distanceToElementary ?? 350) <= 250) {
+          reason = '아이들이 큰 길을 건너지 않고 안전하게 통학할 수 있는 안심 초품아 단지입니다.';
+          tag = '초품아';
+        } else if ((m.distanceToSubway ?? 2000) <= 600) {
+          reason = '동탄역 및 대중교통 노선이 가까워 강남권 출퇴근이 용이한 추천 단지입니다.';
+          tag = '역세권';
+        } else if (jeonseRatio >= 70) {
+          reason = '높은 전세가율로 갭투자가 용이하며 매매 가격 하방 지지력이 탄탄한 단지입니다.';
+          tag = '투자우수';
+        } else if ((m.yearBuilt ?? 2018) >= 2021) {
+          reason = '연식이 매우 짧고 스마트 인프라가 완비된 쾌적한 최신축 아파트 단지입니다.';
+          tag = '최신축';
+        }
+      }
+
+      // Phase 101: 3-axis risk all safe check
+      if (allSafe) {
+        reason = reason.endsWith('.') ? reason.slice(0, -1) : reason;
+        reason += ' 및 3대 핵심 리스크(역전세/유동성/변동성) 진단이 모두 안전한 안심 단지입니다.';
+        tag = '안심단지';
+      }
 
       return {
         name: apt.name,
         dong: apt.dong,
-        score: matchPercentage,
+        score: finalScore,
         reason,
         price,
         tag,
         isFallback: false,
+        risks: {
+          jeonse: isJeonseRisk ? ('danger' as const) : isJeonseWarning ? ('warning' as const) : ('safe' as const),
+          liquidity: isLiquidityRisk ? ('danger' as const) : isLiquidityWarning ? ('warning' as const) : ('safe' as const),
+        }
       };
     });
 
     const sorted = scoredCandidates.sort((a, b) => b.score - a.score).slice(0, 3);
     return { items: sorted, isFallback: false };
-  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, fieldReportsMap, userFavorites, viewedApts]);
+  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet, fieldReportsMap, userFavorites, viewedApts, quizAnswers]);
 
   const handleShare = () => {
     if (recommendationResult.items.length < 3) return;
@@ -365,13 +640,23 @@ export default function AIRecommendations({
                 AI 맞춤 아파트 추천
               </h2>
               <span className="text-[10px] font-black bg-[#00d29d]/10 text-[#00d29d] px-2 py-0.5 rounded-[6px] tracking-wider uppercase">
-                {recommendationResult.isFallback ? '인기단지' : '개인화 분석'}
+                {recommendationResult.isFallback 
+                  ? '인기단지' 
+                  : (viewedApts.length > 0 && quizAnswers) 
+                    ? '하이브리드' 
+                    : quizAnswers 
+                      ? '퀴즈분석' 
+                      : '조회분석'}
               </span>
             </div>
             <p className="text-[11.5px] text-tertiary font-bold leading-normal">
               {recommendationResult.isFallback 
-                ? '단지를 클릭해 상세 정보를 둘러보시면 분석 추천이 시작됩니다' 
-                : '최근 조회 및 즐겨찾기 이력을 분석하여 추출한 최적의 단지입니다'}
+                ? '단지를 클릭하거나 퀴즈를 완료하시면 맞춤 추천이 시작됩니다' 
+                : (viewedApts.length > 0 && quizAnswers)
+                  ? '최근 조회 이력과 라이프스타일 퀴즈 결과를 종합 분석한 단지입니다'
+                  : quizAnswers
+                    ? '라이프스타일 퀴즈 결과를 분석하여 매칭된 단지입니다'
+                    : '최근 조회 및 즐겨찾기 이력을 분석하여 추출한 최적의 단지입니다'}
             </p>
           </div>
         </div>
@@ -431,9 +716,29 @@ export default function AIRecommendations({
                 <span className="text-[19px] font-black text-[#00d29d] tracking-tighter">{item.score}%</span>
                 <span className="text-[11px] font-bold text-tertiary">매칭</span>
               </div>
-              <span className="text-[11px] text-secondary font-bold">
-                {priceFormatter(item.price)}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-secondary font-bold">
+                  {priceFormatter(item.price)}
+                </span>
+              </div>
+              
+              {/* Risks Mini Traffic Lights */}
+              <div className="flex gap-1 mt-1 shrink-0">
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[4px] border ${
+                  item.risks.jeonse === 'danger' ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border-rose-200/20' :
+                  item.risks.jeonse === 'warning' ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200/20' :
+                  'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-200/20'
+                }`}>
+                  역전세
+                </span>
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[4px] border ${
+                  item.risks.liquidity === 'danger' ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border-rose-200/20' :
+                  item.risks.liquidity === 'warning' ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200/20' :
+                  'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-200/20'
+                }`}>
+                  유동성
+                </span>
+              </div>
             </div>
           </div>
         ))}
@@ -467,7 +772,7 @@ export default function AIRecommendations({
             </div>
             <p className="text-[11.5px] text-secondary font-bold group-hover:text-[#00d29d] dark:group-hover:text-[#00d29d] transition-colors leading-tight">
               {recommendationResult.isFallback 
-                ? '5가지 질문에 답하고 내 맞춤형 아파트를 찾아보세요' 
+                ? '7가지 질문에 답하고 내 맞춤형 아파트를 찾아보세요' 
                 : '1금융 정책자금 금리 시뮬레이션을 즉시 시작합니다'}
             </p>
           </div>

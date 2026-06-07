@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, MessageSquare } from 'lucide-react';
+import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -56,6 +56,9 @@ export default function PropertyTaxCalculator({
   const [ownedHouses, setOwnedHouses] = useState<number>(1); // 1, 2, 3, 4 (4 means 4 or more)
   const [exclusiveArea, setExclusiveArea] = useState<'85under' | '85over'>('85under');
 
+  // Quiz state integration
+  const [hasQuizAnswers, setHasQuizAnswers] = useState(false);
+
   // Diagnosis states
   const [isCalculating, setIsCalculating] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -73,6 +76,54 @@ export default function PropertyTaxCalculator({
     const price = getEstimatedMarketPrice(apt, txSummaryData, nameMapping);
     setAcquisitionPrice(price);
   };
+
+  // Load and map quiz answers on modal mount/open
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const answersStr = localStorage.getItem('dview_quiz_answers');
+        if (answersStr) {
+          const answers = JSON.parse(answersStr);
+          if (answers) {
+            setHasQuizAnswers(true);
+            
+            // 1. Map ownedHouses: if investmentStyle is 'gap', set to 2, else 1
+            if (answers.investmentStyle === 'gap') {
+              setOwnedHouses(2);
+            } else {
+              setOwnedHouses(1);
+            }
+
+            // 2. Map exclusiveArea: if large family and high budget, set to 85over
+            const isLargeFamily = answers.family === 'middleHigh' || answers.family === 'elementary';
+            const isHighBudget = answers.budget === '12eok' || answers.budget === 'unlimited';
+            if (isLargeFamily && isHighBudget) {
+              setExclusiveArea('85over');
+            } else {
+              setExclusiveArea('85under');
+            }
+
+            // 3. Zero-click simulation if initialAptName is present
+            if (initialAptName) {
+              setIsCalculating(true);
+              const timer = setTimeout(() => {
+                setIsCalculating(false);
+                setShowResult(true);
+              }, 1200);
+              return () => clearTimeout(timer);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse quiz answers in PropertyTaxCalculator:', e);
+      }
+    } else {
+      // Reset state on close
+      setShowResult(false);
+      setIsCalculating(false);
+      setHasQuizAnswers(false);
+    }
+  }, [isOpen, initialAptName]);
 
   // Set initial apartment if passed
   useEffect(() => {
@@ -195,9 +246,9 @@ export default function PropertyTaxCalculator({
   const chartData = useMemo(() => {
     if (!taxResults) return [];
     return [
-      { name: '매매 가액', value: acquisitionPrice, color: '#10b981' },
-      { name: '세금 합계', value: taxResults.totalTax, color: '#ff4b5c' },
-      { name: '중개수수료', value: taxResults.brokerFee, color: '#1b64da' },
+      { name: '매매 가액', value: acquisitionPrice, color: '#00d29d', gradientUrl: 'url(#colorAcq)' },
+      { name: '세금 합계', value: taxResults.totalTax, color: '#f43f5e', gradientUrl: 'url(#colorTax)' },
+      { name: '중개수수료', value: taxResults.brokerFee, color: '#64748b', gradientUrl: 'url(#colorFee)' },
     ];
   }, [taxResults, acquisitionPrice]);
 
@@ -384,7 +435,15 @@ export default function PropertyTaxCalculator({
 
                   {/* Owned Houses Count */}
                   <div className="space-y-1.5">
-                    <span className="text-[12px] font-bold text-secondary">3. 취득 후 보유 주택 수 (비조정지역 기준)</span>
+                    <div className="text-[12px] font-bold text-secondary flex items-center justify-between">
+                      <span>3. 취득 후 보유 주택 수 (비조정지역 기준)</span>
+                      {hasQuizAnswers && (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                          <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                          <span>퀴즈 답변 반영됨</span>
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-4 gap-2">
                       {[1, 2, 3, 4].map(num => (
                         <button
@@ -405,7 +464,15 @@ export default function PropertyTaxCalculator({
 
                   {/* Exclusive Area Size */}
                   <div className="space-y-1.5">
-                    <span className="text-[12px] font-bold text-secondary">4. 전용 면적 구분</span>
+                    <div className="text-[12px] font-bold text-secondary flex items-center justify-between">
+                      <span>4. 전용 면적 구분</span>
+                      {hasQuizAnswers && (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                          <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                          <span>퀴즈 답변 반영됨</span>
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -440,7 +507,7 @@ export default function PropertyTaxCalculator({
                     {isCalculating ? (
                       <>
                         <RefreshCw size={15} className="animate-spin" />
-                        <span>부대비용 계산 중...</span>
+                        <span>{hasQuizAnswers ? '퀴즈 기반 자동 진단 중...' : '부대비용 계산 중...'}</span>
                       </>
                     ) : (
                       <>
@@ -461,7 +528,7 @@ export default function PropertyTaxCalculator({
                     자금 계획 부대비용 리포트
                   </span>
                   <h3 className="text-[15px] font-black text-primary mt-1">
-                    최종 소요 부대비용: <span className="text-[#ff4b5c]">{formatEokMan(taxResults.totalCost)}</span>
+                    최종 소요 부대비용: <span className="text-[#f43f5e]">{formatEokMan(taxResults.totalCost)}</span>
                   </h3>
                   <p className="text-[11.5px] font-medium text-tertiary">
                     매수 단지 가액 {formatEokMan(acquisitionPrice)} 포함 시 최종 인수 금액은{' '}
@@ -481,6 +548,20 @@ export default function PropertyTaxCalculator({
                     <div className="w-full h-32 relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
+                          <defs>
+                            <linearGradient id="colorAcq" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#00d29d" stopOpacity={1}/>
+                              <stop offset="95%" stopColor="#059669" stopOpacity={1}/>
+                            </linearGradient>
+                            <linearGradient id="colorTax" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#f43f5e" stopOpacity={1}/>
+                              <stop offset="95%" stopColor="#be123c" stopOpacity={1}/>
+                            </linearGradient>
+                            <linearGradient id="colorFee" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#64748b" stopOpacity={1}/>
+                              <stop offset="95%" stopColor="#475569" stopOpacity={1}/>
+                            </linearGradient>
+                          </defs>
                           <Pie
                             data={chartData}
                             cx="50%"
@@ -491,7 +572,7 @@ export default function PropertyTaxCalculator({
                             dataKey="value"
                           >
                             {chartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell key={`cell-${index}`} fill={entry.gradientUrl} />
                             ))}
                           </Pie>
                           <Tooltip
@@ -508,7 +589,7 @@ export default function PropertyTaxCalculator({
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                         <span className="text-[9px] font-bold text-tertiary">부대비용</span>
-                        <span className="text-[10px] font-black text-[#ff4b5c]">
+                        <span className="text-[10px] font-black text-[#f43f5e]">
                           {((taxResults.totalCost / (acquisitionPrice + taxResults.totalCost)) * 100).toFixed(1)}%
                         </span>
                       </div>
@@ -516,17 +597,17 @@ export default function PropertyTaxCalculator({
 
                     <div className="text-[11.5px] font-bold text-secondary space-y-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#00d29d]" />
                         <span className="text-tertiary">매매 가액:</span>
                         <span className="ml-auto text-primary">{formatEokMan(acquisitionPrice)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#ff4b5c]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#f43f5e]" />
                         <span className="text-tertiary">세금 합계:</span>
                         <span className="ml-auto text-primary">{formatEokMan(taxResults.totalTax)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#1b64da]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#64748b]" />
                         <span className="text-tertiary">중개수수료:</span>
                         <span className="ml-auto text-primary">{formatEokMan(taxResults.brokerFee)}</span>
                       </div>
@@ -560,7 +641,7 @@ export default function PropertyTaxCalculator({
                         <span className="text-tertiary font-semibold">{taxResults.ruralSpecialTaxRate}%</span>
                         <span className="font-extrabold">{formatEokMan(taxResults.ruralSpecialTax)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#ff4b5c] font-black pt-1">
+                      <div className="flex justify-between items-center text-[#f43f5e] font-black pt-1">
                         <span>세금 합계액</span>
                         <span className="text-right">{formatEokMan(taxResults.totalTax)}</span>
                       </div>

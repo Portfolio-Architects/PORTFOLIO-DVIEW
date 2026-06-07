@@ -648,6 +648,7 @@ export interface ShareLocalNoticeParams {
   title: string;
   dept: string;
   date: string;
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
 export const shareLocalNoticeToKakao = async ({
@@ -655,6 +656,7 @@ export const shareLocalNoticeToKakao = async ({
   title,
   dept,
   date,
+  source,
 }: ShareLocalNoticeParams) => {
   try {
     await loadKakaoSdk();
@@ -676,16 +678,33 @@ export const shareLocalNoticeToKakao = async ({
     }
 
     const baseUrl = window.location.origin;
-    const finalImageUrl = `${baseUrl}/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept)}&date=${encodeURIComponent(date)}`;
+    const isCulture = source === 'culture' || id.startsWith('culture_');
+    
+    let finalImageUrl = '';
+    let description = '';
+    let shareUrl = '';
+    let titleText = '';
 
-    const description = `작성부서: ${dept}\n등록일자: ${date}\nD-VIEW에서 동탄구 소식 상세 내용을 확인하세요.`;
-
-    const shareUrl = `${window.location.origin}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=notice_share`;
+    if (isCulture) {
+      const category = title.includes('[루나쇼]') ? '동탄호수공원 루나쇼' : 
+                       title.includes('[버스킹]') ? '여울공원 버스킹' : 
+                       title.includes('[축제]') ? '동탄 로컬 축제' : '동탄 문화 행사';
+      
+      finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent("가족 나들이 및 아파트 조망권 추천 정보")}`;
+      description = `장소: ${dept}\n행사일: ${date} (이용 요금: 무료)\nD-VIEW에서 루나쇼 명당 단지 정보 및 상세 가치 분석을 확인하세요!`;
+      shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=culture_share`;
+      titleText = title;
+    } else {
+      finalImageUrl = `${baseUrl}/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept)}&date=${encodeURIComponent(date)}`;
+      description = `작성부서: ${dept}\n등록일자: ${date}\nD-VIEW에서 동탄구 소식 상세 내용을 확인하세요.`;
+      shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=notice_share`;
+      titleText = `[동탄구 소식] ${title}`;
+    }
 
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: `[동탄구 소식] ${title}`,
+        title: titleText,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,
@@ -697,7 +716,7 @@ export const shareLocalNoticeToKakao = async ({
       },
       buttons: [
         {
-          title: "소식 상세 보기",
+          title: isCulture ? "행사 정보 & 아파트 가치 보기" : "소식 상세 보기",
           link: {
             mobileWebUrl: shareUrl,
             webUrl: shareUrl,

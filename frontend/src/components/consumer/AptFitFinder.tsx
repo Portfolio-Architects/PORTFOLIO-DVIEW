@@ -158,6 +158,18 @@ export default function AptFitFinder({
     }
   }, [step]);
 
+  // Save quiz answers to localStorage when quiz matches are completed (step 9)
+  useEffect(() => {
+    if (step === 9) {
+      try {
+        localStorage.setItem('dview_quiz_answers', JSON.stringify(answers));
+        window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+      } catch (e) {
+        console.warn('LocalStorage save error (quiz answers):', e);
+      }
+    }
+  }, [step, answers]);
+
   if (!isOpen) return null;
 
   const handleSelectOption = (key: keyof QuizAnswer, value: string) => {
@@ -170,6 +182,12 @@ export default function AptFitFinder({
   };
 
   const handleReset = () => {
+    try {
+      localStorage.removeItem('dview_quiz_answers');
+      window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+    } catch (e) {
+      console.warn('LocalStorage remove error (quiz answers):', e);
+    }
     setAnswers({
       budget: '',
       family: '',

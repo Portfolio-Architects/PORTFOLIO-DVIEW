@@ -44,8 +44,120 @@ interface NoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
-  source: 'bbs' | 'gosi' | 'rail' | 'dong';
+  source: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
   createdAt: string;
+}
+
+function get2ndAnd4thSaturdays(year: number): string[] {
+  const dates: string[] = [];
+  for (let month = 4; month <= 9; month++) { // 5월(4) ~ 10월(9)
+    let saturdayCount = 0;
+    for (let day = 1; day <= 31; day++) {
+      const d = new Date(year, month, day);
+      if (d.getMonth() !== month) break;
+      if (d.getDay() === 6) { // 토요일
+        saturdayCount++;
+        if (saturdayCount === 2 || saturdayCount === 4) {
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          dates.push(`${yyyy}-${mm}-${dd}`);
+        }
+      }
+    }
+  }
+  return dates;
+}
+
+function generateCultureEvents(): NoticeItem[] {
+  const events: NoticeItem[] = [];
+  const currentYear = 2026;
+  const nowStr = new Date().toISOString();
+
+  // 1. 루나 분수쇼 일정 생성 (5월~10월 2, 4째 토요일)
+  const lunaDates = get2ndAnd4thSaturdays(currentYear);
+  lunaDates.forEach((date, idx) => {
+    events.push({
+      id: `culture_luna_${date.replace(/-/g, '')}`,
+      originalId: `luna_${date.replace(/-/g, '')}`,
+      title: `[루나쇼] 2026 동탄호수공원 루나 분수쇼 (${date.substring(5, 7)}월 ${idx % 2 === 0 ? '1회차' : '2회차'})`,
+      url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019',
+      dept: '동탄호수공원',
+      date: date,
+      isDongtan: true,
+      source: 'culture',
+      createdAt: nowStr
+    });
+  });
+
+  // 2. 여울공원 버스킹 축제 (6월~8월 매주 토요일)
+  const buskingDates: string[] = [];
+  for (let month = 5; month <= 7; month++) { // 6월 ~ 8월
+    for (let day = 1; day <= 31; day++) {
+      const d = new Date(currentYear, month, day);
+      if (d.getMonth() !== month) break;
+      if (d.getDay() === 6) { // 토요일
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        buskingDates.push(`${yyyy}-${mm}-${dd}`);
+      }
+    }
+  }
+  buskingDates.forEach((date, idx) => {
+    events.push({
+      id: `culture_busking_${date.replace(/-/g, '')}`,
+      originalId: `busking_${date.replace(/-/g, '')}`,
+      title: `[버스킹] 2026 동탄 여울공원 거리 예술 버스킹 공연 (${idx + 1}회차)`,
+      url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019',
+      dept: '여울공원 야외음악당',
+      date: date,
+      isDongtan: true,
+      source: 'culture',
+      createdAt: nowStr
+    });
+  });
+
+  // 3. 신리천 물놀이장 개장 소식 (시작일 기준 기재)
+  events.push({
+    id: 'culture_waterpark_20260701',
+    originalId: 'waterpark_20260701',
+    title: '[축제] 2026 동탄 신리천 어린이 물놀이장 무료 개장',
+    url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019',
+    dept: '신리천 어린이공원',
+    date: '2026-07-01',
+    isDongtan: true,
+    source: 'culture',
+    createdAt: nowStr
+  });
+
+  // 4. 화성시민 한마음 체육대회
+  events.push({
+    id: 'culture_hanmaeum_20260926',
+    originalId: 'hanmaeum_20260926',
+    title: '[체육] 2026 화성시민 한마음 체육대회 (동탄 연합팀 출전)',
+    url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019',
+    dept: '화성종합경기타운',
+    date: '2026-09-26',
+    isDongtan: true,
+    source: 'culture',
+    createdAt: nowStr
+  });
+
+  // 5. 동탄 청소년 문화축제
+  events.push({
+    id: 'culture_youth_20261017',
+    originalId: 'youth_20261017',
+    title: '[축제] 2026 동탄 청소년 문화축제 (공연 및 체험부스)',
+    url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019',
+    dept: '센트럴파크 축제광장',
+    date: '2026-10-17',
+    isDongtan: true,
+    source: 'culture',
+    createdAt: nowStr
+  });
+
+  return events;
 }
 
 function checkIfDongtan(title: string, dept: string): boolean {
@@ -415,6 +527,10 @@ export async function GET(request: Request) {
         console.error(`Error scraping Source 2 page ${page}:`, err);
       }
     }
+
+    // --- Source 6: 동탄 하이퍼로컬 문화/행사/축제 생성 및 적재 ---
+    const cultureEvents = generateCultureEvents();
+    notices.push(...cultureEvents);
 
     if (notices.length === 0) {
       return NextResponse.json({ success: true, count: 0, message: 'No notices scraped' });

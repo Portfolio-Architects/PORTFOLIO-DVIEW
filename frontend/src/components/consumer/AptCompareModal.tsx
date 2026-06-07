@@ -234,6 +234,9 @@ export default function AptCompareModal({
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
   const [isCopied, setIsCopied] = useState(false);
 
+  // Quiz integration states
+  const [quizAnswers, setQuizAnswers] = useState<any>(null);
+
   // Input refs for clicking outside
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef1 = useRef<HTMLDivElement>(null);
@@ -256,6 +259,29 @@ export default function AptCompareModal({
       }
     }
   }, [isOpen, allApartments]);
+
+  // Load and subscribe to lifestyle quiz answers
+  useEffect(() => {
+    const loadQuizAnswers = () => {
+      try {
+        const answersStr = localStorage.getItem('dview_quiz_answers');
+        if (answersStr) {
+          setQuizAnswers(JSON.parse(answersStr));
+        } else {
+          setQuizAnswers(null);
+        }
+      } catch (e) {
+        console.warn('Failed to parse quiz answers in AptCompareModal:', e);
+      }
+    };
+    if (isOpen) {
+      loadQuizAnswers();
+      window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+      return () => window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+    } else {
+      setQuizAnswers(null);
+    }
+  }, [isOpen]);
 
   // Helper to save selected apartment to localStorage
   const saveToRecent = React.useCallback((apt: DongApartment) => {
@@ -522,6 +548,7 @@ export default function AptCompareModal({
       oliveYoung: compare(metrics1.distanceToOliveYoung, metrics2.distanceToOliveYoung, true),
       indeokwon: compare(metrics1.distanceToIndeokwon, metrics2.distanceToIndeokwon, true),
       tram: compare(metrics1.distanceToTram, metrics2.distanceToTram, true),
+      park: compare(metrics1.distanceToPark, metrics2.distanceToPark, true),
       households: compare(metrics1.householdCount, metrics2.householdCount),
       year: compare(metrics1.yearBuilt, metrics2.yearBuilt),
       parking: compare(metrics1.parkingPerHousehold, metrics2.parkingPerHousehold),
@@ -545,6 +572,68 @@ export default function AptCompareModal({
     });
     return { apt1: apt1Count, apt2: apt2Count };
   }, [wins]);
+
+  // AI Fit Scorecard calculation based on quiz preferences
+  const aiFitScores = useMemo(() => {
+    if (!metrics1 || !metrics2 || !quizAnswers) {
+      return { score1: 0, score2: 0, winner: null as 'apt1' | 'apt2' | null };
+    }
+
+    let score1 = 0;
+    let score2 = 0;
+
+    const { transit, family, lifestyle } = quizAnswers;
+
+    // 1. 교통 선호도 (Transit)
+    if (transit === 'gtx') {
+      const d1 = metrics1.distanceToSubway ?? 9999;
+      const d2 = metrics2.distanceToSubway ?? 9999;
+      if (d1 < d2) score1 += 30;
+      else if (d2 < d1) score2 += 30;
+    } else if (transit === 'indeokwon') {
+      const d1 = metrics1.distanceToIndeokwon ?? 9999;
+      const d2 = metrics2.distanceToIndeokwon ?? 9999;
+      if (d1 < d2) score1 += 30;
+      else if (d2 < d1) score2 += 30;
+    } else if (transit === 'tram') {
+      const d1 = metrics1.distanceToTram ?? 9999;
+      const d2 = metrics2.distanceToTram ?? 9999;
+      if (d1 < d2) score1 += 30;
+      else if (d2 < d1) score2 += 30;
+    }
+
+    // 2. 육아 선호도 (Family)
+    if (family === 'baby' || family === 'elementary' || family === 'middleHigh') {
+      const e1 = metrics1.distanceToElementary ?? 9999;
+      const e2 = metrics2.distanceToElementary ?? 9999;
+      if (e1 < e2) score1 += 25;
+      else if (e2 < e1) score2 += 25;
+
+      const p1 = metrics1.distanceToPark ?? 9999;
+      const p2 = metrics2.distanceToPark ?? 9999;
+      if (p1 < p2) score1 += 15;
+      else if (p2 < p1) score2 += 15;
+    }
+
+    // 3. 라이프스타일 선호도 (Lifestyle)
+    if (lifestyle === 'nature') {
+      const p1 = metrics1.distanceToPark ?? 9999;
+      const p2 = metrics2.distanceToPark ?? 9999;
+      if (p1 < p2) score1 += 30;
+      else if (p2 < p1) score2 += 30;
+    } else if (lifestyle === 'shop') {
+      const s1 = metrics1.distanceToStarbucks ?? 9999;
+      const s2 = metrics2.distanceToStarbucks ?? 9999;
+      if (s1 < s2) score1 += 20;
+      else if (s2 < s1) score2 += 20;
+    }
+
+    let winner: 'apt1' | 'apt2' | null = null;
+    if (score1 > score2) winner = 'apt1';
+    else if (score2 > score1) winner = 'apt2';
+
+    return { score1, score2, winner };
+  }, [metrics1, metrics2, quizAnswers]);
 
   // 5대 핵심 지표 레이더 차트 데이터 연산
   const radarChartData = useMemo(() => {
@@ -1156,9 +1245,35 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
               <div className="overflow-hidden border border-border/30 rounded-2xl shadow-sm bg-surface/40">
                 {/* Header row */}
                 <div className="grid grid-cols-3 bg-body/50 border-b border-border/30 px-4 py-3 text-[11px] font-extrabold text-tertiary tracking-wider uppercase">
-                  <div>비교 평가 지표</div>
-                  <div className="text-center truncate">{apt1Label}</div>
-                  <div className="text-center truncate">{apt2Label}</div>
+                  <div className="flex flex-col justify-center">비교 평가 지표</div>
+                  <div className="text-center truncate flex flex-col items-center justify-center gap-1">
+                    {aiFitScores.winner === 'apt1' && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#00d29d] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+                        <Sparkles size={8} className="fill-white" />
+                        <span>AI 맞춤 위너</span>
+                      </span>
+                    )}
+                    <span className="block">{apt1Label}</span>
+                    {quizAnswers && (
+                      <span className="text-[9.5px] text-emerald-600 dark:text-[#00d29d] font-bold">
+                        AI 적합도 {aiFitScores.score1}점
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-center truncate flex flex-col items-center justify-center gap-1">
+                    {aiFitScores.winner === 'apt2' && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#00d29d] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+                        <Sparkles size={8} className="fill-white" />
+                        <span>AI 맞춤 위너</span>
+                      </span>
+                    )}
+                    <span className="block">{apt2Label}</span>
+                    {quizAnswers && (
+                      <span className="text-[9.5px] text-emerald-600 dark:text-[#00d29d] font-bold">
+                        AI 적합도 {aiFitScores.score2}점
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* --- Section: 역세권 인프라 --- */}
@@ -1168,7 +1283,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
 
                 <div className="divide-y divide-border/20">
                   {/* GTX Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'gtx' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">GTX-A / SRT역 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.subway)}`}>
                       {metrics1.distanceToSubway ? `${metrics1.distanceToSubway}m` : '-'}
@@ -1179,7 +1294,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
 
                   {/* Indeokwon Line Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'indeokwon' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">동인선 예정역 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.indeokwon)}`}>
                       {metrics1.distanceToIndeokwon ? `${metrics1.distanceToIndeokwon}m` : '-'}
@@ -1190,7 +1305,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
 
                   {/* Tram Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'tram' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">동탄트램 예정역 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.tram)}`}>
                       {metrics1.distanceToTram ? `${metrics1.distanceToTram}m` : '-'}
@@ -1208,7 +1323,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
 
                 <div className="divide-y divide-border/20">
                   {/* School Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${(quizAnswers?.family === 'baby' || quizAnswers?.family === 'elementary') ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold flex items-center gap-1">
                       <span>초등학교 도보 통학 거리</span>
                     </div>
@@ -1221,7 +1336,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
 
                   {/* Middle School Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">중학교 도보 통학 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.middle)}`}>
                       {metrics1.distanceToMiddle ? `${metrics1.distanceToMiddle}m` : '-'}
@@ -1232,7 +1347,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
 
                   {/* High School Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">고등학교 도보 통학 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.high)}`}>
                       {metrics1.distanceToHigh ? `${metrics1.distanceToHigh}m` : '-'}
@@ -1242,8 +1357,22 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                     </div>
                   </div>
 
+                  {/* Park Distance */}
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${(quizAnswers?.lifestyle === 'nature' || quizAnswers?.family === 'baby' || quizAnswers?.family === 'elementary' || quizAnswers?.family === 'middleHigh') ? 'bg-emerald-500/10' : ''}`}>
+                    <div className="text-secondary font-bold flex items-center gap-1">
+                      <TreePine size={13} className="text-emerald-500" />
+                      <span>공원 도보 거리</span>
+                    </div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.park)}`}>
+                      {metrics1.distanceToPark ? `${metrics1.distanceToPark}m` : '-'}
+                    </div>
+                    <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.park)}`}>
+                      {metrics2.distanceToPark ? `${metrics2.distanceToPark}m` : '-'}
+                    </div>
+                  </div>
+
                   {/* Starbucks Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">스타벅스 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.starbucks)}`}>
                       {metrics1.distanceToStarbucks ? `${metrics1.distanceToStarbucks}m` : '-'}
@@ -1254,7 +1383,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
 
                   {/* Olive Young Distance */}
-                  <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+                  <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-emerald-500/10' : ''}`}>
                     <div className="text-secondary font-bold">올리브영 거리</div>
                     <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.oliveYoung)}`}>
                       {metrics1.distanceToOliveYoung ? `${metrics1.distanceToOliveYoung}m` : '-'}

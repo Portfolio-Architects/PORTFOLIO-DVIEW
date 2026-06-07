@@ -30,7 +30,7 @@ interface LocalNoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
-  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
 interface NewsItem {
@@ -124,7 +124,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
 
-  const [activeSubCategory, setActiveSubCategory] = useState<'all' | 'city' | 'rail' | 'town'>('all');
+  const [activeSubCategory, setActiveSubCategory] = useState<'all' | 'city' | 'rail' | 'town' | 'culture'>('all');
   const [activeDongFilter, setActiveDongFilter] = useState<string>('all');
 
   useEffect(() => {
@@ -157,6 +157,8 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       // Check if routing directly to rail notices tab
       if (window.location.hash === '#lounge-notices-rail') {
         setActiveSubCategory('rail');
+      } else if (window.location.hash === '#lounge-notices-culture') {
+        setActiveSubCategory('culture');
       }
     };
     
@@ -228,6 +230,8 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         if (notice.source !== 'gosi' && notice.source !== 'bbs') return false;
       } else if (activeSubCategory === 'rail') {
         if (notice.source !== 'rail') return false;
+      } else if (activeSubCategory === 'culture') {
+        if (notice.source !== 'culture') return false;
       } else if (activeSubCategory === 'town') {
         if (notice.source !== 'dong') return false;
         
@@ -433,7 +437,8 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             { id: 'all', label: '전체' },
             { id: 'city', label: '시정공고' },
             { id: 'rail', label: '교통·철도' },
-            { id: 'town', label: '동네행정' }
+            { id: 'town', label: '동네행정' },
+            { id: 'culture', label: '문화·행사' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -502,7 +507,92 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 </span>
               </div>
             ) : (
-              filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => (
+            filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => {
+              const isCulture = notice.source === 'culture';
+              if (isCulture) {
+                // D-Day 계산 헬퍼
+                const getDDayText = (dateStr: string) => {
+                  const target = new Date(dateStr);
+                  const today = new Date('2026-06-07'); // current date in metadata is 2026-06-07
+                  today.setHours(0, 0, 0, 0);
+                  target.setHours(0, 0, 0, 0);
+                  const diff = target.getTime() - today.getTime();
+                  const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                  if (diffDays === 0) return { text: '오늘 개최', color: 'bg-rose-500 text-white border-rose-600' };
+                  if (diffDays > 0) return { text: `D-${diffDays}`, color: 'bg-emerald-500 text-white border-emerald-600 animate-pulse' };
+                  return { text: '종료됨', color: 'bg-gray-400 text-white border-gray-500' };
+                };
+                
+                const dday = getDDayText(notice.date);
+                
+                return (
+                  <div
+                    key={notice.id}
+                    onClick={() => {
+                      window.location.hash = `notice=${notice.id}`;
+                    }}
+                    className="flex flex-col gap-4 p-5 rounded-3xl border border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-teal-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)] transition-all cursor-pointer w-full group relative overflow-hidden text-left"
+                  >
+                    {/* Decorative Blob */}
+                    <div className="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                    
+                    {/* Top Row: D-Day & Meta */}
+                    <div className="flex items-center justify-between gap-3 z-10">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-1 text-[11px] font-black rounded-lg border ${dday.color} shadow-sm uppercase tracking-wider`}>
+                          {dday.text}
+                        </span>
+                        <span className="text-[11.5px] font-extrabold text-emerald-600 bg-emerald-100/50 dark:bg-emerald-950/30 dark:text-emerald-400 px-2 py-1 rounded-lg border border-emerald-100/30">
+                          {notice.dept}
+                        </span>
+                      </div>
+                      <span className="text-[12px] font-bold text-tertiary">
+                        행사일: {notice.date}
+                      </span>
+                    </div>
+
+                    {/* Middle: Title & Description */}
+                    <div className="flex flex-col gap-1.5 z-10">
+                      <h4 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug tracking-tight group-hover:text-emerald-600 transition-colors">
+                        {notice.title}
+                      </h4>
+                      <p className="text-[12.5px] text-secondary font-medium leading-relaxed">
+                        본 소식은 동탄 권역의 대표 문화·축제 라이프스타일 정보입니다. 무료 이용 및 인근 주차가 가능하며, 가족 단위 방문에 적합합니다. D-VIEW에서 일정을 공유해보세요!
+                      </p>
+                    </div>
+
+                    {/* Bottom: Info Grid & Share Actions */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-4 mt-1 z-10">
+                      <div className="flex items-center gap-4 text-[12px] font-bold text-secondary">
+                        <span className="flex items-center gap-1">
+                          💵 이용 요금: <strong className="text-emerald-600">무료</strong>
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-border" />
+                        <span className="flex items-center gap-1">
+                          📍 주관: <strong>화성시</strong>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => shareLocalNoticeToKakao(notice)}
+                          className="px-3.5 py-2 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
+                        >
+                          카카오톡 공유
+                        </button>
+                        <button
+                          onClick={() => handleShareNotice(notice)}
+                          className="px-3.5 py-2 bg-surface hover:bg-body border border-border text-secondary text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
+                        >
+                          링크 복사
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
                 <a
                   key={notice.id}
                   href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
@@ -549,7 +639,8 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                     )}
                   </div>
                 </a>
-              ))
+              )
+            })
             )}
           </>
         )}

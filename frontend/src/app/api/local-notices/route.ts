@@ -12,7 +12,7 @@ const noticeSchema = z.object({
   dept: z.string().optional(),
   date: z.string(),
   isDongtan: z.boolean(),
-  source: z.enum(['bbs', 'gosi', 'rail', 'dong']).optional(),
+  source: z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture']).optional(),
   createdAt: z.string().optional(),
 });
 
@@ -54,14 +54,17 @@ export async function GET(request: Request) {
     // filterDongtan이 true일 때는 쿼리 단계에서 isDongtan == true 필터링을 함께 태워 데이터 손실을 원천 방지
     let cityQuery = localDb.collection('local_notices').where('source', 'in', ['gosi', 'bbs']);
     let railQuery = localDb.collection('local_notices').where('source', '==', 'rail');
+    let cultureQuery = localDb.collection('local_notices').where('source', '==', 'culture');
 
     if (filterDongtan) {
       cityQuery = cityQuery.where('isDongtan', '==', true);
       railQuery = railQuery.where('isDongtan', '==', true);
+      cultureQuery = cultureQuery.where('isDongtan', '==', true);
     }
 
     cityQuery = cityQuery.limit(150);
     railQuery = railQuery.limit(150);
+    cultureQuery = cultureQuery.limit(150);
 
     // 3. 동네행정 (동탄 1동~9동의 9개 행정복지센터 부서별 병렬 쿼리로 특정 동 누락을 완전히 방지)
     const dongs = ['동탄1동', '동탄2동', '동탄3동', '동탄4동', '동탄5동', '동탄6동', '동탄7동', '동탄8동', '동탄9동'];
@@ -75,9 +78,10 @@ export async function GET(request: Request) {
       return q.limit(100);
     });
 
-    const [citySnapshot, railSnapshot, ...dongSnapshots] = await Promise.all([
+    const [citySnapshot, railSnapshot, cultureSnapshot, ...dongSnapshots] = await Promise.all([
       cityQuery.get(),
       railQuery.get(),
+      cultureQuery.get(),
       ...dongQueries.map(q => q.get())
     ]);
 
@@ -113,9 +117,10 @@ export async function GET(request: Request) {
 
     const cityItems = getTop100(citySnapshot);
     const railItems = getTop100(railSnapshot);
+    const cultureItems = getTop100(cultureSnapshot);
     const dongItems = dongSnapshots.flatMap(snap => getTop100(snap));
 
-    const allItems = [...cityItems, ...railItems, ...dongItems];
+    const allItems = [...cityItems, ...railItems, ...cultureItems, ...dongItems];
 
     if (allItems.length === 0) {
       return NextResponse.json({ notices: [] });

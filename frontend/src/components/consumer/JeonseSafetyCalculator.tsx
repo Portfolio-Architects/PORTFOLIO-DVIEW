@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, ShieldAlert, Check, Share2, Clipboard, ChevronDown, Award, HelpCircle, ArrowLeft, RefreshCw, MessageSquare } from 'lucide-react';
+import { X, Search, ShieldAlert, Check, Share2, Clipboard, ChevronDown, Award, HelpCircle, ArrowLeft, RefreshCw, MessageSquare, Sparkles } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
@@ -63,6 +63,11 @@ export default function JeonseSafetyCalculator({
   const [lienEok, setLienEok] = useState<string>('');
   const [lienMan, setLienMan] = useState<string>('');
 
+  // Quiz integration states
+  const [hasQuizAnswers, setHasQuizAnswers] = useState(false);
+  const [quizBudgetLabel, setQuizBudgetLabel] = useState('');
+  const [quizBudgetLimit, setQuizBudgetLimit] = useState(0); // in Man-won
+
   // Diagnosis states
   const [isCalculating, setIsCalculating] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -75,6 +80,17 @@ export default function JeonseSafetyCalculator({
     occupancyReport: false,
     insuranceCheck: false,
   });
+
+  const enteredJeonseAmount = useMemo(() => {
+    const jEok = parseInt(jeonseEok) || 0;
+    const jMan = parseInt(jeonseMan) || 0;
+    return jEok * 10000 + jMan;
+  }, [jeonseEok, jeonseMan]);
+
+  const isBudgetExceeded = useMemo(() => {
+    if (!hasQuizAnswers || quizBudgetLimit <= 0) return false;
+    return enteredJeonseAmount > quizBudgetLimit;
+  }, [hasQuizAnswers, enteredJeonseAmount, quizBudgetLimit]);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,6 +115,57 @@ export default function JeonseSafetyCalculator({
     setLienEok('');
     setLienMan('');
   };
+
+  // Load and map quiz answers on modal open
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const answersStr = localStorage.getItem('dview_quiz_answers');
+        if (answersStr) {
+          const answers = JSON.parse(answersStr);
+          if (answers) {
+            setHasQuizAnswers(true);
+            let limitVal = 0;
+            let label = '';
+            if (answers.budget === '3eok') {
+              limitVal = 33000;
+              label = '3.3억';
+            } else if (answers.budget === '5eok') {
+              limitVal = 63000;
+              label = '6.3억';
+            } else if (answers.budget === '8eok') {
+              limitVal = 93000;
+              label = '9.3억';
+            } else if (answers.budget === '12eok') {
+              limitVal = 145000;
+              label = '14.5억';
+            } else if (answers.budget === 'unlimited') {
+              limitVal = 9999999;
+              label = '무제한';
+            }
+            setQuizBudgetLimit(limitVal);
+            setQuizBudgetLabel(label);
+
+            // Zero-click simulation if initialAptName is present
+            if (initialAptName) {
+              setIsCalculating(true);
+              const timer = setTimeout(() => {
+                setIsCalculating(false);
+                setShowResult(true);
+              }, 1200);
+              return () => clearTimeout(timer);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse quiz answers in JeonseSafetyCalculator:', e);
+      }
+    } else {
+      setShowResult(false);
+      setIsCalculating(false);
+      setHasQuizAnswers(false);
+    }
+  }, [isOpen, initialAptName]);
 
   // Set initial apartment if passed
   useEffect(() => {
@@ -171,7 +238,7 @@ export default function JeonseSafetyCalculator({
     if (debtRatio >= 80) {
       riskLevel = 'danger';
       riskLabel = '위험 (깡통전세)';
-      riskColor = '#ef4444'; // Red
+      riskColor = '#f43f5e'; // Red
       riskBg = 'bg-rose-50 dark:bg-rose-950/20';
       riskText = 'text-rose-600 dark:text-rose-400';
       riskBorder = 'border-rose-500/30';
@@ -355,9 +422,23 @@ export default function JeonseSafetyCalculator({
 
                   {/* Jeonse Deposit Input */}
                   <div className="space-y-2">
-                    <label className="block text-[12.5px] font-extrabold text-secondary">
-                      2. 전세 보증금 입력
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[12.5px] font-extrabold text-secondary">
+                        2. 전세 보증금 입력
+                      </label>
+                      {isBudgetExceeded && (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md animate-pulse">
+                          <ShieldAlert size={11} className="text-rose-500" />
+                          <span>유저 설정 예산({quizBudgetLabel}) 초과 단지</span>
+                        </span>
+                      )}
+                      {!isBudgetExceeded && hasQuizAnswers && (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                          <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                          <span>퀴즈 예산 연동됨</span>
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="relative">
                         <input
@@ -427,7 +508,7 @@ export default function JeonseSafetyCalculator({
                     {isCalculating ? (
                       <>
                         <RefreshCw size={16} className="animate-spin" />
-                        <span>전세 안전 진단 분석 중...</span>
+                        <span>{hasQuizAnswers ? '퀴즈 기반 자동 진단 중...' : '전세 안전 진단 분석 중...'}</span>
                       </>
                     ) : (
                       <>
@@ -446,6 +527,24 @@ export default function JeonseSafetyCalculator({
                 <div className="flex flex-col items-center text-center">
                   <div className="relative">
                     <svg viewBox="0 0 200 120" className="w-52 h-32 mx-auto">
+                      <defs>
+                        <linearGradient id="gaugeSafe" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#00d29d" />
+                          <stop offset="100%" stopColor="#059669" />
+                        </linearGradient>
+                        <linearGradient id="gaugeCaution" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#f59e0b" />
+                          <stop offset="100%" stopColor="#d97706" />
+                        </linearGradient>
+                        <linearGradient id="gaugeWarning" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#f97316" />
+                          <stop offset="100%" stopColor="#ea580c" />
+                        </linearGradient>
+                        <linearGradient id="gaugeDanger" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#f43f5e" />
+                          <stop offset="100%" stopColor="#e11d48" />
+                        </linearGradient>
+                      </defs>
                       {/* Background Track */}
                       <path
                         d="M 20 100 A 80 80 0 0 1 180 100"
@@ -458,7 +557,12 @@ export default function JeonseSafetyCalculator({
                       <path
                         d="M 20 100 A 80 80 0 0 1 180 100"
                         fill="none"
-                        stroke={calculationResult.riskColor}
+                        stroke={
+                          calculationResult.riskLevel === 'safe' ? 'url(#gaugeSafe)' :
+                          calculationResult.riskLevel === 'caution' ? 'url(#gaugeCaution)' :
+                          calculationResult.riskLevel === 'warning' ? 'url(#gaugeWarning)' :
+                          'url(#gaugeDanger)'
+                        }
                         strokeWidth="14"
                         strokeLinecap="round"
                         strokeDasharray="251.2"
@@ -506,7 +610,7 @@ export default function JeonseSafetyCalculator({
                     </div>
                     <div>
                       <span className="text-[11px] text-tertiary font-bold block">총 채무액</span>
-                      <span className="text-[14px] font-black text-[#ff4b5c] block mt-0.5">
+                      <span className="text-[14px] font-black text-[#f43f5e] block mt-0.5">
                         {(calculationResult.totalDebt / 10000).toFixed(1)}억원
                       </span>
                     </div>

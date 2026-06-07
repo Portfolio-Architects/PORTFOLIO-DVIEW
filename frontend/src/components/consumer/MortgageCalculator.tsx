@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, ShieldAlert, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, Users, Award, ChevronDown, MessageSquare } from 'lucide-react';
+import { X, Search, ShieldAlert, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, Users, Award, ChevronDown, MessageSquare, Sparkles } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -90,9 +90,67 @@ export default function MortgageCalculator({
   // Repayment parameters (in Step 4)
   const [maturityYears, setMaturityYears] = useState<number>(30); // 10, 15, 20, 30
 
+  // Quiz state integration
+  const [hasQuizAnswers, setHasQuizAnswers] = useState(false);
+
   // Diagnosis states
   const [isCalculating, setIsCalculating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+
+  // Load and map quiz answers on modal open
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const answersStr = localStorage.getItem('dview_quiz_answers');
+        if (answersStr) {
+          const answers = JSON.parse(answersStr);
+          if (answers) {
+            setHasQuizAnswers(true);
+            
+            // 1. Map householdType & childrenCount
+            if (answers.family === 'baby') {
+              setHouseholdType('newborn');
+              setChildrenCount(1);
+            } else if (answers.family === 'none') {
+              setHouseholdType('single');
+              setChildrenCount(0);
+            } else if (answers.family === 'elementary') {
+              setHouseholdType('normal');
+              setChildrenCount(1);
+            } else if (answers.family === 'middleHigh') {
+              setHouseholdType('normal');
+              setChildrenCount(2);
+            }
+
+            // 2. Map annualIncome & netAssets based on budget
+            if (answers.budget === '3eok') {
+              setAnnualIncome('4500');
+              setNetAssets('1.5');
+            } else if (answers.budget === '5eok') {
+              setAnnualIncome('6500');
+              setNetAssets('2.2');
+            } else if (answers.budget === '8eok') {
+              setAnnualIncome('8500');
+              setNetAssets('3.5');
+            } else if (answers.budget === '12eok') {
+              setAnnualIncome('11000');
+              setNetAssets('5.5');
+            } else if (answers.budget === 'unlimited') {
+              setAnnualIncome('15000');
+              setNetAssets('8.0');
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse quiz answers in MortgageCalculator:', e);
+      }
+    } else {
+      // Reset state on close
+      setStep(1);
+      setHasQuizAnswers(false);
+      setIsCalculating(false);
+    }
+  }, [isOpen]);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -484,12 +542,33 @@ export default function MortgageCalculator({
                     </span>
                   </div>
 
-                  <button
-                    onClick={handleNextStep}
-                    className="w-full bg-[#00d29d] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1 mt-4"
-                  >
-                    <span>다음 단계 (가구 요건)</span>
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleNextStep}
+                      className="w-full bg-[#00d29d] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1 mt-2"
+                    >
+                      <span>다음 단계 (가구 요건)</span>
+                    </button>
+
+                    {hasQuizAnswers && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCalculating(true);
+                          const timer = setTimeout(() => {
+                            setIsCalculating(false);
+                            setStep(4);
+                          }, 1200);
+                          return () => clearTimeout(timer);
+                        }}
+                        disabled={isCalculating}
+                        className="w-full bg-zinc-900/95 dark:bg-emerald-950/20 hover:bg-zinc-800 dark:hover:bg-emerald-950/45 text-[#00d29d] border border-[#00d29d]/40 py-3.5 rounded-xl text-[14px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <Sparkles size={14} className="fill-[#00d29d]/30 text-[#00d29d]" />
+                        <span>{isCalculating ? '퀴즈 기반 자동 진단 중...' : '퀴즈 결과로 바로 진단하기 (원클릭)'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -498,9 +577,17 @@ export default function MortgageCalculator({
           {/* STEP 2: Family Status Selection */}
           {step === 2 && (
             <div className="space-y-5 animate-in fade-in duration-300">
-              <label className="block text-[13px] font-extrabold text-secondary mb-3">
-                2. 귀하의 현재 가구 상황을 선택해 주세요
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-[13px] font-extrabold text-secondary">
+                  2. 귀하의 현재 가구 상황을 선택해 주세요
+                </label>
+                {hasQuizAnswers && (
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                    <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                    <span>퀴즈 답변 반영됨</span>
+                  </span>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 gap-2.5">
                 {[
@@ -548,13 +635,28 @@ export default function MortgageCalculator({
           {/* STEP 3: Income, Assets, Kids */}
           {step === 3 && (
             <div className="space-y-5 animate-in fade-in duration-300">
-              <label className="block text-[13px] font-extrabold text-secondary">
-                3. 부부 소득 및 순자산을 입력해 주세요
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[13px] font-extrabold text-secondary">
+                  3. 부부 소득 및 순자산을 입력해 주세요
+                </label>
+                {hasQuizAnswers && (
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                    <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
+                    <span>퀴즈 답변 반영됨</span>
+                  </span>
+                )}
+              </div>
 
               {/* Income input */}
               <div className="space-y-1.5">
-                <span className="text-[12px] font-bold text-secondary">부부합산 연소득 (세전)</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] font-bold text-secondary">부부합산 연소득 (세전)</span>
+                  {hasQuizAnswers && (
+                    <span className="text-[10px] text-emerald-600 dark:text-[#00d29d] font-black flex items-center gap-0.5">
+                      <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <input
                     type="number"
@@ -572,7 +674,14 @@ export default function MortgageCalculator({
 
               {/* Net asset input */}
               <div className="space-y-1.5">
-                <span className="text-[12px] font-bold text-secondary">가구보유 순자산 규모 (총자산 - 대출채무)</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] font-bold text-secondary">가구보유 순자산 규모 (총자산 - 대출채무)</span>
+                  {hasQuizAnswers && (
+                    <span className="text-[10px] text-emerald-600 dark:text-[#00d29d] font-black flex items-center gap-0.5">
+                      <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <input
                     type="number"
@@ -591,7 +700,14 @@ export default function MortgageCalculator({
 
               {/* Kids Selector */}
               <div className="space-y-1.5">
-                <span className="text-[12px] font-bold text-secondary">미성년 자녀 수 (자녀 수에 따른 금리 우대)</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] font-bold text-secondary">미성년 자녀 수 (자녀 수에 따른 금리 우대)</span>
+                  {hasQuizAnswers && (
+                    <span className="text-[10px] text-emerald-600 dark:text-[#00d29d] font-black flex items-center gap-0.5">
+                      <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-4 gap-2">
                   {[0, 1, 2, 3].map(count => (
                     <button
@@ -625,7 +741,7 @@ export default function MortgageCalculator({
                   {isCalculating ? (
                     <>
                       <RefreshCw size={15} className="animate-spin" />
-                      <span>자금 설계 시뮬레이션 중...</span>
+                      <span>{hasQuizAnswers ? '퀴즈 기반 자동 진단 중...' : '자금 설계 시뮬레이션 중...'}</span>
                     </>
                   ) : (
                     <>
@@ -683,7 +799,7 @@ export default function MortgageCalculator({
                   </div>
                   <div className="flex justify-between col-span-2">
                     <span className="text-tertiary">취득세 및 부대비용</span>
-                    <span className="text-[#ff4b5c]">+{(loanResults.fees.totalFees / 10000).toFixed(2)}억원</span>
+                    <span className="text-[#f43f5e]">+{(loanResults.fees.totalFees / 10000).toFixed(2)}억원</span>
                   </div>
                   <div className="flex justify-between col-span-2 border-t border-border/30 pt-2 mt-1 font-black text-[13px]">
                     <span className="text-primary">필요 자기자본 (실제 내 돈)</span>
@@ -735,14 +851,24 @@ export default function MortgageCalculator({
                 {/* Recharts Area Chart */}
                 <div className="w-full h-36 bg-body/20 rounded-xl border border-border/20 p-2.5 relative">
                   <div className="absolute top-2 left-3 text-[10px] font-bold text-tertiary flex gap-3">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded" />남은 대출 원금</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#ff4b5c]/70 rounded" />납부 누적이자</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00d29d] rounded" />남은 대출 원금</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#f43f5e]/70 rounded" />납부 누적이자</span>
                   </div>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={repaymentDetails.chartData}
                       margin={{ top: 20, right: 5, left: -20, bottom: 0 }}
                     >
+                      <defs>
+                        <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00d29d" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0}/>
+                        </linearGradient>
+                        <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
+                        </linearGradient>
+                      </defs>
                       <XAxis dataKey="year" tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
                       <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
                       <Tooltip 
@@ -754,8 +880,8 @@ export default function MortgageCalculator({
                           fontWeight: 'bold'
                         }} 
                       />
-                      <Area type="monotone" dataKey="남은 대출 원금" stroke="#10b981" fillOpacity={0.12} fill="#10b981" />
-                      <Area type="monotone" dataKey="납부한 누적 이자" stroke="#ff4b5c" fillOpacity={0.08} fill="#ff4b5c" />
+                      <Area type="monotone" dataKey="남은 대출 원금" stroke="#00d29d" fillOpacity={1} fill="url(#colorPrincipal)" />
+                      <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
