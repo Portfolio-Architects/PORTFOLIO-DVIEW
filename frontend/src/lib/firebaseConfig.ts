@@ -47,8 +47,8 @@ if (typeof window !== 'undefined' && app) {
 
   const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  // Initialize App Check if we have recaptcha key, or if we are in dev and have a debug token
-  if (recaptchaKey || (isDev && debugToken)) {
+  // Initialize App Check if we have recaptcha key in production, or if we are in dev and have a debug token
+  if ((!isDev && recaptchaKey) || (isDev && debugToken)) {
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(

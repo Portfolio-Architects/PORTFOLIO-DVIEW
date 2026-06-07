@@ -443,7 +443,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         
         <div className="flex-1 min-h-[300px] w-full relative">
           {isMounted ? (
-            <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
+            <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1} debounce={100}>
               <ComposedChart 
                 data={monthlyData} 
                 margin={{ top: 10, right: 10, left: 0, bottom: 5 }}

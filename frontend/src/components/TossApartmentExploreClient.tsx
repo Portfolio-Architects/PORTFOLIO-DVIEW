@@ -253,61 +253,71 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       {/* Mobile View (Hidden on Desktop) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`flex md:hidden flex-col justify-between p-4.5 h-[calc(100%-8px)] my-1.5 border border-neutral-100/90 dark:border-zinc-800/40 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.985] ${
+        className={`flex md:hidden flex-col justify-between p-4.5 h-[calc(100%-8px)] my-1.5 border border-black/[0.03] dark:border-white/[0.04] rounded-2xl cursor-pointer transition-all duration-300 ease-in-out active:scale-[0.98] ${
           index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
-        } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_2px_8px_rgba(0,0,0,0.015)] relative`}
+        } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_4px_20px_rgba(0,0,0,0.015)] relative`}
       >
-        {/* Favorite Heart - Moved to Top Right Corner */}
-        <div className="absolute right-4 top-4 z-10">
-          <InteractiveHeart 
-            isFavorited={item.isFavorited} 
-            name={item.apt.name} 
-            onToggle={onToggleFavorite} 
-            size={18} 
-          />
+        {/* Favorite Heart & Likes Count - Positioned Top Right Premium Capsule */}
+        <div className="absolute right-4.5 top-4.5 z-10">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md border shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 ${
+            item.isFavorited 
+              ? 'bg-rose-50/90 dark:bg-rose-950/20 border-rose-100/50 dark:border-rose-900/30' 
+              : 'bg-neutral-50/80 dark:bg-zinc-900/60 border-neutral-100/80 dark:border-zinc-800/40'
+          }`}>
+            <InteractiveHeart 
+              isFavorited={item.isFavorited} 
+              name={item.apt.name} 
+              onToggle={onToggleFavorite} 
+              size={13} 
+            />
+            {item.likes > 0 && (
+              <span className={`text-[10px] font-extrabold tracking-tight ${
+                item.isFavorited ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-500 dark:text-neutral-400'
+              }`}>
+                {item.likes}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Mobile Top Info */}
-        <div className="flex items-start gap-3 w-full min-w-0 mb-3.5 pr-6">
+        <div className="flex items-start gap-3 w-full min-w-0 mb-3.5 pr-20">
           {/* Rank Badge */}
           <div className="shrink-0 pt-0.5">
             {index < 3 ? (
-              <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10.5px] font-black tracking-tight shadow-sm ${
-                index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' :
-                index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white' :
-                'bg-gradient-to-br from-amber-600 to-amber-800 text-white'
+              <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tighter shadow-md ${
+                index === 0 ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-white shadow-amber-500/20 ring-1 ring-amber-300/30' :
+                index === 1 ? 'bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-white shadow-slate-400/20 ring-1 ring-slate-300/30' :
+                'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 text-white shadow-amber-700/20 ring-1 ring-amber-500/30'
               }`}>
                 {index + 1}
               </span>
             ) : (
-              <span className="w-[22px] h-[22px] rounded-full bg-neutral-100/80 dark:bg-neutral-900/80 flex items-center justify-center text-[12px] font-extrabold text-neutral-400 dark:text-neutral-500">{index + 1}</span>
+              <span className="w-[22px] h-[22px] rounded-full bg-neutral-100/60 dark:bg-neutral-800/40 border border-neutral-200/30 dark:border-neutral-700/30 flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
+                {index + 1}
+              </span>
             )}
           </div>
           
           {/* Name & Metadata */}
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-[16px] font-black text-neutral-900 dark:text-neutral-50 leading-tight mb-2 break-keep group-hover:text-[#00d29d] transition-colors">
+            <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-50 leading-tight mb-2 tracking-tight break-keep group-hover:text-[#00d29d] transition-colors">
               {item.apt.name}
             </span>
             
             {/* Meta & Micro Badges Combined Row */}
-            <div className="flex items-center flex-wrap gap-2 text-[11.5px] text-neutral-500 dark:text-neutral-400 font-bold">
-              <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-[10px] font-extrabold rounded">
+            <div className="flex items-center flex-wrap gap-1.5 text-[10.5px] text-neutral-500 dark:text-neutral-400 font-bold tracking-tight">
+              <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-extrabold rounded-md shadow-sm border border-emerald-100/20">
                 {item.apt.dong}
               </span>
               <span>{item.formattedYearBuilt}</span>
-              <span>·</span>
+              <span className="text-neutral-300 dark:text-neutral-700">•</span>
               <span>{item.formattedHousehold}</span>
 
-              {/* Micro badges integrated neatly */}
+              {/* Photo Count badge only inside text line */}
               {item.photoCount > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold ml-1">
+                <span className="inline-flex items-center gap-0.5 text-[9.5px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/10">
                   <Camera className="w-2.5 h-2.5" />{item.photoCount}장
-                </span>
-              )}
-              {item.likes > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-600 dark:text-rose-400 font-extrabold ml-1">
-                  <Heart className="w-2.5 h-2.5 fill-current" />{item.likes}
                 </span>
               )}
             </div>
@@ -315,43 +325,49 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         </div>
 
         {/* Integrated Mobile Metrics Slab (Clean & Modern Unified Look) */}
-        <div className="grid grid-cols-3 gap-1 w-full p-2 bg-neutral-50/50 dark:bg-zinc-900/20 backdrop-blur-sm rounded-xl border border-neutral-100/50 dark:border-zinc-800/10">
+        <div className="grid grid-cols-3 gap-0 w-full mt-1.5 p-1 bg-gradient-to-b from-neutral-50/60 to-neutral-100/20 dark:from-zinc-900/10 dark:to-zinc-900/20 backdrop-blur-md rounded-2xl border border-neutral-200/40 dark:border-zinc-800/10 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]">
           {/* Price Block */}
-          <div className="flex flex-col items-center justify-center text-center py-1">
-            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">매매가</span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5">
+          <div className="flex flex-col items-center justify-center text-center py-2 relative">
+            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-extrabold mb-1.5 flex items-center gap-0.5">
+              <Coins className="w-2.5 h-2.5 opacity-40 text-emerald-500" /> 매매가
+            </span>
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5 tracking-tight">
               {item.formattedPrice}
             </span>
-            <span className="text-[10px] font-extrabold text-[#00b386] dark:text-[#00d29d] leading-none">
+            <span className="text-[9.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] leading-none bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
               {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
             </span>
           </div>
 
           {/* Jeonse Block */}
-          <div className="flex flex-col items-center justify-center text-center py-1 border-x border-neutral-100/80 dark:border-zinc-800/30">
-            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">전세가</span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5">
+          <div className="flex flex-col items-center justify-center text-center py-2 border-x border-neutral-200/40 dark:border-zinc-800/20 relative">
+            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-extrabold mb-1.5 flex items-center gap-0.5">
+              <Activity className="w-2.5 h-2.5 opacity-40 text-teal-500" /> 전세가
+            </span>
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5 tracking-tight">
               {item.jeonsePrice > 0 ? item.formattedJeonse : '-'}
             </span>
             <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
               item.ratio >= 0.6 
                 ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
-                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500'
+                : 'bg-neutral-100/60 dark:bg-neutral-800/40 text-neutral-400 dark:text-neutral-500'
             }`}>
               {item.ratio > 0 ? item.formattedRatio : '-'}
             </span>
           </div>
 
           {/* Volume Block */}
-          <div className="flex flex-col items-center justify-center text-center py-1">
-            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">거래량(3M)</span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5">
+          <div className="flex flex-col items-center justify-center text-center py-2 relative">
+            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-extrabold mb-1.5 flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5 opacity-40 text-indigo-500" /> 거래량(3M)
+            </span>
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5 tracking-tight">
               {item.volume3M > 0 ? item.formattedVolume : '-'}
             </span>
             <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
               item.turnoverRate >= 2.5 
                 ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' 
-                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500'
+                : 'bg-neutral-100/60 dark:bg-neutral-800/40 text-neutral-400 dark:text-neutral-500'
             }`}>
               {item.formattedTurnover ? `${item.formattedTurnover}` : '-'}
             </span>
