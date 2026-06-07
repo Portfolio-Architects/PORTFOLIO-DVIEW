@@ -755,6 +755,17 @@ export default function SellTimingCalculator({
                   </div>
                 </div>
 
+                {/* 카카오톡 1-Click 공유 플로팅 버튼 (FAB) */}
+                <div className="sticky bottom-2 left-0 right-0 z-30 flex justify-center w-full pointer-events-none mt-4">
+                  <button
+                    onClick={handleKakaoShare}
+                    className="pointer-events-auto bg-[#fee500] hover:bg-[#fddc00] active:scale-95 text-[#191919] font-black text-[13.5px] px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl shadow-yellow-500/30 transition-all cursor-pointer border-none animate-pulse w-full max-w-md justify-center"
+                  >
+                    <MessageSquare size={16} className="fill-[#191919] text-[#191919]" />
+                    <span>진단 결과 1초 만에 카카오톡으로 공유하기</span>
+                  </button>
+                </div>
+
                 {/* Footer Buttons */}
                 <div className="flex gap-2 pt-2 border-t border-border/30">
                   <button

@@ -12,6 +12,7 @@ import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
+import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 const formatPrice = (priceMan: number) => {
   const { value, unit } = formatEokWithUnit(priceMan);
@@ -145,7 +146,22 @@ interface RowData {
 
 const Row = memo(({ index, style, data }: { index: number; style: React.CSSProperties; data: RowData }) => {
   const { items, handleSelectApt, onToggleFavorite } = data;
-  const item = items[index];
+
+  const isAd = items.length > 15 && index === 15;
+  if (isAd) {
+    return (
+      <div style={style} className="w-full px-1 md:px-0 flex items-center h-[calc(100%-8px)] my-1">
+        <NativeAdPlaceholder 
+          location="아파트 탐색 목록 15번째 광고" 
+          adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_EXPLORE_LIST || "test-explore-list-slot"} 
+          isCompact={true}
+        />
+      </div>
+    );
+  }
+
+  const actualIndex = items.length > 15 && index > 15 ? index - 1 : index;
+  const item = items[actualIndex];
   if (!item) return null;
 
   return (
@@ -154,7 +170,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
         className={`hidden md:flex items-center md:px-4 h-[calc(100%-8px)] my-1 border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
-          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
+          actualIndex % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]`}
       >
         {/* Heart */}
@@ -169,16 +185,16 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         
         {/* Rank */}
         <div className="w-[40px] text-center shrink-0 flex items-center justify-center">
-          {index < 3 ? (
+          {actualIndex < 3 ? (
             <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-black tracking-tight shadow-sm ${
-              index === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 text-white shadow-amber-500/20' :
-              index === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/20' :
+              actualIndex === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 text-white shadow-amber-500/20' :
+              actualIndex === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/20' :
               'bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white shadow-amber-700/20'
             }`}>
-              {index + 1}
+              {actualIndex + 1}
             </span>
           ) : (
-            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100/40 dark:bg-neutral-800/30">{index + 1}</span>
+            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100/40 dark:bg-neutral-800/30">{actualIndex + 1}</span>
           )}
         </div>
         
@@ -241,7 +257,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
           {item.formattedTurnover && (
             <span className={`text-[9.5px] font-extrabold leading-none whitespace-nowrap px-1.5 py-0.5 rounded ${
               item.turnoverRate >= 2.5 
-                ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' 
+                ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-teal-400' 
                 : 'bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400'
             }`}>
               회전율 {item.formattedTurnover}
@@ -254,7 +270,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
         className={`flex md:hidden flex-col justify-between p-4.5 h-[calc(100%-8px)] my-1.5 border border-black/[0.03] dark:border-white/[0.04] rounded-2xl cursor-pointer transition-all duration-300 ease-in-out active:scale-[0.98] ${
-          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
+          actualIndex % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_4px_20px_rgba(0,0,0,0.015)] relative`}
       >
         {/* Favorite Heart & Likes Count - Positioned Top Right Premium Capsule */}
@@ -284,17 +300,17 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         <div className="flex items-start gap-3 w-full min-w-0 mb-3.5 pr-20">
           {/* Rank Badge */}
           <div className="shrink-0 pt-0.5">
-            {index < 3 ? (
+            {actualIndex < 3 ? (
               <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tighter shadow-md ${
-                index === 0 ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-white shadow-amber-500/20 ring-1 ring-amber-300/30' :
-                index === 1 ? 'bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-white shadow-slate-400/20 ring-1 ring-slate-300/30' :
+                actualIndex === 0 ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-white shadow-amber-500/20 ring-1 ring-amber-300/30' :
+                actualIndex === 1 ? 'bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-white shadow-slate-400/20 ring-1 ring-slate-300/30' :
                 'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 text-white shadow-amber-700/20 ring-1 ring-amber-500/30'
               }`}>
-                {index + 1}
+                {actualIndex + 1}
               </span>
             ) : (
               <span className="w-[22px] h-[22px] rounded-full bg-neutral-100/60 dark:bg-neutral-800/40 border border-neutral-200/30 dark:border-neutral-700/30 flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
-                {index + 1}
+                {actualIndex + 1}
               </span>
             )}
           </div>
@@ -742,8 +758,13 @@ export default function TossApartmentExploreClient({
   }, [sortedApts, isMobile]);
 
   const getItemSize = (index: number) => {
+    const isAd = sortedApts.length > 15 && index === 15;
+    if (isAd) {
+      return isMobile ? 86 : 94;
+    }
+    const actualIndex = sortedApts.length > 15 && index > 15 ? index - 1 : index;
     if (!isMobile) return 66;
-    const item = sortedApts[index];
+    const item = sortedApts[actualIndex];
     if (!item) return 180;
     
     // 1. 기본 3분할 메트릭 카드 높이 설정 (패딩 및 마진 포함 최소 높이)
@@ -1206,7 +1227,7 @@ export default function TossApartmentExploreClient({
                 ref={listRef}
                 outerRef={outerRef}
                 height={listHeight}
-                itemCount={sortedApts.length}
+                itemCount={sortedApts.length > 15 ? sortedApts.length + 1 : sortedApts.length}
                 itemSize={getItemSize}
                 itemData={itemData}
                 width="100%"

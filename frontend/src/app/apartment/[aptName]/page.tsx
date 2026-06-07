@@ -546,16 +546,47 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "ApartmentComplex",
-    "name": `${decodedName}`,
-    "description": `동탄 ${decodedName} 아파트 실거래가 및 임장 리포트`,
-    "url": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
-    ...(structuredImages.length > 0 ? { "image": structuredImages } : {}),
-    ...(offers ? { "offers": offers } : {}),
-    "priceRange": minSalePrice > 0 ? `₩${(minSalePrice * 10000).toLocaleString()} - ₩${(maxSalePrice * 10000).toLocaleString()}` : undefined,
-    "address": address,
-    ...(geo ? { "geo": geo } : {}),
-    ...(schools.length > 0 ? { "containedInPlace": schools } : {})
+    "@graph": [
+      {
+        "@type": "ApartmentComplex",
+        "@id": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}#complex`,
+        "name": `${decodedName}`,
+        "description": `동탄 ${decodedName} 아파트 실거래가 및 임장 리포트`,
+        "url": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
+        ...(structuredImages.length > 0 ? { "image": structuredImages } : {}),
+        ...(offers ? { "offers": offers } : {}),
+        "priceRange": minSalePrice > 0 ? `₩${(minSalePrice * 10000).toLocaleString()} - ₩${(maxSalePrice * 10000).toLocaleString()}` : undefined,
+        "address": address,
+        ...(geo ? { "geo": geo } : {}),
+        ...(schools.length > 0 ? { "containedInPlace": schools } : {})
+      },
+      {
+        "@type": "SingleFamilyResidence",
+        "@id": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}#residence`,
+        "name": `${decodedName} 주거 단지`,
+        "description": `동탄 ${decodedName} 아파트 단지 내 주거용 부동산`,
+        "address": address,
+        ...(geo ? { "geo": geo } : {}),
+        "containedInPlace": {
+          "@type": "ApartmentComplex",
+          "@id": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}#complex`
+        }
+      },
+      {
+        "@type": "RealEstateAgent",
+        "@id": `${baseUrl}/#agent`,
+        "name": "D-VIEW 부동산 데이터 랩스",
+        "description": "동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼",
+        "url": baseUrl,
+        "telephone": "+82-2-000-0000",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "KR",
+          "addressRegion": "경기도",
+          "addressLocality": "화성시 동탄역로"
+        }
+      }
+    ]
   };
 
   const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);

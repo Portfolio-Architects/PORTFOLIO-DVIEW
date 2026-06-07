@@ -7,11 +7,12 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: { notice?: string; title?: string; dept?: string };
+  searchParams: Promise<{ notice?: string; title?: string; dept?: string }>;
 }): Promise<Metadata> {
-  const noticeId = searchParams?.notice;
-  const title = searchParams?.title;
-  const dept = searchParams?.dept;
+  const resolvedParams = await searchParams;
+  const noticeId = resolvedParams?.notice;
+  const title = resolvedParams?.title;
+  const dept = resolvedParams?.dept;
 
   if (noticeId && title) {
     const ogUrl = `https://dongtanview.com/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept || '')}`;
@@ -48,8 +49,9 @@ export async function generateMetadata({
 export default async function LoungePage({
   searchParams,
 }: {
-  searchParams: { notice?: string; title?: string; dept?: string };
+  searchParams: Promise<{ notice?: string; title?: string; dept?: string }>;
 }) {
+  const resolvedParams = await searchParams;
   let posts: Record<string, unknown>[] = [];
   let errorMessage: string | null = null;
   
@@ -107,7 +109,7 @@ export default async function LoungePage({
           🚧 Server Error: {errorMessage}
         </div>
       )}
-      <LoungeContainerClient initialPosts={posts as any} searchParams={searchParams} />
+      <LoungeContainerClient initialPosts={posts as any} searchParams={resolvedParams} />
     </main>
   );
 }

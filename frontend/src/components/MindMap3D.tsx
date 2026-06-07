@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Sparkles, Orbit, RotateCcw, Flame, CheckCircle, Info } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import useSWR from 'swr';
 
 interface Node3D {
@@ -45,6 +46,15 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
   const [showZoomHint, setShowZoomHint] = useState(false);
   const zoomHintTimeout = useRef<any>(null);
 
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = !mounted || resolvedTheme === 'dark';
+
   // 3D Engine configuration
   const cameraAngle = useRef(0);
   const dragStart = useRef<{ x: number; y: number } | null>(null);
@@ -66,7 +76,6 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         const ratio = price > 0 ? (jeonse / price) * 100 : 50;
         
         // Generate a pseudo-stable vote percentage based on real parameters
-        // High jeonse ratio + low gap = high buy percent
         const gap = price - jeonse;
         let baseVote = 50;
         if (ratio > 70) baseVote += 15;
@@ -273,7 +282,11 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         const avgDepth = ((source.projectedZ || 0) + (target.projectedZ || 0)) / 2;
         const alpha = Math.max(0.05, Math.min(0.3, 1 - (avgDepth + 150) / 300));
 
-        ctx.strokeStyle = `rgba(148, 163, 184, ${alpha})`;
+        // Dynamically adjust link stroke colors based on theme resolved state
+        ctx.strokeStyle = isDark 
+          ? `rgba(148, 163, 184, ${alpha})` 
+          : `rgba(100, 116, 139, ${alpha * 1.5})`;
+
         ctx.beginPath();
         ctx.moveTo(source.projectedX, source.projectedY);
         ctx.lineTo(target.projectedX, target.projectedY);
@@ -292,13 +305,10 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         let nodeColor = '#38bdf8'; // Sky blue fallback
         
         if (temperatureMode === 'vote') {
-          // Vote Thermometer: Red (Hot buy) to Blue (Cold wait)
           const buyRatio = node.buyPercent / 100;
-          // Interpolate HSL: Hue 0 (Red) is Hot Buy, Hue 210 (Blue) is Wait
           const hue = 210 - (buyRatio * 210);
           nodeColor = `hsl(${hue}, 85%, 50%)`;
         } else {
-          // Jeonse Ratio: Emerald green (High jeonse > 70%) to Crimson Red (Low < 40%)
           const jeonseRatioVal = Math.min(100, Math.max(0, node.ratio));
           if (jeonseRatioVal >= 70) {
             nodeColor = '#00d29d'; // Emerald
@@ -320,7 +330,7 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         );
         gradient.addColorStop(0, '#ffffff');
         gradient.addColorStop(0.3, nodeColor);
-        gradient.addColorStop(1, '#0b0f19');
+        gradient.addColorStop(1, isDark ? '#0b0f19' : '#e2e8f0');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -330,14 +340,14 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         // Node glow stroke (if hovered or very hot)
         const isHovered = hoveredNode?.id === node.id;
         if (isHovered) {
-          ctx.strokeStyle = '#ffffff';
+          ctx.strokeStyle = isDark ? '#ffffff' : '#0f172a';
           ctx.lineWidth = 2;
           ctx.stroke();
         }
 
         // Render node labels for closer nodes
         if (node.projectedScale > 0.8 || isHovered) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.9)';
           ctx.font = isHovered ? 'bold 11px Inter, sans-serif' : '500 9px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(node.name, node.projectedX, node.projectedY + radius + 11);
@@ -370,7 +380,7 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
       canvas.removeEventListener('wheel', handleWheel);
       if (zoomHintTimeout.current) clearTimeout(zoomHintTimeout.current);
     };
-  }, [nodes, links, rotationActive, hoveredNode, temperatureMode]);
+  }, [nodes, links, rotationActive, hoveredNode, temperatureMode, isDark]);
 
   // Handle interaction & mouse events
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -419,23 +429,35 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
   };
 
   return (
-    <div className="w-full bg-[#0b0f19] text-white rounded-3xl p-5 md:p-6 shadow-xl border border-slate-800 transition-all flex flex-col relative overflow-hidden">
+    <div className={`w-full rounded-3xl p-5 md:p-6 shadow-xl border transition-all flex flex-col relative overflow-hidden ${
+      isDark ? 'bg-[#0b0f19] text-white border-slate-800' : 'bg-surface text-primary border-border'
+    }`}>
       {/* Aurora glow background */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
+        isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'
+      }`} />
+      <div className={`absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
+        isDark ? 'bg-blue-500/10' : 'bg-blue-500/5'
+      }`} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-toss-blue">
+          <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${
+            isDark ? 'bg-slate-900/80 border-slate-700 text-toss-blue' : 'bg-body border-border/60 text-teal-600'
+          }`}>
             <Orbit className="w-5 h-5 animate-spin-slow" />
           </div>
           <div>
-            <h3 className="text-[17px] font-black text-slate-100 flex items-center gap-1.5 leading-none">
+            <h3 className={`text-[17px] font-black flex items-center gap-1.5 leading-none ${
+              isDark ? 'text-slate-100' : 'text-primary'
+            }`}>
               동탄3D 매수 심리 시그널 맵
               <Sparkles className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
             </h3>
-            <span className="text-[11.5px] font-bold text-slate-400 mt-1 block">
+            <span className={`text-[11.5px] font-bold mt-1 block ${
+              isDark ? 'text-slate-400' : 'text-secondary'
+            }`}>
               실수요 투표 및 전세가율 연동 가격 온도 시각화
             </span>
           </div>
@@ -444,13 +466,15 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         {/* Dynamic Controls */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Temperature Modes toggle */}
-          <div className="flex bg-slate-900 border border-slate-800 rounded-lg p-0.5 shrink-0">
+          <div className={`flex border rounded-lg p-0.5 shrink-0 ${
+            isDark ? 'bg-slate-900 border-slate-800' : 'bg-body border-border/60'
+          }`}>
             <button
               onClick={() => setTemperatureMode('vote')}
               className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all ${
                 temperatureMode === 'vote'
-                  ? 'bg-slate-800 text-[#00d29d]'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? (isDark ? 'bg-slate-800 text-[#00d29d]' : 'bg-surface text-teal-600 shadow-sm')
+                  : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
               🔥 매수 심리
@@ -459,8 +483,8 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
               onClick={() => setTemperatureMode('ratio')}
               className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all ${
                 temperatureMode === 'ratio'
-                  ? 'bg-slate-800 text-[#00d29d]'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? (isDark ? 'bg-slate-800 text-[#00d29d]' : 'bg-surface text-teal-600 shadow-sm')
+                  : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
               📊 전세가율
@@ -474,7 +498,11 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
               dragAngle.current = { x: 0, y: 0 };
               setRotationActive(true);
             }}
-            className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+            className={`p-2 border rounded-lg transition-colors flex items-center justify-center ${
+              isDark 
+                ? 'bg-slate-900 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white' 
+                : 'bg-body hover:bg-body/80 border-border/50 text-secondary hover:text-primary shadow-sm'
+            }`}
             title="카메라 리셋"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -485,13 +513,17 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
       {/* Main interactive Canvas */}
       <div 
         ref={containerRef} 
-        className="w-full flex items-center justify-center relative bg-slate-950/40 border border-slate-900 rounded-2xl md:max-h-[400px] overflow-hidden select-none cursor-grab active:cursor-grabbing"
+        className={`w-full flex items-center justify-center relative border rounded-2xl md:max-h-[400px] overflow-hidden select-none cursor-grab active:cursor-grabbing ${
+          isDark ? 'bg-slate-955/40 border-slate-900' : 'bg-body/30 border-border/50'
+        }`}
       >
         {showZoomHint && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center pointer-events-none z-30 transition-all duration-300 animate-in fade-in">
-            <div className="bg-slate-900 border border-slate-700 px-4 py-2.5 rounded-xl text-center shadow-2xl flex flex-col items-center gap-1.5">
-              <span className="text-[12px] font-black text-white">💡 Ctrl 키를 누른 채 스크롤하면 3D 맵이 확대/축소됩니다.</span>
-              <span className="text-[10px] text-slate-400 font-bold">그냥 스크롤하면 페이지가 이동합니다.</span>
+            <div className={`border px-4 py-2.5 rounded-xl text-center shadow-2xl flex flex-col items-center gap-1.5 ${
+              isDark ? 'bg-slate-900 border-slate-700' : 'bg-surface border-border'
+            }`}>
+              <span className={`text-[12px] font-black ${isDark ? 'text-white' : 'text-primary'}`}>💡 Ctrl 키를 누른 채 스크롤하면 3D 맵이 확대/축소됩니다.</span>
+              <span className={`text-[10px] font-bold ${isDark ? 'text-slate-400' : 'text-secondary'}`}>그냥 스크롤하면 페이지가 이동합니다.</span>
             </div>
           </div>
         )}
@@ -508,15 +540,17 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
 
         {/* Hover info overlay banner */}
         {hoveredNode && (
-          <div className="absolute top-4 left-4 bg-slate-900/90 border border-slate-700 rounded-xl p-3 shadow-xl backdrop-blur-md flex flex-col gap-1 z-20 animate-in fade-in duration-150">
-            <span className="text-[13px] font-black text-white">{hoveredNode.name}</span>
-            <span className="text-[10px] text-slate-400 font-bold leading-none">{hoveredNode.dong}</span>
-            <div className="w-full h-[1px] bg-slate-800 my-1" />
+          <div className={`absolute top-4 left-4 border rounded-xl p-3 shadow-xl backdrop-blur-md flex flex-col gap-1 z-20 animate-in fade-in duration-150 ${
+            isDark ? 'bg-slate-900/90 border-slate-700 text-white' : 'bg-surface/90 border-border text-primary'
+          }`}>
+            <span className="text-[13px] font-black">{hoveredNode.name}</span>
+            <span className={`text-[10px] font-bold leading-none ${isDark ? 'text-slate-400' : 'text-secondary'}`}>{hoveredNode.dong}</span>
+            <div className={`w-full h-[1px] my-1 ${isDark ? 'bg-slate-800' : 'bg-border/60'}`} />
             <div className="flex flex-col gap-0.5 text-[11px] font-bold">
-              <span className="text-toss-blue">
+              <span className={isDark ? 'text-toss-blue' : 'text-blue-600'}>
                 평균 매매: {hoveredNode.price > 0 ? `${Math.floor(hoveredNode.price / 10000)}억 ${(hoveredNode.price % 10000).toLocaleString()}만` : '정보 없음'}
               </span>
-              <span className="text-yellow-400">
+              <span className="text-yellow-600 dark:text-yellow-400">
                 전세율: {hoveredNode.ratio.toFixed(1)}%
               </span>
               <span className="text-[#00d29d] flex items-center gap-1 mt-0.5">
@@ -524,12 +558,14 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
                 매수 찬성: {hoveredNode.buyPercent}%
               </span>
             </div>
-            <span className="text-[9px] text-slate-500 font-semibold mt-1">💡 클릭하면 임장 리포트 열기</span>
+            <span className={`text-[9px] font-semibold mt-1 ${isDark ? 'text-slate-500' : 'text-tertiary'}`}>💡 클릭하면 임장 리포트 열기</span>
           </div>
         )}
 
         {/* Temperature map Legend */}
-        <div className="absolute bottom-4 right-4 bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-2 text-[10px] font-bold text-slate-400 flex flex-col gap-1 backdrop-blur-sm select-none pointer-events-none">
+        <div className={`absolute bottom-4 right-4 border rounded-xl px-3 py-2 text-[10px] font-bold flex flex-col gap-1 backdrop-blur-sm select-none pointer-events-none ${
+          isDark ? 'bg-slate-900/80 border-slate-800 text-slate-400' : 'bg-surface/80 border-border text-secondary'
+        }`}>
           {temperatureMode === 'vote' ? (
             <>
               <div className="flex items-center gap-1.5">
@@ -565,9 +601,11 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
       </div>
       
       {/* Help Tips */}
-      <div className="mt-3.5 flex items-start gap-2 text-slate-400 bg-slate-950/20 border border-slate-900 p-3 rounded-xl">
-        <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-        <p className="text-[11.5px] leading-relaxed font-semibold break-keep text-slate-400">
+      <div className={`mt-3.5 flex items-start gap-2 border p-3 rounded-xl ${
+        isDark ? 'bg-slate-950/20 border-slate-900 text-slate-400' : 'bg-body/40 border-border/40 text-secondary'
+      }`}>
+        <Info className={`w-4 h-4 shrink-0 mt-0.5 ${isDark ? 'text-slate-500' : 'text-tertiary'}`} />
+        <p className="text-[11.5px] leading-relaxed font-semibold break-keep">
           3D 공간 속 노드는 각 단지별 지리적 인접성과 가격 연결 관계에 따라 시뮬레이션 물리력에 의해 유기적으로 배치됩니다. 드래그하여 그래프 각도를 3D로 회전시켜 보고, 노드를 마우스오버해 가격 분석 데이터를 즉시 확인해 보실 수 있습니다.
         </p>
       </div>

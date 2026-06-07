@@ -311,6 +311,8 @@ export default function AIRecommendations({
           tag = '호수공원';
         }
 
+        const breakdown = index === 0 ? ['동탄역세권', '대단지'] : (index === 1 ? ['학군우수', '시범단지'] : ['호수공원', '가성비']);
+
         return {
           name,
           dong: apt?.dong || '동탄동',
@@ -322,7 +324,8 @@ export default function AIRecommendations({
           risks: {
             jeonse: 'safe' as const,
             liquidity: 'safe' as const,
-          }
+          },
+          reasonBreakdown: breakdown
         };
       });
       return { items, isFallback: true };
@@ -578,6 +581,48 @@ export default function AIRecommendations({
         tag = '안심단지';
       }
 
+      // Formulate reasonBreakdown
+      const reasonBreakdown: string[] = [];
+      if (allSafe) reasonBreakdown.push('안심단지 🟢');
+      
+      if (deferredQuizAnswers) {
+        if (deferredQuizAnswers.budget !== 'unlimited' && price > 0) {
+          let budgetLimit = 999999;
+          if (deferredQuizAnswers.budget === '3eok') budgetLimit = 33000;
+          else if (deferredQuizAnswers.budget === '5eok') budgetLimit = 63000;
+          else if (deferredQuizAnswers.budget === '8eok') budgetLimit = 93000;
+          else if (deferredQuizAnswers.budget === '12eok') budgetLimit = 145000;
+          if (price <= budgetLimit) reasonBreakdown.push('예산 부합');
+        }
+        if (deferredQuizAnswers.family === 'elementary' && (m.distanceToElementary ?? 350) <= 250) {
+          reasonBreakdown.push('안심 초품아');
+        }
+        if (deferredQuizAnswers.transit === 'gtx' && (m.distanceToSubway ?? 2000) <= 700) {
+          reasonBreakdown.push('동탄역세권');
+        }
+        if (deferredQuizAnswers.lifestyle === 'nature' && (m.distanceToPark ?? 9999) <= 300) {
+          reasonBreakdown.push('숲/공세권');
+        }
+        if (deferredQuizAnswers.investmentStyle === 'gap' && jeonseRatio >= 70) {
+          reasonBreakdown.push('갭투자 유리');
+        }
+        if (deferredQuizAnswers.yearBuilt === 'new' && (m.yearBuilt ?? 2018) >= 2021) {
+          reasonBreakdown.push('신축 선호');
+        }
+        if (deferredQuizAnswers.scaleBrand === 'brand' && getBrandMultiplier(apt.name) >= 1.05) {
+          reasonBreakdown.push('메이저 브랜드');
+        }
+      }
+
+      // fallback / history-based breakdown items if empty
+      if (reasonBreakdown.length === 0) {
+        if ((m.distanceToElementary ?? 350) <= 250) reasonBreakdown.push('초품아');
+        if ((m.distanceToSubway ?? 2000) <= 600) reasonBreakdown.push('역세권');
+        if (jeonseRatio >= 70) reasonBreakdown.push('하방 지지(갭)');
+        if ((m.yearBuilt ?? 2018) >= 2021) reasonBreakdown.push('준신축');
+        if (m.householdCount >= 1000) reasonBreakdown.push('대단지');
+      }
+
       return {
         name: apt.name,
         dong: apt.dong,
@@ -589,7 +634,8 @@ export default function AIRecommendations({
         risks: {
           jeonse: isJeonseRisk ? ('danger' as const) : isJeonseWarning ? ('warning' as const) : ('safe' as const),
           liquidity: isLiquidityRisk ? ('danger' as const) : isLiquidityWarning ? ('warning' as const) : ('safe' as const),
-        }
+        },
+        reasonBreakdown
       };
     });
 
@@ -709,6 +755,11 @@ export default function AIRecommendations({
                   <span className="text-[10px] font-extrabold bg-body text-secondary px-1.5 py-0.5 rounded-[4px]">
                     #{item.tag}
                   </span>
+                  {item.reasonBreakdown?.map((b) => (
+                    <span key={b} className="text-[9.5px] font-extrabold bg-[#e0fbf4]/60 text-teal-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-1.5 py-0.5 rounded-[4px] border border-teal-500/10">
+                      {b}
+                    </span>
+                  ))}
                 </div>
                 <p className="text-[12px] text-secondary font-semibold leading-relaxed break-keep">
                   {item.reason}
