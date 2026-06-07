@@ -288,8 +288,12 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   
   const prices = scatterData.map(d => d.price);
 
-  const domainMin = minP !== Infinity ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
-  const domainMax = maxP !== -Infinity ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
+  let domainMin = minP !== Infinity ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
+  let domainMax = maxP !== -Infinity ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
+  if (minP !== Infinity && maxP !== -Infinity && (domainMax - domainMin < 1.0)) {
+    domainMin = Math.max(0, domainMin - 0.5);
+    domainMax = domainMax + 0.5;
+  }
   const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
 
 
@@ -335,7 +339,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   return (
     <div className="w-full flex flex-col h-full">
-      <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 dark:ring-white/10 flex-1 flex flex-col h-full relative overflow-hidden">
+      <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 dark:ring-white/10 flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y">
         {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
         <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
           <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>

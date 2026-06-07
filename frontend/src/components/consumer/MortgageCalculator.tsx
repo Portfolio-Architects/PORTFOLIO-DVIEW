@@ -84,7 +84,9 @@ export default function MortgageCalculator({
   // Inputs
   const [householdType, setHouseholdType] = useState<'single' | 'newborn' | 'newlyweds' | 'firsttime' | 'normal'>('normal');
   const [annualIncome, setAnnualIncome] = useState<string>(''); // Man-won
+  const [annualIncomeInputValue, setAnnualIncomeInputValue] = useState<string>(''); // For formatted text input
   const [netAssets, setNetAssets] = useState<string>(''); // Eok
+  const [netAssetsInputValue, setNetAssetsInputValue] = useState<string>(''); // For formatted text input
   const [childrenCount, setChildrenCount] = useState<number>(0);
   
   // Repayment parameters (in Step 4)
@@ -169,6 +171,66 @@ export default function MortgageCalculator({
       }
     }
   }, [initialAptName, allApartments, isOpen]);
+
+  const formatEokMan = (manWon: number) => {
+    const eok = Math.floor(manWon / 10000);
+    const man = Math.round(manWon % 10000);
+    if (eok > 0) {
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    }
+    return `${man.toLocaleString()}만원`;
+  };
+
+  // Sync annualIncomeInputValue when annualIncome changes
+  useEffect(() => {
+    if (!annualIncome) {
+      setAnnualIncomeInputValue('');
+    } else {
+      const parsed = parseInt(annualIncome.replace(/,/g, ''), 10);
+      setAnnualIncomeInputValue(isNaN(parsed) ? '' : parsed.toLocaleString());
+    }
+  }, [annualIncome]);
+
+  // Sync netAssetsInputValue when netAssets changes
+  useEffect(() => {
+    if (!netAssets) {
+      setNetAssetsInputValue('');
+    } else {
+      const raw = netAssets.replace(/,/g, '');
+      const parts = raw.split('.');
+      const integerPart = parts[0] ? parseInt(parts[0], 10).toLocaleString() : '';
+      setNetAssetsInputValue(parts[1] !== undefined ? `${integerPart}.${parts[1]}` : integerPart);
+    }
+  }, [netAssets]);
+
+  const handleAnnualIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/,/g, '');
+    if (rawValue === '') {
+      setAnnualIncome('');
+      setAnnualIncomeInputValue('');
+      return;
+    }
+    if (/^\d+$/.test(rawValue)) {
+      const numValue = parseInt(rawValue, 10);
+      const clampedValue = Math.min(200000, numValue);
+      setAnnualIncome(clampedValue.toString());
+    }
+  };
+
+  const handleNetAssetsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/,/g, '');
+    if (rawValue === '') {
+      setNetAssets('');
+      setNetAssetsInputValue('');
+      return;
+    }
+    if (/^\d*\.?\d*$/.test(rawValue)) {
+      const floatVal = parseFloat(rawValue) || 0;
+      if (floatVal <= 1000) {
+        setNetAssets(rawValue);
+      }
+    }
+  };
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -659,14 +721,24 @@ export default function MortgageCalculator({
                 </div>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="예: 7,500"
-                    value={annualIncome}
-                    onChange={(e) => setAnnualIncome(e.target.value)}
+                    value={annualIncomeInputValue}
+                    onChange={handleAnnualIncomeChange}
                     className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-tertiary">만원/년</span>
                 </div>
+                {annualIncome ? (
+                  <div className="mt-1 flex items-center justify-end pr-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                      <Calculator size={10} className="text-emerald-500" />
+                      <span>한글 읽기: {formatEokMan(parseInt(annualIncome.replace(/,/g, ''), 10) || 0)}/년</span>
+                    </span>
+                  </div>
+                ) : null}
                 <p className="text-[10.5px] text-tertiary font-medium pl-0.5">
                   * 디딤돌대출 자격 판단 기준이 됩니다. (맞벌이 소득 환산액)
                 </p>
@@ -684,15 +756,23 @@ export default function MortgageCalculator({
                 </div>
                 <div className="relative">
                   <input
-                    type="number"
-                    step="0.1"
+                    type="text"
+                    inputMode="decimal"
                     placeholder="예: 3.5"
-                    value={netAssets}
-                    onChange={(e) => setNetAssets(e.target.value)}
+                    value={netAssetsInputValue}
+                    onChange={handleNetAssetsChange}
                     className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-10"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-tertiary">억원</span>
                 </div>
+                {netAssets ? (
+                  <div className="mt-1 flex items-center justify-end pr-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                      <Calculator size={10} className="text-emerald-500" />
+                      <span>한글 읽기: {formatEokMan(Math.round((parseFloat(netAssets.replace(/,/g, '')) || 0) * 10000))}</span>
+                    </span>
+                  </div>
+                ) : null}
                 <p className="text-[10.5px] text-tertiary font-medium pl-0.5">
                   * 2026년 디딤돌대출 자산 한도는 **4억 6,900만원** 이하입니다. (주택도시기금 기준)
                 </p>

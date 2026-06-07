@@ -179,97 +179,99 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   }
 
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-      <AreaChart
-        data={processedData}
-        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-        {...desktopEventHandlers}
-      >
-        <defs>
-          <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
-          </linearGradient>
-          <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#f9a825" stopOpacity={0.2} />
-            <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid
-          strokeWidth={0.7}
-          vertical={false}
-          horizontal={true}
-          stroke="rgba(148, 163, 184, 0.25)"
-        />
-        <XAxis
-          dataKey="name"
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
-          dy={10}
-          ticks={xTicks}
-          tickFormatter={formatXAxisTick}
-        />
-        <YAxis
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
-          tickFormatter={(value: number) =>
-            value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-          }
-          domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
-          ticks={yTicks}
-          width={yWidth}
-        />
-        <RechartsTooltip
-          active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
-          content={<CustomTooltip />}
-          cursor={{
-            stroke: "var(--border-color)",
-            strokeWidth: 2,
-            strokeDasharray: "3 3",
-          }}
-          isAnimationActive={!isBottomSheet}
-          animationDuration={isBottomSheet ? undefined : 150}
-        />
-        <Area
-          key="동탄 아파트 전체"
-          type="monotone"
-          name="평균 매매가"
-          dataKey="동탄 아파트 전체"
-          stroke="#00d29d"
-          strokeWidth={isBottomSheet ? 3 : 4}
-          fill="url(#colorSale)"
-          animationDuration={isBottomSheet ? undefined : 300}
-          dot={
-            isBottomSheet
-              ? false
-              : timeframe === "ALL" || timeframe === "5Y"
-              ? false
-              : { r: 5, strokeWidth: 2, fill: "var(--bg-surface)" }
-          }
-          activeDot={{ r: isBottomSheet ? 6 : 7 }}
-        />
-        <Area
-          key="동탄 아파트 전세 평균"
-          type="monotone"
-          name="평균 전세가"
-          dataKey="동탄 아파트 전세 평균"
-          stroke="#f9a825"
-          strokeWidth={2}
-          fill="url(#colorRent)"
-          animationDuration={isBottomSheet ? undefined : 300}
-          dot={
-            isBottomSheet
-              ? false
-              : timeframe === "ALL" || timeframe === "5Y"
-              ? false
-              : { r: 3, strokeWidth: 2, fill: "var(--bg-surface)" }
-          }
-          activeDot={{ r: isBottomSheet ? 4 : 5 }}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="w-full h-full touch-pan-y">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+        <AreaChart
+          data={processedData}
+          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          {...desktopEventHandlers}
+        >
+          <defs>
+            <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
+            </linearGradient>
+            <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#f9a825" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid
+            strokeWidth={0.7}
+            vertical={false}
+            horizontal={true}
+            stroke="rgba(148, 163, 184, 0.25)"
+          />
+          <XAxis
+            dataKey="name"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
+            dy={10}
+            ticks={xTicks}
+            tickFormatter={formatXAxisTick}
+          />
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
+            tickFormatter={(value: number) =>
+              value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+            }
+            domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
+            ticks={yTicks}
+            width={yWidth}
+          />
+          <RechartsTooltip
+            active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
+            content={<CustomTooltip />}
+            cursor={{
+              stroke: "var(--border-color)",
+              strokeWidth: 2,
+              strokeDasharray: "3 3",
+            }}
+            isAnimationActive={!isBottomSheet}
+            animationDuration={isBottomSheet ? undefined : 150}
+          />
+          <Area
+            key="동탄 아파트 전체"
+            type="monotone"
+            name="평균 매매가"
+            dataKey="동탄 아파트 전체"
+            stroke="#00d29d"
+            strokeWidth={isBottomSheet ? 3 : 4}
+            fill="url(#colorSale)"
+            animationDuration={isBottomSheet ? undefined : 300}
+            dot={
+              isBottomSheet
+                ? false
+                : timeframe === "ALL" || timeframe === "5Y"
+                ? false
+                : { r: 5, strokeWidth: 2, fill: "var(--bg-surface)" }
+            }
+            activeDot={{ r: isBottomSheet ? 6 : 7 }}
+          />
+          <Area
+            key="동탄 아파트 전세 평균"
+            type="monotone"
+            name="평균 전세가"
+            dataKey="동탄 아파트 전세 평균"
+            stroke="#f9a825"
+            strokeWidth={2}
+            fill="url(#colorRent)"
+            animationDuration={isBottomSheet ? undefined : 300}
+            dot={
+              isBottomSheet
+                ? false
+                : timeframe === "ALL" || timeframe === "5Y"
+                ? false
+                : { r: 3, strokeWidth: 2, fill: "var(--bg-surface)" }
+            }
+            activeDot={{ r: isBottomSheet ? 4 : 5 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 });
 

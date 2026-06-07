@@ -53,6 +53,7 @@ export default function PropertyTaxCalculator({
 
   // Inputs
   const [acquisitionPrice, setAcquisitionPrice] = useState<number>(0); // in Man-won
+  const [inputValue, setInputValue] = useState<string>(''); // comma-formatted string for input
   const [ownedHouses, setOwnedHouses] = useState<number>(1); // 1, 2, 3, 4 (4 means 4 or more)
   const [exclusiveArea, setExclusiveArea] = useState<'85under' | '85over'>('85under');
 
@@ -134,6 +135,31 @@ export default function PropertyTaxCalculator({
       }
     }
   }, [initialAptName, allApartments, isOpen]);
+
+  // Sync inputValue when acquisitionPrice changes from slider, external initial load, or select
+  useEffect(() => {
+    if (acquisitionPrice === 0) {
+      setInputValue('');
+    } else {
+      setInputValue(acquisitionPrice.toLocaleString());
+    }
+  }, [acquisitionPrice]);
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/,/g, '');
+    if (rawValue === '') {
+      setInputValue('');
+      setAcquisitionPrice(0);
+      return;
+    }
+    
+    if (/^\d+$/.test(rawValue)) {
+      const numValue = parseInt(rawValue, 10);
+      const clampedValue = Math.min(250000, numValue);
+      setAcquisitionPrice(clampedValue);
+      setInputValue(clampedValue.toLocaleString());
+    }
+  };
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -406,14 +432,24 @@ export default function PropertyTaxCalculator({
                     <span className="text-[12px] font-bold text-secondary">2. 매매 가액 입력</span>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         placeholder="예: 75,000"
-                        value={acquisitionPrice || ''}
-                        onChange={(e) => setAcquisitionPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                        value={inputValue}
+                        onChange={handlePriceChange}
                         className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-tertiary">만원</span>
                     </div>
+                    {acquisitionPrice > 0 && (
+                      <div className="mt-1 flex items-center justify-end pr-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                          <Calculator size={11} className="text-emerald-500" />
+                          <span>한글 읽기: {formatEokMan(acquisitionPrice)}</span>
+                        </span>
+                      </div>
+                    )}
                     {/* Slider for price */}
                     <div className="pt-2 px-1">
                       <input

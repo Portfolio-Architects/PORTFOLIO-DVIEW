@@ -253,91 +253,87 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       {/* Mobile View (Hidden on Desktop) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`flex md:hidden flex-col justify-between p-3.5 h-[calc(100%-8px)] my-1 border border-neutral-100/70 dark:border-zinc-900/40 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.985] ${
-          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
-        } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 shadow-sm`}
+        className={`flex md:hidden flex-col justify-between p-4.5 h-[calc(100%-8px)] my-1.5 border border-neutral-100/90 dark:border-zinc-800/40 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.985] ${
+          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
+        } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_2px_8px_rgba(0,0,0,0.015)] relative`}
       >
+        {/* Favorite Heart - Moved to Top Right Corner */}
+        <div className="absolute right-4 top-4 z-10">
+          <InteractiveHeart 
+            isFavorited={item.isFavorited} 
+            name={item.apt.name} 
+            onToggle={onToggleFavorite} 
+            size={18} 
+          />
+        </div>
+
         {/* Mobile Top Info */}
-        <div className="flex items-start gap-2.5 w-full min-w-0 mb-3">
-          {/* Rank & Favorite */}
-          <div className="flex flex-col items-center gap-1.5 shrink-0 pt-0.5">
+        <div className="flex items-start gap-3 w-full min-w-0 mb-3.5 pr-6">
+          {/* Rank Badge */}
+          <div className="shrink-0 pt-0.5">
             {index < 3 ? (
-              <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tight ${
-                index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm' :
-                index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white shadow-sm' :
-                'bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-sm'
+              <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10.5px] font-black tracking-tight shadow-sm ${
+                index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' :
+                index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white' :
+                'bg-gradient-to-br from-amber-600 to-amber-800 text-white'
               }`}>
                 {index + 1}
               </span>
             ) : (
-              <span className="w-[20px] text-center text-[12px] font-bold text-neutral-400 dark:text-neutral-500">{index + 1}</span>
+              <span className="w-[22px] h-[22px] rounded-full bg-neutral-100/80 dark:bg-neutral-900/80 flex items-center justify-center text-[12px] font-extrabold text-neutral-400 dark:text-neutral-500">{index + 1}</span>
             )}
-            <InteractiveHeart 
-              isFavorited={item.isFavorited} 
-              name={item.apt.name} 
-              onToggle={onToggleFavorite} 
-              size={15} 
-            />
           </div>
           
           {/* Name & Metadata */}
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-50 leading-tight mb-1.5 break-keep group-hover:text-[#00d29d] transition-colors">
+            <span className="text-[16px] font-black text-neutral-900 dark:text-neutral-50 leading-tight mb-2 break-keep group-hover:text-[#00d29d] transition-colors">
               {item.apt.name}
             </span>
             
-            {/* Meta tags */}
-            <div className="flex items-center flex-wrap gap-1.5 text-[11px] text-neutral-500 dark:text-neutral-400 font-bold mb-1.5">
+            {/* Meta & Micro Badges Combined Row */}
+            <div className="flex items-center flex-wrap gap-2 text-[11.5px] text-neutral-500 dark:text-neutral-400 font-bold">
               <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-[10px] font-extrabold rounded">
                 {item.apt.dong}
               </span>
               <span>{item.formattedYearBuilt}</span>
-              {item.apt.householdCount && (
-                <>
-                  <span className="text-neutral-300">·</span>
-                  <span>{item.formattedHousehold}</span>
-                </>
+              <span>·</span>
+              <span>{item.formattedHousehold}</span>
+
+              {/* Micro badges integrated neatly */}
+              {item.photoCount > 0 && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold ml-1">
+                  <Camera className="w-2.5 h-2.5" />{item.photoCount}장
+                </span>
+              )}
+              {item.likes > 0 && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-600 dark:text-rose-400 font-extrabold ml-1">
+                  <Heart className="w-2.5 h-2.5 fill-current" />{item.likes}
+                </span>
               )}
             </div>
-
-            {/* Micro badges */}
-            {(item.photoCount > 0 || item.likes > 0) && (
-              <div className="flex items-center flex-wrap gap-1.5">
-                {item.photoCount > 0 && (
-                  <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-extrabold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 flex items-center gap-0.5 shrink-0">
-                    <Camera className="w-2 h-2" />{item.photoCount}장
-                  </span>
-                )}
-                {item.likes > 0 && (
-                  <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[9px] font-extrabold rounded-full border border-rose-100/50 dark:border-rose-900/30 flex items-center gap-0.5 shrink-0">
-                    <Heart className="w-2 h-2 fill-current" />{item.likes}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Mobile 3-Column Metrics Grid */}
-        <div className="grid grid-cols-3 gap-2 w-full pt-2.5 border-t border-neutral-100/80 dark:border-zinc-900/30">
+        {/* Integrated Mobile Metrics Slab (Clean & Modern Unified Look) */}
+        <div className="grid grid-cols-3 gap-1 w-full p-2 bg-neutral-50/50 dark:bg-zinc-900/20 backdrop-blur-sm rounded-xl border border-neutral-100/50 dark:border-zinc-800/10">
           {/* Price Block */}
-          <div className="bg-neutral-50/80 dark:bg-zinc-900/40 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center py-1">
             <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">매매가</span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1">
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5">
               {item.formattedPrice}
             </span>
-            <span className="text-[9.5px] font-bold text-[#00b386] dark:text-[#00d29d] leading-none">
+            <span className="text-[10px] font-extrabold text-[#00b386] dark:text-[#00d29d] leading-none">
               {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
             </span>
           </div>
 
           {/* Jeonse Block */}
-          <div className="bg-neutral-50/80 dark:bg-zinc-900/40 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center py-1 border-x border-neutral-100/80 dark:border-zinc-800/30">
             <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">전세가</span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1">
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5">
               {item.jeonsePrice > 0 ? item.formattedJeonse : '-'}
             </span>
-            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded leading-none ${
+            <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
               item.ratio >= 0.6 
                 ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
                 : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500'
@@ -347,12 +343,12 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
           </div>
 
           {/* Volume Block */}
-          <div className="bg-neutral-50/80 dark:bg-zinc-900/40 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center py-1">
             <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-bold mb-1">거래량(3M)</span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1">
+            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5">
               {item.volume3M > 0 ? item.formattedVolume : '-'}
             </span>
-            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded leading-none ${
+            <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
               item.turnoverRate >= 2.5 
                 ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' 
                 : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500'
@@ -1064,11 +1060,14 @@ export default function TossApartmentExploreClient({
             )}
             </div>
             
-            <div className="grid grid-cols-3 md:flex md:items-center gap-1.5 md:gap-2 w-full md:w-auto shrink-0">
+            <div 
+              className="flex flex-row overflow-x-auto whitespace-nowrap gap-2 py-1 w-full md:w-auto shrink-0 -mx-4 px-4 md:mx-0 md:px-0 md:items-center md:gap-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {onOpenCompare && (
                 <button
                   onClick={onOpenCompare}
-                  className="px-2 py-2 md:px-3.5 md:py-2.5 bg-[#00d29d] hover:bg-[#00b585] text-white text-[11px] md:text-[13px] font-bold rounded-xl transition-all active:scale-95 cursor-pointer border-none whitespace-nowrap shrink-0 shadow-sm text-center"
+                  className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#00b386] dark:text-[#00d29d] text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/20 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   단지 비교분석
                 </button>
@@ -1076,7 +1075,7 @@ export default function TossApartmentExploreClient({
               {onOpenJeonseSafety && (
                 <button
                   onClick={() => onOpenJeonseSafety()}
-                  className="px-2 py-2 md:px-3.5 md:py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 text-[11px] md:text-[13px] font-bold rounded-xl transition-all active:scale-95 cursor-pointer border border-emerald-500/25 whitespace-nowrap shrink-0 text-center"
+                  className="px-4 py-2.5 bg-teal-50/50 hover:bg-teal-100/50 text-teal-600 dark:bg-teal-950/10 dark:hover:bg-teal-900/20 dark:text-teal-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-teal-500/15 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   전세 안전진단
                 </button>
@@ -1084,7 +1083,7 @@ export default function TossApartmentExploreClient({
               {onOpenMortgage && (
                 <button
                   onClick={() => onOpenMortgage()}
-                  className="px-2 py-2 md:px-3.5 md:py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 text-[11px] md:text-[13px] font-bold rounded-xl transition-all active:scale-95 cursor-pointer border border-blue-500/25 whitespace-nowrap shrink-0 text-center"
+                  className="px-4 py-2.5 bg-blue-50/50 hover:bg-blue-100/50 text-blue-600 dark:bg-blue-950/10 dark:hover:bg-blue-900/20 dark:text-blue-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-blue-500/15 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   대출 한도진단
                 </button>
