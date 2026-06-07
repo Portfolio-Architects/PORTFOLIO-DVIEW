@@ -23,7 +23,9 @@ import LoungeFeedClient from './LoungeFeedClient';
 
 // Mock LoungeDetailClient to prevent importing Firebase Auth SDK during test
 jest.mock('@/components/LoungeDetailClient', () => {
-  return () => <div>Lounge Detail Mock</div>;
+  const LoungeDetailClientMock = () => <div>Lounge Detail Mock</div>;
+  LoungeDetailClientMock.displayName = 'LoungeDetailClientMock';
+  return LoungeDetailClientMock;
 });
 
 // Mock react-markdown and remark-gfm to avoid ESM export SyntaxError in Jest

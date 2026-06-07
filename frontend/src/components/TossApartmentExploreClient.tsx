@@ -742,19 +742,21 @@ export default function TossApartmentExploreClient({
   const getItemSize = (index: number) => {
     if (!isMobile) return 66;
     const item = sortedApts[index];
-    if (!item) return 145;
+    if (!item) return 180;
     
-    // 1. 기본 3분할 메트릭 카드 높이 설정
-    let size = 145;
+    // 1. 기본 3분할 메트릭 카드 높이 설정 (패딩 및 마진 포함 최소 높이)
+    let size = 180;
     
     // 2. 사진/관심 뱃지 노출에 따른 높이 추가
     if (item.photoCount > 0 || item.likes > 0) {
-      size += 16;
+      size += 15;
     }
     
-    // 3. 아파트명이 11자 이상으로 긴 경우 모바일 타이틀 2줄 대응
-    if (item.apt.name.length >= 11) {
-      size += 22;
+    // 3. 아파트명 길이에 따른 타이틀 줄바꿈 추가 높이 보정
+    if (item.apt.name.length >= 16) {
+      size += 35;
+    } else if (item.apt.name.length >= 11) {
+      size += 20;
     }
     
     return size;

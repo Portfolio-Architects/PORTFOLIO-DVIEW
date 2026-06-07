@@ -3,7 +3,7 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, Camera,
-  Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
+  Building, Info, Shield, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
   Crown, ChevronRight, GraduationCap, Calculator
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -21,6 +21,8 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
+import ChildcareDetailSection from './apartment-modal/ChildcareDetailSection';
+import JeonseSafetyReport from './apartment-modal/JeonseSafetyReport';
 const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection), {
   ssr: false,
   loading: () => (
@@ -712,6 +714,27 @@ function FieldReportModal({
     return { status, amount, ratio: jeonseRatio, priceStr };
   }, [transactions, report]);
 
+  const jeonseSafetyData = useMemo(() => {
+    if (!transactions || transactions.length === 0) return null;
+    const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+    const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
+    
+    const latestSale = sales[0]?.price || 0;
+    
+    const getJeonseEq = (t: TransactionRecord) => t.dealType === '월세' 
+      ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
+      : (t.deposit || t.price || 0);
+    const latestRent = rents[0] ? getJeonseEq(rents[0]) : 0;
+    
+    const ratio = latestSale > 0 ? (latestRent / latestSale) : 0;
+    
+    return {
+      latestPrice: latestSale,
+      latestDeposit: latestRent,
+      ratio
+    };
+  }, [transactions]);
+
   // 특정 평형 필터 칩 목록 (사전 계산된 필드 활용)
   const areaFilterChips = useMemo(() => {
     const rawAreas = Array.from(new Set(transactions.map(tx => {
@@ -858,7 +881,7 @@ function FieldReportModal({
       setShowScrollTop(false);
     }
 
-    const sections = ['sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-photos', 'sec-comments'];
+    const sections = ['sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-jeonse-safety', 'sec-photos', 'sec-comments'];
     let current = 'sec-summary';
     for (const id of sections) {
       if (id === 'sec-summary') continue;
@@ -1394,6 +1417,7 @@ function FieldReportModal({
                   { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
                   { id: 'sec-education', label: '학군/육아 분석', show: !!report.metrics },
                   { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
+                  { id: 'sec-jeonse-safety', label: '전세 안전 진단', show: transactions.length > 0 },
                   { id: 'sec-photos', label: '우리 단지 갤러리', show: true },
                   { id: 'sec-comments', label: '아파트 이야기', show: true },
                 ].filter(t => t.show);
@@ -2184,6 +2208,13 @@ function FieldReportModal({
                   </div>
                 )}
 
+                {/* 🏡 영유아 보육 및 안심 통학로 진단 정보 연동 */}
+                <ChildcareDetailSection 
+                  dong={report.dong || '오산동'} 
+                  distanceToElementary={report.metrics.distanceToElementary || 0} 
+                  aptName={report.apartmentName} 
+                />
+
                 {/* 🎯 학군/육아 인프라 스코어 연동 로컬 학원 및 교육 광고 */}
                 <div className="mt-8 border-t border-border/40 pt-8">
                   <LocalEducationAd 
@@ -2232,6 +2263,35 @@ function FieldReportModal({
                 </div>
               )}
             </section>
+
+            {/* 전세사기 위험도 스코어링 및 깡통전세 자동 진단 시스템 */}
+            {jeonseSafetyData && (
+              <section id="sec-jeonse-safety" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14`}>
+                <div className="flex flex-col w-full">
+                  <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                    <Shield size={18} className="text-[#0d9488]"/> 전세 안전성 진단 리포트
+                  </h2>
+                  <div className="relative w-full">
+                    <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
+                      <JeonseSafetyReport
+                        aptName={report.apartmentName}
+                        ratio={jeonseSafetyData.ratio}
+                        latestPrice={jeonseSafetyData.latestPrice}
+                        latestDeposit={jeonseSafetyData.latestDeposit}
+                        volume3M={txSummary ? (txSummary.avg3MTxCount || 0) : 0}
+                        householdCount={report.metrics?.householdCount || 0}
+                        onOpenAdModal={onOpenAdModal}
+                      />
+                    </div>
+                    {!isUnlocked && (
+                      <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
+                        <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}
             {report.images && report.images.length > 0 ? (() => {
