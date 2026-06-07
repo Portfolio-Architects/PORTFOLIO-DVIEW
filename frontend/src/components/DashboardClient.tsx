@@ -783,7 +783,12 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       <TrendingTicker popularAptItems={popularAptItems} onSelectApt={handleAptClickByName} />
 
       {/* Main Container */}
-      <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500">
+      <main 
+        id="main-content" 
+        className={`flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500 ${
+          activeTab === 'imjang' ? 'md:h-[calc(100vh-105px)] md:overflow-hidden' : ''
+        }`}
+      >
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         {mounted && (
           <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>

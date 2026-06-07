@@ -673,11 +673,10 @@ export default function TossApartmentExploreClient({
       if (window.innerWidth < 768) {
         setListHeight(Math.max(300, window.innerHeight - 260));
       } else {
-        // 데스크톱 뷰: 브라우저 뷰포트 크기에 연동하되, 테이블 헤더가 sticky 상단에 붙었을 때 
-        // 하단 푸터 영역 위까지 리스트가 채워지도록 headerOffset을 100px로 설정하고 
-        // 최소 높이를 880px로 설정하여 좌측 사이드바(법정동 리스트) 높이와 완벽한 균형을 맞춥니다.
-        const headerOffset = 100;
-        setListHeight(Math.max(880, window.innerHeight - headerOffset));
+        // 데스크톱 뷰: 100vh 고정 대시보드 뷰에 완벽 매칭되도록 상단 헤더, 티커, 
+        // 테이블 검색 및 컬럼 바(총 약 300px)를 제외한 화면 높이를 100% 사용합니다.
+        const headerOffset = 300;
+        setListHeight(Math.max(500, window.innerHeight - headerOffset));
       }
     };
 
@@ -789,16 +788,18 @@ export default function TossApartmentExploreClient({
   }), [sortedApts, handleSelectApt, onToggleFavorite]);
 
   return (
-    <div className="flex flex-col w-full bg-transparent">
+    <div className="flex flex-col w-full bg-transparent md:h-[calc(100vh-105px)] md:overflow-hidden">
       {/* Standardized Hero Header */}
-      <PageHeroHeader 
-        title="D-VIEW 아파트 탐색"
-        subtitleStrong="동탄 전역 아파트 비교 분석"
-        subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
-      />
+      <div className="md:hidden shrink-0">
+        <PageHeroHeader 
+          title="D-VIEW 아파트 탐색"
+          subtitleStrong="동탄 전역 아파트 비교 분석"
+          subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
+        />
+      </div>
 
       {/* Real-time Hot Complex Ranking Card */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 shrink-0 bg-transparent">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 shrink-0 bg-transparent md:hidden">
         <HotComplexRanking
           sheetApartments={sheetApartments}
           fieldReportsMap={fieldReportsMap}
@@ -811,9 +812,9 @@ export default function TossApartmentExploreClient({
 
 
       {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-8 md:pb-12 bg-transparent">
-        <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch min-h-[500px]">
-          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[60px] md:rounded-l-2xl">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col md:h-[calc(100vh-120px)]">
+        <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
+          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 md:h-[calc(100vh-140px)] md:overflow-y-auto md:rounded-l-2xl custom-scrollbar">
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -897,7 +898,7 @@ export default function TossApartmentExploreClient({
 
       {/* Main Table Area */}
       <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
-        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md md:sticky md:top-[60px] md:z-10">
+        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md md:sticky md:top-0 md:z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
