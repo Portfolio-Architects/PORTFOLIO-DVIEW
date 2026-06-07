@@ -1,6 +1,22 @@
-import { ImageResponse } from 'next/og';
+import { ImageResponse as NextImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+
+class ImageResponse extends NextImageResponse {
+  constructor(...args: ConstructorParameters<typeof NextImageResponse>) {
+    const [element, options] = args;
+    const cacheHeaders = {
+      'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=60',
+    };
+    super(element, {
+      ...options,
+      headers: {
+        ...cacheHeaders,
+        ...options?.headers,
+      },
+    });
+  }
+}
 
 export const runtime = 'edge';
 

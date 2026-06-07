@@ -643,8 +643,10 @@ export default function TossApartmentExploreClient({
   const outerRef = useRef<HTMLDivElement>(null);
   const [listHeight, setListHeight] = useState(600);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -1177,7 +1179,19 @@ export default function TossApartmentExploreClient({
           </div>
 
           {/* Table Body */}
-          {sortedApts.length === 0 ? (
+          {!isMounted ? (
+            <div 
+              style={{ height: listHeight }} 
+              className="w-full flex flex-col gap-3 py-2 animate-pulse overflow-hidden px-1 md:px-0"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div 
+                  key={i} 
+                  className="w-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 h-[180px] md:h-[66px] shrink-0"
+                />
+              ))}
+            </div>
+          ) : sortedApts.length === 0 ? (
             <div 
               style={{ height: listHeight }} 
               className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 transition-all duration-300"

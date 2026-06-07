@@ -441,7 +441,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         
 
         
-        <div className="flex-1 min-h-[300px] w-full relative">
+        <div className="h-[320px] md:h-[360px] w-full relative">
           {isMounted ? (
             <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1} debounce={100}>
               <ComposedChart 
@@ -568,7 +568,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
-            <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
+            <div className="w-full h-full flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
               <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
             </div>
           )}
