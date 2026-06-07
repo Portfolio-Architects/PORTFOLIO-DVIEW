@@ -814,8 +814,9 @@ export default function TossApartmentExploreClient({
 
 
       {/* Main Content Area */}
-      <div className="flex w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-10 pb-4 md:pb-8 bg-surface items-stretch">
-      <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border py-6 sticky top-[60px]">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-8 md:pb-12 bg-surface">
+        <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm overflow-hidden items-stretch min-h-[500px]">
+          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[60px]">
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -904,8 +905,8 @@ export default function TossApartmentExploreClient({
       </div>
 
       {/* Main Table Area */}
-      <div className="flex-1 flex flex-col bg-surface min-w-0 md:pl-8 lg:pl-10">
-        <div className="px-0 py-3 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface md:sticky md:top-[60px] md:z-10">
+      <div className="flex-1 flex flex-col bg-surface min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2">
+        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-surface md:sticky md:top-[60px] md:z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
@@ -1239,6 +1240,7 @@ export default function TossApartmentExploreClient({
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* Mobile Bottom Sheet Menu */}
