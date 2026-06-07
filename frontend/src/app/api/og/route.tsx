@@ -852,6 +852,199 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (type === 'sell_timing') {
+      const scoreVal = parseInt(score || '0') || 0;
+      
+      let themeColor = '#10b981'; // Emerald (Default)
+      let themeBg = 'rgba(16, 185, 129, 0.1)';
+      let themeBorder = 'rgba(16, 185, 129, 0.3)';
+      
+      if (scoreVal >= 70) {
+        themeColor = '#f43f5e'; // Rose
+        themeBg = 'rgba(244, 63, 94, 0.1)';
+        themeBorder = 'rgba(244, 63, 94, 0.3)';
+      } else if (scoreVal >= 40) {
+        themeColor = '#eab308'; // Yellow
+        themeBg = 'rgba(234, 179, 8, 0.1)';
+        themeBorder = 'rgba(234, 179, 8, 0.3)';
+      }
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              backgroundColor: '#022c22',
+              backgroundImage: 'linear-gradient(to bottom right, #090d16, #022c22)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '60px 80px',
+                color: 'white',
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Header Logo Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '26px',
+                }}
+              >
+                <div
+                  style={{
+                    background: '#00d29d',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '24px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span
+                  style={{
+                    marginLeft: '16px',
+                    fontSize: '24px',
+                    color: '#34d399',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  AI 매도 적합성 및 세무 전략 리포트
+                </span>
+              </div>
+
+              {/* Main Contents Grid */}
+              <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                
+                {/* Left Area (60%) */}
+                <div style={{ display: 'flex', flexDirection: 'column', width: '56%' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: '16px' }}>
+                    <span style={{ fontSize: '46px', fontWeight: 800, color: '#ffffff', letterSpacing: '-1.5px', marginRight: '16px' }}>
+                      {title}
+                    </span>
+                    <span style={{ fontSize: '22px', color: '#94a3b8', fontWeight: 'bold' }}>
+                      {subtitle || '동탄2'}
+                    </span>
+                  </div>
+
+                  {/* Pricing and Tax Info Box */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      padding: '24px 30px',
+                      borderRadius: '20px',
+                      width: '100%',
+                    }}
+                  >
+                    <div style={{ display: 'flex', marginBottom: '14px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '18px', color: '#a7f3d0', fontWeight: 'bold', width: '110px' }}>진단 매도가</span>
+                      <span style={{ fontSize: '22px', color: '#ffffff', fontWeight: 800 }}>{price || '정보 없음'}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
+                      <span style={{ fontSize: '18px', color: '#a7f3d0', fontWeight: 'bold', width: '110px' }}>예상 세액 합계</span>
+                      <span style={{ fontSize: '22px', color: ratio?.includes('0') || ratio?.includes('비과세') ? '#00d29d' : '#ff8a9a', fontWeight: 800 }}>
+                        {ratio || '계산 오류'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Area (40%) - Infographic Score Display */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    padding: '26px',
+                    borderRadius: '24px',
+                    width: '38%',
+                    height: '270px',
+                  }}
+                >
+                  <span style={{ fontSize: '15px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '10px' }}>
+                    지금 팔면 호구 지수
+                  </span>
+                  
+                  {/* Big Score Number */}
+                  <span
+                    style={{
+                      fontSize: '72px',
+                      fontWeight: 900,
+                      color: themeColor,
+                      lineHeight: 1,
+                      letterSpacing: '-2px',
+                      marginBottom: '14px',
+                    }}
+                  >
+                    {score}%
+                  </span>
+
+                  {/* Verdict Badge */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 20px',
+                      borderRadius: '30px',
+                      backgroundColor: themeBg,
+                      border: `1.5px solid ${themeBorder}`,
+                    }}
+                  >
+                    <span style={{ fontSize: '17px', fontWeight: 900, color: themeColor }}>
+                      {status || '판정 보류'}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Bottom Brand */}
+              <div
+                style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#34d399',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                }}
+              >
+                dongtanview.com
+              </div>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
+
     if (shareType === 'childcare') {
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {
         S: { bg: '#db2777', border: '#fbcfe8', glow: 'rgba(219, 39, 119, 0.4)', desc: '최상급 초품아 + 대형 학원가 인접 (최고의 자녀 양육 환경)' },
