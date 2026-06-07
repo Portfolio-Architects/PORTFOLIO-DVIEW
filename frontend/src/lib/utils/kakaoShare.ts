@@ -678,6 +678,7 @@ export const shareLocalNoticeToKakao = async ({
     }
 
     const baseUrl = window.location.origin;
+    const isAI = dept === 'AI 데이터 랩';
     const isCulture = source === 'culture' || id.startsWith('culture_');
     const isLecture = title.includes('[강좌]');
     
@@ -686,7 +687,12 @@ export const shareLocalNoticeToKakao = async ({
     let shareUrl = '';
     let titleText = '';
 
-    if (isCulture) {
+    if (isAI) {
+      finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent('AI 시황분석')}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent('D-VIEW AI 데이터 랩이 실거래 통계를 통해 자동 도출한 분석 리포트입니다.')}`;
+      description = `작성부서: ${dept}\n분석일자: ${date}\n실거래 통계 기반으로 추출한 단지 랭킹 및 세무 가이드 상세 분석 본문을 확인해 보세요!`;
+      shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_report_share`;
+      titleText = title;
+    } else if (isCulture) {
       const category = title.includes('[루나쇼]') ? '동탄호수공원 루나쇼' : 
                        title.includes('[강좌]') ? '주민센터 강좌' :
                        title.includes('[버스킹]') ? '여울공원 버스킹' : 

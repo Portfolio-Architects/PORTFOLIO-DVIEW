@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
-import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X } from 'lucide-react';
+import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import useSWRInfinite from 'swr/infinite';
+import ReactMarkdown from 'react-markdown';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
@@ -31,6 +32,7 @@ interface LocalNoticeItem {
   date: string;
   isDongtan: boolean;
   source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
+  content?: string; // AI 분석 본문 마크다운 (신설)
 }
 
 interface NewsItem {
@@ -830,52 +832,96 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             </div>
 
             {/* Content Body */}
-            <div className="p-5 sm:p-6 flex flex-col gap-6">
-              {/* 원문 이동 및 공유 버튼 */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <a 
-                  href={`/api/bypass-notice?url=${encodeURIComponent((selectedNotice.url || '').trim())}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
-                >
-                  <ExternalLink size={16} /> {selectedNotice.title.includes('[강좌]') ? '주민자치센터 수강 신청 바로가기' : '원문 고시공고 사이트 이동'}
-                </a>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => shareLocalNoticeToKakao(selectedNotice)}
-                    className="flex-1 sm:flex-none px-4 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
-                  >
-                    <Share2 size={16} /> 카카오톡 공유
-                  </button>
-                  <button
-                    onClick={() => handleShareNotice(selectedNotice)}
-                    className="flex-1 sm:flex-none px-4 py-3 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
-                  >
-                    <Share2 size={16} /> 링크 복사
-                  </button>
-                </div>
-              </div>
+            <div className="p-5 sm:p-6 flex flex-col gap-6 max-h-[70vh] overflow-y-auto">
+              {/* 만약 AI 리포트 본문(content)이 존재하면 마크다운 뷰어 노출 */}
+              {selectedNotice.content ? (
+                <div className="flex flex-col gap-5">
+                  <div className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary">
+                    <ReactMarkdown>{selectedNotice.content}</ReactMarkdown>
+                  </div>
+                  
+                  {/* AI 리포트 액션 유도 버튼 */}
+                  <div className="flex flex-col sm:flex-row items-stretch gap-3 border-t border-border pt-4">
+                    <Link 
+                      href="/?calc=sell_timing" 
+                      className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[13.5px]"
+                    >
+                      <Sparkles size={16} /> AI 매도 적합성(호구 지수) 계산기 실행
+                    </Link>
+                    <Link 
+                      href="/?tab=gap" 
+                      className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all cursor-pointer active:scale-[0.98] text-[13.5px]"
+                    >
+                      동탄 갭투자 랭킹 대시보드 바로가기
+                    </Link>
+                  </div>
 
-              {/* D-VIEW AI Insight Section */}
-              <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 flex flex-col gap-2">
-                <h4 className="text-[13px] font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                  💡 D-VIEW {selectedNotice.title.includes('[강좌]') ? '정주 여건 분석 팁' : '부동산 분석 팁'}
-                </h4>
-                <p className="text-[13px] text-emerald-950/80 dark:text-emerald-200/90 leading-relaxed font-bold">
-                  {selectedNotice.title.includes('[강좌]') 
-                    ? '풍부한 주민자치센터 강좌와 문화 혜택은 실거주 만족도를 높이고 안정적인 정주 여건을 조성하는 주요 인프라 자산입니다. D-VIEW 입지 분석 탭에서 인근 어린이집, 유치원 등 보육 환경과 통학 안정성 점수를 연계하여 종합적인 거주 가치를 판단해보세요.'
-                    : '본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.'}
-                </p>
-                <div className="mt-2 flex items-center gap-3">
-                  <Link 
-                    href="/" 
-                    className="text-[12px] font-extrabold text-[#00a06c] hover:underline flex items-center gap-1"
-                  >
-                    데이터 랩 실거래 대시보드로 이동 ➔
-                  </Link>
+                  {/* 공유 행 */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => shareLocalNoticeToKakao(selectedNotice)}
+                      className="flex-1 px-4 py-3.5 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
+                    >
+                      <Share2 size={16} /> 리포트 카카오톡 공유
+                    </button>
+                    <button
+                      onClick={() => handleShareNotice(selectedNotice)}
+                      className="flex-1 px-4 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
+                    >
+                      <Share2 size={16} /> 링크 복사
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                // 기존 일반 고시공고 카드 구조
+                <div className="flex flex-col gap-6 w-full">
+                  {/* 원문 이동 및 공유 버튼 */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <a 
+                      href={`/api/bypass-notice?url=${encodeURIComponent((selectedNotice.url || '').trim())}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
+                    >
+                      <ExternalLink size={16} /> {selectedNotice.title.includes('[강좌]') ? '주민자치센터 수강 신청 바로가기' : '원문 고시공고 사이트 이동'}
+                    </a>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => shareLocalNoticeToKakao(selectedNotice)}
+                        className="flex-1 sm:flex-none px-4 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                      >
+                        <Share2 size={16} /> 카카오톡 공유
+                      </button>
+                      <button
+                        onClick={() => handleShareNotice(selectedNotice)}
+                        className="flex-1 sm:flex-none px-4 py-3 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                      >
+                        <Share2 size={16} /> 링크 복사
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* D-VIEW AI Insight Section */}
+                  <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 flex flex-col gap-2 w-full">
+                    <h4 className="text-[13px] font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                      💡 D-VIEW {selectedNotice.title.includes('[강좌]') ? '정주 여건 분석 팁' : '부동산 분석 팁'}
+                    </h4>
+                    <p className="text-[13px] text-emerald-950/80 dark:text-emerald-200/90 leading-relaxed font-bold">
+                      {selectedNotice.title.includes('[강좌]') 
+                        ? '풍부한 주민자치센터 강좌와 문화 혜택은 실거주 만족도를 높이고 안정적인 정주 여건을 조성하는 주요 인프라 자산입니다. D-VIEW 입지 분석 탭에서 인근 어린이집, 유치원 등 보육 환경과 통학 안정성 점수를 연계하여 종합적인 거주 가치를 판단해보세요.'
+                        : '본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.'}
+                    </p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <Link 
+                        href="/" 
+                        className="text-[12px] font-extrabold text-[#00a06c] hover:underline flex items-center gap-1"
+                      >
+                        데이터 랩 실거래 대시보드로 이동 ➔
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* D-VIEW Premium Content */}
               <div className="flex flex-col gap-3 border-t border-border pt-5">
