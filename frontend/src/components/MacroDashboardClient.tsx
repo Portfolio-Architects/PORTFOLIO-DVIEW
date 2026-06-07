@@ -34,6 +34,7 @@ import {
   ShieldAlert,
   Calculator,
   TrendingDown,
+  Train,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -330,6 +331,7 @@ export default function MacroDashboardClient({
   recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
+  const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
   const { data: locationScores } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher);
@@ -344,6 +346,27 @@ export default function MacroDashboardClient({
       return keywords.some(kw => titleLower.includes(kw));
     });
   }, [noticesData]);
+
+  const filteredRailNotices = useMemo(() => {
+    if (gapRankingDong === "전체") return railNotices;
+    return railNotices.filter((n: any) => {
+      const deptMatch = (n.dept || '').includes(gapRankingDong.replace("동", ""));
+      const titleMatch = (n.title || '').includes(gapRankingDong);
+      return deptMatch || titleMatch;
+    });
+  }, [railNotices, gapRankingDong]);
+
+  const railStrategyNotices = useMemo(() => {
+    return railNotices.filter((n: any) => 
+      (n.dept || '').includes('철도') || (n.dept || '').includes('전략')
+    );
+  }, [railNotices]);
+
+  const tramNotices = useMemo(() => {
+    return railNotices.filter((n: any) => 
+      (n.dept || '').includes('트램') || (n.dept || '').includes('추진단')
+    );
+  }, [railNotices]);
 
   const nextCultureEvent = useMemo(() => {
     if (!noticesData?.notices) return null;
@@ -431,7 +454,7 @@ export default function MacroDashboardClient({
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
-  const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
+
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
@@ -1623,7 +1646,7 @@ interface GroupedCategory {
       />
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-0 md:pb-12 lg:pb-16 w-full">
 
-        <div className="flex flex-col md:flex-row items-start gap-4 w-full px-0 mt-0">
+        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
             {/* Daily Timeline Card */}
@@ -1744,228 +1767,111 @@ interface GroupedCategory {
               )}
             </div>
 
-            {/* 3 Info Boxes Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
-              <InfoBox
-                title={
-                  <div className="relative group/title flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">
-                      최근 7일 동탄 실거래량
-                    </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                    >
-                      최근 7일 동안 동탄 전역에서 신고된 총 실거래량과 직전 동기(8~14일 전) 대비 거래량 증감 추세입니다.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
-                    </div>
-                  </div>
-                }
-                value={card3Data.currentCount}
-                unit="건"
-                badge={card3Data.badge}
-                description={`직전 7일: ${card3Data.prevCount}건`}
-                color={card3Data.trendColor}
-                onClick={() => {
-                  window.location.hash = 'gap';
-                }}
-              />
-              <InfoBox
-                title={
-                  <div className="relative group/title flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">
-                      동탄 루나쇼 & 문화 행사
-                    </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                    >
-                      동탄호수공원 루나쇼 일정 및 여울공원 버스킹, 신리천 어린이 축제 등 하이퍼로컬 행사 D-Day 스케줄러입니다.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
-                    </div>
-                  </div>
-                }
-                value={
-                  noticesLoading ? (
-                    <span className="inline-block h-5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
-                  ) : noticesError || !nextCultureEvent ? (
-                    "진행 행사 없음"
-                  ) : (
-                    nextCultureEvent.diffDays === 0 ? "오늘 개최!" : `행사 D-${nextCultureEvent.diffDays}`
-                  )
-                }
-                badge={
-                  noticesLoading ? (
-                    <span className="inline-block h-3.5 w-12 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse" />
-                  ) : noticesError || !nextCultureEvent ? (
-                    "축제·문화"
-                  ) : (
-                    nextCultureEvent.notice.dept || "동탄호수공원"
-                  )
-                }
-                description={
-                  noticesLoading ? (
-                    <span className="inline-block h-3 w-36 bg-neutral-200 dark:bg-neutral-800 rounded animate-pulse mt-0.5" />
-                  ) : noticesError || !nextCultureEvent ? (
-                    "새로운 문화 행사가 없습니다"
-                  ) : (
-                    nextCultureEvent.notice.title || "행사 예정"
-                  )
-                }
-                color="#10b981"
-                onClick={() => {
-                  window.location.href = '/lounge#lounge-notices-culture';
-                }}
-              />
-              <InfoBox
-                title={
-                  <div className="relative group/title flex items-center gap-1 w-full">
-                    <span className="break-keep whitespace-nowrap tracking-tight">
-                      실시간 인기 1위 단지
-                    </span>
-                    <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                    >
-                      DVIEW 플랫폼 사용자들에게 가장 인기가 많고 즐겨찾기(관심)가 많이 등록된 대표 단지 정보입니다.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
-                    </div>
-                  </div>
-                }
-                value={card4Data.name}
-                badge={card4Data.badge}
-                description="실시간 조회/관심 1위"
-                color="#ff4b5c"
-                onClick={() => {
-                  if (onSelectApt && card4Data.name && card4Data.name !== "-") {
-                    onSelectApt(card4Data.name);
-                  }
-                }}
-                className="col-span-2 md:col-span-1"
-              />
-            </div>
-
-            {/* 동탄 실거래 소액 갭투자 Top 5 랭킹 위젯 */}
-            <div className="w-full mt-4 bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-3 relative shadow-sm md:min-h-[360px]">
+            {/* 동탄 철도 교통 게시판 위젯 */}
+            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-3 relative shadow-sm md:min-h-[360px] md:flex-1 justify-between">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
+                  <span className="bg-[#00d29d]/10 dark:bg-[#00d29d]/25 text-[#00b386] dark:text-[#00d29d] font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+                    철도·교통
+                  </span>
                   <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
-                    동탄 실거래 소액 갭투자 Top 5
+                    동탄 철도 교통 게시판
                   </h4>
                   <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                   <div 
                     onClick={(e) => e.stopPropagation()}
                     className="absolute bottom-full left-0 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[12px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
                   >
-                    최근 3개월 매매/전세 실거래가 기준, 전세가율이 높고 소액 갭투자가 가장 용이한 단지 순위입니다. (LTV 50%~98% 기준)
+                    동탄 전역 및 행정동별 철도(GTX, 트램, 인동선, SRT) 및 대중교통 관련 실시간 고시·공고와 주요 교통 추진 현황 뉴스판입니다.
                     <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#191f28]"></div>
                   </div>
                 </div>
 
-                {/* Dong Selector Dropdown */}
-                <select
-                  value={gapRankingDong}
-                  onChange={(e) => setGapRankingDong(e.target.value)}
-                  className="bg-body border border-border/85 focus:border-[#00d29d] rounded-xl px-2 py-0.5 text-[11px] font-extrabold text-primary outline-none cursor-pointer hover:bg-neutral-50 dark:hover:bg-zinc-900/50 transition-colors shrink-0"
-                  aria-label="행정동 필터"
-                >
-                  <option value="전체">전체 동탄</option>
-                  <option value="청계동">청계동</option>
-                  <option value="영천동">영천동</option>
-                  <option value="오산동">오산동</option>
-                  <option value="반송동">반송동</option>
-                  <option value="석우동">석우동</option>
-                  <option value="능동">능동</option>
-                  <option value="송동">송동</option>
-                  <option value="산척동">산척동</option>
-                  <option value="목동">목동</option>
-                  <option value="장지동">장지동</option>
-                  <option value="신동">신동</option>
-                  <option value="방교동">방교동</option>
-                  <option value="금곡동">금곡동</option>
-                </select>
               </div>
 
-              {/* Ranking List */}
-              <div className="flex flex-col gap-1 mt-1">
-                {gapInvestmentTop5.length === 0 ? (
-                  <div className="text-center py-6 text-tertiary text-[12.5px] font-medium">
-                    해당 지역 내 최근 3개월 실거래 데이터가 없습니다.
+              {/* 소식 리스트 */}
+              <div className="flex flex-col gap-2 flex-1 justify-center py-0.5">
+                {/* 1. 철도전략과 소식 */}
+                <div className="flex flex-col gap-1">
+                  <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d] shadow-[0_0_4px_rgba(0,210,157,0.4)]"></span>
+                    철도전략과 소식
                   </div>
-                ) : (
-                  gapInvestmentTop5.map((item, idx) => (
-                    <div
-                      key={item.name}
-                      onClick={() => onSelectApt && onSelectApt(item.name)}
-                      className="flex items-center justify-between py-2 px-2 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30"
-                    >
-                      {/* Left: Rank & Complex Name */}
-                      <div className="flex items-center gap-2.5 min-w-0 mr-3">
-                        <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10.5px] font-black tracking-tight shrink-0 shadow-sm ${
-                          idx === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-amber-500/20' :
-                          idx === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-400/20' :
-                          idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-amber-700/20' :
-                          'bg-neutral-100 dark:bg-neutral-800 text-tertiary font-bold'
-                        }`}>
-                          {idx + 1}
-                        </span>
-                        <div className="flex items-baseline min-w-0">
-                          <span className="text-[13px] font-black text-primary group-hover/item:text-[#00d29d] transition-colors truncate">
-                            {item.name}
-                          </span>
-                          <span className="text-[10.5px] text-tertiary font-bold ml-1.5 shrink-0">
-                            {item.dong}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right: Metrics & Risk Indicators */}
-                      <div className="flex items-center gap-3 shrink-0">
-                        {/* Gap Price Badge */}
-                        <span className="bg-emerald-500/10 dark:bg-emerald-500/25 text-[#00b386] dark:text-[#00d29d] font-black text-[11px] px-2 py-0.5 rounded-lg shrink-0">
-                          갭 {item.gapText}
-                        </span>
-                        
-                        {/* Jeonse Rate */}
-                        <span className="text-[11.5px] font-bold text-secondary shrink-0 hidden sm:inline">
-                          전세율 {item.jeonseRateText}
-                        </span>
-
-                        {/* 3-Axis Risk Micro traffic lights */}
-                        <div className="flex items-center gap-2 border-l border-border/60 pl-3 shrink-0">
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-tertiary">
-                            <span>역</span>
-                            <span className={`w-2 h-2 rounded-full inline-block ${
-                              item.risks.reverseJeonse === 'danger' ? 'bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' :
-                              item.risks.reverseJeonse === 'warning' ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]' :
-                              'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]'
-                            }`} title={`역전세 리스크: ${item.risks.reverseJeonse === 'danger' ? '위험' : item.risks.reverseJeonse === 'warning' ? '주의' : '안전'}`} />
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-tertiary">
-                            <span>유</span>
-                            <span className={`w-2 h-2 rounded-full inline-block ${
-                              item.risks.liquidity === 'danger' ? 'bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' :
-                              item.risks.liquidity === 'warning' ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]' :
-                              'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]'
-                            }`} title={`유동성 리스크: ${item.risks.liquidity === 'danger' ? '위험' : item.risks.liquidity === 'warning' ? '주의' : '안전'}`} />
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-tertiary">
-                            <span>변</span>
-                            <span className={`w-2 h-2 rounded-full inline-block ${
-                              item.risks.volatility === 'danger' ? 'bg-rose-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' :
-                              item.risks.volatility === 'warning' ? 'bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.4)]' :
-                              'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]'
-                            }`} title={`변동성 리스크: ${item.risks.volatility === 'danger' ? '위험' : item.risks.volatility === 'warning' ? '주의' : '안전'}`} />
-                          </div>
-                        </div>
-                      </div>
+                  {railStrategyNotices.length === 0 ? (
+                    <div className="text-center py-4 text-tertiary text-[11px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
+                      관련 공지사항이 없습니다.
                     </div>
-                  ))
-                )}
+                  ) : (
+                    railStrategyNotices.slice(0, 3).map((item: LocalNoticeItem) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          window.location.href = `/lounge?notice=${item.id}`;
+                        }}
+                        className="flex items-center justify-between py-1.5 px-2 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                      >
+                        {/* Left: Icon & Title */}
+                        <div className="flex items-center gap-2.5 min-w-0 mr-3">
+                          <div className="w-6 h-6 rounded-lg bg-[#00d29d]/10 text-[#00b386] flex items-center justify-center shrink-0">
+                            <Train size={12} />
+                          </div>
+                          <span className="text-[12.5px] font-bold text-primary group-hover/item:text-[#00d29d] transition-colors truncate" title={item.title}>
+                            {item.title}
+                          </span>
+                        </div>
+                        {/* Right: Date */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                            {item.date.substring(5, 10).replace("-", "/")}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* 구분선 */}
+                <div className="border-t border-border/30 my-0.5 mx-2"></div>
+
+                {/* 2. 트램건설추진단 소식 */}
+                <div className="flex flex-col gap-1">
+                  <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.4)]"></span>
+                    트램건설추진단 소식
+                  </div>
+                  {tramNotices.length === 0 ? (
+                    <div className="text-center py-4 text-tertiary text-[11px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
+                      관련 공지사항이 없습니다.
+                    </div>
+                  ) : (
+                    tramNotices.slice(0, 3).map((item: LocalNoticeItem) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          window.location.href = `/lounge?notice=${item.id}`;
+                        }}
+                        className="flex items-center justify-between py-1.5 px-2 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                      >
+                        {/* Left: Icon & Title */}
+                        <div className="flex items-center gap-2.5 min-w-0 mr-3">
+                          <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                            <Train size={12} />
+                          </div>
+                          <span className="text-[12.5px] font-bold text-primary group-hover/item:text-blue-500 transition-colors truncate" title={item.title}>
+                            {item.title}
+                          </span>
+                        </div>
+                        {/* Right: Date */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                            {item.date.substring(5, 10).replace("-", "/")}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1974,7 +1880,7 @@ interface GroupedCategory {
           {/* Right Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0">
             {/* Right Panel: Interactive Market Feed & Trend */}
-            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:min-h-[548px] min-w-0">
+            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:min-h-[490px] min-h-[420px] min-w-0">
               <div className="flex-1 flex flex-col min-h-[300px]">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <div className="flex flex-col gap-1 min-w-0">
@@ -2008,7 +1914,7 @@ interface GroupedCategory {
                   </div>
                 </div>
 
-                <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] min-h-[260px] md:h-[370px] md:min-h-[370px] relative">
+                <div className="w-full flex-grow mt-2 sm:mt-0 md:h-[330px] md:min-h-[330px] h-[260px] min-h-[260px] relative">
                   <MacroTrendChart
                     lineData={mainLineData}
                     xTicks={mainXTicks}
@@ -2085,9 +1991,9 @@ interface GroupedCategory {
             </div>
 
             {/* 동탄 시장 요약 종합 모니터링 카드 [NEW] */}
-            <div className="w-full mt-4 bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 shadow-sm md:min-h-[360px] justify-between">
+            <div className="w-full bg-surface rounded-2xl border border-border p-3.5 sm:p-4 flex flex-col gap-2.5 shadow-sm md:min-h-[290px] md:flex-1 justify-between">
               {/* Header */}
-              <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
+              <div className="flex justify-between items-center border-b border-border/40 pb-2 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
                   <span className="bg-blue-500/10 dark:bg-blue-500/25 text-blue-600 dark:text-blue-400 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
                     종합 모니터링
@@ -2110,9 +2016,9 @@ interface GroupedCategory {
               </div>
 
               {/* Metrics 2x2 Grid */}
-              <div className="grid grid-cols-2 gap-3.5 flex-1 py-1">
+              <div className="grid grid-cols-2 gap-2.5 flex-1 py-0.5">
                 {/* Avg Sale */}
-                <div className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50">
+                <div className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50">
                   <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">시장 평균 매매가</span>
                   <span className="text-[15.5px] sm:text-[17px] font-black text-primary truncate">
                     {macroSalePriceText}
@@ -2120,7 +2026,7 @@ interface GroupedCategory {
                 </div>
                 
                 {/* Avg Rent */}
-                <div className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50">
+                <div className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50">
                   <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">시장 평균 전세가</span>
                   <span className="text-[15.5px] sm:text-[17px] font-black text-primary truncate">
                     {macroRentPriceText}
@@ -2128,7 +2034,7 @@ interface GroupedCategory {
                 </div>
 
                 {/* Average Jeonse Rate */}
-                <div className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50">
+                <div className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50">
                   <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary flex items-center gap-1.5">
                     평균 전세가율
                     {gapRankingDong !== "전체" && (
@@ -2145,7 +2051,7 @@ interface GroupedCategory {
                 {/* Hot Complex */}
                 <div 
                   onClick={() => onSelectApt && card4Data.name !== "-" && onSelectApt(card4Data.name)}
-                  className="flex flex-col justify-center gap-1 p-3.5 rounded-xl border border-border bg-body/50 cursor-pointer hover:border-[#00d29d] hover:bg-surface transition-all group/hot"
+                  className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50 cursor-pointer hover:border-[#00d29d] hover:bg-surface transition-all group/hot"
                 >
                   <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary group-hover/hot:text-[#00d29d] transition-colors">최고 관심 단지</span>
                   <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary truncate group-hover/hot:text-[#00d29d] transition-colors" title={card4Data.name}>
@@ -2155,7 +2061,7 @@ interface GroupedCategory {
               </div>
 
               {/* Footer Market Signal Info */}
-              <div className="flex items-center justify-between mt-1 px-1 py-2.5 bg-[#f2f4f6]/40 dark:bg-zinc-900/20 border border-border/40 rounded-xl">
+              <div className="flex items-center justify-between mt-1 px-1 py-2 bg-[#f2f4f6]/40 dark:bg-zinc-900/20 border border-border/40 rounded-xl">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="bg-slate-500/10 text-slate-600 dark:text-slate-400 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0">
                     마켓 시그널
