@@ -61,7 +61,7 @@ export default function LoungeContainerClient({
     '동탄 벼룩/나눔'
   ];
   return (
-    <div className="flex flex-col w-full bg-surface">
+    <div className="flex flex-col w-full bg-transparent">
       {/* Standardized Hero Header */}
       <PageHeroHeader 
         title="D-VIEW 라운지"
@@ -69,7 +69,8 @@ export default function LoungeContainerClient({
         subtitleLight="현장 임장기, 부동산 뉴스, 우리 동네 이야기"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16">
+      <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
       {/* LEFT SIDEBAR: Categories */}
       <aside className="md:col-span-3 lg:col-span-3 hidden md:block">
         <div className="sticky top-[100px]">
@@ -127,6 +128,7 @@ export default function LoungeContainerClient({
         <LoungeComposeClient currentTab={currentTab} onRequestLogin={onRequestLogin} />
       </section>
 
+      </div>
       </div>
     </div>
   );

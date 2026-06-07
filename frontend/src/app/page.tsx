@@ -186,7 +186,7 @@ function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-body">
       <header className="bg-surface/90 border-b border-border sticky top-0 z-40">
-        <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
+        <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-32 h-8 bg-body rounded-full animate-pulse" />
             <div className="w-16 h-8 bg-body rounded-full animate-pulse" />
@@ -194,7 +194,7 @@ function DashboardSkeleton() {
           <div className="w-8 h-8 bg-body rounded-full animate-pulse" />
         </div>
       </header>
-      <main className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-3 sm:py-5 md:py-8">
+      <main className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-3 sm:py-5 md:py-8">
         <div className="mb-6 flex gap-3 items-center">
            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
            <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-lg animate-pulse" />

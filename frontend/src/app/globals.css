@@ -110,7 +110,7 @@
   :focus-visible {
     outline: 2px solid #00d29d;
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: inherit;
   }
 
   /* a11y: Skip to Content */
@@ -162,10 +162,10 @@
     background: #00b386;
   }
 
-  .tag-traffic { background: #e0fbf4; color: var(--toss-blue); }
-  .tag-realestate { background: #fce4e4; color: var(--toss-red); }
-  .tag-edu { background: #e8f5e9; color: var(--toss-green); }
-  .tag-culture { background: #fff3e0; color: #ff9800; }
+  .tag-traffic, .tag-teal { background: #e0fbf4; color: var(--toss-blue); }
+  .tag-realestate, .tag-red { background: #fce4e4; color: var(--toss-red); }
+  .tag-edu, .tag-green { background: #e8f5e9; color: var(--toss-green); }
+  .tag-culture, .tag-orange { background: #fff3e0; color: #ff9800; }
 
   @keyframes tooltip-spring {
     0% {
@@ -193,11 +193,7 @@
     -webkit-tap-highlight-color: transparent !important;
   }
 
-  /* Hide all horizontal scrollbars app-wide */
-  *::-webkit-scrollbar:horizontal {
-    display: none !important;
-    height: 0 !important;
-  }
+
 
   /* Custom Scrollbar (Vertical only) */
   .custom-scrollbar::-webkit-scrollbar {

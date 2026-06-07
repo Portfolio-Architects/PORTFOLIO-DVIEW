@@ -710,7 +710,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       
       {/* Main Header — Logo + Nav integrated */}
       <header className="hidden md:block shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
-        <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
+        <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-2.5 gap-2 md:gap-0">
             
             {/* Mobile: Top Bar */}
@@ -786,7 +786,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500">
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         {mounted && (
-          <section className={`w-full bg-surface pb-8 md:pb-0 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
+          <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
@@ -848,7 +848,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 1: 아파트 탐색 (Toss-style 골라보기 테이블) ═══ */}
         {mounted && (
-          <section className={`w-full bg-surface ${activeTab === 'imjang' ? 'block' : 'hidden'}`}>
+          <section className={`w-full bg-transparent ${activeTab === 'imjang' ? 'block' : 'hidden'}`}>
             <TossApartmentExploreClient
               sheetApartments={sheetApartments}
               txSummaryData={txSummaryData}
@@ -900,7 +900,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         )}
 
         {mounted && (
-          <section className={`w-full bg-surface ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
+          <section className={`w-full bg-transparent ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
             <PageHeroHeader 
               title="D-VIEW 단지 큐레이션"
               subtitleStrong="입지 및 가치 기준 테마별 단지 추천"
@@ -1017,7 +1017,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         {mounted && (
-          <section className={`w-full bg-surface ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
+          <section className={`w-full bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
             <LoungeContainerClient initialPosts={[]} onRequestLogin={handleRequestLogin} />
           </section>
         )}
