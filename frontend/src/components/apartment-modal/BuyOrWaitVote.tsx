@@ -17,7 +17,7 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
 
   const localStorageKey = `dview-vote-${aptName.replace(/\s+/g, '')}`;
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate: mutateVote } = useSWR(
     aptName ? `/api/apartments/vote?aptName=${encodeURIComponent(aptName)}` : null,
     fetcher
   );
@@ -92,12 +92,34 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
           <Users size={16} className="text-emerald-500" />
           <h4 className="text-[13.5px] font-black text-primary tracking-tight">실수요자 실시간 매수 심리</h4>
         </div>
-        <span className="text-[11px] font-bold text-tertiary">
-          총 {totalVotes.toLocaleString()}명 참여
-        </span>
+        {!(isLoading && !data && !error) && !error && (
+          <span className="text-[11px] font-bold text-tertiary">
+            총 {totalVotes.toLocaleString()}명 참여
+          </span>
+        )}
       </div>
 
-      {!hasVoted ? (
+      {isLoading && !data && !error ? (
+        <div className="flex flex-col gap-3.5 py-1 animate-pulse">
+          <div className="h-4 bg-border/25 w-3/4 mx-auto rounded" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-10 bg-border/20 rounded-xl animate-pulse" />
+            <div className="h-10 bg-border/20 rounded-xl animate-pulse" />
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-2 text-center">
+          <p className="text-[12px] font-bold text-tertiary mb-2.5">
+            매수 심리 통계를 불러오지 못했습니다.
+          </p>
+          <button
+            onClick={(e) => { e.preventDefault(); mutateVote(); }}
+            className="px-3.5 py-1.5 bg-[#00d29d]/10 hover:bg-[#00d29d]/20 text-[#00d29d] border border-[#00d29d]/25 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : !hasVoted ? (
         <div className="flex flex-col gap-3">
           <p className="text-[12px] text-secondary font-medium text-center mb-1">
             지금 이 가격에 매수하시겠습니까? (익명 투표)

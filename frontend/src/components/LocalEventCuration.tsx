@@ -23,7 +23,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
   const [shareStatus, setShareStatus] = useState<'copied' | 'shared' | null>(null);
   const [noticeCopiedId, setNoticeCopiedId] = useState<string | null>(null);
 
-  const { data: noticesData, error: noticesError } = useSWR('/api/local-notices');
+  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices');
   const allNotices = (noticesData?.notices || []) as LocalNoticeItem[];
   // Filter for Dongtan-related ones or fallback to latest general if none found
   const localNotices = allNotices.filter((n: LocalNoticeItem) => n.isDongtan).slice(0, 5);
@@ -388,7 +388,19 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
                 <div key={n} className="h-14 bg-border/20 animate-pulse rounded-2xl" />
               ))}
             </div>
-          ) : noticesError || displayNotices.length === 0 ? (
+          ) : noticesError ? (
+            <div className="text-center py-6 px-4 bg-body rounded-2xl border border-border flex flex-col items-center justify-center">
+              <p className="text-[13px] font-bold text-tertiary mb-2.5">
+                동탄구정 소식을 불러오는데 실패했습니다.
+              </p>
+              <button
+                onClick={() => mutateNotices()}
+                className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100/40 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : displayNotices.length === 0 ? (
             <div className="text-center py-6 text-[13px] font-medium text-tertiary bg-body rounded-2xl border border-border">
               현재 등록된 실시간 구청 소식이 없습니다.
             </div>

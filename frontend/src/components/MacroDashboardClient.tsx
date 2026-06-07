@@ -331,7 +331,7 @@ export default function MacroDashboardClient({
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
-  const { data: noticesData, error: noticesError } = useSWR('/api/local-notices', fetcher);
+  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
   const { data: locationScores } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher);
   const noticesLoading = !noticesData && !noticesError;
 
@@ -2742,8 +2742,20 @@ interface GroupedCategory {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {!noticesData
-                ? Array.from({ length: 6 }).map((_, i) => (
+              {noticesError && !noticesData ? (
+                <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center py-12 px-4 bg-body rounded-xl border border-border text-center">
+                  <p className="text-[13.5px] font-bold text-tertiary mb-3">
+                    동탄 로컬 소식을 불러오지 못했습니다.
+                  </p>
+                  <button
+                    onClick={() => mutateNotices()}
+                    className="px-4 py-2 bg-[#00d29d]/10 hover:bg-[#00d29d]/20 text-[#00d29d] border border-[#00d29d]/25 text-[12px] font-bold rounded-lg transition-all active:scale-95"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              ) : noticesLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
                     className="flex gap-4 p-5 rounded-xl border border-border bg-body animate-pulse"
@@ -2756,42 +2768,42 @@ interface GroupedCategory {
                     </div>
                   </div>
                 ))
-                : (noticesData.notices && noticesData.notices.length > 0
-                  ? noticesData.notices.slice(0, visibleNoticeCount)
-                  : []
-                ).map((notice: LocalNoticeItem, index: number) => (
-                  <a
-                    key={notice.id || index}
-                    href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"
-                  >
-                    <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
-                      {index + 1}
+              ) : (noticesData?.notices && noticesData.notices.length > 0
+                ? noticesData.notices.slice(0, visibleNoticeCount)
+                : []
+              ).map((notice: LocalNoticeItem, index: number) => (
+                <a
+                  key={notice.id || index}
+                  href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex gap-4 p-5 rounded-xl border border-border bg-body hover:bg-surface hover:border-[#00d29d]/30 transition-all cursor-pointer group"
+                >
+                  <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                    {index + 1}
+                  </div>
+                  <div className="flex flex-col justify-center min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1.5 md:mb-2">
+                      <span className="text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide">
+                        {notice.dept || "동탄 소식"}
+                      </span>
+                      <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
+                      <span className="text-[11px] md:text-[12px] font-semibold text-tertiary">
+                        {notice.date}
+                      </span>
+                      {notice.isDongtan && (
+                        <>
+                          <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
+                          <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
+                        </>
+                      )}
                     </div>
-                    <div className="flex flex-col justify-center min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1.5 md:mb-2">
-                        <span className="text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide">
-                          {notice.dept || "동탄 소식"}
-                        </span>
-                        <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
-                        <span className="text-[11px] md:text-[12px] font-semibold text-tertiary">
-                          {notice.date}
-                        </span>
-                        {notice.isDongtan && (
-                          <>
-                            <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
-                            <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2">
-                        {notice.title}
-                      </p>
-                    </div>
-                  </a>
-                ))
+                    <p className="text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2">
+                      {notice.title}
+                    </p>
+                  </div>
+                </a>
+              ))
               }
               {noticesData && (!noticesData.notices || noticesData.notices.length === 0) && (
                 <div className="col-span-1 md:col-span-2 text-center py-12 text-tertiary font-bold text-[14.5px]">

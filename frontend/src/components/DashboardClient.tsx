@@ -168,7 +168,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { user, userProfile, anonProfile, handleLogin, handleLogout } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
-  const { data: popularData } = useSWR('/api/realtime-popular', fetcher, { refreshInterval: 60000 });
+  const { data: popularData, error: popularError } = useSWR('/api/realtime-popular', fetcher, { refreshInterval: 60000 });
+
+  useEffect(() => {
+    if (popularError) {
+      console.warn('[DashboardClient] Failed to fetch GA4 realtime popular complexes, falling back to local favorites counts:', popularError);
+    }
+  }, [popularError]);
   
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
