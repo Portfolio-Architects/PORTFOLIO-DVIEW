@@ -40,6 +40,7 @@ import BuyOrWaitVote from './apartment-modal/BuyOrWaitVote';
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import LocalEducationAd from '@/components/LocalEducationAd';
+import ContextualB2BAdBanner from './apartment-modal/ContextualB2BAdBanner';
 
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
@@ -1543,6 +1544,21 @@ function FieldReportModal({
                  )}
                </section>
              )}
+
+              {/* 🎯 아파트별 1:1 컨텍스트 타겟팅 B2B CPA 광고 배너 연동 (105차) */}
+              {report.metrics && (
+                <div className="mb-2">
+                  <ContextualB2BAdBanner
+                    apartmentName={report.apartmentName}
+                    dong={report.dong || '오산동'}
+                    yearBuilt={report.metrics.yearBuilt}
+                    distanceToElementary={report.metrics.distanceToElementary}
+                    jeonseRate={jeonseSafetyData?.ratio}
+                    userId={user?.uid}
+                    onOpenAdModal={onOpenAdModal}
+                  />
+                </div>
+              )}
 
             {/* ── PAYWALL GATE — 비활성화 (프리미엄 콘텐츠 전면 공개 중) ──
              * TODO: 유료 모델 전환 시 이 블록 복원
