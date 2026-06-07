@@ -12,8 +12,8 @@ export default function Footer() {
   if (isAdmin) return null;
 
   return (
-    <footer className="w-full bg-body relative z-30 py-8 sm:py-12 mt-4 sm:mt-8 pb-[calc(env(safe-area-inset-bottom)+80px)] sm:pb-12">
-      <div className="max-w-[2000px] mx-auto px-5 sm:px-8 flex flex-col gap-8 sm:gap-10">
+    <footer className="w-full bg-transparent border-t border-border/40 relative z-30 py-8 sm:py-12 mt-0 pb-[calc(env(safe-area-inset-bottom)+80px)] sm:pb-12">
+      <div className="max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 flex flex-col gap-8 sm:gap-10">
         
         {/* 알림 받기 배너 (푸터와 병합) */}
         {!isAdmin && (
@@ -23,7 +23,7 @@ export default function Footer() {
         )}
 
         {/* 하단 면책 조항 및 정보 탭 */}
-        <div className={`w-full flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12 ${!isAdmin ? 'pt-4 md:pt-0' : ''}`}>
+        <div className={`w-full flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12 ${!isAdmin ? 'pt-2' : ''}`}>
           
           {/* 좌측: 로고 및 링크 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8 lg:gap-10 shrink-0">

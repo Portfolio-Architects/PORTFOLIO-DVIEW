@@ -1644,7 +1644,7 @@ interface GroupedCategory {
           </div>
         }
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-0 md:pb-12 lg:pb-16 w-full">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full">
 
         <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}
@@ -2594,7 +2594,7 @@ interface GroupedCategory {
         </div>
 
         {/* Dongtan Market Insights (News & Notice Section) */}
-        <div className="mb-8 bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8">
+        <div className="mb-0 bg-surface rounded-2xl shadow-sm border border-border p-6 md:p-8">
           <div className="mb-6">
             <h2 className="text-[18px] md:text-[24px] font-extrabold text-primary tracking-tight whitespace-nowrap">
               동탄 부동산 인사이트
