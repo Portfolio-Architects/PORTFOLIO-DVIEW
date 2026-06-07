@@ -44,22 +44,28 @@ async function check() {
     let txKey = txKeyIdx !== -1 ? cols[txKeyIdx] : '';
     const normName = name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
     if (!txKey) txKey = normName;
+    const normTxKey = txKey.replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
     
     const hhStr = hhIdx !== -1 ? cols[hhIdx] : '0';
     const hh = parseInt(hhStr.replace(/,/g, '')) || 0;
     
     totalHh += hh;
     
-    const indexHasKey = txKeys.has(txKey) || txKeys.has(normName);
+    const indexHasKey = txKeys.has(txKey) || txKeys.has(normTxKey) || txKeys.has(normName);
     
     // Check if the physical JSON file exists and is valid
-    const detailFile = `public/tx-data/${encodeURIComponent(txKey)}.json`;
-    const detailFileAlt = `public/tx-data/${encodeURIComponent(normName)}.json`;
+    const detailFile = `public/tx-data/${txKey}.json`;
+    const detailFileNorm = `public/tx-data/${normTxKey}.json`;
+    const detailFileAlt = `public/tx-data/${normName}.json`;
     let fileExists = false;
     let fileCorrupted = false;
     let fileEmpty = false;
     
-    const targetPath = fs.existsSync(detailFile) ? detailFile : (fs.existsSync(detailFileAlt) ? detailFileAlt : null);
+    const targetPath = fs.existsSync(detailFile) 
+      ? detailFile 
+      : (fs.existsSync(detailFileNorm) 
+         ? detailFileNorm 
+         : (fs.existsSync(detailFileAlt) ? detailFileAlt : null));
     
     if (targetPath) {
       fileExists = true;

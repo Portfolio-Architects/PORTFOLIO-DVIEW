@@ -14,6 +14,7 @@ interface ContextualB2BAdBannerProps {
   jeonseRate: number | undefined;
   userId?: string;
   onOpenAdModal?: () => void;
+  onOpenConsumerAdModal?: (adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => void;
 }
 
 export default function ContextualB2BAdBanner({
@@ -23,7 +24,8 @@ export default function ContextualB2BAdBanner({
   distanceToElementary,
   jeonseRate,
   userId,
-  onOpenAdModal
+  onOpenAdModal,
+  onOpenConsumerAdModal
 }: ContextualB2BAdBannerProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -77,8 +79,10 @@ export default function ContextualB2BAdBanner({
       });
     }
 
-    // 2. 만약 커스텀 광고 모달 열기 핸들러가 주입된 경우 (제휴 폼 레이어 띄우기)
-    if (onOpenAdModal && (ad.adType === 'cleaning' || ad.adType === 'interior')) {
+    // 2. 소비자 리드 캡쳐 모달 또는 광고주 모달 열기 핸들러 분기
+    if (onOpenConsumerAdModal && (ad.adType === 'academy' || ad.adType === 'interior' || ad.adType === 'cleaning')) {
+      onOpenConsumerAdModal(ad.adType as any, ad.title);
+    } else if (onOpenAdModal && (ad.adType === 'cleaning' || ad.adType === 'interior')) {
       onOpenAdModal();
     } else {
       // 3. 그렇지 않은 경우 다이렉트 제휴 랜딩 새 창 이동

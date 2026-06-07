@@ -137,4 +137,26 @@ describe('ContextualB2BAdBanner CPA 광고 스마트 매칭 테스트', () => {
     expect(addDoc).toHaveBeenCalledTimes(1);
     expect(mockOnOpenAdModal).toHaveBeenCalledTimes(1);
   });
+
+  it('onOpenConsumerAdModal Prop이 전달되었을 때 학원 광고를 클릭하면 콜백이 호출된다', () => {
+    const mockOnOpenConsumerAdModal = jest.fn();
+    render(
+      <ContextualB2BAdBanner
+        apartmentName="동탄역 시범 한화"
+        dong="청계동"
+        yearBuilt="2018-05-10"
+        distanceToElementary={150} // 학원 광고 매칭 조건 (<= 300m)
+        jeonseRate={0.52}
+        userId="test-user-id"
+        onOpenConsumerAdModal={mockOnOpenConsumerAdModal}
+      />
+    );
+
+    const actionButton = screen.getByText('무료 레벨테스트 & 체험 신청');
+    fireEvent.click(actionButton);
+
+    expect(addDoc).toHaveBeenCalledTimes(1);
+    expect(mockOnOpenConsumerAdModal).toHaveBeenCalledWith('academy', '단지 초인접 영어/수학 전문 교육 1회 무료 체험권');
+    expect(window.open).not.toHaveBeenCalled();
+  });
 });

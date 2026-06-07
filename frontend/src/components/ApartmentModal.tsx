@@ -257,6 +257,7 @@ function FieldReportModal({
   inline,
   txSummary,
   onOpenAdModal,
+  onOpenConsumerAdModal,
   loadAllTransactions,
   onRequestLogin,
   onOpenCompare,
@@ -279,6 +280,7 @@ function FieldReportModal({
   inline?: boolean;
   txSummary?: any;
   onOpenAdModal?: () => void;
+  onOpenConsumerAdModal?: (adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => void;
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
   onOpenCompare?: (aptName: string) => void;
@@ -1584,6 +1586,7 @@ function FieldReportModal({
                     jeonseRate={jeonseSafetyData?.ratio}
                     userId={user?.uid}
                     onOpenAdModal={onOpenAdModal}
+                    onOpenConsumerAdModal={onOpenConsumerAdModal}
                   />
                 </div>
               )}

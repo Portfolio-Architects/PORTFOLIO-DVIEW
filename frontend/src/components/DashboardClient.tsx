@@ -17,6 +17,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal'), { ssr: false });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
+const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal'), { ssr: false });
 const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
@@ -178,6 +179,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
+  const [isConsumerAdModalOpen, setIsConsumerAdModalOpen] = useState(false);
+  const [consumerAdInfo, setConsumerAdInfo] = useState<{ adType: 'insurance' | 'interior' | 'academy' | 'cleaning'; adTitle: string } | null>(null);
+
+  const handleOpenConsumerAdModal = useCallback((adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => {
+    setConsumerAdInfo({ adType, adTitle });
+    setIsConsumerAdModalOpen(true);
+  }, []);
   const [showAdBlockBanner, setShowAdBlockBanner] = useState(false);
   const { isAdBlockActive } = useAdBlockDetector();
 
@@ -1048,6 +1056,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             isAdmin={dashboardFacade.isAdmin(user?.email)}
             txSummary={aptTxSummary}
             onOpenAdModal={() => setIsAdModalOpen(true)}
+            onOpenConsumerAdModal={handleOpenConsumerAdModal}
             onRequestLogin={handleRequestLogin}
             onOpenCompare={(aptName) => {
               setCompareInitialApt(aptName);
@@ -1115,6 +1124,20 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
     {isAdModalOpen && (
       <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
+    )}
+
+    {isConsumerAdModalOpen && consumerAdInfo && selectedReport && (
+      <B2BConsumerAdModal
+        onClose={() => {
+          setIsConsumerAdModalOpen(false);
+          setConsumerAdInfo(null);
+        }}
+        adType={consumerAdInfo.adType}
+        adTitle={consumerAdInfo.adTitle}
+        apartmentName={selectedReport.apartmentName}
+        dong={selectedReport.dong || '오산동'}
+        yearBuilt={selectedReport.metrics?.yearBuilt}
+      />
     )}
 
     {showNicknameModal && (
