@@ -674,10 +674,10 @@ export default function TossApartmentExploreClient({
         setListHeight(Math.max(300, window.innerHeight - 260));
       } else {
         // 데스크톱 뷰: 브라우저 뷰포트 크기에 연동하되, 테이블 헤더가 sticky 상단에 붙었을 때 
-        // 하단 푸터 영역 위까지 리스트가 채워지도록 headerOffset을 140px로 설정하고 
-        // 최소 높이를 750px로 설정하여 좌측 사이드바(법정동 리스트) 높이와 균형을 맞춥니다.
-        const headerOffset = 140;
-        setListHeight(Math.max(750, window.innerHeight - headerOffset));
+        // 하단 푸터 영역 위까지 리스트가 채워지도록 headerOffset을 100px로 설정하고 
+        // 최소 높이를 880px로 설정하여 좌측 사이드바(법정동 리스트) 높이와 완벽한 균형을 맞춥니다.
+        const headerOffset = 100;
+        setListHeight(Math.max(880, window.innerHeight - headerOffset));
       }
     };
 
