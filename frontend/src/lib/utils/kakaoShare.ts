@@ -679,6 +679,7 @@ export const shareLocalNoticeToKakao = async ({
 
     const baseUrl = window.location.origin;
     const isCulture = source === 'culture' || id.startsWith('culture_');
+    const isLecture = title.includes('[강좌]');
     
     let finalImageUrl = '';
     let description = '';
@@ -687,11 +688,18 @@ export const shareLocalNoticeToKakao = async ({
 
     if (isCulture) {
       const category = title.includes('[루나쇼]') ? '동탄호수공원 루나쇼' : 
+                       title.includes('[강좌]') ? '주민센터 강좌' :
                        title.includes('[버스킹]') ? '여울공원 버스킹' : 
                        title.includes('[축제]') ? '동탄 로컬 축제' : '동탄 문화 행사';
       
-      finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent("가족 나들이 및 아파트 조망권 추천 정보")}`;
-      description = `장소: ${dept}\n행사일: ${date} (이용 요금: 무료)\nD-VIEW에서 루나쇼 명당 단지 정보 및 상세 가치 분석을 확인하세요!`;
+      const tipText = isLecture ? '선착순 모집 주민자치센터 유익한 혜택 프로그램' : '가족 나들이 및 아파트 조망권 추천 정보';
+      
+      finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent(tipText)}`;
+      
+      description = isLecture 
+        ? `접수개시: ${date} (수강료: 무료~3만원 선)\n${dept} 주민자치센터의 유익한 라이프스타일 강좌 일정을 D-VIEW에서 확인해보세요!`
+        : `장소: ${dept}\n행사일: ${date} (이용 요금: 무료)\nD-VIEW에서 루나쇼 명당 단지 정보 및 상세 가치 분석을 확인하세요!`;
+        
       shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=culture_share`;
       titleText = title;
     } else {
@@ -716,7 +724,7 @@ export const shareLocalNoticeToKakao = async ({
       },
       buttons: [
         {
-          title: isCulture ? "행사 정보 & 아파트 가치 보기" : "소식 상세 보기",
+          title: isLecture ? "강좌 정보 & 신청 바로가기" : (isCulture ? "행사 정보 & 아파트 가치 보기" : "소식 상세 보기"),
           link: {
             mobileWebUrl: shareUrl,
             webUrl: shareUrl,

@@ -80,6 +80,15 @@ describe('LoungeFeedClient Notice & Event Curation', () => {
       date: '2026-07-01',
       isDongtan: true,
       source: 'culture'
+    },
+    {
+      id: 'culture_lecture_Dongtan4_20260620',
+      title: '[강좌] 동탄4동 주민자치센터 - 엄마랑 아기랑 마음 교감 놀이 요가 수강생 선착순 모집',
+      url: 'https://reserve.hscity.go.kr/',
+      dept: '동탄4동',
+      date: '2026-06-20', // today is 2026-06-07 -> D-13
+      isDongtan: true,
+      source: 'culture'
     }
   ];
 
@@ -140,7 +149,7 @@ describe('LoungeFeedClient Notice & Event Curation', () => {
     expect(screen.getByText('[루나쇼] 2026 동탄호수공원 루나 분수쇼 (6월 1회차)')).toBeInTheDocument();
 
     // Verify metadata values
-    expect(screen.getByText('동탄호수공원')).toBeInTheDocument();
+    expect(screen.getAllByText('동탄호수공원')[0]).toBeInTheDocument();
     expect(screen.getByText('행사일: 2026-06-10')).toBeInTheDocument();
 
     // Verify actions buttons exist
@@ -148,5 +157,33 @@ describe('LoungeFeedClient Notice & Event Curation', () => {
     expect(shareButtons.length).toBeGreaterThan(0);
     const copyButtons = screen.getAllByText('링크 복사');
     expect(copyButtons.length).toBeGreaterThan(0);
+  });
+
+  it('calculates D-Day correctly and renders lecture event card components', async () => {
+    await act(async () => {
+      render(
+        <LoungeFeedClient
+          initialPosts={[]}
+          currentTab="동탄구 소식"
+        />
+      );
+    });
+
+    // Switch to '문화·행사' tab
+    const cultureTab = screen.getByText('문화·행사');
+    await act(async () => {
+      fireEvent.click(cultureTab);
+    });
+
+    // Verify lecture D-Day and metadata display
+    // 2026-06-20 target, mock today 2026-06-07 -> D-13
+    expect(screen.getByText('접수 D-13')).toBeInTheDocument();
+    expect(screen.getByText('주민센터 강좌')).toBeInTheDocument();
+    expect(screen.getByText('동탄4동 주민자치센터 - 엄마랑 아기랑 마음 교감 놀이 요가 수강생 선착순 모집')).toBeInTheDocument();
+
+    // Verify fee info & department
+    expect(screen.getByText('무료 ~ 3만원 선')).toBeInTheDocument();
+    expect(screen.getByText('동탄4동 주민센터')).toBeInTheDocument();
+    expect(screen.getByText('접수개시: 2026-06-20')).toBeInTheDocument();
   });
 });

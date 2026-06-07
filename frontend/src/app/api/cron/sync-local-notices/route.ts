@@ -157,6 +157,34 @@ function generateCultureEvents(): NoticeItem[] {
     createdAt: nowStr
   });
 
+  // 6. 3040 맞춤형 주민자치센터 강좌 목록 동별 신설
+  const lectures = [
+    { dong: '동탄1동', subject: '스마트폰 사진 촬영 & 인스타 릴스 제작', date: '2026-06-12' },
+    { dong: '동탄2동', subject: '유러피안 플로리스트 꽃꽂이 교실', date: '2026-06-15' },
+    { dong: '동탄3동', subject: '친환경 천연 화장품 & 에코 비누 만들기', date: '2026-06-17' },
+    { dong: '동탄4동', subject: '엄마랑 아기랑 마음 교감 놀이 요가', date: '2026-06-20' },
+    { dong: '동탄5동', subject: '왕초보 탈출! 기초 직장인 생활 영어', date: '2026-06-22' },
+    { dong: '동탄6동', subject: '원어민 선생님과 함께하는 영어 동화 구연', date: '2026-06-24' },
+    { dong: '동탄7동', subject: '창의 쑥쑥 드로잉 & 아동 심리 미술 놀이', date: '2026-06-26' },
+    { dong: '동탄8동', subject: '아빠와 함께하는 캠핑 목공 및 토이 메이킹', date: '2026-06-28' },
+    { dong: '동탄9동', subject: '마음이 맑아지는 캘리그라피 & 감성 손글씨', date: '2026-06-30' },
+  ];
+
+  lectures.forEach((lecture) => {
+    const cleanDong = lecture.dong.replace(/동탄/g, '');
+    events.push({
+      id: `culture_lecture_${cleanDong}_${lecture.date.replace(/-/g, '')}`,
+      originalId: `lecture_${cleanDong}_${lecture.date.replace(/-/g, '')}`,
+      title: `[강좌] ${lecture.dong} 주민자치센터 - ${lecture.subject} 수강생 선착순 모집`,
+      url: 'https://reserve.hscity.go.kr/', // 화성시 통합예약 웹사이트
+      dept: lecture.dong, // 동탄1동 ~ 동탄9동과 완벽 매핑
+      date: lecture.date,
+      isDongtan: true,
+      source: 'culture',
+      createdAt: nowStr
+    });
+  });
+
   return events;
 }
 

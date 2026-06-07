@@ -11,7 +11,7 @@ interface LocalNoticeItem {
   dept: string;
   date: string;
   isDongtan: boolean;
-  source?: 'bbs' | 'gosi' | 'rail' | 'dong';
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
 interface LocalEventCurationProps {
@@ -81,7 +81,14 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
       infoBorderColor: 'border-indigo-100',
       infoColor: 'text-indigo-600',
       infoList: [
-        { label: '주요 일정', value: '5월~10월 매월 격주 토요일', highlight: true },
+        { 
+          label: '가까운 일정', 
+          value: (() => {
+            const nextLuna = allNotices.find(n => n.source === 'culture' && n.title.includes('[루나쇼]'));
+            return nextLuna ? `${nextLuna.date} (격주 토요일)` : '5월~10월 격주 토요일';
+          })(), 
+          highlight: true 
+        },
         { label: '시작 시간', value: '20:00 ~ 20:50 (50분)', highlight: true },
         { label: '진행 주관', value: '화성시 푸른도시사업소', highlight: false }
       ],
@@ -149,7 +156,14 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
       infoBorderColor: 'border-teal-100',
       infoColor: 'text-teal-600',
       infoList: [
-        { label: '운영 기간', value: '7월 초 ~ 8월 말 (월요 휴무)', highlight: true },
+        { 
+          label: '개장 예정일', 
+          value: (() => {
+            const nextWater = allNotices.find(n => n.source === 'culture' && n.title.includes('물놀이장'));
+            return nextWater ? nextWater.date : '7월 초 개장';
+          })(), 
+          highlight: true 
+        },
         { label: '운영 시간', value: '10:00 ~ 17:00 (매시간 45분 가동)', highlight: true },
         { label: '이용 요금', value: '무료 (화성시 공원관리과 주관)', highlight: false }
       ],
@@ -173,6 +187,11 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
       ]
     }
   ];
+
+  // 3040 실수요 타겟 주민자치센터 실시간 강좌 필터링
+  const activeLectures = allNotices
+    .filter(n => n.source === 'culture' && n.title.includes('[강좌]'))
+    .slice(0, 4);
 
   return (
     <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-6">
@@ -288,15 +307,70 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
         ))}
       </div>
 
+      {/* 🏡 주민자치센터 추천 교육/강좌 리스트 (104차 신설) */}
+      {activeLectures.length > 0 && (
+        <div className="mt-6 pt-8 border-t border-border/60 flex flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 p-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/30">
+                <Calendar size={18} className="text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <h4 className="text-[17px] md:text-[18px] font-black text-primary tracking-tight">우리 동네 주민자치센터 추천 강좌</h4>
+              <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 border border-emerald-100 dark:border-emerald-900/30">
+                인기 혜택
+              </span>
+            </div>
+            <p className="text-[12px] md:text-[13px] text-tertiary font-bold pl-8">
+              동탄 3040 실수요 세대 및 자녀를 위한 선착순 무료/저렴 주민 강좌 정보입니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-0 md:pl-8">
+            {activeLectures.map((lecture) => (
+              <a
+                key={lecture.id}
+                href={`/api/bypass-notice?url=${encodeURIComponent((lecture.url || '').trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-body hover:bg-surface rounded-2xl p-4.5 border border-border hover:border-emerald-300 hover:shadow-[0_8px_20px_rgba(16,185,129,0.04)] cursor-pointer flex flex-col justify-between gap-3 transition-all duration-300 group text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-lg text-[10.5px] font-black border border-emerald-100/30">
+                      {lecture.dept} 주민센터
+                    </span>
+                    <span className="text-[11px] font-bold text-tertiary">
+                      개강: {lecture.date}
+                    </span>
+                  </div>
+                  <h5 className="text-[14px] font-bold text-primary leading-snug group-hover:text-emerald-600 transition-colors">
+                    {lecture.title.replace(/\[강좌\]\s*/, '').replace(/\s*수강생\s*선착순\s*모집/, '')}
+                  </h5>
+                  <p className="text-[12px] text-tertiary leading-normal mt-1.5 font-medium">
+                    수강료: 무료 ~ 3만원 선 (재료비 별도) | 화성시민 누구나 신청 가능
+                  </p>
+                </div>
+                <div className="border-t border-border/20 pt-3 flex items-center justify-between mt-1">
+                  <span className="text-[11px] text-emerald-600 font-extrabold">선착순 접수 중</span>
+                  <div className="text-[11.5px] font-black text-emerald-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                    신청 사이트 이동 <ExternalLink size={11} />
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 실시간 동탄구정 소식통 */}
-      <div className="mt-8 pt-8 border-t border-border/60 flex flex-col gap-6">
+      <div className="mt-6 pt-8 border-t border-border/60 flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <div className="bg-emerald-100 dark:bg-emerald-950/30 p-1.5 rounded-lg">
               <Building2 size={18} className="text-emerald-600 dark:text-emerald-400" />
             </div>
             <h4 className="text-[17px] md:text-[18px] font-black text-primary tracking-tight">실시간 동탄구정 소식통</h4>
-            <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] md:text-[11px] font-extrabold shrink-0 animate-pulse">
+            <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 animate-pulse">
               Live
             </span>
           </div>

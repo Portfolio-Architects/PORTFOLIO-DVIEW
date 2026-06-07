@@ -510,6 +510,8 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => {
               const isCulture = notice.source === 'culture';
               if (isCulture) {
+                const isLecture = notice.title.includes('[강좌]');
+                
                 // D-Day 계산 헬퍼
                 const getDDayText = (dateStr: string) => {
                   const target = new Date(dateStr);
@@ -518,12 +520,21 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   target.setHours(0, 0, 0, 0);
                   const diff = target.getTime() - today.getTime();
                   const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                  if (diffDays === 0) return { text: '오늘 개최', color: 'bg-rose-500 text-white border-rose-600' };
-                  if (diffDays > 0) return { text: `D-${diffDays}`, color: 'bg-emerald-500 text-white border-emerald-600 animate-pulse' };
-                  return { text: '종료됨', color: 'bg-gray-400 text-white border-gray-500' };
+                  if (diffDays === 0) return { text: isLecture ? '접수 마감' : '오늘 개최', color: 'bg-rose-500 text-white border-rose-600' };
+                  if (diffDays > 0) return { text: isLecture ? `접수 D-${diffDays}` : `D-${diffDays}`, color: 'bg-emerald-500 text-white border-emerald-600 animate-pulse' };
+                  return { text: isLecture ? '접수 종료' : '종료됨', color: 'bg-gray-400 text-white border-gray-500' };
                 };
                 
                 const dday = getDDayText(notice.date);
+                const displayTitle = isLecture 
+                  ? notice.title.replace(/\[강좌\]\s*/, '') 
+                  : notice.title;
+                const displayDesc = isLecture
+                  ? '동탄 주민자치센터에서 운영하는 생활밀착형 교양/문화/체육 강좌입니다. 정원 내 선착순 수강 신청으로 저렴하게 고품질 교육 혜택을 이용하세요.'
+                  : '본 소식은 동탄 권역의 대표 문화·축제 라이프스타일 정보입니다. 무료 이용 및 인근 주차가 가능하며, 가족 단위 방문에 적합합니다. D-VIEW에서 일정을 공유해보세요!';
+                const displayPrice = isLecture ? '무료 ~ 3만원 선' : '무료';
+                const displayDept = isLecture ? `${notice.dept} 주민센터` : notice.dept;
+                const displayUrlLabel = isLecture ? '화성시 통합예약 이동' : '원문 고시공고 이동';
                 
                 return (
                   <div
@@ -531,10 +542,16 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                     onClick={() => {
                       window.location.hash = `notice=${notice.id}`;
                     }}
-                    className="flex flex-col gap-4 p-5 rounded-3xl border border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-teal-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)] transition-all cursor-pointer w-full group relative overflow-hidden text-left"
+                    className={`flex flex-col gap-4 p-5 rounded-3xl border transition-all cursor-pointer w-full group relative overflow-hidden text-left ${
+                      isLecture 
+                        ? 'border-teal-100/80 dark:border-teal-900/30 bg-gradient-to-br from-teal-500/5 to-emerald-500/5 dark:from-teal-950/10 dark:to-emerald-950/10 hover:border-teal-300 dark:hover:border-teal-700/50 hover:shadow-[0_12px_24px_rgba(20,184,166,0.06)]' 
+                        : 'border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-teal-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)]'
+                    }`}
                   >
                     {/* Decorative Blob */}
-                    <div className="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+                    <div className={`absolute -right-6 -bottom-6 w-20 h-20 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500 ${
+                      isLecture ? 'bg-teal-500/10 dark:bg-teal-500/20' : 'bg-emerald-500/10 dark:bg-emerald-500/20'
+                    }`} />
                     
                     {/* Top Row: D-Day & Meta */}
                     <div className="flex items-center justify-between gap-3 z-10">
@@ -542,22 +559,28 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                         <span className={`px-2.5 py-1 text-[11px] font-black rounded-lg border ${dday.color} shadow-sm uppercase tracking-wider`}>
                           {dday.text}
                         </span>
-                        <span className="text-[11.5px] font-extrabold text-emerald-600 bg-emerald-100/50 dark:bg-emerald-950/30 dark:text-emerald-400 px-2 py-1 rounded-lg border border-emerald-100/30">
-                          {notice.dept}
+                        <span className={`text-[11.5px] font-extrabold px-2 py-1 rounded-lg border ${
+                          isLecture 
+                            ? 'text-teal-600 bg-teal-100/50 dark:bg-teal-950/30 dark:text-teal-400 border-teal-100/30' 
+                            : 'text-emerald-600 bg-emerald-100/50 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-100/30'
+                        }`}>
+                          {isLecture ? '주민센터 강좌' : notice.dept}
                         </span>
                       </div>
                       <span className="text-[12px] font-bold text-tertiary">
-                        행사일: {notice.date}
+                        {isLecture ? `접수개시: ${notice.date}` : `행사일: ${notice.date}`}
                       </span>
                     </div>
 
                     {/* Middle: Title & Description */}
                     <div className="flex flex-col gap-1.5 z-10">
-                      <h4 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug tracking-tight group-hover:text-emerald-600 transition-colors">
-                        {notice.title}
+                      <h4 className={`text-[15.5px] sm:text-[17px] font-black leading-snug tracking-tight transition-colors ${
+                        isLecture ? 'group-hover:text-teal-600' : 'group-hover:text-emerald-600'
+                      }`}>
+                        {displayTitle}
                       </h4>
                       <p className="text-[12.5px] text-secondary font-medium leading-relaxed">
-                        본 소식은 동탄 권역의 대표 문화·축제 라이프스타일 정보입니다. 무료 이용 및 인근 주차가 가능하며, 가족 단위 방문에 적합합니다. D-VIEW에서 일정을 공유해보세요!
+                        {displayDesc}
                       </p>
                     </div>
 
@@ -565,11 +588,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-4 mt-1 z-10">
                       <div className="flex items-center gap-4 text-[12px] font-bold text-secondary">
                         <span className="flex items-center gap-1">
-                          💵 이용 요금: <strong className="text-emerald-600">무료</strong>
+                          💵 수강료: <strong className={isLecture ? 'text-teal-600' : 'text-emerald-600'}>{displayPrice}</strong>
                         </span>
                         <span className="w-1 h-1 rounded-full bg-border" />
                         <span className="flex items-center gap-1">
-                          📍 주관: <strong>화성시</strong>
+                          📍 주관: <strong>{displayDept}</strong>
                         </span>
                       </div>
 
@@ -816,7 +839,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
                 >
-                  <ExternalLink size={16} /> 원문 고시공고 사이트 이동
+                  <ExternalLink size={16} /> {selectedNotice.title.includes('[강좌]') ? '주민자치센터 수강 신청 바로가기' : '원문 고시공고 사이트 이동'}
                 </a>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
@@ -837,11 +860,12 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               {/* D-VIEW AI Insight Section */}
               <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 flex flex-col gap-2">
                 <h4 className="text-[13px] font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                  💡 D-VIEW 부동산 분석 팁
+                  💡 D-VIEW {selectedNotice.title.includes('[강좌]') ? '정주 여건 분석 팁' : '부동산 분석 팁'}
                 </h4>
                 <p className="text-[13px] text-emerald-950/80 dark:text-emerald-200/90 leading-relaxed font-bold">
-                  본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 
-                  동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.
+                  {selectedNotice.title.includes('[강좌]') 
+                    ? '풍부한 주민자치센터 강좌와 문화 혜택은 실거주 만족도를 높이고 안정적인 정주 여건을 조성하는 주요 인프라 자산입니다. D-VIEW 입지 분석 탭에서 인근 어린이집, 유치원 등 보육 환경과 통학 안정성 점수를 연계하여 종합적인 거주 가치를 판단해보세요.'
+                    : '본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.'}
                 </p>
                 <div className="mt-2 flex items-center gap-3">
                   <Link 
