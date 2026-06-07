@@ -19,6 +19,7 @@ interface AIRecommendationsProps {
   onSelectApt?: (name: string) => void;
   onOpenTaxCalculator?: (aptName: string) => void;
   onOpenMortgage?: (aptName: string) => void;
+  onOpenSellTimingCalculator?: (aptName: string) => void;
 }
 
 function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undefined) {
@@ -245,6 +246,7 @@ export default function AIRecommendations({
   onSelectApt,
   onOpenTaxCalculator,
   onOpenMortgage,
+  onOpenSellTimingCalculator,
 }: AIRecommendationsProps) {
   const [viewedApts, setViewedApts] = useState<string[]>([]);
   const [quizAnswers, setQuizAnswers] = useState<QuizAnswer | null>(null);

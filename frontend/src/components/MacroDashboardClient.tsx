@@ -33,6 +33,7 @@ import {
   Compass,
   ShieldAlert,
   Calculator,
+  TrendingDown,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -82,6 +83,7 @@ interface MacroDashboardProps {
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
   onOpenTaxCalculator?: (aptName?: string) => void;
+  onOpenSellTimingCalculator?: (aptName?: string) => void;
   recent7DaysVolume?: {
     currentCount: number;
     prevCount: number;
@@ -322,6 +324,7 @@ export default function MacroDashboardClient({
   onOpenJeonseSafety,
   onOpenMortgage,
   onOpenTaxCalculator,
+  onOpenSellTimingCalculator,
   recent7DaysVolume,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
@@ -1909,7 +1912,7 @@ interface GroupedCategory {
         </div>
 
         {/* 프리미엄 유틸리티 툴킷 그리드 영역 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 w-full">
           {/* Card 1: AI Quiz */}
           <div 
             onClick={() => setIsQuizOpen(true)}
@@ -2019,6 +2022,45 @@ interface GroupedCategory {
                   className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
                 >
                   <span>대출 한도 조회</span>
+                  <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Card 4: AI Sell Timing & Tax Diagnosis */}
+          {onOpenSellTimingCalculator && (
+            <div 
+              onClick={() => onOpenSellTimingCalculator()}
+              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-rose-500/8 to-surface dark:from-rose-500/4 border border-rose-500/15 hover:border-rose-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-rose-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div className="relative z-10 flex flex-col gap-4">
+                {/* Icon & Badge Row */}
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 bg-gradient-to-tr from-rose-500 to-[#f43f5e] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-rose-500/10 group-hover:scale-105 transition-transform duration-300">
+                    <TrendingDown size={20} className="animate-pulse" />
+                  </div>
+                  <span className="text-[10px] font-black bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 매도</span>
+                </div>
+
+                {/* Title & Desc */}
+                <div className="flex flex-col gap-2 mt-2">
+                  <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
+                    내 아파트 지금 팔면 호구일까? 🔎
+                  </h3>
+                  <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
+                    보유 단지의 낙폭, 거래 회전율, 전세 지지력을 AI 모델로 종합 분석하여 '지금 매도하면 호구 지수'를 평가하고 양도세 간이 세액을 산출합니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom Button */}
+              <div className="mt-6 relative z-10">
+                <button 
+                  className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+                >
+                  <span>매도 시기 진단</span>
                   <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>

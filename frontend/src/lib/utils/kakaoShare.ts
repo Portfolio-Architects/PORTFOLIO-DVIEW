@@ -817,5 +817,97 @@ export const shareRecommendationsToKakao = async ({
   }
 };
 
+export interface ShareSellTimingParams {
+  aptName: string;
+  dong: string;
+  acquisitionPrice: number; // in man-won
+  transferPrice: number; // in man-won
+  holdingYears: number;
+  resideYears: number;
+  isOneHouse: boolean;
+  verdictScore: number;
+  verdictLabel: string;
+  totalTax: number; // in man-won
+}
 
+export const shareSellTimingToKakao = async ({
+  aptName,
+  dong,
+  acquisitionPrice,
+  transferPrice,
+  holdingYears,
+  resideYears,
+  isOneHouse,
+  verdictScore,
+  verdictLabel,
+  totalTax,
+}: ShareSellTimingParams) => {
+  try {
+    await loadKakaoSdk();
 
+    if (typeof window === "undefined" || !window.Kakao) {
+      console.warn("Kakao SDK not loaded");
+      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) {
+        alert("카카오 앱 키가 설정되지 않았습니다.");
+        return;
+      }
+      window.Kakao.init(key);
+      console.log("Kakao SDK initialized");
+    }
+
+    const formatEokMan = (manWon: number) => {
+      const eok = Math.floor(manWon / 10000);
+      const man = Math.round(manWon % 10000);
+      if (eok > 0) {
+        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+      }
+      return `${man.toLocaleString()}만원`;
+    };
+
+    const acqStr = formatEokMan(acquisitionPrice);
+    const transferStr = formatEokMan(transferPrice);
+    const taxStr = formatEokMan(totalTax);
+    const houseStr = isOneHouse ? "1주택" : "다주택";
+
+    const baseUrl = window.location.origin;
+    const finalImageUrl = `${baseUrl}/api/og?type=sell_timing&title=${encodeURIComponent(aptName)}&score=${verdictScore}&status=${encodeURIComponent(verdictLabel)}&price=${encodeURIComponent(transferStr)}&ratio=${encodeURIComponent(taxStr)}&subtitle=${encodeURIComponent(dong)}`;
+
+    const description = `매도가: ${transferStr} (취득가: ${acqStr})\n호구지수: ${verdictScore}% [${verdictLabel}]\n보유기간: ${holdingYears}년 | 실거주: ${resideYears}년 (${houseStr})\n예상 총 세금: ${taxStr}`;
+
+    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=sell_timing&utm_source=kakaotalk&utm_medium=share&utm_campaign=sell_timing_share`;
+
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: `[AI 매도 진단] ${aptName} 지금 팔면 호구일까?`,
+        description: description,
+        imageUrl: finalImageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "매도 진단 보고서 보기",
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("Kakao Share SellTiming Error:", error);
+    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+  }
+};

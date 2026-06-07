@@ -262,7 +262,8 @@ function FieldReportModal({
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
-  onOpenTaxCalculator
+  onOpenTaxCalculator,
+  onOpenSellTimingCalculator
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -284,6 +285,7 @@ function FieldReportModal({
   onOpenJeonseSafety?: (aptName: string) => void;
   onOpenMortgage?: (aptName: string) => void;
   onOpenTaxCalculator?: (aptName: string) => void;
+  onOpenSellTimingCalculator?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -1351,6 +1353,17 @@ function FieldReportModal({
               </button>
             )}
 
+            {/* AI 매도 진단기 버튼 */}
+            {onOpenSellTimingCalculator && (
+              <button
+                onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
+                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:text-rose-400 border border-rose-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                title="AI 매도 적격성 및 양도소득세 모의 진단 실행"
+              >
+                <span>매도 진단기</span>
+              </button>
+            )}
+
             {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
             <button
               onClick={handleNativeShare}
@@ -2275,6 +2288,19 @@ function FieldReportModal({
                   >
                     <Calculator size={16} />
                     <span>나의 예상 취득세 및 복비 계산하기</span>
+                  </button>
+                </div>
+              )}
+
+              {/* AI 매도 진단기 연동 버튼 */}
+              {onOpenSellTimingCalculator && (
+                <div className="mt-3 flex justify-center">
+                  <button
+                    onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
+                    className="w-full max-w-md py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                  >
+                    <Calculator size={16} />
+                    <span>지금 팔면 호구일까? AI 매도 진단하기</span>
                   </button>
                 </div>
               )}
