@@ -1,6 +1,10 @@
 import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
+import { redis } from '@/lib/redis';
+
+const SEARCH_CONSOLE_CACHE_KEY = 'dtdls:searchconsole:status:lkg';
+const SEARCH_CONSOLE_CACHE_TTL = 3600; // 1 hour
 
 interface SearchConsoleStatus {
   success: boolean;
@@ -128,7 +132,7 @@ function generateMockStatus(): SearchConsoleStatus {
   };
 }
 
-export async function getSearchConsoleStatus(): Promise<SearchConsoleStatus> {
+async function fetchSearchConsoleStatusFromGoogle(): Promise<SearchConsoleStatus> {
   const credentials = getGoogleCredentials();
   
   if (!credentials || !credentials.client_email || !credentials.private_key) {
@@ -186,4 +190,36 @@ export async function getSearchConsoleStatus(): Promise<SearchConsoleStatus> {
     console.warn('[SearchConsole] Error while calling Google Search Console API:', error.message);
     return generateMockStatus();
   }
+}
+
+export async function getSearchConsoleStatus(): Promise<SearchConsoleStatus> {
+  try {
+    if (redis) {
+      const cached = await redis.get<{ data: SearchConsoleStatus, timestamp: number }>(SEARCH_CONSOLE_CACHE_KEY);
+      if (cached) {
+        const isStale = (Date.now() - cached.timestamp) > (SEARCH_CONSOLE_CACHE_TTL * 1000);
+        if (isStale) {
+          // Stale-while-revalidate: Fetch in background
+          fetchSearchConsoleStatusFromGoogle().then(freshData => {
+            redis?.set(SEARCH_CONSOLE_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+          }).catch(console.error);
+        }
+        return cached.data;
+      }
+    }
+  } catch (err) {
+    console.error('[SearchConsole Cache Read Error]:', err);
+  }
+
+  const freshData = await fetchSearchConsoleStatusFromGoogle();
+  
+  try {
+    if (redis) {
+      await redis.set(SEARCH_CONSOLE_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+    }
+  } catch (err) {
+    console.error('[SearchConsole Cache Write Error]:', err);
+  }
+
+  return freshData;
 }

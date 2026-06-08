@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const result = await fetchSheetApartmentsByDong();
+    const bypassCache = request.nextUrl.searchParams.get('bypassCache') === 'true';
+    const result = await fetchSheetApartmentsByDong(bypassCache);
     return NextResponse.json(result);
   } catch (err: unknown) {
     console.error('[apartments-by-dong] Error:', (err as Error).message);

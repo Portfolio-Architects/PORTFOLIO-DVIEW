@@ -778,7 +778,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
               {/* Desktop Right Meta: Date, Views, Likes */}
               <div className="hidden sm:flex items-center gap-4 shrink-0 pl-2">
-                <span className="text-[13px] font-medium text-tertiary w-[50px] text-right">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
+                <span className="text-[13px] font-medium text-tertiary w-[90px] text-right whitespace-nowrap">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
                 <div className="flex items-center gap-3 text-[13px] font-semibold text-tertiary w-[80px] justify-end">
                   <span className="flex items-center gap-1"><Eye size={14}/> {news.views || 0}</span>
                   <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={14} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>

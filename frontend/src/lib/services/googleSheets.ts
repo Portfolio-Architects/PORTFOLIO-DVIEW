@@ -178,16 +178,19 @@ function findColIndex(headers: string[], possibleNames: string[]): number {
   return -1;
 }
 
-export async function fetchSheetApartmentsByDong() {
-  if (process.env.BYPASS_LOCAL_CACHE !== 'true') {
+export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = false) {
+  if (process.env.BYPASS_LOCAL_CACHE !== 'true' && !bypassLocalCache) {
     return apartmentsByDongStatic;
   }
 
   const cacheKey = 'DTDLS:parsed:apartmentsByDong';
   const now = Date.now();
-  const memCached = sheetsMemoryCache[cacheKey];
-  if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
-    return memCached.data;
+  
+  if (!bypassLocalCache) {
+    const memCached = sheetsMemoryCache[cacheKey];
+    if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
+      return memCached.data;
+    }
   }
 
   const [aptRows, sboydsRows, restRows] = await Promise.all([

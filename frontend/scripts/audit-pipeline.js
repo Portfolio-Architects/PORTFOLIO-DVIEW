@@ -1,7 +1,7 @@
 /**
  * @file audit-pipeline.js
  * @description Continuous diagnostics and recursive self-improvement verification pipeline.
- * Performs TypeScript type checking, ESLint checking, and Firestore billing projection audits.
+ * Performs TypeScript type checking, ESLint checking, Data Consistency checks, Asset size checks, E2E tests, and Firestore billing audits.
  */
 
 require('dotenv').config({ path: '.env.local', override: true });
@@ -72,7 +72,6 @@ function auditTypeScript() {
 function auditESLint() {
   log(colors.cyan, '🔄 Running ESLint code hygiene audit...');
   try {
-    // If next lint or eslint runs successfully
     execSync('npx eslint . --max-warnings=10', { stdio: 'inherit' });
     log(colors.green, '✅ ESLint check: PASSED');
     return true;
@@ -82,7 +81,186 @@ function auditESLint() {
   }
 }
 
-// 4. Firestore Cost Analysis
+// 4. Perform Data Consistency & Integrity Check
+function auditDataConsistency() {
+  log(colors.cyan, '🔄 Running Data Consistency & Integrity audit...');
+  try {
+    const indexPath = path.resolve(process.cwd(), 'public/tx-data/_index.json');
+    if (!fs.existsSync(indexPath)) {
+      log(colors.red, '❌ Data Consistency Check FAILED: public/tx-data/_index.json not found!');
+      return false;
+    }
+    let txKeys;
+    try {
+      txKeys = new Set(JSON.parse(fs.readFileSync(indexPath, 'utf8')));
+    } catch (err) {
+      log(colors.red, `❌ Data Consistency Check FAILED: public/tx-data/_index.json is corrupted! (${err.message})`);
+      return false;
+    }
+
+    const aptsDataPath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
+    if (!fs.existsSync(aptsDataPath)) {
+      log(colors.yellow, '⚠️ public/data/apartments-by-dong.json not found. Skipping cross-reference.');
+      return true;
+    }
+
+    let aptsData;
+    try {
+      aptsData = JSON.parse(fs.readFileSync(aptsDataPath, 'utf8'));
+    } catch (err) {
+      log(colors.red, `❌ Data Consistency Check FAILED: apartments-by-dong.json is corrupted! (${err.message})`);
+      return false;
+    }
+
+    let issues = [];
+    let criticalFail = false;
+
+    if (aptsData.byDong) {
+      for (const [dong, apts] of Object.entries(aptsData.byDong)) {
+        apts.forEach(apt => {
+          const txKey = apt.txKey;
+          if (!txKey) return;
+
+          const normTxKey = txKey.replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
+          const indexHasKey = txKeys.has(txKey) || txKeys.has(normTxKey);
+
+          const detailFile = path.resolve(process.cwd(), `public/tx-data/${txKey}.json`);
+          const detailFileNorm = path.resolve(process.cwd(), `public/tx-data/${normTxKey}.json`);
+
+          let fileExists = false;
+          let fileCorrupted = false;
+          let fileEmpty = false;
+          let targetPath = null;
+
+          if (fs.existsSync(detailFile)) {
+            targetPath = detailFile;
+            fileExists = true;
+          } else if (fs.existsSync(detailFileNorm)) {
+            targetPath = detailFileNorm;
+            fileExists = true;
+          }
+
+          if (fileExists && targetPath) {
+            try {
+              const fileContent = fs.readFileSync(targetPath, 'utf8').trim();
+              if (!fileContent) {
+                fileEmpty = true;
+              } else {
+                const parsed = JSON.parse(fileContent);
+                if (Array.isArray(parsed) && parsed.length === 0) {
+                  fileEmpty = true;
+                }
+              }
+            } catch (err) {
+              fileCorrupted = true;
+              criticalFail = true;
+            }
+          }
+
+          if (!indexHasKey || !fileExists || fileCorrupted || fileEmpty) {
+            issues.push({
+              name: apt.name,
+              txKey,
+              inIndex: indexHasKey,
+              fileExists,
+              fileCorrupted,
+              fileEmpty
+            });
+          }
+        });
+      }
+    }
+
+    if (issues.length > 0) {
+      log(colors.yellow, `⚠️ Found ${issues.length} data consistency issues:`);
+      issues.forEach((m, idx) => {
+        let status = [];
+        if (!m.inIndex) status.push('Missing from _index.json');
+        if (!m.fileExists) status.push('Physical JSON file not found');
+        if (m.fileCorrupted) status.push('JSON file corrupted (Syntax Error)');
+        if (m.fileEmpty) status.push('JSON file is empty');
+        console.log(`   ${idx + 1}. ${m.name} (txKey: ${m.txKey}) -> ${status.join(', ')}`);
+      });
+
+      if (criticalFail) {
+        log(colors.red, '❌ Data Consistency Check FAILED: Critical JSON corruption detected!');
+        return false;
+      }
+    } else {
+      log(colors.green, '✅ Data Consistency check: PASSED (All mapped transaction files are clean)');
+    }
+    return true;
+  } catch (error) {
+    log(colors.red, `❌ Error during Data Consistency audit: ${error.message}`);
+    return false;
+  }
+}
+
+// 5. Perform Asset Size & Performance Regression Check
+function auditBundleSizes() {
+  log(colors.cyan, '🔄 Running asset size and performance regression audit...');
+  try {
+    const txDataDir = path.resolve(process.cwd(), 'public/tx-data');
+    if (!fs.existsSync(txDataDir)) {
+      log(colors.yellow, '⚠️ public/tx-data directory not found. Skipping asset size audit.');
+      return true;
+    }
+
+    const files = fs.readdirSync(txDataDir);
+    let totalSize = 0;
+    let oversizedFiles = [];
+    const FILE_LIMIT_BYTES = 3 * 1024 * 1024; // 3MB limit per transaction file
+
+    files.forEach(file => {
+      if (!file.endsWith('.json') || file === '_index.json') return;
+      const filePath = path.join(txDataDir, file);
+      const stat = fs.statSync(filePath);
+      totalSize += stat.size;
+
+      if (stat.size > FILE_LIMIT_BYTES) {
+        oversizedFiles.push({
+          name: file,
+          sizeMb: (stat.size / (1024 * 1024)).toFixed(2)
+        });
+      }
+    });
+
+    const totalSizeMb = (totalSize / (1024 * 1024)).toFixed(2);
+    log(colors.cyan, `📊 Asset Size Statistics:`);
+    console.log(`   - Total Transaction Files: ${files.length - 1}`);
+    console.log(`   - Total Directory Size: ${totalSizeMb} MB`);
+
+    if (oversizedFiles.length > 0) {
+      log(colors.red, `🚨 [SIZE WARNING] Found ${oversizedFiles.length} oversized transaction files (>3MB):`);
+      oversizedFiles.forEach(f => {
+        console.log(`   ⚠️ ${f.name} is ${f.sizeMb} MB`);
+      });
+      log(colors.red, '❌ Asset Size check: FAILED (Oversized transaction files cause client-side performance degradation)');
+      return false;
+    }
+
+    log(colors.green, '✅ Asset size check: PASSED (All static transaction files are within performance bounds)');
+    return true;
+  } catch (error) {
+    log(colors.red, `❌ Error during asset size audit: ${error.message}`);
+    return false;
+  }
+}
+
+// 6. Perform Playwright E2E Integration tests
+function auditE2ETests() {
+  log(colors.cyan, '🔄 Running Playwright E2E Integration tests (npm run test:e2e)...');
+  try {
+    execSync('npm run test:e2e', { stdio: 'inherit' });
+    log(colors.green, '✅ E2E tests check: PASSED');
+    return true;
+  } catch (error) {
+    log(colors.red, '❌ E2E tests check: FAILED');
+    return false;
+  }
+}
+
+// 7. Firestore Cost Analysis
 async function auditFirestoreCosts() {
   log(colors.cyan, '🔄 Checking Firestore data volume & cost projection...');
   const credentials = getAdminCredentials();
@@ -123,14 +301,12 @@ async function auditFirestoreCosts() {
     }
 
     const avgDailyVisits = totalVisits / daysRecorded;
-    // Assume average 30 document reads per user visit (fetching macro, comments, apartments)
     const ASSUMED_READS_PER_VISIT = 30;
     const projectedDailyReads = avgDailyVisits * ASSUMED_READS_PER_VISIT;
     const projectedMonthlyReads = projectedDailyReads * 30;
 
-    // Firebase Firestore reads: $0.06 per 100,000 reads
     const usdCost = (projectedMonthlyReads / 100000) * 0.06;
-    const exchangeRate = 1380; // 1 USD = 1380 KRW
+    const exchangeRate = 1380;
     const krwCost = usdCost * exchangeRate;
 
     log(colors.cyan, `📊 Traffic Statistics (Past ${daysRecorded} Days):`);
@@ -139,7 +315,7 @@ async function auditFirestoreCosts() {
     console.log(`   - Projected Monthly Reads: ${projectedMonthlyReads.toFixed(0)}`);
     console.log(`   - Estimated Monthly Cost: ₩${krwCost.toFixed(0)} (${usdCost.toFixed(3)} USD)`);
 
-    const COST_ALERT_LIMIT = 5000; // 5,000 KRW limit
+    const COST_ALERT_LIMIT = 5000;
     if (krwCost >= COST_ALERT_LIMIT) {
       log(colors.red, `🚨 [COST WARNING] Projected Firestore monthly reads cost (₩${krwCost.toFixed(0)}) exceeds budget limit of ₩${COST_ALERT_LIMIT}!`);
       log(colors.yellow, '💡 Suggestion: Optimize frontend caching. Ensure SWR or local storage is used for transactions cache.');
@@ -163,10 +339,16 @@ async function run() {
   console.log('');
   const eslintPassed = auditESLint();
   console.log('');
+  const consistencyPassed = auditDataConsistency();
+  console.log('');
+  const sizesPassed = auditBundleSizes();
+  console.log('');
+  const e2ePassed = auditE2ETests();
+  console.log('');
   const firestorePassed = await auditFirestoreCosts();
 
   log(colors.magenta, '\n==================================================');
-  if (tsPassed && firestorePassed) {
+  if (tsPassed && eslintPassed && consistencyPassed && sizesPassed && e2ePassed && firestorePassed) {
     log(colors.green, '✅ Pipeline Status: SUCCESS (All essential checks passed)');
     process.exit(0);
   } else {

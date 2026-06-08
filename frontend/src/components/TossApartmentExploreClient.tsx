@@ -150,12 +150,14 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
   const isAd = items.length > 15 && index === 15;
   if (isAd) {
     return (
-      <div style={style} className="w-full px-1 md:px-0 flex items-center h-[calc(100%-8px)] my-1">
-        <NativeAdPlaceholder 
-          location="아파트 탐색 목록 15번째 광고" 
-          adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_EXPLORE_LIST || "test-explore-list-slot"} 
-          isCompact={true}
-        />
+      <div style={style} className="w-full flex flex-col px-3 md:px-4 py-1.5 md:py-1">
+        <div className="w-full h-full flex items-center">
+          <NativeAdPlaceholder 
+            location="아파트 탐색 목록 15번째 광고" 
+            adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_EXPLORE_LIST || "test-explore-list-slot"} 
+            isCompact={true}
+          />
+        </div>
       </div>
     );
   }
@@ -165,11 +167,11 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
   if (!item) return null;
 
   return (
-    <div style={style} className="w-full">
+    <div style={style} className="w-full flex flex-col px-3 md:px-4 py-1.5 md:py-1">
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`hidden md:flex items-center md:px-4 h-[calc(100%-8px)] my-1 border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
+        className={`hidden md:flex items-center md:px-4 h-full border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
           actualIndex % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]`}
       >
@@ -269,7 +271,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       {/* Mobile View (Hidden on Desktop) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`flex md:hidden flex-col justify-between p-4.5 h-[calc(100%-8px)] my-1.5 border border-black/[0.03] dark:border-white/[0.04] rounded-2xl cursor-pointer transition-all duration-300 ease-in-out active:scale-[0.98] ${
+        className={`flex md:hidden flex-col justify-between p-4.5 h-full border border-black/[0.03] dark:border-white/[0.04] rounded-2xl cursor-pointer transition-all duration-300 ease-in-out active:scale-[0.98] ${
           actualIndex % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_4px_20px_rgba(0,0,0,0.015)] relative`}
       >
@@ -654,6 +656,7 @@ export default function TossApartmentExploreClient({
 
   const listRef = useRef<List>(null);
   const outerRef = useRef<HTMLDivElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
   const [listHeight, setListHeight] = useState(600);
   const [isMobile, setIsMobile] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -672,25 +675,34 @@ export default function TossApartmentExploreClient({
     const updateHeight = () => {
       if (window.innerWidth < 768) {
         setListHeight(Math.max(300, window.innerHeight - 260));
+      } else if (listContainerRef.current) {
+        const rect = listContainerRef.current.getBoundingClientRect();
+        setListHeight(Math.max(400, Math.floor(rect.height) - 8));
       } else {
-        // 데스크톱 뷰: 100vh 고정 대시보드 뷰에 완벽 매칭되도록 상단 헤더, 티커, 
-        // 테이블 검색 및 컬럼 바(총 약 300px)를 제외한 화면 높이를 100% 사용합니다.
-        const headerOffset = 300;
-        setListHeight(Math.max(500, window.innerHeight - headerOffset));
+        setListHeight(500);
       }
     };
 
     updateHeight();
+    
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof window !== 'undefined' && 'ResizeObserver' in window && listContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        updateHeight();
+      });
+      resizeObserver.observe(listContainerRef.current);
+    }
+    
     window.addEventListener('resize', updateHeight);
     
-    // 레이아웃 렌더링 지연에 따른 정합 처리를 위한 타이머
-    const timer = setTimeout(updateHeight, 100);
+    const timer = setTimeout(updateHeight, 150);
     
     return () => {
       window.removeEventListener('resize', updateHeight);
+      if (resizeObserver) resizeObserver.disconnect();
       clearTimeout(timer);
     };
-  }, []);
+  }, [sortedApts]);
 
   // [자기개선] iOS Safari 등 구형 모바일 브라우저 및 하이브리드 웹뷰 환경에서
   // overscrollBehavior: 'contain'이 오작동하거나 지원되지 않는 경우를 대비한 
@@ -759,7 +771,7 @@ export default function TossApartmentExploreClient({
       return isMobile ? 86 : 94;
     }
     const actualIndex = sortedApts.length > 15 && index > 15 ? index - 1 : index;
-    if (!isMobile) return 66;
+    if (!isMobile) return 72;
     const item = sortedApts[actualIndex];
     if (!item) return 180;
     
@@ -790,7 +802,7 @@ export default function TossApartmentExploreClient({
   return (
     <div className="flex flex-col w-full bg-transparent md:h-[calc(100vh-105px)] md:overflow-hidden">
       {/* Standardized Hero Header */}
-      <div className="md:hidden shrink-0">
+      <div className="shrink-0">
         <PageHeroHeader 
           title="D-VIEW 아파트 탐색"
           subtitleStrong="동탄 전역 아파트 비교 분석"
@@ -812,7 +824,7 @@ export default function TossApartmentExploreClient({
 
 
       {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col md:h-[calc(100vh-120px)]">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
           <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 md:h-[calc(100vh-140px)] md:overflow-y-auto md:rounded-l-2xl custom-scrollbar">
 
@@ -898,7 +910,7 @@ export default function TossApartmentExploreClient({
 
       {/* Main Table Area */}
       <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
-        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md md:sticky md:top-0 md:z-10">
+        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
@@ -1125,10 +1137,10 @@ export default function TossApartmentExploreClient({
           </div>
         </div>
 
-        <div className="flex flex-col relative">
+        <div className="flex-1 min-h-0 flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[60px] z-10 bg-surface/90 backdrop-blur-md items-center md:pl-4 md:pr-[31px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-400 dark:text-neutral-500 shrink-0 select-none shadow-sm shadow-black/[0.01]">
-            <div className="w-[36px] text-center shrink-0"></div>
+          <div className="hidden md:flex relative z-10 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-400 dark:text-neutral-500 shrink-0 select-none shadow-sm shadow-black/[0.01]">
+            <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
               className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
@@ -1214,7 +1226,7 @@ export default function TossApartmentExploreClient({
               <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
             </div>
           ) : (
-            <div id="explore-list-container" className="w-full">
+            <div id="explore-list-container" className="w-full flex-1 min-h-0 pt-1.5" ref={listContainerRef}>
               <List
                 ref={listRef}
                 outerRef={outerRef}

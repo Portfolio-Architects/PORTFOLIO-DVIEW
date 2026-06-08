@@ -31,7 +31,7 @@ import {
   MessageSquare,
   Building2,
   Compass,
-  ShieldAlert,
+  Shield,
   Calculator,
   TrendingDown,
   Train,
@@ -1991,17 +1991,17 @@ interface GroupedCategory {
             </div>
 
             {/* 동탄 시장 요약 종합 모니터링 카드 [NEW] */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-3.5 sm:p-4 flex flex-col gap-2.5 shadow-sm md:min-h-[290px] md:flex-1 justify-between">
+            <div className="w-full bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm md:min-h-[290px] md:flex-1 justify-between">
               {/* Header */}
-              <div className="flex justify-between items-center border-b border-border/40 pb-2 shrink-0">
-                <div className="relative group/title flex items-center gap-1.5 min-w-0">
-                  <span className="bg-blue-500/10 dark:bg-blue-500/25 text-blue-600 dark:text-blue-400 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+              <div className="flex justify-between items-center border-b border-border/50 pb-3.5 shrink-0">
+                <div className="relative group/title flex items-center gap-2 min-w-0">
+                  <span className="bg-[#e8f3ff] dark:bg-blue-950/40 text-toss-blue text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
                     종합 모니터링
                   </span>
-                  <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
+                  <h4 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight truncate flex items-center gap-1.5">
                     동탄 시장 거래 종합 지표
+                    <Info className="w-4 h-4 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                   </h4>
-                  <Info className="w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                   <div 
                     onClick={(e) => e.stopPropagation()}
                     className="absolute bottom-full left-0 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[12px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
@@ -2010,40 +2010,40 @@ interface GroupedCategory {
                     <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#191f28]"></div>
                   </div>
                 </div>
-                <span className="text-[11px] text-tertiary font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-md shrink-0">
+                <span className="text-[11px] text-secondary font-bold bg-[#f2f4f6] dark:bg-zinc-800 border border-border/30 px-2.5 py-1 rounded-lg shrink-0">
                   최신 기준
                 </span>
               </div>
 
               {/* Metrics 2x2 Grid */}
-              <div className="grid grid-cols-2 gap-2.5 flex-1 py-0.5">
+              <div className="grid grid-cols-2 gap-3 flex-1 py-1.5">
                 {/* Avg Sale */}
-                <div className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50">
-                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">시장 평균 매매가</span>
-                  <span className="text-[15.5px] sm:text-[17px] font-black text-primary truncate">
+                <div className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] transition-all">
+                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight">시장 평균 매매가</span>
+                  <span className="text-[20px] sm:text-[22px] font-extrabold text-primary tracking-tight mt-2.5">
                     {macroSalePriceText}
                   </span>
                 </div>
                 
                 {/* Avg Rent */}
-                <div className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50">
-                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary">시장 평균 전세가</span>
-                  <span className="text-[15.5px] sm:text-[17px] font-black text-primary truncate">
+                <div className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] transition-all">
+                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight">시장 평균 전세가</span>
+                  <span className="text-[20px] sm:text-[22px] font-extrabold text-primary tracking-tight mt-2.5">
                     {macroRentPriceText}
                   </span>
                 </div>
 
                 {/* Average Jeonse Rate */}
-                <div className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50">
-                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary flex items-center gap-1.5">
+                <div className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] transition-all">
+                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight flex items-center gap-1.5 flex-wrap">
                     평균 전세가율
                     {gapRankingDong !== "전체" && (
-                      <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] px-1 rounded-sm">
+                      <span className="bg-[#e6fcf5] dark:bg-emerald-950/40 text-[#03c75a] dark:text-[#00d29d] text-[9.5px] font-black px-1.5 py-0.5 rounded-[4px]">
                         {gapRankingDong}
                       </span>
                     )}
                   </span>
-                  <span className="text-[15.5px] sm:text-[17px] font-black text-emerald-600 dark:text-emerald-400 truncate">
+                  <span className="text-[20px] sm:text-[22px] font-extrabold text-[#03c75a] dark:text-[#00d29d] tracking-tight mt-2.5">
                     {averageJeonseRateText}
                   </span>
                 </div>
@@ -2051,33 +2051,33 @@ interface GroupedCategory {
                 {/* Hot Complex */}
                 <div 
                   onClick={() => onSelectApt && card4Data.name !== "-" && onSelectApt(card4Data.name)}
-                  className="flex flex-col justify-center gap-1 p-2.5 sm:p-3 rounded-xl border border-border bg-body/50 cursor-pointer hover:border-[#00d29d] hover:bg-surface transition-all group/hot"
+                  className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] cursor-pointer hover:border-toss-blue hover:bg-surface transition-all duration-200 group/hot"
                 >
-                  <span className="text-[11px] sm:text-[11.5px] font-bold text-tertiary group-hover/hot:text-[#00d29d] transition-colors">최고 관심 단지</span>
-                  <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary truncate group-hover/hot:text-[#00d29d] transition-colors" title={card4Data.name}>
+                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight group-hover/hot:text-toss-blue transition-colors">최고 관심 단지</span>
+                  <span className="text-[13px] sm:text-[14.5px] font-extrabold text-primary tracking-tight mt-2.5 line-clamp-2 leading-snug group-hover/hot:text-toss-blue transition-colors" title={card4Data.name}>
                     {card4Data.name}
                   </span>
                 </div>
               </div>
 
               {/* Footer Market Signal Info */}
-              <div className="flex items-center justify-between mt-1 px-1 py-2 bg-[#f2f4f6]/40 dark:bg-zinc-900/20 border border-border/40 rounded-xl">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="bg-slate-500/10 text-slate-600 dark:text-slate-400 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0">
+              <div className="flex items-center justify-between mt-2 px-3 py-2.5 bg-[#f8f9fa] dark:bg-zinc-950/30 border border-border/60 rounded-xl">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="bg-[#e2f9f3] dark:bg-[#12392c] text-[#03c75a] text-[10.5px] font-black px-2 py-0.5 rounded-[6px] shrink-0">
                     마켓 시그널
                   </span>
-                  <span className="text-[11.5px] font-bold text-secondary truncate">
+                  <span className="text-[12px] font-bold text-secondary truncate">
                     최근 7일 거래량: {card3Data.currentCount}건 ({card3Data.badge})
                   </span>
                 </div>
                 
                 {/* Traffic Light Signal */}
-                <div className="flex items-center gap-1.5 pl-2 shrink-0">
-                  <span className="text-[11px] font-extrabold text-tertiary">시장 강도</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11.5px] font-bold text-secondary">시장 강도</span>
                   <span className={`w-2.5 h-2.5 rounded-full ${
-                    card3Data.currentCount >= 250 ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]' :
-                    card3Data.currentCount >= 180 ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]' :
-                    'bg-rose-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+                    card3Data.currentCount >= 250 ? 'bg-[#03c75a] shadow-[0_0_8px_rgba(3,199,90,0.6)]' :
+                    card3Data.currentCount >= 180 ? 'bg-[#ff9500] shadow-[0_0_8px_rgba(255,149,0,0.6)]' :
+                    'bg-[#ff3b30] shadow-[0_0_8px_rgba(255,59,48,0.6)]'
                   }`} title={`거래 활성화 등급: ${card3Data.currentCount >= 250 ? '활성(🟢)' : card3Data.currentCount >= 180 ? '보통(🟡)' : '위축(🔴)'}`} />
                 </div>
               </div>
@@ -2096,8 +2096,8 @@ interface GroupedCategory {
             <div className="relative z-10 flex flex-col gap-4">
               {/* Icon & Badge Row */}
               <div className="flex items-center justify-between">
-                <div className="w-11 h-11 bg-gradient-to-tr from-[#00d29d] to-[#4196f7] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-[#00d29d]/10 group-hover:scale-105 transition-transform duration-300">
-                  <Compass size={20} className="animate-pulse" />
+                <div className="w-10 h-10 bg-[#00d29d]/10 dark:bg-[#00d29d]/15 text-[#00b386] dark:text-[#00d29d] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                  <Compass size={18} />
                 </div>
                 <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">New 콘텐츠</span>
               </div>
@@ -2105,7 +2105,7 @@ interface GroupedCategory {
               {/* Title & Desc */}
               <div className="flex flex-col gap-2 mt-2">
                 <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
-                  나만의 동탄 찰떡 아파트 찾기 Quiz 🔎
+                  나만의 동탄 찰떡 아파트 찾기 Quiz
                 </h3>
                 <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
                   5가지 초간단 질문으로 당신의 라이프스타일, 예산, 교육 환경에 가장 완벽하게 어우러지는 아파트 3곳을 AI 데이터 매칭으로 즉시 추천받아 보세요!
@@ -2134,8 +2134,8 @@ interface GroupedCategory {
               <div className="relative z-10 flex flex-col gap-4">
                 {/* Icon & Badge Row */}
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 bg-gradient-to-tr from-emerald-500 to-[#00d29d] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-300">
-                    <ShieldAlert size={20} className="animate-pulse" />
+                  <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <Shield size={18} />
                   </div>
                   <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 안전</span>
                 </div>
@@ -2143,7 +2143,7 @@ interface GroupedCategory {
                 {/* Title & Desc */}
                 <div className="flex flex-col gap-2 mt-2">
                   <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
-                    전세금 안전진단 & 깡통전세 계산기 🛡️
+                    전세금 안전진단 & 깡통전세 계산기
                   </h3>
                   <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
                     내가 입주할 혹은 거주 중인 아파트의 보증금과 등기부상 근저당권을 실시간 시세와 연동 분석하여 대항력 획득 여부와 깡통전세 위험률을 안전도 4단계로 즉시 분석합니다.
@@ -2173,8 +2173,8 @@ interface GroupedCategory {
               <div className="relative z-10 flex flex-col gap-4">
                 {/* Icon & Badge Row */}
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 bg-gradient-to-tr from-blue-500 to-[#4196f7] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-blue-500/10 group-hover:scale-105 transition-transform duration-300">
-                    <Calculator size={20} className="animate-pulse" />
+                  <div className="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <Calculator size={18} />
                   </div>
                   <span className="text-[10px] font-black bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 금융</span>
                 </div>
@@ -2182,7 +2182,7 @@ interface GroupedCategory {
                 {/* Title & Desc */}
                 <div className="flex flex-col gap-2 mt-2">
                   <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
-                    내 집 마련 대출 계산기 & 시뮬레이터 💸
+                    내 집 마련 대출 계산기 & 시뮬레이터
                   </h3>
                   <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
                     가구 소득, 순자산, 자녀 수에 따라 신생아 특례대출, 디딤돌, 보금자리론 등 최적의 정부 저금리 정책 대출 자격을 진단하고 월 원리금 상환 계획을 즉시 설계합니다.
@@ -2212,8 +2212,8 @@ interface GroupedCategory {
               <div className="relative z-10 flex flex-col gap-4">
                 {/* Icon & Badge Row */}
                 <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 bg-gradient-to-tr from-rose-500 to-[#f43f5e] text-white rounded-[14px] flex items-center justify-center shadow-md shadow-rose-500/10 group-hover:scale-105 transition-transform duration-300">
-                    <TrendingDown size={20} className="animate-pulse" />
+                  <div className="w-10 h-10 bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <TrendingDown size={18} />
                   </div>
                   <span className="text-[10px] font-black bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 매도</span>
                 </div>
@@ -2221,10 +2221,10 @@ interface GroupedCategory {
                 {/* Title & Desc */}
                 <div className="flex flex-col gap-2 mt-2">
                   <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
-                    내 아파트 지금 팔면 호구일까? 🔎
+                    내 아파트 지금 팔면 호구일까?
                   </h3>
                   <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
-                    보유 단지의 낙폭, 거래 회전율, 전세 지지력을 AI 모델로 종합 분석하여 '지금 매도하면 호구 지수'를 평가하고 양도세 간이 세액을 산출합니다.
+                    보유 단지의 낙폭, 거래 회전율, 전세 지지력을 AI 모델로 종합 분석하여 \'지금 매도하면 호구 지수\'를 평가하고 양도세 간이 세액을 산출합니다.
                   </p>
                 </div>
               </div>

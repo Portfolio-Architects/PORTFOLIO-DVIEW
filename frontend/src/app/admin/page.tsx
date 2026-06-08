@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useTransition, useDeferredVa
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
   Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw,
@@ -16,7 +17,11 @@ import { FULL_DONG_DATA } from '@/lib/dong-apartments';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { useTxData } from '@/hooks/useStaticData';
-import { ValuationTuner } from '@/components/admin/ValuationTuner';
+
+const ValuationTuner = dynamic(() => import('@/components/admin/ValuationTuner').then(m => m.ValuationTuner), {
+  ssr: false,
+  loading: () => <div className="animate-pulse h-40 bg-body rounded-2xl" />
+});
 
 const FIRESTORE_DOC = 'settings/apartmentMeta';
 const dongNames = DONGS.map(d => d.name).sort((a, b) => a.localeCompare(b, 'ko'));
@@ -53,6 +58,7 @@ export default function AdminDashboard() {
   const [saved, setSaved] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isNoticeSyncing, setIsNoticeSyncing] = useState(false);
+  const [isSheetsSyncing, setIsSheetsSyncing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'unmatched'|'public'|'private'|'analyzed'|'verified'>('all');
   const [expandedDongs, setExpandedDongs] = useState<Set<string>>(new Set());
@@ -99,26 +105,67 @@ export default function AdminDashboard() {
 
   // ── Load Scouting Reports ──
   useEffect(() => {
-    const q = query(collection(db, 'scoutingReports'));
-    const unsub = onSnapshot(q, snap => {
-      const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() } as ScoutingReport));
-      setReports(fetched);
-      const byApt: Record<string, ScoutingReport[]> = {};
-      fetched.forEach(r => {
-        if (!byApt[r.apartmentName]) byApt[r.apartmentName] = [];
-        byApt[r.apartmentName].push(r);
-      });
-      setReportsByApt(byApt);
-    });
-    return () => unsub();
+    let active = true;
+    const loadReports = async () => {
+      try {
+        const q = query(collection(db, 'scoutingReports'));
+        const snap = await getDocs(q);
+        if (!active) return;
+        const fetched = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            apartmentName: data.apartmentName,
+            images: data.images || []
+          } as ScoutingReport;
+        });
+        setReports(fetched);
+        const byApt: Record<string, ScoutingReport[]> = {};
+        fetched.forEach(r => {
+          if (!byApt[r.apartmentName]) byApt[r.apartmentName] = [];
+          byApt[r.apartmentName].push(r);
+        });
+        setReportsByApt(byApt);
+      } catch (err) {
+        console.error('Failed to load scouting reports:', err);
+      }
+    };
+    loadReports();
+    return () => { active = false; };
   }, []);
 
 
 
   const [isPending, startTransition] = useTransition();
 
-  // ── SWR Fetcher for Google Sheets (Single Source of Truth) ──
+  // ── SWR Fetcher for Firestore Cache (Fallback to Sheets) ──
   const fetcher = async (url: string) => {
+    try {
+      const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
+      if (metaDoc.exists()) {
+        const data = metaDoc.data() as Record<string, unknown>;
+        const fbMap: MetaMap = {};
+        for (const [name, m] of Object.entries(data)) {
+          if (m && typeof m === 'object' && 'dong' in m) {
+            const mapObj = m as Record<string, unknown>;
+            fbMap[name] = {
+              dong: mapObj.dong as string,
+              txKey: (mapObj.txKey as string) || autoSuggest(name, TX_SUMMARY) || undefined,
+              maxFloor: (mapObj.maxFloor as number) || 0,
+              isPublicRental: (mapObj.isPublicRental as boolean) || false,
+              householdCount: mapObj.householdCount as number | undefined,
+              yearBuilt: mapObj.yearBuilt as string | undefined,
+              brand: mapObj.brand as string | undefined,
+              ticker: mapObj.ticker as string | undefined,
+            };
+          }
+        }
+        if (Object.keys(fbMap).length > 0) return fbMap;
+      }
+    } catch (fbErr) {
+      console.error('Firestore cache read failed, falling back to API:', fbErr);
+    }
+
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch from sheets');
@@ -143,32 +190,7 @@ export default function AdminDashboard() {
       }
       return sheetMap;
     } catch (e) {
-      console.error('Failed to load sheets, trying Firestore fallback:', e);
-      try {
-        const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
-        if (metaDoc.exists()) {
-          const data = metaDoc.data() as Record<string, unknown>;
-          const fbMap: MetaMap = {};
-          for (const [name, m] of Object.entries(data)) {
-            if (m && typeof m === 'object' && 'dong' in m) {
-              const mapObj = m as Record<string, unknown>;
-              fbMap[name] = {
-                dong: mapObj.dong as string,
-                txKey: (mapObj.txKey as string) || autoSuggest(name, TX_SUMMARY) || undefined,
-                maxFloor: (mapObj.maxFloor as number) || 0,
-                isPublicRental: (mapObj.isPublicRental as boolean) || false,
-                householdCount: mapObj.householdCount as number | undefined,
-                yearBuilt: mapObj.yearBuilt as string | undefined,
-                brand: mapObj.brand as string | undefined,
-                ticker: mapObj.ticker as string | undefined,
-              };
-            }
-          }
-          if (Object.keys(fbMap).length > 0) return fbMap;
-        }
-      } catch (fbErr) {
-        console.error('Firestore fallback also failed:', fbErr);
-      }
+      console.error('Failed to load sheets, trying static fallback:', e);
       const staticMap: MetaMap = {};
       for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
         apts.forEach(aptName => {
@@ -233,6 +255,52 @@ export default function AdminDashboard() {
       alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
     } finally {
       setIsNoticeSyncing(false);
+    }
+  };
+
+  const handleSheetsSync = async () => {
+    if (!confirm('Google Sheets에서 최신 아파트 메타데이터를 직접 가져와 현재 화면에 반영하시겠습니까?\n가져온 후 하단의 "저장하기" 버튼을 눌러야 데이터가 저장됩니다.')) return;
+    
+    setIsSheetsSyncing(true);
+    try {
+      const res = await fetch('/api/apartments-by-dong?bypassCache=true');
+      if (!res.ok) throw new Error('Google Sheets 데이터를 가져오는데 실패했습니다.');
+      const data = await res.json();
+      const sheetMap: MetaMap = {};
+      
+      if (data.byDong) {
+        for (const [dong, apts] of Object.entries(data.byDong)) {
+          (apts as Record<string, unknown>[]).forEach(apt => {
+            sheetMap[apt.name as string] = {
+              dong: (apt as Record<string, string>)?.dong,
+              txKey: (apt as Record<string, string>)?.txKey || autoSuggest(apt.name as string, TX_SUMMARY) || undefined,
+              maxFloor: (apt as Record<string, number>)?.maxFloor || 0,
+              isPublicRental: (apt as Record<string, boolean>)?.isPublicRental || false,
+              householdCount: (apt as Record<string, number>)?.householdCount,
+              yearBuilt: (apt as Record<string, string>)?.yearBuilt,
+              brand: (apt as Record<string, string>)?.brand,
+              ticker: (apt as Record<string, string>)?.ticker,
+            };
+          });
+        }
+      }
+      
+      setMeta(prev => {
+        const next = { ...prev };
+        for (const [name, sheetApt] of Object.entries(sheetMap)) {
+          next[name] = {
+            ...(next[name] || {}),
+            ...sheetApt
+          };
+        }
+        return next;
+      });
+      alert('Google Sheets 데이터를 성공적으로 가져왔습니다!\n변경 사항을 저장하려면 하단의 "저장하기" 버튼을 눌러주세요.');
+    } catch (e: any) {
+      console.error('Sheets sync error:', e);
+      alert('동기화 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsSheetsSyncing(false);
     }
   };
 
@@ -476,7 +544,12 @@ export default function AdminDashboard() {
           <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight mb-2">관리자 대시보드</h1>
           <p className="text-secondary text-[14px]">아파트 데이터를 통합 관리합니다.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={handleSheetsSync} disabled={isSheetsSyncing}
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
+            <RefreshCw size={16} className={isSheetsSyncing ? "animate-spin" : ""} /> 
+            {isSheetsSyncing ? '동기화 중...' : 'Google Sheets 동기화'}
+          </button>
           <button onClick={handleSync} disabled={isSyncing}
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#00b386] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
             <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> 

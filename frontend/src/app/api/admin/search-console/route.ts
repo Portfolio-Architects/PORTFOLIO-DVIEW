@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSearchConsoleStatus } from '@/lib/services/searchConsole';
 
-export const revalidate = 60; // 60초 캐싱 적용
+export const revalidate = 3600; // 1 hour caching
 
 export async function GET() {
   try {
