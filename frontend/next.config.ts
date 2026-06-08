@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://*.google-analytics.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.firestore.googleapis.com https://docs.google.com https://*.google.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://docs.google.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://*.google-analytics.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.firestore.googleapis.com wss://*.firestore.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://docs.google.com https://*.google.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://docs.google.com;",
           },
           {
             key: 'X-Frame-Options',
