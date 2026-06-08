@@ -120,6 +120,7 @@ async function main() {
   const LAWD_CDS = ['41590', '41597']; // 화성시(기존) 및 동탄구(신설) 모두 스캔
 
   for (const ym of Array.from(monthsToSync).sort()) {
+    const keyOccurrences = new Map();
     // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
     // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로(99%) 감면
     const existingMap = new Map(); // _key -> cancelDate
@@ -160,10 +161,15 @@ async function main() {
              break;
           }
 
-          totalCount = data.response?.body?.totalCount || 0;
+          const body = data.response?.body;
+          if (!body) {
+            console.warn(`   ⚠️ API 응답 body가 비어 있습니다.`);
+            break;
+          }
+          totalCount = body.totalCount || 0;
           if (totalCount === 0) break;
 
-          let items = data.response?.body?.items?.item || [];
+          let items = body.items?.item || [];
           if (!Array.isArray(items)) items = [items];
 
           for (const item of items) {
@@ -178,7 +184,10 @@ async function main() {
             const area = parseFloat(item.excluUseAr) || 0;
             const contractDay = String(item.dealDay || '').padStart(2, '0');
             const floor = parseInt(item.floor || '0', 10) || 0;
-            const key = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const baseKey = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const occurrence = (keyOccurrences.get(baseKey) || 0) + 1;
+            keyOccurrences.set(baseKey, occurrence);
+            const key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
             const cancelDate = item.cdealDay || '';
 
             // 🔥 Firestore 쓰기(Write) 요금 초절감 검사: 중복 거래 및 취소 날짜 무변화 시 스킵

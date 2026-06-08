@@ -173,6 +173,7 @@ async function fetchDongMap() {
 }
 
 async function main() {
+  const processedDocIds = new Set();
   let isFullSync = process.argv.includes('--full');
   const now = new Date();
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
@@ -235,16 +236,13 @@ async function main() {
     
     const cDate = `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
     
-    // 심화된 중복 방지 (기본 transactions 컬렉션 내에서도 중복 방지)
-    const isDup = byApt[key].some(t => 
-      t.contractDate === cDate && 
-      t.area === (d.area || 0) && 
-      Math.abs(t.floor - (d.floor || 0)) < 1 &&
-      ((t.price === (d.price || 0) && t.price > 0) || (t.deposit === (d.deposit || 0) && t.deposit > 0))
-    );
+    // 문서 ID 기반으로 이미 처리되었는지 체크하여 중복 방지
+    if (processedDocIds.has(docSnap.id)) {
+      return;
+    }
+    processedDocIds.add(docSnap.id);
 
-    if (!isDup) {
-      byApt[key].push({
+    byApt[key].push({
         contractYm: d.contractYm || '',
         contractDay: d.contractDay || '',
         price: d.price || 0,
@@ -290,16 +288,13 @@ async function main() {
     
     const cDate = d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
     
-    // 심화된 중복 방지: 날짜, 면적, 가격(또는 보증금), 층수가 동일하면 완벽히 같은 거래로 간주 (dealType 표기법 차이 무시)
-    const isDup = byApt[key].some(t => 
-      t.contractDate === cDate && 
-      t.area === d.area && 
-      Math.abs(t.floor - d.floor) < 1 &&
-      ((t.price === d.price && t.price > 0) || (t.deposit === d.deposit && t.deposit > 0))
-    );
+    // 문서 ID 기반으로 이미 처리되었는지 체크하여 중복 방지
+    if (processedDocIds.has(docSnap.id)) {
+      return;
+    }
+    processedDocIds.add(docSnap.id);
 
-    if (!isDup) {
-      byApt[key].push({
+    byApt[key].push({
         contractYm: d.contractYm || '',
         contractDay: d.contractDay || '',
         price: d.price || 0,

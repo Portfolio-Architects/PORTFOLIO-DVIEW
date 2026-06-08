@@ -785,9 +785,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       {/* Main Container */}
       <main 
         id="main-content" 
-        className={`flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500 ${
-          activeTab === 'imjang' ? 'md:h-[calc(100vh-105px)] md:overflow-hidden' : ''
-        }`}
+        className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
       >
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         {mounted && (
