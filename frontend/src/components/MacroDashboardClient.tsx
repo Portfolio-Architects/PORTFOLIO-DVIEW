@@ -48,6 +48,7 @@ export interface TimelineItem {
   floor: number;
   type: string;
   delta: number;
+  deltaPercent?: number;
   prevPriceVal?: number;
 }
 
@@ -1219,20 +1220,22 @@ export default function MacroDashboardClient({
               let isNewHigh = false;
               let delta = 0;
 
+              let deltaPercent = 0;
               if (index === 0) {
                 currentMax = price;
               } else {
                 if (price > currentMax) {
                   isNewHigh = true;
                   delta = price - currentMax;
+                  deltaPercent = (delta / currentMax) * 100;
                   currentMax = price;
                 }
               }
 
-              // Check if it is a new high and falls within the last 30 days
+              // Check if it is a new high and falls within valid timeline (exclude future errors)
               const diffMs = maxDateTime - dt.getTime();
               const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-              if (isNewHigh && diffDays >= 0 && diffDays <= 30) {
+              if (isNewHigh && diffDays >= 0) {
                 const dateKey = tx.date;
                 const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
                 const dayName = daysOfWeek[dt.getDay()];
@@ -1258,6 +1261,7 @@ export default function MacroDashboardClient({
                   floor: tx.floor,
                   type: "high",
                   delta: delta,
+                  deltaPercent: deltaPercent,
                   prevPriceVal: delta && delta > 0 ? price - delta : undefined,
                 });
               }
@@ -1656,14 +1660,14 @@ interface GroupedCategory {
                   일자별 신고가 단지
                 </h2>
                 <span className="text-[12px] text-tertiary font-bold bg-[#f2f4f6] px-2 py-1 rounded-md shrink-0">
-                  최근 30일
+                  신고가 경신
                 </span>
               </div>
 
               <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
                 {dailyTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
-                    최근 30일 내 등록된 신고가 거래가 없습니다.
+                    등록된 신고가 거래가 없습니다.
                   </div>
                 ) : (
                   ((!isMobileViewport || isTimelineExpanded) ? dailyTimelineData : dailyTimelineData.slice(0, 3)).map((group) => (
@@ -1699,7 +1703,9 @@ interface GroupedCategory {
                                 {item.aptName}
                               </span>
                               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shrink-0 whitespace-nowrap">
-                                {item.delta && item.delta > 0 ? formatDeltaPrice(item.delta) : '신고가'}
+                                {item.delta && item.delta > 0 
+                                  ? `${formatDeltaPrice(item.delta)} (${item.deltaPercent && item.deltaPercent > 0 ? `+${item.deltaPercent.toFixed(1)}%` : '0%'})` 
+                                  : '신고가'}
                               </span>
                             </div>
 

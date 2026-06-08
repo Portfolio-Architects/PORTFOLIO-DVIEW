@@ -43,8 +43,30 @@ export async function proxy(request: NextRequest) {
   // 클라이언트 IP 추출 (Vercel 환경 지원 시 x-real-ip 최우선)
   const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
   
-  // 1. Rate Limiting (API 라우트에 국한)
+  // 1. Rate Limiting & CORS (API 라우트에 국한)
   if (request.nextUrl.pathname.startsWith('/api/')) {
+    // Origin / Referer validation (Prevent unauthorized external scraping)
+    const ALLOWED_ORIGINS = [
+      'localhost:',
+      '127.0.0.1:',
+      'vercel.app',
+      'dview.kr'
+    ];
+    const origin = request.headers.get('origin') || '';
+    const referer = request.headers.get('referer') || '';
+
+    const hasAllowedOrigin = ALLOWED_ORIGINS.some(allowed => 
+      origin.includes(allowed) || referer.includes(allowed)
+    );
+
+    // Block request if origin exists but is not in the whitelist
+    if (origin && !hasAllowedOrigin) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Forbidden: Unauthorized cross-origin request' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (ratelimit) {
       try {
         const { success, limit, reset, remaining } = await ratelimit.limit(ip);
@@ -91,7 +113,7 @@ export async function proxy(request: NextRequest) {
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
     img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://*.googlesyndication.com https://ad.doubleclick.net https://*.adtrafficquality.google;
     font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
-    connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net https://www.google.com https://*.google.com https://*.google.co.kr https://content-firebaseappcheck.googleapis.com https://apis.google.com https://www.recaptcha.net https://lh3.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://*.kakao.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://www.gstatic.com https://*.gstatic.com https://*.adtrafficquality.google https://*.firebaseapp.com;
+    connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com wss://*.firestore.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net https://www.google.com https://*.google.com https://*.google.co.kr https://content-firebaseappcheck.googleapis.com https://apis.google.com https://www.recaptcha.net https://lh3.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://t1.kakaocdn.net https://*.kakao.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://www.gstatic.com https://*.gstatic.com https://*.adtrafficquality.google https://*.firebaseapp.com;
     frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com https://apis.google.com https://www.recaptcha.net https://*.kakao.com https://googleads.g.doubleclick.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google;
     object-src 'none';
     base-uri 'self';
