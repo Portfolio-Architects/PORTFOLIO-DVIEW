@@ -545,14 +545,14 @@ export default function AptFitFinder({
       onClick={onClose}
     >
       <div 
-        className="w-full sm:w-[500px] bg-white dark:bg-zinc-950 border-t sm:border border-neutral-200 dark:border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[460px] max-h-[90vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
+        className="w-full sm:w-[500px] bg-white dark:bg-zinc-950 border-t sm:border border-neutral-200 dark:border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[92vh] sm:max-h-[90vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-neutral-100 dark:border-zinc-900 shrink-0">
+        <div className="flex justify-between items-center px-5 py-3.5 sm:px-6 sm:py-4 border-b border-neutral-100 dark:border-zinc-900 shrink-0">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-[#00d29d] animate-pulse" />
-            <span className="font-extrabold text-[16px] text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기</span>
+            <span className="font-extrabold text-[15px] sm:text-[16px] text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기</span>
           </div>
           <button 
             onClick={onClose} 
@@ -563,7 +563,8 @@ export default function AptFitFinder({
         </div>
 
         {/* Dynamic Step View */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col justify-center min-h-[360px]">
+        <div className="flex-1 overflow-y-auto scrollbar-none p-5 sm:p-6 flex flex-col justify-center min-h-[320px] sm:min-h-[360px]">
+
           {/* STEP 0: Intro Screen */}
           {step === 0 && (
             <div className="flex flex-col items-center text-center gap-6 py-4">
@@ -592,15 +593,15 @@ export default function AptFitFinder({
 
           {/* STEP 1: Budget Question */}
           {step === 1 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q1. 예산</span>
                 <span className="text-[12.5px] text-tertiary font-bold">1 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 최대 가용 가능한 아파트 매매가는?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: '3eok', label: '3억 원 이하', desc: '남동탄·능동의 실속형 가성비 단지 및 소형 갭투자' },
                   { value: '5eok', label: '3억 ~ 6억 원', desc: '대중적인 인기의 신도시 준신축 및 남동탄 실속 대표 단지' },
@@ -611,10 +612,10 @@ export default function AptFitFinder({
                   <button
                     key={opt.value}
                     onClick={() => handleSelectOption('budget', opt.value)}
-                    className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex flex-col gap-1 cursor-pointer"
+                    className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex flex-col gap-0.5 sm:gap-1 cursor-pointer"
                   >
-                    <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                    <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                    <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                    <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                   </button>
                 ))}
               </div>
@@ -623,15 +624,15 @@ export default function AptFitFinder({
 
           {/* STEP 2: Family/Education Question */}
           {step === 2 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q2. 자녀/학군</span>
                 <span className="text-[12.5px] text-tertiary font-bold">2 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 가장 중요한 교육 환경이나 자녀 여건은?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'none', label: '1인 가구 / 자녀 없음', desc: '편리한 역세권 슬세권 상권과 조용하고 쾌적한 나만의 쉼터', icon: Heart },
                   { value: 'baby', label: '영유아 자녀 (보육 및 안심 환경)', desc: '단지 내 국공립 어린이집, 지상 차 없는 도로, 유모차 산책 공원', icon: TreePine },
@@ -643,20 +644,20 @@ export default function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('family', opt.value)}
-                      className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-4 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
+                        <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                        <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                        <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
+              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12px] sm:text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
                 <ChevronLeft size={14} /> 이전 단계로
               </button>
             </div>
@@ -664,15 +665,15 @@ export default function AptFitFinder({
 
           {/* STEP 3: Transit Question */}
           {step === 3 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q3. 교통</span>
                 <span className="text-[12.5px] text-tertiary font-bold">3 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 출퇴근 시 가장 선호하는 교통 요건은?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'gtx', label: '서울 강남 / 삼성역 광역 통근', desc: '동탄역 GTX-A 및 SRT 도보 역세권으로 서울 강남 20분대 도달', icon: Train },
                   { value: 'indeokwon', label: '수원 / 판교 / 경기서남부 통근', desc: '개통 예정인 동탄인덕원선 역세권으로 인근 주요 도시 연계', icon: Train },
@@ -684,20 +685,20 @@ export default function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('transit', opt.value)}
-                      className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-4 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
+                        <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                        <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                        <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
+              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12px] sm:text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
                 <ChevronLeft size={14} /> 이전 단계로
               </button>
             </div>
@@ -705,15 +706,15 @@ export default function AptFitFinder({
 
           {/* STEP 4: Lifestyle Question */}
           {step === 4 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q4. 라이프스타일</span>
                 <span className="text-[12.5px] text-tertiary font-bold">4 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 일상의 삶의 질을 높이는 최적의 장소는?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'nature', label: '동탄호수공원 & 여울공원 숲세권', desc: '도보 300m 이내의 호수공원 랜드마크 및 대규모 공원 산책', icon: TreePine },
                   { value: 'shop', label: '롯데백화점 & 카림상권 중심 인프라', desc: '스타벅스, 롯데백화점, 앨리스빌 등 편리한 도보 슬세권 쇼핑', icon: Coins },
@@ -724,20 +725,20 @@ export default function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('lifestyle', opt.value)}
-                      className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-4 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
+                        <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                        <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                        <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
+              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12px] sm:text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
                 <ChevronLeft size={14} /> 이전 단계로
               </button>
             </div>
@@ -745,15 +746,15 @@ export default function AptFitFinder({
 
           {/* STEP 5: Scale & Brand Question */}
           {step === 5 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q5. 단지 규모/브랜드</span>
                 <span className="text-[12.5px] text-tertiary font-bold">5 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 선호하는 단지 규모 및 브랜드 타입은?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'mega', label: '1,500세대 이상 초대형 랜드마크', desc: '대규모 커뮤니티 시설, 넓은 조경 면적 및 풍부한 환금성 확보', icon: Building2 },
                   { value: 'brand', label: '1군 메이저 브랜드 대장 아파트', desc: '자이·힐스테이트·더샵 등 시공 브랜드 가치와 품질 신뢰도', icon: Award },
@@ -764,20 +765,20 @@ export default function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('scaleBrand', opt.value)}
-                      className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-4 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
+                        <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                        <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                        <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
+              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12px] sm:text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
                 <ChevronLeft size={14} /> 이전 단계로
               </button>
             </div>
@@ -785,15 +786,15 @@ export default function AptFitFinder({
 
           {/* STEP 6: Year Built Question */}
           {step === 6 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q6. 연식/트렌드</span>
                 <span className="text-[12.5px] text-tertiary font-bold">6 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 선호하는 아파트의 준공 연식은?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'new', label: '준공 5년 이내의 최신축', desc: '최신 스마트홈 IoT, 커뮤니티 시설 및 지상 차 없는 쾌적 단지', icon: Sparkles },
                   { value: 'middle', label: '5~10년 차 검증된 준신축', desc: '단지 내 나무 및 정원이 자리잡고 생활권 인프라가 완성된 환경', icon: Building2 },
@@ -804,20 +805,20 @@ export default function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('yearBuilt', opt.value)}
-                      className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-4 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
+                        <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                        <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                        <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
+              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12px] sm:text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
                 <ChevronLeft size={14} /> 이전 단계로
               </button>
             </div>
@@ -825,15 +826,15 @@ export default function AptFitFinder({
 
           {/* STEP 7: Investment Style Question */}
           {step === 7 && (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q7. 투자/자금 성향</span>
                 <span className="text-[12.5px] text-tertiary font-bold">7 / 7</span>
               </div>
-              <h3 className="text-[18px] font-black text-primary leading-tight">
+              <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
                 자산 가치 증식 및 투자 자금 운용 스타일은?
               </h3>
-              <div className="flex flex-col gap-2.5 mt-2">
+              <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'residence', label: '실거주 편의성 최우선 (교통/학군)', desc: '생활 밀착형 인프라와 주거 안정성에 초점을 둔 실사용 가치', icon: Heart },
                   { value: 'gap', label: '소액 갭투자 및 전세가율 가성비 우선', desc: '전세가율이 높고 실투자금이 상대적으로 작게 묶이는 소액 투자', icon: Coins },
@@ -844,20 +845,20 @@ export default function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('investmentStyle', opt.value)}
-                      className="w-full text-left p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-4 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#00d29d]/5 border border-transparent hover:border-[#00d29d]/20 dark:bg-zinc-900/50 dark:hover:bg-[#00d29d]/10 dark:hover:border-[#00d29d]/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#00d29d] group-hover:scale-105 transition-all shrink-0">
+                        <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
-                        <span className="text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
+                        <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#00d29d] transition-colors">{opt.label}</span>
+                        <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
+              <button onClick={handleBack} className="self-start flex items-center gap-1 text-[12px] sm:text-[12.5px] text-tertiary font-bold hover:text-secondary mt-1 cursor-pointer">
                 <ChevronLeft size={14} /> 이전 단계로
               </button>
             </div>
