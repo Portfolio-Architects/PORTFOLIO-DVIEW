@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
-import { VariableSizeList as List, areEqual } from 'react-window';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles, Coins, Activity } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
@@ -111,68 +110,49 @@ const InteractiveHeart = memo(({
 });
 InteractiveHeart.displayName = 'InteractiveHeart';
 
-interface RowData {
-  items: Array<{
-    apt: DongApartment;
-    pyeongPrice: number;
-    totalPrice: number;
-    jeonsePrice: number;
-    ratio: number;
-    dropRatio: number;
-    maxPrice: number;
-    avg1MPrice: number;
-    volume3M: number;
-    volume1M: number;
-    turnoverRate: number;
-    hasTx: boolean;
-    views: number;
-    photoCount: number;
-    likes: number;
-    isFavorited: boolean;
-    
-    // [자기개선] Row 렌더링 CPU/GC 부하를 줄이기 위한 선연산 포맷 필드
-    formattedYearBuilt: string;
-    formattedPrice: string;
-    formattedJeonse: string;
-    formattedRatio: string;
-    formattedPyeong: string;
-    formattedHousehold: string;
-    formattedVolume: string;
-    formattedTurnover: string;
-  }>;
+interface EnrichedApt {
+  apt: DongApartment;
+  pyeongPrice: number;
+  totalPrice: number;
+  jeonsePrice: number;
+  ratio: number;
+  dropRatio: number;
+  maxPrice: number;
+  avg1MPrice: number;
+  volume3M: number;
+  volume1M: number;
+  turnoverRate: number;
+  hasTx: boolean;
+  views: number;
+  photoCount: number;
+  likes: number;
+  isFavorited: boolean;
+  
+  formattedYearBuilt: string;
+  formattedPrice: string;
+  formattedJeonse: string;
+  formattedRatio: string;
+  formattedPyeong: string;
+  formattedHousehold: string;
+  formattedVolume: string;
+  formattedTurnover: string;
+}
+
+interface AptRowProps {
+  item: EnrichedApt;
+  index: number;
   handleSelectApt: (name: string) => void;
   onToggleFavorite: (name: string) => void;
 }
 
-const Row = memo(({ index, style, data }: { index: number; style: React.CSSProperties; data: RowData }) => {
-  const { items, handleSelectApt, onToggleFavorite } = data;
-
-  const isAd = items.length > 15 && index === 15;
-  if (isAd) {
-    return (
-      <div style={style} className="w-full flex flex-col px-3 md:px-4 py-1.5 md:py-1">
-        <div className="w-full h-full flex items-center">
-          <NativeAdPlaceholder 
-            location="아파트 탐색 목록 15번째 광고" 
-            adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_EXPLORE_LIST || "test-explore-list-slot"} 
-            isCompact={true}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  const actualIndex = items.length > 15 && index > 15 ? index - 1 : index;
-  const item = items[actualIndex];
-  if (!item) return null;
-
+const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite }: AptRowProps) => {
   return (
-    <div style={style} className="w-full flex flex-col px-3 md:px-4 py-1.5 md:py-1">
+    <div className="w-full flex flex-col px-3 md:px-4 py-1.5 md:py-1">
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`hidden md:flex items-center md:px-4 h-full border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
-          actualIndex % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
+        className={`hidden md:flex items-center md:px-4 h-[66px] border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
+          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]`}
       >
         {/* Heart */}
@@ -187,16 +167,16 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         
         {/* Rank */}
         <div className="w-[40px] text-center shrink-0 flex items-center justify-center">
-          {actualIndex < 3 ? (
+          {index < 3 ? (
             <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-black tracking-tight shadow-sm ${
-              actualIndex === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 text-white shadow-amber-500/20' :
-              actualIndex === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/20' :
+              index === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 text-white shadow-amber-500/20' :
+              index === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/20' :
               'bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white shadow-amber-700/20'
             }`}>
-              {actualIndex + 1}
+              {index + 1}
             </span>
           ) : (
-            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100/40 dark:bg-neutral-800/30">{actualIndex + 1}</span>
+            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100/40 dark:bg-neutral-800/30">{index + 1}</span>
           )}
         </div>
         
@@ -272,7 +252,7 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
         className={`flex md:hidden flex-col justify-between p-4.5 h-full border border-black/[0.03] dark:border-white/[0.04] rounded-2xl cursor-pointer transition-all duration-300 ease-in-out active:scale-[0.98] ${
-          actualIndex % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
+          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_4px_20px_rgba(0,0,0,0.015)] relative`}
       >
         {/* Favorite Heart & Likes Count - Positioned Top Right Premium Capsule */}
@@ -302,17 +282,17 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
         <div className="flex items-start gap-3 w-full min-w-0 mb-3.5 pr-20">
           {/* Rank Badge */}
           <div className="shrink-0 pt-0.5">
-            {actualIndex < 3 ? (
+            {index < 3 ? (
               <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tighter shadow-md ${
-                actualIndex === 0 ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-white shadow-amber-500/20 ring-1 ring-amber-300/30' :
-                actualIndex === 1 ? 'bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-white shadow-slate-400/20 ring-1 ring-slate-300/30' :
+                index === 0 ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-white shadow-amber-500/20 ring-1 ring-amber-300/30' :
+                index === 1 ? 'bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-white shadow-slate-400/20 ring-1 ring-slate-300/30' :
                 'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 text-white shadow-amber-700/20 ring-1 ring-amber-500/30'
               }`}>
-                {actualIndex + 1}
+                {index + 1}
               </span>
             ) : (
               <span className="w-[22px] h-[22px] rounded-full bg-neutral-100/60 dark:bg-neutral-800/40 border border-neutral-200/30 dark:border-neutral-700/30 flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
-                {actualIndex + 1}
+                {index + 1}
               </span>
             )}
           </div>
@@ -394,8 +374,8 @@ const Row = memo(({ index, style, data }: { index: number; style: React.CSSPrope
       </div>
     </div>
   );
-}, areEqual);
-Row.displayName = 'Row';
+});
+AptRow.displayName = 'AptRow';
 
 interface TossApartmentExploreClientProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -413,7 +393,6 @@ interface TossApartmentExploreClientProps {
   onOpenMortgage?: (aptName?: string) => void;
 }
 
-// Using similar props to what was passed to the left panel before
 export default function TossApartmentExploreClient({
   sheetApartments,
   txSummaryData,
@@ -436,29 +415,8 @@ export default function TossApartmentExploreClient({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // [자기개선] 테이블 직접 정렬용 상태값 추가
-  const [sortKey, setSortKey] = useState<string>('totalPrice'); // 'totalPrice' | 'pyeongPrice' | 'ratio' | 'volume3M' | 'turnoverRate' | 'views' | 'yearBuilt' | 'householdCount' | 'name'
+  const [sortKey, setSortKey] = useState<string>('totalPrice');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-
-  // 사이드바 카테고리 전환 시 정렬 Key 동기화
-  useEffect(() => {
-    if (currentCategory === 'rank-abs-price') {
-      setSortKey('totalPrice');
-      setSortDirection('desc');
-    } else if (currentCategory === 'rank-price' || currentCategory.startsWith('dong-')) {
-      setSortKey('pyeongPrice');
-      setSortDirection('desc');
-    } else if (currentCategory === 'rank-jeonse') {
-      setSortKey('ratio');
-      setSortDirection('desc');
-    } else if (currentCategory === 'rank-turnover') {
-      setSortKey('turnoverRate');
-      setSortDirection('desc');
-    } else if (currentCategory === 'rank-views') {
-      setSortKey('views');
-      setSortDirection('desc');
-    }
-  }, [currentCategory]);
 
   const handleHeaderSort = (key: string) => {
     if (sortKey === key) {
@@ -479,21 +437,36 @@ export default function TossApartmentExploreClient({
   };
 
   useEffect(() => {
+    if (currentCategory === 'rank-abs-price') {
+      setSortKey('totalPrice');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-price' || currentCategory.startsWith('dong-')) {
+      setSortKey('pyeongPrice');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-jeonse') {
+      setSortKey('ratio');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-turnover') {
+      setSortKey('turnoverRate');
+      setSortDirection('desc');
+    } else if (currentCategory === 'rank-views') {
+      setSortKey('views');
+      setSortDirection('desc');
+    }
+  }, [currentCategory]);
+
+  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-
   
-  // Flatten and filter public rentals
   const allApts = useMemo(() => {
     return Object.values(sheetApartments).flat().filter((a: DongApartment) => !publicRentalSet.has(a.name));
   }, [sheetApartments, publicRentalSet]);
 
-  // Enrich with data
   const enrichedApts = useMemo(() => {
     return allApts.map((apt: DongApartment) => {
       const rawKey = apt.txKey || apt.name;
@@ -509,7 +482,6 @@ export default function TossApartmentExploreClient({
       const volume3M = sum?.avg3MTxCount || 0;
       const turnoverRate = apt.householdCount && volume3M ? (volume3M / apt.householdCount) * 100 : 0;
 
-      // [자기개선] 렌더링 성능 최적화: 포맷팅을 렌더 단계가 아닌 데이터 바인딩 단계에서 1회만 선연산하여 캐싱
       const formattedYearBuilt = formatYearBuilt(apt.yearBuilt);
       const formattedPrice = sales > 0 ? formatPrice(sales) : '-';
       const formattedJeonse = jeonse > 0 ? formatPrice(jeonse) : '-';
@@ -549,7 +521,6 @@ export default function TossApartmentExploreClient({
     });
   }, [allApts, txSummaryData, nameMapping, fieldReportsMap, favoriteCounts, userFavorites]);
 
-  // Sort based on category
   const sortedApts = useMemo(() => {
     let filtered = [...enrichedApts];
 
@@ -568,9 +539,7 @@ export default function TossApartmentExploreClient({
       filtered = filtered.filter(a => a.volume3M > 0);
     }
 
-    // Sort logic
     filtered.sort((a, b) => {
-      // 테마별 임시 예외 정렬
       if (currentCategory === 'theme-over-12') return b.avg1MPrice - a.avg1MPrice;
       if (currentCategory === 'theme-biggest-drop') return b.dropRatio - a.dropRatio;
       if (currentCategory === 'theme-high-jeonse') return b.ratio - a.ratio;
@@ -613,7 +582,6 @@ export default function TossApartmentExploreClient({
       return sortDirection === 'desc' ? valB - valA : valA - valB;
     });
 
-    // Search filter
     if (debouncedSearchQuery.trim()) {
       const q = debouncedSearchQuery.toLowerCase().replace(/\s+/g, '');
       filtered = filtered.filter(a => a.apt.name.toLowerCase().replace(/\s+/g, '').includes(q));
@@ -622,24 +590,20 @@ export default function TossApartmentExploreClient({
     return filtered;
   }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection]);
 
-  // Suggestions data for autocomplete
   const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
     const q = searchQuery.toLowerCase().replace(/\s+/g, '');
     if (!q) {
       return { suggestionsApts: [], suggestionsDongs: [], suggestionsBrands: [] };
     }
 
-    // 1. Matching apartments (max 5)
     const matchingApts = enrichedApts.filter(item => 
       item.apt.name.toLowerCase().replace(/\s+/g, '').includes(q)
     ).slice(0, 5);
 
-    // 2. Matching dongs
     const matchingDongs = DONGS.filter(dong => 
       dong.name.toLowerCase().includes(q) || q.includes(dong.name.toLowerCase())
     );
 
-    // 3. Matching brands
     const BRANDS = ["롯데캐슬", "포스코", "더샵", "자이", "푸르지오", "힐스테이트", "반도유보라", "금강펜테리움", "우남퍼스트빌", "호반베르디움", "신안인스빌", "KCC", "스위첸", "e편한세상", "아이파크", "데시앙", "하우스디", "중흥"];
     const matchingBrands = BRANDS.filter(brand => 
       brand.toLowerCase().includes(q) && brand.toLowerCase() !== q
@@ -654,153 +618,14 @@ export default function TossApartmentExploreClient({
 
   const recommendedKeywords = ['동탄역', '시범단지', '롯데캐슬', '반도유보라', '자이', '더샵'];
 
-  const listRef = useRef<List>(null);
-  const outerRef = useRef<HTMLDivElement>(null);
-  const listContainerRef = useRef<HTMLDivElement>(null);
-  const [listHeight, setListHeight] = useState(600);
-  const [isMobile, setIsMobile] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    const updateHeight = () => {
-      if (window.innerWidth < 768) {
-        setListHeight(Math.max(300, window.innerHeight - 260));
-      } else if (listContainerRef.current) {
-        const rect = listContainerRef.current.getBoundingClientRect();
-        setListHeight(Math.max(400, Math.floor(rect.height) - 8));
-      } else {
-        setListHeight(500);
-      }
-    };
-
-    updateHeight();
-    
-    let resizeObserver: ResizeObserver | null = null;
-    if (typeof window !== 'undefined' && 'ResizeObserver' in window && listContainerRef.current) {
-      resizeObserver = new ResizeObserver(() => {
-        updateHeight();
-      });
-      resizeObserver.observe(listContainerRef.current);
-    }
-    
-    window.addEventListener('resize', updateHeight);
-    
-    const timer = setTimeout(updateHeight, 150);
-    
-    return () => {
-      window.removeEventListener('resize', updateHeight);
-      if (resizeObserver) resizeObserver.disconnect();
-      clearTimeout(timer);
-    };
-  }, [sortedApts]);
-
-  // [자기개선] iOS Safari 등 구형 모바일 브라우저 및 하이브리드 웹뷰 환경에서
-  // overscrollBehavior: 'contain'이 오작동하거나 지원되지 않는 경우를 대비한 
-  // JS 레벨의 하이브리드 스크롤 격리(Zero-Scroll-Chaining) 폴백 차단기 구축.
-  useEffect(() => {
-    const outerEl = outerRef.current;
-    if (!outerEl) return;
-
-    let touchStartY = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        touchStartY = e.touches[0].clientY;
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 0) return;
-      const touchY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchY; // 터치 위로 드래그 = 아래로 스크롤 (deltaY > 0)
-      const { scrollTop, scrollHeight, clientHeight } = outerEl;
-
-      // 1. 최상단 도달 시 터치 다운(위로 스크롤 시도) 차단
-      if (scrollTop <= 0 && deltaY < 0) {
-        if (e.cancelable) e.preventDefault();
-      }
-      // 2. 최하단 도달 시 터치 업(아래로 스크롤 시도) 차단
-      else if (scrollTop + clientHeight >= scrollHeight - 1 && deltaY > 0) {
-        if (e.cancelable) e.preventDefault();
-      }
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      const { scrollTop, scrollHeight, clientHeight } = outerEl;
-      
-      // 1. 최상단 도달 시 위로 휠 굴림 차단
-      if (scrollTop <= 0 && e.deltaY < 0) {
-        if (e.cancelable) e.preventDefault();
-      } 
-      // 2. 최하단 도달 시 아래로 휠 굴림 차단
-      else if (scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0) {
-        if (e.cancelable) e.preventDefault();
-      }
-    };
-
-    outerEl.addEventListener('touchstart', handleTouchStart, { passive: true });
-    outerEl.addEventListener('touchmove', handleTouchMove, { passive: false });
-    outerEl.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      outerEl.removeEventListener('touchstart', handleTouchStart);
-      outerEl.removeEventListener('touchmove', handleTouchMove);
-      outerEl.removeEventListener('wheel', handleWheel);
-    };
-  }, [sortedApts]);
-
-  useEffect(() => {
-    if (listRef.current) {
-      listRef.current.resetAfterIndex(0);
-    }
-  }, [sortedApts, isMobile]);
-
-  const getItemSize = (index: number) => {
-    const isAd = sortedApts.length > 15 && index === 15;
-    if (isAd) {
-      return isMobile ? 86 : 94;
-    }
-    const actualIndex = sortedApts.length > 15 && index > 15 ? index - 1 : index;
-    if (!isMobile) return 72;
-    const item = sortedApts[actualIndex];
-    if (!item) return 180;
-    
-    // 1. 기본 3분할 메트릭 카드 높이 설정 (패딩 및 마진 포함 최소 높이)
-    let size = 180;
-    
-    // 2. 사진/관심 뱃지 노출에 따른 높이 추가
-    if (item.photoCount > 0 || item.likes > 0) {
-      size += 15;
-    }
-    
-    // 3. 아파트명 길이에 따른 타이틀 줄바꿈 추가 높이 보정
-    if (item.apt.name.length >= 16) {
-      size += 35;
-    } else if (item.apt.name.length >= 11) {
-      size += 20;
-    }
-    
-    return size;
-  };
-
-  const itemData = useMemo(() => ({
-    items: sortedApts,
-    handleSelectApt,
-    onToggleFavorite
-  }), [sortedApts, handleSelectApt, onToggleFavorite]);
-
   return (
-    <div className="flex flex-col w-full bg-transparent md:h-[calc(100vh-105px)] md:overflow-hidden">
+    <div className="flex flex-col w-full bg-transparent">
       {/* Standardized Hero Header */}
       <div className="shrink-0">
         <PageHeroHeader 
@@ -826,7 +651,7 @@ export default function TossApartmentExploreClient({
       {/* Main Content Area */}
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
-          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 md:h-[calc(100vh-140px)] md:overflow-y-auto md:rounded-l-2xl custom-scrollbar">
+          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[75px] self-start max-h-[calc(100vh-100px)] overflow-y-auto md:rounded-l-2xl custom-scrollbar">
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -1139,7 +964,7 @@ export default function TossApartmentExploreClient({
 
         <div className="flex-1 min-h-0 flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex relative z-10 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-400 dark:text-neutral-500 shrink-0 select-none shadow-sm shadow-black/[0.01]">
+          <div className="hidden md:flex sticky top-[75px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-400 dark:text-neutral-500 shrink-0 select-none shadow-sm shadow-black/[0.01]">
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
@@ -1206,8 +1031,7 @@ export default function TossApartmentExploreClient({
           {/* Table Body */}
           {!isMounted ? (
             <div 
-              style={{ height: listHeight }} 
-              className="w-full flex flex-col gap-3 py-2 animate-pulse overflow-hidden px-1 md:px-0"
+              className="w-full flex flex-col gap-3 py-2 animate-pulse px-1 md:px-0"
             >
               {Array.from({ length: 6 }).map((_, i) => (
                 <div 
@@ -1218,28 +1042,31 @@ export default function TossApartmentExploreClient({
             </div>
           ) : sortedApts.length === 0 ? (
             <div 
-              style={{ height: listHeight }} 
-              className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 transition-all duration-300"
+              className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-20 transition-all duration-300 min-h-[300px]"
             >
               <span className="text-[40px] mb-3 animate-bounce">🔍</span>
               <span className="text-[15px] font-extrabold text-primary">검색 결과가 없습니다</span>
               <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
             </div>
           ) : (
-            <div id="explore-list-container" className="w-full flex-1 min-h-0 pt-1.5" ref={listContainerRef}>
-              <List
-                ref={listRef}
-                outerRef={outerRef}
-                height={listHeight}
-                itemCount={sortedApts.length > 15 ? sortedApts.length + 1 : sortedApts.length}
-                itemSize={getItemSize}
-                itemData={itemData}
-                width="100%"
-                className="custom-scrollbar"
-                style={{ overflowX: 'hidden', overscrollBehavior: 'contain' }}
-              >
-                {Row}
-              </List>
+            <div id="explore-list-container" className="w-full flex-1 pt-1.5">
+              <div className="flex flex-col w-full">
+                {sortedApts.map((item, index) => (
+                  <React.Fragment key={item.apt.name}>
+                    <AptRow 
+                      item={item} 
+                      index={index} 
+                      handleSelectApt={handleSelectApt} 
+                      onToggleFavorite={onToggleFavorite} 
+                    />
+                    {index === 14 && sortedApts.length > 15 && (
+                      <div className="px-3 md:px-4 py-1.5 md:py-1 w-full">
+                        <NativeAdPlaceholder location="아파트 탐색 리스트 중간" />
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           )}
         </div>
