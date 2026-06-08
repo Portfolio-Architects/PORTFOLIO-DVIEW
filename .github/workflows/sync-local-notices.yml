@@ -2,8 +2,8 @@ name: Sync Local Notices
 
 on:
   schedule:
-    # 매일 KST 12:00 (UTC 03:00) 실행
-    - cron: '0 3 * * *'
+    # 매일 KST 12:23 (UTC 03:23) 실행 (정각 트래픽 분산 및 딜레이 최소화)
+    - cron: '23 3 * * *'
   workflow_dispatch: # GitHub UI에서 수동 실행 지원
   push:
     branches:

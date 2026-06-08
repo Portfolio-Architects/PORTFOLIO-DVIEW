@@ -2,8 +2,12 @@ name: Sync Transactions
 
 on:
   schedule:
-    # 매일 KST 07:00 (UTC 22:00) 실행 (국토부 배치 작업 안전 마진 확보)
-    - cron: '0 22 * * *'
+    # 매일 KST 06:12 (UTC 21:12) 실행 (1차)
+    - cron: '12 21 * * *'
+    # 매일 KST 06:42 (UTC 21:42) 실행 (2차 이중화 백업)
+    - cron: '42 21 * * *'
+    # 매일 KST 07:12 (UTC 22:12) 실행 (3차 최종 검증 및 폴백)
+    - cron: '12 22 * * *'
   workflow_dispatch: # 수동 실행 지원
   push:
     branches:

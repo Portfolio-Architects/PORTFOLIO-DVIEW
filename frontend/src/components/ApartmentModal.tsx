@@ -1403,7 +1403,7 @@ function FieldReportModal({
       </header>
 
       {/* Hero Section — Layout: 35% table / 65% chart */}
-      <section className={`w-full flex flex-col md:flex-row p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} gap-4 md:gap-8 shrink-0`}>
+      <section className={`w-full flex flex-col-reverse md:flex-row p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} gap-4 md:gap-8 shrink-0`}>
         
         {/* Left: 실거래가 전체 리스트 (35%) */}
         <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch">

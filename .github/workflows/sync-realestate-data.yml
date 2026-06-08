@@ -2,8 +2,10 @@ name: Daily Molit Data Sync
 
 on:
   schedule:
-    # 21:00 UTC is 06:00 AM KST the next day.
-    - cron: '0 21 * * *'
+    # 매일 KST 06:17 (UTC 21:17) 실행 (1차)
+    - cron: '17 21 * * *'
+    # 매일 KST 06:47 (UTC 21:47) 실행 (2차 백업)
+    - cron: '47 21 * * *'
   workflow_dispatch:
 
 jobs:

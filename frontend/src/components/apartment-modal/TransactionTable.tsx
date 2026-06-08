@@ -75,8 +75,8 @@ export function TransactionTable({
     });
   }, [filteredTransactions, txSort]);
 
-  const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
   const [isMobile, setIsMobile] = useState(false);
+  const [displayedCount, setDisplayedCount] = useState(10);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -101,10 +101,10 @@ export function TransactionTable({
     }
   }, [inView, sortedFilteredTransactions.length, displayedCount, isMobile]);
 
-  // Reset displayed count when filters change
+  // Reset displayed count when filters change, or when mobile state shifts
   useEffect(() => {
-    setDisplayedCount(INITIAL_DISPLAY_COUNT);
-  }, [txSort, chartType]);
+    setDisplayedCount(isMobile ? 5 : 10);
+  }, [txSort, chartType, isMobile]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -223,7 +223,7 @@ export function TransactionTable({
           }
 
           return (
-            <div key={i} className={`flex items-center justify-between p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
+            <div key={i} className={`flex items-center justify-between p-3 md:p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
               
               {/* 1. 날짜 */}
               <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
