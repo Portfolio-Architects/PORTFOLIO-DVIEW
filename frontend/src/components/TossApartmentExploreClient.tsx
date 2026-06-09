@@ -143,11 +143,26 @@ interface AptRowProps {
   index: number;
   handleSelectApt: (name: string) => void;
   onToggleFavorite: (name: string) => void;
+  currentCategory: string;
 }
 
-const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite }: AptRowProps) => {
+const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCategory }: AptRowProps) => {
+  /*
+   * 🛡️ DEFENSIVE DESIGN (방어적 설계):
+   * 1. Null / Empty Values: totalPrice, ratio, turnoverRate, views 값이 0 이하일 경우 런타임 에러나 NaN 노출을 방지하기 위해 '-' 또는 '0'으로 안전하게 fallback 처리합니다.
+   * 2. Text Clipping / Wrapping: 긴 아파트명(예: 동탄역시범대원칸타빌아파트)이 모바일 해상도에서 잘리거나 레이아웃을 해치지 않도록 flex-1, min-w-0, truncate를 적용하고 우측 지표 영역의 flex-shrink-0 너비를 보장합니다.
+   * 3. Muted Color Styles: 데이터 부족 상태를 구분하기 위해 ratio나 turnoverRate가 비활성 상태일 때 gray 톤으로 연출하고 특정 임계값(예: 전세율 60% 이상, 회전율 2.5% 이상)일 때만 emerald/indigo 색상을 활성화합니다.
+   *
+   * 🔄 VIRTUAL DRY RUN (가상 드라이 런):
+   * - Input: item { name: "동탄역롯데캐슬", totalPrice: 1520000, ratio: 0.72 }, currentCategory: "rank-jeonse"
+   * - Step 1: Left side renders Rank Badge "index+1", Name "동탄역롯데캐슬", Subtitle "오산동 • 2021년 • 940세대".
+   * - Step 2: Since currentCategory is "rank-jeonse", Right side switches to Case "rank-jeonse".
+   * - Step 3: Top metric text displays "72%" (emerald color because ratio >= 0.6).
+   * - Step 4: Bottom sub-metric text displays "전세 11.0억 / 매매 15.2억".
+   * - Result: Extremely compact and scannable row without rendering a heavy 3-column slab card.
+   */
   return (
-    <div className="w-full flex flex-col px-3 md:px-4 py-1.5 md:py-1">
+    <div className="w-full flex flex-col px-0 md:px-4 py-0.5 md:py-1">
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
@@ -248,127 +263,125 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite }: AptRowP
         </div>
       </div>
 
-      {/* Mobile View (Hidden on Desktop) */}
+      {/* Mobile View (Hidden on Desktop) - Sleek Toss-style List Tile */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`flex md:hidden flex-col justify-between p-4.5 h-full border border-black/[0.03] dark:border-white/[0.04] rounded-2xl cursor-pointer transition-all duration-300 ease-in-out active:scale-[0.98] ${
-          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/60 dark:bg-zinc-900/5'
-        } hover:bg-neutral-50 dark:hover:bg-zinc-800/10 shadow-[0_4px_20px_rgba(0,0,0,0.015)] relative`}
+        className={`flex md:hidden items-center justify-between px-4 py-3.5 cursor-pointer transition-all duration-200 ease-in-out active:bg-neutral-100/60 dark:active:bg-zinc-900/40 ${
+          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-neutral-50/20 dark:bg-zinc-900/5'
+        } border-b border-neutral-100/40 dark:border-zinc-900/10`}
       >
-        {/* Favorite Heart & Likes Count - Positioned Top Right Premium Capsule */}
-        <div className="absolute right-4.5 top-4.5 z-10">
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full backdrop-blur-md border shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 ${
-            item.isFavorited 
-              ? 'bg-rose-50/90 dark:bg-rose-950/20 border-rose-100/50 dark:border-rose-900/30' 
-              : 'bg-neutral-50/80 dark:bg-zinc-900/60 border-neutral-100/80 dark:border-zinc-800/40'
-          }`}>
-            <InteractiveHeart 
-              isFavorited={item.isFavorited} 
-              name={item.apt.name} 
-              onToggle={onToggleFavorite} 
-              size={13} 
-            />
-            {item.likes > 0 && (
-              <span className={`text-[10px] font-extrabold tracking-tight ${
-                item.isFavorited ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-500 dark:text-neutral-400'
-              }`}>
-                {item.likes}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Top Info */}
-        <div className="flex items-start gap-3 w-full min-w-0 mb-3.5 pr-20">
+        {/* Left Side: Rank, Name, Subtitle */}
+        <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
           {/* Rank Badge */}
-          <div className="shrink-0 pt-0.5">
+          <div className="shrink-0 flex items-center justify-center">
             {index < 3 ? (
-              <span className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tighter shadow-md ${
-                index === 0 ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-white shadow-amber-500/20 ring-1 ring-amber-300/30' :
-                index === 1 ? 'bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-white shadow-slate-400/20 ring-1 ring-slate-300/30' :
-                'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 text-white shadow-amber-700/20 ring-1 ring-amber-500/30'
+              <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tight ${
+                index === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 text-white shadow-sm' :
+                index === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-sm' :
+                'bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white shadow-sm'
               }`}>
                 {index + 1}
               </span>
             ) : (
-              <span className="w-[22px] h-[22px] rounded-full bg-neutral-100/60 dark:bg-neutral-800/40 border border-neutral-200/30 dark:border-neutral-700/30 flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
+              <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
                 {index + 1}
               </span>
             )}
           </div>
-          
-          {/* Name & Metadata */}
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-50 leading-tight mb-2 tracking-tight break-keep group-hover:text-[#00d29d] transition-colors">
-              {item.apt.name}
-            </span>
-            
-            {/* Meta & Micro Badges Combined Row */}
-            <div className="flex items-center flex-wrap gap-1.5 text-[10.5px] text-neutral-500 dark:text-neutral-400 font-bold tracking-tight">
-              <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-extrabold rounded-md shadow-sm border border-emerald-100/20">
-                {item.apt.dong}
-              </span>
-              <span>{item.formattedYearBuilt}</span>
-              <span className="text-neutral-300 dark:text-neutral-700">•</span>
-              <span>{item.formattedHousehold}</span>
 
-              {/* Photo Count badge only inside text line */}
+          {/* Name & Subtitle */}
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[14.5px] font-extrabold text-neutral-900 dark:text-neutral-50 truncate tracking-tight">
+                {item.apt.name}
+              </span>
               {item.photoCount > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[9.5px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/10">
-                  <Camera className="w-2.5 h-2.5" />{item.photoCount}장
+                <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1 py-0.5 rounded shrink-0">
+                  <Camera className="w-2.5 h-2.5" />{item.photoCount}
                 </span>
               )}
+            </div>
+            
+            {/* Subtitle Info */}
+            <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500 font-semibold mt-0.5 truncate tracking-tight">
+              <span className="text-neutral-500 dark:text-neutral-400">{item.apt.dong}</span>
+              <span className="text-neutral-300 dark:text-zinc-800">•</span>
+              <span>{item.formattedYearBuilt}</span>
+              <span className="text-neutral-300 dark:text-zinc-800">•</span>
+              <span>{item.formattedHousehold}</span>
             </div>
           </div>
         </div>
 
-        {/* Integrated Mobile Metrics Slab (Clean & Modern Unified Look) */}
-        <div className="grid grid-cols-3 gap-0 w-full mt-1.5 p-1 bg-gradient-to-b from-neutral-50/60 to-neutral-100/20 dark:from-zinc-900/10 dark:to-zinc-900/20 backdrop-blur-md rounded-2xl border border-neutral-200/40 dark:border-zinc-800/10 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]">
-          {/* Price Block */}
-          <div className="flex flex-col items-center justify-center text-center py-2 relative">
-            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-extrabold mb-1.5 flex items-center gap-0.5">
-              <Coins className="w-2.5 h-2.5 opacity-40 text-emerald-500" /> 매매가
-            </span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5 tracking-tight">
-              {item.formattedPrice}
-            </span>
-            <span className="text-[9.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] leading-none bg-emerald-500/5 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
-              {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
-            </span>
+        {/* Right Side: Dynamic Metric & Favorite Heart */}
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Dynamic Metric Value */}
+          <div className="text-right flex flex-col justify-center">
+            {currentCategory === 'rank-abs-price' || currentCategory === 'favorites' ? (
+              <>
+                <span className="text-[14.5px] font-black text-neutral-900 dark:text-neutral-50 tracking-tight leading-tight">
+                  {item.totalPrice > 0 ? item.formattedPrice : '-'}
+                </span>
+                <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
+                  {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
+                </span>
+              </>
+            ) : currentCategory === 'rank-price' || currentCategory.startsWith('dong-') ? (
+              <>
+                <span className="text-[14.5px] font-black text-neutral-900 dark:text-neutral-50 tracking-tight leading-tight">
+                  {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
+                </span>
+                <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
+                  {item.totalPrice > 0 ? `매매 ${item.formattedPrice}` : '-'}
+                </span>
+              </>
+            ) : currentCategory === 'rank-jeonse' ? (
+              <>
+                <span className="text-[14.5px] font-black text-[#00b386] dark:text-[#00d29d] tracking-tight leading-tight">
+                  {item.ratio > 0 ? item.formattedRatio : '-'}
+                </span>
+                <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
+                  {item.jeonsePrice > 0 ? `전세 ${item.formattedJeonse}` : '-'}
+                </span>
+              </>
+            ) : currentCategory === 'rank-turnover' ? (
+              <>
+                <span className="text-[14.5px] font-black text-indigo-600 dark:text-indigo-400 tracking-tight leading-tight">
+                  {item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}
+                </span>
+                <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
+                  {item.volume3M > 0 ? `거래 ${item.volume3M}건` : '-'}
+                </span>
+              </>
+            ) : currentCategory === 'rank-views' ? (
+              <>
+                <span className="text-[14.5px] font-black text-orange-500 tracking-tight leading-tight">
+                  {item.views > 0 ? `${item.views.toLocaleString()}회` : '0회'}
+                </span>
+                <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
+                  {item.totalPrice > 0 ? `매매 ${item.formattedPrice}` : '-'}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-[14.5px] font-black text-neutral-900 dark:text-neutral-50 tracking-tight leading-tight">
+                  {item.totalPrice > 0 ? item.formattedPrice : '-'}
+                </span>
+                <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
+                  {item.pyeongPrice > 0 ? `${item.formattedPyeong}` : '-'}
+                </span>
+              </>
+            )}
           </div>
 
-          {/* Jeonse Block */}
-          <div className="flex flex-col items-center justify-center text-center py-2 border-x border-neutral-200/40 dark:border-zinc-800/20 relative">
-            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-extrabold mb-1.5 flex items-center gap-0.5">
-              <Activity className="w-2.5 h-2.5 opacity-40 text-teal-500" /> 전세가
-            </span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5 tracking-tight">
-              {item.jeonsePrice > 0 ? item.formattedJeonse : '-'}
-            </span>
-            <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
-              item.ratio >= 0.6 
-                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
-                : 'bg-neutral-100/60 dark:bg-neutral-800/40 text-neutral-400 dark:text-neutral-500'
-            }`}>
-              {item.ratio > 0 ? item.formattedRatio : '-'}
-            </span>
-          </div>
-
-          {/* Volume Block */}
-          <div className="flex flex-col items-center justify-center text-center py-2 relative">
-            <span className="text-[9px] text-neutral-400 dark:text-neutral-500 font-extrabold mb-1.5 flex items-center gap-0.5">
-              <TrendingUp className="w-2.5 h-2.5 opacity-40 text-indigo-500" /> 거래량(3M)
-            </span>
-            <span className="text-[13px] font-black text-neutral-900 dark:text-neutral-50 leading-none mb-1.5 tracking-tight">
-              {item.volume3M > 0 ? item.formattedVolume : '-'}
-            </span>
-            <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded leading-none ${
-              item.turnoverRate >= 2.5 
-                ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' 
-                : 'bg-neutral-100/60 dark:bg-neutral-800/40 text-neutral-400 dark:text-neutral-500'
-            }`}>
-              {item.formattedTurnover ? `${item.formattedTurnover}` : '-'}
-            </span>
+          {/* Heart Icon (Compact, without the heavy capsule) */}
+          <div className="shrink-0 flex items-center justify-center">
+            <InteractiveHeart 
+              isFavorited={item.isFavorited} 
+              name={item.apt.name} 
+              onToggle={onToggleFavorite} 
+              size={16} 
+            />
           </div>
         </div>
       </div>
@@ -411,6 +424,16 @@ export default function TossApartmentExploreClient({
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const categories = useMemo(() => [
+    { id: 'favorites', label: '내 관심' },
+    { id: 'rank-abs-price', label: '매매가순' },
+    { id: 'rank-price', label: '평당가순' },
+    { id: 'rank-jeonse', label: '전세율순' },
+    { id: 'rank-turnover', label: '회전율순' },
+    { id: 'rank-views', label: '조회순' },
+    ...DONGS.map(d => ({ id: `dong-${d.name}`, label: d.name }))
+  ], []);
   const debouncedSearchQuery = useDebounce(searchQuery, 200);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -706,31 +729,70 @@ export default function TossApartmentExploreClient({
 
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
       <div 
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-all duration-300 ${
-          isScrolled ? 'translate-y-0 opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : '-translate-y-full opacity-0 pointer-events-none'
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-4 pt-3 pb-2 flex flex-col gap-2 transition-all duration-300 border-b border-border/40 shadow-sm ${
+          isScrolled ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        <button 
-          className="flex items-center gap-1 focus:outline-none"
-          onClick={() => setIsMobileMenuOpen(true)}
+        <div className="flex items-center justify-between w-full">
+          <button 
+            className="flex items-center gap-1 focus:outline-none"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <h2 className="text-[15px] font-black text-primary tracking-tight">
+              {currentCategory === 'favorites' ? '내 관심 단지' : 
+               currentCategory === 'rank-price' ? '평당가 높은 순' :
+               currentCategory === 'rank-abs-price' ? '가격 높은 순' :
+               currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
+               currentCategory === 'rank-turnover' ? '회전율 높은 순' :
+               currentCategory === 'rank-views' ? '조회수 많은 순' :
+               `${currentCategory.replace('dong-', '')} 아파트`}
+            </h2>
+            <ChevronDown className="w-4 h-4 text-primary" />
+          </button>
+          <div className="flex items-center gap-1.5">
+            <button 
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const searchInput = document.querySelector('input[type="search"]') || document.querySelector('input[type="text"]');
+                if (searchInput) (searchInput as HTMLInputElement).focus();
+              }}
+              className="p-1 rounded-full hover:bg-body transition-colors"
+              aria-label="검색"
+            >
+              <Search className="w-4 h-4 text-secondary" />
+            </button>
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="p-1 rounded-full hover:bg-body transition-colors"
+              aria-label="위로"
+            >
+              <ArrowUp className="w-4 h-4 text-secondary" />
+            </button>
+          </div>
+        </div>
+
+        {/* Sticky Filter Chips Bar */}
+        <div 
+          className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full scroll-smooth shrink-0"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          <h2 className="text-[16px] font-extrabold text-primary tracking-tight">
-            {currentCategory === 'favorites' ? '내 관심 단지' : 
-             currentCategory === 'rank-price' ? '평당가 높은 순' :
-             currentCategory === 'rank-abs-price' ? '가격 높은 순' :
-             currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
-             currentCategory === 'rank-turnover' ? '회전율 높은 순' :
-             currentCategory === 'rank-views' ? '조회수 많은 순' :
-             `${currentCategory.replace('dong-', '')} 아파트`}
-          </h2>
-          <ChevronDown className="w-4 h-4 text-primary" />
-        </button>
-        <button 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="p-1.5 -mr-1.5 rounded-full hover:bg-body transition-colors"
-        >
-          <ArrowUp className="w-5 h-5 text-tertiary" />
-        </button>
+          {categories.map((cat) => {
+            const isActive = currentCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setCurrentCategory(cat.id)}
+                className={`px-3 py-1 rounded-full text-[11.5px] font-bold transition-all shrink-0 active:scale-95 ${
+                  isActive
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 ring-1 ring-emerald-500/20'
+                    : 'bg-neutral-100 dark:bg-zinc-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800'
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main Table Area */}
@@ -755,7 +817,7 @@ export default function TossApartmentExploreClient({
             <p className="text-[13px] md:text-[15px] font-medium text-tertiary mt-0 md:mt-2">총 {sortedApts.length}개 단지</p>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center gap-2.5 w-full md:w-auto shrink-0">
             <div className="relative w-full md:w-[220px] shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
               <input 
@@ -778,6 +840,30 @@ export default function TossApartmentExploreClient({
                 <X size={16} />
               </button>
             )}
+            </div>
+
+            {/* Mobile Category Chips Scrollbar (Default view below search bar) */}
+            <div 
+              className="flex md:hidden overflow-x-auto no-scrollbar gap-1.5 py-1.5 w-full scroll-smooth shrink-0"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {categories.map((cat) => {
+                const isActive = currentCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCurrentCategory(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all shrink-0 active:scale-95 ${
+                      isActive
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 ring-1 ring-emerald-500/20'
+                        : 'bg-neutral-100 dark:bg-zinc-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
 
             {/* Premium Autocomplete & Suggestions Dropdown */}
             {isSearchFocused && (
@@ -928,7 +1014,6 @@ export default function TossApartmentExploreClient({
                 )}
               </div>
             )}
-            </div>
             
             <div 
               className="flex flex-row overflow-x-auto whitespace-nowrap gap-2 py-1 w-full md:w-auto shrink-0 -mx-4 px-4 md:mx-0 md:px-0 md:items-center md:gap-2"
@@ -1058,6 +1143,7 @@ export default function TossApartmentExploreClient({
                       index={index} 
                       handleSelectApt={handleSelectApt} 
                       onToggleFavorite={onToggleFavorite} 
+                      currentCategory={currentCategory}
                     />
                     {index === 14 && sortedApts.length > 15 && (
                       <div className="px-3 md:px-4 py-1.5 md:py-1 w-full">
