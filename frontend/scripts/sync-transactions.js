@@ -260,7 +260,6 @@ async function main() {
         dealType: d.dealType || '매매',
         contractDate: cDate,
       });
-    }
   });
 
   console.log(`📡 Firestore transactionSync (임대차 등) 로딩 중... (Incremental: ${!isFullSync ? cutoffYm + ' 이후' : '전체'})`);
@@ -312,7 +311,6 @@ async function main() {
         dealType: d.dealType || '매매',
         contractDate: cDate,
       });
-    }
   });
 
   // 아파트별 요약 계산
