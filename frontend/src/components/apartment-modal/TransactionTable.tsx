@@ -42,12 +42,27 @@ export function TransactionTable({
   const { areaUnit } = useSettings();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
-  const [visibleCount, setVisibleCount] = useState(10);
-  
-  // Reset visible count when chart type or sorting changes
+  // 화면 너비 감지 (반응형 상태)
+  const [isDesktop, setIsDesktop] = useState(false);
+
   useEffect(() => {
-    setVisibleCount(10);
-  }, [chartType, txSort]);
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+    return () => window.removeEventListener('resize', checkIsDesktop);
+  }, []);
+
+  const defaultCount = isDesktop ? 8 : 6;
+  const batchSize = isDesktop ? 8 : 6;
+
+  const [visibleCount, setVisibleCount] = useState(6);
+  
+  // defaultCount가 변하거나 필터 조건이 바뀔 때 visibleCount 초기화
+  useEffect(() => {
+    setVisibleCount(defaultCount);
+  }, [defaultCount, chartType, txSort]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
@@ -149,7 +164,8 @@ export function TransactionTable({
       </div>
 
       <div 
-      className="overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative max-h-[400px] md:max-h-[500px] xl:max-h-[560px]"
+      className="overflow-y-auto touch-pan-y custom-scrollbar flex-1 relative h-[280px] md:h-[420px]"
+      style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
@@ -255,18 +271,18 @@ export function TransactionTable({
           );
         })}
 
-        {sortedFilteredTransactions.length > 10 && (
+        {sortedFilteredTransactions.length > defaultCount && (
           <div className="border-t border-border/40 bg-surface flex shrink-0">
             {sortedFilteredTransactions.length > visibleCount ? (
               <button
-                onClick={() => setVisibleCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length))}
+                onClick={() => setVisibleCount(prev => Math.min(prev + batchSize, sortedFilteredTransactions.length))}
                 className="flex-1 py-3.5 text-center text-[13px] font-bold text-toss-blue hover:bg-toss-blue/5 active:bg-toss-blue/10 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
               >
-                실거래가 더보기 ({Math.min(30, sortedFilteredTransactions.length - visibleCount)}개 더보기, {visibleCount}/{sortedFilteredTransactions.length})
+                실거래가 더보기 ({Math.min(batchSize, sortedFilteredTransactions.length - visibleCount)}개 더보기, {visibleCount}/{sortedFilteredTransactions.length})
               </button>
             ) : (
               <button
-                onClick={() => setVisibleCount(10)}
+                onClick={() => setVisibleCount(defaultCount)}
                 className="flex-1 py-3.5 text-center text-[13px] font-bold text-tertiary hover:bg-body active:bg-body/80 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
               >
                 접기
