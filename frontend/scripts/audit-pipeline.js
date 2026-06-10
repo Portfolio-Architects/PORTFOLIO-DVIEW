@@ -247,17 +247,40 @@ function auditBundleSizes() {
   }
 }
 
-// 6. Perform Playwright E2E Integration tests
+// 6. Perform Playwright E2E Integration & UI/UX Audit tests
 function auditE2ETests() {
-  log(colors.cyan, '🔄 Running Playwright E2E Integration tests (npm run test:e2e)...');
+  log(colors.cyan, '🔄 Running Playwright E2E Integration & UI/UX Audit tests (npm run test:e2e)...');
+  let testsPassed = false;
   try {
     execSync('npm run test:e2e', { stdio: 'inherit' });
     log(colors.green, '✅ E2E tests check: PASSED');
-    return true;
+    testsPassed = true;
   } catch (error) {
     log(colors.red, '❌ E2E tests check: FAILED');
-    return false;
+    testsPassed = false;
   }
+
+  // Generate UI/UX report regardless of success/failure if raw results exist
+  try {
+    const rawPath = path.resolve(process.cwd(), 'scratch/ui-ux-audit-results.json');
+    if (fs.existsSync(rawPath)) {
+      log(colors.cyan, '🔄 Generating UI/UX self-improvement report...');
+      execSync('node scripts/generate-ui-ux-report.js', { stdio: 'inherit' });
+      
+      // Copy to Gemini Artifacts folder
+      const artifactDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\29abde95-942b-4780-9317-a9fefbfbde86';
+      if (fs.existsSync(artifactDir)) {
+        const sourceReport = path.resolve(process.cwd(), 'scratch/ui_ux_improvement_report.md');
+        const destReport = path.join(artifactDir, 'PORTFOLIO DVIEW - UI-UX Diagnostics Report.md');
+        fs.copyFileSync(sourceReport, destReport);
+        log(colors.green, `✅ UI/UX Report successfully copied to Artifacts:\n   ${destReport}`);
+      }
+    }
+  } catch (err) {
+    log(colors.red, `⚠️ Failed to generate or copy UI/UX report: ${err.message}`);
+  }
+
+  return testsPassed;
 }
 
 // 7. Firestore Cost Analysis

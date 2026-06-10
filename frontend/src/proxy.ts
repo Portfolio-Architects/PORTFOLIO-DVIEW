@@ -31,6 +31,9 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/tx-data/') ||
     pathname === '/sw.js' ||
     pathname === '/manifest.webmanifest' ||
+    pathname === '/ads.txt' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
     /\.(json|png|jpg|jpeg|gif|svg|ico|css|js|map)$/.test(pathname)
   ) {
     return NextResponse.next();
@@ -151,7 +154,7 @@ export async function proxy(request: NextRequest) {
 // 미들웨어 구동 범위 (정적 에셋 등 불필요한 연산 방지)
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|_vercel|assets|css|js|images|data|tx-data|sw\\.js|manifest\\.webmanifest).*)',
+    '/((?!_next/static|_next/image|favicon.ico|_vercel|assets|css|js|images|data|tx-data|sw\\.js|manifest\\.webmanifest|ads\\.txt|robots\\.txt|sitemap\\.xml).*)',
   ],
 };
 

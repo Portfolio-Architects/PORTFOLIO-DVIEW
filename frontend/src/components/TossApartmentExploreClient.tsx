@@ -57,11 +57,7 @@ const formatYearBuilt = (yearStr?: string | number) => {
     ageStr = diffYears === 0 ? `${diffMonths}M` : `${diffYears + 1}년차`;
   }
   
-  if (str.length >= 6) {
-    return `${year}.${String(month).padStart(2, '0')} (${ageStr})`;
-  } else {
-    return `${year} (${ageStr})`;
-  }
+  return ageStr;
 };
 
 const InteractiveHeart = memo(({ 
@@ -292,7 +288,7 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCa
           {/* Name & Subtitle */}
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[14.5px] font-extrabold text-neutral-900 dark:text-neutral-50 truncate tracking-tight">
+              <span className="text-[14.5px] font-extrabold text-neutral-900 dark:text-neutral-50 break-keep whitespace-normal tracking-tight">
                 {item.apt.name}
               </span>
               {item.photoCount > 0 && (

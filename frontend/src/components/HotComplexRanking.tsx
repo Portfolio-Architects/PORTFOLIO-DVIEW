@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { Clock } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { FieldReportData } from '@/lib/types/report.types';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -27,8 +27,9 @@ export default function HotComplexRanking({
   nameMapping,
 }: HotComplexRankingProps) {
   const { areaUnit } = useSettings();
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Compute top 5 recent transaction complexes (Sorted by Date desc, then Price desc)
+  // Compute recent transaction complexes (Sorted by Date desc, then Price desc)
   const recentList = useMemo(() => {
     const allApts = Object.values(sheetApartments).flat();
     
@@ -56,7 +57,7 @@ export default function HotComplexRanking({
         const priceB = b.sum.latestPrice || 0;
         return priceB - priceA;
       })
-      .slice(0, 5)
+      .slice(0, 25)
       .map(item => {
         const sum = item.sum;
         
@@ -97,6 +98,9 @@ export default function HotComplexRanking({
         };
       });
   }, [sheetApartments, txSummaryData, nameMapping, areaUnit]);
+
+  const displayList = isExpanded ? recentList : recentList.slice(0, 5);
+  const hasMore = recentList.length > 5;
  
   return (
     <div className="w-full bg-surface border border-border rounded-3xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
@@ -110,7 +114,7 @@ export default function HotComplexRanking({
       {/* Lists Layout */}
       <div className="p-4 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
-          {recentList.map((item, index) => {
+          {displayList.map((item, index) => {
             const badgeStyle = "bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#00b386] dark:text-[#00d29d] font-bold border border-transparent";
             
             return (
@@ -128,7 +132,7 @@ export default function HotComplexRanking({
                   </div>
  
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary truncate leading-tight group-hover:text-toss-blue transition-colors">
+                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-toss-blue transition-colors">
                       {item.apt.name}
                     </span>
                     <span className="text-[11px] md:text-[12px] font-semibold text-tertiary mt-0.5">
@@ -151,6 +155,26 @@ export default function HotComplexRanking({
           })}
         </div>
       </div>
+
+      {/* Show More Button */}
+      {hasMore && (
+        <div className="border-t border-border/40">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full py-4 text-center text-[13.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
+          >
+            {isExpanded ? (
+              <>
+                접기 <ChevronUp className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                실거래 이력 더보기 ({recentList.length - 5}개 더보기) <ChevronDown className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

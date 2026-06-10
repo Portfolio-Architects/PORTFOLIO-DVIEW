@@ -630,7 +630,7 @@ export default function GapInvestmentExplorer({
                     <div className="flex flex-col min-w-0 pr-1">
                       <span 
                         data-testid="complex-name"
-                        className="text-[16px] md:text-[18px] font-extrabold text-primary truncate group-hover:text-toss-blue transition-colors"
+                        className="text-[16px] md:text-[18px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-toss-blue transition-colors"
                       >
                         {item.apt.name}
                       </span>

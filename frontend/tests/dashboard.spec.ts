@@ -13,8 +13,9 @@ test.describe('Dashboard E2E Tests', () => {
 
     // 2. Wait for the apartments list to populate
     // Locate the first apartment name span containing "동탄역" in the virtualized list
-    const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역(?:롯데캐슬|힐스테이트)/ }).first()
-                         .or(page.locator('#explore-list-container span').first());
+    const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역\s*(?:롯데캐슬|힐스테이트)/ })
+                         .or(page.locator('#explore-list-container span', { hasText: /동탄역/ }))
+                         .first();
     await expect(aptTitle).toBeVisible({ timeout: 15000 });
 
     const aptName = await aptTitle.textContent();

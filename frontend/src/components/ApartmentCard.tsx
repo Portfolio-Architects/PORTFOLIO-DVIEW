@@ -110,7 +110,7 @@ const ApartmentCard = memo(function ApartmentCard({ apt, txSummary, report, isPu
 
       {/* 아파트 정보 */}
       <div className="flex-1 min-w-0 pr-2 flex flex-col justify-center">
-        <h4 className="text-[15px] font-extrabold text-primary truncate group-hover:text-toss-blue transition-colors leading-tight">
+        <h4 className="text-[15px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-toss-blue transition-colors leading-tight">
           {apt.name}
         </h4>
         

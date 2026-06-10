@@ -244,7 +244,7 @@ export default function ChopoomaCuration({
                 >
                   <div className="flex justify-between items-start gap-2 mb-4">
                     <div className="flex flex-col min-w-0 pr-1">
-                      <span className="text-[16px] md:text-[18px] font-extrabold text-primary truncate group-hover:text-toss-green transition-colors">
+                      <span className="text-[16px] md:text-[18px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-toss-green transition-colors">
                         {item.apt.name}
                       </span>
                       <span className="text-[12px] md:text-[13px] font-semibold text-tertiary mt-0.5">

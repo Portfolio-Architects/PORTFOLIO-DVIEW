@@ -866,7 +866,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 if (report) {
                   setSelectedReport(report);
                   setMobileModalOpen(true);
-                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                 } else {
                   // Fallback for apartments without reports, we still want to show the modal with basic transaction data
                   setSelectedReport({
@@ -882,7 +882,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     likeCount: 0,
                   } as any);
                   setMobileModalOpen(true);
-                  window.history.pushState(null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
                 }
               }}
               onToggleFavorite={handleAptToggleFavorite}

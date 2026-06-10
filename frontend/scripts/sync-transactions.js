@@ -178,7 +178,7 @@ async function main() {
   const now = new Date();
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
   const cutoffYm = `${threeMonthsAgo.getFullYear()}${String(threeMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
-  const cutoffDate = `${cutoffYm}${String(threeMonthsAgo.getDate()).padStart(2, '0')}`;
+  const cutoffDate = `${cutoffYm}01`;
 
   const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
   const byApt = {};
@@ -191,11 +191,13 @@ async function main() {
         const filepath = path.join(TX_DATA_DIR, `${aptName}.json`);
         if (fs.existsSync(filepath)) {
           const records = JSON.parse(fs.readFileSync(filepath, 'utf8'));
-          byApt[aptName] = records.map(d => ({
-            ...d,
-            contractDate: d.contractDate || `${d.contractYm}${String(d.contractDay).padStart(2, '0')}`,
-            dong: d.dong || ''
-          }));
+          byApt[aptName] = records
+            .map(d => ({
+              ...d,
+              contractDate: d.contractDate || `${d.contractYm}${String(d.contractDay).padStart(2, '0')}`,
+              dong: d.dong || ''
+            }))
+            .filter(d => d.contractDate < cutoffDate);
         }
       }
       console.log(`✅ ${Object.keys(byApt).length}개 아파트의 기존 데이터 로드 완료`);
@@ -750,20 +752,31 @@ async function main() {
       dealType: t.dealType || '',
     }));
 
+    // Deduplicate records to prevent duplicate rows in the UI
+    const seen = new Set();
+    const uniqueRecords = [];
+    for (const r of records) {
+      const key = `${r.contractYm}_${r.contractDay}_${r.price}_${r.deposit}_${r.monthlyRent}_${Math.round(r.area * 100) / 100}_${r.floor}_${r.dealType}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueRecords.push(r);
+      }
+    }
+
     // 파일명: 정규화된 아파트명 (URL-safe)
     const filename = `${aptName}.json`;
     const filepath = path.join(TX_DATA_DIR, filename);
-    const json = JSON.stringify(records);
+    const json = JSON.stringify(uniqueRecords);
     
     fs.writeFileSync(filepath, json, 'utf-8');
 
     // 최근 거래 내역만 포함하는 경량 JSON 파일 생성 (최근 15건)
     const filenameRecent = `${aptName}-recent.json`;
     const filepathRecent = path.join(TX_DATA_DIR, filenameRecent);
-    const jsonRecent = JSON.stringify(records.slice(0, 15));
+    const jsonRecent = JSON.stringify(uniqueRecords.slice(0, 15));
     fs.writeFileSync(filepathRecent, jsonRecent, 'utf-8');
     
-    totalRecords += records.length;
+    totalRecords += uniqueRecords.length;
     totalSizeKB += (json.length + jsonRecent.length) / 1024;
     chunkCount++;
   }

@@ -2,7 +2,6 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
-import { useInView } from 'react-intersection-observer';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export interface TransactionRecord {
@@ -56,7 +55,7 @@ export function TransactionTable({
   }, [transactions, chartType]);
 
   const sortedFilteredTransactions = useMemo(() => {
-    return [...filteredTransactions].sort((a, b) => {
+    const sorted = [...filteredTransactions].sort((a, b) => {
       const getP = (t: TransactionRecord) => (t.dealType === '전세' || t.dealType === '월세') ? (t.deposit || 0) : t.price;
       if (txSort === 'date_desc') {
         const da = a.contractYm + a.contractDay.padStart(2, '0');
@@ -73,38 +72,29 @@ export function TransactionTable({
       if (txSort === 'price_asc') return getP(a) - getP(b);
       return 0;
     });
+
+    // Filter to last 1 month (30 days) from current date
+    const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const limitTime = oneMonthAgo.getTime();
+
+    const recentTxs = sorted.filter(t => {
+      if (!t.contractYm || !t.contractDay) return false;
+      const y = parseInt(t.contractYm.substring(0, 4));
+      const m = parseInt(t.contractYm.substring(4, 6)) - 1;
+      const d = parseInt(t.contractDay) || 1;
+      const txDate = new Date(y, m, d);
+      return txDate.getTime() >= limitTime;
+    });
+
+    // Fallback: If no records exist in the last month, show the 5 most recent transactions
+    if (recentTxs.length === 0) {
+      return sorted.slice(0, 5);
+    }
+    return recentTxs;
   }, [filteredTransactions, txSort]);
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [displayedCount, setDisplayedCount] = useState(10);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const { ref: loadMoreRef, inView } = useInView({
-    rootMargin: '200px',
-    threshold: 0.1,
-    triggerOnce: false,
-  });
-
-  useEffect(() => {
-    if (!isMobile && inView && displayedCount < sortedFilteredTransactions.length) {
-      setDisplayedCount(prev => Math.min(prev + 10, sortedFilteredTransactions.length));
-    }
-  }, [inView, sortedFilteredTransactions.length, displayedCount, isMobile]);
-
-  // Reset displayed count when filters change, or when mobile state shifts
-  useEffect(() => {
-    setDisplayedCount(isMobile ? 5 : 10);
-  }, [txSort, chartType, isMobile]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -174,9 +164,9 @@ export function TransactionTable({
       </div>
 
       <div 
-      className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]"
+      className="overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative max-h-[400px] md:max-h-[500px] xl:max-h-[560px]"
       >
-        {sortedFilteredTransactions.slice(0, displayedCount).map((tx, i) => {
+        {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = String(tx.contractDay).trim().padStart(2, '0');
           const isRent = tx.dealType === '전세' || tx.dealType === '월세';
@@ -280,12 +270,6 @@ export function TransactionTable({
           );
         })}
 
-        {!isMobile && displayedCount < sortedFilteredTransactions.length && (
-          <div ref={loadMoreRef} className="flex justify-center py-5 shrink-0 w-full items-center">
-            <div className="w-6 h-6 rounded-full border-2 border-toss-blue border-t-transparent animate-spin" />
-          </div>
-        )}
-
         {filteredTransactions.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[200px] text-tertiary gap-2">
             <AlertCircle size={24} className="text-toss-gray" />
@@ -293,18 +277,6 @@ export function TransactionTable({
           </div>
         )}
       </div>
-
-      {/* 모바일 뷰 전용 수동 더보기 버튼 */}
-      {mounted && isMobile && displayedCount < sortedFilteredTransactions.length && (
-        <div className="flex justify-center py-4 bg-surface border-t border-body px-4 shrink-0">
-          <button
-            onClick={() => setDisplayedCount(prev => Math.min(prev + 10, sortedFilteredTransactions.length))}
-            className="flex items-center justify-center gap-1.5 bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] py-3.5 px-6 rounded-xl text-[14px] font-extrabold w-full transition-colors shadow-sm cursor-pointer hover:bg-[#e5e8eb] border-none outline-none"
-          >
-            더보기 <ChevronDown size={16} />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
