@@ -1711,12 +1711,10 @@ interface GroupedCategory {
 
                             {/* 2nd Row: Info & Price & Button */}
                             <div className="flex items-center justify-between text-[11px] text-tertiary">
-                              <div className="flex items-center gap-1 truncate font-medium">
-                                <span>{item.dong}</span>
-                                <span className="text-border">·</span>
-                                <span>{renderAreaLabel(item.areaPyeong, item.area)}</span>
-                                <span className="text-border">·</span>
-                                <span>{item.floor}층</span>
+                              <div className="flex items-center gap-1 min-w-0 font-medium mr-2">
+                                <span className="truncate">
+                                  {item.dong} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
+                                </span>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 <div className="flex items-center gap-1.5">
