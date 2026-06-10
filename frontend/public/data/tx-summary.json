@@ -205,7 +205,7 @@
           "area": 74.92
         }
       ],
-      "rentTxCount": 411,
+      "rentTxCount": 410,
       "latestRentDeposit": 34545,
       "latestRentDepositEok": "3억4,545",
       "latestRentMonthly": 140,
@@ -443,7 +443,7 @@
       },
       "minPrice": 34800,
       "minPriceEok": "3억4,800",
-      "txCount": 471,
+      "txCount": 470,
       "avg1MPrice": 67200,
       "avg1MPriceEok": "6억7,200",
       "avg1MPerPyeong": 2014,
@@ -629,7 +629,7 @@
           "area": 84.5202
         }
       ],
-      "rentTxCount": 874,
+      "rentTxCount": 872,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -1720,7 +1720,7 @@
       },
       "minPrice": 24000,
       "minPriceEok": "2억4,000",
-      "txCount": 944,
+      "txCount": 945,
       "avg1MPrice": 81400,
       "avg1MPriceEok": "8억1,400",
       "avg1MPerPyeong": 2360,
@@ -1906,7 +1906,7 @@
           "area": 84.9784
         }
       ],
-      "rentTxCount": 1417,
+      "rentTxCount": 1415,
       "latestRentDeposit": 45150,
       "latestRentDepositEok": "4억5,150",
       "latestRentMonthly": 0,
@@ -2142,7 +2142,7 @@
       },
       "minPrice": 24980,
       "minPriceEok": "2억4,980",
-      "txCount": 635,
+      "txCount": 636,
       "avg1MPrice": 68300,
       "avg1MPriceEok": "6억8,300",
       "avg1MPerPyeong": 2601,
@@ -2328,7 +2328,7 @@
           "area": 84.9731
         }
       ],
-      "rentTxCount": 577,
+      "rentTxCount": 578,
       "latestRentDeposit": 39636,
       "latestRentDepositEok": "3억9,636",
       "latestRentMonthly": 90,
@@ -2542,7 +2542,7 @@
           "area": 84.68
         }
       ],
-      "rentTxCount": 2548,
+      "rentTxCount": 2550,
       "latestRentDeposit": 37727,
       "latestRentDepositEok": "3억7,727",
       "latestRentMonthly": 150,
@@ -2758,7 +2758,7 @@
           "area": 59.99
         }
       ],
-      "rentTxCount": 1189,
+      "rentTxCount": 1190,
       "latestRentDeposit": 44000,
       "latestRentDepositEok": "4억4,000",
       "latestRentMonthly": 0,
@@ -3182,7 +3182,7 @@
           "area": 96.4338
         }
       ],
-      "rentTxCount": 727,
+      "rentTxCount": 730,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -3610,7 +3610,7 @@
           "area": 59.37
         }
       ],
-      "rentTxCount": 1192,
+      "rentTxCount": 1191,
       "latestRentDeposit": 31500,
       "latestRentDepositEok": "3억1,500",
       "latestRentMonthly": 0,
@@ -4036,7 +4036,7 @@
           "area": 97.6
         }
       ],
-      "rentTxCount": 996,
+      "rentTxCount": 995,
       "latestRentDeposit": 53636,
       "latestRentDepositEok": "5억3,636",
       "latestRentMonthly": 200,
@@ -4446,17 +4446,17 @@
         },
         {
           "date": "02.11",
-          "priceEok": "4억9,500",
-          "areaPyeong": 29.947499999999998,
-          "floor": 25,
-          "area": 73.33
-        },
-        {
-          "date": "02.11",
           "priceEok": "5억1,000",
           "areaPyeong": 30.25,
           "floor": 27,
           "area": 72.68
+        },
+        {
+          "date": "02.11",
+          "priceEok": "4억9,500",
+          "areaPyeong": 29.947499999999998,
+          "floor": 25,
+          "area": 73.33
         },
         {
           "date": "02.09",
@@ -4466,7 +4466,7 @@
           "area": 72.68
         }
       ],
-      "rentTxCount": 1054,
+      "rentTxCount": 1053,
       "latestRentDeposit": 37909,
       "latestRentDepositEok": "3억7,909",
       "latestRentMonthly": 160,
@@ -5333,7 +5333,7 @@
           "area": 74.67
         }
       ],
-      "rentTxCount": 666,
+      "rentTxCount": 665,
       "latestRentDeposit": 42091,
       "latestRentDepositEok": "4억2,091",
       "latestRentMonthly": 170,
@@ -5546,7 +5546,7 @@
           "area": 84.691
         }
       ],
-      "rentTxCount": 1124,
+      "rentTxCount": 1126,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -6399,7 +6399,7 @@
           "area": 84.76
         }
       ],
-      "rentTxCount": 955,
+      "rentTxCount": 957,
       "latestRentDeposit": 38850,
       "latestRentDepositEok": "3억8,850",
       "latestRentMonthly": 0,
@@ -6613,7 +6613,7 @@
           "area": 59.87
         }
       ],
-      "rentTxCount": 1765,
+      "rentTxCount": 1767,
       "latestRentDeposit": 29182,
       "latestRentDepositEok": "2억9,182",
       "latestRentMonthly": 120,
@@ -7037,7 +7037,7 @@
           "area": 74.8664
         }
       ],
-      "rentTxCount": 605,
+      "rentTxCount": 604,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
@@ -7463,7 +7463,7 @@
           "area": 99.0393
         }
       ],
-      "rentTxCount": 885,
+      "rentTxCount": 888,
       "latestRentDeposit": 69000,
       "latestRentDepositEok": "6억9,000",
       "latestRentMonthly": 0,
@@ -7493,7 +7493,7 @@
       },
       "minPrice": 31000,
       "minPriceEok": "3억1,000",
-      "txCount": 1213,
+      "txCount": 1212,
       "avg1MPrice": 89500,
       "avg1MPriceEok": "8억9,500",
       "avg1MPerPyeong": 3220,
@@ -7679,7 +7679,7 @@
           "area": 74.9061
         }
       ],
-      "rentTxCount": 1677,
+      "rentTxCount": 1676,
       "latestRentDeposit": 42500,
       "latestRentDepositEok": "4억2,500",
       "latestRentMonthly": 0,
@@ -8103,7 +8103,7 @@
           "area": 84.9921
         }
       ],
-      "rentTxCount": 647,
+      "rentTxCount": 648,
       "latestRentDeposit": 42273,
       "latestRentDepositEok": "4억2,273",
       "latestRentMonthly": 180,
@@ -8742,7 +8742,7 @@
           "area": 59.4656
         }
       ],
-      "rentTxCount": 408,
+      "rentTxCount": 409,
       "latestRentDeposit": 42727,
       "latestRentDepositEok": "4억2,727",
       "latestRentMonthly": 150,
@@ -9166,7 +9166,7 @@
           "area": 84.55
         }
       ],
-      "rentTxCount": 842,
+      "rentTxCount": 843,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -9584,10 +9584,10 @@
         },
         {
           "date": "06.27",
-          "priceEok": "5억6,000",
+          "priceEok": "6억500",
           "areaPyeong": 31.7625,
-          "floor": 3,
-          "area": 84.496
+          "floor": 13,
+          "area": 84.23
         }
       ],
       "rentTxCount": 392,
@@ -10229,7 +10229,7 @@
           "area": 84.9025
         }
       ],
-      "rentTxCount": 285,
+      "rentTxCount": 286,
       "latestRentDeposit": 35000,
       "latestRentDepositEok": "3억5,000",
       "latestRentMonthly": 0,
@@ -10869,7 +10869,7 @@
           "area": 55.97
         }
       ],
-      "rentTxCount": 621,
+      "rentTxCount": 623,
       "latestRentDeposit": 31000,
       "latestRentDepositEok": "3억1,000",
       "latestRentMonthly": 0,
@@ -11298,7 +11298,7 @@
           "area": 60.3768
         }
       ],
-      "rentTxCount": 672,
+      "rentTxCount": 670,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -11511,7 +11511,7 @@
           "area": 59.96
         }
       ],
-      "rentTxCount": 748,
+      "rentTxCount": 747,
       "latestRentDeposit": 36700,
       "latestRentDepositEok": "3억6,700",
       "latestRentMonthly": 0,
@@ -11937,7 +11937,7 @@
           "area": 74.1263
         }
       ],
-      "rentTxCount": 914,
+      "rentTxCount": 915,
       "latestRentDeposit": 33000,
       "latestRentDepositEok": "3억3,000",
       "latestRentMonthly": 0,
@@ -12361,7 +12361,7 @@
           "area": 84.96
         }
       ],
-      "rentTxCount": 1458,
+      "rentTxCount": 1456,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
@@ -12572,15 +12572,15 @@
           "area": 84.9982
         }
       ],
-      "rentTxCount": 485,
+      "rentTxCount": 486,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
       "latestRentDate": "20260509",
       "avg1MRentDeposit": 50000,
       "avg1MRentDepositEok": "5억",
-      "avg3MRentDeposit": 50000,
-      "avg3MRentDepositEok": "5억"
+      "avg3MRentDeposit": 42300,
+      "avg3MRentDepositEok": "4억2,300"
     },
     "동탄역린스트라우스": {
       "dong": "여울동",
@@ -13214,7 +13214,7 @@
           "area": 74.8709
         }
       ],
-      "rentTxCount": 497,
+      "rentTxCount": 498,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -13639,7 +13639,7 @@
           "area": 84.9753
         }
       ],
-      "rentTxCount": 770,
+      "rentTxCount": 771,
       "latestRentDeposit": 46200,
       "latestRentDepositEok": "4억6,200",
       "latestRentMonthly": 0,
@@ -13669,7 +13669,7 @@
       },
       "minPrice": 65000,
       "minPriceEok": "6억5,000",
-      "txCount": 193,
+      "txCount": 194,
       "avg1MPrice": 105100,
       "avg1MPriceEok": "10억5,100",
       "avg1MPerPyeong": 2998,
@@ -14493,7 +14493,7 @@
           "area": 74.94
         }
       ],
-      "rentTxCount": 705,
+      "rentTxCount": 704,
       "latestRentDeposit": 43000,
       "latestRentDepositEok": "4억3,000",
       "latestRentMonthly": 0,
@@ -15111,16 +15111,16 @@
         },
         {
           "date": "01.31",
-          "priceEok": "9억5,000",
+          "priceEok": "10억1,300",
           "areaPyeong": 37.207499999999996,
-          "floor": 14,
+          "floor": 13,
           "area": 97.3043
         },
         {
           "date": "01.31",
-          "priceEok": "10억1,300",
+          "priceEok": "9억5,000",
           "areaPyeong": 37.207499999999996,
-          "floor": 13,
+          "floor": 14,
           "area": 97.3043
         },
         {
@@ -15335,17 +15335,17 @@
         },
         {
           "date": "02.06",
-          "priceEok": "9억4,000",
-          "areaPyeong": 33.5775,
-          "floor": 3,
-          "area": 84.9962
-        },
-        {
-          "date": "02.06",
           "priceEok": "9억4,400",
           "areaPyeong": 32.9725,
           "floor": 2,
           "area": 84.8
+        },
+        {
+          "date": "02.06",
+          "priceEok": "9억4,000",
+          "areaPyeong": 33.5775,
+          "floor": 3,
+          "area": 84.9962
         }
       ],
       "rentTxCount": 489,
@@ -15772,7 +15772,7 @@
           "area": 60.3768
         }
       ],
-      "rentTxCount": 800,
+      "rentTxCount": 796,
       "latestRentDeposit": 19327,
       "latestRentDepositEok": "1억9,327",
       "latestRentMonthly": 84,
@@ -16440,7 +16440,7 @@
       },
       "minPrice": 27500,
       "minPriceEok": "2억7,500",
-      "txCount": 698,
+      "txCount": 697,
       "avg1MPrice": 79600,
       "avg1MPriceEok": "7억9,600",
       "avg1MPerPyeong": 2366,
@@ -16626,7 +16626,7 @@
           "area": 84.9245
         }
       ],
-      "rentTxCount": 696,
+      "rentTxCount": 698,
       "latestRentDeposit": 48000,
       "latestRentDepositEok": "4억8,000",
       "latestRentMonthly": 0,
@@ -17507,7 +17507,7 @@
       },
       "minPrice": 27500,
       "minPriceEok": "2억7,500",
-      "txCount": 985,
+      "txCount": 986,
       "avg1MPrice": 68400,
       "avg1MPriceEok": "6억8,400",
       "avg1MPerPyeong": 2115,
@@ -17693,7 +17693,7 @@
           "area": 84.5202
         }
       ],
-      "rentTxCount": 1483,
+      "rentTxCount": 1482,
       "latestRentDeposit": 38000,
       "latestRentDepositEok": "3억8,000",
       "latestRentMonthly": 0,
@@ -17905,7 +17905,7 @@
           "area": 84.9814
         }
       ],
-      "rentTxCount": 775,
+      "rentTxCount": 772,
       "latestRentDeposit": 46200,
       "latestRentDepositEok": "4억6,200",
       "latestRentMonthly": 0,
@@ -18333,7 +18333,7 @@
           "area": 99.9736
         }
       ],
-      "rentTxCount": 204,
+      "rentTxCount": 205,
       "latestRentDeposit": 80000,
       "latestRentDepositEok": "8억",
       "latestRentMonthly": 0,
@@ -18364,7 +18364,7 @@
       },
       "minPrice": 34500,
       "minPriceEok": "3억4,500",
-      "txCount": 363,
+      "txCount": 364,
       "avg1MPrice": 113400,
       "avg1MPriceEok": "11억3,400",
       "avg1MPerPyeong": 3447,
@@ -18764,7 +18764,7 @@
           "area": 59.98
         }
       ],
-      "rentTxCount": 985,
+      "rentTxCount": 986,
       "latestRentDeposit": 47091,
       "latestRentDepositEok": "4억7,091",
       "latestRentMonthly": 170,
@@ -19830,7 +19830,7 @@
           "area": 76.51
         }
       ],
-      "rentTxCount": 909,
+      "rentTxCount": 908,
       "latestRentDeposit": 32300,
       "latestRentDepositEok": "3억2,300",
       "latestRentMonthly": 0,
@@ -20261,7 +20261,7 @@
           "area": 84.52
         }
       ],
-      "rentTxCount": 596,
+      "rentTxCount": 595,
       "latestRentDeposit": 46000,
       "latestRentDepositEok": "4억6,000",
       "latestRentMonthly": 0,
@@ -20895,7 +20895,7 @@
           "area": 84.94
         }
       ],
-      "rentTxCount": 968,
+      "rentTxCount": 969,
       "latestRentDeposit": 54000,
       "latestRentDepositEok": "5억4,000",
       "latestRentMonthly": 0,
@@ -21107,7 +21107,7 @@
           "area": 76.4713
         }
       ],
-      "rentTxCount": 427,
+      "rentTxCount": 429,
       "latestRentDeposit": 39473,
       "latestRentDepositEok": "3억9,473",
       "latestRentMonthly": 158,
@@ -21744,7 +21744,7 @@
           "area": 53.788
         }
       ],
-      "rentTxCount": 808,
+      "rentTxCount": 806,
       "latestRentDeposit": 31500,
       "latestRentDepositEok": "3억1,500",
       "latestRentMonthly": 0,
@@ -21777,7 +21777,7 @@
       },
       "minPrice": 46000,
       "minPriceEok": "4억6,000",
-      "txCount": 822,
+      "txCount": 823,
       "avg1MPrice": 168000,
       "avg1MPriceEok": "16억8,000",
       "avg1MPerPyeong": 4170,
@@ -21963,7 +21963,7 @@
           "area": 84.51
         }
       ],
-      "rentTxCount": 1564,
+      "rentTxCount": 1567,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,
@@ -22176,7 +22176,7 @@
           "area": 103.295
         }
       ],
-      "rentTxCount": 557,
+      "rentTxCount": 558,
       "latestRentDeposit": 48000,
       "latestRentDepositEok": "4억8,000",
       "latestRentMonthly": 0,
@@ -22599,7 +22599,7 @@
           "area": 84.9698
         }
       ],
-      "rentTxCount": 1115,
+      "rentTxCount": 1111,
       "latestRentDeposit": 65000,
       "latestRentDepositEok": "6억5,000",
       "latestRentMonthly": 0,
@@ -23244,7 +23244,7 @@
           "area": 97.01
         }
       ],
-      "rentTxCount": 1002,
+      "rentTxCount": 999,
       "latestRentDeposit": 71636,
       "latestRentDepositEok": "7억1,636",
       "latestRentMonthly": 145,
@@ -23270,7 +23270,7 @@
       },
       "minPrice": 33893,
       "minPriceEok": "3억3,893",
-      "txCount": 443,
+      "txCount": 442,
       "avg1MPrice": 77300,
       "avg1MPriceEok": "7억7,300",
       "avg1MPerPyeong": 2350,
@@ -24097,7 +24097,7 @@
           "area": 69.98
         }
       ],
-      "rentTxCount": 2103,
+      "rentTxCount": 2106,
       "latestRentDeposit": 54545,
       "latestRentDepositEok": "5억4,545",
       "latestRentMonthly": 85,
@@ -25381,7 +25381,7 @@
           "area": 128.44
         }
       ],
-      "rentTxCount": 1662,
+      "rentTxCount": 1661,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -26172,17 +26172,17 @@
         },
         {
           "date": "01.17",
-          "priceEok": "9억1,000",
-          "areaPyeong": 33.275,
-          "floor": 11,
-          "area": 84.9989
-        },
-        {
-          "date": "01.17",
           "priceEok": "10억",
           "areaPyeong": 33.275,
           "floor": 22,
           "area": 84.9963
+        },
+        {
+          "date": "01.17",
+          "priceEok": "9억1,000",
+          "areaPyeong": 33.275,
+          "floor": 11,
+          "area": 84.9989
         },
         {
           "date": "12.23",
@@ -26354,17 +26354,17 @@
         },
         {
           "date": "02.07",
-          "priceEok": "6억2,700",
-          "areaPyeong": 31.46,
-          "floor": 24,
-          "area": 76.4593
-        },
-        {
-          "date": "02.07",
           "priceEok": "6억4,000",
           "areaPyeong": 30.855,
           "floor": 3,
           "area": 75.87
+        },
+        {
+          "date": "02.07",
+          "priceEok": "6억2,700",
+          "areaPyeong": 31.46,
+          "floor": 24,
+          "area": 76.4593
         },
         {
           "date": "02.04",
@@ -26444,7 +26444,7 @@
           "area": 75.87
         }
       ],
-      "rentTxCount": 1944,
+      "rentTxCount": 1946,
       "latestRentDeposit": 38727,
       "latestRentDepositEok": "3억8,727",
       "latestRentMonthly": 40,
