@@ -763,6 +763,17 @@ async function main() {
       }
     }
 
+    // Sort unique records by contract date descending (newest first)
+    uniqueRecords.sort((a, b) => {
+      const dateA = `${a.contractYm}${String(a.contractDay).padStart(2, '0')}`;
+      const dateB = `${b.contractYm}${String(b.contractDay).padStart(2, '0')}`;
+      if (dateA !== dateB) {
+        return dateB.localeCompare(dateA);
+      }
+      const getVal = (x) => (x.dealType === '전세' || x.dealType === '월세') ? (x.deposit || 0) : x.price;
+      return getVal(b) - getVal(a);
+    });
+
     // 파일명: 정규화된 아파트명 (URL-safe)
     const filename = `${aptName}.json`;
     const filepath = path.join(TX_DATA_DIR, filename);

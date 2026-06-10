@@ -27,7 +27,7 @@ export default function HotComplexRanking({
   nameMapping,
 }: HotComplexRankingProps) {
   const { areaUnit } = useSettings();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   // Compute recent transaction complexes (Sorted by Date desc, then Price desc)
   const recentList = useMemo(() => {
@@ -131,8 +131,8 @@ export default function HotComplexRanking({
       });
   }, [sheetApartments, txSummaryData, nameMapping, areaUnit]);
 
-  const displayList = isExpanded ? recentList : recentList.slice(0, 5);
-  const hasMore = recentList.length > 5;
+  const displayList = recentList.slice(0, visibleCount);
+  const hasMore = recentList.length > visibleCount;
  
   return (
     <div className="w-full bg-surface border border-border rounded-3xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
@@ -188,23 +188,24 @@ export default function HotComplexRanking({
         </div>
       </div>
 
-      {/* Show More Button */}
-      {hasMore && (
-        <div className="border-t border-border/40">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full py-4 text-center text-[13.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
-          >
-            {isExpanded ? (
-              <>
-                접기 <ChevronUp className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                실거래 이력 더보기 ({recentList.length - 5}개 더보기) <ChevronDown className="w-4 h-4" />
-              </>
-            )}
-          </button>
+      {/* Show More / Fold Button */}
+      {(recentList.length > 5) && (
+        <div className="border-t border-border/40 flex">
+          {hasMore ? (
+            <button
+              onClick={() => setVisibleCount(prev => Math.min(prev + 15, recentList.length))}
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
+            >
+              실거래 이력 더보기 ({Math.min(15, recentList.length - visibleCount)}개 더보기, {visibleCount}/{recentList.length}) <ChevronDown className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setVisibleCount(5)}
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-tertiary hover:bg-body/45 active:bg-body/90 transition-all flex items-center justify-center gap-1 focus:outline-none"
+            >
+              접기 <ChevronUp className="w-4 h-4" />
+            </button>
+          )}
         </div>
       )}
     </div>

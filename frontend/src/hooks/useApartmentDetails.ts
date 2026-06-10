@@ -6,6 +6,7 @@ import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { BUILD_VERSION } from '@/lib/build-version';
 
 export interface TransactionRecord {
   no: number;
@@ -119,9 +120,11 @@ export function useApartmentDetails(
     setShouldFetchFull(true);
   };
 
+  const buildId = BUILD_VERSION;
+
   // 1. 최근 15건 실거래 데이터 초고속 로드 (보통 2KB 미만)
   const { data: recentRecords, isLoading: isRecentLoading } = useSWR<RawTransactionRecord[]>(
-    fileKey ? `/tx-data/${encodeURIComponent(fileKey)}-recent.json` : null,
+    fileKey ? `/tx-data/${encodeURIComponent(fileKey)}-recent.json?v=${buildId}` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -131,7 +134,7 @@ export function useApartmentDetails(
 
   // 2. 전체 실거래 데이터 백그라운드 지연 로드 (용량 무관하게 UX 정체 없음)
   const { data: fullRecords, isLoading: isFullLoading } = useSWR<RawTransactionRecord[]>(
-    fileKey && shouldFetchFull ? `/tx-data/${encodeURIComponent(fileKey)}.json` : null,
+    fileKey && shouldFetchFull ? `/tx-data/${encodeURIComponent(fileKey)}.json?v=${buildId}` : null,
     fetcher,
     {
       revalidateOnFocus: false,

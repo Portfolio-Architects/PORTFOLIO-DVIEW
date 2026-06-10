@@ -22,6 +22,12 @@ try {
 
   fs.writeFileSync(swPath, swContent, 'utf8');
   console.log(`[SW Update] Bumped service worker cache name to version v-${buildId}`);
+
+  // Sync src/lib/build-version.ts
+  const versionPath = path.join(__dirname, '../src/lib/build-version.ts');
+  const newVersionContent = `export const BUILD_VERSION = '${buildId}';\n`;
+  fs.writeFileSync(versionPath, newVersionContent, 'utf8');
+  console.log(`[Version Update] Updated src/lib/build-version.ts to ${buildId}`);
 } catch (error) {
   console.error('[SW Update] Failed to update service worker cache name:', error);
   process.exit(1);

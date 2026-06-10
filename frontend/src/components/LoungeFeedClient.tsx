@@ -931,9 +931,9 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                     <div className="text-[12px] font-bold text-tertiary">실시간 인기 단지</div>
                     <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">동탄역 롯데캐슬 상세분석 ➔</div>
                   </Link>
-                  <Link href="/engineering" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
-                    <div className="text-[12px] font-bold text-tertiary">기술 성과서</div>
-                    <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">엔지니어링 리포트 보기 ➔</div>
+                  <Link href="/?calc=sell_timing" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                    <div className="text-[12px] font-bold text-tertiary">부동산 가치 계산기</div>
+                    <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">AI 매도 타이밍 분석 ➔</div>
                   </Link>
                 </div>
               </div>

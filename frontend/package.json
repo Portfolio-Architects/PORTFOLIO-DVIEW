@@ -7,7 +7,7 @@
     "uuid": "^11.1.1"
   },
   "scripts": {
-    "dev": "next dev -p 5000 --webpack",
+    "dev": "node scripts/update-sw-version.js && next dev -p 5000 --webpack",
     "build": "node scripts/update-sw-version.js && npm run sync-transactions && npm run sync-static && next build",
     "start": "next start",
     "lint": "eslint",
