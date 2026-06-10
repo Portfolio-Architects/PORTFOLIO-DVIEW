@@ -43,7 +43,40 @@ export default function HotComplexRanking({
       };
     });
 
-    const filtered = enriched.filter((item): item is { apt: DongApartment; sum: AptTxSummary } => !!(item.sum && item.sum.latestDate));
+    // 1) Find the latest transaction date in data to avoid hydration mismatch
+    let maxDate = new Date(0);
+    enriched.forEach((item) => {
+      if (item.sum && item.sum.latestDate) {
+        const clean = String(item.sum.latestDate).replace(/[^0-9]/g, '');
+        if (clean.length === 8) {
+          const y = parseInt(clean.substring(0, 4), 10);
+          const m = parseInt(clean.substring(4, 6), 10) - 1;
+          const d = parseInt(clean.substring(6, 8), 10);
+          const txDate = new Date(y, m, d);
+          if (txDate > maxDate) {
+            maxDate = txDate;
+          }
+        }
+      }
+    });
+
+    const baseDate = maxDate.getTime() > 0 ? maxDate : new Date();
+    const oneMonthAgo = new Date(baseDate);
+    oneMonthAgo.setMonth(baseDate.getMonth() - 1);
+
+    // 2) Filter by latestDate >= oneMonthAgo
+    const filtered = enriched.filter((item): item is { apt: DongApartment; sum: AptTxSummary } => {
+      if (!item.sum || !item.sum.latestDate) return false;
+      const clean = String(item.sum.latestDate).replace(/[^0-9]/g, '');
+      if (clean.length === 8) {
+        const y = parseInt(clean.substring(0, 4), 10);
+        const m = parseInt(clean.substring(4, 6), 10) - 1;
+        const d = parseInt(clean.substring(6, 8), 10);
+        const txDate = new Date(y, m, d);
+        return txDate >= oneMonthAgo;
+      }
+      return false;
+    });
 
     return filtered
       .sort((a, b) => {
@@ -57,7 +90,6 @@ export default function HotComplexRanking({
         const priceB = b.sum.latestPrice || 0;
         return priceB - priceA;
       })
-      .slice(0, 25)
       .map(item => {
         const sum = item.sum;
         
