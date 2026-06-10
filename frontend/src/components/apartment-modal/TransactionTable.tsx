@@ -42,8 +42,12 @@ export function TransactionTable({
   const { areaUnit } = useSettings();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
   
-  const INITIAL_DISPLAY_COUNT = 10;
+  // Reset visible count when chart type or sorting changes
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [chartType, txSort]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
@@ -55,43 +59,24 @@ export function TransactionTable({
   }, [transactions, chartType]);
 
   const sortedFilteredTransactions = useMemo(() => {
-    const sorted = [...filteredTransactions].sort((a, b) => {
+    return [...filteredTransactions].sort((a, b) => {
       const getP = (t: TransactionRecord) => (t.dealType === '전세' || t.dealType === '월세') ? (t.deposit || 0) : t.price;
       if (txSort === 'date_desc') {
-        const da = a.contractYm + a.contractDay.padStart(2, '0');
-        const db = b.contractYm + b.contractDay.padStart(2, '0');
+        const da = a.contractYm + String(a.contractDay).padStart(2, '0');
+        const db = b.contractYm + String(b.contractDay).padStart(2, '0');
         if (da !== db) return parseInt(db) - parseInt(da);
         return getP(b) - getP(a);
       }
       if (txSort === 'date_asc') {
-        const da = a.contractYm + a.contractDay.padStart(2, '0');
-        const db = b.contractYm + b.contractDay.padStart(2, '0');
-        return parseInt(da) - parseInt(db);
+        const da = a.contractYm + String(a.contractDay).padStart(2, '0');
+        const db = b.contractYm + String(b.contractDay).padStart(2, '0');
+        if (da !== db) return parseInt(da) - parseInt(db);
+        return getP(a) - getP(b);
       }
       if (txSort === 'price_desc') return getP(b) - getP(a);
       if (txSort === 'price_asc') return getP(a) - getP(b);
       return 0;
     });
-
-    // Filter to last 1 month (30 days) from current date
-    const now = new Date();
-    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const limitTime = oneMonthAgo.getTime();
-
-    const recentTxs = sorted.filter(t => {
-      if (!t.contractYm || !t.contractDay) return false;
-      const y = parseInt(t.contractYm.substring(0, 4));
-      const m = parseInt(t.contractYm.substring(4, 6)) - 1;
-      const d = parseInt(t.contractDay) || 1;
-      const txDate = new Date(y, m, d);
-      return txDate.getTime() >= limitTime;
-    });
-
-    // Fallback: If no records exist in the last month, show the 5 most recent transactions
-    if (recentTxs.length === 0) {
-      return sorted.slice(0, 5);
-    }
-    return recentTxs;
   }, [filteredTransactions, txSort]);
 
 
@@ -166,7 +151,7 @@ export function TransactionTable({
       <div 
       className="overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative max-h-[400px] md:max-h-[500px] xl:max-h-[560px]"
       >
-        {sortedFilteredTransactions.map((tx, i) => {
+        {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = String(tx.contractDay).trim().padStart(2, '0');
           const isRent = tx.dealType === '전세' || tx.dealType === '월세';
@@ -269,6 +254,26 @@ export function TransactionTable({
             </div>
           );
         })}
+
+        {sortedFilteredTransactions.length > 10 && (
+          <div className="border-t border-border/40 bg-surface flex shrink-0">
+            {sortedFilteredTransactions.length > visibleCount ? (
+              <button
+                onClick={() => setVisibleCount(prev => Math.min(prev + 30, sortedFilteredTransactions.length))}
+                className="flex-1 py-3.5 text-center text-[13px] font-bold text-toss-blue hover:bg-toss-blue/5 active:bg-toss-blue/10 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
+              >
+                실거래가 더보기 ({Math.min(30, sortedFilteredTransactions.length - visibleCount)}개 더보기, {visibleCount}/{sortedFilteredTransactions.length})
+              </button>
+            ) : (
+              <button
+                onClick={() => setVisibleCount(10)}
+                className="flex-1 py-3.5 text-center text-[13px] font-bold text-tertiary hover:bg-body active:bg-body/80 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
+              >
+                접기
+              </button>
+            )}
+          </div>
+        )}
 
         {filteredTransactions.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[200px] text-tertiary gap-2">
