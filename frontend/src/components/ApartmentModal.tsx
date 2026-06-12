@@ -45,6 +45,11 @@ import ContextualB2BAdBanner from './apartment-modal/ContextualB2BAdBanner';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 
+import EducationAnalysisSection from './apartment-modal/EducationAnalysisSection';
+import InfraAnalysisSection from './apartment-modal/InfraAnalysisSection';
+import ScoutingReportDetailSection from './apartment-modal/ScoutingReportDetailSection';
+import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
+
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
@@ -1317,6 +1322,7 @@ function FieldReportModal({
                 }`}
                 role="switch"
                 aria-checked={filterOutliers}
+                aria-label="이상거래 필터 활성화"
               >
                 <span
                   className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
@@ -1341,7 +1347,7 @@ function FieldReportModal({
             {onOpenJeonseSafety && (
               <button
                 onClick={() => onOpenJeonseSafety(report.apartmentName)}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
                 title="전세 보증금 안전성 진단 및 깡통전세 계산기 실행"
               >
                 <span>전세 안전진단</span>
@@ -1363,7 +1369,7 @@ function FieldReportModal({
             {onOpenTaxCalculator && (
               <button
                 onClick={() => onOpenTaxCalculator(report.apartmentName)}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
                 title="부동산 취득세 및 부동산 중개수수료 모의 연산 실행"
               >
                 <span>취득세 계산기</span>
@@ -1374,7 +1380,7 @@ function FieldReportModal({
             {onOpenSellTimingCalculator && (
               <button
                 onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
-                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:text-rose-400 border border-rose-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:text-rose-400 border border-rose-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
                 title="AI 매도 적격성 및 양도소득세 모의 진단 실행"
               >
                 <span>매도 진단기</span>
@@ -1386,7 +1392,7 @@ function FieldReportModal({
               onClick={handleNativeShare}
               className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] ${
                 copiedStatus === 'all-link'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-800 dark:text-emerald-400'
                   : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border-border/20'
               }`}
               title="아파트 분석 리포트 공유하기"
@@ -1480,100 +1486,14 @@ function FieldReportModal({
           <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
 
             {/* 1. 단지 기본 명세 (Specs) */}
-            {report.metrics && (
-              <section id="sec-specs" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}>
-                 <h2 className="text-title-lg font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
-                   <Building size={18} className="text-toss-blue"/> 단지 기본정보
-                 </h2>
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">단지명 / 시공사</p>
-                      <p className="text-body-normal text-primary font-bold apt-spec-value break-keep">{displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({report.metrics.brand})</span>}</p>
-                    </div>
-                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">사용승인일 (연차)</p>
-                      <p className="text-body-normal text-primary font-bold apt-spec-value">
-                        {report.metrics.yearBuilt ? (() => {
-                          const ybStr = String(report.metrics.yearBuilt);
-                          const now = new Date();
-                          const currentYear = now.getFullYear();
-                          const currentMonth = now.getMonth() + 1;
-                          
-                          if (ybStr.length >= 6) {
-                            const year = parseInt(ybStr.substring(0, 4));
-                            const month = parseInt(ybStr.substring(4, 6));
-                            const elapsedMonths = (currentYear - year) * 12 + (currentMonth - month);
-                            
-                            let ageStr = '';
-                            if (elapsedMonths < 0) {
-                              ageStr = '입주 전';
-                            } else if (elapsedMonths === 0) {
-                              ageStr = '신축 1개월 미만';
-                            } else {
-                              const y = Math.floor(elapsedMonths / 12);
-                              const m = elapsedMonths % 12;
-                              if (y > 0 && m > 0) ageStr = `${y}년 ${m}개월차`;
-                              else if (y > 0) ageStr = `${y}년차`;
-                              else ageStr = `${m}개월차`;
-                            }
-                            return <>{year}년 {month}월 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({ageStr})</span></>;
-                          }
-                          
-                          const year = parseInt(ybStr);
-                          const age = currentYear - year + 1;
-                          return <>{year}년 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({age}년차)</span></>;
-                        })() : '-'}
-                      </p>
-                    </div>
-                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">규모 (세대/층)</p>
-                      <p className="text-body-normal text-primary font-bold apt-spec-value">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
-                    </div>
-                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">용적률 / 건폐율</p>
-                      <p className="text-body-normal text-primary font-bold apt-spec-value">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
-                    </div>
-                    <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border col-span-2 sm:col-span-1">
-                      <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">주차대수 (세대당)</p>
-                      <p className="text-body-normal text-primary font-bold apt-spec-value">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
-                    </div>
-                 </div>
-
-                 {/* Premium Scouting Report Banner for high visibility */}
-                 {report.premiumContent && (
-                   <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-sm">
-                     <div className="flex items-center gap-4 w-full sm:w-auto min-w-0">
-                       <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                         <Crown size={24} className="text-emerald-600 fill-emerald-600/30" />
-                       </div>
-                       <div className="flex-1 min-w-0">
-                         <h3 className="text-[15px] font-extrabold text-primary leading-snug break-keep whitespace-normal sm:truncate mt-0.5">
-                           {managerPost?.title || parsedTitle || `${displayAptName} 매니저 임장기`}
-                         </h3>
-                         <p className="text-[12.5px] text-secondary mt-1 break-keep whitespace-normal sm:truncate">
-                           D-VIEW 매니저가 직접 현장에서 검증한 대장 단지의 가치 평가 리포트
-                         </p>
-                       </div>
-                     </div>
-                     <button
-                       onClick={() => {
-                         if (managerPost?.id) {
-                           window.location.hash = `#post=${managerPost.id}`;
-                           onClose();
-                         } else {
-                           window.location.hash = '#lounge';
-                           onClose();
-                         }
-                       }}
-                       className="w-full sm:w-auto shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[13px] px-4.5 py-3 rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-98 flex items-center justify-center gap-1 border-none cursor-pointer"
-                     >
-                       <span>임장기 보러가기</span>
-                       <ChevronRight size={14} />
-                     </button>
-                   </div>
-                 )}
-               </section>
-             )}
+            <ApartmentSpecsSection
+              report={report}
+              inline={inline}
+              managerPost={managerPost}
+              parsedTitle={parsedTitle}
+              displayAptName={displayAptName}
+              onClose={onClose}
+            />
 
               {/* 🎯 아파트별 1:1 컨텍스트 타겟팅 B2B CPA 광고 배너 연동 (105차) */}
               {report.metrics && (
@@ -1601,685 +1521,24 @@ function FieldReportModal({
 
 
           {/* 단지 입지정보 컨테이너 (교통 + 생활 인프라 + 앵커 테넌트 묶음) */}
-          <section id="sec-infra-metrics" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14`}>
-            {/* Location Infrastructure Info — Enhanced Design v2 */}
-            {report.metrics && (report.metrics.distanceToSubway || report.metrics.restaurantDensity) && (
-              <div className="flex flex-col w-full">
-                <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                  <MapPin size={18} className="text-toss-blue"/> 단지 입지정보
-                </h2>
-
-                {/* ─── 🚇 생활 인프라 종합 지수 (Infra Index) ─── */}
-                {(() => {
-                  const infraScoreInfo = calculateInfraScore(report.metrics);
-                  const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-                    S: { bg: 'bg-[#eef2ff]', text: 'text-[#3182f6]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#3182f6]/5', scoreText: 'text-[#3182f6]' },
-                    A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
-                    B: { bg: 'bg-[#f5f3ff]', text: 'text-[#4f46e5]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#4f46e5]/5', scoreText: 'text-[#4f46e5]' },
-                    C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
-                  };
-                  const colors = scoreColors[infraScoreInfo.grade] || scoreColors.C;
-                  
-                  return (
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-toss-blue pl-2.5">
-                        <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활 인프라 지표</span>
-                        <button
-                          onClick={() => handleShareSection('infra')}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 ${
-                            copiedStatus === 'infra-link'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] border-[#0284c7]/20'
-                          }`}
-                          title="생활 인프라 분석 결과 카카오톡 공유하기"
-                        >
-                          {copiedStatus === 'infra-link' ? (
-                            <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
-                          ) : (
-                            <Share size={12} strokeWidth={2.5} className={copiedStatus === 'infra-link' ? 'text-emerald-500/80' : 'text-[#0284c7]/80'} />
-                          )}
-                          <span>{copiedStatus === 'infra-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
-                        </button>
-                      </div>
-                      
-                      <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
-                        <div className="flex flex-col items-center justify-center shrink-0">
-                          <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center border-4 ${colors.border} ${colors.bg} shadow-sm relative group`}>
-                            <span className="text-[12px] font-extrabold text-secondary tracking-wider">GRADE</span>
-                            <span className={`text-[36px] font-black leading-none ${colors.text} -mt-0.5`}>{infraScoreInfo.grade}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 w-full text-center md:text-left">
-                          <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
-                            <span className="text-[16px] font-bold text-secondary">종합 생활 인프라 지수:</span>
-                            <div className="flex items-baseline justify-center gap-0.5">
-                              <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{infraScoreInfo.score}</span>
-                              <span className="text-[14px] font-bold text-secondary">/ 100 점</span>
-                            </div>
-                          </div>
-                          
-                          <div className={`p-4 rounded-xl ${colors.descBg} border border-toss-blue/10 text-left`}>
-                            <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 단지 생활권 리포트</p>
-                            <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
-                              {infraScoreInfo.description} (지하철·트램역까지의 대중교통 접근성과 스타벅스·올리브영·다이소·맥도날드 등 생활 편의시설 밀집도를 가중 평균하여 연산한 지표입니다.)
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* ─── 🚇 교통 Section ─── */}
-                {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#00d29d] pl-2.5">
-                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">교통망 정보</span>
-                    </div>
-                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
-                      {[
-                        { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#00d29d', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
-                        { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
-                        { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
-                      ].filter(s => s.dist != null && s.dist > 0).map(station => {
-                        const dist = station.dist ?? 0;
-                        const percent = Math.min((dist / 1200) * 100, 100);
-                        return (
-                          <div key={station.label} className="w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                            <div className="flex items-center justify-between mb-2 md:mb-3">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                                  {station.label}
-                                </span>
-                                {dist <= 400 && (
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#e0f2fe] text-[#0369a1] dark:bg-[#0369a1]/30 dark:text-[#7dd3fc] shrink-0 leading-none">초역세</span>
-                                )}
-                                {dist > 400 && dist <= 800 && (
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#f0fdf4] text-[#166534] dark:bg-[#166534]/30 dark:text-[#86efac] shrink-0 leading-none">역세권</span>
-                                )}
-                              </div>
-                              {dist <= 400 ? (
-                                <span className="relative flex h-2 w-2 shrink-0">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: station.color }}></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: station.color }}></span>
-                                </span>
-                              ) : (
-                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
-                              )}
-                            </div>
-                            <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
-                              <div className="flex items-baseline gap-0.5">
-                                <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                                  {Math.round(dist).toLocaleString()}
-                                </span>
-                                <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
-                                  m
-                                </span>
-                              </div>
-                              <span 
-                                className="text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold shadow-sm"
-                                style={{ backgroundColor: station.bgFrom, color: station.color }}
-                              >
-                                도보 {Math.ceil(dist / 80)}분
-                              </span>
-                            </div>
-
-                            {/* Toss-style Distance Gauge Bar */}
-                            <div className="mt-3.5 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner">
-                              <div 
-                                className="h-full rounded-full transition-all duration-500 ease-out"
-                                style={{ 
-                                  width: `${percent}%`,
-                                  backgroundColor: station.color
-                                }}
-                              />
-                            </div>
-
-                          {station.name && (
-                            <a 
-                              href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
-                              target="_blank" rel="noopener noreferrer"
-                              className="text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 rounded-xl px-2.5 py-2 text-center text-secondary transition-all duration-300 hover:scale-[1.02] active:scale-95 bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1"
-                              style={{ '--hover-color': station.color } as React.CSSProperties}
-                              title={`${station.name} 구글 지도에서 보기`}
-                            >
-                              <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
-                              <span className="truncate leading-tight block">{station.name}</span>
-                            </a>
-                          )}
-                        </div>
-                      );
-                    })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── 🏪 생활 인프라 Section ─── */}
-                {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#f59e0b] pl-2.5">
-                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활권 인프라</span>
-                    </div>
-                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-1 md:gap-3">
-                      {(() => {
-                        const restaurantData = Object.entries(report.metrics.restaurantCategories || {}).map(([cat, cnt]) => {
-                          let tag = '기타';
-                          let color = '#64748b'; // slate-500
-                          let bg = 'bg-[#64748b]';
-                          
-                          if (cat.includes('한식') || cat.includes('구이') || cat.includes('갈비') || cat.includes('삼겹살') || cat.includes('육류') || cat.includes('탕') || cat.includes('찌개') || cat.includes('백반')) {
-                            tag = '한식/고기';
-                            color = '#e11d48'; // rose-600
-                            bg = 'bg-[#e11d48]';
-                          } else if (cat.includes('커피') || cat.includes('카페') || cat.includes('디저트') || cat.includes('찻집') || cat.includes('제과') || cat.includes('빵')) {
-                            tag = '카페/음료';
-                            color = '#b45309'; // amber-700
-                            bg = 'bg-[#b45309]';
-                          } else if (cat.includes('일식') || cat.includes('회') || cat.includes('초밥') || cat.includes('돈까스') || cat.includes('스시')) {
-                            tag = '일식/일반';
-                            color = '#0284c7'; // sky-600
-                            bg = 'bg-[#0284c7]';
-                          } else if (cat.includes('중식') || cat.includes('중국') || cat.includes('짜장') || cat.includes('짬뽕')) {
-                            tag = '중식/아시안';
-                            color = '#ea580c'; // orange-600
-                            bg = 'bg-[#ea580c]';
-                          } else if (cat.includes('양식') || cat.includes('경양식') || cat.includes('피자') || cat.includes('파스타') || cat.includes('스테이크') || cat.includes('뷔페') || cat.includes('패스트')) {
-                            tag = '양식/양식';
-                            color = '#7c3aed'; // purple-600
-                            bg = 'bg-[#7c3aed]';
-                          } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
-                            tag = '분식/간식';
-                            color = '#0d9488'; // teal-600
-                            bg = 'bg-[#0d9488]';
-                          } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
-                            tag = '치킨/주점';
-                            color = '#f59e0b'; // amber-500
-                            bg = 'bg-[#f59e0b]';
-                          }
-                          return { cat, cnt: cnt as number, tag, color, bg };
-                        });
-
-                        const totalRestaurantCount = restaurantData.reduce((sum, item) => sum + item.cnt, 0);
-                        const restTagSums: Record<string, { count: number; color: string; bg: string }> = {};
-                        restaurantData.forEach(item => {
-                          if (!restTagSums[item.tag]) {
-                            restTagSums[item.tag] = { count: 0, color: item.color, bg: item.bg };
-                          }
-                          restTagSums[item.tag].count += item.cnt;
-                        });
-
-                        const sortedRestTags = Object.entries(restTagSums).sort((a, b) => b[1].count - a[1].count);
-
-                        return (
-                          <div className="w-full bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10">
-                            <div className="flex items-center justify-between mb-2 md:mb-3">
-                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                                음식점·카페·500m
-                              </span>
-                              <span className="w-2 h-2 rounded-full shrink-0 bg-[#f59e0b]" />
-                            </div>
-                            
-                            <div className="flex items-baseline gap-0.5 mb-4 whitespace-nowrap">
-                              <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                              <span className="text-[12px] md:text-[14px] font-bold text-secondary ml-1 pb-0.5">개</span>
-                            </div>
-
-                            {totalRestaurantCount > 0 && (
-                              <div className="mb-4">
-                                {/* 수평 비율 게이지 바 */}
-                                <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner mb-3">
-                                  {sortedRestTags.map(([tag, data]) => {
-                                    const percent = (data.count / totalRestaurantCount) * 100;
-                                    return (
-                                      <div 
-                                        key={tag} 
-                                        className={`${data.bg} h-full transition-all duration-300`}
-                                        style={{ width: `${percent}%` }}
-                                        title={`${tag}: ${data.count}개 (${Math.round(percent)}%)`}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                                
-                                {/* 범례 */}
-                                <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
-                                  {sortedRestTags.map(([tag, data]) => {
-                                    const percent = (data.count / totalRestaurantCount) * 100;
-                                    return (
-                                      <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary">
-                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
-                                        <span>{tag}</span>
-                                        <span className="text-primary">{data.count}개</span>
-                                        <span className="opacity-60 text-[10px]">({Math.round(percent)}%)</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
-                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 border-t border-border/40 pt-4 mt-2">
-                                {Object.entries(report.metrics.restaurantCategories)
-                                  .sort(([,a], [,b]) => (b as number) - (a as number))
-                                  .slice(0, 5)
-                                  .map(([cat, cnt]) => (
-                                    <div key={cat} className="flex justify-between items-center bg-surface/60 hover:bg-surface border border-border/20 rounded-xl px-3 py-1.5 transition-all duration-200">
-                                      <span className="text-[11px] md:text-[13px] font-bold text-secondary truncate mr-2">{cat}</span>
-                                      <span className="font-extrabold text-[11px] md:text-[13px] text-toss-blue shrink-0 tabular-nums">{cnt as number}개</span>
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            )}
-
-            {/* Anchor Tenant Metrics — 주요 편의시설 접근성 시각화 */}
-            {report.metrics && (
-              <AnchorTenantCard
-                distanceToStarbucks={report.metrics.distanceToStarbucks}
-                starbucksName={report.metrics.starbucksName}
-                starbucksAddress={report.metrics.starbucksAddress}
-                starbucksCoordinates={report.metrics.starbucksCoordinates}
-                distanceToOliveYoung={report.metrics.distanceToOliveYoung}
-                oliveYoungName={report.metrics.oliveYoungName}
-                oliveYoungAddress={report.metrics.oliveYoungAddress}
-                oliveYoungCoordinates={report.metrics.oliveYoungCoordinates}
-                distanceToDaiso={report.metrics.distanceToDaiso}
-                daisoName={report.metrics.daisoName}
-                daisoAddress={report.metrics.daisoAddress}
-                daisoCoordinates={report.metrics.daisoCoordinates}
-                distanceToMcDonalds={report.metrics.distanceToMcDonalds}
-                mcdonaldsName={report.metrics.mcdonaldsName}
-                mcdonaldsAddress={report.metrics.mcdonaldsAddress}
-                mcdonaldsCoordinates={report.metrics.mcdonaldsCoordinates}
-              />
-            )}
-          </section>
+          <InfraAnalysisSection
+            report={report}
+            inline={inline}
+            copiedStatus={copiedStatus}
+            handleShareSection={handleShareSection}
+          />
 
           {/* 🎓 학군 및 육아 분석 컨테이너 */}
-          <section id="sec-education" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14`}>
-            {report.metrics && (
-              <div className="flex flex-col w-full">
-                <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                  <GraduationCap size={18} className="text-[#0d9488]"/> 학군/육아 분석
-                </h2>
-
-                <div className="relative w-full">
-                  <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40 flex flex-col w-full gap-8' : 'flex flex-col w-full gap-8'}>
-
-                {/* ─── 👶 육아 친화도 지수 (Childcare Index) ─── */}
-                {(() => {
-                  const eduScoreInfo = calculateEducationScore(report.metrics);
-                  const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-                    S: { bg: 'bg-[#fdf2f8]', text: 'text-[#db2777]', border: 'border-[#fbcfe8]/50', descBg: 'bg-[#db2777]/5', scoreText: 'text-[#db2777]' },
-                    A: { bg: 'bg-[#ecfdf5]', text: 'text-[#059669]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#059669]/5', scoreText: 'text-[#059669]' },
-                    B: { bg: 'bg-[#fffbeb]', text: 'text-[#d97706]', border: 'border-[#fde68a]/50', descBg: 'bg-[#d97706]/5', scoreText: 'text-[#d97706]' },
-                    C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
-                  };
-                  const colors = scoreColors[eduScoreInfo.grade] || scoreColors.C;
-                  
-                  return (
-                    <div className="mb-8">
-                      <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
-                        <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
-                        <button
-                          onClick={() => handleShareSection('childcare')}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 ${
-                            copiedStatus === 'edu-link'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-[#fdf2f8] dark:bg-[#db2777]/10 hover:bg-[#fce7f3] dark:hover:bg-[#db2777]/20 active:bg-[#fbcfe8] text-[#db2777] border-[#db2777]/20'
-                          }`}
-                          title="학군/육아 분석 결과 카카오톡 공유하기"
-                        >
-                          {copiedStatus === 'edu-link' ? (
-                            <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
-                          ) : (
-                            <Share size={12} strokeWidth={2.5} className={copiedStatus === 'edu-link' ? 'text-emerald-500/80' : 'text-[#db2777]/80'} />
-                          )}
-                          <span>{copiedStatus === 'edu-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
-                        </button>
-                      </div>
-                      
-                      <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
-                        <div className="flex flex-col items-center justify-center shrink-0">
-                          <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center border-4 ${colors.border} ${colors.bg} shadow-sm relative group`}>
-                            <span className="text-[12px] font-extrabold text-secondary tracking-wider">GRADE</span>
-                            <span className={`text-[36px] font-black leading-none ${colors.text} -mt-0.5`}>{eduScoreInfo.grade}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 w-full text-center md:text-left">
-                          <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
-                            <span className="text-[16px] font-bold text-secondary">종합 육아 환경 지수:</span>
-                            <div className="flex items-baseline justify-center gap-0.5">
-                              <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{eduScoreInfo.score}</span>
-                              <span className="text-[14px] font-bold text-secondary">/ 100 점</span>
-                            </div>
-                          </div>
-                          
-                          <div className={`p-4 rounded-xl ${colors.descBg} border border-[#0d9488]/10 text-left`}>
-                            <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 자녀양육 환경 리포트</p>
-                            <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
-                              {eduScoreInfo.description} (초등학교까지의 실제 도보 안심 통학 요건, 인근 중고교 접근성 및 500m 반경 내 교육 학원 인프라 밀집도를 종합 연산한 지표입니다.)
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* ─── 🏫 배정 학교 정보 (Assigned Schools) ─── */}
-                {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
-                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 학군 배정 정보</span>
-                    </div>
-                    <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
-                      {[
-                        { label: '배정 초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
-                        { label: '인근 중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
-                        { label: '인근 고등학교', dist: report.metrics.distanceToHigh, name: report.metrics.nearestSchoolNames?.high },
-                      ].filter(s => s.dist && s.dist > 0).map(school => {
-                        const dist = school.dist ?? 0;
-                        const percent = Math.min((dist / 1000) * 100, 100);
-                        const grade = dist <= 300 ? 'excellent' : dist <= 700 ? 'good' : dist <= 1000 ? 'average' : 'far';
-                        const gradeStyles = {
-                          excellent: { dot: 'bg-teal-500', timeBadge: 'bg-[#f0fdfa] text-teal-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-teal-600 hover:border-teal-500/30 shadow-sm' },
-                          good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-[#f0fdf4] text-[#16a34a]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#16a34a] hover:border-[#16a34a]/30 shadow-sm' },
-                          average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-[#fefce8] text-[#ca8a04]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#ca8a04] hover:border-[#ca8a04]/30 shadow-sm' },
-                          far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-[#fef2f2] text-[#dc2626]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#dc2626] hover:border-[#dc2626]/30 shadow-sm' },
-                        };
-                        const s = gradeStyles[grade];
-                        
-                        // Premium school badge
-                        let schoolBadge = null;
-                        if (school.label.includes('초등학교')) {
-                          if (dist <= 300) {
-                            schoolBadge = { text: '초품아 (극상)', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/30' };
-                          } else if (dist <= 500) {
-                            schoolBadge = { text: '초인접 (우수)', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
-                          }
-                        } else {
-                          if (dist <= 500) {
-                            schoolBadge = { text: '학세권 (우수)', bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
-                          }
-                        }
-
-                        // Safety tier info for elementary school
-                        let safetyBadge = null;
-                        let safetyGuide = null;
-                        if (school.label === '배정 초등학교') {
-                          if (dist <= 300) {
-                            safetyBadge = { text: '안심 1등급', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30' };
-                            safetyGuide = '단지 직결 안심통학로';
-                          } else if (dist <= 500) {
-                            safetyBadge = { text: '안심 2등급', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
-                            safetyGuide = '신호횡단 최소화 구간';
-                          } else if (dist <= 1000) {
-                            safetyBadge = { text: '일반 3등급', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100/50 dark:border-amber-900/30' };
-                            safetyGuide = '스쿨존 펜스 통학 권장';
-                          } else {
-                            safetyBadge = { text: '주의 4등급', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/30' };
-                            safetyGuide = '차량 동행 통학 권장';
-                          }
-                        }
-
-                        return (
-                          <div key={school.label} className={`w-[150px] shrink-0 sm:w-auto bg-body rounded-2xl p-4 md:p-5 flex flex-col hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10 ${school.label === '배정 초등학교' ? 'border border-teal-500/30 dark:border-teal-500/20 bg-teal-50/5 dark:bg-teal-950/5' : ''}`}>
-                            <div className="flex items-center justify-between mb-2 md:mb-3 min-w-0 gap-1">
-                              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
-                                {school.label}
-                              </span>
-                              {schoolBadge && (
-                                <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none shrink-0 ${schoolBadge.bg}`}>
-                                  {schoolBadge.text}
-                                </span>
-                              )}
-                              {grade === 'excellent' && !schoolBadge ? (
-                                <span className="relative flex h-2 w-2 shrink-0">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
-                                </span>
-                              ) : !schoolBadge ? (
-                                <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
-                              ) : null}
-                            </div>
-                            
-                            {/* Detailed safety badge for elementary school */}
-                            {school.label === '배정 초등학교' && safetyBadge && (
-                              <div className="flex flex-wrap gap-1 mb-2">
-                                <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded leading-none ${safetyBadge.bg}`}>
-                                  {safetyBadge.text}
-                                </span>
-                              </div>
-                            )}
-
-                            <div className="flex flex-col lg:flex-row lg:items-baseline gap-1.5 lg:gap-2 mt-1 lg:mt-0">
-                              <div className="flex items-baseline gap-0.5">
-                                <span className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight tabular-nums leading-none">
-                                  {Math.round(dist).toLocaleString()}
-                                </span>
-                                <span className="text-[12px] md:text-[14px] font-bold text-secondary mt-auto pb-0.5">
-                                  m
-                                </span>
-                              </div>
-                              <span className={`text-[11px] md:text-[12px] px-2 py-0.5 rounded-md w-fit whitespace-nowrap font-bold ${s.timeBadge} shadow-sm`}>도보 {Math.ceil(dist / 80)}분</span>
-                            </div>
-
-                            {/* Toss-style Distance Gauge Bar */}
-                            <div className="mt-3.5 w-full bg-slate-100 dark:bg-slate-800/60 h-2 rounded-full overflow-hidden relative shadow-inner">
-                              <div 
-                                className={`h-full rounded-full transition-all duration-500 ease-out ${
-                                  grade === 'excellent' ? 'bg-teal-500' :
-                                  grade === 'good' ? 'bg-emerald-500' :
-                                  grade === 'average' ? 'bg-amber-500' : 'bg-rose-500'
-                                }`}
-                                style={{ width: `${percent}%` }}
-                              />
-                            </div>
-
-                            {school.label === '배정 초등학교' && safetyGuide && (
-                              <p className="text-[11px] font-bold text-teal-600 dark:text-teal-400 mt-3 bg-teal-50/50 dark:bg-teal-950/20 p-2 rounded-xl border border-teal-100/30 dark:border-teal-900/10 text-center leading-normal">
-                                {safetyGuide}
-                              </p>
-                            )}
-
-                            {school.name && (
-                              <a 
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
-                                target="_blank" rel="noopener noreferrer"
-                                className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-[95] shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1`}
-                                title={`${school.name} 구글 지도에서 보기`}
-                              >
-                                <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
-                                <span className="truncate leading-tight block">{school.name}</span>
-                              </a>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── 📝 전문가 학군 및 통학로 분석 (Expert School/Route Review) ─── */}
-                {(report.sections?.ecosystem?.schoolText || report.sections?.ecosystem?.schoolImg) && (
-                  <div className="mb-8 bg-body rounded-2xl p-5 md:p-6 border border-border">
-                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
-                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">전문가 임장 분석 및 통학로 리포트</span>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                      {report.sections.ecosystem.schoolImg && (
-                        <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
-                          <Image src={report.sections.ecosystem.schoolImg} alt="학군 및 통학로 실사" fill sizes="280px" className="object-cover" />
-                          <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
-                            <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
-                              D-VIEW
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <h4 className="text-[14px] font-bold text-primary mb-2 bg-[#f0fdfa] text-teal-800 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30 inline-block px-3 py-1 rounded-lg">학군 및 통학 안정성 평가</h4>
-                        <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{report.sections.ecosystem.schoolText}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* ─── 📚 주변 학원가 분석 (Academy Density) ─── */}
-                {report.metrics.academyDensity > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
-                      <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">주변 학원가 구성 (500m 반경)</span>
-                    </div>
-                    
-                    <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col gap-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0">
-                          <GraduationCap className="text-teal-600" size={24} />
-                        </div>
-                        <div>
-                          <p className="text-[13px] font-bold text-secondary leading-none">500m 반경 교육시설</p>
-                          <div className="flex items-baseline gap-0.5 mt-1.5">
-                            <span className="text-[26px] font-black text-primary tracking-tight leading-none">{report.metrics.academyDensity}</span>
-                            <span className="text-[13px] font-bold text-secondary ml-1">개소 밀집</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {(() => {
-                        const academyData = Object.entries(report.metrics.academyCategories || {}).map(([cat, cnt]) => {
-                          let tag = '일반학원';
-                          let color = '#0d9488'; // teal-600
-                          let bg = 'bg-[#0d9488]';
-                          if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
-                            tag = '예체능';
-                            color = '#db2777'; // pink-600
-                            bg = 'bg-[#db2777]';
-                          } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
-                            tag = '체육/활동';
-                            color = '#ea580c'; // orange-600
-                            bg = 'bg-[#ea580c]';
-                          } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
-                            tag = '건강/취미';
-                            color = '#0284c7'; // sky-600
-                            bg = 'bg-[#0284c7]';
-                          }
-                          return { cat, cnt: cnt as number, tag, color, bg };
-                        });
-
-                        const totalAcademyCount = academyData.reduce((sum, item) => sum + item.cnt, 0);
-                        const tagSums: Record<string, { count: number; color: string; bg: string }> = {};
-                        academyData.forEach(item => {
-                          if (!tagSums[item.tag]) {
-                            tagSums[item.tag] = { count: 0, color: item.color, bg: item.bg };
-                          }
-                          tagSums[item.tag].count += item.cnt;
-                        });
-
-                        const sortedTags = Object.entries(tagSums).sort((a, b) => b[1].count - a[1].count);
-
-                        return totalAcademyCount > 0 ? (
-                          <div className="mb-2">
-                            {/* 수평 비율 게이지 바 */}
-                            <div className="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner mb-3">
-                              {sortedTags.map(([tag, data]) => {
-                                const percent = (data.count / totalAcademyCount) * 100;
-                                return (
-                                  <div 
-                                    key={tag} 
-                                    className={`${data.bg} h-full transition-all duration-300`}
-                                    style={{ width: `${percent}%` }}
-                                    title={`${tag}: ${data.count}개 (${Math.round(percent)}%)`}
-                                  />
-                                );
-                              })}
-                            </div>
-                            
-                            {/* 범례 */}
-                            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
-                              {sortedTags.map(([tag, data]) => {
-                                const percent = (data.count / totalAcademyCount) * 100;
-                                return (
-                                  <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary">
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
-                                    <span>{tag}</span>
-                                    <span className="text-primary">{data.count}개</span>
-                                    <span className="opacity-60 text-[10px]">({Math.round(percent)}%)</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ) : null;
-                      })()}
-                      
-                      {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 border-t border-border/40 pt-4 mt-1">
-                          {Object.entries(report.metrics.academyCategories)
-                            .sort(([,a], [,b]) => (b as number) - (a as number))
-                            .map(([cat, cnt]) => {
-                              let theme = { bg: 'bg-[#f0fdfa]/50 text-teal-600 border-[#ccfbf1]/40', tag: '학업' };
-                              
-                              if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
-                                theme = { bg: 'bg-[#fdf2f8]/50 text-[#db2777] border-[#fbcfe8]/40', tag: '예체능' };
-                              } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
-                                theme = { bg: 'bg-[#fff7ed]/50 text-[#ea580c] border-[#ffedd5]/40', tag: '체육/활동' };
-                              } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
-                                theme = { bg: 'bg-[#f0f9ff]/50 text-[#0284c7] border-[#e0f2fe]/40', tag: '건강/취미' };
-                              }
-                              
-                              return (
-                                <div key={cat} className={`flex justify-between items-center ${theme.bg} border rounded-xl px-4 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm`}>
-                                  <div className="flex flex-col min-w-0">
-                                    <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{cat}</span>
-                                    <span className="text-[10px] font-bold opacity-60 mt-0.5 leading-none">{theme.tag}</span>
-                                  </div>
-                                  <span className="font-black text-[14px] shrink-0 tabular-nums pl-2">{cnt as number}개</span>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* 🏡 영유아 보육 및 안심 통학로 진단 정보 연동 */}
-                <ChildcareDetailSection 
-                  dong={report.dong || '오산동'} 
-                  distanceToElementary={report.metrics.distanceToElementary || 0} 
-                  aptName={report.apartmentName} 
-                />
-
-                {/* 🎯 학군/육아 인프라 스코어 연동 로컬 학원 및 교육 광고 */}
-                <div className="mt-8 border-t border-border/40 pt-8">
-                  <LocalEducationAd 
-                    dong={report.dong} 
-                    educationGrade={calculateEducationScore(report.metrics).grade} 
-                    apartmentName={report.apartmentName} 
-                  />
-                </div>
-                </div>
-                {!isUnlocked && (
-                  <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
-                    <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
-                  </div>
-                )}
-                </div>
-              </div>
-            )}
-          </section>
+          <EducationAnalysisSection
+            report={report}
+            isUnlocked={isUnlocked}
+            inline={inline}
+            viralShareCount={viralShareCount}
+            copiedStatus={copiedStatus}
+            handleShareSection={handleShareSection}
+            handleKakaoShare={handleKakaoShare}
+            displayAptName={displayAptName}
+          />
 
             {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
             <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
@@ -2428,123 +1687,7 @@ function FieldReportModal({
               </section>
             )}
 
-            {!s ? null : (() => {
-              const renderWatermark = () => {
-                return (
-                  <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
-                    <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
-                      D-VIEW
-                    </span>
-                  </div>
-                );
-              };
-
-              return (
-              // Advanced Template Render (요약은 위로 이동됨)
-              <>
-
-                {/* 2. 단지 기본정보 (Specs) */}
-                <section id="sec-specs" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
-                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Building size={20} className="text-toss-blue"/> 단지 기본정보</h2>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-body p-4 rounded-xl border border-border">
-                        <p className="text-[12px] text-tertiary font-bold mb-1">준공 연월 / 연차</p>
-                        <p className="text-[15px] text-primary font-medium">{s.specs.builtYear || '-'}</p>
-                      </div>
-                      <div className="bg-body p-4 rounded-xl border border-border">
-                        <p className="text-[12px] text-tertiary font-bold mb-1">규모 (세대/동)</p>
-                        <p className="text-[15px] text-primary font-medium">{s.specs.scale || '-'}</p>
-                      </div>
-                      <div className="bg-body p-4 rounded-xl border border-border">
-                        <p className="text-[12px] text-tertiary font-bold mb-1">용적률 / 건폐율</p>
-                        <p className="text-[15px] text-primary font-medium">{s.specs.farBuild || '-'}</p>
-                      </div>
-                      <div className="bg-body p-4 rounded-xl border border-border">
-                        <p className="text-[12px] text-tertiary font-bold mb-1">세대당 주차 (지하%)</p>
-                        <p className="text-[15px] text-primary font-medium">{s.specs.parkingRatio || '-'}</p>
-                      </div>
-                   </div>
-                </section>
-
-                {/* 3. 물리적 인프라 & 조경 */}
-                <section id="sec-infra" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
-                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Camera size={20} className="text-toss-blue"/> 현장 인프라 둘러보기</h2>
-                   <div className="flex flex-col gap-8">
-                      {/* Gate */}
-                      {(s.infra.gateText || s.infra.gateImg) && (
-                        <div className="flex flex-col md:flex-row gap-6">
-                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
-                          <div>
-                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
-                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
-                          </div>
-                        </div>
-                      )}
-                      {/* Landscaping */}
-                      {(s.infra.landscapeText || s.infra.landscapeImg) && (
-                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
-                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
-                          <div>
-                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
-                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
-                          </div>
-                        </div>
-                      )}
-                      {/* Parking & Maintenance ... (Skip strict layout for brevity, just render them similarly) */}
-                       {(s.infra.parkingText || s.infra.parkingImg) && (
-                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-body">
-                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
-                          <div>
-                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
-                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
-                          </div>
-                        </div>
-                      )}
-                   </div>
-                </section>
-
-                  {/* 4. Ecosystem */}
-                  {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
-                    <section id="sec-eco" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
-                       <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Info size={20} className="text-toss-blue"/> 생활 편의시설 및 거시 입지</h2>
-                       <div className="flex flex-col gap-8">
-                          <div className="flex flex-col md:flex-row gap-6">
-                            {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" />{renderWatermark()}</div>}
-                            <div>
-                              <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">동네 상권</h4>
-                              <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
-                            </div>
-                          </div>
-                       </div>
-                    </section>
-                  )}
-                 {/* 5. 최종 결론 */}
-                <section id="sec-conclusion" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14`}>
-                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><ShieldAlert size={20} className="text-toss-blue"/> 최종 매수 타당성 평가</h2>
-                   <div className="flex flex-col gap-4">
-                      <div className="bg-primary p-6 rounded-2xl text-surface">
-                        <h4 className="text-[13px] font-bold text-tertiary mb-2">교통 및 개발 호재</h4>
-                        <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 pb-4 border-b border-white/10">{s.location.trafficText || '-'}</p>
-                        <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
-                      </div>
-                      <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
-                        <h4 className="text-[16px] font-extrabold text-primary mb-2">💡 최종 결론</h4>
-                        <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
-                        
-                        {s.assessment.probability && (
-                          <div className="mt-6 p-4 bg-toss-blue-light rounded-xl flex items-start gap-3">
-                             <Radar size={20} className="text-toss-blue shrink-0 mt-0.5" />
-                             <div>
-                               <h5 className="text-[13px] font-bold text-toss-blue mb-1">향후 가격 전망</h5>
-                               <p className="text-[14px] text-primary leading-snug">{s.assessment.probability}</p>
-                             </div>
-                          </div>
-                        )}
-                      </div>
-                   </div>
-                </section>
-              </>
-            )})()}
+            <ScoutingReportDetailSection report={report} inline={inline} />
 
             {/* In-content Viral CTA & AdSense Placeholder */}
             <div className="flex flex-col gap-6 mt-8 mb-4">

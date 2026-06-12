@@ -768,10 +768,10 @@ export default function AIRecommendations({
             </div>
 
             <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-border/30 pt-2 sm:pt-0 gap-1 pl-10 sm:pl-0">
-              <div className="flex items-baseline gap-0.5">
-                <span className="text-[10px] text-tertiary font-bold tracking-tight mr-1 sm:hidden">매칭률</span>
-                <span className="text-[19px] font-black text-[#00d29d] tracking-tighter">{item.score}%</span>
-                <span className="text-[11px] font-bold text-tertiary">매칭</span>
+              <div className="flex items-baseline gap-0.5 shrink-0 whitespace-nowrap">
+                <span className="text-[10px] text-tertiary font-bold tracking-tight mr-1 sm:hidden whitespace-nowrap">매칭률</span>
+                <span className="text-[19px] font-black text-[#00d29d] tracking-tighter whitespace-nowrap">{item.score}%</span>
+                <span className="text-[11px] font-bold text-tertiary whitespace-nowrap">매칭</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] text-secondary font-bold">

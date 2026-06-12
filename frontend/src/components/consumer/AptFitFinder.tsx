@@ -950,9 +950,9 @@ export default function AptFitFinder({
 
                         {/* Match Score Badge & Toggle indicator */}
                         <div className="flex items-center gap-2 shrink-0 relative z-10">
-                          <div className="flex flex-col items-end justify-center">
-                            <span className="text-[9px] text-tertiary font-bold tracking-tight">매칭률</span>
-                            <span className="text-[18px] sm:text-[20px] font-black text-[#00d29d] tracking-tighter tabular-nums">{item.matchPercentage}%</span>
+                          <div className="flex flex-col items-end justify-center shrink-0 whitespace-nowrap">
+                            <span className="text-[9px] text-tertiary font-bold tracking-tight whitespace-nowrap">매칭률</span>
+                            <span className="text-[18px] sm:text-[20px] font-black text-[#00d29d] tracking-tighter tabular-nums whitespace-nowrap">{item.matchPercentage}%</span>
                           </div>
                           <ChevronRight 
                             size={16} 

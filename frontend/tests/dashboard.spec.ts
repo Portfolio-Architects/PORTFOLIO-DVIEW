@@ -10,11 +10,13 @@ test.describe('Dashboard E2E Tests', () => {
 
     // 1. Load the main page directly on the Apartment Explore tab (#imjang)
     await page.goto('/#imjang');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000); // Allow full client hydration and router stability
 
     // 2. Wait for the apartments list to populate
     // Locate the first apartment name span containing "동탄역" in the virtualized list
-    const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역\s*(?:롯데캐슬|힐스테이트)/ })
-                         .or(page.locator('#explore-list-container span', { hasText: /동탄역/ }))
+    const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역\s*롯데캐슬/ })
+                         .or(page.locator('#explore-list-container span', { hasText: /동탄역\s*시범한화/ }))
                          .first();
     await expect(aptTitle).toBeVisible({ timeout: 15000 });
 
@@ -25,7 +27,7 @@ test.describe('Dashboard E2E Tests', () => {
     await aptTitle.click();
 
     // 4. Verify the modal opens and displays '실거래가'
-    const txHistoryTitle = page.locator('h4', { hasText: '실거래가' }).first();
+    const txHistoryTitle = page.locator('h3', { hasText: '실거래가' }).first();
     await expect(txHistoryTitle).toBeVisible({ timeout: 10000 });
     
     // Check if the overall count is visible

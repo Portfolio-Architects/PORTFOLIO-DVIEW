@@ -128,12 +128,12 @@ export function TransactionTable({
   return (
     <div className="flex flex-col bg-[#F9FAFB] dark:bg-[#1a1a1a] rounded-2xl ring-1 ring-[#e5e8eb] dark:ring-[#2d2d2d] overflow-hidden md:h-full shadow-inner">
       <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
-        <h4 className="text-[14px] font-bold text-secondary shrink-0">
-          실거래가 <span className="text-toss-blue ml-1">{filteredTransactions.length}</span>건
-        </h4>
+        <h3 className="text-[14px] font-bold text-secondary shrink-0">
+          실거래가 <span className="text-[#00a37b] dark:text-toss-blue ml-1">{filteredTransactions.length}</span>건
+        </h3>
         {/* 정렬 필터 */}
         <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
-          <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#6b7684] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none">
+          <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#4e5968] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none">
             <span>{{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가격순', 'price_asc': '낮은가격순' }[txSort as string] || '최신순'}</span>
             <ChevronDown size={14} className={`text-tertiary transition-transform duration-200 ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
           </button>
@@ -156,7 +156,7 @@ export function TransactionTable({
       </div>
 
       {/* 테이블 컬럼 헤더 추가 */}
-      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#8b95a1] dark:text-[#9ca3af] select-none shrink-0 w-full gap-2">
+      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#6b7684] dark:text-[#9ca3af] select-none shrink-0 w-full gap-2">
         <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
         <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
         <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>

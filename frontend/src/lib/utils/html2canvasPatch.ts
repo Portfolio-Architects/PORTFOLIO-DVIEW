@@ -1,4 +1,3 @@
-import html2canvas from 'html2canvas';
 
 const replaceNestedFunction = (str: string, funcName: string, fallbackValue: string) => {
   let index = 0;
@@ -136,6 +135,7 @@ export async function safeHtml2canvas(
   element: HTMLElement,
   options: any = {}
 ): Promise<HTMLCanvasElement> {
+  const html2canvas = (await import('html2canvas')).default;
   let originalGetComputedStyle: typeof window.getComputedStyle | undefined = undefined;
   if (typeof window !== 'undefined') {
     originalGetComputedStyle = window.getComputedStyle;

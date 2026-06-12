@@ -1,7 +1,7 @@
 import { safeHtml2canvas } from './html2canvasPatch';
-import jsPDF from 'jspdf';
 
 export async function exportToPDF(elementId: string, filename: string = 'DVIEW_Report.pdf') {
+  const jsPDF = (await import('jspdf')).default;
   const element = document.getElementById(elementId);
   if (!element) {
     console.error(`Element with id ${elementId} not found`);

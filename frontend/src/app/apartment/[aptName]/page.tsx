@@ -20,6 +20,9 @@ export interface LocationScore {
     high?: string;
   };
   nearestStationCoords?: string;
+  nearestStationName?: string;
+  nearestStationLine?: string;
+  distanceToSubway?: number;
 }
 
 const TX_SUMMARY = (txSummaryDataRaw as any).summary;
@@ -512,28 +515,66 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     "longitude": Number(lng)
   } : undefined;
 
-  // Build School instances forcontainedInPlace SEO property
-  const schools = [];
+  // Build School instances for containedInPlace SEO property
+  const schools: Record<string, any>[] = [];
   if (locationScore?.nearestSchoolNames?.elementary) {
     schools.push({
       "@type": "School",
       "name": locationScore.nearestSchoolNames.elementary,
-      "description": "배정 초등학교"
+      "description": "배정 초등학교",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "KR",
+        "addressRegion": "경기도",
+        "addressLocality": "화성시"
+      }
     });
   }
   if (locationScore?.nearestSchoolNames?.middle) {
     schools.push({
       "@type": "School",
       "name": locationScore.nearestSchoolNames.middle,
-      "description": "인근 중학교"
+      "description": "인근 중학교",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "KR",
+        "addressRegion": "경기도",
+        "addressLocality": "화성시"
+      }
     });
   }
   if (locationScore?.nearestSchoolNames?.high) {
     schools.push({
       "@type": "School",
       "name": locationScore.nearestSchoolNames.high,
-      "description": "인근 고등학교"
+      "description": "인근 고등학교",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "KR",
+        "addressRegion": "경기도",
+        "addressLocality": "화성시"
+      }
     });
+  }
+
+  // Combine Schools and Transit Stations under containedInPlace
+  const containedPlaces: Record<string, any>[] = [...schools];
+  if (locationScore?.nearestStationName && locationScore?.nearestStationCoords) {
+    const coords = locationScore.nearestStationCoords.split(',');
+    if (coords.length === 2) {
+      const latVal = Number(coords[0].trim());
+      const lngVal = Number(coords[1].trim());
+      containedPlaces.push({
+        "@type": "TransitStation",
+        "name": locationScore.nearestStationName,
+        "description": `${locationScore.nearestStationLine || "지하철"}역 (단지에서 약 ${locationScore.distanceToSubway || 0}m)`,
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": latVal,
+          "longitude": lngVal
+        }
+      });
+    }
   }
 
   const address = {
@@ -543,6 +584,30 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     "addressLocality": "화성시",
     "streetAddress": `${aptSummary?.dong || matchedReportData?.dong || ""} ${decodedName}`
   };
+
+  // Extract yearBuilt and total households count from matched report specifications
+  const rawScale = matchedReportData?.sections?.specs?.scale;
+  const rawBuiltYear = matchedReportData?.sections?.specs?.builtYear;
+  const totalHouseholds = rawScale ? parseInt(rawScale.replace(/[^0-9]/g, '')) : undefined;
+  const yearBuiltVal = rawBuiltYear ? parseInt(rawBuiltYear.replace(/[^0-9]/g, '')) : undefined;
+
+  // Build FloorPlan specifications for apartment sizes
+  const floorPlans = pyeongSummaries.map((p) => ({
+    "@type": "FloorPlan",
+    "name": `${p.pyeong}평형 (${p.areaM2}㎡)`,
+    "floorSize": {
+      "@type": "QuantitativeValue",
+      "value": p.areaM2,
+      "unitCode": "MTK"
+    },
+    "numberOfRooms": 3,
+    "offers": p.latestPrice > 0 ? {
+      "@type": "Offer",
+      "priceCurrency": "KRW",
+      "price": p.latestPrice * 10000,
+      "description": `최근 실거래 매매가: ${p.latestPriceStr}, 전세가: ${p.latestDepositStr}`
+    } : undefined
+  }));
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -558,7 +623,10 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
         "priceRange": minSalePrice > 0 ? `₩${(minSalePrice * 10000).toLocaleString()} - ₩${(maxSalePrice * 10000).toLocaleString()}` : undefined,
         "address": address,
         ...(geo ? { "geo": geo } : {}),
-        ...(schools.length > 0 ? { "containedInPlace": schools } : {})
+        ...(containedPlaces.length > 0 ? { "containedInPlace": containedPlaces } : {}),
+        ...(floorPlans.length > 0 ? { "accommodationFloorPlan": floorPlans } : {}),
+        ...(totalHouseholds ? { "numberOfAccommodation": totalHouseholds } : {}),
+        ...(yearBuiltVal ? { "yearBuilt": yearBuiltVal } : {})
       },
       {
         "@type": "SingleFamilyResidence",

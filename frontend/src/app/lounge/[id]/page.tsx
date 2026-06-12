@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { headers } from 'next/headers';
 
 export const revalidate = 60; // Cache and revalidate page at most once every 60 seconds
 export const dynamicParams = true; // Enable on-demand generation for posts not pre-rendered
@@ -94,7 +95,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function LoungePostPage(props: Props) {
   const params = await props.params;
   const { id } = params;
-  let initialPost: Record<string, unknown> | undefined = undefined;
+  let initialPost: Record<string, any> | undefined = undefined;
+  const nonce = (await headers()).get('x-nonce') || undefined;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   if (adminDb && id) {
     try {
@@ -122,6 +125,56 @@ export default async function LoungePostPage(props: Props) {
     }
   }
 
-  // Pass the ID and the prefetched data to the client component to render SSR
-  return <LoungeDetailClient postId={id} initialPost={initialPost} />;
+  // Generate clean text body for LLM/Search engines by stripping markdown elements
+  let cleanContentText = '';
+  if (initialPost?.content) {
+    const contentWithoutImages = initialPost.content.replace(/!\[.*?\]\(.*?\)/g, '');
+    cleanContentText = contentWithoutImages.replace(/[#*`~_\->]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  const jsonLd = initialPost ? {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    "@id": `${baseUrl}/lounge/${id}`,
+    "headline": initialPost.title,
+    "articleBody": cleanContentText,
+    "datePublished": initialPost.createdAt ? new Date(initialPost.createdAt).toISOString() : undefined,
+    "author": {
+      "@type": "Person",
+      "name": initialPost.author
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "D-VIEW",
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${baseUrl}/logo.png`
+      }
+    },
+    "interactionStatistic": [
+      {
+        "@type": "InteractionCounter",
+        "interactionType": "https://schema.org/ViewAction",
+        "userInteractionCount": Number(initialPost.views || 0)
+      },
+      {
+        "@type": "InteractionCounter",
+        "interactionType": "https://schema.org/LikeAction",
+        "userInteractionCount": Number(initialPost.likes || 0)
+      }
+    ]
+  } : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <LoungeDetailClient postId={id} initialPost={initialPost} />
+    </>
+  );
 }

@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -347,9 +346,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 w-full gap-3">
           <div className="flex flex-col gap-2 w-full md:w-1/2">
-            <h4 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 shrink-0">
+            <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 shrink-0">
               <TrendingUp size={15} className="text-toss-blue" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
-            </h4>
+            </h3>
             
             {/* 최고 평균가 대비 현재 평균가 게이지 바 */}
             {(() => {
@@ -364,7 +363,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                        <span className={dropRatio > 0 ? "text-[#f04452] dark:text-[#f26d78]" : "text-[#00b386] dark:text-[#00d29d]"}>
+                        <span className={dropRatio > 0 ? "text-toss-red dark:text-red-400" : "text-[#00b386] dark:text-[#00d29d]"}>
                           최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})
                         </span>
                       </div>
