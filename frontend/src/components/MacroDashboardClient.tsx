@@ -17,7 +17,7 @@ const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder"), {
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
-import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
+import { normalizeAptName, findTxKey, findTypeMapEntry } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
 import { useSettings } from "@/lib/contexts/SettingsContext";
 import FloatingUserBar from "@/components/FloatingUserBar";
@@ -50,6 +50,8 @@ export interface TimelineItem {
   delta: number;
   deltaPercent?: number;
   prevPriceVal?: number;
+  areaLabelM2?: string;
+  areaLabelPyeong?: string;
 }
 
 interface MacroNewsItem {
@@ -93,6 +95,7 @@ interface MacroDashboardProps {
     trendColor: string;
     badge: string;
   };
+  typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -330,6 +333,7 @@ export default function MacroDashboardClient({
   onOpenTaxCalculator,
   onOpenSellTimingCalculator,
   recent7DaysVolume,
+  typeMap = {},
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
   const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
@@ -1251,6 +1255,10 @@ export default function MacroDashboardClient({
                   };
                 }
 
+                const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
+                const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
+                const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
+
                 groups[dateKey].items.push({
                   aptName: apt.name,
                   dong: apt.dong || sum.dong || "",
@@ -1263,6 +1271,8 @@ export default function MacroDashboardClient({
                   delta: delta,
                   deltaPercent: deltaPercent,
                   prevPriceVal: delta && delta > 0 ? price - delta : undefined,
+                  areaLabelM2: labelM2,
+                  areaLabelPyeong: labelPyeong,
                 });
               }
             });
@@ -1713,7 +1723,11 @@ interface GroupedCategory {
                             <div className="flex items-center justify-between text-[11px] text-tertiary">
                               <div className="flex items-center gap-1 min-w-0 font-medium mr-2">
                                 <span className="truncate">
-                                  {item.dong} · {renderAreaLabel(item.areaPyeong, item.area)} · {item.floor}층
+                                  {item.dong} · {
+                                    areaUnit === 'm2'
+                                      ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+                                      : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)
+                                  } · {item.floor}층
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">

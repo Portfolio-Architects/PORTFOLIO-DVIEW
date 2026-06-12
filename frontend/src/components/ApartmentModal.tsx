@@ -12,7 +12,7 @@ import { normalize84Price } from '@/lib/utils/valuation';
 import { normalizeAptName, getDisplayAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
-import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
@@ -299,7 +299,17 @@ function FieldReportModal({
   const { showToast } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isAnimationFinished, setIsAnimationFinished] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
+
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        setIsAnimationFinished(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -473,28 +483,95 @@ function FieldReportModal({
     const fetchPost = async () => {
       try {
         const shortName = report.apartmentName.replace(/\[.*?\]\s*/, '');
-        
-        // 1. Try querying category "매니저 임장기"
-        const q1 = query(collection(db, 'posts').withConverter(postConverter), where('category', '==', '매니저 임장기'));
-        const snap1 = await getDocs(q1);
-        let matchedId = null;
+        let matchedId: string | null = null;
         let matchedTitle = '';
-        
-        snap1.forEach((d) => {
-          const data = d.data();
-          const t = data.title || '';
-          const c = data.content || '';
-          if (t.includes(shortName) || c.includes(shortName)) {
-            matchedId = d.id;
-            matchedTitle = t;
-          }
-        });
 
-        // 2. Try querying category "동탄 임장/분석" if not found
+        // 1. Try querying by verifiedApartment directly (O(1) direct match)
+        const qApt1 = query(
+          collection(db, 'posts').withConverter(postConverter),
+          where('category', '==', '매니저 임장기'),
+          where('verifiedApartment', '==', report.apartmentName),
+          limit(1)
+        );
+        let snap = await getDocs(qApt1);
+        if (!snap.empty) {
+          matchedId = snap.docs[0].id;
+          matchedTitle = snap.docs[0].data().title;
+        }
+
         if (!matchedId) {
-          const q2 = query(collection(db, 'posts').withConverter(postConverter), where('category', '==', '동탄 임장/분석'));
+          const qApt2 = query(
+            collection(db, 'posts').withConverter(postConverter),
+            where('category', '==', '매니저 임장기'),
+            where('verifiedApartment', '==', shortName),
+            limit(1)
+          );
+          snap = await getDocs(qApt2);
+          if (!snap.empty) {
+            matchedId = snap.docs[0].id;
+            matchedTitle = snap.docs[0].data().title;
+          }
+        }
+
+        // 2. Fallback: Query up to 20 manager posts without full scan
+        if (!matchedId) {
+          const q1 = query(
+            collection(db, 'posts').withConverter(postConverter),
+            where('category', '==', '매니저 임장기'),
+            limit(20)
+          );
+          const snap1 = await getDocs(q1);
+          snap1.forEach((d) => {
+            if (matchedId) return;
+            const data = d.data();
+            const t = data.title || '';
+            const c = data.content || '';
+            if (t.includes(shortName) || c.includes(shortName)) {
+              matchedId = d.id;
+              matchedTitle = t;
+            }
+          });
+        }
+
+        // 3. Try querying category "동탄 임장/분석" with verifiedApartment
+        if (!matchedId) {
+          const qApt3 = query(
+            collection(db, 'posts').withConverter(postConverter),
+            where('category', '==', '동탄 임장/분석'),
+            where('verifiedApartment', '==', report.apartmentName),
+            limit(1)
+          );
+          snap = await getDocs(qApt3);
+          if (!snap.empty) {
+            matchedId = snap.docs[0].id;
+            matchedTitle = snap.docs[0].data().title;
+          }
+        }
+
+        if (!matchedId) {
+          const qApt4 = query(
+            collection(db, 'posts').withConverter(postConverter),
+            where('category', '==', '동탄 임장/분석'),
+            where('verifiedApartment', '==', shortName),
+            limit(1)
+          );
+          snap = await getDocs(qApt4);
+          if (!snap.empty) {
+            matchedId = snap.docs[0].id;
+            matchedTitle = snap.docs[0].data().title;
+          }
+        }
+
+        // 4. Fallback for lounge posts (limit 20) to prevent giant network payload
+        if (!matchedId) {
+          const q2 = query(
+            collection(db, 'posts').withConverter(postConverter),
+            where('category', '==', '동탄 임장/분석'),
+            limit(20)
+          );
           const snap2 = await getDocs(q2);
           snap2.forEach((d) => {
+            if (matchedId) return;
             const data = d.data();
             const t = data.title || '';
             const c = data.content || '';
@@ -527,36 +604,50 @@ function FieldReportModal({
   const transactions = useMemo(() => {
     if (!rawTransactions || rawTransactions.length === 0) return [];
     
-    // 롤링 윈도우 기반 시계열 이상치 필터링 (최근 11건 기준 국소적 평균/표준편차 적용)
-    const filterOutliersRolling = (txs: TransactionRecord[]) => {
-      // 1. 시간순(오름차순) 정렬
-      const sortedTxs = [...txs].sort((a, b) => {
-        const d1 = parseInt(a.contractYm + String(a.contractDay).padStart(2, '0'));
-        const d2 = parseInt(b.contractYm + String(b.contractDay).padStart(2, '0'));
-        return d1 - d2;
-      });
+    // 1. 사전 연산: 각 거래 건의 실제 가격/전세전환가 및 타입맵 정보를 미리 연산하여 캐싱
+    const mappedTransactions = rawTransactions.map(tx => {
+      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+      const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
+      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
+      
+      // 전세/월세 보증금 전환가 미리 계산
+      const calcPrice = (tx.dealType === '전세' || tx.dealType === '월세')
+        ? (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)
+        : tx.price;
+      
+      // 날짜를 YYYYMMDD 형태의 숫자로 캐싱
+      const dateNum = parseInt(tx.contractYm + String(tx.contractDay || '01').padStart(2, '0'));
+
+      return {
+        ...tx,
+        calculatedPrice: calcPrice,
+        contractDateNum: dateNum,
+        areaLabelM2: labelM2,
+        areaLabelPyeong: labelPyeong
+      };
+    });
+
+    // 롤링 윈도우 기반 시계열 이상치 필터링
+    const filterOutliersRolling = (txs: typeof mappedTransactions) => {
+      // 1. 시간순(오름차순) 정렬 (캐시된 contractDateNum 활용)
+      const sortedTxs = [...txs].sort((a, b) => a.contractDateNum - b.contractDateNum);
 
       // 2. 면적별 그룹화
-      const byArea: Record<number, TransactionRecord[]> = {};
+      const byArea: Record<number, typeof mappedTransactions> = {};
       sortedTxs.forEach(t => {
         const a = Math.round(t.area);
         if (!byArea[a]) byArea[a] = [];
         byArea[a].push(t);
       });
 
-      const validTxs: TransactionRecord[] = [];
+      const validTxs: typeof mappedTransactions = [];
       Object.values(byArea).forEach(group => {
         const filtered = group.filter((t, idx) => {
           // 앞뒤 5건씩 총 11건의 국소 윈도우 생성
           const windowTxs = group.slice(Math.max(0, idx - 5), Math.min(group.length, idx + 6));
-          const prices = windowTxs.map(wt => {
-            return (wt.dealType === '전세' || wt.dealType === '월세') 
-              ? (wt.deposit || 0) + Math.round((wt.monthlyRent || 0) * 12 / 0.055)
-              : wt.price;
-          });
-          const p = (t.dealType === '전세' || t.dealType === '월세') 
-            ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
-            : t.price;
+          // 캐시된 calculatedPrice를 직접 읽음 (불필요한 중복 분기 및 수식 연산 제거)
+          const prices = windowTxs.map(wt => wt.calculatedPrice);
+          const p = t.calculatedPrice;
           
           if (prices.length < 4) return true; // 비교 표본이 부족하면 패스
           
@@ -573,8 +664,8 @@ function FieldReportModal({
       return validTxs;
     };
 
-    const saleTxs = rawTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = rawTransactions.filter(t => {
+    const saleTxs = mappedTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = mappedTransactions.filter(t => {
       if (t.dealType === '전세') return true;
       if (t.dealType === '월세' && t.monthlyRent && t.monthlyRent > 0) return true;
       return false;
@@ -585,23 +676,10 @@ function FieldReportModal({
 
     const combined = [...finalSale, ...finalJeonse];
 
-    const sorted = combined.sort((a, b) => {
-      const da = a.contractYm + String(a.contractDay).padStart(2, '0');
-      const db = b.contractYm + String(b.contractDay).padStart(2, '0');
-      if (da !== db) return parseInt(db) - parseInt(da);
+    // 정렬 (캐시된 contractDateNum 활용하여 내림차순 정렬)
+    return combined.sort((a, b) => {
+      if (a.contractDateNum !== b.contractDateNum) return b.contractDateNum - a.contractDateNum;
       return b.price - a.price;
-    });
-
-    // 1회성 사전 연산: 각 거래 건의 타입맵 매핑 및 라벨을 생성하여 캐싱
-    return sorted.map(tx => {
-      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-      const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
-      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
-      return {
-        ...tx,
-        areaLabelM2: labelM2,
-        areaLabelPyeong: labelPyeong
-      };
     });
   }, [rawTransactions, filterOutliers, typeMap]);
 
@@ -612,14 +690,10 @@ function FieldReportModal({
 
     const now = new Date();
     const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    const threeMonthsAgoNum = threeMonthsAgo.getFullYear() * 10000 + (threeMonthsAgo.getMonth() + 1) * 100 + threeMonthsAgo.getDate();
 
-    const isRecent = (t: TransactionRecord) => {
-      if (!t.contractYm || t.contractYm.length < 6) return false;
-      const y = parseInt(t.contractYm.slice(0, 4));
-      const m = parseInt(t.contractYm.slice(4, 6));
-      const d = parseInt(t.contractDay || '1');
-      const txDate = new Date(y, m - 1, d);
-      return txDate >= threeMonthsAgo;
+    const isRecent = (t: any) => {
+      return (t.contractDateNum || 0) >= threeMonthsAgoNum;
     };
 
     const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
@@ -632,9 +706,7 @@ function FieldReportModal({
       ? Math.round(recentSales.reduce((sum, t) => sum + t.price, 0) / recentSales.length)
       : (sales.length > 0 ? sales[0].price : 0);
 
-    const getJeonseEq = (t: TransactionRecord) => t.dealType === '월세' 
-      ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
-      : (t.deposit || t.price || 0);
+    const getJeonseEq = (t: any) => t.calculatedPrice || t.price || 0;
 
     const avg3MRent = recentRents.length > 0
       ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
@@ -730,11 +802,7 @@ function FieldReportModal({
     const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
     
     const latestSale = sales[0]?.price || 0;
-    
-    const getJeonseEq = (t: TransactionRecord) => t.dealType === '월세' 
-      ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
-      : (t.deposit || t.price || 0);
-    const latestRent = rents[0] ? getJeonseEq(rents[0]) : 0;
+    const latestRent = rents[0] ? (rents[0].calculatedPrice || rents[0].price || 0) : 0;
     
     const ratio = latestSale > 0 ? (latestRent / latestSale) : 0;
     
@@ -932,6 +1000,9 @@ function FieldReportModal({
     const baseUrl = window.location.origin;
 
     try {
+      // Allow React to mount the off-screen share card DOM before capture
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
       const latestSale = saleTxs[0];
@@ -1412,38 +1483,54 @@ function FieldReportModal({
       <section className={`w-full flex flex-col-reverse md:flex-row p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} gap-4 md:gap-8 shrink-0`}>
         
         {/* Left: 실거래가 전체 리스트 (35%) */}
-        <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch">
-          <TransactionTable 
-            transactions={filteredTransactions} 
-            typeMap={typeMap} 
-            chartType={chartType} 
-            normalizeAptName={normalizeAptName} 
-          />
+        <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px]">
+          {!isAnimationFinished ? (
+            <div className="w-full h-[320px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+              <span className="text-[12px] font-bold text-tertiary">거래 데이터 분석 중...</span>
+            </div>
+          ) : (
+            <TransactionTable 
+              transactions={filteredTransactions} 
+              typeMap={typeMap} 
+              chartType={chartType} 
+              normalizeAptName={normalizeAptName} 
+            />
+          )}
         </div>
 
         {/* Right: 실거래가 차트 (65%) */}
-        <div className="w-full md:w-[65%] flex flex-col">
+        <div className="w-full md:w-[65%] flex flex-col min-h-[320px]">
           <ErrorBoundary name="실거래 차트">
-            <TransactionChartSection 
-              transactions={filteredTransactions} 
-              chartType={chartType} 
-              setChartType={setChartType}
-              displayAptName={displayAptName} 
-              dong={report.dong || '동탄'}
-              typeMap={typeMap} 
-              normalizeAptName={normalizeAptName} 
-              txSummary={txSummary}
-            />
+            {!isAnimationFinished ? (
+              <div className="w-full h-[320px] md:h-[360px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+                <span className="text-[12px] font-bold text-tertiary">시세 차트 로딩 중...</span>
+              </div>
+            ) : (
+              <TransactionChartSection 
+                transactions={filteredTransactions} 
+                chartType={chartType} 
+                setChartType={setChartType}
+                displayAptName={displayAptName} 
+                dong={report.dong || '동탄'}
+                typeMap={typeMap} 
+                normalizeAptName={normalizeAptName} 
+                txSummary={txSummary}
+              />
+            )}
           </ErrorBoundary>
         </div>
       </section>
 
-          {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
-          <TransactionSummaryMetrics 
-            transactions={transactions} 
-            apartmentName={report.apartmentName}
-            typeMap={typeMap}
-          />
+      {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
+      {!isAnimationFinished ? (
+        <div className="w-full h-[80px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse mt-4" />
+      ) : (
+        <TransactionSummaryMetrics 
+          transactions={transactions} 
+          apartmentName={report.apartmentName}
+          typeMap={typeMap}
+        />
+      )}
 
           {/* Sticky Section Nav */}
           <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-[16px] md:pt-[20px] pb-0 shadow-sm shadow-[#191f28]/5">
@@ -1520,227 +1607,226 @@ function FieldReportModal({
 
 
 
-          {/* 단지 입지정보 컨테이너 (교통 + 생활 인프라 + 앵커 테넌트 묶음) */}
-          <InfraAnalysisSection
-            report={report}
-            inline={inline}
-            copiedStatus={copiedStatus}
-            handleShareSection={handleShareSection}
-          />
+          {isAnimationFinished ? (
+            <>
+              {/* 단지 입지정보 컨테이너 (교통 + 생활 인프라 + 앵커 테넌트 묶음) */}
+              <InfraAnalysisSection
+                report={report}
+                inline={inline}
+                copiedStatus={copiedStatus}
+                handleShareSection={handleShareSection}
+              />
 
-          {/* 🎓 학군 및 육아 분석 컨테이너 */}
-          <EducationAnalysisSection
-            report={report}
-            isUnlocked={isUnlocked}
-            inline={inline}
-            viralShareCount={viralShareCount}
-            copiedStatus={copiedStatus}
-            handleShareSection={handleShareSection}
-            handleKakaoShare={handleKakaoShare}
-            displayAptName={displayAptName}
-          />
+              {/* 🎓 학군 및 육아 분석 컨테이너 */}
+              <EducationAnalysisSection
+                report={report}
+                isUnlocked={isUnlocked}
+                inline={inline}
+                viralShareCount={viralShareCount}
+                copiedStatus={copiedStatus}
+                handleShareSection={handleShareSection}
+                handleKakaoShare={handleKakaoShare}
+                displayAptName={displayAptName}
+              />
 
-            {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
-            <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
-              <div className="relative w-full">
-                <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
-                  <ErrorBoundary name="밸류에이션 분석">
-                    <AdvancedValuationMetrics report={report} transactions={transactions} />
-                  </ErrorBoundary>
-                  <BuyOrWaitVote aptName={report.apartmentName} />
+              {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
+              <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
+                <div className="relative w-full">
+                  <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
+                    <ErrorBoundary name="밸류에이션 분석">
+                      <AdvancedValuationMetrics report={report} transactions={transactions} />
+                    </ErrorBoundary>
+                    <BuyOrWaitVote aptName={report.apartmentName} />
+                  </div>
+                  {!isUnlocked && (
+                    <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
+                      <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
+                    </div>
+                  )}
                 </div>
-                {!isUnlocked && (
-                  <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
-                    <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
+
+                {/* 취득세 및 복비 계산기 연동 버튼 */}
+                {onOpenTaxCalculator && (
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={() => onOpenTaxCalculator(report.apartmentName)}
+                      className="w-full max-w-md py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                    >
+                      <Calculator size={16} />
+                      <span>나의 예상 취득세 및 복비 계산하기</span>
+                    </button>
                   </div>
                 )}
-              </div>
 
-              {/* 취득세 및 복비 계산기 연동 버튼 */}
-              {onOpenTaxCalculator && (
-                <div className="mt-4 flex justify-center">
-                  <button
-                    onClick={() => onOpenTaxCalculator(report.apartmentName)}
-                    className="w-full max-w-md py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
-                  >
-                    <Calculator size={16} />
-                    <span>나의 예상 취득세 및 복비 계산하기</span>
-                  </button>
-                </div>
-              )}
-
-              {/* AI 매도 진단기 연동 버튼 */}
-              {onOpenSellTimingCalculator && (
-                <div className="mt-3 flex justify-center">
-                  <button
-                    onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
-                    className="w-full max-w-md py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
-                  >
-                    <Calculator size={16} />
-                    <span>지금 팔면 호구일까? AI 매도 진단하기</span>
-                  </button>
-                </div>
-              )}
-            </section>
-
-            {/* 전세사기 위험도 스코어링 및 깡통전세 자동 진단 시스템 */}
-            {jeonseSafetyData && (
-              <section id="sec-jeonse-safety" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14`}>
-                <div className="flex flex-col w-full">
-                  <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                    <Shield size={18} className="text-[#0d9488]"/> 전세 안전성 진단 리포트
-                  </h2>
-                  <div className="relative w-full">
-                    <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
-                      <JeonseSafetyReport
-                        aptName={report.apartmentName}
-                        dong={report.dong || '동탄'}
-                        ratio={jeonseSafetyData.ratio}
-                        latestPrice={jeonseSafetyData.latestPrice}
-                        latestDeposit={jeonseSafetyData.latestDeposit}
-                        volume3M={txSummary ? (txSummary.avg3MTxCount || 0) : 0}
-                        householdCount={report.metrics?.householdCount || 0}
-                        onOpenAdModal={onOpenAdModal}
-                      />
-                    </div>
-                    {!isUnlocked && (
-                      <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
-                        <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
-                      </div>
-                    )}
+                {/* AI 매도 진단기 연동 버튼 */}
+                {onOpenSellTimingCalculator && (
+                  <div className="mt-3 flex justify-center">
+                    <button
+                      onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
+                      className="w-full max-w-md py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                    >
+                      <Calculator size={16} />
+                      <span>지금 팔면 호구일까? AI 매도 진단하기</span>
+                    </button>
                   </div>
-                </div>
+                )}
               </section>
-            )}
 
-            {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}
-            {report.images && report.images.length > 0 ? (() => {
-              const IMAGE_TAG_LABELS: Record<string, string> = {
-                'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
-                'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
-              };
-              const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
-              return (
-                <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative`}>
-                  <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
-                    <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+              {/* 전세사기 위험도 스코어링 및 깡통전세 자동 진단 시스템 */}
+              {jeonseSafetyData && (
+                <section id="sec-jeonse-safety" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14`}>
+                  <div className="flex flex-col w-full">
+                    <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                      <Shield size={18} className="text-[#0d9488]"/> 전세 안전성 진단 리포트
+                    </h2>
+                    <div className="relative w-full">
+                      <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
+                        <JeonseSafetyReport
+                          aptName={report.apartmentName}
+                          dong={report.dong || '동탄'}
+                          ratio={jeonseSafetyData.ratio}
+                          latestPrice={jeonseSafetyData.latestPrice}
+                          latestDeposit={jeonseSafetyData.latestDeposit}
+                          volume3M={txSummary ? (txSummary.avg3MTxCount || 0) : 0}
+                          householdCount={report.metrics?.householdCount || 0}
+                          onOpenAdModal={onOpenAdModal}
+                        />
+                      </div>
+                      {!isUnlocked && (
+                        <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
+                          <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Photo Gallery */}
+              {report.images && report.images.length > 0 ? (() => {
+                const IMAGE_TAG_LABELS: Record<string, string> = {
+                  'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
+                  'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
+                };
+                const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
+                return (
+                  <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative`}>
+                    <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
+                      <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsUploadModalOpen(true);
+                        }}
+                        className="text-[13px] font-bold text-toss-blue bg-toss-blue-light px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                      >
+                        + 사진 추가
+                      </button>
+                    </div>
+                    <details open>
+                      <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
+                        <Camera size={20} className="text-toss-blue"/>
+                        우리 단지 갤러리
+                      </summary>
+                      <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
+                    </details>
+                  </section>
+                );
+              })() : (
+                <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group`}>
+                  <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                    <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
+                  </h2>
+                  <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
+                    <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
+                      <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
+                      데이터가 담지 못하는 우리 단지의 진정한 가치
+                    </h3>
+                    <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
+                      매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
+                      입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                    </p>
                     <button 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="text-[13px] font-bold text-toss-blue bg-toss-blue-light px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-toss-blue hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
                     >
-                      + 사진 추가
+                      <span>우리 단지 첫 번째 앰배서더 되기</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-toss-blue group-hover:bg-surface animate-pulse" />
                     </button>
+                    <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
+                      * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
+                    </p>
                   </div>
-                  <details open>
-                    <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                      <Camera size={20} className="text-toss-blue"/>
-                      우리 단지 갤러리
-                    </summary>
-
-                    {/* Category Filter Chips */}
-                    <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
-                  </details>
                 </section>
-              );
-            })() : (
-              <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group`}>
-                <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                  <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
-                </h2>
-                <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
-                  {/* Glassmorphism subtle background effects */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
-                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
-                  
-                  <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
-                    <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
+              )}
+
+              <ScoutingReportDetailSection report={report} inline={inline} />
+
+              {/* In-content Viral CTA & AdSense Placeholder */}
+              <div className="flex flex-col gap-6 mt-8 mb-4">
+                <button 
+                  onClick={handleKakaoShare}
+                  disabled={isSharing}
+                  className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-colors shadow-sm group border-none text-left disabled:opacity-85"
+                >
+                  <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
+                    <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
+                      {isSharing ? '공유 이미지 카드 준비 중...' : '가장 빠른 동탄 소식'}
+                    </span>
+                    <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
+                      {isSharing ? '잠시만 기다려주시면 카카오톡 전송 창이 열립니다' : '이 아파트 분석 리포트 카톡으로 지인에게 공유하기'}
+                    </span>
                   </div>
-                  
-                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
-                    데이터가 담지 못하는 우리 단지의 진정한 가치
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
-                    매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                    입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
-                  </p>
-                  
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsUploadModalOpen(true);
-                    }}
-                    className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-toss-blue hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
-                  >
-                    <span>우리 단지 첫 번째 앰배서더 되기</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-toss-blue group-hover:bg-surface animate-pulse" />
-                  </button>
-                  
-                  <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
-                    * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
-                  </p>
-                </div>
-              </section>
-            )}
+                  <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                    {isSharing ? (
+                      <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                        <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                      </svg>
+                    )}
+                  </div>
+                </button>
 
-            <ScoutingReportDetailSection report={report} inline={inline} />
-
-            {/* In-content Viral CTA & AdSense Placeholder */}
-            <div className="flex flex-col gap-6 mt-8 mb-4">
-
-              {/* 1. Viral Share CTA (Desktop/Mobile In-content) */}
-              <button 
-                onClick={handleKakaoShare}
-                disabled={isSharing}
-                className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-colors shadow-sm group border-none text-left disabled:opacity-85"
-              >
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
-                  <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
-                    {isSharing ? '공유 이미지 카드 준비 중...' : '가장 빠른 동탄 소식'}
-                  </span>
-                  <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
-                    {isSharing ? '잠시만 기다려주시면 카카오톡 전송 창이 열립니다' : '이 아파트 분석 리포트 카톡으로 지인에게 공유하기'}
-                  </span>
-                </div>
-                <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                  {isSharing ? (
-                    <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                      <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-
-              {/* 2. Native Ad Placeholder (AdSense Test) */}
-              <NativeAdPlaceholder 
-                location="단지 리포트 모달" 
-                onClick={onOpenAdModal} 
-                metrics={report.metrics} 
-                adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL || "test-apt-modal-slot"} 
-              />
-            </div>
-
-            {/* Comments Section */}
-            <section id="sec-comments">
-              <ErrorBoundary name="임장기 댓글">
-                <CommentSection
-                  comments={comments}
-                  commentInput={commentInput}
-                  onCommentChange={onCommentChange}
-                  onSubmitComment={onSubmitComment}
-                  user={user}
-                  isUnlocked={isUnlocked}
-                  selectedCommentId={selectedCommentId}
-                  onRequestLogin={onRequestLogin}
+                <NativeAdPlaceholder 
+                  location="단지 리포트 모달" 
+                  onClick={onOpenAdModal} 
+                  metrics={report.metrics} 
+                  adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL || "test-apt-modal-slot"} 
                 />
-              </ErrorBoundary>
-            </section>
+              </div>
+
+              {/* Comments Section */}
+              <section id="sec-comments">
+                <ErrorBoundary name="임장기 댓글">
+                  <CommentSection
+                    comments={comments}
+                    commentInput={commentInput}
+                    onCommentChange={onCommentChange}
+                    onSubmitComment={onSubmitComment}
+                    user={user}
+                    isUnlocked={isUnlocked}
+                    selectedCommentId={selectedCommentId}
+                    onRequestLogin={onRequestLogin}
+                  />
+                </ErrorBoundary>
+              </section>
+            </>
+          ) : (
+            <div className="w-full py-16 flex flex-col items-center justify-center gap-3 bg-surface/30 rounded-3xl border border-border/50 animate-pulse">
+              <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+              <span className="text-[13px] font-bold text-secondary">리포트 분석을 구성하는 중...</span>
+            </div>
+          )}
 
           </div>
     </>
@@ -2002,19 +2088,20 @@ function FieldReportModal({
       )}
       
       {/* ─── Kakao Share Off-screen Visual Card (1200x630) ─── */}
-      <div
-        ref={shareCardRef}
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          top: '-9999px',
-          width: '1200px',
-          height: '630px',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          boxSizing: 'border-box',
-        }}
-        className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white p-16 flex flex-col justify-between"
-      >
+      {isSharing && (
+        <div
+          ref={shareCardRef}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: '-9999px',
+            width: '1200px',
+            height: '630px',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            boxSizing: 'border-box',
+          }}
+          className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white p-16 flex flex-col justify-between"
+        >
         {/* Top Header */}
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center gap-3">
@@ -2143,6 +2230,7 @@ function FieldReportModal({
           </div>
         </div>
       </div>
+      )}
 
       <FullscreenOverlay />
     </>,

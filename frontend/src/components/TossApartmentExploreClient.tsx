@@ -119,10 +119,6 @@ interface EnrichedApt {
   volume1M: number;
   turnoverRate: number;
   hasTx: boolean;
-  views: number;
-  photoCount: number;
-  likes: number;
-  isFavorited: boolean;
   
   formattedYearBuilt: string;
   formattedPrice: string;
@@ -140,9 +136,23 @@ interface AptRowProps {
   handleSelectApt: (name: string) => void;
   onToggleFavorite: (name: string) => void;
   currentCategory: string;
+  isFavorited: boolean;
+  likes: number;
+  photoCount: number;
+  views: number;
 }
 
-const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCategory }: AptRowProps) => {
+const AptRow = memo(({ 
+  item, 
+  index, 
+  handleSelectApt, 
+  onToggleFavorite, 
+  currentCategory,
+  isFavorited,
+  likes,
+  photoCount,
+  views
+}: AptRowProps) => {
   /*
    * 🛡️ DEFENSIVE DESIGN (방어적 설계):
    * 1. Null / Empty Values: totalPrice, ratio, turnoverRate, views 값이 0 이하일 경우 런타임 에러나 NaN 노출을 방지하기 위해 '-' 또는 '0'으로 안전하게 fallback 처리합니다.
@@ -169,7 +179,7 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCa
         {/* Heart */}
         <div className="w-[36px] text-center flex justify-center items-center shrink-0">
           <InteractiveHeart 
-            isFavorited={item.isFavorited} 
+            isFavorited={isFavorited} 
             name={item.apt.name} 
             onToggle={onToggleFavorite} 
             size={18} 
@@ -187,23 +197,23 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCa
               {index + 1}
             </span>
           ) : (
-            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-500 bg-neutral-100/40 dark:bg-neutral-800/30">{index + 1}</span>
+            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-50 bg-neutral-100/40 dark:bg-neutral-800/30">{index + 1}</span>
           )}
         </div>
         
         {/* Name */}
         <div className="flex-1 min-w-[120px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
           <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-100 leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
-          {item.photoCount > 0 && (
+          {photoCount > 0 && (
             <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
               <Camera className="w-2.5 h-2.5" />
-              사진 {item.photoCount}장
+              사진 {photoCount}장
             </span>
           )}
-          {item.likes > 0 && (
+          {likes > 0 && (
             <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-full border border-rose-100/50 dark:border-rose-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
               <Heart className="w-2.5 h-2.5 fill-current" />
-              관심 {item.likes}
+              관심 {likes}
             </span>
           )}
         </div>
@@ -291,9 +301,9 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCa
               <span className="text-[14.5px] font-extrabold text-neutral-900 dark:text-neutral-50 break-keep whitespace-normal tracking-tight">
                 {item.apt.name}
               </span>
-              {item.photoCount > 0 && (
+              {photoCount > 0 && (
                 <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1 py-0.5 rounded shrink-0">
-                  <Camera className="w-2.5 h-2.5" />{item.photoCount}
+                  <Camera className="w-2.5 h-2.5" />{photoCount}
                 </span>
               )}
             </div>
@@ -352,7 +362,7 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCa
             ) : currentCategory === 'rank-views' ? (
               <>
                 <span className="text-[14.5px] font-black text-orange-500 tracking-tight leading-tight">
-                  {item.views > 0 ? `${item.views.toLocaleString()}회` : '0회'}
+                  {views > 0 ? `${views.toLocaleString()}회` : '0회'}
                 </span>
                 <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
                   {item.totalPrice > 0 ? `매매 ${item.formattedPrice}` : '-'}
@@ -373,7 +383,7 @@ const AptRow = memo(({ item, index, handleSelectApt, onToggleFavorite, currentCa
           {/* Heart Icon (Compact, without the heavy capsule) */}
           <div className="shrink-0 flex items-center justify-center">
             <InteractiveHeart 
-              isFavorited={item.isFavorited} 
+              isFavorited={isFavorited} 
               name={item.apt.name} 
               onToggle={onToggleFavorite} 
               size={16} 
@@ -523,10 +533,6 @@ export default function TossApartmentExploreClient({
         volume1M: sum?.avg1MTxCount || 0,
         turnoverRate,
         hasTx: !!sum && !!(sum.avg1MPrice || sum.latestPrice) && !!(sum.avg1MRentDeposit || sum.latestRentDeposit),
-        views: fieldReportsMap.get(apt.name)?.viewCount || 0,
-        photoCount: fieldReportsMap.get(apt.name)?.images?.length || 0,
-        likes: favoriteCounts[apt.name] || 0,
-        isFavorited: userFavorites.has(apt.name),
 
         formattedYearBuilt,
         formattedPrice,
@@ -538,13 +544,13 @@ export default function TossApartmentExploreClient({
         formattedTurnover
       };
     });
-  }, [allApts, txSummaryData, nameMapping, fieldReportsMap, favoriteCounts, userFavorites]);
+  }, [allApts, txSummaryData, nameMapping]);
 
   const sortedApts = useMemo(() => {
     let filtered = [...enrichedApts];
 
     if (currentCategory === 'favorites') {
-      filtered = filtered.filter(a => a.isFavorited);
+      filtered = filtered.filter(a => userFavorites.has(a.apt.name));
     } else if (currentCategory.startsWith('dong-')) {
       const dongName = currentCategory.replace('dong-', '');
       filtered = filtered.filter(a => a.apt.dong === dongName);
@@ -583,14 +589,17 @@ export default function TossApartmentExploreClient({
         valA = a.turnoverRate;
         valB = b.turnoverRate;
       } else if (sortKey === 'views') {
-        valA = a.views;
-        valB = b.views;
+        valA = fieldReportsMap.get(a.apt.name)?.viewCount || 0;
+        valB = fieldReportsMap.get(b.apt.name)?.viewCount || 0;
       } else if (sortKey === 'householdCount') {
         valA = a.apt.householdCount || 0;
         valB = b.apt.householdCount || 0;
       } else if (sortKey === 'yearBuilt') {
         valA = a.apt.yearBuilt ? parseInt(String(a.apt.yearBuilt).replace(/[^0-9]/g, '')) || 0 : 0;
         valB = b.apt.yearBuilt ? parseInt(String(b.apt.yearBuilt).replace(/[^0-9]/g, '')) || 0 : 0;
+      } else if (sortKey === 'likes') {
+        valA = favoriteCounts[a.apt.name] || 0;
+        valB = favoriteCounts[b.apt.name] || 0;
       } else if (sortKey === 'name') {
         return sortDirection === 'asc' 
           ? a.apt.name.localeCompare(b.apt.name, 'ko') 
@@ -607,7 +616,7 @@ export default function TossApartmentExploreClient({
     }
 
     return filtered;
-  }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection]);
+  }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection, userFavorites, favoriteCounts, fieldReportsMap]);
 
   const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
     const q = searchQuery.toLowerCase().replace(/\s+/g, '');
@@ -1140,6 +1149,10 @@ export default function TossApartmentExploreClient({
                       handleSelectApt={handleSelectApt} 
                       onToggleFavorite={onToggleFavorite} 
                       currentCategory={currentCategory}
+                      isFavorited={userFavorites.has(item.apt.name)}
+                      likes={favoriteCounts[item.apt.name] || 0}
+                      photoCount={fieldReportsMap.get(item.apt.name)?.images?.length || 0}
+                      views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
                     />
                     {index === 14 && sortedApts.length > 15 && (
                       <div className="px-3 md:px-4 py-1.5 md:py-1 w-full">

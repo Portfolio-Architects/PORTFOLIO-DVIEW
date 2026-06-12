@@ -2,14 +2,35 @@ import { ImageResponse as NextImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
+let fontBoldBuffer: ArrayBuffer | null = null;
+let fontRegularBuffer: ArrayBuffer | null = null;
+
 class ImageResponse extends NextImageResponse {
   constructor(...args: ConstructorParameters<typeof NextImageResponse>) {
     const [element, options] = args;
     const cacheHeaders = {
       'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=60',
     };
+    
+    // Assemble fonts configuration if buffers are hydrated
+    const fontsOption = fontBoldBuffer && fontRegularBuffer ? [
+      {
+        name: 'Pretendard',
+        data: fontBoldBuffer,
+        weight: 700 as const,
+        style: 'normal' as const,
+      },
+      {
+        name: 'Pretendard',
+        data: fontRegularBuffer,
+        weight: 400 as const,
+        style: 'normal' as const,
+      }
+    ] : undefined;
+
     super(element, {
       ...options,
+      fonts: options?.fonts || fontsOption,
       headers: {
         ...cacheHeaders,
         ...options?.headers,
@@ -53,6 +74,21 @@ const ogParamsSchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
+  // Safe pre-fetch of local Pretendard Fonts via new URL for Edge Runtime compliance
+  try {
+    if (!fontBoldBuffer) {
+      const res = await fetch(new URL('../../../../public/fonts/Pretendard-Bold.otf', import.meta.url));
+      fontBoldBuffer = await res.arrayBuffer();
+    }
+    if (!fontRegularBuffer) {
+      const res = await fetch(new URL('../../../../public/fonts/Pretendard-Regular.otf', import.meta.url));
+      fontRegularBuffer = await res.arrayBuffer();
+    }
+  } catch (fontErr) {
+    console.error('Failed to pre-load local Web Fonts for OG image generator:', fontErr);
+    // Fail-safe: Fallback gracefully to default Satori system sans-serif fonts
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     

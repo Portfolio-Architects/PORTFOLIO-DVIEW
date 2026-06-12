@@ -801,6 +801,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 fieldReportsMap={fieldReportsMap}
                 favoriteCounts={favoriteCounts}
                 recent7DaysVolume={recent7DaysVolume}
+                typeMap={typeMap}
                 onOpenAdModal={() => setIsAdModalOpen(true)}
                 onOpenCompare={() => {
                   setCompareInitialApt(undefined);
@@ -861,30 +862,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               userFavorites={userFavorites}
               favoriteCounts={favoriteCounts}
               typeMap={typeMap}
-              handleSelectApt={(name: string) => {
-                const report = fieldReportsMap.get(name);
-                if (report) {
-                  setSelectedReport(report);
-                  setMobileModalOpen(true);
-                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                } else {
-                  // Fallback for apartments without reports, we still want to show the modal with basic transaction data
-                  setSelectedReport({
-                    id: `temp-${name}`,
-                    apartmentName: name,
-                    title: `${name} 정보`,
-                    content: '아직 작성된 현장 임장기가 없습니다.',
-                    createdAt: Date.now(),
-                    dong: DONGS.find(d => sheetApartments[d.name]?.some(a => a.name === name))?.name || '',
-                    author: '',
-                    authorName: '',
-                    viewCount: 0,
-                    likeCount: 0,
-                  } as any);
-                  setMobileModalOpen(true);
-                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                }
-              }}
+              handleSelectApt={handleAptClickByName}
               onToggleFavorite={handleAptToggleFavorite}
               onOpenCompare={() => {
                 setCompareInitialApt(undefined);
