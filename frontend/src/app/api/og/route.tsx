@@ -1,6 +1,8 @@
 import { ImageResponse as NextImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import fs from 'fs';
+import path from 'path';
 
 let fontBoldBuffer: ArrayBuffer | null = null;
 let fontRegularBuffer: ArrayBuffer | null = null;
@@ -74,15 +76,15 @@ const ogParamsSchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
-  // Safe pre-fetch of local Pretendard Fonts via new URL for Edge Runtime compliance
+  // Safe load of local Pretendard Fonts via fs.readFileSync for Node.js Serverless runtime
   try {
     if (!fontBoldBuffer) {
-      const res = await fetch(new URL('../../../../public/fonts/Pretendard-Bold.otf', import.meta.url));
-      fontBoldBuffer = await res.arrayBuffer();
+      const fontPath = path.join(process.cwd(), 'public/fonts/Pretendard-Bold.otf');
+      fontBoldBuffer = fs.readFileSync(fontPath);
     }
     if (!fontRegularBuffer) {
-      const res = await fetch(new URL('../../../../public/fonts/Pretendard-Regular.otf', import.meta.url));
-      fontRegularBuffer = await res.arrayBuffer();
+      const fontPath = path.join(process.cwd(), 'public/fonts/Pretendard-Regular.otf');
+      fontRegularBuffer = fs.readFileSync(fontPath);
     }
   } catch (fontErr) {
     console.error('Failed to pre-load local Web Fonts for OG image generator:', fontErr);
