@@ -39,7 +39,7 @@ class ImageResponse extends NextImageResponse {
   }
 }
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 const ogParamsSchema = z.object({
   title: z.preprocess((val) => val || undefined, z.string().default('동탄 아파트 가치분석')).catch('동탄 아파트 가치분석'),

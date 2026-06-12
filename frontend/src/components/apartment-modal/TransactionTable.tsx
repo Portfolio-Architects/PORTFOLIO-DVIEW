@@ -77,14 +77,14 @@ export function TransactionTable({
     return [...filteredTransactions].sort((a, b) => {
       const getP = (t: TransactionRecord) => (t.dealType === '전세' || t.dealType === '월세') ? (t.deposit || 0) : t.price;
       if (txSort === 'date_desc') {
-        const da = a.contractYm + String(a.contractDay).padStart(2, '0');
-        const db = b.contractYm + String(b.contractDay).padStart(2, '0');
+        const da = String(a.contractYm || '') + String(a.contractDay || '01').padStart(2, '0');
+        const db = String(b.contractYm || '') + String(b.contractDay || '01').padStart(2, '0');
         if (da !== db) return parseInt(db) - parseInt(da);
         return getP(b) - getP(a);
       }
       if (txSort === 'date_asc') {
-        const da = a.contractYm + String(a.contractDay).padStart(2, '0');
-        const db = b.contractYm + String(b.contractDay).padStart(2, '0');
+        const da = String(a.contractYm || '') + String(a.contractDay || '01').padStart(2, '0');
+        const db = String(b.contractYm || '') + String(b.contractDay || '01').padStart(2, '0');
         if (da !== db) return parseInt(da) - parseInt(db);
         return getP(a) - getP(b);
       }
@@ -168,8 +168,9 @@ export function TransactionTable({
       style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => {
-          const m = tx.contractYm.substring(4, 6);
-          const d = String(tx.contractDay).trim().padStart(2, '0');
+          const ym = String(tx.contractYm || '');
+          const m = ym.length >= 6 ? ym.substring(4, 6) : '01';
+          const d = String(tx.contractDay || '01').trim().padStart(2, '0');
           const isRent = tx.dealType === '전세' || tx.dealType === '월세';
           const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
           const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
@@ -219,7 +220,7 @@ export function TransactionTable({
               {/* 1. 날짜 */}
               <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
                 <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-red-500/60 dark:decoration-red-400/60' : 'text-[#6b7684] dark:text-[#9ca3af]'}`}>
-                  {tx.contractYm.substring(2, 4)}.{m}.{d}
+                  {ym.length >= 4 ? ym.substring(2, 4) : '00'}.{m}.{d}
                 </div>
                 {isCancelled && (
                   <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
