@@ -80,11 +80,13 @@ export async function GET(req: NextRequest) {
   try {
     if (!fontBoldBuffer) {
       const fontPath = path.join(process.cwd(), 'public/fonts/Pretendard-Bold.otf');
-      fontBoldBuffer = fs.readFileSync(fontPath);
+      const buffer = fs.readFileSync(fontPath);
+      fontBoldBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
     }
     if (!fontRegularBuffer) {
       const fontPath = path.join(process.cwd(), 'public/fonts/Pretendard-Regular.otf');
-      fontRegularBuffer = fs.readFileSync(fontPath);
+      const buffer = fs.readFileSync(fontPath);
+      fontRegularBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
     }
   } catch (fontErr) {
     console.error('Failed to pre-load local Web Fonts for OG image generator:', fontErr);
