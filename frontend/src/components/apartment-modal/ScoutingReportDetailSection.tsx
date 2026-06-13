@@ -25,7 +25,7 @@ export default function ScoutingReportDetailSection({
   };
 
   return (
-    <>
+    <div className="w-full overflow-hidden flex flex-col gap-6">
       {/* 2. 단지 기본정보 (Specs) */}
       <section 
         id="sec-specs" 
@@ -167,6 +167,6 @@ export default function ScoutingReportDetailSection({
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

@@ -180,13 +180,13 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       <div className="pt-4">
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
           <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
-            <h5 className="text-[16px] md:text-[18px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
+            <h3 className="text-[16px] md:text-[18px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
               <button
                 onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev) => !prev); }}
                 className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-toss-gray hover:bg-[#8b95a1] text-[10px] md:text-[11px] font-extrabold text-surface inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
                 aria-label="기준 설명"
               >?</button>
-            </h5>
+            </h3>
             <div className="bg-body p-1 rounded-lg flex items-center shadow-inner ml-2">
               <button onClick={() => setPeriodDealType('sale')} className={`px-3.5 py-1.5 rounded-md text-[13px] md:text-[14px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
               <button onClick={() => setPeriodDealType('jeonse')} className={`px-3.5 py-1.5 rounded-md text-[13px] md:text-[14px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>

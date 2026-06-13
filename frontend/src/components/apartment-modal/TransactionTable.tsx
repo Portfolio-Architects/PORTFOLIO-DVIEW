@@ -128,9 +128,9 @@ export function TransactionTable({
   return (
     <div className="flex flex-col bg-[#F9FAFB] dark:bg-[#1a1a1a] rounded-2xl ring-1 ring-[#e5e8eb] dark:ring-[#2d2d2d] overflow-hidden md:h-full shadow-inner">
       <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
-        <h3 className="text-[14px] font-bold text-secondary shrink-0">
+        <h2 className="text-[14px] font-bold text-secondary shrink-0">
           실거래가 <span className="text-[#008262] dark:text-toss-blue ml-1">{filteredTransactions.length}</span>건
-        </h3>
+        </h2>
         {/* 정렬 필터 */}
         <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
           <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#4e5968] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none">

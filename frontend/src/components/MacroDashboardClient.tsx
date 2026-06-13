@@ -496,14 +496,41 @@ export default function MacroDashboardClient({
 
   React.useEffect(() => {
     async function fetchNews() {
+      const FALLBACK_NEWS: MacroNewsItem[] = [
+        {
+          id: "fb-1",
+          category: "뉴스",
+          sub: "D-VIEW 뉴스 • 방금 전",
+          title: "[단독] 동탄역 역세권 아파트, GTX-A 개통 효과로 상승세 지속",
+          link: "#"
+        },
+        {
+          id: "fb-2",
+          category: "리서치",
+          sub: "D-VIEW 리서치 • 1시간 전",
+          title: "동탄2신도시 갭투자 비율 15%선 유지... 전세가율 상승의 영향",
+          link: "#"
+        },
+        {
+          id: "fb-3",
+          category: "입지분석",
+          sub: "D-VIEW 입지분석 • 3시간 전",
+          title: "동탄지역 학군지 중심으로 초품아 아파트 매수 문의 활발",
+          link: "#"
+        }
+      ];
       try {
         const res = await fetch("/api/macro/news");
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const json = await res.json();
         if (json.status === "success" && json.data) {
           setNewsData(json.data);
+        } else {
+          setNewsData(FALLBACK_NEWS);
         }
       } catch (err) {
-        console.error("Failed to fetch news", err);
+        console.warn("Failed to fetch news, using local fallback news data.", err);
+        setNewsData(FALLBACK_NEWS);
       } finally {
         setNewsLoading(false);
       }

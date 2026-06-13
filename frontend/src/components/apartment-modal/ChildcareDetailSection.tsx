@@ -330,9 +330,9 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 어린이집 카드 */}
               <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
-                <h4 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
+                <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
                   <Heart size={14} className="text-[#db2777]" /> 단지 인근 어린이집 (영유아)
-                </h4>
+                </h3>
                 
                 <div className="flex flex-col gap-3">
                   {childcareData.daycares.map((item) => {
@@ -366,9 +366,9 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
 
               {/* 유치원 카드 */}
               <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
-                <h4 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
+                <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
                   <Smile size={14} className="text-[#ea580c]" /> 단지 인근 유치원 (5-7세)
-                </h4>
+                </h3>
 
                 <div className="flex flex-col gap-3">
                   {childcareData.kindergartens.map((item) => {

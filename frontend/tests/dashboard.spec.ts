@@ -27,7 +27,7 @@ test.describe('Dashboard E2E Tests', () => {
     await aptTitle.click();
 
     // 4. Verify the modal opens and displays '실거래가'
-    const txHistoryTitle = page.locator('h3', { hasText: '실거래가' }).first();
+    const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();
     await expect(txHistoryTitle).toBeVisible({ timeout: 10000 });
     
     // Check if the overall count is visible
