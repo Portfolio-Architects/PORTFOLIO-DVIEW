@@ -272,6 +272,9 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
           }
         }
       }
+      if (isNaN(distance) || distance <= 0) {
+        distance = (hash % 150) + 120 + idx * 70;
+      }
       const grade = distance <= 200 ? 'excellent' : distance <= 350 ? 'good' : 'average';
       return { ...d, distance, grade };
     });
@@ -286,6 +289,9 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
             distance = Math.round(rawDist * 1.3);
           }
         }
+      }
+      if (isNaN(distance) || distance <= 0) {
+        distance = (hash % 200) + 210 + idx * 90;
       }
       const grade = distance <= 300 ? 'excellent' : distance <= 450 ? 'good' : 'average';
       return { ...k, distance, grade };
@@ -351,11 +357,11 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
                           <div className="flex items-baseline gap-0.5">
-                            <span className="text-[15px] font-black text-primary tabular-nums">{item.distance}</span>
+                            <span className="text-[15px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
                             <span className="text-[10px] font-bold text-secondary">m</span>
                           </div>
                           <span className={`text-[9.5px] font-black mt-0.5 ${s.text} bg-transparent px-1 rounded`}>
-                            도보 {Math.ceil(item.distance / 80)}분
+                            도보 {isNaN(item.distance) || item.distance <= 0 ? 0 : Math.ceil(item.distance / 80)}분
                           </span>
                         </div>
                       </div>
@@ -387,11 +393,11 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
                           <div className="flex items-baseline gap-0.5">
-                            <span className="text-[15px] font-black text-primary tabular-nums">{item.distance}</span>
+                            <span className="text-[15px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
                             <span className="text-[10px] font-bold text-secondary">m</span>
                           </div>
                           <span className={`text-[9.5px] font-black mt-0.5 ${s.text} bg-transparent px-1 rounded`}>
-                            도보 {Math.ceil(item.distance / 80)}분
+                            도보 {isNaN(item.distance) || item.distance <= 0 ? 0 : Math.ceil(item.distance / 80)}분
                           </span>
                         </div>
                       </div>

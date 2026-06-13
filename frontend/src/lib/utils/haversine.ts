@@ -19,6 +19,9 @@ export interface Coord {
  * @returns Distance in meters (rounded to nearest integer)
  */
 export function haversineDistance(a: Coord, b: Coord): number {
+  if (!a || !b || isNaN(a.lat) || isNaN(a.lng) || isNaN(b.lat) || isNaN(b.lng)) {
+    return 0;
+  }
   const dLat = toRad(b.lat - a.lat);
   const dLng = toRad(b.lng - a.lng);
 
@@ -28,7 +31,9 @@ export function haversineDistance(a: Coord, b: Coord): number {
   const h = sinLat * sinLat +
     Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinLng * sinLng;
 
-  return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h)));
+  // Prevent Math.asin(Math.sqrt(h)) from returning NaN if h is slightly out of [0, 1] bounds due to precision errors
+  const clampedH = Math.max(0, Math.min(1, h));
+  return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(clampedH)));
 }
 
 /**
@@ -66,6 +71,7 @@ export function countWithinRadius(origin: Coord, pois: Coord[], radiusM: number)
  * Supports both "37.2083, 127.0588" and separate lat/lng values.
  */
 export function parseCoordString(coordStr: string): Coord | null {
+  if (!coordStr || typeof coordStr !== 'string') return null;
   const parts = coordStr.split(',').map(s => parseFloat(s.trim()));
   if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
     return { lat: parts[0], lng: parts[1] };

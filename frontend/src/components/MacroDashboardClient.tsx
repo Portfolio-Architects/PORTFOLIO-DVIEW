@@ -1813,7 +1813,7 @@ interface GroupedCategory {
             </div>
 
             {/* 동탄 철도 교통 게시판 위젯 */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-3 relative shadow-sm md:min-h-[360px] md:flex-1 justify-between">
+            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:min-h-[360px] md:flex-1 justify-start">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
@@ -1836,9 +1836,9 @@ interface GroupedCategory {
               </div>
 
               {/* 소식 리스트 */}
-              <div className="flex flex-col gap-2 flex-1 justify-center py-0.5">
+              <div className="flex flex-col gap-3.5 flex-1 justify-start py-1.5">
                 {/* 1. 철도전략과 소식 */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d] shadow-[0_0_4px_rgba(0,210,157,0.4)]"></span>
                     철도전략과 소식
@@ -1854,7 +1854,7 @@ interface GroupedCategory {
                         onClick={() => {
                           window.location.href = `/lounge?notice=${item.id}`;
                         }}
-                        className="flex items-center justify-between py-1.5 px-2 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                        className="flex items-center justify-between py-2 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
                       >
                         {/* Left: Icon & Title */}
                         <div className="flex items-center gap-2.5 min-w-0 mr-3">
@@ -1877,10 +1877,10 @@ interface GroupedCategory {
                 </div>
 
                 {/* 구분선 */}
-                <div className="border-t border-border/30 my-0.5 mx-2"></div>
+                <div className="border-t border-border/30 my-1.5 mx-2"></div>
 
                 {/* 2. 트램건설추진단 소식 */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]"></span>
                     트램건설추진단 소식
@@ -1896,7 +1896,7 @@ interface GroupedCategory {
                         onClick={() => {
                           window.location.href = `/lounge?notice=${item.id}`;
                         }}
-                        className="flex items-center justify-between py-1.5 px-2 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                        className="flex items-center justify-between py-2 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
                       >
                         {/* Left: Icon & Title */}
                         <div className="flex items-center gap-2.5 min-w-0 mr-3">

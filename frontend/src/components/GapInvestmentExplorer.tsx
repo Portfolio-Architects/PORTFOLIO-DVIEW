@@ -196,12 +196,18 @@ export default function GapInvestmentExplorer({
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
       const sum = txSummaryData[txKey];
 
-      const sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
-      const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
-      const pyeongPrice = sum ? (sum.avg3MPerPyeong || sum.avg1MPerPyeong || 0) : 0;
+      let sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
+      if (isNaN(sales) || sales < 0) sales = 0;
+
+      let jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      if (isNaN(jeonse) || jeonse < 0) jeonse = 0;
+
+      let pyeongPrice = sum ? (sum.avg3MPerPyeong || sum.avg1MPerPyeong || 0) : 0;
+      if (isNaN(pyeongPrice) || pyeongPrice < 0) pyeongPrice = 0;
       
       const gap = sales > 0 && jeonse > 0 ? sales - jeonse : 0;
-      const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
+      const rawRatio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
+      const ratio = isNaN(rawRatio) || !isFinite(rawRatio) ? 0 : rawRatio;
 
       // 갭투자 적합성 지수(Gap Score) 연산 도입
       // 1) 전세가율 점수 (55%): 50%일 때 0점, 80% 이상일 때 100점
@@ -237,14 +243,16 @@ export default function GapInvestmentExplorer({
         txCount,
         pyeongPrice,
       };
-    }).filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > 0);
+    }).filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > 0 && !isNaN(item.gap) && !isNaN(item.ratio));
   }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
 
   // Overall Statistics for Analytics Board
   const avgJeonseRate = useMemo(() => {
     if (allValidGapItems.length === 0) return 0;
-    const sum = allValidGapItems.reduce((acc, item) => acc + item.ratio, 0);
-    return Math.round((sum / allValidGapItems.length) * 100);
+    const validItems = allValidGapItems.filter(item => !isNaN(item.ratio) && isFinite(item.ratio));
+    if (validItems.length === 0) return 0;
+    const sum = validItems.reduce((acc, item) => acc + item.ratio, 0);
+    return Math.round((sum / validItems.length) * 100);
   }, [allValidGapItems]);
 
   const lowGapCount = useMemo(() => {
