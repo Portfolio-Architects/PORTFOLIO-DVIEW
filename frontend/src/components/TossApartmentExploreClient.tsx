@@ -3,6 +3,8 @@
 import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles } from 'lucide-react';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 import PageHeroHeader from './PageHeroHeader';
 import HotComplexRanking from './HotComplexRanking';
 import { DONGS, getDongByName } from '@/lib/dongs';
@@ -412,6 +414,14 @@ interface TossApartmentExploreClientProps {
   onOpenMortgage?: (aptName?: string) => void;
 }
 
+const TossApartmentExploreClientPropsSchema = z.object({
+  sheetApartments: z.record(z.string(), z.array(z.any())),
+  txSummaryData: z.record(z.string(), z.any()),
+  nameMapping: z.record(z.string(), z.string()),
+  favoriteCounts: z.record(z.string(), z.number()),
+  typeMap: z.record(z.string(), z.any()),
+});
+
 export default function TossApartmentExploreClient({
   sheetApartments,
   txSummaryData,
@@ -431,6 +441,24 @@ export default function TossApartmentExploreClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [visibleCount, setVisibleCount] = useState(15);
+
+  useEffect(() => {
+    const parsedProps = TossApartmentExploreClientPropsSchema.safeParse({
+      sheetApartments,
+      txSummaryData,
+      nameMapping,
+      favoriteCounts,
+      typeMap,
+    });
+    if (!parsedProps.success) {
+      logger.warn(
+        'TossApartmentExploreClient.props',
+        'Props validation failed',
+        { errors: parsedProps.error.format() }
+      );
+    }
+  }, [sheetApartments, txSummaryData, nameMapping, favoriteCounts, typeMap]);
+
 
   const categories = useMemo(() => [
     { id: 'favorites', label: '내 관심' },
