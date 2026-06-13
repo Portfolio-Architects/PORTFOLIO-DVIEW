@@ -5,6 +5,32 @@
  */
 
 import type { KPIData } from '@/lib/types/dashboard.types';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// ── Zod Schemas ─────────────────────────────────────
+
+export const KPIDataSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  subtitle: z.string(),
+  badgeText: z.string().optional(),
+  badgeStyle: z.string().optional(),
+  mainValue: z.any(), // Can be ReactNode
+  subValue: z.any(),  // Can be ReactNode
+  description: z.any(), // Can be ReactNode
+  icon: z.any(),      // Can be string or ElementType
+  gradientBackground: z.string().default(''),
+  borderColor: z.string().default(''),
+  titleColor: z.string().default(''),
+});
+
+export const FakePriceDataSchema = z.object({
+  subtitle: z.string(),
+  price: z.string(),
+  up: z.string(),
+  prev: z.string(),
+});
 
 /** Simulated KPI price data for cycling display */
 const FAKE_PRICE_DATA = [
@@ -18,7 +44,7 @@ const FAKE_PRICE_DATA = [
  * @returns Array of 3 default KPI data objects
  */
 export function createInitialKPIs(): KPIData[] {
-  return [
+  const rawKPIs = [
     {
       id: 'kpi-1',
       title: '우와! 이번주 최고가',
@@ -60,6 +86,27 @@ export function createInitialKPIs(): KPIData[] {
       titleColor: 'text-toss-green',
     },
   ];
+
+  return rawKPIs.map((raw, index) => {
+    const parsed = KPIDataSchema.safeParse(raw);
+    if (parsed.success) {
+      return parsed.data as KPIData;
+    } else {
+      logger.error('kpi.service.createInitialKPIs', `Failed to validate raw KPI at index ${index}`, { id: raw.id }, parsed.error);
+      return {
+        id: raw.id || `kpi-fallback-${index}`,
+        title: raw.title || '알림',
+        subtitle: raw.subtitle || '',
+        mainValue: raw.mainValue || '',
+        subValue: raw.subValue || '',
+        description: raw.description || '',
+        icon: raw.icon || 'Info',
+        gradientBackground: raw.gradientBackground || '',
+        borderColor: raw.borderColor || '',
+        titleColor: raw.titleColor || '',
+      };
+    }
+  });
 }
 
 /**
@@ -76,16 +123,22 @@ export function startKPISimulation(
 
   const intervalId = setInterval(() => {
     index = (index + 1) % FAKE_PRICE_DATA.length;
-    const data = FAKE_PRICE_DATA[index];
+    const rawData = FAKE_PRICE_DATA[index];
+    const parsedData = FakePriceDataSchema.safeParse(rawData);
 
-    kpis[0] = {
-      ...kpis[0],
-      subtitle: data.subtitle,
-      mainValue: `${data.price}억`,
-      subValue: `↑ ${data.up}`,
-      description: `이전 최고가: ${data.prev}`,
-      badgeStyle: 'bg-toss-red text-surface animate-pulse',
-    };
+    if (parsedData.success) {
+      const data = parsedData.data;
+      kpis[0] = {
+        ...kpis[0],
+        subtitle: data.subtitle,
+        mainValue: `${data.price}억`,
+        subValue: `↑ ${data.up}`,
+        description: `이전 최고가: ${data.prev}`,
+        badgeStyle: 'bg-toss-red text-surface animate-pulse',
+      };
+    } else {
+      logger.error('kpi.service.startKPISimulation', 'Failed to parse fake price data', undefined, parsedData.error);
+    }
 
     onUpdate();
   }, 5000);
