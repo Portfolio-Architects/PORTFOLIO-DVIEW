@@ -6,6 +6,7 @@
 import { db } from '@/lib/firebaseConfig';
 import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import type { FieldReportData } from '@/lib/types/report.types';
+import { logger } from '@/lib/services/logger';
 
 /**
  * Listens to the 'scoutingReports' collection in real-time.
@@ -62,13 +63,42 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
   });
 }
 
-/**
- * Fetches a single report's full data (including sections & images) on demand.
- * Used when opening the detail modal — avoids loading heavy data for all 30 reports upfront.
- * @param reportId - The Firestore document ID
- * @returns Full report data, or null if not found
- */
 export async function getFullReport(reportId: string): Promise<FieldReportData | null> {
+  if (typeof window === 'undefined') {
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      if (adminDb) {
+        const docRef = adminDb.collection('scoutingReports').doc(reportId);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) return null;
+
+        const data = docSnap.data();
+        if (!data) return null;
+
+        const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
+
+        return {
+          id: docSnap.id,
+          dong: data.dong || '오산동 (동탄역)',
+          apartmentName: data.apartmentName,
+          sections: data.sections || undefined,
+          premiumScores: data.premiumScores,
+          premiumContent: data.premiumContent,
+          author: '데이터 랩스',
+          likes: data.likes || 0,
+          viewCount: data.viewCount || 0,
+          commentCount: data.commentCount || 0,
+          images: data.images || [],
+          metrics: data.metrics,
+          scoutingDate: data.scoutingDate || '',
+          createdAt: createdAtDate ? createdAtDate.toLocaleDateString('ko-KR') : '방금 전',
+        };
+      }
+    } catch (adminError) {
+      logger.warn('ReportRepository.getFullReport', 'Admin SDK fetch failed, falling back', undefined, adminError);
+    }
+  }
+
   const docRef = doc(db, 'scoutingReports', reportId);
   const docSnap = await getDoc(docRef);
   if (!docSnap.exists()) return null;
@@ -97,6 +127,43 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
  * Used to resolve stub reports when the user clicks an apartment that isn't in the top 30 recent reports.
  */
 export async function getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
+  if (typeof window === 'undefined') {
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      if (adminDb) {
+        const querySnapshot = await adminDb.collection('scoutingReports')
+          .where('apartmentName', '==', apartmentName)
+          .limit(1)
+          .get();
+        if (querySnapshot.empty) return null;
+
+        const docSnap = querySnapshot.docs[0];
+        const data = docSnap.data();
+
+        const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
+
+        return {
+          id: docSnap.id,
+          dong: data.dong || '오산동 (동탄역)',
+          apartmentName: data.apartmentName,
+          sections: data.sections || undefined,
+          premiumScores: data.premiumScores,
+          premiumContent: data.premiumContent,
+          author: '데이터 랩스',
+          likes: data.likes || 0,
+          viewCount: data.viewCount || 0,
+          commentCount: data.commentCount || 0,
+          images: data.images || [],
+          metrics: data.metrics,
+          scoutingDate: data.scoutingDate || '',
+          createdAt: createdAtDate ? createdAtDate.toLocaleDateString('ko-KR') : '방금 전',
+        };
+      }
+    } catch (adminError) {
+      logger.warn('ReportRepository.getFullReportByApartmentName', 'Admin SDK fetch failed, falling back', undefined, adminError);
+    }
+  }
+
   const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', apartmentName), limit(1));
   const querySnapshot = await getDocs(q);
   if (querySnapshot.empty) return null;
