@@ -2,6 +2,25 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { z } = require('zod');
+
+// Zod schema for validation of Historical Rent Transaction Record before DB upload
+const HistoricalRentRecordSchema = z.object({
+  apartmentName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  dong: z.string().min(1, '법정동명이 누락되었습니다.'),
+  contractYm: z.string().length(6, '계약년월은 6자리여야 합니다.'),
+  contractDay: z.string().length(2, '계약일은 2자리여야 합니다.'),
+  contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.'),
+  deposit: z.coerce.number().int().nonnegative('보증금이 유효하지 않습니다.'),
+  monthlyRent: z.coerce.number().int().nonnegative('월세가 유효하지 않습니다.'),
+  price: z.coerce.number().int().nonnegative().default(0),
+  dealType: z.enum(['전세', '월세']),
+  area: z.coerce.number().positive('면적이 유효하지 않습니다.'),
+  areaPyeong: z.coerce.number().positive('평수가 유효하지 않습니다.'),
+  floor: z.coerce.number().int('층수 정보가 유효하지 않습니다.'),
+  source: z.literal('historical_api'),
+  _id: z.string().min(1)
+});
 
 const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 let serviceAccount;
@@ -140,8 +159,14 @@ async function run() {
 
         const docId = `${record.apartmentName}_${record.contractDate}_${record.area}_${record.floor}_${record.dealType}`.replace(/[\//]/g, '');
         record._id = docId;
-        
-        monthRecords.push(record);
+
+        const parsed = HistoricalRentRecordSchema.safeParse(record);
+        if (parsed.success) {
+          monthRecords.push(parsed.data);
+        } else {
+          console.warn(`⚠️ [Historical Rent] Invalid historical rent record at apt ${aptName}:`, parsed.error.format());
+          console.log(`Record Details: ${JSON.stringify(record)}`);
+        }
       }
       
       if (items.length < 1000) {
