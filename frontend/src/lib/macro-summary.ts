@@ -11,7 +11,7 @@ export const MACRO_CONFIG: MacroDataConfig = {
   "macroEnvironment": {
     "riskFreeRate": 3.25,
     "fundingCost": 4.1,
-    "baseDate": "2026-04-29",
+    "baseDate": "2026-06-13",
     "jeonseConversionRate": 0.05,
     "baseInflationRate": 0.02
   },

@@ -11,6 +11,29 @@
 require('dotenv').config({ path: '.env.local', override: true });
 const fs = require('fs');
 const path = require('path');
+const { z } = require('zod');
+
+// Zod schemas for Macro data validation
+const MacroEnvironmentSchema = z.object({
+  riskFreeRate: z.number().positive(),
+  fundingCost: z.number().positive(),
+  baseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  jeonseConversionRate: z.number().nonnegative(),
+  baseInflationRate: z.number().nonnegative()
+});
+
+const SupplyPipelineSchema = z.object({
+  region: z.string().min(1),
+  baseYear: z.number().int().positive(),
+  expectedMoveInVolume: z.number().nonnegative(),
+  historicalAvgVolume: z.number().nonnegative(),
+  populationTrend: z.enum(['증가', '보합', '감소'])
+});
+
+const MacroDataConfigSchema = z.object({
+  macroEnvironment: MacroEnvironmentSchema,
+  supplyPipelines: z.record(z.string(), SupplyPipelineSchema)
+});
 
 const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/macro-summary.ts');
 const SHEET_ID = process.env.SHEET_ID || '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
@@ -90,29 +113,44 @@ async function main() {
           parsedSuccessfully = true;
           // Key: riskFreeRate, Value: 3.25
           const val = parseFloat(cols[2]);
-          if (!isNaN(val)) {
-            config.macroEnvironment[key] = val;
-          } else if (key === 'baseDate') {
-            config.macroEnvironment.baseDate = cols[2];
+          const targetValue = isNaN(val) ? cols[2] : val;
+
+          const tempEnv = { ...config.macroEnvironment, [key]: targetValue };
+          const parsedEnv = MacroEnvironmentSchema.safeParse(tempEnv);
+          
+          if (parsedEnv.success) {
+            config.macroEnvironment[key] = targetValue;
+          } else {
+            console.warn(`⚠️ [Sync Macro] Invalid environment parameter for key "${key}" (value: ${targetValue}). Using default.`, parsedEnv.error.format());
           }
         } else if (type === 'pipeline') {
           parsedSuccessfully = true;
           // Key: 동탄2신도시, Value1(expected): 12500, Value2(historical): 8000, Value3(trend): 증가
-          config.supplyPipelines[key] = {
+          const rawPipeline = {
             region: key,
             baseYear: new Date().getFullYear(),
             expectedMoveInVolume: parseFloat(cols[2]) || 0,
             historicalAvgVolume: parseFloat(cols[3]) || 0,
             populationTrend: cols[4] || '보합'
           };
+
+          const parsedPipeline = SupplyPipelineSchema.safeParse(rawPipeline);
+          if (parsedPipeline.success) {
+            config.supplyPipelines[key] = parsedPipeline.data;
+          } else {
+            console.warn(`⚠️ [Sync Macro] Invalid supply pipeline data for region "${key}". Skipping this region update.`, parsedPipeline.error.format());
+          }
         }
       }
       
-      if (!parsedSuccessfully) {
-         console.log('⚠️ MACRO_DATA 시트를 찾지 못했거나 포맷이 다릅니다. (Type, Key, Value 컬럼 필요)');
-         console.log('   기본(Fallback) 거시 데이터를 사용합니다.');
+      // 최종 config 전체 스키마 검증
+      const finalParsed = MacroDataConfigSchema.safeParse(config);
+      if (!finalParsed.success) {
+        console.warn('⚠️ [Sync Macro] Final macro configuration validation failed. Restoring whole default config.', finalParsed.error.format());
+        config = JSON.parse(JSON.stringify(DEFAULT_MACRO_CONFIG));
       } else {
-         console.log('✅ Google Sheets에서 성공적으로 데이터를 파싱했습니다.');
+        config = finalParsed.data;
+        console.log('✅ Google Sheets에서 성공적으로 데이터를 파싱하고 검증 완료했습니다.');
       }
 
     } else {
