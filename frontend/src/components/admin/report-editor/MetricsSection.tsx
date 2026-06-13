@@ -185,7 +185,7 @@ export function MetricsSection({
           type="button"
           disabled={isCalculating}
           onClick={handleCalculate}
-          className="px-5 py-2.5 bg-toss-blue-light hover:bg-[#d0e8ff] text-toss-blue font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+          className="px-5 py-2.5 bg-toss-blue-light hover:bg-toss-blue/20 text-toss-blue font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
         >
           {isCalculating ? (
             <><div className="w-4 h-4 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>

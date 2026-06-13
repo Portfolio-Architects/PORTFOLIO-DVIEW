@@ -2040,7 +2040,7 @@ interface GroupedCategory {
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/50 pb-3.5 shrink-0">
                 <div className="relative group/title flex items-center gap-2 min-w-0">
-                  <span className="bg-[#e8f3ff] dark:bg-blue-950/40 text-toss-blue text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
+                  <span className="bg-toss-blue-light text-toss-blue text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
                     종합 모니터링
                   </span>
                   <h4 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight truncate flex items-center gap-1.5">
