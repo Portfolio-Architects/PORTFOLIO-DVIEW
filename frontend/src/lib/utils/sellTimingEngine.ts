@@ -2,57 +2,76 @@
  * AI 매도 타이밍(호구 지수) 및 간이 양도소득세 계산을 위한 비즈니스 로직 엔진
  */
 
-export interface VerdictParams {
-  currentPrice: number;       // 현재 시세 (만원)
-  maxPrice3Y: number;         // 3개년 최고가 (만원)
-  txCount3M: number;          // 최근 3개월 거래량
-  totalGenerations: number;   // 총 세대수
-  jeonseRatio: number;        // 전세가율 (%)
-}
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
-export interface VerdictResult {
-  score: number;              // 호구 지수 (0 ~ 100)
-  label: '🔴 지금 팔면 호구 (보류 권장)' | '🟡 매도 타이밍 관망 (주의)' | '🟢 양호한 매도 기회 (매도 가능)';
-  color: string;              // UI 표시용 Hex 색상
-  reason: string;             // 판단 사유 텍스트
-  metrics: {
-    dropRate: number;         // 최고가 대비 하락율 (%)
-    rotationRate: number;     // 3M 거래 회전율 (%)
-  };
-}
+export const VerdictParamsSchema = z.object({
+  currentPrice: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  maxPrice3Y: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  txCount3M: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  totalGenerations: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  jeonseRatio: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+});
 
-export interface TaxParams {
-  transferPrice: number;      // 양도 가액 (만원)
-  acquisitionPrice: number;   // 취득 가액 (만원)
-  holdingYears: number;       // 보유 기간 (년)
-  resideYears: number;        // 거주 기간 (년)
-  isOneHouse: boolean;        // 1세대 1주택 여부
-}
+export type VerdictParams = z.infer<typeof VerdictParamsSchema>;
 
-export interface TaxResult {
-  transferProfit: number;     // 전체 양도 차익 (만원)
-  taxableProfit: number;      // 과세 대상 양도 차익 (만원, 1주택 비과세 12억 초과분 안분 반영)
-  janggiGongje: number;       // 장기보유특별공제액 (만원)
-  taxableBase: number;        // 과세 표준 (만원)
-  taxRate: number;            // 적용 세율 (%)
-  nujinGongje: number;        // 누진 공제액 (만원)
-  computedTax: number;        // 양도소득세 산출세액 (만원)
-  localTax: number;           // 지방소득세 (10%, 만원)
-  totalTax: number;           // 총 세액 합계 (만원)
-  isTaxFree: boolean;         // 비과세 대상 여부
-  taxFreeReason?: string;     // 비과세 적용 근거 설명
-}
+export const VerdictResultSchema = z.object({
+  score: z.number(),
+  label: z.enum(['🔴 지금 팔면 호구 (보류 권장)', '🟡 매도 타이밍 관망 (주의)', '🟢 양호한 매도 기회 (매도 가능)']),
+  color: z.string(),
+  reason: z.string(),
+  metrics: z.object({
+    dropRate: z.number(),
+    rotationRate: z.number(),
+  }),
+});
+
+export type VerdictResult = z.infer<typeof VerdictResultSchema>;
+
+export const TaxParamsSchema = z.object({
+  transferPrice: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  acquisitionPrice: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  holdingYears: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  resideYears: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+  isOneHouse: z.boolean().or(z.union([z.string(), z.number()]).transform(val => Boolean(val) || false)),
+});
+
+export type TaxParams = z.infer<typeof TaxParamsSchema>;
+
+export const TaxResultSchema = z.object({
+  transferProfit: z.number(),
+  taxableProfit: z.number(),
+  janggiGongje: z.number(),
+  taxableBase: z.number(),
+  taxRate: z.number(),
+  nujinGongje: z.number(),
+  computedTax: z.number(),
+  localTax: z.number(),
+  totalTax: z.number(),
+  isTaxFree: z.boolean(),
+  taxFreeReason: z.string().optional(),
+});
+
+export type TaxResult = z.infer<typeof TaxResultSchema>;
 
 /**
  * 1. 호구 지수(Verdict Score) 산출 엔진
  */
-export function calculateVerdictScore({
-  currentPrice,
-  maxPrice3Y,
-  txCount3M,
-  totalGenerations,
-  jeonseRatio,
-}: VerdictParams): VerdictResult {
+export function calculateVerdictScore(params: VerdictParams): VerdictResult {
+  const parsed = VerdictParamsSchema.safeParse(params);
+  if (!parsed.success) {
+    logger.warn('SellTimingEngine', 'Failed to validate calculateVerdictScore inputs', { params }, parsed.error);
+  }
+  const validatedParams = parsed.success ? parsed.data : params;
+
+  const {
+    currentPrice,
+    maxPrice3Y,
+    txCount3M,
+    totalGenerations,
+    jeonseRatio,
+  } = validatedParams;
+
   const fallbackMaxPrice = maxPrice3Y > 0 ? maxPrice3Y : currentPrice * 1.15;
   const fallbackGenerations = totalGenerations > 0 ? totalGenerations : 500;
 
@@ -66,7 +85,7 @@ export function calculateVerdictScore({
 
   // 1-2. 환금성/회전율 점수 (최대 25점)
   // 회전율(3개월 거래량 / 총세대수 * 100)이 낮을수록 거래 절벽 상태에서 급매로 팔아야 하므로 호구 지수가 상승함
-  const rotationRate = (txCount3M / fallbackGenerations) * 100;
+  const rotationRate = fallbackGenerations > 0 ? (txCount3M / fallbackGenerations) * 100 : 0;
   let liquidityScore = 0;
   if (rotationRate < 0.1) {
     liquidityScore = 25;
@@ -117,7 +136,7 @@ export function calculateVerdictScore({
     reason = `고점 대비 낙폭이 크지 않거나 회전율이 양호하여 시장 환금성이 확보된 상태입니다. 상급지 갈아타기 또는 포트폴리오 리밸런싱을 위해 매도를 고려하기에 적합한 가격 방어선이 구축되어 있습니다.`;
   }
 
-  return {
+  const result = {
     score,
     label,
     color,
@@ -127,18 +146,43 @@ export function calculateVerdictScore({
       rotationRate: Math.round(rotationRate * 100) / 100,
     },
   };
+
+  const outputParsed = VerdictResultSchema.safeParse(result);
+  if (!outputParsed.success) {
+    logger.warn('SellTimingEngine', 'Failed to validate calculateVerdictScore output', { result }, outputParsed.error);
+    return {
+      score,
+      label: '🟡 매도 타이밍 관망 (주의)' as const,
+      color: '#eab308',
+      reason: '매도 지수 데이터 규격 오류',
+      metrics: {
+        dropRate: Math.round(dropRate * 10) / 10,
+        rotationRate: Math.round(rotationRate * 100) / 100,
+      }
+    };
+  }
+
+  return outputParsed.data;
 }
 
 /**
  * 2. 간이 양도소득세(Capital Gains Tax) 계산 엔진
  */
-export function calculateCapitalGainsTax({
-  transferPrice,
-  acquisitionPrice,
-  holdingYears,
-  resideYears,
-  isOneHouse,
-}: TaxParams): TaxResult {
+export function calculateCapitalGainsTax(params: TaxParams): TaxResult {
+  const parsed = TaxParamsSchema.safeParse(params);
+  if (!parsed.success) {
+    logger.warn('SellTimingEngine', 'Failed to validate calculateCapitalGainsTax inputs', { params }, parsed.error);
+  }
+  const validatedParams = parsed.success ? parsed.data : params;
+
+  const {
+    transferPrice,
+    acquisitionPrice,
+    holdingYears,
+    resideYears,
+    isOneHouse,
+  } = validatedParams;
+
   const transferProfit = Math.max(0, transferPrice - acquisitionPrice);
 
   let isTaxFree = false;
@@ -229,7 +273,7 @@ export function calculateCapitalGainsTax({
   const localTax = Math.round(computedTax * 0.1);
   const totalTax = computedTax + localTax;
 
-  return {
+  const result = {
     transferProfit,
     taxableProfit,
     janggiGongje,
@@ -242,4 +286,24 @@ export function calculateCapitalGainsTax({
     isTaxFree,
     taxFreeReason,
   };
+
+  const outputParsed = TaxResultSchema.safeParse(result);
+  if (!outputParsed.success) {
+    logger.warn('SellTimingEngine', 'Failed to validate calculateCapitalGainsTax output', { result }, outputParsed.error);
+    return {
+      transferProfit,
+      taxableProfit,
+      janggiGongje,
+      taxableBase,
+      taxRate,
+      nujinGongje,
+      computedTax,
+      localTax,
+      totalTax,
+      isTaxFree,
+      taxFreeReason,
+    };
+  }
+
+  return outputParsed.data;
 }
