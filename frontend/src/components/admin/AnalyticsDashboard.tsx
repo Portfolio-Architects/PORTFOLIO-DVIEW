@@ -109,7 +109,7 @@ export default function AnalyticsDashboard() {
       <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 animate-in fade-in duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-[#f2f4f6] dark:border-zinc-800">
           <h2 className="text-[17px] font-black text-primary flex items-center gap-2">
-            <BarChart3 className="text-toss-blue" size={20} />
+            <BarChart3 className="text-[#008262]" size={20} />
             실시간 서비스 트래픽 (GA4)
           </h2>
           {gaData && (
@@ -196,8 +196,8 @@ export default function AnalyticsDashboard() {
                           <stop offset="95%" stopColor="#00d29d" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3182f6" stopOpacity={0.15}/>
-                          <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
@@ -206,7 +206,7 @@ export default function AnalyticsDashboard() {
                       <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
                       <Legend iconSize={8} iconType="circle" />
                       <Area type="monotone" name="활성 사용자 (DAU)" dataKey="activeUsers" stroke="#00d29d" strokeWidth={2} fillOpacity={1} fill="url(#colorDau)" />
-                      <Area type="monotone" name="페이지 뷰" dataKey="pageViews" stroke="#3182f6" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
+                      <Area type="monotone" name="페이지 뷰" dataKey="pageViews" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -264,7 +264,7 @@ export default function AnalyticsDashboard() {
 
         {!scData ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-5 h-5 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#008262] border-t-transparent rounded-full animate-spin" />
             <span className="text-[13px] text-tertiary font-bold ml-2">서치콘솔 정보 로드 중...</span>
           </div>
         ) : (
