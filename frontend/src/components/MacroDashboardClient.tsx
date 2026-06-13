@@ -2326,7 +2326,7 @@ interface GroupedCategory {
             const isExpanded = expandedGroups[group.title];
 
             const themeColors: Record<string, string> = {
-              "동탄역세권": "#3182f6",
+              "동탄역세권": "#008262",
               "광역비지니스컴플렉스": "#ff9f0a",
               "커뮤니티시범단지": "#af52de",
               "워터프론트컴플렉스": "#00d29d",
@@ -2363,7 +2363,7 @@ interface GroupedCategory {
                           <div className="relative group/info flex items-center">
                             <Info className="w-4 h-4 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
                             <div className="absolute left-0 bottom-full mb-3 w-max max-w-[280px] sm:max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-surface text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-border z-50 pointer-events-none flex flex-col gap-3 text-left">
-                              <span className="font-bold text-[#3182f6] text-[15px]">동탄역세권 설정 기준</span>
+                              <span className="font-bold text-[#008262] text-[15px]">동탄역세권 설정 기준</span>
                               <div>
                                 <span className="font-bold text-primary">1. 공간적·물리적 기준</span><br />
                                 <span className="text-secondary">1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)<br />
@@ -2372,9 +2372,9 @@ interface GroupedCategory {
                               <div className="pt-2 border-t border-border">
                                 <span className="font-bold text-primary">2. 시간 및 교통 연계적 기준</span><br />
                                 <span className="text-secondary">복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경 적용.<br />
-                                  ➡ <span className="font-bold text-[#3182f6]">1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류.</span></span>
+                                  ➡ <span className="font-bold text-[#008262]">1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류.</span></span>
                               </div>
-                              <div className="mt-1 bg-[#3182f6]/10 text-[#3182f6] px-2 py-1.5 rounded-[6px] text-center font-bold">
+                              <div className="mt-1 bg-[#008262]/10 text-[#008262] px-2 py-1.5 rounded-[6px] text-center font-bold">
                                 물리+시간적 1.5km 통합 기준 적용
                               </div>
                               <div className="absolute top-full left-3 border-[6px] border-transparent border-t-white" />
@@ -2549,7 +2549,7 @@ interface GroupedCategory {
                                   <div className="flex items-center justify-between pl-4 mt-0.5">
                                     <div className="flex flex-wrap gap-1.5 items-center min-w-0 pr-2">
                                       {apt.distToDongtan !== null && (
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#008262] bg-[#e6f7f3] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#ccf0e6] transition-colors border border-[#008262]/10 inline-flex whitespace-nowrap">
                                           동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
                                         </span>
                                       )}
@@ -2601,13 +2601,13 @@ interface GroupedCategory {
                                   e.stopPropagation();
                                   window.location.hash = 'lounge';
                                 }}
-                                className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2"
+                                className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e6f7f3] hover:text-[#008262] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2"
                               >
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                  <MessageSquare className="w-3.5 h-3.5 text-[#3182f6] shrink-0" />
+                                  <MessageSquare className="w-3.5 h-3.5 text-[#008262] shrink-0" />
                                   <span className="truncate">"{group.title}" 권역 입주민 라운지 수다방 입장</span>
                                 </div>
-                                <span className="text-[11px] font-extrabold text-[#3182f6] inline-flex items-center shrink-0">
+                                <span className="text-[11px] font-extrabold text-[#008262] inline-flex items-center shrink-0">
                                   대화 참여
                                   <ChevronRight className="w-3 h-3 ml-0.5 transform group-hover/bridge:translate-x-0.5 transition-transform" />
                                 </span>

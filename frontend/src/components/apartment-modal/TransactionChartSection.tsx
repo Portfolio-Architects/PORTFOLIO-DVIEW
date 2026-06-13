@@ -478,7 +478,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     x1={refAreaLeft}
                     x2={refAreaRight}
                     strokeOpacity={0.3}
-                    fill="#3182f6"
+                    fill="#008262"
                     fillOpacity={0.15}
                   />
                 )}

@@ -233,7 +233,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#3182f6',
+                    background: '#008262',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -802,7 +802,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#3182f6',
+                    background: '#008262',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1248,7 +1248,7 @@ export async function GET(req: NextRequest) {
 
     if (shareType === 'infra') {
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {
-        S: { bg: '#3182f6', border: '#cbdcfb', glow: 'rgba(49, 130, 246, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
+        S: { bg: '#008262', border: '#a7f3d0', glow: 'rgba(0, 130, 98, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
         A: { bg: '#0284c7', border: '#bae6fd', glow: 'rgba(2, 132, 199, 0.4)', desc: '역세권 입지와 스타벅스 등 핵심 상권 완비' },
         B: { bg: '#4f46e5', border: '#c7d2fe', glow: 'rgba(79, 70, 229, 0.4)', desc: '안정적인 대중교통망과 풍부한 근린 상권 보유' },
         C: { bg: '#475569', border: '#e2e8f0', glow: 'rgba(71, 85, 105, 0.4)', desc: '보통 수준의 생활 인프라' }
@@ -1291,7 +1291,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#3182f6',
+                    background: '#008262',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -2064,7 +2064,7 @@ export async function GET(req: NextRequest) {
                     <span style={{ fontSize: '18px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '8px' }}>
                       전세가율
                     </span>
-                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#3182f6' }}>
+                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#00d29d' }}>
                       {ratio}%
                     </span>
                   </div>
@@ -2224,7 +2224,7 @@ export async function GET(req: NextRequest) {
                 {ratio && (
                   <div
                     style={{
-                      background: '#3182f6',
+                      background: '#008262',
                       color: 'white',
                       padding: '8px 20px',
                       borderRadius: '30px',

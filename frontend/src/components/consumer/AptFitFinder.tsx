@@ -989,12 +989,12 @@ export default function AptFitFinder({
                             {/* Transit Fit */}
                             <div className="flex flex-col gap-1">
                               <div className="flex justify-between items-center text-[10.5px] font-bold text-secondary">
-                                <span className="flex items-center gap-1"><Train size={12} className="text-[#3182f6]" /> 교통 편의성</span>
+                                <span className="flex items-center gap-1"><Train size={12} className="text-[#008262]" /> 교통 편의성</span>
                                 <span className="font-extrabold text-primary">{item.scores.transit}%</span>
                               </div>
                               <div className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-[#3182f6] to-[#1b64da] rounded-full transition-all duration-500" 
+                                  className="h-full bg-gradient-to-r from-[#008262] to-[#00d29d] rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.transit}%` }}
                                 />
                               </div>

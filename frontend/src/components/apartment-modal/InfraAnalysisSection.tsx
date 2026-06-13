@@ -27,14 +27,14 @@ export default function InfraAnalysisSection({
     >
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <MapPin size={18} className="text-toss-blue"/> 단지 입지정보
+          <MapPin size={18} className="text-[#008262]"/> 단지 입지정보
         </h2>
 
         {/* ─── 🚇 생활 인프라 종합 지수 (Infra Index) ─── */}
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-            S: { bg: 'bg-[#eef2ff]', text: 'text-[#3182f6]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#3182f6]/5', scoreText: 'text-[#3182f6]' },
+            S: { bg: 'bg-[#e6f7f3]', text: 'text-[#008262]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#008262]/5', scoreText: 'text-[#008262]' },
             A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
             B: { bg: 'bg-[#f5f3ff]', text: 'text-[#4f46e5]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#4f46e5]/5', scoreText: 'text-[#4f46e5]' },
             C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }

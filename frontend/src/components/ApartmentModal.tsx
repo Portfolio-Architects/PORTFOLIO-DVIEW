@@ -1400,7 +1400,7 @@ function FieldReportModal({
                       onClick={() => { onOpenCompare(report.apartmentName); setIsToolDropdownOpen(false); }}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
-                      <Radar size={15} className="text-[#3182f6]" />
+                      <Radar size={15} className="text-[#008262]" />
                       <div className="flex flex-col">
                         <span>단지 1:1 비교</span>
                       </div>
@@ -1424,7 +1424,7 @@ function FieldReportModal({
                       onClick={() => { onOpenMortgage(report.apartmentName); setIsToolDropdownOpen(false); }}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
-                      <Calculator size={15} className="text-[#3182f6]" />
+                      <Calculator size={15} className="text-[#008262]" />
                       <div className="flex flex-col">
                         <span>대출 계산기</span>
                       </div>

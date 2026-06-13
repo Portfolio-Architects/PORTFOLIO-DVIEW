@@ -510,7 +510,7 @@ export default function GapInvestmentExplorer({
               }}
               className={`px-3.5 py-1.5 text-[12px] font-extrabold rounded-lg transition-all border ${
                 localMaxGap === preset.value
-                  ? 'bg-[#3182f6] text-white border-[#3182f6] shadow-sm'
+                  ? 'bg-[#008262] text-white border-[#008262] shadow-sm'
                   : 'bg-surface text-secondary hover:text-primary border-border/60'
               }`}
             >

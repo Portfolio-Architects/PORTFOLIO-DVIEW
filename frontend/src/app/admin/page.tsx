@@ -648,8 +648,8 @@ export default function AdminDashboard() {
 
             {/* 2. DAU */}
             <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-              <div className="text-[11.5px] font-bold text-toss-blue mb-1">DAU</div>
-              <div className="text-[22px] font-extrabold text-[#3182f6] font-mono">
+              <div className="text-[11.5px] font-bold text-emerald-600 mb-1">DAU</div>
+              <div className="text-[22px] font-extrabold text-[#008262] font-mono">
                 {gaData.dau ? gaData.dau.toLocaleString() : '0'}명
               </div>
               <div className="text-[10.5px] text-secondary font-medium mt-1">
@@ -725,10 +725,10 @@ export default function AdminDashboard() {
             {/* 2. Clicks */}
             <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <MousePointerClick className="text-[#3182f6]" size={14} />
+                <MousePointerClick className="text-[#008262]" size={14} />
                 <span className="text-[11.5px] font-bold text-tertiary">클릭 수 (최근 30일)</span>
               </div>
-              <div className="text-[20px] font-extrabold text-[#3182f6]">
+              <div className="text-[20px] font-extrabold text-[#008262]">
                 {scData.searchMetrics.clicks.toLocaleString()}건
               </div>
               <div className="text-[10.5px] text-secondary font-medium mt-1">
