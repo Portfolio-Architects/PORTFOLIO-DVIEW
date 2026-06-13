@@ -1,21 +1,50 @@
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { Coord, parseCoordString } from '@/lib/utils/haversine';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// ── Zod Schemas ─────────────────────────────────────
+
+export const POISchema = z.object({
+  name: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  address: z.string().optional(),
+});
+
+export const SchoolPOISchema = POISchema.extend({
+  type: z.string(),
+});
+
+export const StationPOISchema = POISchema.extend({
+  line: z.string(),
+});
+
+export const AcademyPOISchema = POISchema.extend({
+  category: z.string(),
+});
+
+export const RestaurantPOISchema = POISchema.extend({
+  category: z.string(),
+});
+
+export const ApartmentPOISchema = POISchema.extend({
+  householdCount: z.number().optional(),
+  yearBuilt: z.string().optional(),
+  far: z.number().optional(),
+  bcr: z.number().optional(),
+  parkingCount: z.number().optional(),
+  brand: z.string().optional(),
+});
 
 // ── Types ──────────────────────────────────────────
 
-export interface POI extends Coord { name: string; address?: string; }
-export interface SchoolPOI extends POI { type: string; }
-export interface StationPOI extends POI { line: string; }
-export interface AcademyPOI extends POI { category: string; }
-export interface RestaurantPOI extends POI { category: string; }
-export interface ApartmentPOI extends POI {
-  householdCount?: number;
-  yearBuilt?: string;
-  far?: number;
-  bcr?: number;
-  parkingCount?: number;
-  brand?: string;
-}
+export type POI = z.infer<typeof POISchema>;
+export type SchoolPOI = z.infer<typeof SchoolPOISchema>;
+export type StationPOI = z.infer<typeof StationPOISchema>;
+export type AcademyPOI = z.infer<typeof AcademyPOISchema>;
+export type RestaurantPOI = z.infer<typeof RestaurantPOISchema>;
+export type ApartmentPOI = z.infer<typeof ApartmentPOISchema>;
 
 // ── Module-Level In-Memory Cache ───────────────────
 
@@ -113,7 +142,7 @@ async function loadApartments(forceRefresh = false): Promise<ApartmentPOI[]> {
     const householdCount = c[hhIdx] ? parseInt(c[hhIdx].replace(/,/g, '')) : undefined;
     const parkingCount = c[parkIdx] ? parseInt(c[parkIdx].replace(/,/g, '')) : undefined;
 
-    result.push({
+    const raw = {
       name: name.trim(),
       ...coord,
       householdCount: isNaN(householdCount as number) ? undefined : householdCount,
@@ -122,7 +151,14 @@ async function loadApartments(forceRefresh = false): Promise<ApartmentPOI[]> {
       bcr: c[bcrIdx] ? parseFloat(c[bcrIdx].replace(/,/g, '')) || undefined : undefined,
       parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
       brand: c[brandIdx]?.trim() || undefined,
-    });
+    };
+
+    const parsed = ApartmentPOISchema.safeParse(raw);
+    if (parsed.success) {
+      result.push(parsed.data);
+    } else {
+      logger.warn('locationService.loadApartments', 'Skipped invalid apartment POI', { name, errorInfo: parsed.error.format() as any });
+    }
   }
   return result;
 }
@@ -134,7 +170,15 @@ async function loadSchools(forceRefresh = false): Promise<SchoolPOI[]> {
     const [name, coordStr, type] = rows[i];
     if (!name || !coordStr || !type) continue;
     const coord = parseCoordString(coordStr);
-    if (coord) result.push({ name: name.trim(), ...coord, type: type.trim() });
+    if (coord) {
+      const raw = { name: name.trim(), ...coord, type: type.trim() };
+      const parsed = SchoolPOISchema.safeParse(raw);
+      if (parsed.success) {
+        result.push(parsed.data);
+      } else {
+        logger.warn('locationService.loadSchools', 'Skipped invalid school POI', { name, errorInfo: parsed.error.format() as any });
+      }
+    }
   }
   return result;
 }
@@ -146,7 +190,15 @@ async function loadStations(forceRefresh = false): Promise<StationPOI[]> {
     const cols = rows[i];
     if (!cols[0] || !cols[1]) continue;
     const coord = parseCoordString(cols[1]);
-    if (coord) result.push({ name: cols[0].trim(), ...coord, line: (cols[2] || '').trim() });
+    if (coord) {
+      const raw = { name: cols[0].trim(), ...coord, line: (cols[2] || '').trim() };
+      const parsed = StationPOISchema.safeParse(raw);
+      if (parsed.success) {
+        result.push(parsed.data);
+      } else {
+        logger.warn('locationService.loadStations', 'Skipped invalid station POI', { name: cols[0], errorInfo: parsed.error.format() as any });
+      }
+    }
   }
   return result;
 }
@@ -160,7 +212,13 @@ async function loadAcademies(forceRefresh = false): Promise<AcademyPOI[]> {
     const lat = parseFloat(cols[1]);
     const lng = parseFloat(cols[2]);
     if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0 && cols[0]) {
-      result.push({ lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() });
+      const raw = { lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() };
+      const parsed = AcademyPOISchema.safeParse(raw);
+      if (parsed.success) {
+        result.push(parsed.data);
+      } else {
+        logger.warn('locationService.loadAcademies', 'Skipped invalid academy POI', { name: cols[0], errorInfo: parsed.error.format() as any });
+      }
     }
   }
   return result;
@@ -190,13 +248,19 @@ async function loadRestaurants(forceRefresh = false): Promise<RestaurantPOI[]> {
         }
         rawName = displayName;
       }
-      result.push({ 
+      const raw = { 
         lat, 
         lng, 
         name: rawName, 
         category: (cols[3] || '기타').trim(),
         address: cols[5]?.trim() || undefined
-      });
+      };
+      const parsed = RestaurantPOISchema.safeParse(raw);
+      if (parsed.success) {
+        result.push(parsed.data);
+      } else {
+        logger.warn('locationService.loadRestaurants', 'Skipped invalid restaurant POI', { name: rawName, errorInfo: parsed.error.format() as any });
+      }
     }
   }
   return result;
@@ -227,13 +291,19 @@ async function loadSboyds(forceRefresh = false): Promise<RestaurantPOI[]> {
     const lat = parseFloat(cols[latIdx]);
     const lng = parseFloat(cols[lngIdx]);
     if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0) {
-      result.push({ 
+      const raw = { 
         lat, 
         lng, 
         name, 
         category: (catIdx !== -1 && cols[catIdx]?.trim()) || '기타',
         address: (addrIdx !== -1 && cols[addrIdx]?.trim()) || undefined
-      });
+      };
+      const parsed = RestaurantPOISchema.safeParse(raw);
+      if (parsed.success) {
+        result.push(parsed.data);
+      } else {
+        logger.warn('locationService.loadSboyds', 'Skipped invalid sboyd POI', { name, errorInfo: parsed.error.format() as any });
+      }
     }
   }
   return result;
