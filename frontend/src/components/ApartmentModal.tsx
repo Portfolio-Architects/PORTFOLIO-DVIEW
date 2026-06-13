@@ -1763,7 +1763,7 @@ function FieldReportModal({
                 };
                 const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
                 return (
-                  <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative`}>
+                  <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative`}>
                     <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
                       <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
                       <button 
@@ -1777,7 +1777,7 @@ function FieldReportModal({
                         + 사진 추가
                       </button>
                     </div>
-                    <details open>
+                    <details className="w-full overflow-hidden" open>
                       <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
                         <Camera size={20} className="text-toss-blue"/>
                         우리 단지 갤러리
