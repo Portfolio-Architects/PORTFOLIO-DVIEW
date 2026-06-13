@@ -11,6 +11,26 @@ import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import { logger } from '@/lib/services/logger';
 import { compressImage } from '@/lib/utils/imageCompression';
+import { z } from 'zod';
+
+// ── Zod Schemas ─────────────────────────────────────
+
+export const CreatePostSchema = z.object({
+  title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내여야 합니다.'),
+  content: z.string().min(1, '내용을 입력해주세요.'),
+  category: z.string(),
+  authorUid: z.string(),
+  authorEmail: z.string().email().nullable().optional(),
+  customNickname: z.string().max(10, '닉네임은 10자 이내여야 합니다.').optional(),
+});
+
+export const SyncManagerPostSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  category: z.string(),
+  authorEmail: z.string().email().nullable().optional(),
+  providedApartments: z.array(z.string()).optional(),
+});
 
 /**
  * Creates a new community post with optional image upload.
@@ -32,6 +52,21 @@ export async function createPost(
   customNickname?: string
 ): Promise<string> {
   try {
+    // Validate inputs
+    const validated = CreatePostSchema.safeParse({
+      title,
+      content,
+      category,
+      authorUid,
+      authorEmail,
+      customNickname,
+    });
+    if (!validated.success) {
+      const errorMsg = validated.error.issues[0]?.message || '입력값 검증에 실패했습니다.';
+      logger.error('PostService.createPost', 'Validation failed', { errors: validated.error.format() as any });
+      throw new Error(errorMsg);
+    }
+
     const { isAdmin } = await import('@/lib/config/admin.config');
     // 1. Resolve user profile for display name
     const profile = await UserRepo.getOrCreateProfile(authorUid);
@@ -53,18 +88,23 @@ export async function createPost(
     const verificationLevel = isUserAdmin ? 'registry_verified' : profile.verificationLevel;
 
     const postId = await PostRepo.createPost({
-      title,
-      category,
-      content,
+      title: validated.data.title,
+      category: validated.data.category,
+      content: validated.data.content,
       authorName: displayName,
-      authorUid,
+      authorUid: validated.data.authorUid,
       imageUrl,
       verifiedApartment,
       verificationLevel,
     });
 
     // Automatically sync manager's scouting report post to scoutingReports collection
-    await syncManagerPostToScoutingReport(title, content, category, authorEmail);
+    await syncManagerPostToScoutingReport(
+      validated.data.title,
+      validated.data.content,
+      validated.data.category,
+      validated.data.authorEmail
+    );
 
     // 4. Trigger Google Search Console Indexing via Backend API asynchronously
     if (typeof window !== 'undefined') {
@@ -78,7 +118,7 @@ export async function createPost(
       });
     }
 
-    logger.info('PostService.createPost', 'Post created successfully', { title, category, id: postId });
+    logger.info('PostService.createPost', 'Post created successfully', { title: validated.data.title, category: validated.data.category, id: postId });
     return postId;
   } catch (error) {
     logger.error('PostService.createPost', 'Failed to create post', { title, category, authorUid }, error);
@@ -98,19 +138,32 @@ export async function syncManagerPostToScoutingReport(
   providedApartments?: string[]
 ): Promise<void> {
   try {
+    // Validate inputs
+    const validated = SyncManagerPostSchema.safeParse({
+      title,
+      content,
+      category,
+      authorEmail,
+      providedApartments,
+    });
+    if (!validated.success) {
+      logger.warn('PostService.syncManagerPostToScoutingReport', 'Input validation failed, skipping sync', { errors: validated.error.format() as any });
+      return;
+    }
+
     const { isAdmin } = await import('@/lib/config/admin.config');
-    if (!isAdmin(authorEmail)) {
+    if (!isAdmin(validated.data.authorEmail)) {
       logger.info('PostService.syncManagerPostToScoutingReport', 'User is not admin, skipping sync');
       return;
     }
 
-    const cleanTitle = title.trim();
-    const cleanContent = content.trim();
+    const cleanTitle = validated.data.title.trim();
+    const cleanContent = validated.data.content.trim();
 
     // Match check: category or title/content keywords
-    const isManagerReport = category === '매니저 임장기' || 
-                            category === '동탄 임장/분석' || 
-                            category === '임장기' || 
+    const isManagerReport = validated.data.category === '매니저 임장기' || 
+                            validated.data.category === '동탄 임장/분석' || 
+                            validated.data.category === '임장기' || 
                             cleanTitle.includes('매니저') || 
                             cleanTitle.includes('임장기') || 
                             cleanContent.includes('매니저 임장기');
@@ -121,7 +174,7 @@ export async function syncManagerPostToScoutingReport(
     }
 
     // Resolve apartments
-    const apartments = providedApartments || await ApartmentRepo.fetchApartmentNames();
+    const apartments = validated.data.providedApartments || await ApartmentRepo.fetchApartmentNames();
     if (!apartments || apartments.length === 0) {
       logger.warn('PostService.syncManagerPostToScoutingReport', 'No apartments loaded, skipping sync');
       return;
