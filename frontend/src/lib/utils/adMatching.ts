@@ -99,7 +99,7 @@ export function getAdForApartment(metrics?: {
   }
 
   // 4. Newly Built Complex (< 5 years) -> Move-in / Interior services
-  if (age !== undefined && age <= 5) {
+  if (age !== undefined && age < 5) {
     return {
       adType: 'interior',
       badge: '새 집으로 입주',

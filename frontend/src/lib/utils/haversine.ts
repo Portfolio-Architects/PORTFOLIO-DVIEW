@@ -72,9 +72,16 @@ export function countWithinRadius(origin: Coord, pois: Coord[], radiusM: number)
  */
 export function parseCoordString(coordStr: string): Coord | null {
   if (!coordStr || typeof coordStr !== 'string') return null;
-  const parts = coordStr.split(',').map(s => parseFloat(s.trim()));
+  // Clean brackets, parentheses, braces, and spaces
+  const cleaned = coordStr.replace(/[\[\]\(\)\{\}\s]/g, '');
+  const parts = cleaned.split(',').map(s => parseFloat(s));
   if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-    return { lat: parts[0], lng: parts[1] };
+    const lat = parts[0];
+    const lng = parts[1];
+    // Validate bounds for Earth coordinates to prevent downstream errors
+    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return { lat, lng };
+    }
   }
   return null;
 }

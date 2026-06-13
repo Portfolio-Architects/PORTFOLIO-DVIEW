@@ -64,6 +64,21 @@ describe('Haversine Utilities', () => {
       expect(coord!.lng).toBeCloseTo(127.0985);
     });
 
+    it('should parse coordinate strings with brackets, parentheses, or braces', () => {
+      const coordBrackets = parseCoordString('[37.2005, 127.0985]');
+      expect(coordBrackets).not.toBeNull();
+      expect(coordBrackets!.lat).toBeCloseTo(37.2005);
+
+      const coordParens = parseCoordString('(37.2005, 127.0985)');
+      expect(coordParens).not.toBeNull();
+      expect(coordParens!.lat).toBeCloseTo(37.2005);
+    });
+
+    it('should return null for out-of-bounds coordinates', () => {
+      expect(parseCoordString('95.0, 127.0')).toBeNull(); // lat > 90
+      expect(parseCoordString('37.0, -190.0')).toBeNull(); // lng < -180
+    });
+
     it('should return null for invalid input', () => {
       expect(parseCoordString('abc, def')).toBeNull();
       expect(parseCoordString('')).toBeNull();
