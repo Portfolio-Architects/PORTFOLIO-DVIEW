@@ -2,30 +2,78 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { createInitialKPIs } from '@/lib/services/kpi.service';
 import { fetchSheetApartmentsByDong, fetchSheetTypeMap } from '@/lib/services/googleSheets';
 import { redis } from '@/lib/redis';
+import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
-import type { DongtanMacroTrendPoint } from '@/lib/types/transaction';
 
 const PAGE_DATA_CACHE_TTL = 300; // 5 minutes in-memory cache for Firestore + Sheets merge
 
-export async function getInitialData() {
+const TypeMapItemSchema = z.object({
+  aptName: z.string(),
+  area: z.string(),
+  typeM2: z.string(),
+  typePyeong: z.string(),
+});
+
+const ApartmentMetaItemSchema = z.object({
+  dong: z.string().optional(),
+  txKey: z.string().optional(),
+  isPublicRental: z.boolean().optional(),
+});
+
+const ApartmentMetaSchema = z.record(z.string(), ApartmentMetaItemSchema);
+
+const FieldReportSchema = z.object({
+  id: z.string(),
+  dong: z.string().optional(),
+  apartmentName: z.string(),
+  premiumScores: z.any().optional(),
+  premiumContent: z.string().optional(),
+  pros: z.string().optional(),
+  cons: z.string().optional(),
+  rating: z.number().int().nonnegative().optional(),
+  author: z.string(),
+  likes: z.number().int().nonnegative().default(0),
+  viewCount: z.number().int().nonnegative().optional(),
+  commentCount: z.number().int().nonnegative().default(0),
+  imageUrl: z.string().optional(),
+  thumbnail: z.string().optional(),
+  images: z.array(z.any()).optional(),
+  metrics: z.any().optional(),
+  scoutingDate: z.string().optional(),
+  createdAt: z.any().optional(),
+  _rawTimestamp: z.number().optional(),
+});
+
+const DongtanMacroTrendPointSchema = z.object({
+  name: z.string(),
+  '동탄 아파트 전체': z.number(),
+  '동탄 아파트 전세 평균': z.number(),
+});
+
+export const InitialPageDataSchema = z.object({
+  favoriteCounts: z.record(z.string(), z.number().int().nonnegative()),
+  typeMap: z.array(TypeMapItemSchema),
+  apartmentMeta: ApartmentMetaSchema,
+  sheetApartments: z.record(z.string(), z.array(z.any())).optional(),
+  fieldReports: z.array(FieldReportSchema),
+  kpis: z.array(z.any()).optional(),
+  macroTrend: z.array(DongtanMacroTrendPointSchema).optional(),
+  txSummary: z.record(z.string(), z.any()).optional(),
+  recent7DaysVolume: z.any().optional(),
+});
+
+export type InitialPageData = z.infer<typeof InitialPageDataSchema>;
+
+export async function getInitialData(): Promise<InitialPageData> {
   const now = Date.now();
   const cache = (globalThis as any)._initialPageDataCache;
   if (cache && (now - cache.timestamp) < PAGE_DATA_CACHE_TTL * 1000) {
     return cache.data;
   }
 
-  const result: {
-    favoriteCounts: Record<string, number>;
-    typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
-    apartmentMeta: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
-    sheetApartments?: Record<string, any[]>;
-    fieldReports?: any[];
-    kpis?: any[];
-    macroTrend?: DongtanMacroTrendPoint[];
-    txSummary?: Record<string, any>;
-    recent7DaysVolume?: any;
-  } = {
+  const result: InitialPageData = {
     favoriteCounts: {},
     typeMap: [],
     apartmentMeta: {},
@@ -68,7 +116,7 @@ export async function getInitialData() {
           return;
         }
       } catch (e) {
-        console.warn('[Server] Redis meta read error:', e);
+        logger.warn('DashboardData', 'Redis meta read error', {}, e);
       }
     }
     if (adminDb) {
@@ -77,7 +125,7 @@ export async function getInitialData() {
         const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
         result.apartmentMeta = metaData;
         if (redis && Object.keys(metaData).length > 0) {
-          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => console.warn('[Server] Redis meta write error:', e));
+          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => logger.warn('DashboardData', 'Redis meta write error', {}, e));
         }
       }
     }
@@ -92,7 +140,7 @@ export async function getInitialData() {
           return;
         }
       } catch (e) {
-        console.warn('[Server] Redis reports read error:', e);
+        logger.warn('DashboardData', 'Redis reports read error', {}, e);
       }
     }
     if (adminDb) {
@@ -136,7 +184,7 @@ export async function getInitialData() {
       });
       result.fieldReports = reports;
       if (redis && reports.length > 0) {
-        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => console.warn('[Server] Redis reports write error:', e));
+        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => logger.warn('DashboardData', 'Redis reports write error', {}, e));
       }
     }
   };
@@ -163,7 +211,7 @@ export async function getInitialData() {
         result.macroTrend = [];
       }
     } catch (e) {
-      console.warn('[Server] Failed to read macro-trend.json:', e);
+      logger.warn('DashboardData', 'Failed to read macro-trend.json', {}, e);
       result.macroTrend = [];
     }
   };
@@ -181,22 +229,28 @@ export async function getInitialData() {
         result.recent7DaysVolume = undefined;
       }
     } catch (e) {
-      console.warn('[Server] Failed to read tx-summary.json:', e);
+      logger.warn('DashboardData', 'Failed to read tx-summary.json', {}, e);
       result.txSummary = {};
       result.recent7DaysVolume = undefined;
     }
   };
 
   await Promise.allSettled([
-    fetchFavCounts().catch(e => console.warn('[Server] favCounts error:', e)),
-    fetchMeta().catch(e => console.warn('[Server] meta error:', e)),
-    fetchReports().catch(e => console.warn('[Server] reports error:', e)),
-    fetchTypeMap().catch(e => console.warn('[Server] typeMap error:', e)),
-    fetchApts().catch(e => console.warn('[Server] apts error:', e)),
-    fetchMacroTrend().catch(e => console.warn('[Server] macroTrend error:', e)),
-    fetchTxSummary().catch(e => console.warn('[Server] txSummary error:', e)),
+    fetchFavCounts().catch(e => logger.warn('DashboardData', 'favCounts error', {}, e)),
+    fetchMeta().catch(e => logger.warn('DashboardData', 'meta error', {}, e)),
+    fetchReports().catch(e => logger.warn('DashboardData', 'reports error', {}, e)),
+    fetchTypeMap().catch(e => logger.warn('DashboardData', 'typeMap error', {}, e)),
+    fetchApts().catch(e => logger.warn('DashboardData', 'apts error', {}, e)),
+    fetchMacroTrend().catch(e => logger.warn('DashboardData', 'macroTrend error', {}, e)),
+    fetchTxSummary().catch(e => logger.warn('DashboardData', 'txSummary error', {}, e)),
   ]);
 
-  (globalThis as any)._initialPageDataCache = { data: result, timestamp: Date.now() };
-  return result;
+  const parsed = InitialPageDataSchema.safeParse(result);
+  if (!parsed.success) {
+    logger.warn('DashboardData', 'Validation failed for initial page data, returning raw result.', {}, parsed.error);
+    return result;
+  }
+
+  (globalThis as any)._initialPageDataCache = { data: parsed.data, timestamp: Date.now() };
+  return parsed.data;
 }
