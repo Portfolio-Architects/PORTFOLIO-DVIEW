@@ -169,7 +169,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                 setPostContent(MARKDOWN_TEMPLATE);
               }
             }}
-            className="fixed right-4 sm:right-6 w-14 h-14 bg-toss-blue hover:bg-[#00b386] text-surface rounded-full shadow-lg shadow-[#00d29d]/30 flex items-center justify-center transition-all active:scale-95 z-40"
+            className="fixed right-4 sm:right-6 w-14 h-14 bg-[#008262] hover:bg-[#006b50] text-surface rounded-full shadow-lg shadow-[#008262]/20 flex items-center justify-center transition-all active:scale-95 z-40"
             style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
           >
             <PenLine size={22} />
@@ -202,7 +202,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                 ? ['매니저 임장기', '동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔'] 
                 : ['동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔']
               ).map((cat) => (
-                <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{cat}</button>
+                <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#008262] text-surface border-transparent shadow-sm' : 'bg-surface text-secondary border-toss-gray hover:border-[#008262]'}`}>{cat}</button>
               ))}
             </div>
 
@@ -214,7 +214,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                   <button 
                     type="button" 
                     onClick={() => setCustomNickname(generateMamacafeNickname())} 
-                    className="text-[11.5px] font-extrabold text-toss-blue hover:underline flex items-center gap-1"
+                    className="text-[11.5px] font-extrabold text-[#008262] hover:text-[#006b50] hover:underline flex items-center gap-1"
                   >
                     새로 만들기 🔄
                   </button>
@@ -278,7 +278,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                   finally { setIsSubmitting(false); }
                 }}
                 disabled={isSubmitting || !postTitle.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-toss-blue hover:bg-[#00b386] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95"
+                className="flex items-center gap-2 px-6 py-3 bg-[#008262] hover:bg-[#006b50] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95 shadow-sm shadow-[#008262]/10"
               >
                 {isSubmitting ? '작성 중...' : '작성 완료'}
               </button>
