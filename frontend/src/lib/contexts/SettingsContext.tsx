@@ -1,8 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 type AreaUnit = 'm2' | 'pyeong';
+
+const AreaUnitSchema = z.enum(['m2', 'pyeong']);
+
 
 interface SettingsContextType {
   areaUnit: AreaUnit;
@@ -20,13 +25,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem('dtdls-area-unit');
-      if (stored === 'm2' || stored === 'pyeong') {
+      const parsed = AreaUnitSchema.safeParse(stored);
+      if (parsed.success) {
         setTimeout(() => {
-          setAreaUnitState(stored);
+          setAreaUnitState(parsed.data);
         }, 0);
+      } else if (stored !== null) {
+        logger.warn('SettingsProvider.init', 'Invalid area unit stored in localStorage', { stored });
       }
     } catch (e) {
-      console.warn('localStorage is blocked or unavailable:', e);
+      logger.warn('SettingsProvider.init', 'localStorage is blocked or unavailable', {}, e as Error);
     }
   }, []);
 
@@ -35,7 +43,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem('dtdls-area-unit', unit);
     } catch (e) {
-      console.warn('Failed to save areaUnit to localStorage:', e);
+      logger.warn('SettingsProvider.setAreaUnit', 'Failed to save areaUnit to localStorage', { unit }, e as Error);
     }
   };
 

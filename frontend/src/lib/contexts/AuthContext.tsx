@@ -7,12 +7,27 @@ import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { DEFAULT_AVATARS, type UserProfile } from '@/lib/types/user.types';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export interface AnonProfile {
   nickname: string;
   frontName?: string;
   photoURL?: string;
 }
+
+export const AnonProfileSchema = z.object({
+  nickname: z.string(),
+  frontName: z.string().optional(),
+  photoURL: z.string().optional().nullable(),
+});
+
+export const UserProfileSchema = z.object({
+  uid: z.string(),
+  email: z.string().email().nullable().optional(),
+  displayName: z.string().nullable().optional(),
+  photoURL: z.string().nullable().optional(),
+});
 
 export interface AuthContextType {
   user: User | null;
@@ -46,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             })
           )
           .catch((cookieErr) => {
-            console.warn('[AuthProvider] Failed to set session cookie:', cookieErr);
+            logger.warn('AuthProvider.onAuthStateChanged', 'Failed to set session cookie', {}, cookieErr);
           });
 
         const dataPromise = Promise.all([
@@ -55,6 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ]).then(([profile, up]) => {
           const normalizedProfile = profile;
           if (normalizedProfile) {
+            const parsedAnon = AnonProfileSchema.safeParse(normalizedProfile);
+            if (!parsedAnon.success) {
+              logger.warn('AuthProvider.onAuthStateChanged', 'Anon profile validation failed', { errors: parsedAnon.error.format() });
+            }
+
             if (isAdmin(currentUser.email)) {
               if (normalizedProfile.nickname !== '매니저') {
                 dashboardFacade.updateNickname(currentUser.uid, '매니저');
@@ -67,6 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
           setAnonProfile(normalizedProfile);
+
+          if (up) {
+            const parsedUser = UserProfileSchema.safeParse(up);
+            if (!parsedUser.success) {
+              logger.warn('AuthProvider.onAuthStateChanged', 'User profile validation failed', { errors: parsedUser.error.format() });
+            }
+          }
           setUserProfile(up);
 
           if (isAdmin(currentUser.email)) {
@@ -75,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
           }
         }).catch((dataErr) => {
-          console.error('[AuthProvider] Failed to fetch user data profiles:', dataErr);
+          logger.error('AuthProvider.onAuthStateChanged', 'Failed to fetch user data profiles', {}, dataErr);
         });
 
         await Promise.all([cookiePromise, dataPromise]);
@@ -88,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           await fetch('/api/auth/session', { method: 'DELETE' });
         } catch (cookieErr) {
-          console.warn('[AuthProvider] Failed to clear session cookie:', cookieErr);
+          logger.warn('AuthProvider.onAuthStateChanged', 'Failed to clear session cookie', {}, cookieErr);
         }
       }
       setIsLoading(false);
@@ -101,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      console.error("Login failed", error);
+      logger.error('AuthProvider.handleLogin', 'Login failed', {}, error);
     }
   };
 
@@ -109,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("Logout failed", error);
+      logger.error('AuthProvider.handleLogout', 'Logout failed', {}, error);
     }
   };
 
