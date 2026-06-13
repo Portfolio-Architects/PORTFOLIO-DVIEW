@@ -2,6 +2,79 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
+const { z } = require('zod');
+
+// Zod schema for validation of CSV Import TransactionSync Record
+const CsvTransactionSyncRecordSchema = z.object({
+  apartmentName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  dong: z.string().min(1, '법정동명이 누락되었습니다.'),
+  contractYm: z.string().length(6, '계약년월은 6자리여야 합니다.'),
+  contractDay: z.string().length(2, '계약일은 2자리여야 합니다.'),
+  contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.'),
+  deposit: z.coerce.number().int().nonnegative('보증금이 유효하지 않습니다.'),
+  monthlyRent: z.coerce.number().int().nonnegative('월세가 유효하지 않습니다.'),
+  price: z.coerce.number().int().nonnegative().default(0),
+  dealType: z.string().min(1, '거래구분이 누락되었습니다.'),
+  area: z.coerce.number().positive('면적이 유효하지 않습니다.'),
+  areaPyeong: z.coerce.number().positive('평수가 유효하지 않습니다.'),
+  floor: z.coerce.number().int('층수 정보가 유효하지 않습니다.'),
+  source: z.literal('csv_import')
+});
+
+function getAdminCredentials() {
+  try {
+    const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      return JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+    }
+  } catch {
+    // ignore
+  }
+
+  // Load from local .env.local if exists
+  try {
+    const envPath = path.resolve(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      const lines = content.split('\n');
+      const env = {};
+      lines.forEach(line => {
+        const parts = line.split('=');
+        if (parts.length >= 2) {
+          const key = parts[0].trim();
+          const val = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+          env[key] = val;
+        }
+      });
+      
+      if (env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        try {
+          return JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        } catch (e) {
+          console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e);
+        }
+      }
+      
+      const privateKey = env.FIREBASE_ADMIN_PRIVATE_KEY || env.GOOGLE_PRIVATE_KEY;
+      const clientEmail = env.FIREBASE_ADMIN_CLIENT_EMAIL || env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+      const projectId = env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
+      
+      if (privateKey && clientEmail) {
+        return {
+          projectId,
+          clientEmail,
+          client_email: clientEmail,
+          privateKey: privateKey.replace(/\\n/g, '\n'),
+          private_key: privateKey.replace(/\\n/g, '\n')
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Env load error:', e);
+  }
+
+  return null;
+}
 
 const csvPath = process.argv[2];
 if (!csvPath) {
@@ -79,13 +152,13 @@ const records = JSON.parse(stdout);
 console.log(`Parsed ${records.length} records successfully.`);
 
 // Initialize Firebase Admin
-const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  const creds = getAdminCredentials();
+  if (creds) {
+    admin.initializeApp({ credential: admin.credential.cert(creds) });
+  } else {
+    admin.initializeApp({ projectId: 'portfolio-dtdls' });
+  }
 }
 
 const db = admin.firestore();
@@ -97,9 +170,17 @@ async function upload() {
   let count = 0;
 
   for (const record of records) {
-    const docId = `${record.apartmentName}_${record.contractDate}_${record.area}_${record.floor}_${record.dealType}`.replace(/[\//]/g, '');
+    const parsed = CsvTransactionSyncRecordSchema.safeParse(record);
+    if (!parsed.success) {
+      console.warn(`⚠️ [CSV Import Sync] Invalid transactionSync record format at apt ${record.apartmentName}:`, parsed.error.format());
+      console.log(`Record Details: ${JSON.stringify(record)}`);
+      continue;
+    }
+
+    const validRecord = parsed.data;
+    const docId = `${validRecord.apartmentName}_${validRecord.contractDate}_${validRecord.area}_${validRecord.floor}_${validRecord.dealType}`.replace(/[\//]/g, '');
     const docRef = collRef.doc(docId);
-    currentBatch.set(docRef, record, { merge: true });
+    currentBatch.set(docRef, validRecord, { merge: true });
     count++;
     
     if (count % 400 === 0) {
