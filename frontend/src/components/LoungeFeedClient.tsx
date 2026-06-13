@@ -179,7 +179,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             setNewsData(json.data);
           }
         })
-        .catch(err => console.error(err))
+        .catch(err => console.warn('LoungeFeedClient - Failed to fetch news:', err instanceof Error ? err.message : err))
         .finally(() => setNewsLoading(false));
     }
   }, [currentTab, newsData.length]);
@@ -197,7 +197,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             setLastUpdatedTime(json.lastUpdated);
           }
         })
-        .catch(err => console.error(err))
+        .catch(err => console.warn('LoungeFeedClient - Failed to fetch notices:', err instanceof Error ? err.message : err))
         .finally(() => setNoticesLoading(false));
     }
   }, [currentTab, selectedNoticeId, noticesData.length]);

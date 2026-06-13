@@ -36,7 +36,7 @@ interface PostComment {
 
 export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
   const router = useRouter();
-  const { triggerCustomA2HSModal } = usePWA();
+  const { triggerCustomA2HSModal, showToast } = usePWA();
   useSwipeNavigation({ onBack: () => isModal ? router.back() : router.back() });
 
   const lastCommentTimeRef = useRef<number>(0);
@@ -175,6 +175,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       }
       await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { likes: increment(1) });
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
+      showToast("이 글에 공감(좋아요)을 보냈습니다. ❤️");
       triggerCustomA2HSModal();
     } catch(e) {
       setIsLiked(false);
@@ -183,6 +184,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       } catch (err) {
         console.warn('localStorage is unavailable:', err);
       }
+      showToast("공감 처리에 실패했습니다.");
     }
   };
 
@@ -195,13 +197,25 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     const match = content.match(mdImageRegex);
     const firstImageUrl = match ? match[1] : undefined;
 
-    await sharePostToKakao({
-      postId,
-      title: (post.title as string) || "DVIEW 라운지 소식",
-      category: (post.category as string) || "자유",
-      contentSummary: content,
-      imageUrl: firstImageUrl
-    });
+    try {
+      await sharePostToKakao({
+        postId,
+        title: (post.title as string) || "DVIEW 라운지 소식",
+        category: (post.category as string) || "자유",
+        contentSummary: content,
+        imageUrl: firstImageUrl
+      });
+      showToast("카카오톡 공유 창을 열었습니다. 💬");
+    } catch (err) {
+      console.warn("Kakao SDK share failed, falling back to clipboard copy:", err);
+      const shareUrl = `${window.location.origin}/lounge/${postId}`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast("게시글 주소가 복사되었습니다. 이웃에게 공유해 보세요! 🔗");
+      } catch (clipErr) {
+        showToast("주소 복사에 실패하여, 브라우저 주소창의 링크를 사용해 주세요.");
+      }
+    }
   };
 
   const getAnonymousNickname = () => {
