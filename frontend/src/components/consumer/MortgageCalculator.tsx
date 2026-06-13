@@ -934,7 +934,7 @@ export default function MortgageCalculator({
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00d29d] rounded" />남은 대출 원금</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#f43f5e]/70 rounded" />납부 누적이자</span>
                   </div>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart
                       data={repaymentDetails.chartData}
                       margin={{ top: 20, right: 5, left: -20, bottom: 0 }}

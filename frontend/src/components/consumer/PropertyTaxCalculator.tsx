@@ -582,7 +582,7 @@ export default function PropertyTaxCalculator({
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-body/20 p-4 rounded-xl border border-border/20">
                     <div className="w-full h-32 relative">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                         <PieChart>
                           <defs>
                             <linearGradient id="colorAcq" x1="0" y1="0" x2="0" y2="1">
