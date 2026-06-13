@@ -17,6 +17,32 @@ const fs = require('fs');
 const path = require('path');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const axios = require('axios');
+const { z } = require('zod');
+
+// Zod schema for validation of Apartment Trade Transaction Record before DB upload
+const AptTransactionRecordSchema = z.object({
+  sigungu: z.string().min(1, '시군구 정보가 누락되었습니다.'),
+  dong: z.string().min(1, '법정동명이 누락되었습니다.'),
+  aptName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  area: z.coerce.number().positive('면적이 유효하지 않습니다.'),
+  areaPyeong: z.coerce.number().positive('평수가 유효하지 않습니다.'),
+  contractYm: z.string().length(6, '계약년월은 6자리여야 합니다.'),
+  contractDay: z.string().length(2, '계약일은 2자리여야 합니다.'),
+  contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.'),
+  price: z.coerce.number().int().positive('거래가격이 유효하지 않습니다.'),
+  floor: z.coerce.number().int('층수 정보가 유효하지 않습니다.'),
+  buyer: z.string().optional().default(''),
+  seller: z.string().optional().default(''),
+  buildYear: z.coerce.number().int().nonnegative('건축년도가 유효하지 않습니다.').default(0),
+  roadName: z.string().optional().default(''),
+  cancelDate: z.string().optional().default(''),
+  dealType: z.string().optional().default(''),
+  agentLocation: z.string().optional().default(''),
+  registrationDate: z.string().optional().default(''),
+  housingType: z.string().optional().default(''),
+  source: z.literal('govt_api'),
+  _key: z.string().min(1)
+});
 
 const API_KEY = process.env.BUILDING_API_KEY || '';
 const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
@@ -198,7 +224,7 @@ async function main() {
               }
             }
 
-            monthRecords.push({
+            const record = {
               sigungu: `경기도 화성시 동탄구 ${dong}`,
               dong,
               aptName,
@@ -220,7 +246,15 @@ async function main() {
               housingType: '',
               source: 'govt_api',
               _key: key,
-            });
+            };
+
+            const parsed = AptTransactionRecordSchema.safeParse(record);
+            if (parsed.success) {
+              monthRecords.push(parsed.data);
+            } else {
+              console.warn(`⚠️ [Fetch Transactions] Invalid trade transaction record at apt ${aptName}:`, parsed.error.format());
+              console.log(`Record Details: ${JSON.stringify(record)}`);
+            }
           }
 
           if (items.length === 0) break; // 무한 루프 방지
