@@ -11,6 +11,20 @@ const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio');
 const { Redis } = require('@upstash/redis');
+const { z } = require('zod');
+
+// Zod schema for administrative local notices validation
+const NoticeSchema = z.object({
+  id: z.string().min(1),
+  originalId: z.string().min(1),
+  title: z.string().min(1),
+  url: z.string().url(),
+  dept: z.string().default(''),
+  date: z.string().min(4),
+  isDongtan: z.boolean().default(true),
+  source: z.enum(['bbs', 'rail', 'dong', 'gosi']),
+  createdAt: z.string().datetime()
+});
 
 const SOURCE_1_BBS_URL = 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019';
 const SOURCE_2_GOSI_URL = 'https://www.hscity.go.kr/www/gosi/BD_notice.do';
@@ -383,12 +397,28 @@ async function main() {
     process.exit(0);
   }
 
-  console.log(`💾 Firestore에 수집된 ${notices.length}건 저장 중...`);
+  // Zod validation filter
+  const validNotices = [];
+  for (const rawNotice of notices) {
+    const parsed = NoticeSchema.safeParse(rawNotice);
+    if (parsed.success) {
+      validNotices.push(parsed.data);
+    } else {
+      console.warn(`⚠️ [Fetch Notices] Skipping invalid notice payload (id: ${rawNotice.id}):`, parsed.error.format());
+    }
+  }
+
+  if (validNotices.length === 0) {
+    console.log('⏭️ 유효한 새 소식이 없습니다 (Zod 검증 탈락).');
+    process.exit(0);
+  }
+
+  console.log(`💾 Firestore에 수집된 ${validNotices.length}건 저장 중...`);
   const collRef = db.collection('local_notices');
   let written = 0;
 
-  for (let i = 0; i < notices.length; i += 500) {
-    const chunk = notices.slice(i, i + 500);
+  for (let i = 0; i < validNotices.length; i += 500) {
+    const chunk = validNotices.slice(i, i + 500);
     const batch = db.batch();
     
     for (const item of chunk) {
