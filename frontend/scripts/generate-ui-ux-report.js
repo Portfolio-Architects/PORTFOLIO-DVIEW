@@ -1,5 +1,31 @@
 const fs = require('fs');
 const path = require('path');
+const { z } = require('zod');
+
+// Zod schema to validate raw E2E audit outputs
+const RawAuditResultsSchema = z.object({
+  timestamp: z.string(),
+  url: z.string(),
+  consoleLogs: z.array(z.any()).optional().default([]),
+  pageErrors: z.array(z.any()).optional().default([]),
+  performance: z.object({
+    navigation: z.object({
+      dns: z.coerce.number().optional().default(0),
+      tcp: z.coerce.number().optional().default(0),
+      ttfb: z.coerce.number().optional().default(0),
+      domLoad: z.coerce.number().optional().default(0),
+      pageLoad: z.coerce.number().optional().default(0)
+    }).optional().default({}),
+    vitals: z.object({
+      lcp: z.coerce.number().optional().default(0),
+      cls: z.coerce.number().optional().default(0)
+    }).optional().default({})
+  }).optional().default({}),
+  accessibility: z.array(z.any()).optional().default([]),
+  layout: z.object({
+    overflows: z.array(z.any()).optional().default([])
+  }).optional().default({})
+});
 
 const RAW_JSON_PATH = path.resolve(__dirname, '../scratch/ui-ux-audit-results.json');
 const OUTPUT_REPORT_PATH = path.resolve(__dirname, '../scratch/ui_ux_improvement_report.md');
@@ -10,7 +36,13 @@ if (!fs.existsSync(RAW_JSON_PATH)) {
 }
 
 try {
-  const rawData = JSON.parse(fs.readFileSync(RAW_JSON_PATH, 'utf8'));
+  const jsonContent = JSON.parse(fs.readFileSync(RAW_JSON_PATH, 'utf8'));
+  const parsed = RawAuditResultsSchema.safeParse(jsonContent);
+  if (!parsed.success) {
+    console.error('❌ Invalid UI/UX raw audit JSON structure:', parsed.error.format());
+    process.exit(1);
+  }
+  const rawData = parsed.data;
   
   // 1. Calculate Badges & Summaries
   const vitals = rawData.performance.vitals || { lcp: 0, cls: 0 };
