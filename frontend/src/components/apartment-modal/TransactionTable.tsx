@@ -167,110 +167,14 @@ export function TransactionTable({
       className={`${visibleCount > defaultCount ? 'overflow-y-auto' : 'overflow-y-hidden'} touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px]`}
       style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => {
-          const ym = String(tx.contractYm || '');
-          const m = ym.length >= 6 ? ym.substring(4, 6) : '01';
-          const d = String(tx.contractDay || '01').trim().padStart(2, '0');
-          const isRent = tx.dealType === '전세' || tx.dealType === '월세';
-          const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
-          const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
-          const eok = Math.floor(displayPrice / 10000);
-          const rem = displayPrice % 10000;
-          let typeLabel = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
-          if (!typeLabel) {
-            const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-            if (typeData) {
-              typeLabel = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);
-            }
-            if (!typeLabel) {
-               typeLabel = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
-            }
-          }
-
-          // cancelDate가 유효한 날짜(6자리 이상 숫자)인 경우에만 취소 거래로 판정
-          const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
-
-          // 가격을 깔끔한 단일 문자열로 포맷팅
-          let priceText = '';
-          if (tx.dealType === '월세') {
-            const depEok = Math.floor((tx.deposit || 0) / 10000);
-            const depRem = (tx.deposit || 0) % 10000;
-            let depStr = '';
-            if (depEok > 0) {
-              depStr += `${depEok}억`;
-              if (depRem > 0) depStr += `${depRem.toLocaleString()}`;
-            } else {
-              depStr += `${depRem.toLocaleString()}`;
-            }
-            priceText = `${depStr}/${displayMonthly.toLocaleString()}`;
-          } else {
-            if (eok > 0) {
-              priceText += `${eok}억`;
-              if (rem > 0) {
-                priceText += `${rem.toLocaleString()}`;
-              }
-            } else {
-              priceText += `${rem.toLocaleString()}만`;
-            }
-          }
-
-          return (
-            <div key={i} className={`flex items-center justify-between p-3 md:p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
-              
-              {/* 1. 날짜 */}
-              <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
-                <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-red-500/60 dark:decoration-red-400/60' : 'text-[#6b7684] dark:text-[#9ca3af]'}`}>
-                  {ym.length >= 4 ? ym.substring(2, 4) : '00'}.{m}.{d}
-                </div>
-                {isCancelled && (
-                  <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
-                    취소 {(tx.cancelDate || '').substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
-                  </div>
-                )}
-              </div>
-              
-              {/* 2. 평형 (독립 칼럼 & 칩 디자인 세련되게 정돈) */}
-              <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
-                <span className={`w-full text-center text-[12.5px] tracking-tight font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-secondary'}`} title={typeLabel}>
-                  {typeLabel}
-                </span>
-              </div>
- 
-              {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
-              <div className="w-[36px] md:w-[48px] shrink-0 text-center">
-                <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-tertiary'}`}>
-                  {tx.floor}층
-                </span>
-              </div>
- 
-              {/* 4. 거래금액 */}
-              <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px]">
-                {tx.isOutlier && (
-                  <Tooltip content={tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}>
-                    <div className="cursor-help flex items-center justify-center">
-                      <AlertTriangle size={13} className="text-amber-500 dark:text-amber-400 drop-shadow-sm" />
-                    </div>
-                  </Tooltip>
-                )}
- 
-                {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
-                  <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
-                    tx.dealType === '전세' ? 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400' : 
-                    tx.dealType === '월세' ? 'bg-[#fef0e6] dark:bg-orange-950/45 text-[#c2410c] dark:text-orange-400' : 
-                    'bg-toss-blue-light text-[#00b386] dark:text-[#00d29d]'
-                  }`}>
-                    {tx.dealType.charAt(0)}
-                  </span>
-                )}
-                
-                <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] dark:decoration-tertiary/40 decoration-2' : 'text-primary'}`}>
-                  {priceText}
-                </div>
-              </div>
- 
-            </div>
-          );
-        })}
+        {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => (
+          <TransactionRow 
+            key={i} 
+            tx={tx} 
+            areaUnit={areaUnit} 
+            typeMap={typeMap} 
+          />
+        ))}
 
 
         {filteredTransactions.length === 0 && (
@@ -303,3 +207,115 @@ export function TransactionTable({
     </div>
   );
 }
+
+interface TransactionRowProps {
+  tx: TransactionRecord;
+  areaUnit: 'm2' | 'pyeong';
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+}
+
+const TransactionRow = React.memo(function TransactionRow({
+  tx,
+  areaUnit,
+  typeMap
+}: TransactionRowProps) {
+  const ym = String(tx.contractYm || '');
+  const m = ym.length >= 6 ? ym.substring(4, 6) : '01';
+  const d = String(tx.contractDay || '01').trim().padStart(2, '0');
+  const isRent = tx.dealType === '전세' || tx.dealType === '월세';
+  const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
+  const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
+  const eok = Math.floor(displayPrice / 10000);
+  const rem = displayPrice % 10000;
+  
+  let typeLabel = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
+  if (!typeLabel) {
+    const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+    if (typeData) {
+      typeLabel = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);
+    }
+    if (!typeLabel) {
+       typeLabel = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
+    }
+  }
+
+  const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
+
+  let priceText = '';
+  if (tx.dealType === '월세') {
+    const depEok = Math.floor((tx.deposit || 0) / 10000);
+    const depRem = (tx.deposit || 0) % 10000;
+    let depStr = '';
+    if (depEok > 0) {
+      depStr += `${depEok}억`;
+      if (depRem > 0) depStr += `${depRem.toLocaleString()}`;
+    } else {
+      depStr += `${depRem.toLocaleString()}`;
+    }
+    priceText = `${depStr}/${displayMonthly.toLocaleString()}`;
+  } else {
+    if (eok > 0) {
+      priceText += `${eok}억`;
+      if (rem > 0) {
+        priceText += `${rem.toLocaleString()}`;
+      }
+    } else {
+      priceText += `${rem.toLocaleString()}만`;
+    }
+  }
+
+  return (
+    <div className={`flex items-center justify-between p-3 md:p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
+      {/* 1. 날짜 */}
+      <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
+        <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-red-500/60 dark:decoration-red-400/60' : 'text-[#6b7684] dark:text-[#9ca3af]'}`}>
+          {ym.length >= 4 ? ym.substring(2, 4) : '00'}.{m}.{d}
+        </div>
+        {isCancelled && (
+          <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
+            취소 {(tx.cancelDate || '').substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
+          </div>
+        )}
+      </div>
+      
+      {/* 2. 평형 */}
+      <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
+        <span className={`w-full text-center text-[12.5px] tracking-tight font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-secondary'}`} title={typeLabel}>
+          {typeLabel}
+        </span>
+      </div>
+ 
+      {/* 3. 층수 */}
+      <div className="w-[36px] md:w-[48px] shrink-0 text-center">
+        <span className={`text-[14px] md:text-[15px] font-bold ${isCancelled ? 'text-tertiary/50 dark:text-tertiary/40' : 'text-tertiary'}`}>
+          {tx.floor}층
+        </span>
+      </div>
+ 
+      {/* 4. 거래금액 */}
+      <div className="flex items-center justify-end gap-1.5 shrink-0 text-right w-[90px] md:w-[110px]">
+        {tx.isOutlier && (
+          <Tooltip content={tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}>
+            <div className="cursor-help flex items-center justify-center">
+              <AlertTriangle size={13} className="text-amber-500 dark:text-amber-400 drop-shadow-sm" />
+            </div>
+          </Tooltip>
+        )}
+ 
+        {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
+          <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
+            tx.dealType === '전세' ? 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400' : 
+            tx.dealType === '월세' ? 'bg-[#fef0e6] dark:bg-orange-950/45 text-[#c2410c] dark:text-orange-400' : 
+            'bg-toss-blue-light text-[#00b386] dark:text-[#00d29d]'
+          }`}>
+            {tx.dealType.charAt(0)}
+          </span>
+        )}
+        
+        <div className={`text-[15px] md:text-[16px] font-black tracking-tight whitespace-nowrap text-right ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] dark:decoration-tertiary/40 decoration-2' : 'text-primary'}`}>
+          {priceText}
+        </div>
+      </div>
+    </div>
+  );
+});
