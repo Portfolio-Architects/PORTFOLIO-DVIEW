@@ -1,5 +1,7 @@
 import { ObjectiveMetrics } from '../types/scoutingReport';
 import { parseCoordString, findNearest } from './haversine';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 const MAJOR_PARKS = [
   { name: '동탄호수공원', lat: 37.1683, lng: 127.1068 },
@@ -9,43 +11,88 @@ const MAJOR_PARKS = [
   { name: '선납숲공원', lat: 37.2104, lng: 127.1198 },
 ];
 
-export interface PremiumScores {
-  education: number;      // 🎓 학군 (0-100)
-  transport: number;      // 🚇 교통 (0-100)
-  livingComfort: number;  // 🅿️ 주거 쾌적 (0-100)
-  complex: number;        // 🏢 단지 경쟁력 (0-100)
-  lifestyle: number;      // 🍽️ 생활 인프라 (0-100)
-  totalScore: number;     // 종합 점수 (0-100)
-  // Legacy aliases (backward compat — gradually deprecate)
-  eduTimePremium: number;
-  stressFreeParking: number;
-  commuteFrictional: number;
-  megaScaleLiquidity: number;
-  totalPremiumScore: number;
-  
-  details?: ScoreBreakdown;
-}
+export const ScoreDetailSchema = z.object({
+  score: z.number(),
+  max: z.number(),
+  label: z.string(),
+  data: z.string().optional(),
+});
 
-export interface ScoreDetail {
-  score: number;
-  max: number;
-  label: string;
-  data?: string;
-}
+export type ScoreDetail = z.infer<typeof ScoreDetailSchema>;
 
-export interface ScoreBreakdown {
-  gtx: ScoreDetail;
-  indeokwon: ScoreDetail;
-  tram: ScoreDetail;
-  school: ScoreDetail;
-  academy: ScoreDetail;
-  store: ScoreDetail;
-  parkDist: ScoreDetail;
-  brand: ScoreDetail;
-  scale: ScoreDetail;
-  parking: ScoreDetail;
-  year: ScoreDetail;
-}
+export const ScoreBreakdownSchema = z.object({
+  gtx: ScoreDetailSchema,
+  indeokwon: ScoreDetailSchema,
+  tram: ScoreDetailSchema,
+  school: ScoreDetailSchema,
+  academy: ScoreDetailSchema,
+  store: ScoreDetailSchema,
+  parkDist: ScoreDetailSchema,
+  brand: ScoreDetailSchema,
+  scale: ScoreDetailSchema,
+  parking: ScoreDetailSchema,
+  year: ScoreDetailSchema,
+});
+
+export type ScoreBreakdown = z.infer<typeof ScoreBreakdownSchema>;
+
+export const PremiumScoresSchema = z.object({
+  education: z.number(),
+  transport: z.number(),
+  livingComfort: z.number(),
+  complex: z.number(),
+  lifestyle: z.number(),
+  totalScore: z.number(),
+  // Legacy aliases
+  eduTimePremium: z.number(),
+  stressFreeParking: z.number(),
+  commuteFrictional: z.number(),
+  megaScaleLiquidity: z.number(),
+  totalPremiumScore: z.number(),
+  details: ScoreBreakdownSchema.optional(),
+});
+
+export type PremiumScores = z.infer<typeof PremiumScoresSchema>;
+
+export const SubScoreResultSchema = z.object({
+  score: z.number(),
+  grade: z.string(),
+  description: z.string(),
+});
+
+export type SubScoreResult = z.infer<typeof SubScoreResultSchema>;
+
+export const ScoringMetricsSchema = z.object({
+  brand: z.string().optional(),
+  householdCount: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  far: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  bcr: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  parkingCount: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  parkingPerHousehold: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  yearBuilt: z.union([z.string(), z.number()]).optional(),
+  minFloor: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  maxFloor: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  coordinates: z.string().optional(),
+  distanceToElementary: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToMiddle: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToHigh: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToSubway: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  academyDensity: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  academyCategories: z.record(z.string(), z.number()).optional(),
+  restaurantDensity: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  restaurantCategories: z.record(z.string(), z.number()).optional(),
+  distanceToIndeokwon: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToTram: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToStarbucks: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToSupermarket: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToPark: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToOliveYoung: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToDaiso: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  distanceToMcDonalds: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
+  name: z.string().optional(),
+}).passthrough();
+
+export type ScoringMetrics = z.infer<typeof ScoringMetricsSchema>;
 
 interface BrandTier {
   tier: number;
@@ -134,6 +181,12 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   };
   if (!metrics) return zero;
 
+  const parsed = ScoringMetricsSchema.safeParse(metrics);
+  if (!parsed.success) {
+    logger.warn('ScoringEngine', 'Failed to validate metrics in calculatePremiumScores', { metrics }, parsed.error);
+  }
+  const validatedMetrics = parsed.success ? parsed.data : metrics;
+
   const getDistLabel = (dist: number | undefined, name: string) => {
     if (!dist || dist >= 9999) return `${name} 거리 1.2km 초과 (환승 필요)`;
     if (dist <= 300) return `${name} 초역세권 (${dist}m)`;
@@ -144,9 +197,9 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   };
 
   // 1. 🚇 교통 (Max 125)
-  const gtxPct = interpolateScore(metrics.distanceToSubway || 9999, DISTANCE_CURVE);
-  const indkPct = interpolateScore(metrics.distanceToIndeokwon || 9999, DISTANCE_CURVE);
-  const tramPct = interpolateScore(metrics.distanceToTram || 9999, DISTANCE_CURVE);
+  const gtxPct = interpolateScore(validatedMetrics.distanceToSubway || 9999, DISTANCE_CURVE);
+  const indkPct = interpolateScore(validatedMetrics.distanceToIndeokwon || 9999, DISTANCE_CURVE);
+  const tramPct = interpolateScore(validatedMetrics.distanceToTram || 9999, DISTANCE_CURVE);
   
   const gtxScore = Math.round(gtxPct * 75);
   const indkScore = Math.round(indkPct * 26);
@@ -154,7 +207,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   const transport = gtxScore + indkScore + tramScore;
 
   // 2. 🎓 학군 (Max 25)
-  const minSchool = Math.min(metrics.distanceToElementary || 9999, metrics.distanceToMiddle || 9999, metrics.distanceToHigh || 9999);
+  const minSchool = Math.min(validatedMetrics.distanceToElementary || 9999, validatedMetrics.distanceToMiddle || 9999, validatedMetrics.distanceToHigh || 9999);
   const schoolPct = interpolateScore(minSchool, [
     { v: 2000, pct: 0 }, { v: 1500, pct: 0.1 }, { v: 800, pct: 0.4 }, { v: 500, pct: 0.7 }, { v: 200, pct: 1.0 }
   ]);
@@ -164,35 +217,35 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   else if (minSchool <= 500) schLabel = '500m 이내 (도보 통학권)';
   else if (minSchool <= 800) schLabel = '800m 이내 (도보 가능)';
 
-  const academyPct = interpolateScore(metrics.academyDensity || 0, [
+  const academyPct = interpolateScore(validatedMetrics.academyDensity || 0, [
     { v: 0, pct: 0 }, { v: 15, pct: 0.4 }, { v: 40, pct: 0.7 }, { v: 80, pct: 1.0 }
   ]);
   const education = schScore + Math.round(academyPct * 10);
 
   // 3. 🅿️ 주거 쾌적 (Max 20)
-  const parkingPct = interpolateScore(metrics.parkingPerHousehold || 0, [
+  const parkingPct = interpolateScore(validatedMetrics.parkingPerHousehold || 0, [
     { v: 0.8, pct: 0 }, { v: 1.0, pct: 0.2 }, { v: 1.2, pct: 0.5 }, { v: 1.4, pct: 0.8 }, { v: 1.6, pct: 1.0 }
   ]);
   const parkScore = Math.round(parkingPct * 12);
   let parkLabel = '주차 데이터 없음';
-  const p = metrics.parkingPerHousehold || 0;
+  const p = validatedMetrics.parkingPerHousehold || 0;
   if (p >= 1.6) parkLabel = `${p.toFixed(2)}대 (매우 여유)`;
   else if (p >= 1.4) parkLabel = `${p.toFixed(2)}대 (여유)`;
   else if (p >= 1.2) parkLabel = `${p.toFixed(2)}대 (보통)`;
   else if (p >= 1.0) parkLabel = `${p.toFixed(2)}대 (다소 혼잡)`;
   else if (p > 0) parkLabel = `${p.toFixed(2)}대 (혼잡 스트레스)`;
 
-  const parkDistPct = interpolateScore(metrics.distanceToPark || 9999, [
+  const parkDistPct = interpolateScore(validatedMetrics.distanceToPark || 9999, [
     { v: 2000, pct: 0 }, { v: 1000, pct: 0.3 }, { v: 600, pct: 0.6 }, { v: 300, pct: 1.0 }
   ]);
   const parkDistScore = Math.round(parkDistPct * 8);
   let parkDistLabel = '600m 초과 제한적 뷰';
-  if ((metrics.distanceToPark || 9999) <= 300) parkDistLabel = '300m 이내 공세권/호품아';
-  else if ((metrics.distanceToPark || 9999) <= 600) parkDistLabel = '600m 이내 쾌적한 도보 접근';
+  if ((validatedMetrics.distanceToPark || 9999) <= 300) parkDistLabel = '300m 이내 공세권/호품아';
+  else if ((validatedMetrics.distanceToPark || 9999) <= 600) parkDistLabel = '600m 이내 쾌적한 도보 접근';
 
   let nearestParkStr = '주요 공원';
-  if (metrics.coordinates) {
-    const origin = parseCoordString(metrics.coordinates);
+  if (validatedMetrics.coordinates) {
+    const origin = parseCoordString(validatedMetrics.coordinates);
     if (origin) {
       const nearestPark = findNearest(origin, MAJOR_PARKS);
       if (nearestPark) nearestParkStr = nearestPark.name;
@@ -202,19 +255,19 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   const livingComfort = parkScore + parkDistScore;
 
   // 4. 🏢 단지 경쟁력 (Max 15)
-  const scalePct = interpolateScore(metrics.householdCount || 0, [
+  const scalePct = interpolateScore(validatedMetrics.householdCount || 0, [
     { v: 0, pct: 0.1 }, { v: 500, pct: 0.3 }, { v: 1000, pct: 0.6 }, { v: 1500, pct: 0.8 }, { v: 3000, pct: 1.0 }
   ]);
   const scaleScore = Math.round(scalePct * 6);
-  const hh = metrics.householdCount || 0;
+  const hh = validatedMetrics.householdCount || 0;
   let scaleLabel = '세대수 데이터 없음';
   if (hh >= 1500) scaleLabel = `${hh.toLocaleString()}세대 매머드급`;
   else if (hh >= 1000) scaleLabel = `${hh.toLocaleString()}세대 대단지`;
   else if (hh >= 500) scaleLabel = `${hh.toLocaleString()}세대 중형단지`;
   else if (hh > 0) scaleLabel = `${hh.toLocaleString()}세대 소형단지`;
 
-  const aptName = (metrics as unknown as Record<string, string>).name || '';
-  const brandVal = `${metrics.brand || ''} ${aptName}`;
+  const aptName = (validatedMetrics as unknown as Record<string, string>).name || '';
+  const brandVal = `${validatedMetrics.brand || ''} ${aptName}`;
   const mu = getBrandMultiplier(brandVal);
   let brandScore = 1; let brandLabel = '기본 브랜드 / 기타 시공사';
   if (mu >= 1.09) { brandScore = 4; brandLabel = '1군 하이엔드/메이저'; }
@@ -222,7 +275,9 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   else if (mu >= 1.02) { brandScore = 2; brandLabel = '인지도 보유 브랜드'; }
 
   const currentYear = new Date().getFullYear();
-  let parsedYear = metrics.yearBuilt || currentYear;
+  const rawYear = validatedMetrics.yearBuilt || currentYear;
+  const yearNum = typeof rawYear === 'string' ? (parseInt(rawYear.replace(/[^0-9]/g, ''), 10) || currentYear) : rawYear;
+  let parsedYear = yearNum;
   if (parsedYear > 9999) {
     parsedYear = Math.floor(parsedYear / 100);
   }
@@ -243,8 +298,8 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   const complex = scaleScore + brandScore + yearScore;
 
   // 5. 🍽️ 생활 인프라 (Max 15)
-  const stores = (metrics.academyDensity || 0) + (metrics.restaurantDensity || 0);
-  const hasAnchor = ((metrics.distanceToStarbucks ?? Infinity) <= 500) || ((metrics.distanceToSupermarket ?? Infinity) <= 500);
+  const stores = (validatedMetrics.academyDensity || 0) + (validatedMetrics.restaurantDensity || 0);
+  const hasAnchor = ((validatedMetrics.distanceToStarbucks ?? Infinity) <= 500) || ((validatedMetrics.distanceToSupermarket ?? Infinity) <= 500);
   let storeScore = 0; let storeLabel = '상권/학원가 정보 없음';
   if (stores >= 80) { storeScore = 15; storeLabel = '80점포 이상 (광역 상권)'; }
   else if (stores >= 40) { storeScore = hasAnchor ? 12 : 10; storeLabel = `40점포 이상 (대형 상권${hasAnchor ? ' + 앵커테넌트' : ''})`; }
@@ -255,33 +310,48 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
 
   const totalScore = education + transport + livingComfort + complex + lifestyle;
 
-  return {
+  const result: PremiumScores = {
     education, transport, livingComfort, complex, lifestyle, totalScore,
     eduTimePremium: education, stressFreeParking: livingComfort, commuteFrictional: transport,
     megaScaleLiquidity: complex, totalPremiumScore: totalScore,
     details: {
-      gtx: { score: gtxScore, max: 75, label: getDistLabel(metrics.distanceToSubway, 'GTX/SRT'), data: metrics.distanceToSubway ? `실거리 ${metrics.distanceToSubway}m` : undefined },
-      indeokwon: { score: indkScore, max: 26, label: getDistLabel(metrics.distanceToIndeokwon, '동인선'), data: metrics.distanceToIndeokwon ? `실거리 ${metrics.distanceToIndeokwon}m` : undefined },
-      tram: { score: tramScore, max: 24, label: getDistLabel(metrics.distanceToTram, '동탄트램'), data: metrics.distanceToTram ? `실거리 ${metrics.distanceToTram}m` : undefined },
-      school: { score: schScore, max: 15, label: schLabel, data: `초등 ${metrics.distanceToElementary || '-'}m, 중등 ${metrics.distanceToMiddle || '-'}m` },
-      academy: { score: Math.round(academyPct * 10), max: 10, label: (metrics.academyDensity || 0) > 40 ? '우수 학원가 인접' : ((metrics.academyDensity || 0) > 15 ? '학원가 도보권' : '학원가 부족'), data: metrics.academyDensity ? `반경 내 학원 ${metrics.academyDensity}곳` : undefined },
-      store: { score: storeScore, max: 15, label: storeLabel, data: `상가 ${stores}곳 (스타벅스 ${metrics.distanceToStarbucks ? metrics.distanceToStarbucks+'m' : '없음'})` },
-      parkDist: { score: parkDistScore, max: 8, label: parkDistLabel, data: metrics.distanceToPark ? `${nearestParkStr}까지 ${metrics.distanceToPark}m` : undefined },
+      gtx: { score: gtxScore, max: 75, label: getDistLabel(validatedMetrics.distanceToSubway, 'GTX/SRT'), data: validatedMetrics.distanceToSubway ? `실거리 ${validatedMetrics.distanceToSubway}m` : undefined },
+      indeokwon: { score: indkScore, max: 26, label: getDistLabel(validatedMetrics.distanceToIndeokwon, '동인선'), data: validatedMetrics.distanceToIndeokwon ? `실거리 ${validatedMetrics.distanceToIndeokwon}m` : undefined },
+      tram: { score: tramScore, max: 24, label: getDistLabel(validatedMetrics.distanceToTram, '동탄트램'), data: validatedMetrics.distanceToTram ? `실거리 ${validatedMetrics.distanceToTram}m` : undefined },
+      school: { score: schScore, max: 15, label: schLabel, data: `초등 ${validatedMetrics.distanceToElementary || '-'}m, 중등 ${validatedMetrics.distanceToMiddle || '-'}m` },
+      academy: { score: Math.round(academyPct * 10), max: 10, label: (validatedMetrics.academyDensity || 0) > 40 ? '우수 학원가 인접' : ((validatedMetrics.academyDensity || 0) > 15 ? '학원가 도보권' : '학원가 부족'), data: validatedMetrics.academyDensity ? `반경 내 학원 ${validatedMetrics.academyDensity}곳` : undefined },
+      store: { score: storeScore, max: 15, label: storeLabel, data: `상가 ${stores}곳 (스타벅스 ${validatedMetrics.distanceToStarbucks ? validatedMetrics.distanceToStarbucks+'m' : '없음'})` },
+      parkDist: { score: parkDistScore, max: 8, label: parkDistLabel, data: validatedMetrics.distanceToPark ? `${nearestParkStr}까지 ${validatedMetrics.distanceToPark}m` : undefined },
       brand: { score: brandScore, max: 4, label: brandLabel, data: brandVal ? `적용 브랜드: ${brandVal}` : undefined },
-      scale: { score: scaleScore, max: 6, label: scaleLabel, data: metrics.householdCount ? `총 ${metrics.householdCount.toLocaleString()}세대` : undefined },
-      parking: { score: parkScore, max: 12, label: parkLabel, data: metrics.parkingPerHousehold ? `세대당 ${metrics.parkingPerHousehold.toFixed(2)}대` : undefined },
-      year: { score: yearScore, max: 5, label: yearLabel, data: metrics.yearBuilt ? `${metrics.yearBuilt > 9999 ? `${Math.floor(metrics.yearBuilt/100)}년 ${metrics.yearBuilt%100}월` : `${metrics.yearBuilt}년`} 준공 (${age}년차)` : undefined }
+      scale: { score: scaleScore, max: 6, label: scaleLabel, data: validatedMetrics.householdCount ? `총 ${validatedMetrics.householdCount.toLocaleString()}세대` : undefined },
+      parking: { score: parkScore, max: 12, label: parkLabel, data: validatedMetrics.parkingPerHousehold ? `세대당 ${validatedMetrics.parkingPerHousehold.toFixed(2)}대` : undefined },
+      year: { score: yearScore, max: 5, label: yearLabel, data: validatedMetrics.yearBuilt ? `${yearNum > 9999 ? `${Math.floor(yearNum/100)}년 ${yearNum%100}월` : `${yearNum}년`} 준공 (${age}년차)` : undefined }
     }
   };
+
+  const outputParsed = PremiumScoresSchema.safeParse(result);
+  if (!outputParsed.success) {
+    logger.warn('ScoringEngine', 'Failed to validate generated PremiumScores output', { result }, outputParsed.error);
+    return zero;
+  }
+
+  return outputParsed.data;
 }
 
-export const calculateEducationScore = (metrics: any) => {
-  if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
+export const calculateEducationScore = (metrics: any): SubScoreResult => {
+  const fallbackResult: SubScoreResult = { score: 0, grade: 'C', description: '정보 부족' };
+  if (!metrics) return fallbackResult;
+  
+  const parsed = ScoringMetricsSchema.safeParse(metrics);
+  if (!parsed.success) {
+    logger.warn('ScoringEngine', 'Failed to validate metrics in calculateEducationScore', { metrics }, parsed.error);
+  }
+  const validatedMetrics = parsed.success ? parsed.data : metrics;
   
   let score = 0;
   
   // 1. Elementary Distance (max 45 points) - 선형 보간 감쇄 적용
-  const elemDist = metrics.distanceToElementary || 9999;
+  const elemDist = validatedMetrics.distanceToElementary || 9999;
   let elemScore = 0;
   if (elemDist <= 150) elemScore = 45;
   else if (elemDist <= 300) elemScore = 45 - ((elemDist - 150) / 150) * 5;
@@ -292,8 +362,8 @@ export const calculateEducationScore = (metrics: any) => {
   score += Math.round(elemScore);
   
   // 2. Middle & High School Accessibility (max 20 points) - 선형 보간 감쇄 적용
-  const midDist = metrics.distanceToMiddle || 9999;
-  const highDist = metrics.distanceToHigh || 9999;
+  const midDist = validatedMetrics.distanceToMiddle || 9999;
+  const highDist = validatedMetrics.distanceToHigh || 9999;
   
   let midScore = 0;
   if (midDist <= 300) midScore = 10;
@@ -310,7 +380,7 @@ export const calculateEducationScore = (metrics: any) => {
   score += Math.round(midScore) + Math.round(highScore);
   
   // 3. Academy Density & Diversity (max 35 points) - 다양성 인센티브 가산
-  const density = metrics.academyDensity || 0;
+  const density = validatedMetrics.academyDensity || 0;
   let baseDensityScore = 0;
   if (density >= 100) baseDensityScore = 30;
   else if (density >= 50) baseDensityScore = 24;
@@ -318,7 +388,7 @@ export const calculateEducationScore = (metrics: any) => {
   else if (density >= 5) baseDensityScore = 8;
   else baseDensityScore = 2;
   
-  const categories = metrics.academyCategories || {};
+  const categories = validatedMetrics.academyCategories || {};
   const categoryCount = Object.keys(categories).length;
   let diversityBonus = 0;
   if (categoryCount >= 6) diversityBonus = 5;
@@ -341,19 +411,33 @@ export const calculateEducationScore = (metrics: any) => {
     desc = '양호한 통학 거리와 균형 잡힌 근린 교육 환경';
   }
   
-  return { score, grade, description: desc };
+  const result: SubScoreResult = { score, grade, description: desc };
+  const outputParsed = SubScoreResultSchema.safeParse(result);
+  if (!outputParsed.success) {
+    logger.warn('ScoringEngine', 'Failed to validate generated Education SubScore output', { result }, outputParsed.error);
+    return fallbackResult;
+  }
+
+  return outputParsed.data;
 };
 
-export const calculateInfraScore = (metrics: any) => {
-  if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
+export const calculateInfraScore = (metrics: any): SubScoreResult => {
+  const fallbackResult: SubScoreResult = { score: 0, grade: 'C', description: '정보 부족' };
+  if (!metrics) return fallbackResult;
+  
+  const parsed = ScoringMetricsSchema.safeParse(metrics);
+  if (!parsed.success) {
+    logger.warn('ScoringEngine', 'Failed to validate metrics in calculateInfraScore', { metrics }, parsed.error);
+  }
+  const validatedMetrics = parsed.success ? parsed.data : metrics;
   
   let score = 0;
   
   // 1. Subway/Rail Accessibility (max 40 points)
   const distances = [
-    metrics.distanceToSubway || 9999,
-    metrics.distanceToIndeokwon || 9999,
-    metrics.distanceToTram || 9999
+    validatedMetrics.distanceToSubway || 9999,
+    validatedMetrics.distanceToIndeokwon || 9999,
+    validatedMetrics.distanceToTram || 9999
   ];
   const minRailDist = Math.min(...distances);
   let railScore = 0;
@@ -365,10 +449,10 @@ export const calculateInfraScore = (metrics: any) => {
   
   // 2. Convenience (Anchor Tenants) (max 30 points)
   const anchors = [
-    metrics.distanceToStarbucks || 9999,
-    metrics.distanceToOliveYoung || 9999,
-    metrics.distanceToDaiso || 9999,
-    metrics.distanceToMcDonalds || 9999
+    validatedMetrics.distanceToStarbucks || 9999,
+    validatedMetrics.distanceToOliveYoung || 9999,
+    validatedMetrics.distanceToDaiso || 9999,
+    validatedMetrics.distanceToMcDonalds || 9999
   ];
   let anchorScore = 0;
   anchors.forEach(dist => {
@@ -380,7 +464,7 @@ export const calculateInfraScore = (metrics: any) => {
   score += Math.round(anchorScore);
   
   // 3. Commercial Density (max 30 points)
-  const density = metrics.restaurantDensity || 0;
+  const density = validatedMetrics.restaurantDensity || 0;
   let densityScore = 0;
   if (density >= 150) densityScore = 30;
   else if (density >= 80) densityScore = 25;
@@ -403,5 +487,12 @@ export const calculateInfraScore = (metrics: any) => {
     desc = '안정적인 대중교통망과 풍부한 근린 상권 보유';
   }
   
-  return { score, grade, description: desc };
+  const result: SubScoreResult = { score, grade, description: desc };
+  const outputParsed = SubScoreResultSchema.safeParse(result);
+  if (!outputParsed.success) {
+    logger.warn('ScoringEngine', 'Failed to validate generated Infra SubScore output', { result }, outputParsed.error);
+    return fallbackResult;
+  }
+
+  return outputParsed.data;
 };
