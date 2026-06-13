@@ -1,0 +1,560 @@
+{
+  "timestamp": "2026-06-13T17:00:08.900Z",
+  "total": 63,
+  "valid": 63,
+  "warnings": 63,
+  "errors": 0,
+  "warningDetails": [
+    {
+      "apt": "더레이크시티부영6단지",
+      "date": "20260323",
+      "price": 52000,
+      "issues": [
+        "[UNREGISTERED_APT] '더레이크시티부영6단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "금호어울림레이크",
+      "date": "20260322",
+      "price": 68500,
+      "issues": [
+        "[UNREGISTERED_APT] '금호어울림레이크' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "중흥에스클래스에듀하이",
+      "date": "20260322",
+      "price": 71800,
+      "issues": [
+        "[UNREGISTERED_APT] '중흥에스클래스에듀하이' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄 더샵 레이크에듀타운",
+      "date": "20260322",
+      "price": 100000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄 더샵 레이크에듀타운' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄역",
+      "date": "20260322",
+      "price": 49600,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄역' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "자연앤데시앙",
+      "date": "20260321",
+      "price": 44800,
+      "issues": [
+        "[UNREGISTERED_APT] '자연앤데시앙' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "나루마을한화꿈에그린",
+      "date": "20260321",
+      "price": 86000,
+      "issues": [
+        "[UNREGISTERED_APT] '나루마을한화꿈에그린' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "롯데캐슬",
+      "date": "20260321",
+      "price": 71500,
+      "issues": [
+        "[UNREGISTERED_APT] '롯데캐슬' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "우미린제일풍경채",
+      "date": "20260321",
+      "price": 69500,
+      "issues": [
+        "[UNREGISTERED_APT] '우미린제일풍경채' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역 시범한화 꿈에그린 프레스티지",
+      "date": "20260321",
+      "price": 148000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역 시범한화 꿈에그린 프레스티지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역시범반도유보라아이비파크1.0",
+      "date": "20260321",
+      "price": 104900,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역시범반도유보라아이비파크1.0' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역시범반도유보라아이비파크1.0",
+      "date": "20260321",
+      "price": 105200,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역시범반도유보라아이비파크1.0' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역 더 힐",
+      "date": "20260321",
+      "price": 67300,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역 더 힐' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄",
+      "date": "20260321",
+      "price": 68000,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "포스코더샵2차",
+      "date": "20260321",
+      "price": 54300,
+      "issues": [
+        "[UNREGISTERED_APT] '포스코더샵2차' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄숲속마을 모아미래도1단지",
+      "date": "20260321",
+      "price": 52500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄숲속마을 모아미래도1단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "자연앤데시앙",
+      "date": "20260321",
+      "price": 51000,
+      "issues": [
+        "[UNREGISTERED_APT] '자연앤데시앙' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "자연앤데시앙",
+      "date": "20260321",
+      "price": 45300,
+      "issues": [
+        "[UNREGISTERED_APT] '자연앤데시앙' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄",
+      "date": "20260321",
+      "price": 80500,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄",
+      "date": "20260321",
+      "price": 80700,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄동원로얄듀크2차",
+      "date": "20260321",
+      "price": 63500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄동원로얄듀크2차' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "더레이크시티부영1단지",
+      "date": "20260321",
+      "price": 54300,
+      "issues": [
+        "[UNREGISTERED_APT] '더레이크시티부영1단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "더레이크시티부영6단지",
+      "date": "20260321",
+      "price": 52300,
+      "issues": [
+        "[UNREGISTERED_APT] '더레이크시티부영6단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "더레이크시티부영2단지",
+      "date": "20260321",
+      "price": 77500,
+      "issues": [
+        "[UNREGISTERED_APT] '더레이크시티부영2단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄 더 레이크 팰리스",
+      "date": "20260321",
+      "price": 98500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄 더 레이크 팰리스' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄 더 레이크 팰리스",
+      "date": "20260321",
+      "price": 93500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄 더 레이크 팰리스' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "레이크힐 반도유보라 아이비파크 10.2",
+      "date": "20260321",
+      "price": 52000,
+      "issues": [
+        "[UNREGISTERED_APT] '레이크힐 반도유보라 아이비파크 10.2' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "호수공원역 센트럴시티",
+      "date": "20260321",
+      "price": 68800,
+      "issues": [
+        "[UNREGISTERED_APT] '호수공원역 센트럴시티' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "금호어울림레이크",
+      "date": "20260321",
+      "price": 69600,
+      "issues": [
+        "[UNREGISTERED_APT] '금호어울림레이크' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "제일풍경채에듀앤파크",
+      "date": "20260321",
+      "price": 45900,
+      "issues": [
+        "[UNREGISTERED_APT] '제일풍경채에듀앤파크' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2아이파크1단지",
+      "date": "20260321",
+      "price": 56500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2아이파크1단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역에일린의뜰",
+      "date": "20260321",
+      "price": 62500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역에일린의뜰' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역더샵센트럴시티2차",
+      "date": "20260321",
+      "price": 73000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역더샵센트럴시티2차' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역롯데캐슬",
+      "date": "20260321",
+      "price": 160000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역롯데캐슬' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역이지더원",
+      "date": "20260321",
+      "price": 66000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역이지더원' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역경남아너스빌",
+      "date": "20260321",
+      "price": 81000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역경남아너스빌' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역푸르지오",
+      "date": "20260321",
+      "price": 86500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역푸르지오' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄파크푸르지오",
+      "date": "20260321",
+      "price": 60800,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄파크푸르지오' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄파크자이",
+      "date": "20260321",
+      "price": 78500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄파크자이' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄파크한양수자인",
+      "date": "20260321",
+      "price": 41000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄파크한양수자인' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2디에트르포레",
+      "date": "20260321",
+      "price": 43800,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2디에트르포레' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2디에트르포레",
+      "date": "20260321",
+      "price": 43000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2디에트르포레' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "호반베르디움센트럴포레",
+      "date": "20260321",
+      "price": 62800,
+      "issues": [
+        "[UNREGISTERED_APT] '호반베르디움센트럴포레' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2신도시호반베르디움22단지",
+      "date": "20260321",
+      "price": 57000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2신도시호반베르디움22단지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄금강펜테리움센트럴파크Ⅳ",
+      "date": "20260321",
+      "price": 52000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄금강펜테리움센트럴파크Ⅳ' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2신도시 베라체",
+      "date": "20260321",
+      "price": 59800,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2신도시 베라체' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄",
+      "date": "20260321",
+      "price": 81500,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄퍼스트파크",
+      "date": "20260320",
+      "price": 43500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄퍼스트파크' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역에일린의뜰",
+      "date": "20260320",
+      "price": 63800,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역에일린의뜰' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역 시범우남퍼스트빌아파트",
+      "date": "20260320",
+      "price": 129000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역 시범우남퍼스트빌아파트' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2하우스디더레이크",
+      "date": "20260320",
+      "price": 75200,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2하우스디더레이크' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄파크자이",
+      "date": "20260320",
+      "price": 81000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄파크자이' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄숲속마을자연앤경남아너스빌(1124-0)",
+      "date": "20260320",
+      "price": 45400,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄숲속마을자연앤경남아너스빌(1124-0)' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역푸르지오",
+      "date": "20260320",
+      "price": 90000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역푸르지오' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄파크한양수자인",
+      "date": "20260320",
+      "price": 51600,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄파크한양수자인' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "그린힐 반도유보라 아이비파크 10(1단지)",
+      "date": "20260320",
+      "price": 42000,
+      "issues": [
+        "[UNREGISTERED_APT] '그린힐 반도유보라 아이비파크 10(1단지)' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄역 시범한화 꿈에그린 프레스티지",
+      "date": "20260320",
+      "price": 152800,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄역 시범한화 꿈에그린 프레스티지' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2신도시 베라체",
+      "date": "20260320",
+      "price": 55500,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2신도시 베라체' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄",
+      "date": "20260320",
+      "price": 60000,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "힐스테이트동탄",
+      "date": "20260320",
+      "price": 72000,
+      "issues": [
+        "[UNREGISTERED_APT] '힐스테이트동탄' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "제일풍경채에듀앤파크",
+      "date": "20260320",
+      "price": 47000,
+      "issues": [
+        "[UNREGISTERED_APT] '제일풍경채에듀앤파크' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2신도시금강펜테리움센트럴파크Ⅰ",
+      "date": "20260320",
+      "price": 61900,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2신도시금강펜테리움센트럴파크Ⅰ' — dong-apartments.ts 미등록"
+      ]
+    },
+    {
+      "apt": "동탄2신도시금강펜테리움센트럴파크Ⅰ",
+      "date": "20260320",
+      "price": 58000,
+      "issues": [
+        "[UNREGISTERED_APT] '동탄2신도시금강펜테리움센트럴파크Ⅰ' — dong-apartments.ts 미등록"
+      ]
+    }
+  ],
+  "errorDetails": [],
+  "unregisteredApts": [
+    "'더레이크시티부영6단지' — dong-apartments.ts 미등록",
+    "'금호어울림레이크' — dong-apartments.ts 미등록",
+    "'중흥에스클래스에듀하이' — dong-apartments.ts 미등록",
+    "'동탄 더샵 레이크에듀타운' — dong-apartments.ts 미등록",
+    "'힐스테이트동탄역' — dong-apartments.ts 미등록",
+    "'자연앤데시앙' — dong-apartments.ts 미등록",
+    "'나루마을한화꿈에그린' — dong-apartments.ts 미등록",
+    "'롯데캐슬' — dong-apartments.ts 미등록",
+    "'우미린제일풍경채' — dong-apartments.ts 미등록",
+    "'동탄역 시범한화 꿈에그린 프레스티지' — dong-apartments.ts 미등록",
+    "'동탄역시범반도유보라아이비파크1.0' — dong-apartments.ts 미등록",
+    "'동탄역 더 힐' — dong-apartments.ts 미등록",
+    "'힐스테이트동탄' — dong-apartments.ts 미등록",
+    "'포스코더샵2차' — dong-apartments.ts 미등록",
+    "'동탄숲속마을 모아미래도1단지' — dong-apartments.ts 미등록",
+    "'동탄동원로얄듀크2차' — dong-apartments.ts 미등록",
+    "'더레이크시티부영1단지' — dong-apartments.ts 미등록",
+    "'더레이크시티부영2단지' — dong-apartments.ts 미등록",
+    "'동탄 더 레이크 팰리스' — dong-apartments.ts 미등록",
+    "'레이크힐 반도유보라 아이비파크 10.2' — dong-apartments.ts 미등록",
+    "'호수공원역 센트럴시티' — dong-apartments.ts 미등록",
+    "'제일풍경채에듀앤파크' — dong-apartments.ts 미등록",
+    "'동탄2아이파크1단지' — dong-apartments.ts 미등록",
+    "'동탄역에일린의뜰' — dong-apartments.ts 미등록",
+    "'동탄역더샵센트럴시티2차' — dong-apartments.ts 미등록",
+    "'동탄역롯데캐슬' — dong-apartments.ts 미등록",
+    "'동탄역이지더원' — dong-apartments.ts 미등록",
+    "'동탄역경남아너스빌' — dong-apartments.ts 미등록",
+    "'동탄역푸르지오' — dong-apartments.ts 미등록",
+    "'동탄파크푸르지오' — dong-apartments.ts 미등록",
+    "'동탄파크자이' — dong-apartments.ts 미등록",
+    "'동탄파크한양수자인' — dong-apartments.ts 미등록",
+    "'동탄2디에트르포레' — dong-apartments.ts 미등록",
+    "'호반베르디움센트럴포레' — dong-apartments.ts 미등록",
+    "'동탄2신도시호반베르디움22단지' — dong-apartments.ts 미등록",
+    "'동탄금강펜테리움센트럴파크Ⅳ' — dong-apartments.ts 미등록",
+    "'동탄2신도시 베라체' — dong-apartments.ts 미등록",
+    "'동탄퍼스트파크' — dong-apartments.ts 미등록",
+    "'동탄역 시범우남퍼스트빌아파트' — dong-apartments.ts 미등록",
+    "'동탄2하우스디더레이크' — dong-apartments.ts 미등록",
+    "'동탄숲속마을자연앤경남아너스빌(1124-0)' — dong-apartments.ts 미등록",
+    "'그린힐 반도유보라 아이비파크 10(1단지)' — dong-apartments.ts 미등록",
+    "'동탄2신도시금강펜테리움센트럴파크Ⅰ' — dong-apartments.ts 미등록"
+  ],
+  "priceAnomalies": []
+}

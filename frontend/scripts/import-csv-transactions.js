@@ -10,11 +10,82 @@
  */
 
 const admin = require('firebase-admin');
-const sa = require('../serviceAccountKey.json');
 const fs = require('fs');
 const path = require('path');
+
+function getAdminCredentials() {
+  try {
+    const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      return JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+    }
+  } catch {
+    // ignore
+  }
+
+  // Load from local .env.local if exists
+  try {
+    const envPath = path.resolve(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      const lines = content.split('\n');
+      const env = {};
+      lines.forEach(line => {
+        const parts = line.split('=');
+        if (parts.length >= 2) {
+          const key = parts[0].trim();
+          const val = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+          env[key] = val;
+        }
+      });
+      
+      if (env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        try {
+          return JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        } catch (e) {
+          console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e);
+        }
+      }
+      
+      const privateKey = env.FIREBASE_ADMIN_PRIVATE_KEY || env.GOOGLE_PRIVATE_KEY;
+      const clientEmail = env.FIREBASE_ADMIN_CLIENT_EMAIL || env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+      const projectId = env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
+      
+      if (privateKey && clientEmail) {
+        return {
+          projectId,
+          clientEmail,
+          client_email: clientEmail,
+          privateKey: privateKey.replace(/\\n/g, '\n'),
+          private_key: privateKey.replace(/\\n/g, '\n')
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Env load error:', e);
+  }
+
+  return null;
+}
 const iconv = require('iconv-lite');
 const { validateTransactions, printValidationReport, saveValidationReport } = require('./validate-transactions');
+const { z } = require('zod');
+
+// Zod schema for validation of CSV Import Transaction Record
+const CsvImportRecordSchema = z.object({
+  aptName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  contractYm: z.string().length(6, '계약년월은 6자리여야 합니다.'),
+  contractDay: z.string().length(2, '계약일은 2자리여야 합니다.'),
+  price: z.coerce.number().int().nonnegative('거래가격이 유효하지 않습니다.'),
+  deposit: z.coerce.number().int().nonnegative('보증금이 유효하지 않습니다.'),
+  monthlyRent: z.coerce.number().int().nonnegative('월세가 유효하지 않습니다.'),
+  dealType: z.string().min(1, '거래구분이 누락되었습니다.'),
+  area: z.coerce.number().positive('면적이 유효하지 않습니다.'),
+  areaPyeong: z.coerce.number().positive('평수가 유효하지 않습니다.'),
+  floor: z.coerce.number().int('층수 정보가 유효하지 않습니다.'),
+  dong: z.string().min(1, '법정동명이 누락되었습니다.'),
+  contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.')
+});
 
 const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/transaction-summary.ts');
 
@@ -129,7 +200,7 @@ async function main() {
     const dongParts = sigungu.split(' ');
     const dong = dongParts[dongParts.length - 1] || '';
 
-    newTxs.push({
+    const record = {
       aptName: aptName.trim(),
       contractYm,
       contractDay,
@@ -142,7 +213,15 @@ async function main() {
       floor,
       dong,
       contractDate: `${contractYm}${contractDay}`,
-    });
+    };
+
+    const parsed = CsvImportRecordSchema.safeParse(record);
+    if (parsed.success) {
+      newTxs.push(parsed.data);
+    } else {
+      console.warn(`⚠️ [CSV Import] Invalid transaction record format at apt ${aptName}:`, parsed.error.format());
+      console.log(`Record Details: ${JSON.stringify(record)}`);
+    }
   }
 
   console.log(`✅ 파싱 완료: ${newTxs.length}건 신규 거래`);
@@ -160,7 +239,12 @@ async function main() {
   // 2. Firestore에 업로드 (검증 통과 건만)
   console.log('\n📡 Firestore 연결 중...');
   if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(sa) });
+    const creds = getAdminCredentials();
+    if (creds) {
+      admin.initializeApp({ credential: admin.credential.cert(creds) });
+    } else {
+      admin.initializeApp({ projectId: 'portfolio-dtdls' });
+    }
   }
   const db = admin.firestore();
 
