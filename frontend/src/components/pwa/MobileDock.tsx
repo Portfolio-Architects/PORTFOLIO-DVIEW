@@ -39,7 +39,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
                    }
                  }}
                  className={`group flex flex-col items-center justify-center w-full min-h-[44px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] relative ${
-                   isActive ? 'text-toss-blue' : 'text-tertiary hover:text-secondary'
+                   isActive ? 'text-[#008262] dark:text-[#00d29d]' : 'text-tertiary hover:text-secondary'
                  }`}
                >
                  {isActive && (
@@ -57,7 +57,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
               key={tab.id}
               href={tab.href}
               className={`group flex flex-col items-center justify-center w-full min-h-[44px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] relative ${
-                isActive ? 'text-toss-blue' : 'text-tertiary hover:text-secondary'
+                isActive ? 'text-[#008262] dark:text-[#00d29d]' : 'text-tertiary hover:text-secondary'
               }`}
             >
               {isActive && (

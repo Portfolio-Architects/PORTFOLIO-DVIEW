@@ -227,7 +227,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     >
       {children}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-toss-blue text-white font-extrabold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 select-none">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#008262] dark:bg-[#00b386] text-white font-extrabold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 select-none">
           <span className="text-[13px] md:text-[14px]">{toastMessage}</span>
           <button 
             onClick={() => setToastMessage(null)} 
