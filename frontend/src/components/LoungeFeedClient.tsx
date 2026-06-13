@@ -110,6 +110,12 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     return data ? data.flat() : [];
   }, [data]);
 
+  const hotPosts = useMemo(() => {
+    return [...posts]
+      .sort((a, b) => (b.views + b.likes * 5) - (a.views + a.likes * 5))
+      .slice(0, 4);
+  }, [posts]);
+
   const isReachingEnd = data && (data.length === 0 || (data[data.length - 1] && data[data.length - 1].length < 20));
   const isLoadingMore = isValidating && size > 1 && data && typeof data[size - 1] === 'undefined';
   const hasMore = !isReachingEnd;
@@ -359,7 +365,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   href={isPlaceholder ? undefined : news.link}
                   target={isPlaceholder ? undefined : "_blank"}
                   rel={isPlaceholder ? undefined : "noopener noreferrer"}
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full text-left"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-[#008262]/30 dark:hover:border-[#00d29d]/30 transition-all cursor-pointer group w-full text-left"
                 >
                   <div className="flex items-center gap-3 sm:gap-0 shrink-0">
                     <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
@@ -382,7 +388,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-toss-blue transition-colors truncate">
+                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors truncate">
                         {news.title}
                       </p>
                       {news.summary && (
@@ -687,6 +693,51 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      {/* 실시간 인기 토크 Widget */}
+      {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && hotPosts.length > 0 && (
+        <div className="bg-gradient-to-br from-[#e8f8f5] to-emerald-500/5 dark:from-[#082f27] dark:to-emerald-500/10 border border-emerald-500/15 rounded-3xl p-5 mb-2 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+            </span>
+            <span className="text-[13.5px] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
+              🔥 실시간 동탄 핫이슈 단지 토크
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {hotPosts.map((post) => (
+              <div
+                key={post.id}
+                onClick={() => { window.location.hash = `post=${post.id}`; }}
+                className="flex items-start gap-3 p-3.5 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-md"
+              >
+                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/30 group-hover:bg-[#008262] transition-colors">
+                  <Sparkles size={14} className="text-[#008262] dark:text-[#00d29d] group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-[#008262] dark:text-[#00d29d] rounded-md">
+                      {post.category}
+                    </span>
+                    <span className="text-[11px] font-semibold text-tertiary font-sans">
+                      {post.author || '매니저'}
+                    </span>
+                  </div>
+                  <h4 className="text-[13.5px] sm:text-[14px] font-bold text-primary truncate group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors">
+                    {post.title}
+                  </h4>
+                  <div className="flex items-center gap-2 mt-1 text-[11px] text-tertiary">
+                    <span className="flex items-center gap-0.5"><Eye size={11}/> {post.views}</span>
+                    <span className="flex items-center gap-0.5 text-rose-500"><Heart size={11} className="fill-current"/> {post.likes}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {filteredPosts.length === 0 && !hasMore && (
         <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
           <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
@@ -708,11 +759,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             )}
             <div 
               onClick={() => { window.location.hash = `post=${news.id}`; }} 
-            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-toss-blue/30 transition-all cursor-pointer group w-full"
+            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-[#008262]/30 dark:hover:border-[#00d29d]/30 transition-all cursor-pointer group w-full"
           >
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-0 shrink-0">
               <div className="flex items-center gap-3 sm:gap-0">
-                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-tertiary font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-toss-blue group-hover:text-white transition-colors">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-tertiary font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#008262] dark:group-hover:bg-[#00d29d] group-hover:text-white dark:group-hover:text-primary transition-colors">
                   <MessageSquare size={16} />
                 </div>
                 
@@ -721,7 +772,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   <span className={`text-[11px] font-extrabold tracking-wide ${
                       (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'text-[#00a06c]' :
                       (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
-                      (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-toss-blue' :
+                      (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-[#008262] dark:text-[#00d29d]' :
                       (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
                       (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
                       (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
@@ -754,7 +805,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 <span className={`w-[115px] text-[13px] font-extrabold tracking-wide text-center px-2 py-1.5 rounded-lg truncate border ${
                     (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c] border-[#e8f8f0]' :
                     (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red border-[#ffe8e8]' :
-                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue border-toss-blue-light' :
+                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-[#e6f3f0] dark:bg-[#042820] text-[#008262] dark:text-[#00d29d] border-[#e6f3f0] dark:border-[#042820]' :
                     (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'bg-[#f4e8ff] text-[#9b51e0] border-[#f4e8ff]' :
                     (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'bg-amber-50 text-amber-600 border-amber-100' :
                     (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'bg-rose-50 text-rose-500 border-rose-100' :
@@ -771,7 +822,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-toss-blue transition-colors truncate">
+                <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors truncate">
                   {news.title}
                 </p>
               </div>

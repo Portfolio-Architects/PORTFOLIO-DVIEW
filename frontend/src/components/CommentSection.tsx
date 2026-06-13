@@ -136,8 +136,8 @@ export default function CommentSection({
   return (
     <div id="sec-comments" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
       <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-        <MessageSquare size={20} className="text-toss-blue"/> 
-        아파트 이야기 <span className="text-toss-blue text-[16px] ml-1">{comments.length}</span>
+        <MessageSquare size={20} className="text-[#008262] dark:text-[#00d29d]"/> 
+        아파트 이야기 <span className="text-[#008262] dark:text-[#00d29d] text-[16px] ml-1">{comments.length}</span>
       </h2>
       
       <div className="flex flex-col gap-6">
@@ -180,7 +180,7 @@ export default function CommentSection({
               ref={inputRef}
               type="text"
               placeholder="임장기에 대한 생각이나 궁금한 점을 남겨주세요."
-              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 transition-shadow"
+              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 transition-shadow"
               value={commentInput}
               onChange={(e) => {
                 if (!user) {
@@ -211,7 +211,7 @@ export default function CommentSection({
                 handleAction();
               }}
               disabled={!commentInput.trim()}
-              className="bg-toss-blue text-surface px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+              className="bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] text-surface dark:text-[#191f28] px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
             >
               등록
             </button>
@@ -321,7 +321,7 @@ function CommentItem({
       id={`comment-${comment.id}`}
       className={`flex gap-3 bg-body p-4 rounded-2xl border transition-all duration-300 ${
         isHighlighted 
-          ? 'comment-highlight border-toss-blue' 
+          ? 'comment-highlight border-[#008262] dark:border-[#00d29d]' 
           : 'border-border'
       }`}
     >
