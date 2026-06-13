@@ -12,6 +12,29 @@ require('dotenv').config({ path: '.env.local' });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
+const { z } = require('zod');
+
+// Zod schema for validation of Rent Transaction Record before DB upload
+const RentTransactionSchema = z.object({
+  sigungu: z.string().min(1, '시군구 정보가 누락되었습니다.'),
+  dong: z.string().min(1, '법정동명이 누락되었습니다.'),
+  aptName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  area: z.coerce.number().positive('면적이 유효하지 않습니다.'),
+  areaPyeong: z.coerce.number().positive('평수가 유효하지 않습니다.'),
+  contractYm: z.string().length(6, '계약년월은 6자리여야 합니다.'),
+  contractDay: z.string().length(2, '계약일은 2자리여야 합니다.'),
+  contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.'),
+  price: z.coerce.number().int().nonnegative('보증금/가격이 유효하지 않습니다.'),
+  deposit: z.coerce.number().int().nonnegative('보증금이 유효하지 않습니다.'),
+  monthlyRent: z.coerce.number().int().nonnegative('월세가 유효하지 않습니다.'),
+  floor: z.coerce.number().int('층수 정보가 유효하지 않습니다.'),
+  buildYear: z.coerce.number().int().nonnegative('건축년도가 유효하지 않습니다.').default(0),
+  dealType: z.enum(['전세', '월세']),
+  source: z.literal('govt_api_rent'),
+  reqGb: z.string().optional().default(''),
+  rnuYn: z.string().optional().default(''),
+  _key: z.string().min(1)
+});
 
 const API_KEY = process.env.BUILDING_API_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
 const LAWD_CD = '41597'; // 동탄구
@@ -152,7 +175,7 @@ async function main() {
         const contractDay = String(item.dealDay || '').padStart(2, '0');
         const floor = parseInt(item.floor || '0', 10) || 0;
 
-        monthRecords.push({
+        const record = {
           sigungu: `경기도 화성시 동탄구 ${dong}`,
           dong,
           aptName,
@@ -171,7 +194,15 @@ async function main() {
           reqGb: item.contractType || '',
           rnuYn: item.useRRRight || '',
           _key: `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`,
-        });
+        };
+
+        const parsed = RentTransactionSchema.safeParse(record);
+        if (parsed.success) {
+          monthRecords.push(parsed.data);
+        } else {
+          console.warn(`⚠️ [Fetch Rent] Invalid rent transaction record at apt ${aptName}:`, parsed.error.format());
+          console.log(`Record Details: ${JSON.stringify(record)}`);
+        }
       }
 
       if (items.length === 0) break; // 무한 루프 방지
