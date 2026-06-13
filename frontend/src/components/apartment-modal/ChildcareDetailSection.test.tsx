@@ -7,7 +7,7 @@ describe('ChildcareDetailSection', () => {
       <ChildcareDetailSection 
         dong="오산동" 
         distanceToElementary={150} 
-        aptName="동탄역 롯데캐슬" 
+        aptName="동탄역 센트럴푸르지오" 
       />
     );
     
@@ -16,24 +16,27 @@ describe('ChildcareDetailSection', () => {
     expect(screen.getByText('단지 인근 유치원 (5-7세)')).toBeInTheDocument();
     
     // Check specific real school names from the database
-    expect(screen.getByText('시립동탄역동원어린이집')).toBeInTheDocument();
-    expect(screen.getByText('화성나래유치원')).toBeInTheDocument();
+    expect(screen.getByText('시립여울숲어린이집')).toBeInTheDocument();
+    expect(screen.getByText('동탄유치원')).toBeInTheDocument();
+    
+    // Check disclaimer for non-overridden dongs
+    expect(screen.getByText(/행정동\(오산동\) 내 대표 보육 시설 정보가 표시됩니다/)).toBeInTheDocument();
   });
 
-  it('renders fallback daycare/kindergarten names for unmatched dongs consistently', () => {
+  it('renders preparing status message for unmatched dongs', () => {
     render(
       <ChildcareDetailSection 
-        dong="신동" 
+        dong="방교동" 
         distanceToElementary={350} 
         aptName="동탄신도시 푸르지오" 
       />
     );
     
-    expect(screen.getByText('시립동탄신어린이집')).toBeInTheDocument();
-    expect(screen.getByText('동탄신도시초교 병설유치원')).toBeInTheDocument();
+    expect(screen.getByText('방교동 보육 인프라 데이터 준비 중')).toBeInTheDocument();
+    expect(screen.queryByText('단지 인근 어린이집 (영유아)')).not.toBeInTheDocument();
   });
 
-  it('renders safety scorecard with 안심 1등급 when distanceToElementary is <= 300m', () => {
+  it('renders safety scorecard with preparing status', () => {
     render(
       <ChildcareDetailSection 
         dong="청계동" 
@@ -42,39 +45,115 @@ describe('ChildcareDetailSection', () => {
       />
     );
 
-    // 200m is <= 300m, so it should render '안심 1등급' for indicators
-    const gradeBadges = screen.getAllByText('안심 1등급');
-    expect(gradeBadges.length).toBeGreaterThan(0);
-    expect(screen.getByText('보차도 완전 분리 (보행 전용로)')).toBeInTheDocument();
+    expect(screen.getByText('초등 통학로 안심 길목 진단')).toBeInTheDocument();
+    expect(screen.getByText('준비 중')).toBeInTheDocument();
+    expect(screen.getByText('더 정확하고 유용한 통학 안전 진단 서비스 준비 중')).toBeInTheDocument();
   });
 
-  it('renders safety scorecard with 안심 2등급 when distanceToElementary is between 300m and 600m', () => {
+  it('renders overridden childcare data for specific apartments (e.g. 힐스테이트 동탄역)', () => {
+    render(
+      <ChildcareDetailSection 
+        dong="영천동" 
+        distanceToElementary={100} 
+        aptName="힐스테이트 동탄역" 
+      />
+    );
+    
+    // Check exact override daycares
+    expect(screen.getByText('동탄역힐스 어린이집')).toBeInTheDocument();
+    expect(screen.getByText('근로복지공단 화성어린이집')).toBeInTheDocument();
+    
+    // Check exact override kindergartens
+    expect(screen.getByText('윤정유치원')).toBeInTheDocument();
+    expect(screen.getByText('치동초등학교 병설유치원')).toBeInTheDocument();
+    
+    // Check footnote disclaimer is NOT rendered since it is overridden
+    expect(screen.queryByText(/행정동\(영천동\) 내 대표 보육 시설 정보가 표시됩니다/)).not.toBeInTheDocument();
+  });
+
+  it('renders updated real kindergarten names for 반송동 and 능동', () => {
+    const { rerender } = render(
+      <ChildcareDetailSection 
+        dong="반송동" 
+        distanceToElementary={150} 
+        aptName="메타폴리스" 
+      />
+    );
+    // 반송동 check
+    expect(screen.getByText('반송초등학교병설유치원')).toBeInTheDocument();
+    expect(screen.getByText('솔빛유치원')).toBeInTheDocument();
+    expect(screen.queryByText('시립반송유치원')).not.toBeInTheDocument();
+
+    // 능동 check
+    rerender(
+      <ChildcareDetailSection 
+        dong="능동" 
+        distanceToElementary={150} 
+        aptName="이지더원" 
+      />
+    );
+    expect(screen.getByText('능동초등학교병설유치원')).toBeInTheDocument();
+    expect(screen.getByText('새봄유치원')).toBeInTheDocument();
+    expect(screen.queryByText('푸른초등학교병설유치원')).not.toBeInTheDocument();
+  });
+
+  it('renders overridden childcare data for 동탄역 시범 한화꿈에그린 프레스티지', () => {
     render(
       <ChildcareDetailSection 
         dong="청계동" 
-        distanceToElementary={450} 
-        aptName="동탄역 시범 더샵 센트럴시티" 
+        distanceToElementary={180} 
+        aptName="동탄역 시범 한화꿈에그린 프레스티지" 
       />
     );
-
-    // 450m is > 300m and <= 600m, so it should render '안심 2등급' for indicators
-    const gradeBadges = screen.getAllByText('안심 2등급');
-    expect(gradeBadges.length).toBeGreaterThan(0);
-    expect(screen.getByText('스쿨존 펜스 보호 인도 분리')).toBeInTheDocument();
+    
+    expect(screen.getByText('시립한화꿈에어린이집')).toBeInTheDocument();
+    expect(screen.getByText('시립한화나래어린이집')).toBeInTheDocument();
+    expect(screen.getByText('아인초등학교 병설유치원')).toBeInTheDocument();
+    expect(screen.getByText('청계유치원')).toBeInTheDocument();
   });
 
-  it('renders safety scorecard with 주의 3등급 when distanceToElementary is > 600m', () => {
+  it('renders overridden childcare data for 동탄역 푸르지오', () => {
     render(
       <ChildcareDetailSection 
-        dong="청계동" 
-        distanceToElementary={800} 
-        aptName="동탄역 시범 더샵 센트럴시티" 
+        dong="영천동" 
+        distanceToElementary={250} 
+        aptName="동탄역 푸르지오" 
       />
     );
+    
+    expect(screen.getByText('시립동탄역푸르지오어린이집')).toBeInTheDocument();
+    expect(screen.getByText('시립영천어린이집')).toBeInTheDocument();
+    expect(screen.getByText('윤정유치원')).toBeInTheDocument();
+    expect(screen.getByText('치동초등학교 병설유치원')).toBeInTheDocument();
+  });
 
-    // 800m is > 600m, so it should render '주의 3등급' for indicators
-    const gradeBadges = screen.getAllByText('주의 3등급');
-    expect(gradeBadges.length).toBeGreaterThan(0);
-    expect(screen.getByText('골목/이면도로 일부 혼용 주의')).toBeInTheDocument();
+  it('renders dynamically computed Haversine distances when coordinates are provided', () => {
+    render(
+      <ChildcareDetailSection 
+        dong="여울동" 
+        distanceToElementary={150} 
+        aptName="테스트 아파트" 
+        coordinates="37.20000, 127.09000"
+      />
+    );
+    
+    // Check facility names
+    expect(screen.getByText('시립여울숲어린이집')).toBeInTheDocument();
+    expect(screen.getByText('시립동탄행복어린이집')).toBeInTheDocument();
+    expect(screen.getByText('동탄유치원')).toBeInTheDocument();
+    expect(screen.getByText('동탄초등학교 병설유치원')).toBeInTheDocument();
+
+    // Check calculated distances and times
+    expect(screen.getByText('333')).toBeInTheDocument();
+    expect(screen.getByText('도보 5분')).toBeInTheDocument();
+
+    expect(screen.getByText('207')).toBeInTheDocument();
+    expect(screen.getByText('도보 3분')).toBeInTheDocument();
+
+    expect(screen.getByText('606')).toBeInTheDocument();
+    expect(screen.getByText('도보 8분')).toBeInTheDocument();
+
+    expect(screen.getByText('746')).toBeInTheDocument();
+    expect(screen.getByText('도보 10분')).toBeInTheDocument();
   });
 });

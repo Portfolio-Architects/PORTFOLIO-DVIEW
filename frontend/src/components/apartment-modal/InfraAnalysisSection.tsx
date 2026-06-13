@@ -83,7 +83,7 @@ export default function InfraAnalysisSection({
                   <div className={`p-4 rounded-xl ${colors.descBg} border border-toss-blue/10 text-left`}>
                     <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 단지 생활권 리포트</p>
                     <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
-                      {infraScoreInfo.description} (지하철·트램역까지의 대중교통 접근성과 스타벅스·올리브영·다이소·맥도날드 등 생활 편의시설 밀집도를 가중 평균하여 연산한 지표입니다.)
+                      {infraScoreInfo.description} (지하철·트램역까지의 대중교통 접근성과 스타벅스·올리브영·다이소·배스킨라빈스 등 생활 편의시설 밀집도를 가중 평균하여 연산한 지표입니다.)
                     </p>
                   </div>
                 </div>

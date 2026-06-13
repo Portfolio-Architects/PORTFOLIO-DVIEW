@@ -11,14 +11,14 @@ export async function GET() {
   // 환경변수가 없으면 시뮬레이션 Fallback 모드로 동작
   if (!propertyId || !clientEmail || !privateKey) {
     const mockApts = [
-      { aptName: '동탄역롯데캐슬', baseViews: 85 },
-      { aptName: '동탄레이크자이더테라스', baseViews: 68 },
-      { aptName: '동탄린스트라우스더레이크', baseViews: 55 },
-      { aptName: '동탄역시범한화꿈에그린프레스티지', baseViews: 52 },
-      { aptName: '동탄역삼정그린코아더베스트', baseViews: 41 },
-      { aptName: '동탄역시범우남퍼스트빌', baseViews: 38 },
-      { aptName: '동탄역더샵센트럴시티', baseViews: 32 },
-      { aptName: '신안인스빌리베라2차', baseViews: 25 },
+      { aptName: '동탄역 롯데캐슬', baseViews: 85 },
+      { aptName: '동탄 레이크자이 더테라스', baseViews: 68 },
+      { aptName: '동탄린스트라우스 더레이크', baseViews: 55 },
+      { aptName: '동탄역 시범 한화꿈에그린 프레스티지', baseViews: 52 },
+      { aptName: '동탄역 삼정그린코아 더베스트', baseViews: 41 },
+      { aptName: '동탄역 시범 우남퍼스트빌', baseViews: 38 },
+      { aptName: '동탄역 시범 더샵 센트럴시티', baseViews: 32 },
+      { aptName: '동탄역 신안인스빌리베라 2차', baseViews: 25 },
     ];
 
     // 시간대별로 뷰 수에 노이즈 추가하여 실시간 생동감 부여
@@ -90,11 +90,11 @@ export async function GET() {
     // 실제 데이터가 부족할 경우 가상 데이터를 채워서 반환
     if (sortedData.length < 5) {
       const fallbackList = [
-        '동탄역롯데캐슬',
-        '동탄레이크자이더테라스',
-        '동탄린스트라우스더레이크',
-        '동탄역시범한화꿈에그린프레스티지',
-        '동탄역삼정그린코아더베스트'
+        '동탄역 롯데캐슬',
+        '동탄 레이크자이 더테라스',
+        '동탄린스트라우스 더레이크',
+        '동탄역 시범 한화꿈에그린 프레스티지',
+        '동탄역 삼정그린코아 더베스트'
       ];
       
       fallbackList.forEach((apt) => {

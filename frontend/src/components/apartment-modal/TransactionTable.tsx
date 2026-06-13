@@ -129,7 +129,7 @@ export function TransactionTable({
     <div className="flex flex-col bg-[#F9FAFB] dark:bg-[#1a1a1a] rounded-2xl ring-1 ring-[#e5e8eb] dark:ring-[#2d2d2d] overflow-hidden md:h-full shadow-inner">
       <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
         <h3 className="text-[14px] font-bold text-secondary shrink-0">
-          실거래가 <span className="text-[#00a37b] dark:text-toss-blue ml-1">{filteredTransactions.length}</span>건
+          실거래가 <span className="text-[#008262] dark:text-toss-blue ml-1">{filteredTransactions.length}</span>건
         </h3>
         {/* 정렬 필터 */}
         <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
@@ -156,7 +156,7 @@ export function TransactionTable({
       </div>
 
       {/* 테이블 컬럼 헤더 추가 */}
-      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#6b7684] dark:text-[#9ca3af] select-none shrink-0 w-full gap-2">
+      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#4e5968] dark:text-[#cbd5e1] select-none shrink-0 w-full gap-2">
         <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
         <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
         <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>
@@ -164,7 +164,7 @@ export function TransactionTable({
       </div>
 
       <div 
-      className="overflow-y-auto touch-pan-y custom-scrollbar flex-1 relative h-[280px] md:h-[420px]"
+      className={`${visibleCount > defaultCount ? 'overflow-y-auto' : 'overflow-y-hidden'} touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px]`}
       style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => {
@@ -272,25 +272,6 @@ export function TransactionTable({
           );
         })}
 
-        {sortedFilteredTransactions.length > defaultCount && (
-          <div className="border-t border-border/40 bg-surface flex shrink-0">
-            {sortedFilteredTransactions.length > visibleCount ? (
-              <button
-                onClick={() => setVisibleCount(prev => Math.min(prev + batchSize, sortedFilteredTransactions.length))}
-                className="flex-1 py-3.5 text-center text-[13px] font-bold text-toss-blue hover:bg-toss-blue/5 active:bg-toss-blue/10 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
-              >
-                실거래가 더보기 ({Math.min(batchSize, sortedFilteredTransactions.length - visibleCount)}개 더보기, {visibleCount}/{sortedFilteredTransactions.length})
-              </button>
-            ) : (
-              <button
-                onClick={() => setVisibleCount(defaultCount)}
-                className="flex-1 py-3.5 text-center text-[13px] font-bold text-tertiary hover:bg-body active:bg-body/80 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
-              >
-                접기
-              </button>
-            )}
-          </div>
-        )}
 
         {filteredTransactions.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[200px] text-tertiary gap-2">
@@ -299,6 +280,26 @@ export function TransactionTable({
           </div>
         )}
       </div>
+
+      {sortedFilteredTransactions.length > defaultCount && (
+        <div className="border-t border-border/40 bg-surface flex shrink-0">
+          {sortedFilteredTransactions.length > visibleCount ? (
+            <button
+              onClick={() => setVisibleCount(prev => Math.min(prev + batchSize, sortedFilteredTransactions.length))}
+              className="flex-1 py-3.5 text-center text-[13px] font-bold text-toss-blue hover:bg-toss-blue/5 active:bg-toss-blue/10 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
+            >
+              실거래가 더보기 ({Math.min(batchSize, sortedFilteredTransactions.length - visibleCount)}개 더보기, {visibleCount}/{sortedFilteredTransactions.length})
+            </button>
+          ) : (
+            <button
+              onClick={() => setVisibleCount(defaultCount)}
+              className="flex-1 py-3.5 text-center text-[13px] font-bold text-tertiary hover:bg-body active:bg-body/80 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
+            >
+              접기
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

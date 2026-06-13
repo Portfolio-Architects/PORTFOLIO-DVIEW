@@ -387,6 +387,7 @@ export default function EducationAnalysisSection({
               dong={report.dong || '오산동'} 
               distanceToElementary={report.metrics.distanceToElementary || 0} 
               aptName={report.apartmentName} 
+              coordinates={report.metrics.coordinates}
             />
 
             {/* 🎯 학군/육아 인프라 스코어 연동 로컬 학원 및 교육 광고 */}

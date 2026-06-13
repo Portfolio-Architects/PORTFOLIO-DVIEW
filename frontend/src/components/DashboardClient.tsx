@@ -567,25 +567,22 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const popularAptItems = useMemo(() => {
     if (!sheetApartments || !favoriteCounts || !txSummary) return [];
 
-    // GA4 실시간 랭킹 데이터가 존재하고 성공적인 경우 하이브리드 병합
     if (popularData?.success && Array.isArray(popularData.data) && popularData.data.length > 0) {
-      const allAptMap = new Map<string, any>();
-      Object.values(sheetApartments).flat().forEach((apt) => {
-        allAptMap.set(apt.name, apt);
-      });
+      const flatApts = Object.values(sheetApartments).flat();
 
       return popularData.data.map((gaItem: any, index: number) => {
-        const name = gaItem.aptName;
-        const apt = allAptMap.get(name);
-        const favCount = favoriteCounts[name] || 0;
-        const txKey = findTxKey(name, txSummary, nameMapping);
+        const gaName = gaItem.aptName;
+        const apt = flatApts.find((a) => isSameApartment(a.name, gaName));
+        const resolvedName = apt ? apt.name : gaName;
+        const favCount = favoriteCounts[resolvedName] || 0;
+        const txKey = findTxKey(resolvedName, txSummary, nameMapping);
         const summary = txKey ? txSummary[txKey] : undefined;
         const avg3M = summary?.avg3MTxCount || 0;
         const latestPrice = summary?.latestPriceEok || "";
         const dong = apt?.dong || summary?.dong || "";
 
         return {
-          name,
+          name: resolvedName,
           dong,
           favCount,
           avg3M,

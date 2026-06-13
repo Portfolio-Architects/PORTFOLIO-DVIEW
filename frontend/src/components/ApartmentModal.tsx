@@ -319,6 +319,21 @@ function FieldReportModal({
   const [showScrollTop, setShowScrollTop] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
+  // 금융/분석 툴 드롭다운 상태
+  const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
+  const toolDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isToolDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (toolDropdownRef.current && !toolDropdownRef.current.contains(e.target as Node)) {
+        setIsToolDropdownOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isToolDropdownOpen]);
+
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
 
   const [viralShareCount, setViralShareCount] = useState<number>(0);
@@ -1343,45 +1358,155 @@ function FieldReportModal({
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap w-full lg:w-auto">
-            {/* 평형 필터 (5개 초과 시 드롭다운, 5개 이하 시 칩스 형식) */}
-            {areaFilterChips.length > 2 && (
-              areaFilterChips.length > 5 ? (
-                <div className="relative shrink-0">
-                  <select
-                    value={selectedAreaFilter}
-                    onChange={(e) => { setSelectedAreaFilter(e.target.value); loadAllTransactions?.(); }}
-                    className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer"
-                  >
-                    {areaFilterChips.map(chip => (
-                       <option key={chip} value={chip} className="font-medium text-secondary">
-                        {chip === '전체' ? '타입: 전체' : `타입: ${chip}`}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
-                    <ChevronDown size={14} strokeWidth={2.5} />
-                  </div>
-                </div>
+          <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap">
+            {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
+            <button
+              onClick={handleNativeShare}
+              className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] ${
+                copiedStatus === 'all-link'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-800 dark:text-emerald-400'
+                  : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border-border/20'
+              }`}
+              title="아파트 분석 리포트 공유하기"
+            >
+              {copiedStatus === 'all-link' ? (
+                <Check size={15} strokeWidth={2.5} className="text-emerald-500" />
               ) : (
-                <SegmentedControl
-                  options={areaFilterChips.map(chip => ({ label: chip, value: chip }))}
-                  value={selectedAreaFilter}
-                  onChange={(val) => { setSelectedAreaFilter(val); loadAllTransactions?.(); }}
-                  className="max-w-full"
-                />
-              )
-            )}
+                <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
+              )}
+              <span>{copiedStatus === 'all-link' ? '복사 완료!' : '공유하기'}</span>
+            </button>
 
-            {/* 매매/전월세 토글 */}
-            <SegmentedControl
-              options={[
-                { label: '매매', value: 'sale' },
-                { label: '전월세', value: 'jeonse' }
-              ]}
-              value={chartType}
-              onChange={(val) => { setChartType(val); loadAllTransactions?.(); }}
-            />
+            {/* 통합 금융/분석 드롭다운 도구함 */}
+            <div className="relative" ref={toolDropdownRef}>
+              <button
+                onClick={() => setIsToolDropdownOpen(prev => !prev)}
+                className={`px-4 py-2 bg-gradient-to-r from-toss-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-2xl shadow-md flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
+                title="AI 분석 리포트 및 부동산 금융 계산기 열기"
+              >
+                <Calculator size={15} />
+                <span>분석 및 금융 도구</span>
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isToolDropdownOpen && (
+                <div className="absolute right-0 mt-2.5 w-[240px] bg-surface border border-border rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.15)] py-2 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
+                  <div className="px-4 py-1.5 text-[11px] font-black text-tertiary border-b border-border/40 select-none uppercase tracking-wider">
+                    AI 진단 & 금융 계산기
+                  </div>
+                  
+                  {onOpenCompare && (
+                    <button
+                      onClick={() => { onOpenCompare(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
+                    >
+                      <Radar size={15} className="text-[#3182f6]" />
+                      <div className="flex flex-col">
+                        <span>단지 1:1 비교</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenJeonseSafety && (
+                    <button
+                      onClick={() => { onOpenJeonseSafety(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
+                    >
+                      <Shield size={15} className="text-[#00b386]" />
+                      <div className="flex flex-col">
+                        <span>전세 안전진단</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenMortgage && (
+                    <button
+                      onClick={() => { onOpenMortgage(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
+                    >
+                      <Calculator size={15} className="text-[#3182f6]" />
+                      <div className="flex flex-col">
+                        <span>대출 계산기</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenTaxCalculator && (
+                    <button
+                      onClick={() => { onOpenTaxCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
+                    >
+                      <GraduationCap size={15} className="text-[#00b386]" />
+                      <div className="flex flex-col">
+                        <span>취득세 계산기</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenSellTimingCalculator && (
+                    <button
+                      onClick={() => { onOpenSellTimingCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
+                    >
+                      <ShieldAlert size={15} className="text-[#f04452]" />
+                      <div className="flex flex-col">
+                        <span>AI 매도 진단기</span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section — Layout: Global Filter Bar + (35% table / 65% chart) */}
+      <section className={`w-full flex flex-col p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} shrink-0 md:h-[700px]`}>
+        
+        {/* 글로벌 실거래 필터 바 */}
+        {isAnimationFinished && (
+          <div className="w-full flex flex-wrap items-center justify-between gap-4 pb-4.5 mb-4.5 border-b border-border/50 shrink-0">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* 평형 필터 (5개 초과 시 드롭다운, 5개 이하 시 칩스 형식) */}
+              {areaFilterChips.length > 2 && (
+                areaFilterChips.length > 5 ? (
+                  <div className="relative shrink-0">
+                    <select
+                      value={selectedAreaFilter}
+                      onChange={(e) => { setSelectedAreaFilter(e.target.value); loadAllTransactions?.(); }}
+                      className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer"
+                    >
+                      {areaFilterChips.map(chip => (
+                         <option key={chip} value={chip} className="font-medium text-secondary">
+                          {chip === '전체' ? '타입: 전체' : `타입: ${chip}`}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
+                      <ChevronDown size={14} strokeWidth={2.5} />
+                    </div>
+                  </div>
+                ) : (
+                  <SegmentedControl
+                    options={areaFilterChips.map(chip => ({ label: chip, value: chip }))}
+                    value={selectedAreaFilter}
+                    onChange={(val) => { setSelectedAreaFilter(val); loadAllTransactions?.(); }}
+                    className="max-w-full"
+                  />
+                )
+              )}
+
+              {/* 매매/전월세 토글 */}
+              <SegmentedControl
+                options={[
+                  { label: '매매', value: 'sale' },
+                  { label: '전월세', value: 'jeonse' }
+                ]}
+                value={chartType}
+                onChange={(val) => { setChartType(val); loadAllTransactions?.(); }}
+              />
+            </div>
 
             {/* 이상 거래 필터 스위치 */}
             <div className="flex items-center gap-2 bg-[#f2f4f6] px-3.5 py-2 rounded-2xl border border-border/20 shadow-sm shrink-0">
@@ -1402,122 +1527,50 @@ function FieldReportModal({
                 />
               </button>
             </div>
-
-            {/* 단지 비교 버튼 */}
-            {onOpenCompare && (
-              <button
-                onClick={() => onOpenCompare(report.apartmentName)}
-                className="px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border border-border/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-                title="다른 아파트 단지와 1:1 비교하기"
-              >
-                <span>단지 비교</span>
-              </button>
-            )}
-
-            {/* 전세 안전진단 버튼 */}
-            {onOpenJeonseSafety && (
-              <button
-                onClick={() => onOpenJeonseSafety(report.apartmentName)}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-                title="전세 보증금 안전성 진단 및 깡통전세 계산기 실행"
-              >
-                <span>전세 안전진단</span>
-              </button>
-            )}
-
-            {/* 대출 계산기 버튼 */}
-            {onOpenMortgage && (
-              <button
-                onClick={() => onOpenMortgage(report.apartmentName)}
-                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:text-blue-400 border border-blue-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-                title="정책 대출 자격 조회 및 원리금 상환 시뮬레이터 실행"
-              >
-                <span>대출 계산기</span>
-              </button>
-            )}
-
-            {/* 취득세 계산기 버튼 */}
-            {onOpenTaxCalculator && (
-              <button
-                onClick={() => onOpenTaxCalculator(report.apartmentName)}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-                title="부동산 취득세 및 부동산 중개수수료 모의 연산 실행"
-              >
-                <span>취득세 계산기</span>
-              </button>
-            )}
-
-            {/* AI 매도 진단기 버튼 */}
-            {onOpenSellTimingCalculator && (
-              <button
-                onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
-                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:text-rose-400 border border-rose-500/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-                title="AI 매도 적격성 및 양도소득세 모의 진단 실행"
-              >
-                <span>매도 진단기</span>
-              </button>
-            )}
-
-            {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
-            <button
-              onClick={handleNativeShare}
-              className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] ${
-                copiedStatus === 'all-link'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-800 dark:text-emerald-400'
-                  : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border-border/20'
-              }`}
-              title="아파트 분석 리포트 공유하기"
-            >
-              {copiedStatus === 'all-link' ? (
-                <Check size={15} strokeWidth={2.5} className="text-emerald-500" />
-              ) : (
-                <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
-              )}
-              <span>{copiedStatus === 'all-link' ? '복사 완료!' : '공유하기'}</span>
-            </button>
           </div>
-        </div>
-      </header>
+        )}
 
-      {/* Hero Section — Layout: 35% table / 65% chart */}
-      <section className={`w-full flex flex-col-reverse md:flex-row p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} gap-4 md:gap-8 shrink-0`}>
-        
-        {/* Left: 실거래가 전체 리스트 (35%) */}
-        <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px]">
-          {!isAnimationFinished ? (
-            <div className="w-full h-[320px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
-              <span className="text-[12px] font-bold text-tertiary">거래 데이터 분석 중...</span>
-            </div>
-          ) : (
-            <TransactionTable 
-              transactions={filteredTransactions} 
-              typeMap={typeMap} 
-              chartType={chartType} 
-              normalizeAptName={normalizeAptName} 
-            />
-          )}
-        </div>
-
-        {/* Right: 실거래가 차트 (65%) */}
-        <div className="w-full md:w-[65%] flex flex-col min-h-[320px]">
-          <ErrorBoundary name="실거래 차트">
+        {/* 메인 데이터 영역: 테이블(35%) 및 차트(65%) */}
+        <div className="w-full flex flex-col-reverse md:flex-row gap-4 md:gap-8 flex-1 min-h-0">
+          
+          {/* Left: 실거래가 전체 리스트 (35%) */}
+          <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
             {!isAnimationFinished ? (
-              <div className="w-full h-[320px] md:h-[360px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
-                <span className="text-[12px] font-bold text-tertiary">시세 차트 로딩 중...</span>
+              <div className="w-full h-[320px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+                <span className="text-[12px] font-bold text-tertiary">거래 데이터 분석 중...</span>
               </div>
             ) : (
-              <TransactionChartSection 
+              <TransactionTable 
                 transactions={filteredTransactions} 
-                chartType={chartType} 
-                setChartType={setChartType}
-                displayAptName={displayAptName} 
-                dong={report.dong || '동탄'}
                 typeMap={typeMap} 
+                chartType={chartType} 
                 normalizeAptName={normalizeAptName} 
-                txSummary={txSummary}
               />
             )}
-          </ErrorBoundary>
+          </div>
+
+          {/* Right: 실거래가 차트 (65%) */}
+          <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
+            <ErrorBoundary name="실거래 차트">
+              {!isAnimationFinished ? (
+                <div className="w-full h-[320px] md:h-[360px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+                  <span className="text-[12px] font-bold text-tertiary">시세 차트 로딩 중...</span>
+                </div>
+              ) : (
+                <TransactionChartSection 
+                  transactions={filteredTransactions} 
+                  chartType={chartType} 
+                  setChartType={setChartType}
+                  displayAptName={displayAptName} 
+                  dong={report.dong || '동탄'}
+                  typeMap={typeMap} 
+                  normalizeAptName={normalizeAptName} 
+                  txSummary={txSummary}
+                />
+              )}
+            </ErrorBoundary>
+          </div>
+
         </div>
       </section>
 
