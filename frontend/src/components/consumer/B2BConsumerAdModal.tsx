@@ -104,12 +104,12 @@ export default function B2BConsumerAdModal({
     switch (adType) {
       case 'academy':
         return {
-          icon: <GraduationCap className="text-blue-500" size={22} />,
-          badgeColor: 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/30',
-          btnBg: 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/10 focus:ring-blue-500',
+          icon: <GraduationCap className="text-indigo-500" size={22} />,
+          badgeColor: 'bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/30',
+          btnBg: 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/10 focus:ring-indigo-500',
           title: '우수 학원가 매칭 신청',
           subtitle: '단지 인근 학원의 무료 레벨 테스트 및 맞춤 셔틀 노선 상담을 신청해 보세요.',
-          themeColor: 'blue'
+          themeColor: 'indigo'
         };
       case 'interior':
         return {
@@ -235,7 +235,7 @@ export default function B2BConsumerAdModal({
                           onClick={() => setStudentGrade(g.id)}
                           className={`px-3 py-2 rounded-xl text-[12px] font-bold border transition-all ${
                             studentGrade === g.id
-                              ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-950/40 dark:border-blue-900/60 dark:text-blue-400'
+                              ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-950/40 dark:border-indigo-900/60 dark:text-indigo-400'
                               : 'bg-body border-border text-secondary hover:bg-body/80'
                           }`}
                         >
@@ -257,7 +257,7 @@ export default function B2BConsumerAdModal({
                             onClick={() => handleSubjectToggle(sub)}
                             className={`px-3 py-1.5 rounded-full text-[11.5px] font-black border transition-all ${
                               isSelected
-                                ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
                                 : 'bg-body border-border text-secondary hover:bg-body/80'
                             }`}
                           >
