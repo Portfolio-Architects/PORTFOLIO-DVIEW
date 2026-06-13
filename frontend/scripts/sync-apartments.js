@@ -13,6 +13,15 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { z } = require('zod');
+
+const StaticApartmentSchema = z.object({
+  name: z.string().min(1, '아파트명은 필수입니다.'),
+  dong: z.string().min(1, '동 정보는 필수입니다.'),
+  householdCount: z.number().int().positive().optional(),
+  yearBuilt: z.string().min(1).optional(),
+  brand: z.string().optional(),
+});
 
 const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
 const SHEET_TAB = 'apartments';
@@ -112,7 +121,6 @@ async function main() {
     if (yearIdx !== -1) {
       const yearRaw = cols[yearIdx]?.trim();
       if (yearRaw) {
-        // "200810" → "2008" 또는 "2020" → "2020"
         const year = yearRaw.length >= 4 ? yearRaw.slice(0, 4) : yearRaw;
         apt.yearBuilt = year;
       }
@@ -121,14 +129,19 @@ async function main() {
     if (brandIdx !== -1) {
       const brand = cols[brandIdx]?.trim();
       if (brand) {
-        // 시공사 이름 간소화: "(주)" 등 제거
         apt.brand = brand.replace(/\(주\)/g, '').replace(/주식회사/g, '').trim();
       }
     }
 
-    byDong[dong].push(apt);
-    total++;
+    const parsed = StaticApartmentSchema.safeParse(apt);
+    if (parsed.success) {
+      byDong[dong].push(parsed.data);
+      total++;
+    } else {
+      console.warn(`[Sync Apartments] Skipping invalid record at line ${i + 1} for ${name}:`, parsed.error.format());
+    }
   }
+
 
   // 동 내 이름순 정렬
   Object.values(byDong).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name, 'ko')));
