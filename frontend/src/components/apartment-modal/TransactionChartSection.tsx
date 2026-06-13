@@ -422,15 +422,15 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                 key={item.label} 
                 className={`flex flex-col px-3 py-2.5 sm:px-4 sm:py-3.5 flex-1 relative rounded-xl border transition-all duration-200 ${
                   isTarget 
-                    ? 'bg-surface border-toss-blue shadow-[0_4px_12px_rgba(49,130,246,0.06)] ring-1 ring-toss-blue/10 z-10' 
+                    ? 'bg-surface border-[#008262] shadow-[0_4px_12px_rgba(0,130,98,0.06)] ring-1 ring-[#008262]/10 z-10' 
                     : 'bg-surface border-border/60 hover:bg-body/30'
                 }`}
               >
-                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-[#1b64da] dark:text-blue-400' : 'text-tertiary'}`}>
+                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-[#008262] dark:text-emerald-400' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
-                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-toss-blue rounded-full animate-pulse shadow-[0_0_6px_rgba(49,130,246,0.3)]" />}
+                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-[#008262] rounded-full animate-pulse shadow-[0_0_6px_rgba(0,130,98,0.3)]" />}
                 </div>
-                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-[#1b64da] dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-[#008262] dark:text-emerald-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
