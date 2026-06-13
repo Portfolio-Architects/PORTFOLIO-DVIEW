@@ -837,6 +837,7 @@ export default function GapInvestmentExplorer({
               location="갭투자 탐색기 하단" 
               onClick={onOpenAdModal} 
               adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_GAP_EXPLORER || "test-gap-explorer-slot"}
+              isCompact={true}
             />
           </div>
 

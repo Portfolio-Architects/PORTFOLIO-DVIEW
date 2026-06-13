@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import AdSense from '@/components/ui/AdSense';
 
@@ -10,6 +10,18 @@ interface MobileBottomAdProps {
 
 export default function MobileBottomAd({ adSlot }: MobileBottomAdProps) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    // Pre-hydration placeholder that preserves CSS height constraints
+    return (
+      <div className="w-full h-[50px] block md:hidden bg-transparent" aria-hidden="true" />
+    );
+  }
 
   // MobileDock가 노출되는 주요 서비스 페이지(/, /lounge 등) 및 어드민 페이지에서는 
   // 고정 하단 광고를 표시하지 않습니다. (MobileDock과의 겹침 및 정책 위반 방지)

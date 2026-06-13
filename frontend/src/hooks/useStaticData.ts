@@ -255,7 +255,11 @@ const fetchRecentTxsFromFirestore = async () => {
   }
 };
 
-export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
+export function useTxData(
+  initialMacroTrend?: DongtanMacroTrendPoint[],
+  initialTxSummary?: Record<string, AptTxSummary>,
+  initialRecent7DaysVolume?: any
+) {
   const [shouldFetch, setShouldFetch] = useState(false);
   
   useEffect(() => {
@@ -278,6 +282,7 @@ export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
       badge: string;
     };
   }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
+    fallbackData: initialTxSummary ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
     revalidateOnFocus: true,
     revalidateIfStale: true,
     revalidateOnReconnect: true,
@@ -298,19 +303,22 @@ export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
 
   // 3. 정적 데이터 + Firestore 실시간 데이터 병합 요약본 계산
   const mergedSummary = useMemo(() => {
-    if (!summaryData?.summary) return undefined;
-    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return summaryData.summary;
-    return mergeTransactions(summaryData.summary, recentFirestoreTxs);
-  }, [summaryData?.summary, recentFirestoreTxs]);
+    const activeSummary = summaryData?.summary || initialTxSummary;
+    if (!activeSummary) return undefined;
+    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeSummary;
+    return mergeTransactions(activeSummary, recentFirestoreTxs);
+  }, [summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   // 4. 실시간 거래량을 가산한 7일 거래 지표 계산
   const mergedRecent7DaysVolume = useMemo(() => {
-    if (!summaryData?.recent7DaysVolume) return undefined;
-    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return summaryData.recent7DaysVolume;
+    const activeVolume = summaryData?.recent7DaysVolume || initialRecent7DaysVolume;
+    const activeSummary = summaryData?.summary || initialTxSummary;
+    if (!activeVolume || !activeSummary) return undefined;
+    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeVolume;
 
     // staticSummary의 아파트들 중 가장 최신 거래일을 구함
     let maxStaticDate = '00000000';
-    Object.values(summaryData.summary).forEach(s => {
+    Object.values(activeSummary).forEach(s => {
       if (s.latestDate && s.latestDate > maxStaticDate) {
         maxStaticDate = s.latestDate;
       }
@@ -323,10 +331,10 @@ export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
       return isSale && txFullDate > maxStaticDate;
     });
 
-    if (newTxsAfterStatic.length === 0) return summaryData.recent7DaysVolume;
+    if (newTxsAfterStatic.length === 0) return activeVolume;
 
-    const currentCount = summaryData.recent7DaysVolume.currentCount + newTxsAfterStatic.length;
-    const prevCount = summaryData.recent7DaysVolume.prevCount;
+    const currentCount = activeVolume.currentCount + newTxsAfterStatic.length;
+    const prevCount = activeVolume.prevCount;
     const diff = currentCount - prevCount;
     const rate = prevCount > 0 ? (diff / prevCount) * 100 : 0;
     const isUp = diff > 0;
@@ -349,7 +357,7 @@ export function useTxData(initialMacroTrend?: DongtanMacroTrendPoint[]) {
       trendColor,
       badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`,
     };
-  }, [summaryData?.recent7DaysVolume, summaryData?.summary, recentFirestoreTxs]);
+  }, [summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   const { data: trendData, error: trendError, isLoading: isTrendLoading } = useSWR<DongtanMacroTrendPoint[]>(
     shouldFetch ? '/data/macro-trend.json' : null,

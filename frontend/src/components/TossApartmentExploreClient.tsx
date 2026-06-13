@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles, Coins, Activity } from 'lucide-react';
+import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles } from 'lucide-react';
 import PageHeroHeader from './PageHeroHeader';
 import HotComplexRanking from './HotComplexRanking';
 import { DONGS, getDongByName } from '@/lib/dongs';
@@ -197,7 +197,7 @@ const AptRow = memo(({
               {index + 1}
             </span>
           ) : (
-            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-400 dark:text-neutral-50 bg-neutral-100/40 dark:bg-neutral-800/30">{index + 1}</span>
+            <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[12.5px] font-bold text-neutral-600 dark:text-neutral-100 bg-neutral-100 dark:bg-neutral-800/60">{index + 1}</span>
           )}
         </div>
         
@@ -205,13 +205,13 @@ const AptRow = memo(({
         <div className="flex-1 min-w-[120px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
           <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-100 leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
           {photoCount > 0 && (
-            <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
+            <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
               <Camera className="w-2.5 h-2.5" />
               사진 {photoCount}장
             </span>
           )}
           {likes > 0 && (
-            <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-full border border-rose-100/50 dark:border-rose-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
+            <span className="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 text-[10px] font-bold rounded-full border border-rose-100/50 dark:border-rose-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
               <Heart className="w-2.5 h-2.5 fill-current" />
               관심 {likes}
             </span>
@@ -229,7 +229,7 @@ const AptRow = memo(({
         </div>
         
         {/* Pyeong */}
-        <div className="w-[85px] text-right pr-2 text-[14.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] shrink-0 whitespace-nowrap">
+        <div className="w-[85px] text-right pr-2 text-[14.5px] font-extrabold text-[#008060] dark:text-[#00d29d] shrink-0 whitespace-nowrap">
           {item.formattedPyeong}
         </div>
 
@@ -240,7 +240,7 @@ const AptRow = memo(({
           </span>
           <span className={`text-[9.5px] font-extrabold leading-none whitespace-nowrap px-1.5 py-0.5 rounded ${
             item.ratio >= 0.6 
-              ? 'bg-teal-50 dark:bg-teal-950/20 text-teal-600 dark:text-teal-400' 
+              ? 'bg-teal-50 dark:bg-teal-950/20 text-teal-700 dark:text-teal-400' 
               : 'bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400'
           }`}>
             {item.formattedRatio}
@@ -343,7 +343,7 @@ const AptRow = memo(({
               </>
             ) : currentCategory === 'rank-jeonse' ? (
               <>
-                <span className="text-[14.5px] font-black text-[#00b386] dark:text-[#00d29d] tracking-tight leading-tight">
+                <span className="text-[14.5px] font-black text-[#008060] dark:text-[#00d29d] tracking-tight leading-tight">
                   {item.ratio > 0 ? item.formattedRatio : '-'}
                 </span>
                 <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
@@ -430,6 +430,7 @@ export default function TossApartmentExploreClient({
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(15);
 
   const categories = useMemo(() => [
     { id: 'favorites', label: '내 관심' },
@@ -441,6 +442,12 @@ export default function TossApartmentExploreClient({
     ...DONGS.map(d => ({ id: `dong-${d.name}`, label: d.name }))
   ], []);
   const debouncedSearchQuery = useDebounce(searchQuery, 200);
+
+  // 카테고리나 검색어 변경 시 노출 갯수를 15개로 초기화하여 CLS 방지
+  useEffect(() => {
+    setVisibleCount(15);
+  }, [currentCategory, debouncedSearchQuery]);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -646,11 +653,7 @@ export default function TossApartmentExploreClient({
 
   const recommendedKeywords = ['동탄역', '시범단지', '롯데캐슬', '반도유보라', '자이', '더샵'];
 
-  const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <div className="flex flex-col w-full bg-transparent">
@@ -683,7 +686,7 @@ export default function TossApartmentExploreClient({
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1" role="tablist" aria-label="단지 랭킹 필터">
             <SidebarItem 
               label="내 관심 단지" 
               active={currentCategory === 'favorites'} 
@@ -719,7 +722,7 @@ export default function TossApartmentExploreClient({
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">법정동별 보기</h2>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1" role="tablist" aria-label="법정동별 보기 필터">
             {DONGS.map(dong => (
               <SidebarItem 
                 key={dong.name}
@@ -1027,7 +1030,7 @@ export default function TossApartmentExploreClient({
               {onOpenCompare && (
                 <button
                   onClick={onOpenCompare}
-                  className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#00b386] dark:text-[#00d29d] text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/20 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#00664d] dark:text-[#00d29d] text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/20 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   단지 비교분석
                 </button>
@@ -1035,7 +1038,7 @@ export default function TossApartmentExploreClient({
               {onOpenJeonseSafety && (
                 <button
                   onClick={() => onOpenJeonseSafety()}
-                  className="px-4 py-2.5 bg-teal-50/50 hover:bg-teal-100/50 text-teal-600 dark:bg-teal-950/10 dark:hover:bg-teal-900/20 dark:text-teal-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-teal-500/15 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-teal-50/50 hover:bg-teal-100/50 text-teal-700 dark:bg-teal-950/10 dark:hover:bg-teal-900/20 dark:text-teal-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-teal-500/15 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   전세 안전진단
                 </button>
@@ -1043,7 +1046,7 @@ export default function TossApartmentExploreClient({
               {onOpenMortgage && (
                 <button
                   onClick={() => onOpenMortgage()}
-                  className="px-4 py-2.5 bg-emerald-50/50 hover:bg-emerald-100/50 text-emerald-600 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 dark:text-emerald-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/15 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-emerald-50/50 hover:bg-emerald-100/50 text-emerald-700 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 dark:text-emerald-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/15 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   대출 한도진단
                 </button>
@@ -1054,83 +1057,72 @@ export default function TossApartmentExploreClient({
 
         <div className="flex-1 min-h-0 flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[75px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-400 dark:text-neutral-500 shrink-0 select-none shadow-sm shadow-black/[0.01]">
+          <div className="hidden md:flex sticky top-[75px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none shadow-sm shadow-black/[0.01]">
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
-              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               <span className="w-full text-center">순위</span>
               {sortKey === 'views' && (
                 <span className="absolute -right-0.5 top-1/2 -translate-y-1/2">
-                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-[#00d29d]" /> : <ArrowUp className="w-2.5 h-2.5 text-[#00d29d]" />}
+                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-2.5 h-2.5 text-[#008060] dark:text-[#00d29d]" />}
                 </span>
               )}
             </button>
             <button 
               onClick={() => handleHeaderSort('name')}
-              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               <span>단지명</span>
-              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
             </button>
             <button 
               onClick={() => handleHeaderSort('yearBuilt')}
-              className={`w-[105px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[105px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>연식</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('totalPrice')}
-              className={`w-[100px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>매매가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('pyeongPrice')}
-              className={`w-[85px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[85px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>평당가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('ratio')}
-              className={`w-[110px] text-right pr-2 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[110px] text-right pr-2 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>전세가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('householdCount')}
-              className={`w-[80px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[80px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>세대수</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('volume3M')}
-              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#00d29d]" />)}
+              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>거래량</span>
             </button>
           </div>
 
           {/* Table Body */}
-          {!isMounted ? (
-            <div 
-              className="w-full flex flex-col gap-3 py-2 animate-pulse px-1 md:px-0"
-            >
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div 
-                  key={i} 
-                  className="w-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 h-[66px] shrink-0"
-                />
-              ))}
-            </div>
-          ) : sortedApts.length === 0 ? (
+          {sortedApts.length === 0 ? (
             <div 
               className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-20 transition-all duration-300 min-h-[300px]"
             >
@@ -1141,7 +1133,7 @@ export default function TossApartmentExploreClient({
           ) : (
             <div id="explore-list-container" className="w-full flex-1 pt-1.5">
               <div className="flex flex-col w-full">
-                {sortedApts.map((item, index) => (
+                {sortedApts.slice(0, visibleCount).map((item, index) => (
                   <React.Fragment key={item.apt.name}>
                     <AptRow 
                       item={item} 
@@ -1156,12 +1148,26 @@ export default function TossApartmentExploreClient({
                     />
                     {index === 14 && sortedApts.length > 15 && (
                       <div className="px-3 md:px-4 py-1.5 md:py-1 w-full">
-                        <NativeAdPlaceholder location="아파트 탐색 리스트 중간" />
+                        <NativeAdPlaceholder location="아파트 탐색 리스트 중간" isCompact={true} />
                       </div>
                     )}
                   </React.Fragment>
                 ))}
               </div>
+
+              {/* 분석 단지 더보기 버튼 (CLS 최적화 및 뷰포트 안정화) */}
+              {sortedApts.length > visibleCount && (
+                <div className="w-full flex justify-center mt-4 mb-2 px-1 md:px-0">
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + 15)}
+                    className="w-full py-4 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 font-extrabold text-[14.5px] rounded-2xl border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.995]"
+                  >
+                    <Sparkles size={16} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                    <span>분석 단지 더보기 ({visibleCount} / {sortedApts.length})</span>
+                    <ChevronDown size={16} className="text-emerald-600 dark:text-emerald-400" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1194,7 +1200,7 @@ export default function TossApartmentExploreClient({
             <div className="flex-1 px-5 py-2">
               <div className="py-3 mt-1">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1" role="tablist" aria-label="모바일 단지 랭킹 필터">
                   <MobileSidebarItem 
                     label="내 관심 단지" 
                     active={currentCategory === 'favorites'} 
@@ -1230,7 +1236,7 @@ export default function TossApartmentExploreClient({
 
               <div className="py-3 border-t border-border mt-1">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2 mt-2">법정동별 보기</h3>
-                <div className="flex flex-col gap-1 pb-6">
+                <div className="flex flex-col gap-1 pb-6" role="tablist" aria-label="모바일 법정동별 보기 필터">
                   {DONGS.map(dong => (
                     <MobileSidebarItem 
                       key={dong.name}
@@ -1273,7 +1279,7 @@ function MobileSidebarItem({ label, active, onClick }: { label: string, active: 
       role="tab"
       aria-selected={active}
       className={`text-left px-4 py-3.5 rounded-2xl text-[16px] font-bold transition-all flex items-center justify-between ${
-        active ? 'bg-[#e0fbf4] text-[#00b386]' : 'text-primary hover:bg-body/50'
+        active ? 'bg-[#e0fbf4] text-[#008060]' : 'text-primary hover:bg-body/50'
       }`}
     >
       {label}

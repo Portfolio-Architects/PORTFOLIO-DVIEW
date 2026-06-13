@@ -89,7 +89,7 @@ export default function LocalEducationAd({ dong = '', educationGrade, apartmentN
 
   if (loading) {
     return (
-      <div className="w-full h-[140px] bg-body/50 border border-border rounded-2xl animate-pulse flex items-center justify-center">
+      <div className="w-full h-[190px] sm:h-[140px] bg-body/50 border border-border rounded-2xl animate-pulse flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <GraduationCap size={24} className="text-emerald-500/40 animate-bounce" />
           <span className="text-[12px] text-tertiary font-medium">맞춤 교육 파트너 추천 로드 중...</span>

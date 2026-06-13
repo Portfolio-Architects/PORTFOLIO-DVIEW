@@ -4,7 +4,7 @@ import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartment
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { KPIData } from '@/lib/types/dashboard.types';
 import type { FieldReportData } from '@/lib/types/report.types';
-import type { DongtanMacroTrendPoint } from '@/lib/types/transaction';
+import type { DongtanMacroTrendPoint, AptTxSummary } from '@/lib/types/transaction';
 
 export interface DashboardInitialDataLocal {
   typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
@@ -14,6 +14,8 @@ export interface DashboardInitialDataLocal {
   kpis?: KPIData[];
   fieldReports?: FieldReportData[];
   macroTrend?: DongtanMacroTrendPoint[];
+  txSummary?: Record<string, AptTxSummary>;
+  recent7DaysVolume?: any;
 }
 
 export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLocal) {

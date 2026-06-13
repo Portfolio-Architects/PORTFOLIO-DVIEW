@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
 import LoungeFeedClient from '@/components/LoungeFeedClient';
-import LoungeComposeClient from '@/components/LoungeComposeClient';
+const LoungeComposeClient = dynamic(() => import('@/components/LoungeComposeClient').catch(err => {
+  console.warn('LoungeComposeClient Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 import { LocalCalendar } from './lounge/LocalCalendar';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -20,6 +25,7 @@ interface Post {
   meta: string;
   views: number;
   likes: number;
+  commentCount: number;
   createdAt: number;
 }
 

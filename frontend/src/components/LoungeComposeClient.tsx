@@ -5,7 +5,7 @@ import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-r
 import { auth, googleProvider, storage } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { dashboardFacade, UserReview } from '@/lib/DashboardFacade';
+import { dashboardFacade } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
@@ -60,16 +60,16 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showCompose, setShowCompose] = useState(false);
   const [postTitle, setPostTitle] = useState('');
-  const MARKDOWN_TEMPLATE = `자유롭게 단지에 대한 생각이나 정보를 나누어주세요!
+  const MARKDOWN_TEMPLATE = `이웃 주민들과 나누고 싶은 실시간 동탄 소식을 알려주세요! 💚
+(예: 동탄역 맛집, 아파트 셔틀 노선 변경, 학원가 라이딩 꿀팁 등)
 
-## 💡 현장에서 느낀 장점이나 특징
-(예: 동탄역 접근성이 예상보다 훨씬 좋았어요, 초등학교가 가까워서 안심이 돼요 등)
+## 💡 우리 아파트 단지의 매력/장점
+(예: 동탄역 도보권이라 출퇴근이 정말 편해요, 초품아라 안심하고 키워요)
 
-## 💬 아쉬웠던 점이나 참고할 만한 팁
-(예: 주말에는 주변 교통이 조금 혼잡할 수 있어요, 주차장 진입로를 미리 확인하세요 등)
+## 💬 실거주민만 아는 유용한 팁 & 주의점
+(예: 금요일 저녁 주차장 꿀자리 위치, 인근 신규 마트 오픈 정보 등)
 
-- 다른 이웃들에게 도움이 될 만한 사소한 정보도 언제나 환영입니다.
-- 하단의 '사진 첨부' 버튼을 통해 생생한 현장 사진을 공유해 보세요!`;
+다른 이웃들의 동탄 살이에 도움이 되는 사소한 정보라면 무엇이든 대환영입니다!`;
 
   const [postContent, setPostContent] = useState('');
   const [postCategory, setPostCategory] = useState('우리동네 이야기');
@@ -198,6 +198,22 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
               </button>
             </div>
             
+            <div className="mb-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 dark:border-emerald-500/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm select-none">
+              <div className="flex items-center gap-3">
+                <span className="text-[20px] animate-bounce shrink-0">🎁</span>
+                <div className="flex flex-col">
+                  <span className="text-[13.5px] font-black text-emerald-800 dark:text-emerald-300">
+                    지금 글 쓰고 프리미엄 리포트 무료 해금!
+                  </span>
+                  <span className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400/80 mt-0.5">
+                    동네 이야기나 아파트 리뷰를 작성하시면 24시간 동안 D-VIEW 모든 분석 리포트가 무료 패스됩니다.
+                  </span>
+                </div>
+              </div>
+              <span className="shrink-0 bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse shadow-sm">
+                100% 해금
+              </span>
+            </div>
 
             <div className="flex gap-2 mb-4 overflow-x-auto">
               {(isUserAdmin 

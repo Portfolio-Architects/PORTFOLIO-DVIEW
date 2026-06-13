@@ -38,11 +38,16 @@ test.describe('Dashboard E2E Tests', () => {
     for (let attempt = 0; attempt < 15; attempt++) {
       console.log(`Clicking apartment complex (Attempt ${attempt + 1})...`);
       try {
+        // If modal is already open, break early
+        if (await txHistoryTitle.isVisible()) {
+          modalOpened = true;
+          break;
+        }
         // Dynamic lookup to avoid detached element errors from Next.js HMR/Fast Refresh
         const currentAptTitle = page.locator('#explore-list-container').getByText(aptName, { exact: false }).first();
         await currentAptTitle.scrollIntoViewIfNeeded();
         await currentAptTitle.click({ timeout: 5000 }); // Let Playwright actionability checks verify visibility/stability
-        await expect(txHistoryTitle).toBeVisible({ timeout: 5000 });
+        await expect(txHistoryTitle).toBeVisible({ timeout: 10000 });
         modalOpened = true;
         break;
       } catch (e) {

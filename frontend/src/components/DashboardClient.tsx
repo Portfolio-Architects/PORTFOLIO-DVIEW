@@ -12,19 +12,180 @@ import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import TossApartmentExploreClient from '@/components/TossApartmentExploreClient';
+
+// LCP Optimization: Skeletons for Heavy Dynamic Components
+const ExploreSkeleton = () => (
+  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
+    {/* Page Title Skeleton */}
+    <div className="min-h-[144px] py-6 flex flex-col gap-3">
+      <div className="w-48 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      <div className="w-72 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+    </div>
+    {/* Filters bar */}
+    <div className="w-full h-12 bg-black/5 dark:bg-surface/5 rounded-2xl mb-6" />
+    {/* Toss-style List Items */}
+    <div className="flex flex-col gap-3">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(i => (
+        <div key={i} className="w-full h-[66px] bg-black/5 dark:bg-surface/5 rounded-2xl flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
+            <div className="flex flex-col gap-1.5">
+              <div className="w-36 h-4 bg-black/10 dark:bg-surface/10 rounded-md" />
+              <div className="w-24 h-3 bg-black/10 dark:bg-surface/10 rounded-md" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-4 bg-black/10 dark:bg-surface/10 rounded-md" />
+            <div className="w-5 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const MacroDashboardSkeleton = () => (
+  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
+    {/* Title */}
+    <div className="min-h-[144px] py-6 flex flex-col gap-3">
+      <div className="w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      <div className="w-96 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+    </div>
+    {/* 4 Cards grid */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="h-24 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      ))}
+    </div>
+    {/* Hybrid Chart & List */}
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex-1 h-[380px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      <div className="w-full lg:w-[350px] h-[380px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
+    </div>
+  </div>
+);
+
+const GapExplorerSkeleton = () => (
+  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
+    {/* Title */}
+    <div className="min-h-[144px] py-6 flex flex-col gap-3">
+      <div className="w-56 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      <div className="w-80 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+    </div>
+    {/* Recommendation horizontally scrollable boxes */}
+    <div className="flex gap-4 overflow-x-hidden mb-6">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="w-72 h-44 bg-black/5 dark:bg-surface/5 rounded-2xl shrink-0" />
+      ))}
+    </div>
+    {/* Section Card */}
+    <div className="w-full h-80 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+  </div>
+);
+
+const LoungeSkeleton = () => (
+  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
+    {/* Title */}
+    <div className="min-h-[144px] py-6 flex flex-col gap-3">
+      <div className="w-40 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      <div className="w-64 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+    </div>
+    {/* Hot Talk boxes */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {[1, 2].map(i => (
+        <div key={i} className="h-28 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      ))}
+    </div>
+    {/* Feed list */}
+    <div className="flex flex-col gap-4">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      ))}
+    </div>
+  </div>
+);
+
+const ModalSkeleton = () => (
+  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-pulse p-4">
+    <div className="bg-surface w-full max-w-[1200px] h-[90vh] rounded-3xl shadow-2xl border border-border/80 p-6 flex flex-col gap-4">
+      {/* Modal Header Skeleton */}
+      <div className="w-1/3 h-10 bg-body rounded-xl animate-pulse" />
+      {/* Modal Sub-Header Skeleton */}
+      <div className="w-1/4 h-5 bg-body rounded-lg animate-pulse" />
+      {/* Modal Grid Skeleton */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="h-full bg-body rounded-2xl animate-pulse" />
+        <div className="h-full bg-body rounded-2xl animate-pulse" />
+      </div>
+    </div>
+  </div>
+);
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal'), { ssr: false });
-const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
-const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
-const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal'), { ssr: false });
-const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
-const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient'), { ssr: false });
-const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient'), { ssr: false });
-const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer'), { ssr: false });
-const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration'), { ssr: false });
-const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration'), { ssr: false });
-const AIRecommendations = dynamic(() => import('@/components/consumer/AIRecommendations'), { ssr: false });
+const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+  console.warn('FieldReportModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { 
+  ssr: false,
+  loading: () => <ModalSkeleton />
+});
+const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal').catch(err => {
+  console.warn('WriteReviewModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
+  console.warn('AdInquiryModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
+  console.warn('B2BConsumerAdModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient').catch(err => {
+  console.warn('MacroDashboardClient Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { 
+  ssr: false,
+  loading: () => <MacroDashboardSkeleton />
+});
+const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient').catch(err => {
+  console.warn('LoungeContainerClient Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { 
+  ssr: false,
+  loading: () => <LoungeSkeleton />
+});
+
+const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer').catch(err => {
+  console.warn('GapInvestmentExplorer Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { 
+  ssr: false,
+  loading: () => <GapExplorerSkeleton />
+});
+const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration').catch(err => {
+  console.warn('ChopoomaCuration Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration').catch(err => {
+  console.warn('LocalEventCuration Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const AIRecommendations = dynamic(() => import('@/components/consumer/AIRecommendations').catch(err => {
+  console.warn('AIRecommendations Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   console.warn('AptCompareModal Chunk Load failure, initiating fallback reload', err);
   if (typeof window !== 'undefined') window.location.reload();
@@ -107,7 +268,6 @@ import { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDe
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { getDisplayName } from '@/lib/types/user.types';
-import { FixedSizeList } from 'react-window';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -267,7 +427,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     setIsLoginGateOpen(true);
   }, []);
   
-  const { txSummary = {}, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(initialDashboardData?.macroTrend);
+  const { txSummary = {}, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
+    initialDashboardData?.macroTrend,
+    initialDashboardData?.txSummary,
+    initialDashboardData?.recent7DaysVolume
+  );
   const { locationScores = {} } = useLocationScores();
   
   const getLocScore = (aptName: string) => {
@@ -314,6 +478,19 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         setActiveTab('gap');
       } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=') || tabParam === 'lounge') {
         setActiveTab('lounge');
+      }
+
+      // Preload heavy chunks during idle time to improve LCP & Interaction responsiveness
+      const preloadHeavyComponents = () => {
+        import('@/components/ApartmentModal').catch(() => {});
+        import('@/components/GapInvestmentExplorer').catch(() => {});
+        import('@/components/LoungeContainerClient').catch(() => {});
+        import('@/components/MacroDashboardClient').catch(() => {});
+      };
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
+      } else {
+        setTimeout(preloadHeavyComponents, 1000);
       }
 
       const handleHashChange = () => {
@@ -785,9 +962,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
       >
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
-        {mounted && (
-          <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
-            <ErrorBoundary name="마크로 대시보드">
+        <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
+          <ErrorBoundary name="마크로 대시보드">
+            {!mounted ? (
+              <MacroDashboardSkeleton />
+            ) : (
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
                 txSummaryData={txSummaryData}
@@ -843,13 +1022,15 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   setMobileModalOpen(true);
                 }}
               />
-            </ErrorBoundary>
-          </section>
-        )}
+            )}
+          </ErrorBoundary>
+        </section>
 
         {/* ═══ TAB 1: 아파트 탐색 (Toss-style 골라보기 테이블) ═══ */}
-        {mounted && (
-          <section className={`w-full bg-transparent ${activeTab === 'imjang' ? 'block' : 'hidden'}`}>
+        <section className={`w-full bg-transparent ${activeTab === 'imjang' ? 'block' : 'hidden'}`}>
+          {!mounted ? (
+            <ExploreSkeleton />
+          ) : (
             <TossApartmentExploreClient
               sheetApartments={sheetApartments}
               txSummaryData={txSummaryData}
@@ -874,131 +1055,138 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 setIsMortgageOpen(true);
               }}
             />
-          </section>
-        )}
+          )}
+        </section>
 
-        {mounted && (
-          <section className={`w-full bg-transparent ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
-            <PageHeroHeader 
-              title="D-VIEW 단지 큐레이션"
-              subtitleStrong="입지 및 가치 기준 테마별 단지 추천"
-              subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
-            />
-            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
-              <AIRecommendations
-                sheetApartments={sheetApartments}
-                txSummaryData={txSummary}
-                nameMapping={nameMapping || {}}
-                publicRentalSet={publicRentalSet}
-                fieldReportsMap={fieldReportsMap}
-                userFavorites={userFavorites || new Set()}
-                onSelectApt={(name: string) => {
-                  userHasSelected.current = true;
-                  const report = fieldReportsMap.get(name);
-                  if (report) {
-                    setSelectedReport(report);
-                  } else {
-                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                    setSelectedReport({
-                      id: `stub-${name.replace(/\s+/g, '')}`,
-                      apartmentName: name,
-                      dong: targetApt.dong,
-                      author: '',
-                      likes: 0,
-                      commentCount: 0,
-                      createdAt: null,
-                      metrics: { ...targetApt } as any,
-                    });
-                  }
-                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                  setMobileModalOpen(true);
-                }}
-                onOpenTaxCalculator={(aptName) => {
-                  setTaxCalcInitialApt(aptName);
-                  setIsTaxCalcOpen(true);
-                }}
-                onOpenMortgage={(aptName) => {
-                  setMortgageInitialApt(aptName);
-                  setIsMortgageOpen(true);
-                }}
-                onOpenSellTimingCalculator={(aptName: string) => {
-                  setSellTimingInitialApt(aptName);
-                  setIsSellTimingOpen(true);
-                }}
+        {/* ═══ TAB 1-2: 큐레이션 ═══ */}
+        <section className={`w-full bg-transparent ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
+          {!mounted ? (
+            <GapExplorerSkeleton />
+          ) : (
+            <>
+              <PageHeroHeader 
+                title="D-VIEW 단지 큐레이션"
+                subtitleStrong="입지 및 가치 기준 테마별 단지 추천"
+                subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
               />
+              <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
+                <AIRecommendations
+                  sheetApartments={sheetApartments}
+                  txSummaryData={txSummary}
+                  nameMapping={nameMapping || {}}
+                  publicRentalSet={publicRentalSet}
+                  fieldReportsMap={fieldReportsMap}
+                  userFavorites={userFavorites || new Set()}
+                  onSelectApt={(name: string) => {
+                    userHasSelected.current = true;
+                    const report = fieldReportsMap.get(name);
+                    if (report) {
+                      setSelectedReport(report);
+                    } else {
+                      const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                      setSelectedReport({
+                        id: `stub-${name.replace(/\s+/g, '')}`,
+                        apartmentName: name,
+                        dong: targetApt.dong,
+                        author: '',
+                        likes: 0,
+                        commentCount: 0,
+                        createdAt: null,
+                        metrics: { ...targetApt } as any,
+                      });
+                    }
+                    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                    setMobileModalOpen(true);
+                  }}
+                  onOpenTaxCalculator={(aptName) => {
+                    setTaxCalcInitialApt(aptName);
+                    setIsTaxCalcOpen(true);
+                  }}
+                  onOpenMortgage={(aptName) => {
+                    setMortgageInitialApt(aptName);
+                    setIsMortgageOpen(true);
+                  }}
+                  onOpenSellTimingCalculator={(aptName: string) => {
+                    setSellTimingInitialApt(aptName);
+                    setIsSellTimingOpen(true);
+                  }}
+                />
 
-              <ChopoomaCuration
-                sheetApartments={sheetApartments}
-                txSummaryData={txSummary}
-                nameMapping={nameMapping || {}}
-                publicRentalSet={publicRentalSet}
-                locationScores={locationScores}
-                onSelectApt={(name: string) => {
-                  userHasSelected.current = true;
-                  const report = fieldReportsMap.get(name);
-                  if (report) {
-                    setSelectedReport(report);
-                  } else {
-                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                    setSelectedReport({
-                      id: `stub-${name.replace(/\s+/g, '')}`,
-                      apartmentName: name,
-                      dong: targetApt.dong,
-                      author: '',
-                      likes: 0,
-                      commentCount: 0,
-                      createdAt: null,
-                      metrics: { ...targetApt } as any,
-                    });
-                  }
-                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                  setMobileModalOpen(true);
-                }}
-              />
+                <ChopoomaCuration
+                  sheetApartments={sheetApartments}
+                  txSummaryData={txSummary}
+                  nameMapping={nameMapping || {}}
+                  publicRentalSet={publicRentalSet}
+                  locationScores={locationScores}
+                  onSelectApt={(name: string) => {
+                    userHasSelected.current = true;
+                    const report = fieldReportsMap.get(name);
+                    if (report) {
+                      setSelectedReport(report);
+                    } else {
+                      const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                      setSelectedReport({
+                        id: `stub-${name.replace(/\s+/g, '')}`,
+                        apartmentName: name,
+                        dong: targetApt.dong,
+                        author: '',
+                        likes: 0,
+                        commentCount: 0,
+                        createdAt: null,
+                        metrics: { ...targetApt } as any,
+                      });
+                    }
+                    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                    setMobileModalOpen(true);
+                  }}
+                />
 
-              <GapInvestmentExplorer
-                sheetApartments={sheetApartments}
-                txSummaryData={txSummary}
-                nameMapping={nameMapping || {}}
-                publicRentalSet={publicRentalSet}
-                onSelectApt={(name: string) => {
-                  userHasSelected.current = true;
-                  const report = fieldReportsMap.get(name);
-                  if (report) {
-                    setSelectedReport(report);
-                  } else {
-                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                    setSelectedReport({
-                      id: `stub-${name.replace(/\s+/g, '')}`,
-                      apartmentName: name,
-                      dong: targetApt.dong,
-                      author: '',
-                      likes: 0,
-                      commentCount: 0,
-                      createdAt: null,
-                      metrics: { ...targetApt } as any,
-                    });
-                  }
-                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                  setMobileModalOpen(true);
-                }}
-                onOpenAdModal={() => setIsAdModalOpen(true)}
-              />
+                <GapInvestmentExplorer
+                  sheetApartments={sheetApartments}
+                  txSummaryData={txSummary}
+                  nameMapping={nameMapping || {}}
+                  publicRentalSet={publicRentalSet}
+                  onSelectApt={(name: string) => {
+                    userHasSelected.current = true;
+                    const report = fieldReportsMap.get(name);
+                    if (report) {
+                      setSelectedReport(report);
+                    } else {
+                      const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
+                      setSelectedReport({
+                        id: `stub-${name.replace(/\s+/g, '')}`,
+                        apartmentName: name,
+                        dong: targetApt.dong,
+                        author: '',
+                        likes: 0,
+                        commentCount: 0,
+                        createdAt: null,
+                        metrics: { ...targetApt } as any,
+                      });
+                    }
+                    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
+                    setMobileModalOpen(true);
+                  }}
+                  onOpenAdModal={() => setIsAdModalOpen(true)}
+                />
 
-              <LocalEventCuration 
-                txSummaryData={txSummary}
-                onSelectApt={handleAptClickByName} 
-              />
-            </div>
-          </section>
-        )}
+                <LocalEventCuration 
+                  txSummaryData={txSummary}
+                  onSelectApt={handleAptClickByName} 
+                />
+              </div>
+            </>
+          )}
+        </section>
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
-        {mounted && (
-          <section className={`w-full bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
+        <section className={`w-full bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
+          {!mounted ? (
+            <LoungeSkeleton />
+          ) : (
             <LoungeContainerClient initialPosts={[]} onRequestLogin={handleRequestLogin} />
-          </section>
-        )}
+          )}
+        </section>
 
 
         
@@ -1027,6 +1215,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
             user={user}
             transactions={modalTransactions}
+            isTxLoading={isTxLoading}
             typeMap={typeMap}
             inline={false}
             isLoadingDetail={isLoadingDetail}

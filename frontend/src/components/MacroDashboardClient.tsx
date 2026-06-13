@@ -2,7 +2,11 @@ import React, { useMemo, useState, useDeferredValue, useEffect } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
-const MacroTrendChart = dynamic(() => import("./MacroTrendChart"), {
+const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
+  console.warn('MacroTrendChart Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
@@ -10,7 +14,11 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart"), {
     </div>
   )
 });
-const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder"), {
+const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err => {
+  console.warn('AptFitFinder Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
   ssr: false,
 });
 

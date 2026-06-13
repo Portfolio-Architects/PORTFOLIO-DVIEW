@@ -13,6 +13,7 @@ const postItemSchema = z.object({
   imageUrl: z.string().nullable().default(null),
   likes: z.number().default(0),
   views: z.number().default(0),
+  commentCount: z.number().default(0),
   createdAt: z.number(),
   meta: z.string(),
   summary: z.string().default('')
@@ -69,6 +70,7 @@ export async function GET(req: Request) {
           imageUrl: imgMatch ? imgMatch[1] : (data.imageUrl || null),
           likes: data.likes || 0,
           views: data.views || 0,
+          commentCount: data.commentCount || 0,
           createdAt: createdAtMs,
           meta: `${dateStr} · ${data.category || '기타'}`,
           summary: rawContent

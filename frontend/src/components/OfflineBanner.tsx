@@ -12,8 +12,15 @@ export default function OfflineBanner() {
   const isOnline = useNetworkStatus();
   const [showReconnected, setShowReconnected] = useState(false);
   const [wasOffline, setWasOffline] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     if (!isOnline) {
       setWasOffline(true);
     } else if (wasOffline) {
@@ -24,9 +31,9 @@ export default function OfflineBanner() {
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isOnline, wasOffline]);
+  }, [isOnline, wasOffline, mounted]);
 
-  if (isOnline && !showReconnected) return null;
+  if (!mounted || (isOnline && !showReconnected)) return null;
 
   return (
     <div

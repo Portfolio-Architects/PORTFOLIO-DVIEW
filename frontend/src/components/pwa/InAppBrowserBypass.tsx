@@ -190,7 +190,7 @@ export default function InAppBrowserBypass() {
   })();
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[99999] bg-neutral-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
       <div className="bg-surface max-w-sm w-full rounded-3xl border border-border shadow-2xl p-6 text-center flex flex-col items-center gap-5 animate-in zoom-in-95 duration-200">
         
         {/* App Indicator Icon */}
@@ -239,8 +239,8 @@ export default function InAppBrowserBypass() {
                 onClick={handleCopyLink}
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-[13.5px] font-extrabold transition-all border ${
                   copySuccess
-                    ? 'bg-toss-green border-toss-green text-surface'
-                    : 'bg-body border-border text-primary hover:bg-gray-200'
+                    ? 'bg-emerald-600 border-emerald-600 text-surface'
+                    : 'bg-body border-border text-primary hover:bg-neutral-200 dark:hover:bg-neutral-800'
                 }`}
               >
                 <Copy size={16} />
@@ -252,7 +252,7 @@ export default function InAppBrowserBypass() {
               onClick={handleCopyLink}
               className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-[13.5px] font-extrabold transition-all border ${
                 copySuccess
-                  ? 'bg-toss-green border-toss-green text-surface'
+                  ? 'bg-emerald-600 border-emerald-600 text-surface'
                   : 'bg-teal-600 border-teal-600 text-surface hover:bg-teal-700 active:scale-[0.98]'
               }`}
             >

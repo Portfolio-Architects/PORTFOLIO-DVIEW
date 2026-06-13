@@ -139,7 +139,7 @@ export default function HotComplexRanking({
       
       {/* Premium Underline Title */}
       <div className="flex border-b border-border/60 bg-body/25 px-5 py-3.5 shrink-0 items-center gap-2">
-        <Clock className="w-4 h-4 text-[#00b386] animate-pulse" />
+        <Clock className="w-4 h-4 text-[#008060] animate-pulse" />
         <span className="text-[14.5px] font-black text-primary">최근 실거래 단지</span>
       </div>
  
@@ -147,7 +147,7 @@ export default function HotComplexRanking({
       <div className="p-4 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
           {displayList.map((item, index) => {
-            const badgeStyle = "bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#00b386] dark:text-[#00d29d] font-bold border border-transparent";
+            const badgeStyle = "bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#008060] dark:text-[#00d29d] font-bold border border-transparent";
             
             return (
               <div
@@ -194,7 +194,7 @@ export default function HotComplexRanking({
           {hasMore ? (
             <button
               onClick={() => setVisibleCount(prev => Math.min(prev + 15, recentList.length))}
-              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-[#00b386] dark:text-[#00d29d] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-[#008060] dark:text-[#00d29d] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
             >
               실거래 이력 더보기 ({Math.min(15, recentList.length - visibleCount)}개 더보기, {visibleCount}/{recentList.length}) <ChevronDown className="w-4 h-4" />
             </button>

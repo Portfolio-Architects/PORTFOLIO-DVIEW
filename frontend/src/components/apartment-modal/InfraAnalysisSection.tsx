@@ -3,7 +3,11 @@ import dynamic from 'next/dynamic';
 import { MapPin, Check, Share } from 'lucide-react';
 import { calculateInfraScore } from '@/lib/utils/scoring';
 
-const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
+const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard').catch(err => {
+  console.warn('AnchorTenantCard Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 
 interface InfraAnalysisSectionProps {
   report: any;

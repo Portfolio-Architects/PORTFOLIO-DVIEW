@@ -1,4 +1,6 @@
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
+import Script from 'next/script';
 import DashboardClient from '@/components/DashboardClient';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { createInitialKPIs } from '@/lib/services/kpi.service';
@@ -28,6 +30,8 @@ async function getInitialData() {
     fieldReports?: any[];
     kpis?: any[];
     macroTrend?: DongtanMacroTrendPoint[];
+    txSummary?: Record<string, any>;
+    recent7DaysVolume?: any;
   } = {
     favoriteCounts: {},
     typeMap: [],
@@ -35,6 +39,8 @@ async function getInitialData() {
     fieldReports: [],
     kpis: createInitialKPIs(),
     macroTrend: [],
+    txSummary: {},
+    recent7DaysVolume: undefined,
   };
 
   const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
@@ -169,6 +175,25 @@ async function getInitialData() {
     }
   };
 
+  const fetchTxSummary = async () => {
+    try {
+      const filePath = path.resolve(process.cwd(), 'public/data/tx-summary.json');
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(fileContent);
+        result.txSummary = parsed.summary || parsed;
+        result.recent7DaysVolume = parsed.recent7DaysVolume;
+      } else {
+        result.txSummary = {};
+        result.recent7DaysVolume = undefined;
+      }
+    } catch (e) {
+      console.warn('[Server] Failed to read tx-summary.json:', e);
+      result.txSummary = {};
+      result.recent7DaysVolume = undefined;
+    }
+  };
+
   await Promise.allSettled([
     fetchFavCounts().catch(e => console.warn('[Server] favCounts error:', e)),
     fetchMeta().catch(e => console.warn('[Server] meta error:', e)),
@@ -176,6 +201,7 @@ async function getInitialData() {
     fetchTypeMap().catch(e => console.warn('[Server] typeMap error:', e)),
     fetchApts().catch(e => console.warn('[Server] apts error:', e)),
     fetchMacroTrend().catch(e => console.warn('[Server] macroTrend error:', e)),
+    fetchTxSummary().catch(e => console.warn('[Server] txSummary error:', e)),
   ]);
 
   (globalThis as any)._initialPageDataCache = { data: result, timestamp: Date.now() };
@@ -226,11 +252,60 @@ async function DashboardDataLoader() {
   return <DashboardClient initialDashboardData={initialData} />;
 }
 
-export default function Page() {
+export default async function Page() {
+  const nonce = (await headers()).get('x-nonce') || undefined;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://dongtanview.com/#website",
+        "url": "https://dongtanview.com",
+        "name": "D-VIEW | 동탄 아파트 가치분석",
+        "description": "동탄 179개 아파트의 실거래가·인프라·학군·현장 사진 가치 분석 플랫폼",
+        "publisher": {
+          "@id": "https://dongtanview.com/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": `${baseUrl}/?tab=imjang&search={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        },
+        "inLanguage": "ko-KR"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://dongtanview.com/#organization",
+        "name": "D-VIEW 부동산 데이터 랩스",
+        "url": "https://dongtanview.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${baseUrl}/d-view-icon.png`,
+          "width": 192,
+          "height": 192
+        },
+        "description": "동탄 전역 아파트 실거래가 추이, 전세가율 갭투자 리스크, 안심 보육 학군 지도 시각화 전문 기관"
+      }
+    ]
+  };
+
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardDataLoader />
-    </Suspense>
+    <>
+      <Script
+        id="jsonld-main-schema"
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardDataLoader />
+      </Suspense>
+    </>
   );
 }
 

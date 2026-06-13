@@ -3,9 +3,14 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import useSWRInfinite from 'swr/infinite';
 import ReactMarkdown from 'react-markdown';
-import LoungeDetailClient from '@/components/LoungeDetailClient';
+const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient').catch(err => {
+  console.warn('LoungeDetailClient Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 import { usePWA } from '@/components/pwa/PWAProvider';
@@ -21,6 +26,7 @@ interface Post {
   meta: string;
   views: number;
   likes: number;
+  commentCount: number;
   createdAt: number;
 }
 
@@ -111,8 +117,18 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   }, [data]);
 
   const hotPosts = useMemo(() => {
+    const now = Date.now();
     return [...posts]
-      .sort((a, b) => (b.views + b.likes * 5) - (a.views + a.likes * 5))
+      .sort((a, b) => {
+        const aAgeDays = (now - a.createdAt) / (1000 * 60 * 60 * 24);
+        const bAgeDays = (now - b.createdAt) / (1000 * 60 * 60 * 24);
+        
+        // Time decay formula: Score = (Views + Likes*5 + CommentCount*10) / (AgeInDays + 1)^1.2
+        const aScore = (a.views + a.likes * 5 + (a.commentCount || 0) * 10) / Math.pow(aAgeDays + 1, 1.2);
+        const bScore = (b.views + b.likes * 5 + (b.commentCount || 0) * 10) / Math.pow(bAgeDays + 1, 1.2);
+        
+        return bScore - aScore;
+      })
       .slice(0, 4);
   }, [posts]);
 
@@ -730,6 +746,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                   <div className="flex items-center gap-2 mt-1 text-[11px] text-tertiary">
                     <span className="flex items-center gap-0.5"><Eye size={11}/> {post.views}</span>
                     <span className="flex items-center gap-0.5 text-rose-500"><Heart size={11} className="fill-current"/> {post.likes}</span>
+                    <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400"><MessageSquare size={11}/> {post.commentCount || 0}</span>
                   </div>
                 </div>
               </div>
@@ -754,6 +771,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 <NativeAdPlaceholder 
                   location={`라운지 피드 중간 광고 ${Math.floor(index / 4)}`} 
                   adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_FEED || "test-lounge-feed-slot"} 
+                  isCompact={true}
                 />
               </div>
             )}
@@ -792,10 +810,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 </div>
               </div>
               
-              {/* Mobile Top Right Meta: Views, Likes */}
+              {/* Mobile Top Right Meta: Views, Likes, Comments */}
               <div className="flex sm:hidden items-center gap-2.5 text-[11px] font-semibold text-tertiary">
                 <span className="flex items-center gap-1"><Eye size={12}/> {news.views || 0}</span>
                 <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={12} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><MessageSquare size={12}/> {news.commentCount || 0}</span>
               </div>
             </div>
 
@@ -830,9 +849,10 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               {/* Desktop Right Meta: Date, Views, Likes */}
               <div className="hidden sm:flex items-center gap-4 shrink-0 pl-2">
                 <span className="text-[13px] font-medium text-tertiary w-[90px] text-right whitespace-nowrap">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
-                <div className="flex items-center gap-3 text-[13px] font-semibold text-tertiary w-[80px] justify-end">
+                <div className="flex items-center gap-3 text-[13px] font-semibold text-tertiary w-[120px] justify-end">
                   <span className="flex items-center gap-1"><Eye size={14}/> {news.views || 0}</span>
                   <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={14} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
+                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><MessageSquare size={14}/> {news.commentCount || 0}</span>
                 </div>
               </div>
             </div>

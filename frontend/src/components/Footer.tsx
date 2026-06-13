@@ -28,7 +28,28 @@ export default function Footer() {
           {/* 좌측: 로고 및 링크 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8 lg:gap-10 shrink-0">
             <div className="flex items-center gap-2.5">
-              <img src="/d-view-icon.png" alt="D-VIEW Logo" className="w-[26px] h-[26px] rounded-[6px] grayscale opacity-70" />
+              <div className="w-[26px] h-[26px] rounded-[6px] grayscale opacity-70">
+                <svg
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full object-contain"
+                >
+                  <rect width="100" height="100" rx="28" fill="url(#dview-logo-grad-footer)" />
+                  <path
+                    d="M50 20L22 42.4V74C22 77.3 24.7 80 28 80H42V58H58V80H72C75.3 80 78 77.3 78 74V42.4L50 20Z"
+                    fill="#FFFFFF"
+                  />
+                  <circle cx="50" cy="51" r="10" stroke="#008262" strokeWidth="4.5" fill="#ffffff" />
+                  <line x1="57" y1="58" x2="65" y2="66" stroke="#008262" strokeWidth="4.5" strokeLinecap="round" />
+                  <defs>
+                    <linearGradient id="dview-logo-grad-footer" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#00d29d" />
+                      <stop offset="100%" stopColor="#008262" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
               <span className="text-[15px] font-extrabold text-tertiary tracking-tight">D-VIEW</span>
             </div>
             

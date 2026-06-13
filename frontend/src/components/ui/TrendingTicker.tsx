@@ -32,16 +32,17 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
   if (!popularAptItems || popularAptItems.length === 0) return null;
 
   return (
-    <div 
+    <aside 
       className="relative bg-surface border-y border-border px-3 sm:px-6 md:px-10 lg:px-16 py-2.5 min-h-[46px] flex items-center justify-between w-full shadow-sm transition-all z-30 select-none cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-label="실시간 인기 아파트 순위"
     >
       <div className="flex items-center justify-between max-w-[2000px] w-full mx-auto">
         <div className="flex items-center gap-4 flex-1 min-w-0">
           <div className="flex items-center gap-1.5 shrink-0">
             <Flame size={16} className="text-teal-500 animate-pulse fill-teal-500" />
-            <span className="text-[13px] font-black text-teal-600 dark:text-teal-400 tracking-tight">실시간 인기</span>
+            <span className="text-[13px] font-black text-teal-700 dark:text-teal-300 tracking-tight">실시간 인기</span>
           </div>
           
           {/* Rolling Area */}
@@ -86,7 +87,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
 
         {/* Hover / Dropdown Indicator */}
         <div className="flex items-center gap-1 ml-4 text-tertiary shrink-0">
-          <span className="text-[11px] font-bold hidden sm:inline text-secondary/80">전체보기</span>
+          <span className="text-[11px] font-bold hidden sm:inline text-secondary">전체보기</span>
           <ChevronDown size={14} className={`transition-transform duration-300 ${isHovered ? 'rotate-180 text-primary' : ''}`} />
         </div>
 
@@ -136,7 +137,7 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
                     최근거래 <span className="text-primary font-black">{item.latestPrice}</span>
                   </span>
                 )}
-                <span className="text-teal-600 dark:text-teal-400 font-extrabold bg-teal-500/5 px-2 py-0.5 rounded-[6px] border border-teal-500/10 shrink-0">
+                <span className="text-teal-700 dark:text-teal-300 font-extrabold bg-teal-500/5 px-2 py-0.5 rounded-[6px] border border-teal-500/10 shrink-0">
                   관심 {item.favCount}명
                 </span>
               </div>
@@ -144,6 +145,6 @@ export function TrendingTicker({ popularAptItems, onSelectApt }: TrendingTickerP
           ))}
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

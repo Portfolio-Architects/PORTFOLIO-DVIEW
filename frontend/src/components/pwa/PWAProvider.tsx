@@ -72,6 +72,8 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Clear old SWR localStorage cache to ensure returning users get fresh data
     try {
       if (typeof window !== 'undefined') {
@@ -105,8 +107,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       setIsInstallable(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', () => {
+    const handleAppInstalled = () => {
       setDeferredPrompt(null);
       setIsInstallable(false);
       setShowCustomA2HSModal(false);
@@ -117,25 +118,33 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       
       setToastMessage('🎉 홈화면 앱 설치 감사 혜택! 무료 리포트 조회권 3회가 지급되었습니다.');
       setTimeout(() => {
-        setToastMessage(null);
+        if (isMounted) {
+          setToastMessage(null);
+        }
       }, 5000);
-    });
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     // 2. Web Push Support Check
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
       setTimeout(() => {
-        setIsPushSupported(true);
+        if (isMounted) setIsPushSupported(true);
       }, 0);
       // Check existing subscription
       navigator.serviceWorker.ready.then((reg) => {
+        if (!isMounted) return;
         reg.pushManager.getSubscription().then((sub) => {
-          if (sub) setPushSubscription(sub);
+          if (isMounted && sub) setPushSubscription(sub);
         });
       });
     }
 
     return () => {
+      isMounted = false;
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('storage', handleStorageChange);
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
@@ -227,11 +236,11 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     >
       {children}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#008262] dark:bg-[#00b386] text-white font-extrabold px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 select-none">
-          <span className="text-[13px] md:text-[14px]">{toastMessage}</span>
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none">
+          <span className="text-[12.5px] md:text-[13.5px] leading-relaxed flex-1">{toastMessage}</span>
           <button 
             onClick={() => setToastMessage(null)} 
-            className="ml-2 hover:opacity-85 text-white/80 focus:outline-none text-[12px] font-black cursor-pointer bg-white/20 hover:bg-white/30 rounded-full w-5 h-5 flex items-center justify-center"
+            className="hover:opacity-85 text-white/80 focus:outline-none text-[10px] font-black cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-[22px] h-[22px] flex items-center justify-center shrink-0"
           >
             ✕
           </button>

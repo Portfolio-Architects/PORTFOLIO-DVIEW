@@ -114,9 +114,9 @@ export default function ContextualB2BAdBanner({
             </span>
             <span className="text-[11px] font-extrabold text-tertiary">B2B 제휴 제안</span>
           </div>
-          <h4 className="text-[14.5px] font-black text-primary leading-snug tracking-tight group-hover:text-[#0d9488] transition-colors truncate">
+          <p className="text-[14.5px] font-black text-primary leading-snug tracking-tight group-hover:text-[#0d9488] transition-colors truncate">
             {ad.title}
-          </h4>
+          </p>
           <p className="text-[12.5px] text-secondary font-medium leading-relaxed">
             {ad.desc}
           </p>

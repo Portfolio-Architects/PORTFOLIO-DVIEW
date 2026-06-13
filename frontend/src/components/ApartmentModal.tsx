@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import {
   MapPin, X, Camera,
   Building, Info, Shield, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
-  Crown, ChevronRight, GraduationCap, Calculator
+  Crown, ChevronRight, GraduationCap, Calculator, MessageSquare
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -16,15 +16,30 @@ import { doc, updateDoc, collection, query, where, getDocs, limit } from 'fireba
 import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
-import CommentSection from '@/components/CommentSection';
+const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
+  console.warn('CommentSection Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
-import ChildcareDetailSection from './apartment-modal/ChildcareDetailSection';
-import JeonseSafetyReport from './apartment-modal/JeonseSafetyReport';
-import ViralPaywallGate from './apartment-modal/ViralPaywallGate';
-const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection), {
+const ViralPaywallGate = dynamic(() => import('./apartment-modal/ViralPaywallGate').catch(err => {
+  console.warn('ViralPaywallGate Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyReport').catch(err => {
+  console.warn('JeonseSafetyReport Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection).catch(err => {
+  console.warn('TransactionChartSection Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return () => null;
+}), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
@@ -34,10 +49,18 @@ const TransactionChartSection = dynamic(() => import('./apartment-modal/Transact
 });
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
-import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';
+const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
+  console.warn('PhotoUploadModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return () => null;
+}), { ssr: false });
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao } from '@/lib/utils/kakaoShare';
-import BuyOrWaitVote from './apartment-modal/BuyOrWaitVote';
+const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
+  console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import LocalEducationAd from '@/components/LocalEducationAd';
@@ -46,13 +69,33 @@ import ContextualB2BAdBanner from './apartment-modal/ContextualB2BAdBanner';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 
-import EducationAnalysisSection from './apartment-modal/EducationAnalysisSection';
-import InfraAnalysisSection from './apartment-modal/InfraAnalysisSection';
-import ScoutingReportDetailSection from './apartment-modal/ScoutingReportDetailSection';
 import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
+const EducationAnalysisSection = dynamic(() => import('./apartment-modal/EducationAnalysisSection').catch(err => {
+  console.warn('EducationAnalysisSection Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalysisSection').catch(err => {
+  console.warn('InfraAnalysisSection Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const ScoutingReportDetailSection = dynamic(() => import('./apartment-modal/ScoutingReportDetailSection').catch(err => {
+  console.warn('ScoutingReportDetailSection Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 
-const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
-const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
+const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics').catch(err => {
+  console.warn('AdvancedValuationMetrics Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard').catch(err => {
+  console.warn('AnchorTenantCard Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface TransactionRecord {
@@ -232,7 +275,8 @@ function FieldReportModal({
   onOpenJeonseSafety,
   onOpenMortgage,
   onOpenTaxCalculator,
-  onOpenSellTimingCalculator
+  onOpenSellTimingCalculator,
+  isTxLoading
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -256,6 +300,7 @@ function FieldReportModal({
   onOpenMortgage?: (aptName: string) => void;
   onOpenTaxCalculator?: (aptName: string) => void;
   onOpenSellTimingCalculator?: (aptName: string) => void;
+  isTxLoading?: boolean;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const { areaUnit, setAreaUnit } = useSettings();
@@ -1145,6 +1190,46 @@ function FieldReportModal({
     }
   };
 
+  const handleDownloadShareCard = async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+    showToast("📸 요약 카드 이미지를 생성하고 있습니다...");
+    
+    try {
+      // Allow React to mount the off-screen share card DOM before capture
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      if (shareCardRef.current) {
+        const html2canvasProInstance = (await import('html2canvas-pro')).default;
+        
+        const canvas = await safeHtml2canvasPro(html2canvasProInstance, shareCardRef.current, {
+          width: 1200,
+          height: 630,
+          scale: 2.0, // 고화질 저장용 2.0 스케일
+          useCORS: true,
+          backgroundColor: '#0f172a',
+          logging: false
+        });
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `DVIEW_${normalizeAptName(report.apartmentName)}_요약카드.png`;
+        link.href = dataUrl;
+        link.click();
+        
+        showToast("🎉 인포그래픽 요약 카드가 이미지 파일로 저장되었습니다!");
+        incrementViralShareCount(); // 통계 증가
+      } else {
+        showToast("이미지 캡처 대상을 찾을 수 없습니다.");
+      }
+    } catch (error) {
+      console.error("Image card download failed:", error);
+      showToast("이미지 카드 저장 중 오류가 발생했습니다.");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   const handleCopyLink = () => {
     const baseUrl = window.location.origin;
     let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
@@ -1163,6 +1248,38 @@ function FieldReportModal({
     }).catch((err) => {
       console.error("Link copy failed:", err);
       showToast("링크 복사에 실패했습니다.");
+    });
+  };
+
+  const handleCopySummary = () => {
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
+    const latestSale = transactions.find(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
+    const latestPrice = latestSale ? (latestSale.priceEok || `${(latestSale.price / 10000).toFixed(1)}억`) : '기록 없음';
+    const latestArea = latestSale ? (latestSale.areaLabelM2 || `${latestSale.area}㎡`) : '';
+
+    const eduScoreInfo = report.metrics ? calculateEducationScore(report.metrics) : null;
+    const infraScoreInfo = report.metrics ? calculateInfraScore(report.metrics) : null;
+
+    const summaryText = `🏠 동탄 ${displayAptName} 가치분석 요약 📊
+🔥 "동탄 부동산 3040이 선택한 가장 정확한 아파트 분석!"
+💬 동탄 엄마·아빠 단톡방 화제의 리포트
+
+💸 최근 실거래가: ${latestPrice}${latestArea ? ` (전용 ${latestArea})` : ''}
+${eduScoreInfo ? `🏫 학군/육아 환경 지수: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description}\n` : ''}${infraScoreInfo ? `🚇 입지/교통 인프라 지수: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description}\n` : ''}
+👀 우리 아이 키우기에 이 단지가 진짜 좋을까요?
+💡 최근 실거래 상승/하락 추이와 학원 셔틀, 역세권 호재까지 D-VIEW에서 1초 만에 확인해 보세요!
+👉 ${shareUrl}
+
+#DVIEW #동탄부동산 #가치분석 #아파트실거래 #육아소통 #동탄맘 #신혼부부`;
+
+    navigator.clipboard.writeText(summaryText).then(() => {
+      showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");
+      setCopiedStatus('summary');
+      setTimeout(() => setCopiedStatus(null), 1500);
+    }).catch((err) => {
+      console.error("Summary copy failed:", err);
+      showToast("요약본 복사에 실패했습니다.");
     });
   };
 
@@ -1368,6 +1485,34 @@ function FieldReportModal({
               <span>{copiedStatus === 'all-link' ? '복사 완료!' : '공유하기'}</span>
             </button>
 
+            {/* 단톡방 요약 복사 버튼 */}
+            <button
+              onClick={handleCopySummary}
+              className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md ${
+                copiedStatus === 'summary'
+                  ? 'bg-emerald-100/90 dark:bg-emerald-900/40 border-emerald-500/40 text-emerald-900 dark:text-emerald-300 scale-[1.03]'
+                  : 'bg-emerald-50/60 hover:bg-emerald-100/80 dark:bg-emerald-950/15 dark:hover:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-100/30 dark:border-emerald-900/30'
+              }`}
+              title="단톡방용 텍스트 요약 복사"
+            >
+              {copiedStatus === 'summary' ? (
+                <Check size={15} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <MessageSquare size={15} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span>{copiedStatus === 'summary' ? '요약 복사 완료!' : '단톡방 요약 복사'}</span>
+            </button>
+
+            {/* 인포그래픽 요약 이미지 다운로드 버튼 */}
+            <button
+              onClick={handleDownloadShareCard}
+              className="px-4 py-2 bg-neutral-100 dark:bg-zinc-900 hover:bg-[#e5e8eb] dark:hover:bg-zinc-800 text-secondary border border-border/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md"
+              title="인포그래픽 요약 카드 이미지 다운로드"
+            >
+              <Camera size={15} strokeWidth={2.5} className="text-secondary/80" />
+              <span>이미지 저장</span>
+            </button>
+
             {/* 통합 금융/분석 드롭다운 도구함 */}
             <div className="relative" ref={toolDropdownRef}>
               <button
@@ -1467,6 +1612,7 @@ function FieldReportModal({
                       value={selectedAreaFilter}
                       onChange={(e) => { setSelectedAreaFilter(e.target.value); loadAllTransactions?.(); }}
                       className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer"
+                      aria-label="평형 타입 필터 선택"
                     >
                       {areaFilterChips.map(chip => (
                          <option key={chip} value={chip} className="font-medium text-secondary">
@@ -1526,8 +1672,8 @@ function FieldReportModal({
           
           {/* Left: 실거래가 전체 리스트 (35%) */}
           <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
-            {!isAnimationFinished ? (
-              <div className="w-full h-[320px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+            {!isAnimationFinished || isTxLoading ? (
+              <div className="w-full h-[408px] md:h-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
                 <span className="text-[12px] font-bold text-tertiary">거래 데이터 분석 중...</span>
               </div>
             ) : (
@@ -1543,8 +1689,8 @@ function FieldReportModal({
           {/* Right: 실거래가 차트 (65%) */}
           <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
             <ErrorBoundary name="실거래 차트">
-              {!isAnimationFinished ? (
-                <div className="w-full h-[320px] md:h-[360px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+              {!isAnimationFinished || isTxLoading ? (
+                <div className="w-full h-[519px] md:h-[544px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
                   <span className="text-[12px] font-bold text-tertiary">시세 차트 로딩 중...</span>
                 </div>
               ) : (
@@ -1566,8 +1712,8 @@ function FieldReportModal({
       </section>
 
       {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
-      {!isAnimationFinished ? (
-        <div className="w-full h-[80px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse mt-4" />
+      {!isAnimationFinished || isTxLoading ? (
+        <div className="w-full h-[440px] md:h-[390px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse mt-4" />
       ) : (
         <TransactionSummaryMetrics 
           transactions={transactions} 
@@ -1672,6 +1818,17 @@ function FieldReportModal({
                 handleKakaoShare={handleKakaoShare}
                 displayAptName={displayAptName}
               />
+
+              {/* 모달 중간 네이티브/AdSense 광고 삽입 (수익화 채널 2배 강화) */}
+              <div className="px-3 md:px-4 py-1.5 md:py-1 w-full my-2">
+                <NativeAdPlaceholder 
+                  location="단지 리포트 모달 중간" 
+                  onClick={onOpenAdModal} 
+                  metrics={report.metrics} 
+                  adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL_MID || "test-apt-modal-mid-slot"} 
+                  isCompact={true}
+                />
+              </div>
 
               {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
               <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
@@ -1854,6 +2011,7 @@ function FieldReportModal({
                   onClick={onOpenAdModal} 
                   metrics={report.metrics} 
                   adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL || "test-apt-modal-slot"} 
+                  isCompact={true}
                 />
               </div>
 
@@ -2107,7 +2265,33 @@ function FieldReportModal({
               >
                 <ArrowLeft size={24} strokeWidth={2.5} />
               </button>
+
+              {/* 단톡방 요약 복사 (모바일 숏컷) */}
+              <button
+                onClick={handleCopySummary}
+                className={`w-[56px] h-[56px] rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm border transform duration-200 active:scale-[0.94] ${
+                  copiedStatus === 'summary'
+                    ? 'bg-emerald-100/80 dark:bg-emerald-900/35 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 scale-[1.05]'
+                    : 'bg-emerald-50/50 hover:bg-[#e5e8eb] dark:bg-emerald-950/10 text-emerald-700 dark:text-emerald-300 border-emerald-100/30'
+                }`}
+                title="단톡방용 텍스트 요약 복사"
+              >
+                {copiedStatus === 'summary' ? (
+                  <Check size={24} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <MessageSquare size={24} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+                )}
+              </button>
               
+              {/* 인포그래픽 요약 이미지 다운로드 (모바일 숏컷) */}
+              <button
+                onClick={handleDownloadShareCard}
+                className="w-[56px] h-[56px] bg-neutral-100 dark:bg-zinc-900 hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm border border-border/20 cursor-pointer active:scale-95 transform transition-all duration-200"
+                title="인포그래픽 요약 카드 이미지 다운로드"
+              >
+                <Camera size={24} strokeWidth={2.5} className="text-secondary/80" />
+              </button>
+
               <button
                 onClick={handleNativeShare}
                 className={`flex-1 h-[56px] text-white font-extrabold text-[15px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] ${

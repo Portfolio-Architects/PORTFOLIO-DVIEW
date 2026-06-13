@@ -84,9 +84,9 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
         Sponsored
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 flex-1 min-w-0 text-left">
-        <h4 className={`text-[14px] sm:text-[15px] md:text-[16px] font-extrabold ${ad.textColor} group-hover:opacity-80 transition-opacity leading-tight shrink-0`}>
+        <div className={`text-[14px] sm:text-[15px] md:text-[16px] font-extrabold ${ad.textColor} group-hover:opacity-80 transition-opacity leading-tight shrink-0`}>
           {ad.title}
-        </h4>
+        </div>
         <span className="hidden sm:inline opacity-40">—</span>
         <p className="text-[11px] sm:text-[12.5px] font-medium text-secondary truncate">
           {ad.description}
@@ -97,7 +97,7 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
         <button className="hidden sm:block text-[11px] font-bold px-3 py-1.5 bg-surface text-primary border border-border rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
           {ad.buttonText}
         </button>
-        <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest">
+        <span className="text-[10px] font-bold opacity-85 uppercase tracking-widest">
           Sponsored
         </span>
       </div>

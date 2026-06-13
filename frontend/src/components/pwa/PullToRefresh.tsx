@@ -26,6 +26,17 @@ export default function PullToRefresh({
   
   const startY = useRef<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<number>(0);
+  const isRefreshingRef = useRef<boolean>(false);
+
+  // Sync state with refs for event listener stability
+  useEffect(() => {
+    progressRef.current = pullProgress;
+  }, [pullProgress]);
+
+  useEffect(() => {
+    isRefreshingRef.current = isRefreshing;
+  }, [isRefreshing]);
 
   useEffect(() => {
     const getScrollTop = () => {
@@ -43,7 +54,7 @@ export default function PullToRefresh({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (disabled || startY.current === null || isRefreshing) return;
+      if (disabled || startY.current === null || isRefreshingRef.current) return;
       
       const y = e.touches[0].clientY;
       const deltaY = y - startY.current;
@@ -63,7 +74,7 @@ export default function PullToRefresh({
     const handleTouchEnd = async () => {
       if (startY.current === null) return;
       
-      if (pullProgress >= 100 && !isRefreshing) {
+      if (progressRef.current >= 100 && !isRefreshingRef.current) {
         setIsRefreshing(true);
         setPullProgress(100); // Lock it at 100% while refreshing
         
@@ -92,7 +103,7 @@ export default function PullToRefresh({
     };
 
     const handleTouchCancel = () => {
-      if (isRefreshing) return;
+      if (isRefreshingRef.current) return;
       setIsPulling(false);
       setPullProgress(0);
       startY.current = null;
@@ -114,13 +125,13 @@ export default function PullToRefresh({
         element.removeEventListener('touchcancel', handleTouchCancel);
       }
     };
-  }, [pullProgress, isRefreshing, pullThreshold, onRefresh, router]);
+  }, [disabled, scrollContainerId, pullThreshold, onRefresh, router]);
 
   return (
     <div ref={contentRef} className="min-h-screen">
       {/* PTR Indicator */}
       <div 
-        className="fixed top-0 left-0 right-0 flex justify-center z-50 pointer-events-none transition-transform duration-200 ease-out"
+        className="fixed top-0 left-0 right-0 flex justify-center z-50 pointer-events-none transition-transform duration-200 ease-out will-change-transform"
         style={{
           transform: `translateY(${Math.min(pullProgress * 0.6 - 40, 20)}px)`,
           opacity: Math.min(pullProgress / 100, 1),
@@ -139,7 +150,7 @@ export default function PullToRefresh({
       
       {/* Content wrapper. Moves down slightly when pulled */}
       <div 
-        className="transition-transform duration-200 ease-out"
+        className="transition-transform duration-200 ease-out will-change-transform"
         style={{
           transform: isPulling || isRefreshing ? `translateY(${Math.min(pullProgress * 0.4, 40)}px)` : 'none',
         }}

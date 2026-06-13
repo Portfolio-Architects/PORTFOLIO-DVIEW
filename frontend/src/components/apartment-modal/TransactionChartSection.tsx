@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -42,11 +42,6 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   txSummary
 }: TransactionChartSectionProps) {
   const { areaUnit, setAreaUnit } = useSettings();
-  const [isMounted, setIsMounted] = useState(false);
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
@@ -58,6 +53,31 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [isChartReady, setIsChartReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsChartReady(true);
+    }, 350);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
+    });
+    resizeObserver.observe(containerRef.current);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // [자기개선] 실거래 차트 드래그 줌용 상태 및 핸들러 추가
   const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
@@ -440,8 +460,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         
 
         
-        <div className="h-[320px] md:h-[360px] w-full relative">
-          {isMounted ? (
+        <div ref={containerRef} className="h-[320px] md:h-[360px] w-full relative">
+          {typeof window !== 'undefined' && isChartReady && dimensions.width > 0 && dimensions.height > 0 ? (
             <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1} debounce={100}>
               <ComposedChart 
                 data={monthlyData} 

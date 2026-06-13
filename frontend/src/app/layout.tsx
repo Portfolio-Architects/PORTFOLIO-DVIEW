@@ -27,7 +27,11 @@ import { headers } from 'next/headers';
 import dynamic from 'next/dynamic';
 import WelcomeModal from '@/components/ui/WelcomeModal';
 
-const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
+const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
+  console.warn('SettingsModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}));
 
 export const metadata: Metadata = {
   referrer: 'no-referrer',

@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import FloatingUserBar from "./FloatingUserBar";
-import { MessageSquare } from "lucide-react";
-import Image from "next/image";
 
 export interface PageHeroHeaderProps {
   readonly title: string;
@@ -79,16 +77,29 @@ export default function PageHeroHeader({
           <div className="flex flex-col gap-[19px] sm:gap-[23px] w-full">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative">
-                  <div className="relative w-[30px] h-[30px] sm:w-[37px] sm:h-[37px]">
-                    <Image
-                      src="/d-view-icon.png"
-                      alt="D-VIEW 로고"
-                      fill
-                      priority
-                      sizes="(max-width: 640px) 30px, 37px"
-                      className="object-contain rounded-[8px] sm:rounded-[10px]"
-                    />
+                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative p-1.5 sm:p-2">
+                  <div className="relative w-full h-full">
+                    {/* SVG Inline Logo to achieve 0ms RTT & Perfect LCP */}
+                    <svg
+                      viewBox="0 0 100 100"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-full h-full object-contain rounded-[6px] sm:rounded-[8px]"
+                    >
+                      <rect width="100" height="100" rx="28" fill="url(#dview-logo-grad)" />
+                      <path
+                        d="M50 20L22 42.4V74C22 77.3 24.7 80 28 80H42V58H58V80H72C75.3 80 78 77.3 78 74V42.4L50 20Z"
+                        fill="#FFFFFF"
+                      />
+                      <circle cx="50" cy="51" r="10" stroke="#008262" strokeWidth="4.5" fill="#ffffff" />
+                      <line x1="57" y1="58" x2="65" y2="66" stroke="#008262" strokeWidth="4.5" strokeLinecap="round" />
+                      <defs>
+                        <linearGradient id="dview-logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stopColor="#00d29d" />
+                          <stop offset="100%" stopColor="#008262" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
                   </div>
                 </div>
                 <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">

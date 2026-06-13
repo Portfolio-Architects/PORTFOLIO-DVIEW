@@ -18,7 +18,11 @@ import { ScoutingReport } from '@/lib/types/scoutingReport';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { useTxData } from '@/hooks/useStaticData';
 
-const ValuationTuner = dynamic(() => import('@/components/admin/ValuationTuner').then(m => m.ValuationTuner), {
+const ValuationTuner = dynamic(() => import('@/components/admin/ValuationTuner').then(m => m.ValuationTuner).catch(err => {
+  console.warn('ValuationTuner Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), {
   ssr: false,
   loading: () => <div className="animate-pulse h-40 bg-body rounded-2xl" />
 });
