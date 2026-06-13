@@ -6,7 +6,7 @@ test.describe('Dashboard E2E Tests', () => {
     
     // Enable browser console logging for E2E debugging
     page.on('console', msg => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
-    page.on('pageerror', err => console.error(`[BROWSER ERROR] ${err.message}`));
+    page.on('pageerror', err => console.error(`[BROWSER ERROR] ${err.message}\nStack: ${err.stack}`));
 
     // Dismiss welcome modal and ad block banner before navigation using localStorage
     await page.addInitScript(() => {

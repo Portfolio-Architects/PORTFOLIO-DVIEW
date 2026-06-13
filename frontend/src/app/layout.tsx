@@ -149,6 +149,15 @@ export default async function RootLayout({
                   <InAppBrowserBypass />
                   <OfflineBanner />
                   <SiteTracker />
+                  {/* Global SVG Gradients for D-VIEW Logo */}
+                  <svg xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
+                    <defs>
+                      <linearGradient id="dview-logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#00d29d" />
+                        <stop offset="100%" stopColor="#008262" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
                   <div className="flex-1 flex flex-col">
                     {children}
                   </div>

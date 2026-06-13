@@ -12,38 +12,8 @@ import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
-import TossApartmentExploreClient from '@/components/TossApartmentExploreClient';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
-const ExploreSkeleton = () => (
-  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
-    {/* Page Title Skeleton */}
-    <div className="min-h-[144px] py-6 flex flex-col gap-3">
-      <div className="w-48 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
-      <div className="w-72 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
-    </div>
-    {/* Filters bar */}
-    <div className="w-full h-12 bg-black/5 dark:bg-surface/5 rounded-2xl mb-6" />
-    {/* Toss-style List Items */}
-    <div className="flex flex-col gap-3">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(i => (
-        <div key={i} className="w-full h-[66px] bg-black/5 dark:bg-surface/5 rounded-2xl flex items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
-            <div className="flex flex-col gap-1.5">
-              <div className="w-36 h-4 bg-black/10 dark:bg-surface/10 rounded-md" />
-              <div className="w-24 h-3 bg-black/10 dark:bg-surface/10 rounded-md" />
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-16 h-4 bg-black/10 dark:bg-surface/10 rounded-md" />
-            <div className="w-5 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 const MacroDashboardSkeleton = () => (
   <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
@@ -907,14 +877,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               </button>
               
               <button
-                onClick={() => startTransition(() => { setActiveTab('imjang'); window.location.hash = 'imjang'; })}
-                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'imjang'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                }`}
+                onClick={() => router.push('/explore')}
+                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
               >
-                <Home size={18} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                 <span>아파트 탐색</span>
               </button>
               
@@ -1026,37 +992,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           </ErrorBoundary>
         </section>
 
-        {/* ═══ TAB 1: 아파트 탐색 (Toss-style 골라보기 테이블) ═══ */}
-        <section className={`w-full bg-transparent ${activeTab === 'imjang' ? 'block' : 'hidden'}`}>
-          {!mounted ? (
-            <ExploreSkeleton />
-          ) : (
-            <TossApartmentExploreClient
-              sheetApartments={sheetApartments}
-              txSummaryData={txSummaryData}
-              nameMapping={nameMapping || {}}
-              fieldReportsMap={fieldReportsMap}
-              publicRentalSet={publicRentalSet}
-              userFavorites={userFavorites}
-              favoriteCounts={favoriteCounts}
-              typeMap={typeMap}
-              handleSelectApt={handleAptClickByName}
-              onToggleFavorite={handleAptToggleFavorite}
-              onOpenCompare={() => {
-                setCompareInitialApt(undefined);
-                setIsCompareOpen(true);
-              }}
-              onOpenJeonseSafety={(aptName) => {
-                setJeonseSafetyInitialApt(aptName);
-                setIsJeonseSafetyOpen(true);
-              }}
-              onOpenMortgage={(aptName) => {
-                setMortgageInitialApt(aptName);
-                setIsMortgageOpen(true);
-              }}
-            />
-          )}
-        </section>
 
         {/* ═══ TAB 1-2: 큐레이션 ═══ */}
         <section className={`w-full bg-transparent ${activeTab === 'gap' ? 'block' : 'hidden'}`}>

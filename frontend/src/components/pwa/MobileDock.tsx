@@ -18,14 +18,14 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
-          { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/#imjang' },
+          { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/explore' },
           { id: 'gap' as const, label: '큐레이션', icon: Coins, href: '/#gap' },
           { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/#lounge' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
           
-          if (onTabClick) {
-             // Dashboard usage
+          if (onTabClick && tab.id !== 'imjang') {
+             // Dashboard usage (except for separated explore tab)
              return (
                <button
                  key={tab.id}
@@ -51,7 +51,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
              );
           }
 
-          // Lounge or cross-page links
+          // Lounge, Explore, or cross-page links
           return (
             <Link
               key={tab.id}

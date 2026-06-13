@@ -77,28 +77,32 @@ export default function PageHeroHeader({
           <div className="flex flex-col gap-[19px] sm:gap-[23px] w-full">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative p-1.5 sm:p-2">
+                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
                   <div className="relative w-full h-full">
                     {/* SVG Inline Logo to achieve 0ms RTT & Perfect LCP */}
                     <svg
                       viewBox="0 0 100 100"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-full h-full object-contain rounded-[6px] sm:rounded-[8px]"
+                      className="w-full h-full object-contain"
                     >
-                      <rect width="100" height="100" rx="28" fill="url(#dview-logo-grad)" />
-                      <path
-                        d="M50 20L22 42.4V74C22 77.3 24.7 80 28 80H42V58H58V80H72C75.3 80 78 77.3 78 74V42.4L50 20Z"
-                        fill="#FFFFFF"
+                       {/* 45-degree rotated rounded rect to create diamond background */}
+                      <rect
+                        x="16"
+                        y="16"
+                        width="68"
+                        height="68"
+                        rx="18"
+                        transform="rotate(45 50 50)"
+                        fill="url(#dview-logo-grad)"
                       />
-                      <circle cx="50" cy="51" r="10" stroke="#008262" strokeWidth="4.5" fill="#ffffff" />
-                      <line x1="57" y1="58" x2="65" y2="66" stroke="#008262" strokeWidth="4.5" strokeLinecap="round" />
-                      <defs>
-                        <linearGradient id="dview-logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="#00d29d" />
-                          <stop offset="100%" stopColor="#008262" />
-                        </linearGradient>
-                      </defs>
+                      {/* House icon centered and scaled inside the diamond */}
+                      <g transform="translate(50 51.5) scale(0.8) translate(-50 -50)">
+                        <path
+                          d="M50 20L22 42.4V74C22 77.3 24.7 80 28 80H42V58H58V80H72C75.3 80 78 77.3 78 74V42.4L50 20Z"
+                          fill="#FFFFFF"
+                        />
+                      </g>
                     </svg>
                   </div>
                 </div>

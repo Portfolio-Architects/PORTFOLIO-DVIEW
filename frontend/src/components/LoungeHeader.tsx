@@ -73,7 +73,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               </Link>
               
               <Link
-                href="/#imjang"
+                href="/explore"
                 className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
                   activeTab === 'imjang'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
