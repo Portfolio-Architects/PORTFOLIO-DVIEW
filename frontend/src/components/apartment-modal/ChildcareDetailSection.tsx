@@ -310,9 +310,9 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
   }, [dong, aptName, hash, coordinates]);
 
   const gradeStyles = {
-    excellent: { text: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/40 border-teal-100/50 dark:border-teal-900/20', label: '최상🟢' },
-    good: { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100/50 dark:border-emerald-900/20', label: '우수🟢' },
-    average: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-100/50 dark:border-amber-900/20', label: '주의🟡' }
+    excellent: { text: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/40 border-teal-100/30 dark:border-teal-900/20', label: '최상' },
+    good: { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100/30 dark:border-emerald-900/20', label: '우수' },
+    average: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-100/30 dark:border-amber-900/20', label: '주의' }
   };
 
   return (
@@ -357,7 +357,7 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1 py-0.5 rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 border border-pink-100/30">
+                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 border border-pink-100/30">
                               {item.type}
                             </span>
                           </div>
@@ -365,11 +365,16 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
-                          <div className="flex items-baseline gap-0.5">
-                            <span className="text-[15px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
-                            <span className="text-[10px] font-bold text-secondary">m</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded border ${s.bg} ${s.text}`}>
+                              {s.label}
+                            </span>
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="text-[14px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
+                              <span className="text-[9px] font-bold text-secondary">m</span>
+                            </div>
                           </div>
-                          <span className={`text-[9.5px] font-black mt-0.5 ${s.text} bg-transparent px-1 rounded`}>
+                          <span className="text-[9.5px] font-bold text-secondary mt-1">
                             도보 {isNaN(item.distance) || item.distance <= 0 ? 0 : Math.ceil(item.distance / 80)}분
                           </span>
                         </div>
@@ -393,7 +398,7 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1 py-0.5 rounded bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-100/30">
+                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-100/30">
                               {item.type}
                             </span>
                           </div>
@@ -401,11 +406,16 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
-                          <div className="flex items-baseline gap-0.5">
-                            <span className="text-[15px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
-                            <span className="text-[10px] font-bold text-secondary">m</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded border ${s.bg} ${s.text}`}>
+                              {s.label}
+                            </span>
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="text-[14px] font-black text-primary tabular-nums">{isNaN(item.distance) || item.distance <= 0 ? 0 : item.distance}</span>
+                              <span className="text-[9px] font-bold text-secondary">m</span>
+                            </div>
                           </div>
-                          <span className={`text-[9.5px] font-black mt-0.5 ${s.text} bg-transparent px-1 rounded`}>
+                          <span className="text-[9.5px] font-bold text-secondary mt-1">
                             도보 {isNaN(item.distance) || item.distance <= 0 ? 0 : Math.ceil(item.distance / 80)}분
                           </span>
                         </div>
