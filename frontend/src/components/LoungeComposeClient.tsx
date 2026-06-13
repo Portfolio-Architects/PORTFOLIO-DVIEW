@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { isAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface Props {
   currentTab: string;
@@ -21,6 +22,7 @@ interface Props {
 
 export default function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
   const router = useRouter();
+  const { showToast } = usePWA();
   const [user, setUser] = useState<User | null>(null);
   const [footerOffset, setFooterOffset] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -223,19 +225,19 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                   value={customNickname} 
                   onChange={(e) => setCustomNickname(e.target.value)} 
                   placeholder="활동 가명을 입력해 주세요" 
-                  className="w-full bg-surface border border-toss-gray rounded-lg px-3 py-2 text-[14px] font-bold outline-none focus:border-toss-blue transition-colors"
+                  className="w-full bg-surface border border-toss-gray rounded-lg px-3 py-2 text-[14px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] transition-colors"
                 />
               </div>
             )}
 
-            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-toss-blue focus:bg-surface transition-colors mb-2" autoFocus />
+            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors mb-2" autoFocus />
             <textarea 
               ref={textareaRef}
               value={postContent} 
               onChange={(e) => setPostContent(e.target.value)} 
               placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 줄바꿈을 활용해 자유롭게 내용을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
               rows={12} 
-              className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-toss-blue/10 mb-4" 
+              className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10 mb-4" 
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-4">
@@ -243,10 +245,10 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
-                  className="flex items-center gap-1.5 text-[13px] font-bold text-secondary hover:text-toss-blue hover:bg-body transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-border"
+                  className="flex items-center gap-1.5 text-[13px] font-bold text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] hover:bg-body transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-border"
                   title="이미지 업로드"
                 >
-                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-toss-blue" /> : <ImagePlus size={16} />}
+                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#008262] dark:text-[#00d29d]" /> : <ImagePlus size={16} />}
                   <span>사진 첨부</span>
                 </button>
                 <input 
@@ -272,6 +274,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                       isUserAdmin ? undefined : customNickname.trim()
                     );
                     setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+                    showToast('글이 성공적으로 등록되었습니다! 이웃 주민의 피드백을 기대해 보세요 💚');
                     // Refresh the route to show the new post from the server component
                     router.refresh();
                   } catch { alert('글 작성에 실패했습니다.'); }
