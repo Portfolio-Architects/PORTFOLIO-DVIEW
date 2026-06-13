@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis";
+import { z } from "zod";
 import { logger } from "@/lib/services/logger";
 
 /**
@@ -132,15 +133,47 @@ export class ResilientRedisWrapper {
   }
 }
 
-export const rawRedis =
-  process.env.UPSTASH_REDIS_REST_URL &&
-  process.env.UPSTASH_REDIS_REST_TOKEN &&
-  process.env.NEXT_PHASE !== "phase-production-build"
-    ? new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-      })
-    : null;
+const RedisEnvSchema = z.object({
+  UPSTASH_REDIS_REST_URL: z.string().url("Invalid Redis URL format"),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "Redis Token cannot be empty"),
+  NEXT_PHASE: z.string().optional(),
+});
+
+function initRedis(): Redis | null {
+  const envParse = RedisEnvSchema.safeParse({
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    NEXT_PHASE: process.env.NEXT_PHASE,
+  });
+
+  if (!envParse.success) {
+    logger.warn(
+      "RedisConnection.init",
+      "Redis environment variables validation failed, falling back to Memory Cache",
+      { errors: envParse.error.format() }
+    );
+    return null;
+  }
+
+  const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, NEXT_PHASE } = envParse.data;
+
+  if (NEXT_PHASE === "phase-production-build") {
+    logger.info("RedisConnection.init", "Skipping Redis initialization during production build phase");
+    return null;
+  }
+
+  try {
+    return new Redis({
+      url: UPSTASH_REDIS_REST_URL,
+      token: UPSTASH_REDIS_REST_TOKEN,
+    });
+  } catch (e) {
+    logger.error("RedisConnection.init", "Failed to create Redis client instance", {}, e as Error);
+    return null;
+  }
+}
+
+export const rawRedis = initRedis();
 
 // Cast to Redis type to support all extended methods (evalsha, etc.) without compiler errors
 export const redis = new ResilientRedisWrapper(rawRedis) as unknown as Redis;
