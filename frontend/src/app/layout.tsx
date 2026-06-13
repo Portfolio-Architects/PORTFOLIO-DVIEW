@@ -155,8 +155,8 @@ export default async function RootLayout({
                 <div id="modal-root" />
                 <SettingsModal />
                 
-                {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
-                {process.env.NEXT_PUBLIC_GA_ID && (
+                {/* Google Analytics 4 (Only renders in production if NEXT_PUBLIC_GA_ID exists to prevent local dev/test data contamination) */}
+                {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production' && (
                   <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
                 )}
                 

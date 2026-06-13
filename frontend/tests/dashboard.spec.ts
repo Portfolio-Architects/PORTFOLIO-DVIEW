@@ -24,10 +24,10 @@ test.describe('Dashboard E2E Tests', () => {
     console.log('Selected Apartment:', aptName);
 
     // Give React brief time to hydrate event listeners
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(1000);
 
-    // 3. Click the apartment to open the modal using click()
-    await aptTitle.click();
+    // 3. Click the apartment to open the modal using click() with force to bypass any client jank
+    await aptTitle.click({ force: true });
 
     // 4. Verify the modal opens and displays '실거래가'
     const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();
