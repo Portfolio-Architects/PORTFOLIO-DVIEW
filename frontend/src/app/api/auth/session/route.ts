@@ -22,11 +22,12 @@ export async function POST(request: NextRequest) {
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
     const isDev = process.env.NODE_ENV === 'development';
+    const cookieName = isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session';
     
     // Cookie Options: HttpOnly, Secure, SameSite=Strict
     // __Secure- prefix requires Secure attribute (modern browsers allow Secure over HTTP on localhost)
     const secureFlag = isDev ? '' : 'Secure;';
-    const cookieHeader = `__Secure-DVIEW-Session=${sessionCookie}; Max-Age=${expiresIn / 1000}; Path=/; SameSite=Strict; ${secureFlag} HttpOnly`;
+    const cookieHeader = `${cookieName}=${sessionCookie}; Max-Age=${expiresIn / 1000}; Path=/; SameSite=Strict; ${secureFlag} HttpOnly`;
 
     const response = NextResponse.json({ status: 'success' });
     response.headers.set('Set-Cookie', cookieHeader);
@@ -40,8 +41,9 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE() {
   const isDev = process.env.NODE_ENV === 'development';
+  const cookieName = isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session';
   const secureFlag = isDev ? '' : 'Secure;';
-  const cookieHeader = `__Secure-DVIEW-Session=; Max-Age=0; Path=/; SameSite=Strict; ${secureFlag} HttpOnly`;
+  const cookieHeader = `${cookieName}=; Max-Age=0; Path=/; SameSite=Strict; ${secureFlag} HttpOnly`;
 
   const response = NextResponse.json({ status: 'success' });
   response.headers.set('Set-Cookie', cookieHeader);

@@ -14,7 +14,8 @@ export async function verifyAuthHeader(request: NextRequest) {
   }
 
   // 1. Try to read from Secure HttpOnly Cookie (Highest Security)
-  const sessionCookie = request.cookies.get('__Secure-DVIEW-Session')?.value;
+  const isDev = process.env.NODE_ENV === 'development';
+  const sessionCookie = request.cookies.get(isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session')?.value || request.cookies.get('__Secure-DVIEW-Session')?.value;
   if (sessionCookie) {
     try {
       // Verify session cookie (with revocation check)
