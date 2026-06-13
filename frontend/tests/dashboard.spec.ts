@@ -23,6 +23,9 @@ test.describe('Dashboard E2E Tests', () => {
     const aptName = await aptTitle.textContent();
     console.log('Selected Apartment:', aptName);
 
+    // Give React brief time to hydrate event listeners
+    await page.waitForTimeout(300);
+
     // 3. Click the apartment to open the modal using dispatchEvent to bypass virtualization scroll/click jank
     await aptTitle.dispatchEvent('click');
 

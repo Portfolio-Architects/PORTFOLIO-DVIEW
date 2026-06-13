@@ -1126,7 +1126,7 @@ export default function TossApartmentExploreClient({
               {Array.from({ length: 6 }).map((_, i) => (
                 <div 
                   key={i} 
-                  className="w-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 h-[180px] md:h-[66px] shrink-0"
+                  className="w-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 h-[66px] shrink-0"
                 />
               ))}
             </div>
