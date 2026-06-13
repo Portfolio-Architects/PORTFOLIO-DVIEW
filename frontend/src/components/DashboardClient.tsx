@@ -144,7 +144,7 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
         placeholder="아파트 검색"
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
-        className="w-full bg-body text-body-normal text-primary placeholder:text-tertiary rounded-[8px] pl-8 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-toss-blue transition-all"
+        className="w-full bg-body text-body-normal text-primary placeholder:text-tertiary rounded-[8px] pl-8 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#008262] dark:focus:ring-[#00d29d] transition-all"
       />
       {localValue && (
         <button 
@@ -1122,7 +1122,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 backdrop-blur-md bg-white/70 dark:bg-black/70 animate-in fade-in duration-300">
         <div className="w-full max-w-md bg-surface text-primary rounded-[24px] shadow-2xl p-6 sm:p-8 border border-border transition-all animate-in zoom-in-95 duration-200">
           <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-toss-blue/10 dark:bg-toss-blue/20 text-toss-blue rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-[#008262]/10 dark:bg-[#00d29d]/10 text-[#008262] dark:text-[#00d29d] rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare size={24} />
             </div>
             <h2 className="text-xl font-bold tracking-tight mb-2">반갑습니다! 닉네임을 설정해주세요</h2>
@@ -1145,7 +1145,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   setNewNickname(e.target.value);
                   if (nicknameError) setNicknameError('');
                 }}
-                className="w-full bg-body text-primary border border-border focus:border-toss-blue rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-toss-blue/20 transition-all font-semibold"
+                className="w-full bg-body text-primary border border-border focus:border-[#008262] dark:focus:border-[#00d29d] rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#008262]/20 dark:focus:ring-[#00d29d]/20 transition-all font-semibold"
                 autoComplete="off"
                 required
                 disabled={isSubmittingNickname}
@@ -1160,7 +1160,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             <button
               type="submit"
               disabled={isSubmittingNickname || !newNickname.trim()}
-              className="w-full bg-toss-blue text-white rounded-[14px] py-3.5 text-sm font-bold shadow-lg shadow-toss-blue/10 hover:shadow-toss-blue/20 hover:bg-toss-blue-hover active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full bg-[#008262] hover:bg-[#006950] dark:bg-[#00b386] dark:hover:bg-[#008262] text-white rounded-[14px] py-3.5 text-sm font-bold shadow-lg shadow-[#008262]/10 dark:shadow-[#00b386]/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
             >
               {isSubmittingNickname ? '설정 중...' : '시작하기'}
             </button>

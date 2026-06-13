@@ -164,7 +164,7 @@ export default function HotComplexRanking({
                   </div>
  
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-toss-blue transition-colors">
+                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors">
                       {item.apt.name}
                     </span>
                     <span className="text-[11px] md:text-[12px] font-semibold text-tertiary mt-0.5">
@@ -175,7 +175,7 @@ export default function HotComplexRanking({
  
                 {/* Right (or Bottom on desktop) Area */}
                 <div className="flex md:flex-row items-end md:items-center md:justify-between w-auto md:w-full mt-0 md:mt-3.5 px-0 shrink-0 gap-1.5 md:gap-0 flex-col md:flex-row text-right">
-                  <span className="text-[14.5px] md:text-[15.5px] text-toss-blue font-extrabold leading-none">
+                  <span className="text-[14.5px] md:text-[15.5px] text-[#008262] dark:text-[#00d29d] font-extrabold leading-none">
                     {item.latestPriceEok}
                   </span>
                   <span className="text-tertiary font-semibold text-[10.5px] md:text-[11.5px] leading-none mt-1 md:mt-0">
