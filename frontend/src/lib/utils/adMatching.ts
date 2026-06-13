@@ -1,18 +1,27 @@
-/**
- * @module adMatching
- * @description Dynamic B2B advertisement matching engine based on apartment metrics.
- */
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
-export interface AdBannerDetails {
-  adType: 'interior' | 'academy' | 'insurance' | 'cleaning' | 'mobility' | 'brokerage';
-  badge: string;
-  title: string;
-  description: string;
-  buttonText: string;
-  link: string;
-  themeColor: string; // Pastel background classes
-  textColor: string;
-}
+export const AdBannerDetailsSchema = z.object({
+  adType: z.enum(['interior', 'academy', 'insurance', 'cleaning', 'mobility', 'brokerage']),
+  badge: z.string(),
+  title: z.string(),
+  description: z.string(),
+  buttonText: z.string(),
+  link: z.string(),
+  themeColor: z.string(), // Pastel background classes
+  textColor: z.string(),
+});
+
+export type AdBannerDetails = z.infer<typeof AdBannerDetailsSchema>;
+
+export const AdMatchingMetricsSchema = z.object({
+  yearBuilt: z.union([z.string(), z.number()]).optional(),
+  distanceToElementary: z.number().optional(),
+  distanceToSubway: z.number().optional(),
+  jeonseRate: z.number().optional(),
+});
+
+export type AdMatchingMetrics = z.infer<typeof AdMatchingMetricsSchema>;
 
 /**
  * Returns a targeted B2B advertisement banner based on the objective metrics of an apartment.
@@ -20,12 +29,7 @@ export interface AdBannerDetails {
  * @param metrics - Objective metrics of the apartment complex
  * @returns AdBannerDetails matching the apartment context
  */
-export function getAdForApartment(metrics?: {
-  yearBuilt?: string | number;
-  distanceToElementary?: number;
-  distanceToSubway?: number;
-  jeonseRate?: number;
-}): AdBannerDetails {
+export function getAdForApartment(metrics?: AdMatchingMetrics): AdBannerDetails {
   const currentYear = 2026; // Current system reference year
 
   // Default fallback banner
@@ -44,11 +48,20 @@ export function getAdForApartment(metrics?: {
     return fallbackAd;
   }
 
+  // Parse metrics safely using Zod
+  const parsedMetrics = AdMatchingMetricsSchema.safeParse(metrics);
+  if (!parsedMetrics.success) {
+    logger.warn('AdMatching', 'Failed to validate ad matching metrics, proceeding with raw/fallback', {}, parsedMetrics.error);
+  }
+
+  // Proceed with parsed data if valid, otherwise fallback to raw input
+  const validatedMetrics = parsedMetrics.success ? parsedMetrics.data : metrics;
+
   // Parse yearBuilt safely
   let age: number | undefined;
-  if (metrics.yearBuilt !== undefined && metrics.yearBuilt !== null) {
+  if (validatedMetrics.yearBuilt !== undefined && validatedMetrics.yearBuilt !== null) {
     try {
-      const match = String(metrics.yearBuilt).replace(/[^0-9]/g, '').slice(0, 4);
+      const match = String(validatedMetrics.yearBuilt).replace(/[^0-9]/g, '').slice(0, 4);
       if (match.length === 4) {
         const year = parseInt(match, 10);
         age = currentYear - year;
@@ -56,9 +69,11 @@ export function getAdForApartment(metrics?: {
     } catch {}
   }
 
+  let matchedAd: AdBannerDetails;
+
   // 1. High Rent Fraud/Gap Risk (jeonseRate >= 70%) -> Insurance
-  if (metrics.jeonseRate !== undefined && metrics.jeonseRate >= 0.70) {
-    return {
+  if (validatedMetrics.jeonseRate !== undefined && validatedMetrics.jeonseRate >= 0.70) {
+    matchedAd = {
       adType: 'insurance',
       badge: '안전 보증 케어',
       title: '혹시 내 전세금도 위험할까? 보증보험 요건 1분 확인',
@@ -69,10 +84,9 @@ export function getAdForApartment(metrics?: {
       textColor: 'text-emerald-700 dark:text-emerald-300',
     };
   }
-
   // 2. Old Complex (>= 15 years) -> Remodeling / Interior
-  if (age !== undefined && age >= 15) {
-    return {
+  else if (age !== undefined && age >= 15) {
+    matchedAd = {
       adType: 'interior',
       badge: '노후단지 특별혜택',
       title: '동탄 노후 단지 전용 인테리어 & 샷시 패키지 특별전',
@@ -83,10 +97,9 @@ export function getAdForApartment(metrics?: {
       textColor: 'text-amber-700 dark:text-amber-300',
     };
   }
-
   // 3. Close to Elementary School (<= 300m) -> Close Academies
-  if (metrics.distanceToElementary !== undefined && metrics.distanceToElementary > 0 && metrics.distanceToElementary <= 300) {
-    return {
+  else if (validatedMetrics.distanceToElementary !== undefined && validatedMetrics.distanceToElementary > 0 && validatedMetrics.distanceToElementary <= 300) {
+    matchedAd = {
       adType: 'academy',
       badge: '학세권 안심 교육',
       title: '단지 초인접 영어/수학 전문 교육 1회 무료 체험권',
@@ -97,10 +110,9 @@ export function getAdForApartment(metrics?: {
       textColor: 'text-indigo-700 dark:text-indigo-300',
     };
   }
-
   // 4. Newly Built Complex (< 5 years) -> Move-in / Interior services
-  if (age !== undefined && age < 5) {
-    return {
+  else if (age !== undefined && age < 5) {
+    matchedAd = {
       adType: 'interior',
       badge: '새 집으로 입주',
       title: '새 집으로 입주하시나요? 🏡',
@@ -111,10 +123,9 @@ export function getAdForApartment(metrics?: {
       textColor: 'text-rose-700 dark:text-rose-300',
     };
   }
-
   // 5. Far from Elementary School (> 500m) -> Kid academies / Shuttle services
-  if (metrics.distanceToElementary !== undefined && metrics.distanceToElementary > 500) {
-    return {
+  else if (validatedMetrics.distanceToElementary !== undefined && validatedMetrics.distanceToElementary > 500) {
+    matchedAd = {
       adType: 'academy',
       badge: '안심 등하교 케어',
       title: '우리 아이 안심 등하교 케어 🎒',
@@ -125,10 +136,9 @@ export function getAdForApartment(metrics?: {
       textColor: 'text-sky-700 dark:text-sky-300',
     };
   }
-
   // 6. Subway/GTX is far (> 1.5km) -> Mobility/Bike sharing
-  if (metrics.distanceToSubway !== undefined && metrics.distanceToSubway > 1500) {
-    return {
+  else if (validatedMetrics.distanceToSubway !== undefined && validatedMetrics.distanceToSubway > 1500) {
+    matchedAd = {
       adType: 'cleaning',
       badge: '대중교통 커넥트',
       title: '지하철역까지 이동 마찰 해소 🚲',
@@ -139,16 +149,27 @@ export function getAdForApartment(metrics?: {
       textColor: 'text-violet-700 dark:text-violet-300',
     };
   }
-
   // 7. General new/other complexes -> Fallback Cleaning
-  return {
-    adType: 'cleaning',
-    badge: '입주 & 홈케어',
-    title: '동탄 아파트 홈케어 (입주청소/줄눈/탄성코트) 특가 공동구매',
-    description: '쾌적한 주거 공간의 시작을 위한 안심 홈클리닝 서비스! D-VIEW 단독 10% 제휴 특별 할인가 및 사후 A/S 보증 혜택으로 동탄 전문 시공 파트너사를 만나보세요.',
-    buttonText: '홈케어 특가 상담 신청',
-    link: 'https://homecare.dview.com/coop',
-    themeColor: 'from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/10 dark:to-emerald-900/5 border-emerald-100/60 dark:border-emerald-900/20',
-    textColor: 'text-emerald-700 dark:text-emerald-300',
-  };
+  else {
+    matchedAd = {
+      adType: 'cleaning',
+      badge: '입주 & 홈케어',
+      title: '동탄 아파트 홈케어 (입주청소/줄눈/탄성코트) 특가 공동구매',
+      description: '쾌적한 주거 공간의 시작을 위한 안심 홈클리닝 서비스! D-VIEW 단독 10% 제휴 특별 할인가 및 사후 A/S 보증 혜택으로 동탄 전문 시공 파트너사를 만나보세요.',
+      buttonText: '홈케어 특가 상담 신청',
+      link: 'https://homecare.dview.com/coop',
+      themeColor: 'from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/10 dark:to-emerald-900/5 border-emerald-100/60 dark:border-emerald-900/20',
+      textColor: 'text-emerald-700 dark:text-emerald-300',
+    };
+  }
+
+  // Validate the final generated ad banner object using Zod
+  const adValidation = AdBannerDetailsSchema.safeParse(matchedAd);
+  if (!adValidation.success) {
+    logger.warn('AdMatching', 'Generated ad does not match AdBannerDetailsSchema, returning fallback', { ad: matchedAd }, adValidation.error);
+    return fallbackAd;
+  }
+
+  return adValidation.data;
 }
+
