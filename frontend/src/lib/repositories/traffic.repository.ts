@@ -6,6 +6,17 @@
 import { db } from '@/lib/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
+
+export const DailyStatSchema = z.object({
+  websiteVisits: z.number().default(0),
+}).passthrough();
+
+export const ContentViewSchema = z.object({
+  title: z.string().default('알 수 없음'),
+  type: z.string().default('unknown'),
+  views: z.number().default(0),
+}).passthrough();
 
 export async function incrementWebsiteVisit(): Promise<void> {
   try {
@@ -44,76 +55,82 @@ export interface ContentView {
 }
 
 export async function getDailyVisitStats(): Promise<DailyStat[]> {
+  let rawDocs: any[] = [];
+
   if (typeof window === 'undefined') {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
         const snap = await adminDb.collection('daily_stats').get();
-        return snap.docs.map(d => {
-          const data = d.data();
-          return {
-            date: d.id,
-            websiteVisits: data.websiteVisits || 0
-          };
-        });
+        rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
       logger.warn('TrafficRepository.getDailyVisitStats', 'Admin SDK fetch failed, falling back', undefined, adminError);
     }
   }
 
-  try {
-    const snap = await getDocs(collection(db, 'daily_stats'));
-    return snap.docs.map(d => {
-      const data = d.data();
-      return {
-        date: d.id,
-        websiteVisits: data.websiteVisits || 0
-      };
-    });
-  } catch (e) {
-    logger.error('TrafficRepository.getDailyVisitStats', 'Fetch failed', undefined, e);
-    return [];
+  if (rawDocs.length === 0) {
+    try {
+      const snap = await getDocs(collection(db, 'daily_stats'));
+      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+    } catch (e) {
+      logger.error('TrafficRepository.getDailyVisitStats', 'Fetch failed', undefined, e);
+      return [];
+    }
   }
+
+  return rawDocs.map(item => {
+    const data = item.data;
+    const parsed = DailyStatSchema.safeParse(data);
+    if (!parsed.success) {
+      logger.warn('TrafficRepository.getDailyVisitStats', 'Zod validation failed, using raw fallback', { id: item.id }, parsed.error);
+    }
+    return {
+      date: item.id,
+      websiteVisits: parsed.success ? parsed.data.websiteVisits : (data.websiteVisits || 0),
+    };
+  });
 }
 
 /**
  * Fetches content views for a specific date.
  */
 export async function getDailyContentViews(dateStr: string): Promise<ContentView[]> {
+  let rawDocs: any[] = [];
+
   if (typeof window === 'undefined') {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
         const snap = await adminDb.collection(`daily_stats/${dateStr}/content_views`).get();
-        return snap.docs.map(d => {
-          const data = d.data();
-          return {
-            id: d.id,
-            title: data.title || '알 수 없음',
-            type: data.type || 'unknown',
-            views: data.views || 0
-          };
-        }).sort((a, b) => b.views - a.views);
+        rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
       logger.warn('TrafficRepository.getDailyContentViews', 'Admin SDK fetch failed, falling back', { dateStr }, adminError);
     }
   }
 
-  try {
-    const snap = await getDocs(collection(db, `daily_stats/${dateStr}/content_views`));
-    return snap.docs.map(d => {
-      const data = d.data();
-      return {
-        id: d.id,
-        title: data.title || '알 수 없음',
-        type: data.type || 'unknown',
-        views: data.views || 0
-      };
-    }).sort((a, b) => b.views - a.views); // sort highest views first
-  } catch (e) {
-    logger.error('TrafficRepository.getDailyContentViews', 'Fetch failed', { dateStr }, e);
-    return [];
+  if (rawDocs.length === 0) {
+    try {
+      const snap = await getDocs(collection(db, `daily_stats/${dateStr}/content_views`));
+      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+    } catch (e) {
+      logger.error('TrafficRepository.getDailyContentViews', 'Fetch failed', { dateStr }, e);
+      return [];
+    }
   }
+
+  return rawDocs.map(item => {
+    const data = item.data;
+    const parsed = ContentViewSchema.safeParse(data);
+    if (!parsed.success) {
+      logger.warn('TrafficRepository.getDailyContentViews', 'Zod validation failed, using raw fallback', { id: item.id }, parsed.error);
+    }
+    return {
+      id: item.id,
+      title: parsed.success ? parsed.data.title : (data.title || '알 수 없음'),
+      type: parsed.success ? parsed.data.type : (data.type || 'unknown'),
+      views: parsed.success ? parsed.data.views : (data.views || 0),
+    };
+  }).sort((a, b) => b.views - a.views);
 }
