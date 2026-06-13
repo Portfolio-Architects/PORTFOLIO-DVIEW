@@ -112,8 +112,8 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = ({
       <div 
         className={`relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center ${
           isDragging 
-            ? 'border-toss-blue bg-toss-blue-light scale-[1.02]' 
-            : 'border-toss-gray bg-body hover:bg-body hover:border-toss-blue'
+            ? 'border-[#008262] dark:border-[#00d29d] bg-[#008262]/10 dark:bg-[#00d29d]/10 scale-[1.02]' 
+            : 'border-toss-gray bg-body hover:bg-body hover:border-[#008262] dark:hover:border-[#00d29d]'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -130,7 +130,7 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = ({
           className="hidden" 
         />
         <div className="w-9 h-9 bg-surface rounded-full shadow-sm flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
-          {isDragging ? <ImagePlus size={18} className="text-toss-blue" /> : <Camera size={18} className="text-toss-blue" />}
+          {isDragging ? <ImagePlus size={18} className="text-[#008262] dark:text-[#00d29d]" /> : <Camera size={18} className="text-[#008262] dark:text-[#00d29d]" />}
         </div>
         <p className="text-[13px] font-bold text-primary">
           {previews.length > 0 ? '사진 더 추가하기' : placeholder}
@@ -159,7 +159,7 @@ export const TextInput: React.FC<TextInputProps> = ({ label, placeholder, value,
           value={value} 
           onChange={(e) => onChange(e.target.value)} 
           rows={2}
-          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-toss-blue focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-toss-blue/10" 
+          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10" 
         />
       ) : (
         <input 
@@ -167,7 +167,7 @@ export const TextInput: React.FC<TextInputProps> = ({ label, placeholder, value,
           placeholder={placeholder} 
           value={value} 
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-toss-blue focus:bg-surface transition-colors focus:ring-4 focus:ring-toss-blue/10" 
+          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10" 
         />
       )}
     </div>
@@ -188,7 +188,7 @@ export const SelectInput: React.FC<SelectInputProps> = ({ label, options, value,
       <select 
         value={value} 
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-toss-blue focus:bg-surface transition-colors cursor-pointer appearance-none ${value ? 'text-primary font-medium' : 'text-tertiary'}`}
+        className={`w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors cursor-pointer appearance-none ${value ? 'text-primary font-medium' : 'text-tertiary'}`}
       >
         <option value="" disabled>선택해주세요</option>
         {options.map(opt => (

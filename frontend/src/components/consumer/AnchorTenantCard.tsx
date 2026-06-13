@@ -141,7 +141,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
               
               {/* Bottom Actions: Walking Time & Map button */}
               <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
-                <span className="text-[12px] font-extrabold text-toss-blue bg-toss-blue-light px-2.5 py-1.5 rounded-md shrink-0 whitespace-nowrap">
+                <span className="text-[12px] font-extrabold text-[#008262] dark:text-[#00d29d] bg-[#008262]/10 dark:bg-[#00d29d]/10 px-2.5 py-1.5 rounded-md shrink-0 whitespace-nowrap">
                   도보 {walkingTime}분
                 </span>
                 
