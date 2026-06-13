@@ -3,6 +3,81 @@ require('dotenv').config({ path: '.env.local', override: true });
 const fs = require('fs');
 const path = require('path');
 const coordCorrections = require('../public/data/coordinate-corrections.json');
+const { z } = require('zod');
+
+// Zod schemas for location data validation
+const CoordSchema = z.object({
+  lat: z.number(),
+  lng: z.number()
+});
+
+const SchoolSchema = CoordSchema.extend({
+  name: z.string().min(1),
+  type: z.string().min(1)
+});
+
+const StationSchema = CoordSchema.extend({
+  name: z.string().min(1),
+  line: z.string().default('')
+});
+
+const AcademySchema = CoordSchema.extend({
+  name: z.string().min(1),
+  category: z.string().default('기타')
+});
+
+const RestaurantSchema = CoordSchema.extend({
+  name: z.string().min(1),
+  category: z.string().default('기타')
+});
+
+const SboydSchema = CoordSchema.extend({
+  name: z.string().min(1)
+});
+
+const LocationScoreOutputSchema = z.object({
+  distanceToElementary: z.number().nullable(),
+  distanceToMiddle: z.number().nullable(),
+  distanceToHigh: z.number().nullable(),
+  distanceToSubway: z.number().nullable(),
+  distanceToIndeokwon: z.number().nullable(),
+  distanceToTram: z.number().nullable(),
+  academyDensity: z.number().nonnegative(),
+  academyCategories: z.record(z.string(), z.number()),
+  restaurantDensity: z.number().nonnegative(),
+  restaurantCategories: z.record(z.string(), z.number()),
+  distanceToStarbucks: z.number().nullable(),
+  distanceToMcDonalds: z.number().nullable(),
+  distanceToOliveYoung: z.number().nullable(),
+  distanceToDaiso: z.number().nullable(),
+  distanceToSupermarket: z.number().nullable(),
+  nearestSchoolNames: z.object({
+    elementary: z.string().nullable(),
+    middle: z.string().nullable(),
+    high: z.string().nullable()
+  }),
+  nearestStationName: z.string().nullable(),
+  nearestStationLine: z.string().nullable(),
+  nearestStationCoords: z.string().nullable(),
+  nearestIndeokwonStationName: z.string().nullable(),
+  nearestIndeokwonLine: z.string().nullable(),
+  nearestIndeokwonCoords: z.string().nullable(),
+  nearestTramStationName: z.string().nullable(),
+  nearestTramLine: z.string().nullable(),
+  nearestTramCoords: z.string().nullable(),
+  starbucksName: z.string().nullable(),
+  starbucksCoordinates: z.string().nullable(),
+  mcdonaldsName: z.string().nullable(),
+  mcdonaldsCoordinates: z.string().nullable(),
+  oliveYoungName: z.string().nullable(),
+  oliveYoungCoordinates: z.string().nullable(),
+  daisoName: z.string().nullable(),
+  daisoCoordinates: z.string().nullable(),
+  supermarketName: z.string().nullable(),
+  supermarketCoordinates: z.string().nullable()
+});
+
+const LocationScoresMapSchema = z.record(z.string(), LocationScoreOutputSchema);
 
 const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
 
@@ -99,7 +174,15 @@ async function main() {
      const [name, coordStr, type] = schoolRows[i];
      if(!name || !coordStr || !type) continue;
      const coord = parseCoordString(coordStr);
-     if(coord) schools.push({name: name.trim(), ...coord, type: type.trim()});
+     if(!coord) continue;
+
+     const rawData = { name: name.trim(), lat: coord.lat, lng: coord.lng, type: type.trim() };
+     const parsed = SchoolSchema.safeParse(rawData);
+     if (parsed.success) {
+       schools.push(parsed.data);
+     } else {
+       console.warn(`⚠️ [Sync Location] Invalid school row index ${i}:`, parsed.error.format());
+     }
   }
 
   const stations = [];
@@ -107,21 +190,45 @@ async function main() {
      const [name, coordStr, line] = stationRows[i];
      if(!name || !coordStr) continue;
      const coord = parseCoordString(coordStr);
-     if(coord) stations.push({name: name.trim(), ...coord, line: (line||'').trim()});
+     if(!coord) continue;
+
+     const rawData = { name: name.trim(), lat: coord.lat, lng: coord.lng, line: (line||'').trim() };
+     const parsed = StationSchema.safeParse(rawData);
+     if (parsed.success) {
+       stations.push(parsed.data);
+     } else {
+       console.warn(`⚠️ [Sync Location] Invalid station row index ${i}:`, parsed.error.format());
+     }
   }
 
   const academies = [];
   for(let i=1; i<academyRows.length; i++) {
      const [name, latStr, lngStr, cat] = academyRows[i];
      const lat = parseFloat(latStr), lng = parseFloat(lngStr);
-     if(!isNaN(lat) && !isNaN(lng) && name) academies.push({name: name.trim(), lat, lng, category: (cat||'기타').trim()});
+     if(isNaN(lat) || isNaN(lng) || !name) continue;
+
+     const rawData = { name: name.trim(), lat, lng, category: (cat||'기타').trim() };
+     const parsed = AcademySchema.safeParse(rawData);
+     if (parsed.success) {
+       academies.push(parsed.data);
+     } else {
+       console.warn(`⚠️ [Sync Location] Invalid academy row index ${i}:`, parsed.error.format());
+     }
   }
 
   const restaurants = [];
   for(let i=1; i<restRows.length; i++) {
      const [name, latStr, lngStr, cat] = restRows[i];
      const lat = parseFloat(latStr), lng = parseFloat(lngStr);
-     if(!isNaN(lat) && !isNaN(lng) && name) restaurants.push({name: name.trim(), lat, lng, category: (cat||'기타').trim()});
+     if(isNaN(lat) || isNaN(lng) || !name) continue;
+
+     const rawData = { name: name.trim(), lat, lng, category: (cat||'기타').trim() };
+     const parsed = RestaurantSchema.safeParse(rawData);
+     if (parsed.success) {
+       restaurants.push(parsed.data);
+     } else {
+       console.warn(`⚠️ [Sync Location] Invalid restaurant row index ${i}:`, parsed.error.format());
+     }
   }
 
   const sboyds = [];
@@ -142,7 +249,13 @@ async function main() {
       const lat = parseFloat(cols[sbLatIdx]);
       const lng = parseFloat(cols[sbLngIdx]);
       if (name && !isNaN(lat) && !isNaN(lng)) {
-        sboyds.push({ name, lat, lng });
+        const rawData = { name, lat, lng };
+        const parsed = SboydSchema.safeParse(rawData);
+        if (parsed.success) {
+          sboyds.push(parsed.data);
+        } else {
+          console.warn(`⚠️ [Sync Location] Invalid sboyd row index ${i}:`, parsed.error.format());
+        }
       }
     }
   }
@@ -265,13 +378,22 @@ async function main() {
       };
   }
 
+  // 최종 결과 검증
+  const finalParsed = LocationScoresMapSchema.safeParse(results);
+  if (!finalParsed.success) {
+    console.error('⚠️ [Sync Location] Final location scores validation failed!', finalParsed.error.format());
+    process.exit(1);
+  }
+  
+  const verifiedResults = finalParsed.data;
+
   const outputPath = path.resolve(__dirname, '../public/data/location-scores.json');
-  fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
-  console.log(`✅ Synced location scores for ${Object.keys(results).length} apartments to public/data/location-scores.json`);
+  fs.writeFileSync(outputPath, JSON.stringify(verifiedResults, null, 2));
+  console.log(`✅ Synced location scores for ${Object.keys(verifiedResults).length} apartments to public/data/location-scores.json`);
 
   const outputPath2 = path.resolve(__dirname, '../src/lib/location-scores.json');
-  fs.writeFileSync(outputPath2, JSON.stringify(results, null, 2));
-  console.log(`✅ Synced location scores for ${Object.keys(results).length} apartments to src/lib/location-scores.json`);
+  fs.writeFileSync(outputPath2, JSON.stringify(verifiedResults, null, 2));
+  console.log(`✅ Synced location scores for ${Object.keys(verifiedResults).length} apartments to src/lib/location-scores.json`);
 }
 
 main().catch(console.error);
