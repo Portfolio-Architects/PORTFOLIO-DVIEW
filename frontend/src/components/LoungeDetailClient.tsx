@@ -435,7 +435,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                   setEditCategory((post?.category as string) || '동탄 임장/분석');
                   setIsEditing(true);
                 }}
-                className="p-2 rounded-full hover:bg-body text-[#adb5bd] hover:text-toss-blue transition-colors"
+                className="p-2 rounded-full hover:bg-body text-[#adb5bd] hover:text-[#008262] dark:hover:text-[#00d29d] transition-colors"
                 title="수정"
               >
                 <Edit2 size={18} />
@@ -598,12 +598,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                             // Bypass Next.js router for instant hash update and modal rendering
                             window.location.hash = `post=${postId}&apt=${encodeURIComponent(shortName)}`;
                           }}
-                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-toss-blue/20"
+                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20"
                         >
                           <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0 shadow-sm border border-border">
-                            <Building2 size={15} className="text-toss-blue" />
+                            <Building2 size={15} className="text-[#008262] dark:text-[#00d29d]" />
                           </div>
-                          <span className="text-[14px] font-bold text-primary group-hover:text-toss-blue transition-colors whitespace-nowrap">{shortName}</span>
+                          <span className="text-[14px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors whitespace-nowrap">{shortName}</span>
                         </button>
                       ))}
                     </div>
@@ -705,7 +705,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         {/* Comments Section */}
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-body flex items-center gap-2">
-            <MessageSquare size={18} className="text-toss-blue" />
+            <MessageSquare size={18} className="text-[#008262] dark:text-[#00d29d]" />
             <span className="text-[16px] font-bold text-primary">댓글 {comments.length}</span>
           </div>
 
@@ -718,12 +718,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                 maxLength={300}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
                 placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
-                className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300"
+                className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] transition-all duration-300"
               />
               <button
                 onClick={handleComment}
                 disabled={isSending || !commentText.trim()}
-                className="w-[46px] h-[46px] bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#00d29d]/20"
+                className="w-[46px] h-[46px] bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] dark:text-[#191f28] disabled:bg-toss-gray disabled:dark:text-tertiary rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#008262]/10"
               >
                 <Send size={18} className="ml-1" />
               </button>
