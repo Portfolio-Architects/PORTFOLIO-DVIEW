@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import {
-  BarChart3, Globe, ShieldCheck, Eye, MousePointerClick, TrendingUp
+  BarChart3, Globe, ShieldCheck, Eye, MousePointerClick, TrendingUp, Users, UserCheck, Clock
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -132,7 +132,10 @@ export default function AnalyticsDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {/* 1. MAU */}
               <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-                <div className="text-[11.5px] font-bold text-tertiary mb-1">MAU</div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Users className="text-secondary" size={14} />
+                  <span className="text-[11.5px] font-bold text-tertiary">MAU</span>
+                </div>
                 <div className="text-[22px] font-extrabold text-primary font-mono">
                   {gaData.monthly && gaData.monthly.length > 0 
                     ? gaData.monthly[gaData.monthly.length - 1].mau.toLocaleString() 
@@ -145,7 +148,10 @@ export default function AnalyticsDashboard() {
 
               {/* 2. DAU */}
               <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-                <div className="text-[11.5px] font-bold text-emerald-600 mb-1">DAU</div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <UserCheck className="text-emerald-600 dark:text-emerald-400" size={14} />
+                  <span className="text-[11.5px] font-bold text-emerald-600">DAU</span>
+                </div>
                 <div className="text-[22px] font-extrabold text-[#008262] dark:text-emerald-400 font-mono">
                   {gaData.daily && gaData.daily.length > 0 
                     ? gaData.daily[gaData.daily.length - 1].activeUsers.toLocaleString() 
@@ -158,7 +164,10 @@ export default function AnalyticsDashboard() {
 
               {/* 3. Views */}
               <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-                <div className="text-[11.5px] font-bold text-tertiary mb-1">VIEW (30D)</div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Eye className="text-secondary" size={14} />
+                  <span className="text-[11.5px] font-bold text-tertiary">VIEW (30D)</span>
+                </div>
                 <div className="text-[22px] font-extrabold text-primary font-mono">
                   {gaData.totalViews ? gaData.totalViews.toLocaleString() : '0'}회
                 </div>
@@ -169,7 +178,10 @@ export default function AnalyticsDashboard() {
 
               {/* 4. Avg Time */}
               <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-                <div className="text-[11.5px] font-bold text-tertiary mb-1">AVG. TIME</div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Clock className="text-secondary" size={14} />
+                  <span className="text-[11.5px] font-bold text-tertiary">AVG. TIME</span>
+                </div>
                 <div className="text-[22px] font-extrabold text-primary font-mono">
                   {gaData.avgSessionDuration || '0m 0s'}
                 </div>

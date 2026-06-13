@@ -35,17 +35,19 @@ test.describe('Dashboard E2E Tests', () => {
     // Use retry click pattern to handle hydration lag on slow CPU test environments
     const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();
     let modalOpened = false;
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 15; attempt++) {
       console.log(`Clicking apartment complex (Attempt ${attempt + 1})...`);
       try {
-        await aptTitle.scrollIntoViewIfNeeded();
-        await aptTitle.click(); // Let Playwright actionability checks verify visibility/stability
-        await expect(txHistoryTitle).toBeVisible({ timeout: 4000 });
+        // Dynamic lookup to avoid detached element errors from Next.js HMR/Fast Refresh
+        const currentAptTitle = page.locator('#explore-list-container').getByText(aptName, { exact: false }).first();
+        await currentAptTitle.scrollIntoViewIfNeeded();
+        await currentAptTitle.click({ timeout: 5000 }); // Let Playwright actionability checks verify visibility/stability
+        await expect(txHistoryTitle).toBeVisible({ timeout: 5000 });
         modalOpened = true;
         break;
       } catch (e) {
-        console.log(`Modal did not open on attempt ${attempt + 1}, waiting for hydration...`);
-        await page.waitForTimeout(2000);
+        console.log(`Modal did not open on attempt ${attempt + 1}, waiting for hydration... Error: ${e.message}`);
+        await page.waitForTimeout(3000);
       }
     }
     expect(modalOpened).toBe(true);
