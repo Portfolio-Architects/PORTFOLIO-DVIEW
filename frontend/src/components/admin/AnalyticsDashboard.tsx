@@ -270,16 +270,25 @@ export default function AnalyticsDashboard() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* 1. Indexing Rate */}
-            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <BarChart3 className="text-secondary" size={14} />
-                <span className="text-[11.5px] font-bold text-tertiary">색인 성공률</span>
+            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <BarChart3 className="text-secondary" size={14} />
+                  <span className="text-[11.5px] font-bold text-tertiary">색인 성공률</span>
+                </div>
+                <div className="text-[20px] font-extrabold text-primary font-mono">
+                  {Math.round((scData.indexStatus.totalIndexed / (scData.indexStatus.totalIndexed + scData.indexStatus.notIndexed)) * 100)}%
+                </div>
               </div>
-              <div className="text-[20px] font-extrabold text-primary font-mono">
-                {Math.round((scData.indexStatus.totalIndexed / (scData.indexStatus.totalIndexed + scData.indexStatus.notIndexed)) * 100)}%
-              </div>
-              <div className="text-[10.5px] text-secondary font-medium mt-1">
-                색인 {scData.indexStatus.totalIndexed}개 / 미색인 {scData.indexStatus.notIndexed}개
+              <div className="mt-2.5">
+                <div className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden flex">
+                  <div className="h-full bg-emerald-500 rounded-l" style={{ width: `${Math.round((scData.indexStatus.totalIndexed / (scData.indexStatus.totalIndexed + scData.indexStatus.notIndexed)) * 100)}%` }} />
+                  <div className="h-full bg-rose-400" style={{ width: `${Math.round((scData.indexStatus.notIndexed / (scData.indexStatus.totalIndexed + scData.indexStatus.notIndexed)) * 100)}%` }} />
+                </div>
+                <div className="flex justify-between items-center text-[9.5px] font-bold mt-1.5">
+                  <span className="text-[#008262] dark:text-emerald-400">색인 {scData.indexStatus.totalIndexed}개</span>
+                  <span className="text-rose-500">미색인 {scData.indexStatus.notIndexed}개</span>
+                </div>
               </div>
             </div>
 
