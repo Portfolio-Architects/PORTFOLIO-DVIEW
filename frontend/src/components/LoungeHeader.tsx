@@ -35,7 +35,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
         }`}
       >
         <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
-           <span className="text-toss-blue">PORTFOLIO</span>
+           <span className="text-[#008262] dark:text-[#00d29d]">PORTFOLIO</span>
            <span className="text-tertiary font-normal text-[13px]">|</span>
            <span className="text-secondary font-semibold text-[14px]">D-VIEW</span>
         </span>

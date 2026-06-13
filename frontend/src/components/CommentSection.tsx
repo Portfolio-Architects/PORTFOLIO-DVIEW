@@ -3,6 +3,7 @@ import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useRef, useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface CommentSectionProps {
   comments: CommentData[];
@@ -139,6 +140,30 @@ export default function CommentSection({
         <MessageSquare size={20} className="text-[#008262] dark:text-[#00d29d]"/> 
         아파트 이야기 <span className="text-[#008262] dark:text-[#00d29d] text-[16px] ml-1">{comments.length}</span>
       </h2>
+      
+      {/* 라운지 활성화 유도 배너 */}
+      <div className="bg-[#e8f8f5] dark:bg-[#042820] border border-[#008262]/10 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm animate-in fade-in duration-300">
+        <div className="flex flex-col">
+          <span className="text-[13px] font-extrabold text-[#008262] dark:text-[#00d29d] flex items-center gap-1">
+            💬 D-VIEW 동탄 라운지 오픈!
+          </span>
+          <span className="text-[12px] font-bold text-secondary mt-0.5 leading-relaxed">
+            이웃 주민들과 실시간 동네 호재, 학군, 공동구매 및 유용한 꿀팁 정보를 나누어 보세요.
+          </span>
+        </div>
+        <Link 
+          href="/#lounge" 
+          onClick={() => {
+            const closeBtn = document.querySelector('button[title="닫기"]') as HTMLButtonElement || document.querySelector('[class*="ApartmentModal"] button') as HTMLButtonElement;
+            if (closeBtn) {
+              closeBtn.click();
+            }
+          }}
+          className="shrink-0 text-[12px] font-black text-surface bg-[#008262] hover:bg-[#006b50] px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 text-center w-full sm:w-auto"
+        >
+          라운지 구경 가기 ➔
+        </Link>
+      </div>
       
       <div className="flex flex-col gap-6">
         {/* Input Area */}
