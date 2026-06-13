@@ -33,6 +33,7 @@ import * as ReviewRepo from '@/lib/repositories/review.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import * as PostService from '@/lib/services/post.service';
+import * as ReportService from '@/lib/services/reportService';
 import { createInitialKPIs, startKPISimulation } from '@/lib/services/kpi.service';
 import { logger } from '@/lib/services/logger';
 
@@ -175,82 +176,13 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
+
   async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     try {
-      const profile = await UserRepo.getOrCreateProfile(authorUid);
-      const total = imageEntries.length;
-      let done = 0;
-
-      // Upload all images — batched 5 at a time to avoid overwhelming Firebase
-      const BATCH_SIZE = 5;
-      const uploadedImages: {url: string, category: string}[] = [];
-
-      for (let i = 0; i < total; i += BATCH_SIZE) {
-        const batch = imageEntries.slice(i, i + BATCH_SIZE);
-        const results = await Promise.all(batch.map(async ({ file, category }) => {
-          try {
-            const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-            const { storage } = await import('@/lib/firebaseConfig');
-            
-            const compressed = await compressImage(file);
-            const storageRef = ref(storage, `field_reports/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, compressed);
-            const downloadUrl = await getDownloadURL(snapshot.ref);
-            done++;
-            onProgress?.(done, total);
-            return { url: downloadUrl, category };
-          } catch (storageError) {
-            logger.error('DashboardFacade.addFieldReport', `Upload failed for ${file.name}`, undefined, storageError);
-            done++;
-            onProgress?.(done, total);
-            return null;
-          }
-        }));
-        uploadedImages.push(...results.filter(Boolean) as {url: string, category: string}[]);
-      }
-
-      // Build ImageMeta array
-      const images = uploadedImages.map(img => ({
-        url: img.url,
-        caption: '',
-        locationTag: img.category,
-      }));
-
-      // Legacy compat: also set first image per category in sections
-      const mergedSections = JSON.parse(JSON.stringify(sections)) as ReportSections;
-      const SECTION_MAP: Record<string, [keyof ReportSections, string]> = {
-        'gateImg': ['infra', 'gateImg'], 'landscapeImg': ['infra', 'landscapeImg'],
-        'parkingImg': ['infra', 'parkingImg'], 'maintenanceImg': ['infra', 'maintenanceImg'],
-        'communityImg': ['ecosystem', 'communityImg'], 'schoolImg': ['ecosystem', 'schoolImg'],
-        'commerceImg': ['ecosystem', 'commerceImg'],
-      };
-      for (const img of uploadedImages) {
-        const mapping = SECTION_MAP[img.category];
-        if (mapping) {
-          const [section, field] = mapping;
-          if (!(mergedSections[section] as Record<string, string>)[field]) {
-            (mergedSections[section] as Record<string, string>)[field] = img.url;
-          }
-        }
-      }
-
-      const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
-      const { db } = await import('@/lib/firebaseConfig');
-      await addDoc(collection(db, 'field_reports'), {
-        apartmentName,
-        sections: mergedSections,
-        images,
-        premiumScores: premiumScores || null,
-        authorName: profile?.nickname || '익명',
-        authorUid,
-        likes: 0,
-        commentCount: 0,
-        createdAt: serverTimestamp(),
-      });
-      logger.info('DashboardFacade.addFieldReport', 'Field report created', { apartmentName, imageCount: images.length });
+      await ReportService.createFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
     } catch (e: unknown) {
       const msg = e instanceof Error ? (e as Error).message : String(e);
-      logger.error('DashboardFacade.addFieldReport', 'Failed', { apartmentName }, e);
+      logger.error('DashboardFacade.addFieldReport', 'Field report creation failed', { apartmentName }, e);
       alert('임장기 저장 실패! 이유: ' + msg);
     }
   }
