@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Clock, Heart, Smile } from 'lucide-react';
 import { haversineDistance, parseCoordString } from '@/lib/utils/haversine';
+import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 
 interface ChildcareDetailSectionProps {
   dong: string;
@@ -251,7 +252,15 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
   // 1. Resolve childcare datasets based on Dong and fallback logic
   const childcareData = useMemo(() => {
     // Check if there is an exact apartment override
-    const override = APARTMENT_CHILDCARE_OVERRIDES[aptName.trim()];
+    // Use normalizeAptName to bypass spelling/spacing/brackets differences securely
+    const normalizedName = normalizeAptName(aptName);
+    let override = null;
+    for (const [key, val] of Object.entries(APARTMENT_CHILDCARE_OVERRIDES)) {
+      if (normalizeAptName(key) === normalizedName) {
+        override = val;
+        break;
+      }
+    }
     if (override) {
       return { daycares: override.daycares, kindergartens: override.kindergartens, isOverridden: true };
     }

@@ -30,16 +30,17 @@ test.describe('Dashboard E2E Tests', () => {
     // Use retry click pattern to handle hydration lag on slow CPU test environments
     const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();
     let modalOpened = false;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
       console.log(`Clicking apartment complex (Attempt ${attempt + 1})...`);
-      await aptTitle.click({ force: true });
       try {
-        await expect(txHistoryTitle).toBeVisible({ timeout: 3000 });
+        await aptTitle.scrollIntoViewIfNeeded();
+        await aptTitle.click(); // Let Playwright actionability checks verify visibility/stability
+        await expect(txHistoryTitle).toBeVisible({ timeout: 4000 });
         modalOpened = true;
         break;
       } catch (e) {
         console.log(`Modal did not open on attempt ${attempt + 1}, waiting for hydration...`);
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(2000);
       }
     }
     expect(modalOpened).toBe(true);
