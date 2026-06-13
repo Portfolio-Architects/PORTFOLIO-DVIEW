@@ -437,14 +437,14 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
         isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'
       }`} />
       <div className={`absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-        isDark ? 'bg-blue-500/10' : 'bg-blue-500/5'
+        isDark ? 'bg-teal-500/10' : 'bg-teal-500/5'
       }`} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 z-10">
         <div className="flex items-center gap-2">
           <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${
-            isDark ? 'bg-slate-900/80 border-slate-700 text-toss-blue' : 'bg-body border-border/60 text-teal-600'
+            isDark ? 'bg-slate-900/80 border-slate-700 text-emerald-400' : 'bg-body border-border/60 text-teal-600'
           }`}>
             <Orbit className="w-5 h-5 animate-spin-slow" />
           </div>
@@ -547,7 +547,7 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
             <span className={`text-[10px] font-bold leading-none ${isDark ? 'text-slate-400' : 'text-secondary'}`}>{hoveredNode.dong}</span>
             <div className={`w-full h-[1px] my-1 ${isDark ? 'bg-slate-800' : 'bg-border/60'}`} />
             <div className="flex flex-col gap-0.5 text-[11px] font-bold">
-              <span className={isDark ? 'text-toss-blue' : 'text-blue-600'}>
+              <span className={isDark ? 'text-emerald-400' : 'text-emerald-600'}>
                 평균 매매: {hoveredNode.price > 0 ? `${Math.floor(hoveredNode.price / 10000)}억 ${(hoveredNode.price % 10000).toLocaleString()}만` : '정보 없음'}
               </span>
               <span className="text-yellow-600 dark:text-yellow-400">
@@ -577,7 +577,7 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
                 <span>중립 (Neutral)</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/30" />
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400/30" />
                 <span>관망 대기 (Cold Wait)</span>
               </div>
             </>

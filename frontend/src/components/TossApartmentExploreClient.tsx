@@ -1043,7 +1043,7 @@ export default function TossApartmentExploreClient({
               {onOpenMortgage && (
                 <button
                   onClick={() => onOpenMortgage()}
-                  className="px-4 py-2.5 bg-blue-50/50 hover:bg-blue-100/50 text-blue-600 dark:bg-blue-950/10 dark:hover:bg-blue-900/20 dark:text-blue-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-blue-500/15 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-emerald-50/50 hover:bg-emerald-100/50 text-emerald-600 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 dark:text-emerald-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/15 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   대출 한도진단
                 </button>

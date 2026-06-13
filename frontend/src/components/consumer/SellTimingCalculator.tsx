@@ -742,11 +742,11 @@ export default function SellTimingCalculator({
                   {/* Banner 2: Tax Expert */}
                   <div 
                     onClick={() => handleB2BClick('tax_expert')}
-                    className="p-4 rounded-2xl border border-blue-500/10 bg-gradient-to-br from-blue-50/40 to-indigo-50/20 dark:from-blue-950/10 dark:to-indigo-950/5 hover:border-blue-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden"
+                    className="p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-teal-50/20 dark:from-emerald-950/10 dark:to-teal-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden"
                   >
                     <div className="space-y-1 text-left min-w-0 pr-4">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9.5px] font-black uppercase tracking-wider">세무 절세 연계</span>
-                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-blue-600 transition-colors leading-tight">양도소득세 절세 1:1 세무사 상담받기</h5>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-black uppercase tracking-wider">세무 절세 연계</span>
+                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-emerald-600 transition-colors leading-tight">양도소득세 절세 1:1 세무사 상담받기</h5>
                       <p className="text-[11.5px] text-tertiary font-semibold truncate">비과세 조건 검토 및 양도소득세 절약 맞춤 세무 조언 연계</p>
                     </div>
                     <button className="p-2 rounded-xl bg-white/80 dark:bg-surface/80 text-secondary hover:text-primary shrink-0 border border-border/40 shadow-sm active:scale-95 transition-all">

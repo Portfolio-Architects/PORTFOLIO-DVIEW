@@ -1381,7 +1381,7 @@ function FieldReportModal({
             <div className="relative" ref={toolDropdownRef}>
               <button
                 onClick={() => setIsToolDropdownOpen(prev => !prev)}
-                className={`px-4 py-2 bg-gradient-to-r from-toss-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-2xl shadow-md flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
+                className={`px-4 py-2 bg-gradient-to-r from-[#008262] to-[#00a37b] hover:from-[#00a37b] hover:to-[#00b386] text-white rounded-2xl shadow-md flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
                 title="AI 분석 리포트 및 부동산 금융 계산기 열기"
               >
                 <Calculator size={15} />

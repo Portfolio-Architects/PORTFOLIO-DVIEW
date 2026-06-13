@@ -536,7 +536,7 @@ export default function GapInvestmentExplorer({
                 setSelectedDong(e.target.value || null);
                 setShowAll(false);
               }}
-              className="w-full bg-surface border border-border/80 hover:border-blue-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
+              className="w-full bg-surface border border-border/80 hover:border-emerald-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
             >
               <option value="">전체 행정동</option>
               {dongsList.map(dong => (
@@ -561,7 +561,7 @@ export default function GapInvestmentExplorer({
                 setMinJeonseRate(Number(e.target.value));
                 setShowAll(false);
               }}
-              className="w-full bg-surface border border-border/80 hover:border-blue-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
+              className="w-full bg-surface border border-border/80 hover:border-emerald-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
             >
               <option value="0">전체 전세율</option>
               <option value="60">60% 이상</option>
@@ -586,7 +586,7 @@ export default function GapInvestmentExplorer({
                 setSortBy(e.target.value);
                 setShowAll(false);
               }}
-              className="w-full bg-surface border border-border/80 hover:border-blue-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
+              className="w-full bg-surface border border-border/80 hover:border-emerald-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
             >
               <option value="gapScore">🔥 갭투자 지수 순</option>
               <option value="gapAsc">💸 투자금 낮은 순</option>

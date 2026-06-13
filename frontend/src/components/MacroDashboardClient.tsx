@@ -1882,7 +1882,7 @@ interface GroupedCategory {
                 {/* 2. 트램건설추진단 소식 */}
                 <div className="flex flex-col gap-1">
                   <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_4px_rgba(59,130,246,0.4)]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]"></span>
                     트램건설추진단 소식
                   </div>
                   {tramNotices.length === 0 ? (
@@ -1900,10 +1900,10 @@ interface GroupedCategory {
                       >
                         {/* Left: Icon & Title */}
                         <div className="flex items-center gap-2.5 min-w-0 mr-3">
-                          <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                          <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                             <Train size={12} />
                           </div>
-                          <span className="text-[12.5px] font-bold text-primary group-hover/item:text-blue-500 transition-colors truncate" title={item.title}>
+                          <span className="text-[12.5px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
                             {item.title}
                           </span>
                         </div>
@@ -2212,16 +2212,16 @@ interface GroupedCategory {
           {onOpenMortgage && (
             <div 
               onClick={() => onOpenMortgage()}
-              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-blue-500/8 to-surface dark:from-blue-500/4 border border-blue-500/15 hover:border-blue-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
                 {/* Icon & Badge Row */}
                 <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                     <Calculator size={18} />
                   </div>
-                  <span className="text-[10px] font-black bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 금융</span>
+                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 금융</span>
                 </div>
 
                 {/* Title & Desc */}
@@ -2238,7 +2238,7 @@ interface GroupedCategory {
               {/* Bottom Button */}
               <div className="mt-6 relative z-10">
                 <button 
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+                  className="w-full py-3 bg-[#008262] hover:bg-[#00a37b] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
                 >
                   <span>대출 한도 조회</span>
                   <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />

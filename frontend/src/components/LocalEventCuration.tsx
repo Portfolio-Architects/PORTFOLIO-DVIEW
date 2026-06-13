@@ -287,7 +287,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
                           )}
                           {latestJeonse && (
                             <span className="flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                               최근 전세 <strong className="text-primary">{latestJeonse}</strong>
                             </span>
                           )}
