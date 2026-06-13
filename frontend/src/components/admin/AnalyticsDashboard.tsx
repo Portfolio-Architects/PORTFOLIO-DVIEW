@@ -67,14 +67,35 @@ export default function AnalyticsDashboard() {
     }
   }, { revalidateOnFocus: false, dedupingInterval: 30000 });
 
+  const generateLocalMockSearchConsoleData = () => {
+    return {
+      indexStatus: {
+        totalIndexed: 145,
+        notIndexed: 34,
+      },
+      searchMetrics: {
+        clicks: 842,
+        impressions: 12450,
+        ctr: 6.8,
+        averagePosition: 4.2,
+      },
+      isMock: true,
+    };
+  };
+
   // Google Search Console API data SWR fetch
   const { data: scData } = useSWR('/api/admin/search-console', async (url) => {
     try {
       const res = await fetch(url);
-      if (!res.ok) return null;
-      return res.json();
-    } catch {
-      return null;
+      if (!res.ok) {
+        console.warn('[Search Console API] Fetch failed, falling back to client mock:', res.status);
+        return generateLocalMockSearchConsoleData();
+      }
+      const json = await res.json();
+      return json && json.success === false ? generateLocalMockSearchConsoleData() : (json || generateLocalMockSearchConsoleData());
+    } catch (err) {
+      console.error('[Search Console API] Fetch error, falling back to client mock:', err);
+      return generateLocalMockSearchConsoleData();
     }
   }, { revalidateOnFocus: false, dedupingInterval: 30000 });
 

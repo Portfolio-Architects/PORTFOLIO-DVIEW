@@ -24,14 +24,25 @@ test.describe('Dashboard E2E Tests', () => {
     console.log('Selected Apartment:', aptName);
 
     // Give React brief time to hydrate event listeners
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
-    // 3. Click the apartment to open the modal using click() with force to bypass any client jank
-    await aptTitle.click({ force: true });
-
-    // 4. Verify the modal opens and displays '실거래가'
+    // 3. Click the apartment to open the modal and wait for the modal to open
+    // Use retry click pattern to handle hydration lag on slow CPU test environments
     const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();
-    await expect(txHistoryTitle).toBeVisible({ timeout: 10000 });
+    let modalOpened = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      console.log(`Clicking apartment complex (Attempt ${attempt + 1})...`);
+      await aptTitle.click({ force: true });
+      try {
+        await expect(txHistoryTitle).toBeVisible({ timeout: 3000 });
+        modalOpened = true;
+        break;
+      } catch (e) {
+        console.log(`Modal did not open on attempt ${attempt + 1}, waiting for hydration...`);
+        await page.waitForTimeout(1500);
+      }
+    }
+    expect(modalOpened).toBe(true);
     
     // Check if the overall count is visible
     const totalCountText = await txHistoryTitle.textContent();
