@@ -38,15 +38,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const renderSidebarContent = () => (
     <>
       <div className="mb-10 flex items-center gap-2">
-        <h2 className="text-[18px] font-bold text-primary tracking-tight">Admin<span className="text-toss-blue"> CMS</span></h2>
-        <span className="text-[10px] bg-toss-blue-light text-toss-blue px-1.5 py-0.5 rounded-sm font-bold">Beta</span>
+        <h2 className="text-[18px] font-bold text-primary tracking-tight">Admin<span className="text-emerald-500"> CMS</span></h2>
+        <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded-sm font-bold">Beta</span>
       </div>
       <nav className="flex flex-col gap-1">
         {navLinks.map((link) => (
           <Link key={link.href} href={link.href}
             onClick={() => setSidebarOpen(false)}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all ${
-              isActive(link.href) ? 'bg-toss-blue text-surface shadow-lg shadow-[#00d29d]/20' : 'text-secondary hover:bg-body'
+              isActive(link.href) ? 'bg-[#008262] text-surface shadow-lg shadow-[#00d29d]/20' : 'text-secondary hover:bg-body'
             }`}>
             <link.icon size={18} />
             {link.label}
@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         ))}
       </nav>
       <div className="mt-auto pt-6 border-t border-body">
-        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold text-tertiary hover:bg-body hover:text-toss-blue transition-all">
+        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold text-tertiary hover:bg-body hover:text-emerald-600 transition-all">
           <ExternalLink size={16} /> 소비자 화면 보기
         </Link>
       </div>
@@ -74,9 +74,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Mobile header */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-surface/80 backdrop-blur-lg border-b border-border px-4 py-3 flex items-center justify-between">
-          <h2 className="text-[16px] font-bold text-primary">Admin<span className="text-toss-blue"> CMS</span></h2>
+          <h2 className="text-[16px] font-bold text-primary">Admin<span className="text-emerald-500"> CMS</span></h2>
           <div className="flex items-center gap-1">
-            <Link href="/" className="p-2 text-tertiary hover:text-toss-blue transition-colors" title="소비자 화면 보기">
+            <Link href="/" className="p-2 text-tertiary hover:text-emerald-600 transition-colors" title="소비자 화면 보기">
               <ExternalLink size={20} />
             </Link>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-secondary">

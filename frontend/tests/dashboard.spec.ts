@@ -26,8 +26,8 @@ test.describe('Dashboard E2E Tests', () => {
     // Give React brief time to hydrate event listeners
     await page.waitForTimeout(300);
 
-    // 3. Click the apartment to open the modal using dispatchEvent to bypass virtualization scroll/click jank
-    await aptTitle.dispatchEvent('click');
+    // 3. Click the apartment to open the modal using click()
+    await aptTitle.click();
 
     // 4. Verify the modal opens and displays '실거래가'
     const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();
