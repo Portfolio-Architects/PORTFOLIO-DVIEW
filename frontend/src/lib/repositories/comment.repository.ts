@@ -4,10 +4,16 @@
  * Architecture Layer: Repository (CRUD only)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { CommentData } from '@/lib/types/report.types';
 import { commentConverter } from '@/lib/utils/firestoreConverters';
+import { z } from 'zod';
+
+const CommentDataSchema = z.object({
+  text: z.string().default(''),
+  authorName: z.string().default('익명')
+}).passthrough();
 
 /**
  * Adds a comment to a field report's subcollection and increments the comment count.
@@ -58,14 +64,96 @@ export function listenToComments(
     const comments: CommentData[] = [];
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      comments.push({
+      const mapped: any = {
         id: docSnap.id,
-        text: data.text,
-        author: data.authorName,
+        text: data.text || '',
+        authorName: data.authorName || '익명',
         createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
-      });
+      };
+
+      const parsed = CommentDataSchema.safeParse(mapped);
+      if (parsed.success) {
+        comments.push({
+          id: mapped.id,
+          text: parsed.data.text,
+          author: parsed.data.authorName,
+          createdAt: mapped.createdAt
+        } as CommentData);
+      } else {
+        logger.warn('CommentRepository.listenToComments', 'Zod validation failed, using raw fallback', { id: docSnap.id }, parsed.error);
+        comments.push({
+          id: mapped.id,
+          text: mapped.text,
+          author: mapped.authorName,
+          createdAt: mapped.createdAt
+        } as CommentData);
+      }
     });
     callback(comments);
+  });
+}
+
+/**
+ * Fetches comments for a specific report. Supporting server-side (adminDb) and client-side (db) fetches.
+ */
+export async function getComments(reportId: string): Promise<CommentData[]> {
+  let rawDocs: any[] = [];
+
+  if (typeof window === 'undefined') {
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      if (adminDb) {
+        const snap = await adminDb.collection(`field_reports/${reportId}/comments`)
+          .orderBy('createdAt', 'asc')
+          .get();
+        rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+      }
+    } catch (adminError) {
+      logger.warn('CommentRepository.getComments', 'Admin SDK fetch failed, falling back', { reportId }, adminError);
+    }
+  }
+
+  if (rawDocs.length === 0) {
+    try {
+      const q = query(
+        collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter),
+        orderBy('createdAt', 'asc')
+      );
+      const snap = await getDocs(q);
+      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+    } catch (e) {
+      logger.error('CommentRepository.getComments', 'Client SDK fetch failed', { reportId }, e);
+      return [];
+    }
+  }
+
+  return rawDocs.map(item => {
+    const data = item.data;
+    const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
+    const mapped: any = {
+      id: item.id,
+      text: data.text || '',
+      authorName: data.authorName || '익명',
+      createdAt: createdAtDate ? createdAtDate.toLocaleDateString('ko-KR') : '방금 전',
+    };
+
+    const parsed = CommentDataSchema.safeParse(mapped);
+    if (parsed.success) {
+      return {
+        id: mapped.id,
+        text: parsed.data.text,
+        author: parsed.data.authorName,
+        createdAt: mapped.createdAt
+      } as CommentData;
+    } else {
+      logger.warn('CommentRepository.getComments', 'Zod validation failed, using raw fallback', { id: item.id }, parsed.error);
+      return {
+        id: mapped.id,
+        text: mapped.text,
+        author: mapped.authorName,
+        createdAt: mapped.createdAt
+      } as CommentData;
+    }
   });
 }
 

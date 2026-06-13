@@ -6,14 +6,28 @@
 import { db, storage } from '@/lib/firebaseConfig';
 import {
   collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
-  doc, updateDoc, increment, deleteDoc,
+  doc, updateDoc, increment, deleteDoc, getDocs
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { logger } from '@/lib/services/logger';
 import type { UserReview } from '@/lib/types/review.types';
 import { compressImage } from '@/lib/utils/imageCompression';
+import { z } from 'zod';
 
 const COLLECTION = 'user_reviews';
+
+const UserReviewSchema = z.object({
+  apartmentName: z.string().default(''),
+  dong: z.string().default(''),
+  rating: z.number().default(5),
+  content: z.string().default(''),
+  photoURL: z.string().nullable().optional(),
+  author: z.string().default('익명'),
+  authorUid: z.string().default(''),
+  verifiedApartment: z.string().default(''),
+  verificationLevel: z.string().default(''),
+  likes: z.number().default(0)
+}).passthrough();
 
 /**
  * Listens to user reviews in real-time, ordered by newest first.
@@ -23,9 +37,8 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
   return onSnapshot(q, (snapshot) => {
     const reviews: UserReview[] = snapshot.docs.map(d => {
       const data = d.data();
-      // Extract dong from apartmentName pattern "[동이름] 아파트명"
       const dongMatch = data.apartmentName?.match(/\[(.*?)\]/);
-      return {
+      const mapped: any = {
         id: d.id,
         apartmentName: data.apartmentName || '',
         dong: dongMatch?.[1] || data.dong || '',
@@ -37,10 +50,84 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
         verifiedApartment: data.verifiedApartment || '',
         verificationLevel: data.verificationLevel || '',
         likes: data.likes || 0,
-        createdAt: data.createdAt?.toDate?.()?.toLocaleDateString?.('ko-KR') || '',
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : (data.createdAt?.toDate?.() ? data.createdAt.toDate().toLocaleDateString('ko-KR') : ''),
       };
+
+      const parsed = UserReviewSchema.safeParse(mapped);
+      if (parsed.success) {
+        return {
+          ...mapped,
+          ...parsed.data
+        } as UserReview;
+      } else {
+        logger.warn('ReviewRepository.listenToReviews', 'Zod validation failed, using raw fallback', { id: d.id }, parsed.error);
+        return mapped as UserReview;
+      }
     });
     callback(reviews);
+  });
+}
+
+/**
+ * Fetches recent reviews. Supporting server-side (adminDb) and client-side (db) fetches.
+ */
+export async function getRecentReviews(limitCount: number = 30): Promise<UserReview[]> {
+  let rawDocs: any[] = [];
+
+  if (typeof window === 'undefined') {
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      if (adminDb) {
+        const snap = await adminDb.collection(COLLECTION)
+          .orderBy('createdAt', 'desc')
+          .limit(limitCount)
+          .get();
+        rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+      }
+    } catch (adminError) {
+      logger.warn('ReviewRepository.getRecentReviews', 'Admin SDK fetch failed, falling back', undefined, adminError);
+    }
+  }
+
+  if (rawDocs.length === 0) {
+    try {
+      const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(limitCount));
+      const snap = await getDocs(q);
+      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+    } catch (e) {
+      logger.error('ReviewRepository.getRecentReviews', 'Client SDK fetch failed', undefined, e);
+      return [];
+    }
+  }
+
+  return rawDocs.map(item => {
+    const data = item.data;
+    const dongMatch = data.apartmentName?.match(/\[(.*?)\]/);
+    const mapped: any = {
+      id: item.id,
+      apartmentName: data.apartmentName || '',
+      dong: dongMatch?.[1] || data.dong || '',
+      rating: data.rating || 5,
+      content: data.content || '',
+      photoURL: data.photoURL,
+      author: data.author || data.authorName || '익명',
+      authorUid: data.authorUid || '',
+      verifiedApartment: data.verifiedApartment || '',
+      verificationLevel: data.verificationLevel || '',
+      likes: data.likes || 0,
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : (data.createdAt?.toDate?.() ? data.createdAt.toDate().toLocaleDateString('ko-KR') : ''),
+    };
+
+    const parsed = UserReviewSchema.safeParse(mapped);
+    if (parsed.success) {
+      return {
+        ...mapped,
+        ...parsed.data
+      } as UserReview;
+    } else {
+      logger.warn('ReviewRepository.getRecentReviews', 'Zod validation failed, using raw fallback', { id: item.id }, parsed.error);
+      return mapped as UserReview;
+    }
   });
 }
 
