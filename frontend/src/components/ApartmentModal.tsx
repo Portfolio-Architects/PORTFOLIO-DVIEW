@@ -1514,7 +1514,7 @@ function FieldReportModal({
               <button
                 onClick={handleToggleFilter}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                  filterOutliers ? 'bg-toss-blue' : 'bg-secondary/20'
+                  filterOutliers ? 'bg-[#008262] dark:bg-[#00d29d]' : 'bg-secondary/20'
                 }`}
                 role="switch"
                 aria-checked={filterOutliers}
@@ -1772,14 +1772,14 @@ function FieldReportModal({
                           e.stopPropagation();
                           setIsUploadModalOpen(true);
                         }}
-                        className="text-[13px] font-bold text-toss-blue bg-toss-blue-light px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                        className="text-[13px] font-bold text-[#008262] dark:text-[#00d29d] bg-[#e6f3f0] dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-[#ccebe3] dark:hover:bg-[#063b2f] transition-colors"
                       >
                         + 사진 추가
                       </button>
                     </div>
                     <details className="w-full overflow-hidden" open>
                       <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                        <Camera size={20} className="text-toss-blue"/>
+                        <Camera size={20} className="text-[#008262] dark:text-[#00d29d]"/>
                         우리 단지 갤러리
                       </summary>
                       <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
@@ -1789,20 +1789,20 @@ function FieldReportModal({
               })() : (
                 <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group`}>
                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                    <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
+                    <Camera size={20} className="text-[#008262] dark:text-[#00d29d]"/> 우리 단지 갤러리
                   </h2>
                   <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#008262] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
                     <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
-                      <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
+                      <Camera className="text-[#008262] dark:text-[#00d29d]" size={32} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
                       데이터가 담지 못하는 우리 단지의 진정한 가치
                     </h3>
                     <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
                       매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                      입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                      입주민의 시선으로 <strong className="text-[#008262] dark:text-[#00d29d]">우리 단지의 품격</strong>을 직접 완성해 주세요.
                     </p>
                     <button 
                       onClick={(e) => {
@@ -1810,10 +1810,10 @@ function FieldReportModal({
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-toss-blue hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#008262] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
                     >
                       <span>우리 단지 첫 번째 앰배서더 되기</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-toss-blue group-hover:bg-surface animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#008262] dark:bg-[#00d29d] group-hover:bg-surface animate-pulse" />
                     </button>
                     <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
                       * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
@@ -1955,7 +1955,7 @@ function FieldReportModal({
 
         {isAdmin && (
           <button 
-            className="absolute top-6 right-36 z-50 text-white hover:text-toss-blue p-2 rounded-full bg-surface/10 hover:bg-surface/30 transition-colors flex items-center gap-2 px-4 border border-white/20"
+            className="absolute top-6 right-36 z-50 text-white hover:text-[#00d29d] dark:hover:text-[#00d29d] p-2 rounded-full bg-surface/10 hover:bg-surface/30 transition-colors flex items-center gap-2 px-4 border border-white/20"
             onClick={async (e) => { 
               e.stopPropagation(); 
               if (!currentImgData?.url || !report?.id) return;
@@ -2114,7 +2114,7 @@ function FieldReportModal({
                 className={`flex-1 h-[56px] text-white font-extrabold text-[15px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] ${
                   copiedStatus === 'all-link'
                     ? 'bg-emerald-600 shadow-[0_8px_16px_rgba(16,185,129,0.2)] hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)]'
-                    : 'bg-toss-blue active:bg-toss-blue/90 shadow-[0_8px_16px_rgba(49,130,246,0.2)] hover:shadow-[0_10px_20px_rgba(49,130,246,0.3)] hover:-translate-y-0.5'
+                    : 'bg-[#008262] active:bg-[#006b50] shadow-[0_8px_16px_rgba(0,130,98,0.2)] hover:shadow-[0_10px_20px_rgba(0,130,98,0.3)] hover:-translate-y-0.5'
                 }`}
               >
                 {copiedStatus === 'all-link' ? (
