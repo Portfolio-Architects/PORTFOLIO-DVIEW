@@ -15,6 +15,23 @@ require('dotenv').config({ path: '.env.local', override: true });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
+const { z } = require('zod');
+
+// Firestore 'transactions' & 'transactionSync' 레코드 검증을 위한 유연한 Zod 스키마
+const TransactionRecordSchema = z.object({
+  aptName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  contractYm: z.string().min(6, '계약년월은 6자 이상이어야 합니다.').regex(/^\d+$/, '숫자 형식이어야 합니다.'),
+  contractDay: z.union([z.number(), z.string()]).optional().nullable(),
+  price: z.union([z.number(), z.string()]).optional().nullable(),
+  deposit: z.union([z.number(), z.string()]).optional().nullable(),
+  monthlyRent: z.union([z.number(), z.string()]).optional().nullable(),
+  dealType: z.string().default('매매'),
+  area: z.union([z.number(), z.string()]).optional().nullable(),
+  areaPyeong: z.union([z.number(), z.string()]).optional().nullable(),
+  floor: z.union([z.number(), z.string()]).optional().nullable(),
+  dong: z.string().optional().nullable(),
+  buildYear: z.union([z.number(), z.string()]).optional().nullable(),
+});
 
 const OUTPUT_PATH = path.resolve(__dirname, '../public/data/tx-summary.json');
 
@@ -224,19 +241,41 @@ async function main() {
   snapshot.forEach((docSnap) => {
     const d = docSnap.data();
     const aptName = d.aptName || '';
-    if (!aptName) return;
+
+    const rawRecord = {
+      aptName,
+      contractYm: d.contractYm || '',
+      contractDay: d.contractDay,
+      price: d.price,
+      deposit: d.deposit,
+      monthlyRent: d.monthlyRent,
+      dealType: d.dealType || '매매',
+      area: d.area,
+      areaPyeong: d.areaPyeong,
+      floor: d.floor,
+      dong: d.dong,
+      buildYear: d.buildYear || d.constructionYear,
+    };
+
+    const parsed = TransactionRecordSchema.safeParse(rawRecord);
+    if (!parsed.success) {
+      console.warn(`[Sync Transactions] Skipping invalid transaction at doc ${docSnap.id}:`, parsed.error.format());
+      return;
+    }
+
+    const validData = parsed.data;
 
     // Filter out transactions that occurred before completion/built year
-    const buildYear = parseInt(d.buildYear || d.constructionYear, 10) || 0;
-    const contractYear = d.contractYm ? parseInt(d.contractYm.substring(0, 4), 10) : 0;
+    const buildYear = parseInt(validData.buildYear, 10) || 0;
+    const contractYear = validData.contractYm ? parseInt(validData.contractYm.substring(0, 4), 10) : 0;
     if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) {
       return; // Skip pre-completion transaction
     }
 
-    const key = normalizeAptName(aptName);
+    const key = normalizeAptName(validData.aptName);
     if (!byApt[key]) byApt[key] = [];    
     
-    const cDate = `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
+    const cDate = `${validData.contractYm}${String(validData.contractDay || '').padStart(2, '0')}`;
     
     // 문서 ID 기반으로 이미 처리되었는지 체크하여 중복 방지
     if (processedDocIds.has(docSnap.id)) {
@@ -245,21 +284,21 @@ async function main() {
     processedDocIds.add(docSnap.id);
 
     byApt[key].push({
-        contractYm: d.contractYm || '',
-        contractDay: d.contractDay || '',
-        price: d.price || 0,
-        priceEok: (d.dealType === '전세' || d.dealType === '월세') 
-          ? formatPriceEok(d.deposit || 0) + (d.monthlyRent ? `/${d.monthlyRent}` : '')
-          : formatPriceEok(d.price || 0),
-        deposit: d.deposit || 0,
-        monthlyRent: d.monthlyRent || 0,
+        contractYm: validData.contractYm,
+        contractDay: validData.contractDay || '',
+        price: validData.price || 0,
+        priceEok: (validData.dealType === '전세' || validData.dealType === '월세') 
+          ? formatPriceEok(validData.deposit || 0) + (validData.monthlyRent ? `/${validData.monthlyRent}` : '')
+          : formatPriceEok(validData.price || 0),
+        deposit: validData.deposit || 0,
+        monthlyRent: validData.monthlyRent || 0,
         reqGb: d.reqGb || '',
         rnuYn: d.rnuYn || '',
-        area: d.area || 0,
-        areaPyeong: d.areaPyeong || 0,
-        floor: d.floor || 0,
-        dong: d.dong || '',
-        dealType: d.dealType || '매매',
+        area: validData.area || 0,
+        areaPyeong: validData.areaPyeong || 0,
+        floor: validData.floor || 0,
+        dong: validData.dong || '',
+        dealType: validData.dealType,
         contractDate: cDate,
       });
   });
@@ -275,19 +314,41 @@ async function main() {
   syncSnap.forEach((docSnap) => {
     const d = docSnap.data();
     const aptName = d.apartmentName || d.aptName || '';
-    if (!aptName) return;
+
+    const rawRecord = {
+      aptName,
+      contractYm: d.contractYm || '',
+      contractDay: d.contractDay,
+      price: d.price,
+      deposit: d.deposit,
+      monthlyRent: d.monthlyRent,
+      dealType: d.dealType || '매매',
+      area: d.area,
+      areaPyeong: d.areaPyeong,
+      floor: d.floor,
+      dong: d.dong,
+      buildYear: d.buildYear || d.constructionYear,
+    };
+
+    const parsed = TransactionRecordSchema.safeParse(rawRecord);
+    if (!parsed.success) {
+      console.warn(`[Sync Transactions] Skipping invalid sync record at doc ${docSnap.id}:`, parsed.error.format());
+      return;
+    }
+
+    const validData = parsed.data;
 
     // Filter out transactions that occurred before completion/built year
-    const buildYear = parseInt(d.buildYear || d.constructionYear, 10) || 0;
-    const contractYear = d.contractYm ? parseInt(d.contractYm.substring(0, 4), 10) : 0;
+    const buildYear = parseInt(validData.buildYear, 10) || 0;
+    const contractYear = validData.contractYm ? parseInt(validData.contractYm.substring(0, 4), 10) : 0;
     if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) {
       return; // Skip pre-completion transaction
     }
 
-    const key = normalizeAptName(aptName);
+    const key = normalizeAptName(validData.aptName);
     if (!byApt[key]) byApt[key] = [];    
     
-    const cDate = d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
+    const cDate = d.contractDate || `${validData.contractYm}${String(validData.contractDay || '').padStart(2, '0')}`;
     
     // 문서 ID 기반으로 이미 처리되었는지 체크하여 중복 방지
     if (processedDocIds.has(docSnap.id)) {
@@ -296,21 +357,21 @@ async function main() {
     processedDocIds.add(docSnap.id);
 
     byApt[key].push({
-        contractYm: d.contractYm || '',
-        contractDay: d.contractDay || '',
-        price: d.price || 0,
-        priceEok: (d.dealType === '전세' || d.dealType === '월세') 
-          ? formatPriceEok(d.deposit || 0) + (d.monthlyRent ? `/${d.monthlyRent}` : '')
-          : formatPriceEok(d.price || 0),
-        deposit: d.deposit || 0,
-        monthlyRent: d.monthlyRent || 0,
+        contractYm: validData.contractYm,
+        contractDay: validData.contractDay || '',
+        price: validData.price || 0,
+        priceEok: (validData.dealType === '전세' || validData.dealType === '월세') 
+          ? formatPriceEok(validData.deposit || 0) + (validData.monthlyRent ? `/${validData.monthlyRent}` : '')
+          : formatPriceEok(validData.price || 0),
+        deposit: validData.deposit || 0,
+        monthlyRent: validData.monthlyRent || 0,
         reqGb: d.reqGb || '',
         rnuYn: d.rnuYn || '',
-        area: d.area || 0,
-        areaPyeong: d.areaPyeong || 0,
-        floor: d.floor || 0,
-        dong: d.dong || '',
-        dealType: d.dealType || '매매',
+        area: validData.area || 0,
+        areaPyeong: validData.areaPyeong || 0,
+        floor: validData.floor || 0,
+        dong: validData.dong || '',
+        dealType: validData.dealType,
         contractDate: cDate,
       });
   });
