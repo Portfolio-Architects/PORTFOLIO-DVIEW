@@ -1,6 +1,14 @@
 const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
+const { z } = require('zod');
+
+// Zod schema for single apartment vote entry validation before cleanup
+const ApartmentVoteSchema = z.object({
+  aptName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  buyCount: z.coerce.number().int().nonnegative().default(0),
+  waitCount: z.coerce.number().int().nonnegative().default(0)
+});
 
 function getAdminCredentials() {
   try {
@@ -83,7 +91,15 @@ async function main() {
 
   for (const doc of snap.docs) {
     const data = doc.data();
-    console.log(`Doc ID: ${doc.id}, aptName: ${data.aptName}, buyCount: ${data.buyCount}, waitCount: ${data.waitCount}`);
+    
+    const parsed = ApartmentVoteSchema.safeParse(data);
+    if (parsed.success) {
+      const validData = parsed.data;
+      console.log(`Doc ID: ${doc.id}, aptName: ${validData.aptName}, buyCount: ${validData.buyCount}, waitCount: ${validData.waitCount}`);
+    } else {
+      console.warn(`⚠️ [Clean Votes] Invalid vote document format at doc ${doc.id}:`, parsed.error.format());
+      console.log(`Doc ID: ${doc.id} (Raw Data: ${JSON.stringify(data)})`);
+    }
     
     await doc.ref.delete();
     console.log(`Deleted doc: ${doc.id}`);
