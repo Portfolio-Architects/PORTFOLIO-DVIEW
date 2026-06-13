@@ -14,13 +14,34 @@ import { logger } from '@/lib/services/logger';
  */
 export async function fetchApartmentNames(): Promise<string[]> {
   try {
-    const response = await fetch('/api/apartments-by-dong', {
-      cache: 'no-store', // force fresh data
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const result = await response.json();
-    const byDong: Record<string, { name: string }[]> = result.byDong || {};
+    let byDong: Record<string, { name: string }[]> = {};
+
+    if (typeof window === 'undefined') {
+      // Server-side: read directly from the static file to avoid relative URL fetch failures
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const filePath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const result = JSON.parse(content);
+          byDong = result.byDong || {};
+        }
+      } catch (fsError) {
+        logger.warn('ApartmentRepository.fetch', 'Failed to read apartments-by-dong.json from filesystem', undefined, fsError);
+      }
+    }
+
+    // Fallback/Client-side: Fetch via HTTP API
+    if (Object.keys(byDong).length === 0) {
+      const response = await fetch('/api/apartments-by-dong', {
+        cache: 'no-store', // force fresh data
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const result = await response.json();
+      byDong = result.byDong || {};
+    }
     
     const apartments: string[] = [];
     for (const [dong, apts] of Object.entries(byDong)) {
@@ -30,7 +51,7 @@ export async function fetchApartmentNames(): Promise<string[]> {
     }
     
     apartments.sort();
-    logger.info('ApartmentRepository.fetch', `Loaded ${apartments.length} apartments from Google Sheets`);
+    logger.info('ApartmentRepository.fetch', `Loaded ${apartments.length} apartments successfully`);
     return apartments;
   } catch (error) {
     logger.warn('ApartmentRepository.fetch', '/api/apartments-by-dong failed', undefined, error);
