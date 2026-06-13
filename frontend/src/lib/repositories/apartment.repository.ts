@@ -7,6 +7,16 @@
  * for all apartment lists: 동네리뷰 선택, 입주민 인증, 임장기 작성 등
  */
 import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
+
+const ApartmentItemSchema = z.object({
+  name: z.string(),
+  txKey: z.string().optional()
+}).passthrough();
+
+const ApartmentsByDongSchema = z.object({
+  byDong: z.record(z.string(), z.array(ApartmentItemSchema))
+});
 
 /**
  * Fetches full apartment list from /api/apartments-by-dong (Google Sheets).
@@ -24,8 +34,15 @@ export async function fetchApartmentNames(): Promise<string[]> {
         const filePath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath, 'utf8');
-          const result = JSON.parse(content);
-          byDong = result.byDong || {};
+          const rawResult = JSON.parse(content);
+          
+          const parsed = ApartmentsByDongSchema.safeParse(rawResult);
+          if (parsed.success) {
+            byDong = parsed.data.byDong;
+          } else {
+            logger.warn('ApartmentRepository.fetch', 'Zod validation failed for apartments-by-dong.json. Falling back to raw.', undefined, parsed.error);
+            byDong = rawResult.byDong || {};
+          }
         }
       } catch (fsError) {
         logger.warn('ApartmentRepository.fetch', 'Failed to read apartments-by-dong.json from filesystem', undefined, fsError);
@@ -39,8 +56,14 @@ export async function fetchApartmentNames(): Promise<string[]> {
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
-      const result = await response.json();
-      byDong = result.byDong || {};
+      const rawResult = await response.json();
+      const parsed = ApartmentsByDongSchema.safeParse(rawResult);
+      if (parsed.success) {
+        byDong = parsed.data.byDong;
+      } else {
+        logger.warn('ApartmentRepository.fetch', 'Zod validation failed for /api/apartments-by-dong API. Falling back to raw.', undefined, parsed.error);
+        byDong = rawResult.byDong || {};
+      }
     }
     
     const apartments: string[] = [];

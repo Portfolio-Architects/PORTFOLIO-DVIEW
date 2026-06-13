@@ -7,6 +7,80 @@ import { db } from '@/lib/firebaseConfig';
 import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
+
+const ReportSpecsSchema = z.object({
+  builtYear: z.string().default(''),
+  scale: z.string().default(''),
+  farBuild: z.string().default(''),
+  parkingRatio: z.string().default(''),
+}).passthrough();
+
+const ReportInfraSchema = z.object({
+  gateText: z.string().default(''),
+  gateImgs: z.array(z.string()).optional(),
+  gateRating: z.number().optional(),
+  landscapeText: z.string().default(''),
+  landscapeImgs: z.array(z.string()).optional(),
+  landscapeRating: z.number().optional(),
+  parkingText: z.string().default(''),
+  parkingImgs: z.array(z.string()).optional(),
+  parkingRating: z.number().optional(),
+  maintenanceText: z.string().default(''),
+  maintenanceImgs: z.array(z.string()).optional(),
+  maintenanceRating: z.number().optional(),
+}).passthrough();
+
+const ReportEcosystemSchema = z.object({
+  communityText: z.string().default(''),
+  communityImgs: z.array(z.string()).optional(),
+  communityRating: z.number().optional(),
+  schoolText: z.string().default(''),
+  schoolImgs: z.array(z.string()).optional(),
+  schoolRating: z.number().optional(),
+  commerceText: z.string().default(''),
+  commerceImgs: z.array(z.string()).optional(),
+  commerceRating: z.number().optional(),
+}).passthrough();
+
+const ReportLocationSchema = z.object({
+  trafficText: z.string().default(''),
+  trafficRating: z.number().optional(),
+  developmentText: z.string().default(''),
+  developmentRating: z.number().optional(),
+}).passthrough();
+
+const ReportAssessmentSchema = z.object({
+  alphaDriver: z.string().default(''),
+  systemicRisk: z.string().default(''),
+  synthesis: z.string().default(''),
+  probability: z.string().default(''),
+  autoGrade: z.string().optional(),
+}).passthrough();
+
+const ReportSectionsSchema = z.object({
+  specs: ReportSpecsSchema.optional(),
+  infra: ReportInfraSchema.optional(),
+  ecosystem: ReportEcosystemSchema.optional(),
+  location: ReportLocationSchema.optional(),
+  assessment: ReportAssessmentSchema.optional(),
+}).passthrough();
+
+const FieldReportDataSchema = z.object({
+  dong: z.string().default('오산동 (동탄역)'),
+  apartmentName: z.string(),
+  sections: ReportSectionsSchema.optional(),
+  premiumScores: z.any().optional(),
+  metrics: z.any().optional(),
+  premiumContent: z.string().optional(),
+  author: z.string().default('데이터 랩스'),
+  likes: z.number().default(0),
+  commentCount: z.number().default(0),
+  viewCount: z.number().default(0),
+  images: z.array(z.any()).default([]),
+  scoutingDate: z.string().default('')
+}).passthrough();
+
 
 /**
  * Listens to the 'scoutingReports' collection in real-time.
@@ -64,6 +138,8 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
 }
 
 export async function getFullReport(reportId: string): Promise<FieldReportData | null> {
+  let rawReport: any = null;
+
   if (typeof window === 'undefined') {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
@@ -77,7 +153,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
 
         const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
 
-        return {
+        rawReport = {
           id: docSnap.id,
           dong: data.dong || '오산동 (동탄역)',
           apartmentName: data.apartmentName,
@@ -99,27 +175,40 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     }
   }
 
-  const docRef = doc(db, 'scoutingReports', reportId);
-  const docSnap = await getDoc(docRef);
-  if (!docSnap.exists()) return null;
+  if (!rawReport) {
+    const docRef = doc(db, 'scoutingReports', reportId);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return null;
 
-  const data = docSnap.data();
-  return {
-    id: docSnap.id,
-    dong: data.dong || '오산동 (동탄역)',
-    apartmentName: data.apartmentName,
-    sections: data.sections || undefined,
-    premiumScores: data.premiumScores,
-    premiumContent: data.premiumContent,
-    author: '데이터 랩스',
-    likes: data.likes || 0,
-    viewCount: data.viewCount || 0,
-    commentCount: data.commentCount || 0,
-    images: data.images || [],
-    metrics: data.metrics,
-    scoutingDate: data.scoutingDate || '',
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
-  };
+    const data = docSnap.data();
+    rawReport = {
+      id: docSnap.id,
+      dong: data.dong || '오산동 (동탄역)',
+      apartmentName: data.apartmentName,
+      sections: data.sections || undefined,
+      premiumScores: data.premiumScores,
+      premiumContent: data.premiumContent,
+      author: '데이터 랩스',
+      likes: data.likes || 0,
+      viewCount: data.viewCount || 0,
+      commentCount: data.commentCount || 0,
+      images: data.images || [],
+      metrics: data.metrics,
+      scoutingDate: data.scoutingDate || '',
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+    };
+  }
+
+  const parsed = FieldReportDataSchema.safeParse(rawReport);
+  if (parsed.success) {
+    return {
+      ...rawReport,
+      ...parsed.data
+    };
+  } else {
+    logger.warn('ReportRepository.getFullReport', 'Zod validation failed, using raw fallback', { reportId }, parsed.error);
+    return rawReport;
+  }
 }
 
 /**
@@ -127,6 +216,8 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
  * Used to resolve stub reports when the user clicks an apartment that isn't in the top 30 recent reports.
  */
 export async function getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
+  let rawReport: any = null;
+
   if (typeof window === 'undefined') {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
@@ -142,7 +233,7 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
 
         const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
 
-        return {
+        rawReport = {
           id: docSnap.id,
           dong: data.dong || '오산동 (동탄역)',
           apartmentName: data.apartmentName,
@@ -164,28 +255,41 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
     }
   }
 
-  const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', apartmentName), limit(1));
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) return null;
-  
-  const docSnap = querySnapshot.docs[0];
-  const data = docSnap.data();
-  return {
-    id: docSnap.id,
-    dong: data.dong || '오산동 (동탄역)',
-    apartmentName: data.apartmentName,
-    sections: data.sections || undefined,
-    premiumScores: data.premiumScores,
-    premiumContent: data.premiumContent,
-    author: '데이터 랩스',
-    likes: data.likes || 0,
-    viewCount: data.viewCount || 0,
-    commentCount: data.commentCount || 0,
-    images: data.images || [],
-    metrics: data.metrics,
-    scoutingDate: data.scoutingDate || '',
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
-  };
+  if (!rawReport) {
+    const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', apartmentName), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) return null;
+    
+    const docSnap = querySnapshot.docs[0];
+    const data = docSnap.data();
+    rawReport = {
+      id: docSnap.id,
+      dong: data.dong || '오산동 (동탄역)',
+      apartmentName: data.apartmentName,
+      sections: data.sections || undefined,
+      premiumScores: data.premiumScores,
+      premiumContent: data.premiumContent,
+      author: '데이터 랩스',
+      likes: data.likes || 0,
+      viewCount: data.viewCount || 0,
+      commentCount: data.commentCount || 0,
+      images: data.images || [],
+      metrics: data.metrics,
+      scoutingDate: data.scoutingDate || '',
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+    };
+  }
+
+  const parsed = FieldReportDataSchema.safeParse(rawReport);
+  if (parsed.success) {
+    return {
+      ...rawReport,
+      ...parsed.data
+    };
+  } else {
+    logger.warn('ReportRepository.getFullReportByApartmentName', 'Zod validation failed, using raw fallback', { apartmentName }, parsed.error);
+    return rawReport;
+  }
 }
 
 import * as TrafficRepo from '@/lib/repositories/traffic.repository';
