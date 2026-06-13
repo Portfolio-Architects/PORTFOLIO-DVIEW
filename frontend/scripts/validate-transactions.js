@@ -15,6 +15,19 @@
 
 const fs = require('fs');
 const path = require('path');
+const { z } = require('zod');
+
+// Zod schema for single transaction entry validation before import
+const RawTransactionInputSchema = z.object({
+  aptName: z.string().min(1, '아파트명이 누락되었습니다.'),
+  contractDate: z.string().regex(/^\d{8}$/, '계약일자는 8자리 숫자 형식이어야 합니다.'),
+  price: z.coerce.number().nonnegative().default(0),
+  deposit: z.coerce.number().nonnegative().default(0),
+  monthlyRent: z.coerce.number().nonnegative().default(0),
+  area: z.coerce.number().positive('면적은 양수여야 합니다.'),
+  floor: z.coerce.number().int('층수는 정수여야 합니다.').default(0),
+  dealType: z.string().default('매매')
+});
 
 // ─── 1. 미등록 단지 체크 ───
 // dong-apartments.ts 에서 빌드된 아파트 목록을 기준으로 매칭
@@ -95,26 +108,39 @@ function validateTransactions(transactions) {
 
   for (const tx of transactions) {
     const issues = [];
-    const normName = tx.aptName.replace(/\s+/g, '').replace(/[()（）\[\]]/g, '');
+
+    // Zod 스키마 검증
+    const parsedInput = RawTransactionInputSchema.safeParse(tx);
+    if (!parsedInput.success) {
+      errors.push({
+        tx,
+        issue: `Zod 검증 실패: ${parsedInput.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+        severity: 'ERROR'
+      });
+      continue;
+    }
+
+    const validatedTx = parsedInput.data;
+    const normName = validatedTx.aptName.replace(/\s+/g, '').replace(/[()（）\[\]]/g, '');
 
     // 1. 가격 기본 검증 (매매는 price > 0, 전월세는 deposit > 0)
-    if (tx.price <= 0 && tx.deposit <= 0) {
-      errors.push({ tx, issue: '가격 0 이하', severity: 'ERROR' });
+    if (validatedTx.price <= 0 && validatedTx.deposit <= 0) {
+      errors.push({ tx: validatedTx, issue: '가격 0 이하', severity: 'ERROR' });
       continue;
     }
 
     // 2. 면적 범위 검증
-    if (tx.area < 10 || tx.area > 300) {
-      issues.push({ type: 'AREA_OUTLIER', detail: `면적 ${tx.area}㎡ (정상: 10~300)`, severity: 'WARNING' });
+    if (validatedTx.area < 10 || validatedTx.area > 300) {
+      issues.push({ type: 'AREA_OUTLIER', detail: `면적 ${validatedTx.area}㎡ (정상: 10~300)`, severity: 'WARNING' });
     }
 
     // 3. 층수 범위 검증
-    if (tx.floor < 0 || tx.floor > 70) {
-      issues.push({ type: 'FLOOR_OUTLIER', detail: `${tx.floor}층 (정상: 0~70)`, severity: 'WARNING' });
+    if (validatedTx.floor < 0 || validatedTx.floor > 70) {
+      issues.push({ type: 'FLOOR_OUTLIER', detail: `${validatedTx.floor}층 (정상: 0~70)`, severity: 'WARNING' });
     }
 
     // 4. 중복 체크
-    const docId = `${normName}_${tx.contractDate}_${tx.area}_${tx.floor}_${tx.price}`;
+    const docId = `${normName}_${validatedTx.contractDate}_${validatedTx.area}_${validatedTx.floor}_${validatedTx.price}`;
     if (docIds.has(docId)) {
       issues.push({ type: 'DUPLICATE', detail: `CSV 내 중복 거래`, severity: 'WARNING' });
     }
@@ -125,23 +151,23 @@ function validateTransactions(transactions) {
       // 부분 매칭 시도 (아파트명이 포함 관계인지)
       const partialMatch = [...knownApts].find(k => normName.includes(k) || k.includes(normName));
       if (!partialMatch) {
-        issues.push({ type: 'UNREGISTERED_APT', detail: `'${tx.aptName}' — dong-apartments.ts 미등록`, severity: 'INFO' });
+        issues.push({ type: 'UNREGISTERED_APT', detail: `'${validatedTx.aptName}' — dong-apartments.ts 미등록`, severity: 'INFO' });
       }
     }
 
     // 6. 가격 이상치
-    const priceAnomaly = detectPriceAnomaly(tx, priceStats);
+    const priceAnomaly = detectPriceAnomaly(validatedTx, priceStats);
     if (priceAnomaly) {
       issues.push({ ...priceAnomaly, severity: 'WARNING' });
     }
 
     if (issues.some(i => i.severity === 'ERROR')) {
-      errors.push({ tx, issues });
+      errors.push({ tx: validatedTx, issues });
     } else if (issues.length > 0) {
-      warnings.push({ tx, issues });
-      valid.push(tx); // 경고는 통과시키되 보고
+      warnings.push({ tx: validatedTx, issues });
+      valid.push(validatedTx); // 경고는 통과시키되 보고
     } else {
-      valid.push(tx);
+      valid.push(validatedTx);
     }
   }
 
