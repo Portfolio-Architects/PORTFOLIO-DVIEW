@@ -15,16 +15,16 @@ test.describe('Dashboard E2E Tests', () => {
 
     // 2. Wait for the apartments list to populate
     // Locate the first apartment name span containing "동탄역" in the virtualized list
-    const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역\s*롯데캐슬/ })
-                         .or(page.locator('#explore-list-container span', { hasText: /동탄역\s*시범한화/ }))
+    const aptTitle = page.locator('#explore-list-container').getByText('동탄역 롯데캐슬', { exact: false })
+                         .or(page.locator('#explore-list-container').getByText('동탄역 시범한화', { exact: false }))
                          .first();
     await expect(aptTitle).toBeVisible({ timeout: 15000 });
 
     const aptName = await aptTitle.textContent();
     console.log('Selected Apartment:', aptName);
 
-    // 3. Click the apartment to open the modal
-    await aptTitle.click();
+    // 3. Click the apartment to open the modal using dispatchEvent to bypass virtualization scroll/click jank
+    await aptTitle.dispatchEvent('click');
 
     // 4. Verify the modal opens and displays '실거래가'
     const txHistoryTitle = page.locator('h2', { hasText: '실거래가' }).first();

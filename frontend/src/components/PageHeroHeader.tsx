@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import FloatingUserBar from "./FloatingUserBar";
 import { MessageSquare } from "lucide-react";
+import Image from "next/image";
 
 export interface PageHeroHeaderProps {
   readonly title: string;
@@ -78,10 +79,13 @@ export default function PageHeroHeader({
           <div className="flex flex-col gap-[19px] sm:gap-[23px] w-full">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden">
-                  <img
+                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative">
+                  <Image
                     src="/d-view-icon.png"
                     alt="D-VIEW 로고"
+                    width={37}
+                    height={37}
+                    priority
                     className="w-[30px] h-[30px] sm:w-[37px] sm:h-[37px] object-contain rounded-[8px] sm:rounded-[10px]"
                   />
                 </div>
