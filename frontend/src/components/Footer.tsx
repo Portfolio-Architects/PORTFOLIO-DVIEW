@@ -43,7 +43,7 @@ export default function Footer() {
                     height="68"
                     rx="18"
                     transform="rotate(45 50 50)"
-                    fill="url(#dview-logo-grad-footer)"
+                    fill="url(#dview-logo-grad)"
                   />
                   {/* House icon centered and scaled inside the diamond */}
                   <g transform="translate(50 51.5) scale(0.8) translate(-50 -50)">
@@ -52,12 +52,6 @@ export default function Footer() {
                       fill="#FFFFFF"
                     />
                   </g>
-                  <defs>
-                    <linearGradient id="dview-logo-grad-footer" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#00d29d" />
-                      <stop offset="100%" stopColor="#008262" />
-                    </linearGradient>
-                  </defs>
                 </svg>
               </div>
               <span className="text-[15px] font-extrabold text-tertiary tracking-tight">D-VIEW</span>
