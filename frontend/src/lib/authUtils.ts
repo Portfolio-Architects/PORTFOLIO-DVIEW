@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebaseAdmin';
 
+// Cache decoded admin claims to bypass network-bound Firebase Revocation Checks (Check once every 60 seconds per session)
+const sessionCache = new Map<string, { claims: any; lastChecked: number }>();
+
 /**
  * Extracts and verifies the Firebase ID Token from the Authorization header.
  * Basic Header syntax expected: "Bearer <token>"
@@ -18,10 +21,22 @@ export async function verifyAuthHeader(request: NextRequest) {
   const sessionCookie = request.cookies.get(isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session')?.value || request.cookies.get('__Secure-DVIEW-Session')?.value;
   if (sessionCookie) {
     try {
-      // Verify session cookie (with revocation check)
-      return await adminAuth.verifySessionCookie(sessionCookie, true);
+      const cached = sessionCache.get(sessionCookie);
+      const now = Date.now();
+
+      if (cached && (now - cached.lastChecked < 60000)) {
+        // Fast path: Verify locally without calling Firebase servers for revocation state
+        const claims = await adminAuth.verifySessionCookie(sessionCookie, false);
+        return claims;
+      }
+
+      // Slow path: Check revocation state (network-bound) once every 60 seconds
+      const claims = await adminAuth.verifySessionCookie(sessionCookie, true);
+      sessionCache.set(sessionCookie, { claims, lastChecked: now });
+      return claims;
     } catch (cookieErr) {
       console.warn('[AuthUtils] Cookie verification failed, falling back to header:', cookieErr);
+      sessionCache.delete(sessionCookie); // Invalidate cache on failure
     }
   }
 
