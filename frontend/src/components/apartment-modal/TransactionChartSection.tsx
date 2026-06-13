@@ -363,7 +363,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                        <span className={dropRatio > 0 ? "text-toss-red dark:text-red-400" : "text-[#00b386] dark:text-[#00d29d]"}>
+                        <span className={dropRatio > 0 ? "text-[#d33340] dark:text-red-300" : "text-[#008262] dark:text-[#00d29d]"}>
                           최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})
                         </span>
                       </div>
@@ -426,11 +426,11 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     : 'bg-surface border-border/60 hover:bg-body/30'
                 }`}
               >
-                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
+                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-[#1b64da] dark:text-blue-400' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
                   {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-toss-blue rounded-full animate-pulse shadow-[0_0_6px_rgba(49,130,246,0.3)]" />}
                 </div>
-                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-[#1b64da] dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>

@@ -86,10 +86,29 @@ test.describe('UI/UX Diagnostics Audit', () => {
       const viewportWidth = window.innerWidth;
       const allElements = document.querySelectorAll('*');
       
+      const hasHorizontalScrollParent = (element: Element): boolean => {
+        let parent = element.parentElement;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          const overflowX = style.overflowX;
+          const className = String(parent.className || '');
+          if (
+            overflowX === 'auto' || 
+            overflowX === 'scroll' || 
+            className.includes('overflow-x-') || 
+            className.includes('custom-scrollbar')
+          ) {
+            return true;
+          }
+          parent = parent.parentElement;
+        }
+        return false;
+      };
+
       allElements.forEach(el => {
         const rect = el.getBoundingClientRect();
-        // Check elements exceeding viewport horizontally
-        if (rect.right > viewportWidth && rect.width < viewportWidth) {
+        // Check elements exceeding viewport horizontally and not inside a scrollable container
+        if (rect.right > viewportWidth && rect.width < viewportWidth && !hasHorizontalScrollParent(el)) {
           // Identify element with selector path
           let path = el.tagName.toLowerCase();
           if (el.id) path += `#${el.id}`;
