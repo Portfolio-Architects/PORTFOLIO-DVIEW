@@ -57,6 +57,44 @@ function proxyStyleDeclaration(style: CSSStyleDeclaration): CSSStyleDeclaration 
 }
 
 export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
+  // 0. Force Light Mode on the cloned document for clean pastel cute card rendering
+  try {
+    const htmlEl = clonedDoc.documentElement;
+    const bodyEl = clonedDoc.body;
+    if (htmlEl) {
+      htmlEl.classList.remove('dark');
+      htmlEl.style.setProperty('--bg-body', '#f2f4f6');
+      htmlEl.style.setProperty('--bg-surface', '#ffffff');
+      htmlEl.style.setProperty('--text-primary', '#191f28');
+      htmlEl.style.setProperty('--text-secondary', '#4e5968');
+      htmlEl.style.setProperty('--toss-blue', '#00d29d');
+      htmlEl.style.setProperty('--toss-blue-light', '#e0fbf4');
+    }
+    if (bodyEl) {
+      bodyEl.classList.remove('dark');
+      bodyEl.style.backgroundColor = '#f2f4f6';
+      bodyEl.style.color = '#191f28';
+    }
+  } catch (e) {
+    console.warn("Failed to reset dark-mode classes on clone:", e);
+  }
+
+  // 0.2. Fix duplicate SVG render missing issues on mobile browsers
+  try {
+    const svgs = clonedDoc.getElementsByTagName('svg');
+    for (let i = 0; i < svgs.length; i++) {
+      const svg = svgs[i] as SVGSVGElement;
+      if (!svg.getAttribute('viewBox') && svg.getBoundingClientRect) {
+        const rect = svg.getBoundingClientRect();
+        if (rect.width && rect.height) {
+          svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to patch clone SVG icons:", e);
+  }
+
   // 1. Clean <style> tags content
   try {
     const styleTags = clonedDoc.getElementsByTagName('style');
