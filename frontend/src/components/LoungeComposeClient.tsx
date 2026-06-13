@@ -275,6 +275,23 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                     );
                     setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
                     showToast('글이 성공적으로 등록되었습니다! 이웃 주민의 피드백을 기대해 보세요 💚');
+                    
+                    // Reward global unlocked privilege for 24h as a leverage for UGC creation
+                    try {
+                      const apartments = dashboardFacade.getDongtanApartments ? dashboardFacade.getDongtanApartments() : [];
+                      if (apartments.length > 0) {
+                        const lockExpiry = Date.now() + 24 * 60 * 60 * 1000;
+                        apartments.forEach((aptName) => {
+                          localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
+                        });
+                        setTimeout(() => {
+                          showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
+                        }, 1000);
+                      }
+                    } catch (unlockErr) {
+                      console.warn('Failed to set global unlock rewards:', unlockErr);
+                    }
+
                     // Refresh the route to show the new post from the server component
                     router.refresh();
                   } catch { alert('글 작성에 실패했습니다.'); }
