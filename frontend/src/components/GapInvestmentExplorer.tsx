@@ -323,7 +323,7 @@ export default function GapInvestmentExplorer({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center text-toss-blue">
+            <div className="w-8 h-8 rounded-xl bg-[#e6f3f0] dark:bg-[#042820] flex items-center justify-center text-[#008262] dark:text-[#00d29d]">
               <Coins className="w-4 h-4" />
             </div>
             <div>
@@ -339,12 +339,12 @@ export default function GapInvestmentExplorer({
           {/* Mobile Share Button */}
           <button
             onClick={handleShare}
-            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-blue-500/30 hover:bg-blue-500/5 text-secondary hover:text-toss-blue active:scale-95 transition-all duration-300 relative focus:outline-none"
+            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-[#008262]/30 hover:bg-[#008262]/5 text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] active:scale-95 transition-all duration-300 relative focus:outline-none"
             title="현재 큐레이션 조건 공유하기"
           >
             <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
               {isCopied ? (
-                <Check size={14} className="text-toss-blue animate-in zoom-in duration-200" />
+                <Check size={14} className="text-[#008262] dark:text-[#00d29d] animate-in zoom-in duration-200" />
               ) : (
                 <Share2 size={14} className="animate-in zoom-in duration-200" />
               )}
@@ -355,12 +355,12 @@ export default function GapInvestmentExplorer({
         {/* Desktop Share Button */}
         <button
           onClick={handleShare}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-blue-500/30 hover:bg-blue-500/5 text-secondary hover:text-toss-blue active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-[#008262]/30 hover:bg-[#008262]/5 text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
           title="현재 큐레이션 조건 공유하기"
         >
           <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
             {isCopied ? (
-              <Check size={14} className="text-toss-blue animate-in zoom-in duration-200" />
+              <Check size={14} className="text-[#008262] dark:text-[#00d29d] animate-in zoom-in duration-200" />
             ) : (
               <Share2 size={14} className="animate-in zoom-in duration-200" />
             )}
@@ -373,7 +373,7 @@ export default function GapInvestmentExplorer({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-body/35 dark:bg-[#121824]/10 border border-border/40 rounded-2xl p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
           <span className="text-[11.5px] font-extrabold text-tertiary flex items-center gap-1.5">
-            <Percent className="w-3.5 h-3.5 text-toss-blue" />
+            <Percent className="w-3.5 h-3.5 text-[#008262] dark:text-[#00d29d]" />
             평균 전세가율
           </span>
           <div className="flex items-baseline gap-1.5 mt-2.5">
@@ -381,7 +381,7 @@ export default function GapInvestmentExplorer({
               {avgJeonseRate}%
             </span>
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-              avgJeonseRate >= 70 ? 'bg-[#fffbeb] text-[#d97706] dark:bg-[#d97706]/10' : 'bg-blue-50 text-toss-blue dark:bg-toss-blue/10'
+              avgJeonseRate >= 70 ? 'bg-[#fffbeb] text-[#d97706] dark:bg-[#d97706]/10' : 'bg-[#e6f3f0] text-[#008262] dark:bg-[#042820] dark:text-[#00d29d]'
             }`}>
               {avgJeonseRate >= 70 ? '안정성 관망' : '갭투자 용이'}
             </span>
@@ -448,7 +448,7 @@ export default function GapInvestmentExplorer({
           <div className="flex-1 flex flex-col gap-2">
             <div className="flex justify-between items-baseline">
               <span className="text-[13px] md:text-[14px] font-extrabold text-secondary">최대 투자금 (갭)</span>
-              <span className="text-[18px] md:text-[20px] font-black text-toss-blue tracking-tight">
+              <span className="text-[18px] md:text-[20px] font-black text-[#008262] dark:text-[#00d29d] tracking-tight">
                 {formatGapLabel(localMaxGap)}
               </span>
             </div>
@@ -463,9 +463,9 @@ export default function GapInvestmentExplorer({
                   setLocalMaxGap(Number(e.target.value));
                   setShowAll(false);
                 }}
-                className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-[#3182f6] transition-all bg-slate-100 dark:bg-slate-800"
+                className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-[#008262] dark:accent-[#00d29d] transition-all bg-slate-100 dark:bg-slate-800"
                 style={{
-                  background: `linear-gradient(to right, #3182f6 0%, #3182f6 ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
+                  background: `linear-gradient(to right, #008262 0%, #008262 ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
                 }}
               />
             </div>
@@ -473,7 +473,7 @@ export default function GapInvestmentExplorer({
 
           {/* Direct Input & Match Count */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 bg-surface border border-border/60 rounded-xl px-3.5 py-2.5 focus-within:ring-1 focus-within:ring-[#3182f6] shadow-sm">
+            <div className="flex items-center gap-1.5 bg-surface border border-border/60 rounded-xl px-3.5 py-2.5 focus-within:ring-1 focus-within:ring-[#008262] dark:focus-within:ring-[#00d29d] shadow-sm">
               <input
                 type="number"
                 min="0"
@@ -491,7 +491,7 @@ export default function GapInvestmentExplorer({
               <span className="text-[12px] font-bold text-tertiary">만원</span>
             </div>
 
-            <div className="bg-[#e8f3ff] dark:bg-[#3182f6]/10 text-toss-blue px-3 py-2.5 rounded-xl text-[12px] md:text-[13px] font-extrabold border border-[#3182f6]/10 shrink-0">
+            <div className="bg-[#e6f3f0] dark:bg-[#008262]/10 text-[#008262] dark:text-[#00d29d] px-3 py-2.5 rounded-xl text-[12px] md:text-[13px] font-extrabold border border-[#008262]/10 dark:border-[#00d29d]/10 shrink-0">
               총 {gapList.length}개 매칭
             </div>
           </div>
@@ -624,13 +624,13 @@ export default function GapInvestmentExplorer({
                   key={item.apt.name}
                   onClick={() => onSelectApt(item.apt.name)}
                   data-testid="complex-card"
-                  className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#3182f6]/40 hover:-translate-y-1 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
+                  className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:-translate-y-1 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
                 >
                   <div className="flex justify-between items-start gap-2 mb-4">
                     <div className="flex flex-col min-w-0 pr-1">
                       <span 
                         data-testid="complex-name"
-                        className="text-[16px] md:text-[18px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-toss-blue transition-colors"
+                        className="text-[16px] md:text-[18px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors"
                       >
                         {item.apt.name}
                       </span>
@@ -641,7 +641,7 @@ export default function GapInvestmentExplorer({
                     <div className="flex flex-col gap-1 items-end shrink-0">
                       <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border ${
                         item.gapScore >= 80 ? 'bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] border-[#00b386]/20' :
-                        item.gapScore >= 60 ? 'bg-[#e8f3ff] dark:bg-[#3182f6]/10 text-[#3182f6] border-[#3182f6]/20' :
+                        item.gapScore >= 60 ? 'bg-[#e6f3f0] dark:bg-[#008262]/10 text-[#008262] dark:text-[#00d29d] border-[#008262]/20 dark:border-[#00d29d]/20' :
                         'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
                       }`}>
                         {item.gapScore >= 80 ? '🔥 GAP 우수' : item.gapScore >= 60 ? '✅ GAP 보통' : '⚠️ 관망 권장'}
@@ -653,19 +653,19 @@ export default function GapInvestmentExplorer({
                   </div>
 
                   {/* Highlight box for Required Budget & Jeonse Rate */}
-                  <div className="flex justify-between items-center bg-[#f2f8ff] dark:bg-[#1a2b4c]/30 rounded-xl p-3.5 border border-[#3182f6]/10 mb-4">
+                  <div className="flex justify-between items-center bg-[#e8f8f5] dark:bg-[#042820]/30 rounded-xl p-3.5 border border-[#008262]/10 mb-4">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-[#3182f6]/80 dark:text-[#3182f6]">필요 투자금 (갭)</span>
-                      <span className="text-[18px] md:text-[20px] font-black text-[#3182f6] tracking-tight">
+                      <span className="text-[11px] font-bold text-[#008262]/80 dark:text-[#00d29d]">필요 투자금 (갭)</span>
+                      <span className="text-[18px] md:text-[20px] font-black text-[#008262] dark:text-[#00d29d] tracking-tight">
                         {formatPrice(item.gap)}
                       </span>
                     </div>
                     
                     <div className="flex flex-col items-end">
-                      <span className="text-[11px] md:text-[12px] font-bold text-[#3182f6]/80 dark:text-[#3182f6]">전세율 {jeonseRatePercent}%</span>
-                      <div className="w-16 h-1.5 bg-border/50 dark:bg-[#3182f6]/10 rounded-full mt-1.5 overflow-hidden">
+                      <span className="text-[11px] md:text-[12px] font-bold text-[#008262]/80 dark:text-[#00d29d]">전세율 {jeonseRatePercent}%</span>
+                      <div className="w-16 h-1.5 bg-border/50 dark:bg-[#008262]/10 rounded-full mt-1.5 overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-blue-400 to-[#3182f6] rounded-full" 
+                          className="h-full bg-gradient-to-r from-emerald-400 to-[#008262]" 
                           style={{ width: `${Math.min(jeonseRatePercent, 100)}%` }}
                         />
                       </div>
@@ -693,7 +693,7 @@ export default function GapInvestmentExplorer({
                         setExpandedApt(expandedApt === item.apt.name ? null : item.apt.name);
                       }}
                       data-testid="risk-btn"
-                      className="flex items-center gap-1 text-[11px] font-black text-secondary hover:text-toss-blue transition-colors focus:outline-none"
+                      className="flex items-center gap-1 text-[11px] font-black text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] transition-colors focus:outline-none"
                     >
                       <ShieldAlert className="w-3.5 h-3.5 text-tertiary" />
                       <span>3대 리스크 진단</span>
