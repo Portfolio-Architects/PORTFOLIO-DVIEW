@@ -346,7 +346,7 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
                               {item.type}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-1">{item.safetyGuide}</span>
+                          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-1 break-keep">{item.safetyGuide}</span>
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
@@ -382,7 +382,7 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
                               {item.type}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-1">{item.safetyGuide}</span>
+                          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-1 break-keep">{item.safetyGuide}</span>
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
@@ -401,7 +401,7 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
               </div>
             </div>
             {!childcareData.isOverridden && (
-              <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-3 pl-1 leading-relaxed">
+              <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-3 pl-1 leading-relaxed break-keep">
                 * 개별 단지 내 어린이집(예: 단지 내 국공립 어린이집 등)의 상세 인프라 및 단지별 실측 도보 거리는 정밀 매핑 준비 중입니다. 현재는 해당 행정동({dong}) 내 대표 보육 시설 정보가 표시됩니다.
               </p>
             )}

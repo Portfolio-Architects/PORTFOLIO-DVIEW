@@ -115,9 +115,13 @@ test.describe('UI/UX Diagnostics Audit', () => {
     let axeViolations: any[] = [];
     try {
       await page.addScriptTag({ url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.2/axe.min.js' });
+      await page.waitForSelector('#pdf-report-content', { state: 'attached', timeout: 10000 }).catch(() => {});
       const axeResult = await page.evaluate(async () => {
-        // Run axe audit specifically on the modal report container to optimize performance
-        return await (window as any).axe.run('#pdf-report-content');
+        const target = document.querySelector('#pdf-report-content');
+        if (!target) {
+          return await (window as any).axe.run(document.body);
+        }
+        return await (window as any).axe.run(target);
       });
       axeViolations = axeResult.violations.map((v: any) => ({
         id: v.id,
