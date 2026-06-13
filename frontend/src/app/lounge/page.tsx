@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
-import { adminDb } from '@/lib/firebaseAdmin';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
 import { headers } from 'next/headers';
+import * as PostRepo from '@/lib/repositories/post.repository';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,48 +57,7 @@ export default async function LoungePage({
   let errorMessage: string | null = null;
   
   try {
-    if (adminDb) {
-      const snap = await adminDb.collection('posts').orderBy('createdAt', 'desc').limit(50).get();
-      posts = snap.docs.map(doc => {
-        const data = doc.data();
-        const rawContent = data.content || '';
-        
-        // Extract first image
-        const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
-        const imageUrl = imgMatch ? imgMatch[1] : null;
-        
-        // Clean text content for summary
-        const summary = rawContent.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*~_\-`(]/g, '').replace(/\s+/g, ' ').replace(/https?:\/\/[^\s]+/g, '').trim();
-
-        // Safely handle createdAt
-        let createdAtMillis = 0;
-        if (data.createdAt) {
-          if (typeof data.createdAt.toMillis === 'function') {
-            createdAtMillis = data.createdAt.toMillis();
-          } else if (data.createdAt instanceof Date) {
-            createdAtMillis = data.createdAt.getTime();
-          } else if (typeof data.createdAt === 'number') {
-            createdAtMillis = data.createdAt;
-          }
-        }
-
-        return {
-          id: doc.id,
-          title: data.title || '',
-          summary,
-          imageUrl,
-          category: data.category || '',
-          author: data.authorName || data.author || '익명',
-          meta: data.meta || '',
-          views: data.views || 0,
-          likes: data.likes || 0,
-          commentCount: data.commentCount || 0,
-          createdAt: createdAtMillis,
-        };
-      });
-    } else {
-      errorMessage = "adminDb is null";
-    }
+    posts = await PostRepo.getRecentPosts(50);
   } catch (error: unknown) {
     console.error('Failed to fetch lounge posts server-side', error);
     errorMessage = (error as Error)?.message || String(error);

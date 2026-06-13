@@ -1,17 +1,16 @@
 import { Metadata } from 'next';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
-import { adminDb } from '@/lib/firebaseAdmin';
 import { headers } from 'next/headers';
+import * as PostRepo from '@/lib/repositories/post.repository';
 
 export const revalidate = 60; // Cache and revalidate page at most once every 60 seconds
 export const dynamicParams = true; // Enable on-demand generation for posts not pre-rendered
 
 export async function generateStaticParams() {
-  if (!adminDb) return [];
   try {
-    const snap = await adminDb.collection('posts').orderBy('createdAt', 'desc').limit(10).get();
-    return snap.docs.map((doc) => ({
-      id: doc.id,
+    const posts = await PostRepo.getRecentPosts(10);
+    return posts.map((post) => ({
+      id: post.id,
     }));
   } catch (error) {
     console.error('Failed to generateStaticParams for lounge posts', error);
@@ -34,36 +33,31 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   if (!id) return { title, description };
 
-  if (adminDb) {
-    try {
-      const docSnap = await adminDb.collection('posts').doc(id).get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        if (data) {
-          title = `${data.title} | D-VIEW 라운지`;
-          
-          if (data.category) keywords.push(data.category);
-          if (data.verifiedApartment) keywords.push(data.verifiedApartment);
-          
-          if (data.content) {
-            // Extract the first image URL from markdown
-            const imageMatch = data.content.match(/!\[.*?\]\((.*?)\)/);
-            if (imageMatch && imageMatch[1]) {
-              imageUrl = imageMatch[1];
-            }
-
-            // Remove image markdown completely before generating description
-            const contentWithoutImages = data.content.replace(/!\[.*?\]\(.*?\)/g, '');
-            // Clean other markdown symbols and normalize spaces
-            const cleanContent = contentWithoutImages.replace(/[#*`~_\->]/g, '').replace(/\s+/g, ' ').trim();
-            // SEO optimal description length is around 155-160 characters
-            description = cleanContent.length > 155 ? cleanContent.substring(0, 155) + '...' : cleanContent;
-          }
+  try {
+    const post = await PostRepo.getPost(id);
+    if (post) {
+      title = `${post.title} | D-VIEW 라운지`;
+      
+      if (post.category) keywords.push(post.category);
+      if (post.verifiedApartment) keywords.push(post.verifiedApartment);
+      
+      if (post.content) {
+        // Extract the first image URL from markdown
+        const imageMatch = post.content.match(/!\[.*?\]\((.*?)\)/);
+        if (imageMatch && imageMatch[1]) {
+          imageUrl = imageMatch[1];
         }
+
+        // Remove image markdown completely before generating description
+        const contentWithoutImages = post.content.replace(/!\[.*?\]\(.*?\)/g, '');
+        // Clean other markdown symbols and normalize spaces
+        const cleanContent = contentWithoutImages.replace(/[#*`~_\->]/g, '').replace(/\s+/g, ' ').trim();
+        // SEO optimal description length is around 155-160 characters
+        description = cleanContent.length > 155 ? cleanContent.substring(0, 155) + '...' : cleanContent;
       }
-    } catch (error) {
-      console.error('Failed to fetch post for metadata', error);
     }
+  } catch (error) {
+    console.error('Failed to fetch post for metadata', error);
   }
 
   const ogImages = imageUrl ? [{ url: imageUrl, alt: title }] : undefined;
@@ -99,26 +93,11 @@ export default async function LoungePostPage(props: Props) {
   const nonce = (await headers()).get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
-  if (adminDb && id) {
+  if (id) {
     try {
-      const docSnap = await adminDb.collection('posts').doc(id).get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        if (data) {
-          initialPost = {
-            id: docSnap.id,
-            title: data.title,
-            category: data.category,
-            content: data.content || '',
-            author: data.authorName || '익명',
-            likes: data.likes || 0,
-            views: data.views || 0,
-            authorUid: data.authorUid || null,
-            verifiedApartment: data.verifiedApartment || null,
-            verificationLevel: data.verificationLevel || null,
-            createdAt: data.createdAt ? data.createdAt.toMillis() : null,
-          };
-        }
+      const post = await PostRepo.getPost(id);
+      if (post) {
+        initialPost = post;
       }
     } catch (error) {
       console.error('Failed to fetch initial post in server', error);

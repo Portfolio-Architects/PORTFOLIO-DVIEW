@@ -7,11 +7,27 @@
  * remains database-agnostic. Enables future migration to another DB.
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp, getDoc, getDocs } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { NewsItemData } from '@/lib/types/dashboard.types';
 import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
 import { postConverter, PostDocument } from '@/lib/utils/firestoreConverters';
+import { z } from 'zod';
+
+export const PostDataSchema = z.object({
+  title: z.string().default(''),
+  category: z.string().default('자유'),
+  content: z.string().default(''),
+  authorName: z.string().default('익명'),
+  authorUid: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
+  verifiedApartment: z.string().nullable().optional(),
+  verificationLevel: z.string().nullable().optional(),
+  likes: z.number().default(0),
+  views: z.number().default(0),
+  commentCount: z.number().default(0),
+}).passthrough();
+
 
 /**
  * Listens to the 'posts' collection in real-time.
@@ -121,4 +137,169 @@ export async function deletePost(postId: string): Promise<void> {
   await deleteDoc(postRef);
   logger.info('PostRepository.deletePost', 'Post deleted', { postId });
 }
+
+/**
+ * Fetches a single post. Supporting server-side (adminDb) and client-side (db) fetches.
+ */
+export async function getPost(postId: string): Promise<any | null> {
+  let docData: any = null;
+
+  if (typeof window === 'undefined') {
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      if (adminDb) {
+        const snap = await adminDb.collection('posts').doc(postId).get();
+        if (snap.exists) {
+          docData = { id: snap.id, ...snap.data() };
+        }
+      }
+    } catch (adminError) {
+      logger.warn('PostRepository.getPost', 'Admin SDK fetch failed, falling back', { postId }, adminError);
+    }
+  }
+
+  if (!docData) {
+    try {
+      const docRef = doc(db, 'posts', postId).withConverter(postConverter);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        docData = { id: snap.id, ...snap.data() };
+      }
+    } catch (e) {
+      logger.error('PostRepository.getPost', 'Client SDK fetch failed', { postId }, e);
+      return null;
+    }
+  }
+
+  if (!docData) return null;
+
+  const parsed = PostDataSchema.safeParse(docData);
+  if (!parsed.success) {
+    logger.warn('PostRepository.getPost', 'Zod validation failed, using fallback/raw', { postId }, parsed.error);
+  }
+
+  const data = parsed.success ? parsed.data : docData;
+  const createdAtVal = docData.createdAt;
+  let createdAtMillis = null;
+
+  if (createdAtVal) {
+    if (typeof createdAtVal.toMillis === 'function') {
+      createdAtMillis = createdAtVal.toMillis();
+    } else if (createdAtVal instanceof Date) {
+      createdAtMillis = createdAtVal.getTime();
+    } else if (typeof createdAtVal.toDate === 'function') {
+      createdAtMillis = createdAtVal.toDate().getTime();
+    } else if (typeof createdAtVal === 'number') {
+      createdAtMillis = createdAtVal;
+    } else if (typeof createdAtVal === 'object' && createdAtVal._seconds) {
+      createdAtMillis = createdAtVal._seconds * 1000;
+    }
+  }
+
+  return {
+    id: docData.id,
+    title: data.title || '',
+    category: data.category || '',
+    content: data.content || '',
+    author: data.authorName || '익명',
+    likes: data.likes || 0,
+    views: data.views || 0,
+    authorUid: data.authorUid || null,
+    verifiedApartment: data.verifiedApartment || null,
+    verificationLevel: data.verificationLevel || null,
+    createdAt: createdAtMillis,
+  };
+}
+
+/**
+ * Fetches recent posts. Supporting server-side (adminDb) and client-side (db) fetches.
+ */
+export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
+  let rawDocs: any[] = [];
+
+  if (typeof window === 'undefined') {
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      if (adminDb) {
+        const snap = await adminDb.collection('posts')
+          .orderBy('createdAt', 'desc')
+          .limit(limitCount)
+          .get();
+        rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+    } catch (adminError) {
+      logger.warn('PostRepository.getRecentPosts', 'Admin SDK fetch failed, falling back', undefined, adminError);
+    }
+  }
+
+  if (rawDocs.length === 0) {
+    try {
+      const q = query(
+        collection(db, 'posts').withConverter(postConverter),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+      );
+      const snap = await getDocs(q);
+      rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (e) {
+      logger.error('PostRepository.getRecentPosts', 'Client SDK fetch failed', undefined, e);
+      return [];
+    }
+  }
+
+  return rawDocs.map(docData => {
+    const parsed = PostDataSchema.safeParse(docData);
+    if (!parsed.success) {
+      logger.warn('PostRepository.getRecentPosts', 'Zod validation failed, using fallback/raw', { id: docData.id }, parsed.error);
+    }
+
+    const data = parsed.success ? parsed.data : docData;
+    const createdAtVal = docData.createdAt;
+    let createdAtMillis = null;
+
+    if (createdAtVal) {
+      if (typeof createdAtVal.toMillis === 'function') {
+        createdAtMillis = createdAtVal.toMillis();
+      } else if (createdAtVal instanceof Date) {
+        createdAtMillis = createdAtVal.getTime();
+      } else if (typeof createdAtVal.toDate === 'function') {
+        createdAtMillis = createdAtVal.toDate().getTime();
+      } else if (typeof createdAtVal === 'number') {
+        createdAtMillis = createdAtVal;
+      } else if (typeof createdAtVal === 'object' && createdAtVal._seconds) {
+        createdAtMillis = createdAtVal._seconds * 1000;
+      }
+    }
+
+    const rawContent = data.content || '';
+    const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
+    const imageUrl = imgMatch ? imgMatch[1] : null;
+
+    const summary = rawContent
+      .replace(/!\[.*?\]\(.*?\)/g, '')
+      .replace(/\[.*?\]\(.*?\)/g, '')
+      .replace(/[#*~_\-`(]/g, '')
+      .replace(/\s+/g, ' ')
+      .replace(/https?:\/\/[^\s]+/g, '')
+      .trim();
+
+    return {
+      id: docData.id,
+      title: data.title || '',
+      summary,
+      imageUrl: imageUrl || data.imageUrl || null,
+      category: data.category || '',
+      author: data.authorName || '익명',
+      meta: createdAtMillis ? `${new Date(createdAtMillis).toLocaleDateString('ko-KR')} · ${data.category || ''}` : `방금 전 · ${data.category || ''}`,
+      views: data.views || 0,
+      likes: data.likes || 0,
+      commentCount: data.commentCount || 0,
+      createdAt: createdAtMillis,
+      authorUid: data.authorUid || null,
+      verifiedApartment: data.verifiedApartment || null,
+      verificationLevel: data.verificationLevel || null,
+    };
+  });
+}
+
 
