@@ -7,14 +7,57 @@
  * 해결: 정규화 함수로 양쪽 이름을 통일한 뒤 비교.
  */
 
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// Zod validation schemas
+export const ManualMappingSchema = z.record(z.string(), z.string());
+export const HardcodedMappingSchema = z.record(z.string(), z.string());
+export const DisplayNameMappingSchema = z.record(z.string(), z.string());
+export const AreaTypeMapSchema = z.record(z.string(), z.record(z.string(), z.string()));
+
+export const IsSameApartmentParamsSchema = z.object({
+  reportName: z.string().nullable().optional(),
+  txName: z.string().nullable().optional(),
+  manualMapping: ManualMappingSchema.optional(),
+});
+
+export const FindTxKeyParamsSchema = z.object({
+  aptName: z.string(),
+  txMap: z.record(z.string(), z.unknown()),
+  manualMapping: ManualMappingSchema.optional(),
+  isRetry: z.boolean().optional(),
+});
+
+export const GetAreaTypeParamsSchema = z.object({
+  aptName: z.string(),
+  areaStr: z.string(),
+});
+
+export const TypeMapEntrySchema = z.object({
+  typeM2: z.string(),
+  typePyeong: z.string(),
+});
+export type TypeMapEntry = z.infer<typeof TypeMapEntrySchema>;
+
+export const FindTypeMapEntryParamsSchema = z.object({
+  aptName: z.string(),
+  area: z.union([z.string(), z.number()]).transform(val => Number(val) || 0),
+});
+
+export const LocationPrefixesSchema = z.array(z.string());
+export const LocationSuffixesSchema = z.array(z.string());
+export const RomanMapSchema = z.record(z.string(), z.string());
+
 /**
  * 아파트명 정규화: 공백, 대괄호 동명, 특수문자 제거
  * "[오산동] 힐스테이트 동탄역" → "힐스테이트동탄역"
  * "힐스테이트동탄역" → "힐스테이트동탄역"
  */
-export function normalizeAptName(name: string): string {
-  if (!name) return '';
-  return name
+export function normalizeAptName(name: string | undefined | null): string {
+  const parsed = z.string().catch('').parse(name);
+  if (!parsed) return '';
+  return parsed
     .normalize('NFC')                      // 한글 자음/모음 분리 현상 변환 (NFD -> NFC)
     .replace(/[\u200B-\u200D\uFEFF]/g, '') // 눈에 보이지 않는 공백 (Zero-width) 제거
     .replace(/\[.*?\]\s*/g, '')            // [오산동] 제거
@@ -45,31 +88,54 @@ const DISPLAY_NAME_MAPPING: Record<string, string> = {
   '레이크힐반도유보라아이비파크10.2': '레이크힐 반도유보라 아이비파크 10-2단지',
 };
 
+// Validate mapping structures at startup
+const validatedHardcoded = HardcodedMappingSchema.safeParse(HARDCODED_MAPPING);
+if (!validatedHardcoded.success) {
+  logger.error('apartmentMapping', 'HARDCODED_MAPPING static data validation failed', { error: String(validatedHardcoded.error) });
+}
+
+const validatedDisplay = DisplayNameMappingSchema.safeParse(DISPLAY_NAME_MAPPING);
+if (!validatedDisplay.success) {
+  logger.error('apartmentMapping', 'DISPLAY_NAME_MAPPING static data validation failed', { error: String(validatedDisplay.error) });
+}
+
 /**
  * UI 화면 표시용 아파트 이름 오버라이드
  * Google Sheets에 이전 이름("동탄풍성신미주")이 있을 경우 현재 이름("동탄역 신미주")으로 변환
  */
-export function getDisplayAptName(name: string): string {
-  if (!name) return '';
-  return DISPLAY_NAME_MAPPING[name] || DISPLAY_NAME_MAPPING[normalizeAptName(name)] || name;
+export function getDisplayAptName(name: string | undefined | null): string {
+  const parsed = z.string().catch('').parse(name);
+  if (!parsed) return '';
+  return DISPLAY_NAME_MAPPING[parsed] || DISPLAY_NAME_MAPPING[normalizeAptName(parsed)] || parsed;
 }
 
 /**
  * 두 아파트명이 같은 단지인지 확인 (정확 일치 및 수동/예외 매핑 허용)
  */
-export function isSameApartment(reportName: string | undefined | null, txName: string | undefined | null, manualMapping?: Record<string, string>): boolean {
-  if (!reportName || !txName) return false;
-  const a = normalizeAptName(reportName);
-  const b = normalizeAptName(txName);
+export function isSameApartment(
+  reportName: string | undefined | null,
+  txName: string | undefined | null,
+  manualMapping?: Record<string, string>
+): boolean {
+  const validation = IsSameApartmentParamsSchema.safeParse({ reportName, txName, manualMapping });
+  if (!validation.success) {
+    logger.warn('apartmentMapping.isSameApartment', 'Parameter validation failed', { error: String(validation.error) });
+    return false;
+  }
+  const { reportName: rName, txName: tName, manualMapping: mMapping } = validation.data;
+  if (!rName || !tName) return false;
+
+  const a = normalizeAptName(rName);
+  const b = normalizeAptName(tName);
   if (a === b) return true;
 
   // 하드코딩 매핑 체크 (양방향)
   if (HARDCODED_MAPPING[a] === b || HARDCODED_MAPPING[b] === a) return true;
   
   // 수동 매핑 체크
-  if (manualMapping) {
-    const mapA = manualMapping[reportName] || manualMapping[a];
-    const mapB = manualMapping[txName] || manualMapping[b];
+  if (mMapping) {
+    const mapA = mMapping[rName] || mMapping[a];
+    const mapB = mMapping[tName] || mMapping[b];
     if (mapA && mapA === b) return true;
     if (mapB && mapB === a) return true;
     if (mapA && mapB && mapA === mapB) return true;
@@ -129,6 +195,16 @@ const LOCATION_SUFFIXES = [
   '동탄2신도시', '동탄신도시', '2신도시', '신도시', '동탄역', '동탄2', '동탄'
 ];
 
+const validatedPrefixes = LocationPrefixesSchema.safeParse(LOCATION_PREFIXES);
+if (!validatedPrefixes.success) {
+  logger.error('apartmentMapping', 'LOCATION_PREFIXES static data validation failed', { error: String(validatedPrefixes.error) });
+}
+
+const validatedSuffixes = LocationSuffixesSchema.safeParse(LOCATION_SUFFIXES);
+if (!validatedSuffixes.success) {
+  logger.error('apartmentMapping', 'LOCATION_SUFFIXES static data validation failed', { error: String(validatedSuffixes.error) });
+}
+
 function stripLocationSuffix(normalized: string): string {
   let current = normalized;
   let replaced = true;
@@ -158,6 +234,11 @@ const ROMAN_MAP: Record<string, string> = {
   'Ⅰ': '1', 'Ⅱ': '2', 'Ⅲ': '3', 'Ⅳ': '4', 'Ⅴ': '5',
   'Ⅵ': '6', 'Ⅶ': '7', 'Ⅷ': '8', 'Ⅸ': '9', 'Ⅹ': '10',
 };
+
+const validatedRomanMap = RomanMapSchema.safeParse(ROMAN_MAP);
+if (!validatedRomanMap.success) {
+  logger.error('apartmentMapping', 'ROMAN_MAP static data validation failed', { error: String(validatedRomanMap.error) });
+}
 
 function deepNormalize(name: string): string {
   let result = name;
@@ -208,9 +289,16 @@ export function findTxKey<T>(
   manualMapping?: Record<string, string>,
   isRetry = false
 ): string | null {
-  if (!aptName || !txMap || typeof txMap !== 'object') return null;
+  const validation = FindTxKeyParamsSchema.safeParse({ aptName, txMap, manualMapping, isRetry });
+  if (!validation.success) {
+    logger.warn('apartmentMapping.findTxKey', 'Parameter validation failed', { error: String(validation.error) });
+    return null;
+  }
+  const { aptName: vAptName, manualMapping: vManualMapping, isRetry: vIsRetry = false } = validation.data;
 
-  // 1. Get or build normalized txMap keys cache
+  if (!vAptName || !txMap || typeof txMap !== 'object') return null;
+
+  // 1. Get or build normalized txMap keys cache (using original txMap reference for WeakMap caching)
   let normalizedTxMap = txMapNormalizedKeysCache.get(txMap);
   if (!normalizedTxMap) {
     normalizedTxMap = {};
@@ -227,13 +315,13 @@ export function findTxKey<T>(
     resolvedTxKeyCache.set(txMap, resolvedMap);
   }
 
-  const manualMappingKey = getManualMappingKey(manualMapping);
-  const cacheKey = `${aptName}\x1E${manualMappingKey}\x1E${isRetry}`;
+  const manualMappingKey = getManualMappingKey(vManualMapping);
+  const cacheKey = `${vAptName}\x1E${manualMappingKey}\x1E${vIsRetry}`;
   if (resolvedMap.has(cacheKey)) {
     return resolvedMap.get(cacheKey) ?? null;
   }
 
-  const norm = normalizeAptName(aptName);
+  const norm = normalizeAptName(vAptName);
 
   // 0.5단계: 하드코딩 매핑
   const hardcoded = HARDCODED_MAPPING[norm];
@@ -243,8 +331,8 @@ export function findTxKey<T>(
       resolvedMap.set(cacheKey, res);
       return res;
     }
-    if (!isRetry) {
-      const resolved = findTxKey(hardcoded, txMap, manualMapping, true);
+    if (!vIsRetry) {
+      const resolved = findTxKey(hardcoded, txMap, vManualMapping, true);
       if (resolved) {
         resolvedMap.set(cacheKey, resolved);
         return resolved;
@@ -253,8 +341,8 @@ export function findTxKey<T>(
   }
 
   // 0단계: 수동 매핑 (최우선)
-  if (manualMapping) {
-    const mapped = manualMapping[aptName] || manualMapping[norm];
+  if (vManualMapping) {
+    const mapped = vManualMapping[vAptName] || vManualMapping[norm];
     if (mapped && mapped in normalizedTxMap) {
       const res = normalizedTxMap[mapped];
       resolvedMap.set(cacheKey, res);
@@ -315,20 +403,27 @@ const AREA_TYPE_MAP: Record<string, Record<string, string>> = {
   },
 };
 
+const validatedAreaTypeMap = AreaTypeMapSchema.safeParse(AREA_TYPE_MAP);
+if (!validatedAreaTypeMap.success) {
+  logger.error('apartmentMapping', 'AREA_TYPE_MAP static data validation failed', { error: String(validatedAreaTypeMap.error) });
+}
+
 /**
  * 전용면적(㎡)을 타입명으로 변환.
  * 매핑이 없으면 null 반환.
  */
 export function getAreaType(aptName: string, areaStr: string): string | null {
-  const normalized = normalizeAptName(aptName);
+  const validation = GetAreaTypeParamsSchema.safeParse({ aptName, areaStr });
+  if (!validation.success) {
+    logger.warn('apartmentMapping.getAreaType', 'Parameter validation failed', { error: String(validation.error) });
+    return null;
+  }
+  const { aptName: vAptName, areaStr: vAreaStr } = validation.data;
+
+  const normalized = normalizeAptName(vAptName);
   const typeMap = AREA_TYPE_MAP[normalized];
   if (!typeMap) return null;
-  return typeMap[areaStr] || null;
-}
-
-export interface TypeMapEntry {
-  typeM2: string;
-  typePyeong: string;
+  return typeMap[vAreaStr] || null;
 }
 
 // A module-level cache to avoid repeating findTxKey scans on every transaction lookup
@@ -343,35 +438,56 @@ export function findTypeMapEntry(
   aptName: string,
   area: number
 ): TypeMapEntry | null {
-  if (!typeMap || !aptName || !area) return null;
+  const validation = FindTypeMapEntryParamsSchema.safeParse({ aptName, area });
+  if (!validation.success) {
+    logger.warn('apartmentMapping.findTypeMapEntry', 'Invalid basic parameters', { error: String(validation.error) });
+    return null;
+  }
+  const { aptName: vAptName, area: vArea } = validation.data;
 
-  // Cache lookups using aptName as key
-  let aptEntry = resolvedAptEntryCache.get(aptName);
+  if (!typeMap || typeof typeMap !== 'object' || !vAptName || !vArea) return null;
+
+  // Cache lookups using vAptName as key
+  let aptEntry = resolvedAptEntryCache.get(vAptName);
 
   if (aptEntry === undefined) {
-    const normApt = normalizeAptName(aptName);
-    aptEntry = typeMap[normApt] || null;
+    const normApt = normalizeAptName(vAptName);
+    let rawEntry = typeMap[normApt] || null;
 
-    if (!aptEntry) {
+    if (!rawEntry) {
       // exact match 실패 시 findTxKey와 유사한 캐스케이딩 매칭 수행
-      const matchedKey = findTxKey(aptName, typeMap);
+      const matchedKey = findTxKey(vAptName, typeMap);
       if (matchedKey) {
-        aptEntry = typeMap[matchedKey] || null;
+        rawEntry = typeMap[matchedKey] || null;
       }
     }
-    resolvedAptEntryCache.set(aptName, aptEntry);
+
+    // Validate retrieved rawEntry using Zod
+    if (rawEntry) {
+      const entryValidation = z.record(z.string(), TypeMapEntrySchema).safeParse(rawEntry);
+      if (entryValidation.success) {
+        aptEntry = entryValidation.data;
+      } else {
+        logger.warn('apartmentMapping.findTypeMapEntry', `Invalid type map entry for ${vAptName}`, { error: String(entryValidation.error) });
+        aptEntry = null;
+      }
+    } else {
+      aptEntry = null;
+    }
+    
+    resolvedAptEntryCache.set(vAptName, aptEntry);
   }
 
   if (!aptEntry) return null;
 
   // 2. 정확 일치 검사
-  const exactKey = String(area);
+  const exactKey = String(vArea);
   if (aptEntry[exactKey]) return aptEntry[exactKey];
 
   // 3. 소수점 미세 차이 허용 (0.11 m² 이내의 차이면 동일 타입으로 판정)
   for (const [keyStr, val] of Object.entries(aptEntry)) {
     const keyNum = parseFloat(keyStr);
-    if (!isNaN(keyNum) && Math.abs(keyNum - area) < 0.11) {
+    if (!isNaN(keyNum) && Math.abs(keyNum - vArea) < 0.11) {
       return val;
     }
   }
