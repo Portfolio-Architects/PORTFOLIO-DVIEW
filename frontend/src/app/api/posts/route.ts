@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,15 +25,33 @@ const postsResponseSchema = z.object({
   posts: z.array(postItemSchema)
 });
 
+const PostsQuerySchema = z.object({
+  lastCreatedAt: z.string().nullable().optional(),
+  limit: z.preprocess(
+    (val) => (val ? parseInt(val as string, 10) : undefined),
+    z.number().int().min(1).max(100).default(20)
+  ),
+});
+
 export async function GET(req: Request) {
   try {
     if (!db) {
+      logger.warn('PostsAPI.GET', 'Firebase Admin DB not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
 
     const { searchParams } = new URL(req.url);
-    const lastCreatedAtStr = searchParams.get('lastCreatedAt');
-    const limitVal = parseInt(searchParams.get('limit') || '20', 10);
+    const queryParse = PostsQuerySchema.safeParse({
+      lastCreatedAt: searchParams.get('lastCreatedAt'),
+      limit: searchParams.get('limit'),
+    });
+
+    if (!queryParse.success) {
+      logger.warn('PostsAPI.GET', 'Invalid query parameters', { errors: queryParse.error.format() });
+      return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
+    }
+
+    const { lastCreatedAt: lastCreatedAtStr, limit: limitVal } = queryParse.data;
 
     let q = db.collection('posts')
       .orderBy('createdAt', 'desc')
@@ -86,10 +105,10 @@ export async function GET(req: Request) {
         if (parsedItem.success) {
           posts.push(parsedItem.data);
         } else {
-          console.warn(`[Posts API] Skipping invalid post item (ID: ${doc.id}):`, parsedItem.error.format());
+          logger.warn('PostsAPI.GET', `Skipping invalid post item (ID: ${doc.id})`, { errors: parsedItem.error.format() });
         }
       } catch (itemErr) {
-        console.error(`[Posts API] Error processing doc ${doc.id}:`, itemErr);
+        logger.error('PostsAPI.GET', `Error processing doc ${doc.id}`, {}, itemErr as Error);
       }
     });
 
@@ -105,7 +124,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(responseData);
   } catch (error: any) {
-    console.error('Fetch posts api error:', error);
+    logger.error('PostsAPI.GET', 'Fetch posts api error', {}, error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

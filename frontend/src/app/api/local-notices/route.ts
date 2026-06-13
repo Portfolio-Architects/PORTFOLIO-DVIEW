@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { z } from 'zod';
 import { redis } from '@/lib/redis';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,16 +24,29 @@ const localNoticesResponseSchema = z.object({
   lastUpdated: z.string().nullable().optional(),
 });
 
+const LocalNoticesQuerySchema = z.object({
+  dongtan: z.preprocess((val) => val !== 'false', z.boolean()),
+});
+
 export async function GET(request: Request) {
   try {
     if (!db) {
-      console.warn('[Local Notices API] Firebase Admin DB not initialized. Returning empty notices array.');
+      logger.warn('LocalNoticesAPI.GET', 'Firebase Admin DB not initialized. Returning empty notices array.');
       return NextResponse.json({ notices: [], lastUpdated: null, source: 'fallback_error_db' });
     }
     const localDb = db;
 
     const { searchParams } = new URL(request.url);
-    const filterDongtan = searchParams.get('dongtan') !== 'false';
+    const queryParse = LocalNoticesQuerySchema.safeParse({
+      dongtan: searchParams.get('dongtan'),
+    });
+
+    if (!queryParse.success) {
+      logger.warn('LocalNoticesAPI.GET', 'Invalid query parameters', { errors: queryParse.error.format() });
+      return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
+    }
+
+    const { dongtan: filterDongtan } = queryParse.data;
 
     const cacheKey = `DTDLS:cache:localNotices:filterDongtan:${filterDongtan}`;
     if (redis) {
@@ -46,7 +60,7 @@ export async function GET(request: Request) {
           });
         }
       } catch (err) {
-        console.warn('[Server] Redis localNotices read error:', err);
+        logger.warn('LocalNoticesAPI.GET', 'Redis localNotices read error', { cacheKey }, err as Error);
       }
     }
 
@@ -99,11 +113,11 @@ export async function GET(request: Request) {
             if (parsed.success) {
               validItems.push(parsed.data);
             } else {
-              console.warn(`[Local Notices API] Skipping invalid notice (ID: ${doc.id}):`, parsed.error.format());
+              logger.warn('LocalNoticesAPI.GET', `Skipping invalid notice (ID: ${doc.id})`, { errors: parsed.error.format() });
             }
           }
         } catch (itemErr) {
-          console.error(`[Local Notices API] Error parsing doc ${doc.id}:`, itemErr);
+          logger.error('LocalNoticesAPI.GET', `Error parsing doc ${doc.id}`, {}, itemErr as Error);
         }
       });
       return validItems
@@ -191,7 +205,7 @@ export async function GET(request: Request) {
     const responseData = parsedResponse.success ? parsedResponse.data : { notices: [], lastUpdated: null };
 
     if (redis) {
-      redis.set(cacheKey, responseData, { ex: 3600 }).catch(e => console.warn('[Server] Redis localNotices write error:', e));
+      redis.set(cacheKey, responseData, { ex: 3600 }).catch(e => logger.warn('LocalNoticesAPI.GET', 'Redis localNotices write error', { cacheKey }, e as Error));
     }
 
     return NextResponse.json(responseData, {
@@ -201,7 +215,7 @@ export async function GET(request: Request) {
     });
 
   } catch (error: unknown) {
-    console.error('Error fetching local notices:', error);
+    logger.error('LocalNoticesAPI.GET', 'Error fetching local notices', {}, error as Error);
     return NextResponse.json({ 
       notices: [], 
       lastUpdated: null, 
