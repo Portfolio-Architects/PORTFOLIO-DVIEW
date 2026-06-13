@@ -3,6 +3,31 @@
  * Run: node scripts/generate-tickers.js
  */
 
+const { z } = require('zod');
+
+// Zod schemas for ticker metadata and prefix verification
+const DongPrefixSchema = z.record(
+  z.string().min(2, '동 이름은 최소 2글자 이상이어야 합니다.'),
+  z.string().regex(/^[A-Z]{2}$/, '동 프리픽스는 2글자 대문자 영문이어야 합니다.')
+);
+
+const FullDongDataSchema = z.record(
+  z.string().min(2, '동 이름은 최소 2글자 이상이어야 합니다.'),
+  z.array(z.string().min(1, '아파트 이름은 최소 1글자 이상이어야 합니다.'))
+);
+
+const TickerEntrySchema = z.object({
+  name: z.string().min(1, '아파트명이 누락되었습니다.'),
+  dong: z.string().min(2, '법정동명이 누락되었습니다.'),
+  priceChangeRate: z.number().optional(), // 실거래 가격 상승률
+  landmarkText: z.string().optional()     // 랜드마크 텍스트
+});
+
+const TickersMapSchema = z.record(
+  z.string().regex(/^[A-Z]{2}\d{2,3}$/, '티커 규격은 대문자 2자리 + 숫자 2~3자리 포맷이어야 합니다.'),
+  TickerEntrySchema
+);
+
 const DONG_PREFIXES = {
   '능동': 'ND',
   '청계동': 'CG',
@@ -102,6 +127,19 @@ const FULL_DONG_DATA = {
   ].sort(),
 };
 
+// Validate inputs using Zod
+const prefixParsed = DongPrefixSchema.safeParse(DONG_PREFIXES);
+if (!prefixParsed.success) {
+  console.error('❌ [Generate Tickers] DONG_PREFIXES Validation Failed:', prefixParsed.error.format());
+  process.exit(1);
+}
+
+const dongDataParsed = FullDongDataSchema.safeParse(FULL_DONG_DATA);
+if (!dongDataParsed.success) {
+  console.error('❌ [Generate Tickers] FULL_DONG_DATA Validation Failed:', dongDataParsed.error.format());
+  process.exit(1);
+}
+
 // Generate tickers
 const tickers = {};
 let total = 0;
@@ -119,6 +157,14 @@ for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
   });
 }
 
+// Validate generated tickers map
+const tickersParsed = TickersMapSchema.safeParse(tickers);
+if (!tickersParsed.success) {
+  console.error('❌ [Generate Tickers] Generated Tickers Validation Failed:', tickersParsed.error.format());
+  process.exit(1);
+}
+
+console.log(`\n✅ Generated tickers validation: PASSED`);
 console.log(`\n총 ${total}개 티커 생성 완료`);
 console.log('\n--- 동 프리픽스 ---');
 for (const [dong, prefix] of Object.entries(DONG_PREFIXES)) {
