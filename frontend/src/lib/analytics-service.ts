@@ -5,6 +5,10 @@ import { redis } from '@/lib/redis';
 const PUBLIC_ANALYTICS_CACHE_KEY = 'dtdls:analytics:public:lkg';
 const ADMIN_ANALYTICS_CACHE_KEY = 'dtdls:analytics:admin:lkg';
 
+// Local in-memory backup to prevent Google API thundering herd / quota exhaustion when Redis is down
+let memoryPublicLKG: PublicAnalyticsData | null = null;
+let memoryAdminLKG: AdminAnalyticsData | null = null;
+
 export interface PublicAnalyticsData {
   mau: number;
   dau: number;
@@ -94,10 +98,12 @@ export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
     if (redis) {
       const cached = await redis.get<{ data: PublicAnalyticsData, timestamp: number }>(PUBLIC_ANALYTICS_CACHE_KEY);
       if (cached) {
+        memoryPublicLKG = cached.data; // Sync memory backup
         const isStale = (Date.now() - cached.timestamp) > (PUBLIC_CACHE_TTL * 1000);
         if (isStale) {
           // Stale-while-revalidate: Fetch in background
           fetchPublicAnalyticsFromGA().then(freshData => {
+            memoryPublicLKG = freshData;
             redis?.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
           }).catch(console.error);
         }
@@ -107,13 +113,17 @@ export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
 
     // No cache or redis unavailable -> Fetch synchronously
     const freshData = await fetchPublicAnalyticsFromGA();
+    memoryPublicLKG = freshData; // Sync memory backup
     if (redis) {
       // Save synchronously so next request gets it
       await redis.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
     }
     return freshData;
   } catch (error) {
-    console.error('[Public GA4 API LKG] Error:', error);
+    console.error('[Public GA4 API LKG] Error, serving memory fallback:', error);
+    if (memoryPublicLKG) {
+      return memoryPublicLKG; // Bypass Google API quota exhaustion under failure
+    }
     return { mau: 0, dau: 0, totalViews: 0, avgSessionDuration: '0m 0s' };
   }
 }
@@ -275,10 +285,12 @@ export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
     if (redis) {
       const cached = await redis.get<{ data: AdminAnalyticsData, timestamp: number }>(ADMIN_ANALYTICS_CACHE_KEY);
       if (cached) {
+        memoryAdminLKG = cached.data; // Sync memory backup
         const isStale = (Date.now() - cached.timestamp) > (ADMIN_CACHE_TTL * 1000);
         if (isStale) {
           // Stale-while-revalidate
           fetchAdminAnalyticsFromGA().then(freshData => {
+            memoryAdminLKG = freshData;
             redis?.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
           }).catch(console.error);
         }
@@ -287,12 +299,16 @@ export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
     }
 
     const freshData = await fetchAdminAnalyticsFromGA();
+    memoryAdminLKG = freshData; // Sync memory backup
     if (redis) {
       await redis.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
     }
     return freshData;
   } catch (error) {
-    console.error('[Admin GA4 API LKG] Error:', error);
+    console.error('[Admin GA4 API LKG] Error, serving memory fallback:', error);
+    if (memoryAdminLKG) {
+      return memoryAdminLKG; // Bypass Google API quota exhaustion under failure
+    }
     return generateMockAdminAnalytics();
   }
 }
