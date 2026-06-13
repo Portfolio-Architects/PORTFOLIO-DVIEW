@@ -10,6 +10,19 @@ import {
   Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw,
   ShieldAlert, Globe, MousePointerClick, Eye, TrendingUp, BarChart3, ShieldCheck
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
 import { DONGS } from '@/lib/dongs';
@@ -52,6 +65,11 @@ type MetaMap = Record<string, AptMeta>;
 export default function AdminDashboard() {
   const router = useRouter();
   // ── State ──
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [meta, setMeta] = useState<MetaMap>({});
   const [initialMeta, setInitialMeta] = useState<MetaMap>({}); // To track changes for sync
   const [saving, setSaving] = useState(false);
@@ -77,11 +95,12 @@ export default function AdminDashboard() {
   }, { revalidateOnFocus: false, dedupingInterval: 30000 });
 
   // GA4 Traffic Metrics SWR fetch
-  const { data: gaData } = useSWR('/api/public/analytics', async (url) => {
+  const { data: gaData } = useSWR('/api/admin/analytics', async (url) => {
     try {
       const res = await fetch(url);
       if (!res.ok) return null;
-      return res.json();
+      const json = await res.json();
+      return json.data;
     } catch {
       return null;
     }
@@ -621,9 +640,11 @@ export default function AdminDashboard() {
             실시간 서비스 트래픽 (GA4)
           </h2>
           {gaData && (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 bg-[#f0fdf4] text-toss-green">
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+              gaData.isMock ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-[#f0fdf4] text-toss-green'
+            }`}>
               <ShieldCheck size={12} />
-              Google Analytics 4 실시간 연동
+              {gaData.isMock ? '자가 진단 모드 (Mock)' : 'Google Analytics 4 실시간 연동'}
             </span>
           )}
         </div>
@@ -634,50 +655,119 @@ export default function AdminDashboard() {
             <span className="text-[13px] text-tertiary font-bold ml-2">GA4 트래픽 정보 로드 중...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* 1. MAU */}
-            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-              <div className="text-[11.5px] font-bold text-tertiary mb-1">MAU</div>
-              <div className="text-[22px] font-extrabold text-primary font-mono">
-                {gaData.mau ? gaData.mau.toLocaleString() : '0'}명
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* 1. MAU */}
+              <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+                <div className="text-[11.5px] font-bold text-tertiary mb-1">MAU</div>
+                <div className="text-[22px] font-extrabold text-primary font-mono">
+                  {gaData.monthly && gaData.monthly.length > 0 
+                    ? gaData.monthly[gaData.monthly.length - 1].mau.toLocaleString() 
+                    : '0'}명
+                </div>
+                <div className="text-[10.5px] text-secondary font-medium mt-1">
+                  최근 30일 활성 사용자 수
+                </div>
               </div>
-              <div className="text-[10.5px] text-secondary font-medium mt-1">
-                최근 30일 활성 사용자 수
+
+              {/* 2. DAU */}
+              <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+                <div className="text-[11.5px] font-bold text-emerald-600 mb-1">DAU</div>
+                <div className="text-[22px] font-extrabold text-[#008262] font-mono">
+                  {gaData.daily && gaData.daily.length > 0 
+                    ? gaData.daily[gaData.daily.length - 1].activeUsers.toLocaleString() 
+                    : '0'}명
+                </div>
+                <div className="text-[10.5px] text-secondary font-medium mt-1">
+                  오늘 하루 활성 사용자 수
+                </div>
+              </div>
+
+              {/* 3. Views */}
+              <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+                <div className="text-[11.5px] font-bold text-tertiary mb-1">VIEW (30D)</div>
+                <div className="text-[22px] font-extrabold text-primary font-mono">
+                  {gaData.totalViews ? gaData.totalViews.toLocaleString() : '0'}회
+                </div>
+                <div className="text-[10.5px] text-secondary font-medium mt-1">
+                  최근 30일 누적 페이지 뷰
+                </div>
+              </div>
+
+              {/* 4. Avg Time */}
+              <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
+                <div className="text-[11.5px] font-bold text-tertiary mb-1">AVG. TIME</div>
+                <div className="text-[22px] font-extrabold text-primary font-mono">
+                  {gaData.avgSessionDuration || '0m 0s'}
+                </div>
+                <div className="text-[10.5px] text-secondary font-medium mt-1">
+                  방문자 1인당 평균 체류 시간
+                </div>
               </div>
             </div>
 
-            {/* 2. DAU */}
-            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-              <div className="text-[11.5px] font-bold text-emerald-600 mb-1">DAU</div>
-              <div className="text-[22px] font-extrabold text-[#008262] font-mono">
-                {gaData.dau ? gaData.dau.toLocaleString() : '0'}명
-              </div>
-              <div className="text-[10.5px] text-secondary font-medium mt-1">
-                오늘 하루 활성 사용자 수
-              </div>
-            </div>
+            {/* Graphs Section */}
+            {mounted && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                {/* Graph 1: Daily Active Users & Pageviews */}
+                <div className="bg-body p-5 rounded-2xl border border-border/60 flex flex-col gap-4">
+                  <div>
+                    <h3 className="text-[14px] font-extrabold text-primary">일별 서비스 활성도 (최근 30일)</h3>
+                    <p className="text-[11.5px] text-secondary mt-0.5">매일 유입된 활성 유저(DAU)와 페이지뷰 트렌드</p>
+                  </div>
+                  <div className="h-64 w-full text-[11px] font-mono">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={gaData.daily} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorDau" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#00d29d" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#00d29d" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3182f6" stopOpacity={0.15}/>
+                            <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickFormatter={(val) => val.substring(5)} />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
+                        <Legend iconSize={8} iconType="circle" />
+                        <Area type="monotone" name="활성 사용자 (DAU)" dataKey="activeUsers" stroke="#00d29d" strokeWidth={2} fillOpacity={1} fill="url(#colorDau)" />
+                        <Area type="monotone" name="페이지 뷰" dataKey="pageViews" stroke="#3182f6" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
 
-            {/* 3. Views */}
-            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-              <div className="text-[11.5px] font-bold text-tertiary mb-1">VIEW (30D)</div>
-              <div className="text-[22px] font-extrabold text-primary font-mono">
-                {gaData.totalViews ? gaData.totalViews.toLocaleString() : '0'}회
+                {/* Graph 2: Monthly MAU & Average DAU */}
+                <div className="bg-body p-5 rounded-2xl border border-border/60 flex flex-col gap-4">
+                  <div>
+                    <h3 className="text-[14px] font-extrabold text-primary">월별 활성 유저 & 일별 평균 (최근 6개월)</h3>
+                    <p className="text-[11.5px] text-secondary mt-0.5">월간 순 활성 사용자(MAU) 및 일별 평균(DAU) 추이</p>
+                  </div>
+                  <div className="h-64 w-full text-[11px] font-mono">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={gaData.monthly} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#00d29d" stopOpacity={0.4}/>
+                            <stop offset="100%" stopColor="#00b386" stopOpacity={0.15}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
+                        <Legend iconSize={8} iconType="circle" />
+                        <Bar name="월간 사용자 (MAU)" dataKey="mau" fill="url(#barGradient)" radius={[6, 6, 0, 0]} maxBarSize={45} />
+                        <Line type="monotone" name="일간 평균 (Avg DAU)" dataKey="avgDau" stroke="#ff8a3d" strokeWidth={2.5} dot={{ r: 4, stroke: '#ff8a3d', strokeWidth: 2, fill: '#fff' }} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
-              <div className="text-[10.5px] text-secondary font-medium mt-1">
-                최근 30일 누적 페이지 뷰
-              </div>
-            </div>
-
-            {/* 4. Avg Time */}
-            <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
-              <div className="text-[11.5px] font-bold text-tertiary mb-1">AVG. TIME</div>
-              <div className="text-[22px] font-extrabold text-primary font-mono">
-                {gaData.avgSessionDuration || '0m 0s'}
-              </div>
-              <div className="text-[10.5px] text-secondary font-medium mt-1">
-                방문자 1인당 평균 체류 시간
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>
