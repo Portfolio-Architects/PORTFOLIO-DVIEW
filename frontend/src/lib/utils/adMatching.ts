@@ -3,9 +3,9 @@
  * @description Dynamic B2B advertisement matching engine based on apartment metrics.
  */
 
-import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
-
 export interface AdBannerDetails {
+  adType: 'interior' | 'academy' | 'insurance' | 'cleaning' | 'mobility' | 'brokerage';
+  badge: string;
   title: string;
   description: string;
   buttonText: string;
@@ -20,11 +20,18 @@ export interface AdBannerDetails {
  * @param metrics - Objective metrics of the apartment complex
  * @returns AdBannerDetails matching the apartment context
  */
-export function getAdForApartment(metrics?: ObjectiveMetrics): AdBannerDetails {
+export function getAdForApartment(metrics?: {
+  yearBuilt?: string | number;
+  distanceToElementary?: number;
+  distanceToSubway?: number;
+  jeonseRate?: number;
+}): AdBannerDetails {
   const currentYear = 2026; // Current system reference year
 
   // Default fallback banner
   const fallbackAd: AdBannerDetails = {
+    adType: 'brokerage',
+    badge: '동탄 전문 중개',
     title: '동탄 전문 명품 부동산 파트너 🤝',
     description: '허위매물 제로! 매매/전세 중개수수료 추가 혜택 적용 단지.',
     buttonText: '중개 문의하기',
@@ -37,9 +44,65 @@ export function getAdForApartment(metrics?: ObjectiveMetrics): AdBannerDetails {
     return fallbackAd;
   }
 
-  // 1. Newly Built Complex (< 5 years) -> Interior / Move-in services
-  if (metrics.yearBuilt && currentYear - metrics.yearBuilt <= 5) {
+  // Parse yearBuilt safely
+  let age: number | undefined;
+  if (metrics.yearBuilt !== undefined && metrics.yearBuilt !== null) {
+    try {
+      const match = String(metrics.yearBuilt).replace(/[^0-9]/g, '').slice(0, 4);
+      if (match.length === 4) {
+        const year = parseInt(match, 10);
+        age = currentYear - year;
+      }
+    } catch {}
+  }
+
+  // 1. High Rent Fraud/Gap Risk (jeonseRate >= 70%) -> Insurance
+  if (metrics.jeonseRate !== undefined && metrics.jeonseRate >= 0.70) {
     return {
+      adType: 'insurance',
+      badge: '안전 보증 케어',
+      title: '혹시 내 전세금도 위험할까? 보증보험 요건 1분 확인',
+      description: '최근 전세가율이 70%를 상회하여 보증금 반환에 각별한 주의가 필요합니다. HUG 전세금반환보증보험 가입 가능 여부와 한도 무료 진단을 받아보세요.',
+      buttonText: '보증보험 가입 자격 무료 진단',
+      link: 'https://jeonse.dview.com/insurance',
+      themeColor: 'from-emerald-50/60 to-teal-50/40 dark:from-emerald-950/20 dark:to-teal-950/10 border-emerald-100/80 dark:border-emerald-900/30',
+      textColor: 'text-emerald-700 dark:text-emerald-300',
+    };
+  }
+
+  // 2. Old Complex (>= 15 years) -> Remodeling / Interior
+  if (age !== undefined && age >= 15) {
+    return {
+      adType: 'interior',
+      badge: '노후단지 특별혜택',
+      title: '동탄 노후 단지 전용 인테리어 & 샷시 패키지 특별전',
+      description: '준공 15년이 경과하여 단열 성능 보강 및 실내 인테리어 개선이 추천되는 단지입니다. D-VIEW 제휴 한샘/아파트멘터리 단독 무료 실측 혜택을 이용해보세요.',
+      buttonText: '인테리어 무료 실측 신청하기',
+      link: 'https://interior.dview.com/consult',
+      themeColor: 'from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10 border-amber-100/80 dark:border-amber-900/30',
+      textColor: 'text-amber-700 dark:text-amber-300',
+    };
+  }
+
+  // 3. Close to Elementary School (<= 300m) -> Close Academies
+  if (metrics.distanceToElementary !== undefined && metrics.distanceToElementary > 0 && metrics.distanceToElementary <= 300) {
+    return {
+      adType: 'academy',
+      badge: '학세권 안심 교육',
+      title: '단지 초인접 영어/수학 전문 교육 1회 무료 체험권',
+      description: '어린 자녀의 도보 통학이 매우 편리한 초품아 안심 단지입니다. D-VIEW 단독 제휴로 근처 명문 입시/영재 학원 첫 달 교재비 100% 지원 및 무료 체험 혜택을 제공합니다.',
+      buttonText: '무료 레벨테스트 & 체험 신청',
+      link: 'https://academy.dview.com/free-pass',
+      themeColor: 'from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/10 border-indigo-100/80 dark:border-indigo-900/30',
+      textColor: 'text-indigo-700 dark:text-indigo-300',
+    };
+  }
+
+  // 4. Newly Built Complex (< 5 years) -> Move-in / Interior services
+  if (age !== undefined && age <= 5) {
+    return {
+      adType: 'interior',
+      badge: '새 집으로 입주',
       title: '새 집으로 입주하시나요? 🏡',
       description: '동탄 단지 전문 한샘 인테리어 홈스타일링 무료 실측 및 견적 혜택.',
       buttonText: '무료 견적 받기',
@@ -49,21 +112,11 @@ export function getAdForApartment(metrics?: ObjectiveMetrics): AdBannerDetails {
     };
   }
 
-  // 2. Older Complex (> 15 years) -> Remodeling / Window replacement / Leak Repair
-  if (metrics.yearBuilt && currentYear - metrics.yearBuilt >= 15) {
+  // 5. Far from Elementary School (> 500m) -> Kid academies / Shuttle services
+  if (metrics.distanceToElementary !== undefined && metrics.distanceToElementary > 500) {
     return {
-      title: '노후 샷시 및 배관 교체 지원 🛠️',
-      description: '단지 맞춤형 단열 샷시 교체 및 화장실 부분 리모델링 특별 패키지.',
-      buttonText: '할인 혜택 확인',
-      link: '/#b2b-remodeling',
-      themeColor: 'bg-amber-50/70 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/50',
-      textColor: 'text-amber-700 dark:text-amber-300',
-    };
-  }
-
-  // 3. Elementary School is far (> 500m) -> Kid academies / Shuttle services
-  if (metrics.distanceToElementary && metrics.distanceToElementary > 500) {
-    return {
+      adType: 'academy',
+      badge: '안심 등하교 케어',
       title: '우리 아이 안심 등하교 케어 🎒',
       description: '단지 앞 왕복 학원 셔틀버스 및 1:1 방문 홈스쿨링 케어 서비스.',
       buttonText: '안심 셔틀 알아보기',
@@ -73,9 +126,11 @@ export function getAdForApartment(metrics?: ObjectiveMetrics): AdBannerDetails {
     };
   }
 
-  // 4. Subway/GTX is far (> 1.5km) -> Mobility/Bike sharing
-  if (metrics.distanceToSubway && metrics.distanceToSubway > 1500) {
+  // 6. Subway/GTX is far (> 1.5km) -> Mobility/Bike sharing
+  if (metrics.distanceToSubway !== undefined && metrics.distanceToSubway > 1500) {
     return {
+      adType: 'cleaning',
+      badge: '대중교통 커넥트',
       title: '지하철역까지 이동 마찰 해소 🚲',
       description: '단지 전용 프리미엄 공유 전기자전거 1개월 무료 탑승 쿠폰.',
       buttonText: '쿠폰 발급받기',
@@ -85,5 +140,15 @@ export function getAdForApartment(metrics?: ObjectiveMetrics): AdBannerDetails {
     };
   }
 
-  return fallbackAd;
+  // 7. General new/other complexes -> Fallback Cleaning
+  return {
+    adType: 'cleaning',
+    badge: '입주 & 홈케어',
+    title: '동탄 아파트 홈케어 (입주청소/줄눈/탄성코트) 특가 공동구매',
+    description: '쾌적한 주거 공간의 시작을 위한 안심 홈클리닝 서비스! D-VIEW 단독 10% 제휴 특별 할인가 및 사후 A/S 보증 혜택으로 동탄 전문 시공 파트너사를 만나보세요.',
+    buttonText: '홈케어 특가 상담 신청',
+    link: 'https://homecare.dview.com/coop',
+    themeColor: 'from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/10 dark:to-emerald-900/5 border-emerald-100/60 dark:border-emerald-900/20',
+    textColor: 'text-emerald-700 dark:text-emerald-300',
+  };
 }
