@@ -1,29 +1,33 @@
 import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
+import { z } from 'zod';
 import { redis } from '@/lib/redis';
+import { logger } from '@/lib/services/logger';
 
 const SEARCH_CONSOLE_CACHE_KEY = 'dtdls:searchconsole:status:lkg';
 const SEARCH_CONSOLE_CACHE_TTL = 3600; // 1 hour
 
-interface SearchConsoleStatus {
-  success: boolean;
-  isMock: boolean;
-  siteUrl: string;
-  indexStatus: {
-    totalIndexed: number;
-    notIndexed: number;
-    crawledNotIndexed: number;
-    discoveredNotIndexed: number;
-    errors: number;
-  };
-  searchMetrics: {
-    clicks: number;
-    impressions: number;
-    ctr: number;
-    averagePosition: number;
-  };
-}
+export const SearchConsoleStatusSchema = z.object({
+  success: z.boolean(),
+  isMock: z.boolean(),
+  siteUrl: z.string().url(),
+  indexStatus: z.object({
+    totalIndexed: z.number().int().nonnegative(),
+    notIndexed: z.number().int().nonnegative(),
+    crawledNotIndexed: z.number().int().nonnegative(),
+    discoveredNotIndexed: z.number().int().nonnegative(),
+    errors: z.number().int().nonnegative(),
+  }),
+  searchMetrics: z.object({
+    clicks: z.number().int().nonnegative(),
+    impressions: z.number().int().nonnegative(),
+    ctr: z.number().nonnegative(),
+    averagePosition: z.number().nonnegative(),
+  }),
+});
+
+export type SearchConsoleStatus = z.infer<typeof SearchConsoleStatusSchema>;
 
 // Helper to get Google API credentials
 function getGoogleCredentials() {
@@ -136,7 +140,7 @@ async function fetchSearchConsoleStatusFromGoogle(): Promise<SearchConsoleStatus
   const credentials = getGoogleCredentials();
   
   if (!credentials || !credentials.client_email || !credentials.private_key) {
-    console.warn('[SearchConsole] Credentials missing. Falling back to self-diagnostic Mock mode.');
+    logger.warn('SearchConsole', 'Credentials missing. Falling back to self-diagnostic Mock mode.');
     return generateMockStatus();
   }
 
@@ -160,15 +164,14 @@ async function fetchSearchConsoleStatusFromGoogle(): Promise<SearchConsoleStatus
     });
 
     if (!apiRes.ok) {
-      console.warn(`[SearchConsole] API returned non-200. Status: ${apiRes.status}. Falling back to Mock.`);
+      logger.warn('SearchConsole', `API returned non-200. Status: ${apiRes.status}. Falling back to Mock.`);
       return generateMockStatus();
     }
 
     const apiData = await apiRes.json();
     
     // 성공 시 서치콘솔 실 데이터를 래핑하여 리턴 (기본 구조는 Mock 데이터와 유사하게 포맷팅하되 API 실 데이터를 가미)
-    // 실제 사이트맵 등록 개수 등을 inspect 하여 수집할 수도 있으나, 여기서는 안전하게 전체 인덱싱은 179개 기준 비례해서 리턴
-    return {
+    const rawStatus = {
       success: true,
       isMock: false,
       siteUrl: 'https://dongtanview.com',
@@ -186,8 +189,16 @@ async function fetchSearchConsoleStatusFromGoogle(): Promise<SearchConsoleStatus
         averagePosition: parseFloat((apiData.rows?.[0]?.position || 12.1).toFixed(1))
       }
     };
+
+    const parsed = SearchConsoleStatusSchema.safeParse(rawStatus);
+    if (!parsed.success) {
+      logger.warn('SearchConsole', 'Failed to validate API response. Falling back to Mock.', {}, parsed.error);
+      return generateMockStatus();
+    }
+
+    return parsed.data;
   } catch (error: any) {
-    console.warn('[SearchConsole] Error while calling Google Search Console API:', error.message);
+    logger.warn('SearchConsole', 'Error while calling Google Search Console API. Falling back to Mock.', {}, error);
     return generateMockStatus();
   }
 }
@@ -195,20 +206,27 @@ async function fetchSearchConsoleStatusFromGoogle(): Promise<SearchConsoleStatus
 export async function getSearchConsoleStatus(): Promise<SearchConsoleStatus> {
   try {
     if (redis) {
-      const cached = await redis.get<{ data: SearchConsoleStatus, timestamp: number }>(SEARCH_CONSOLE_CACHE_KEY);
-      if (cached) {
-        const isStale = (Date.now() - cached.timestamp) > (SEARCH_CONSOLE_CACHE_TTL * 1000);
-        if (isStale) {
-          // Stale-while-revalidate: Fetch in background
-          fetchSearchConsoleStatusFromGoogle().then(freshData => {
-            redis?.set(SEARCH_CONSOLE_CACHE_KEY, { data: freshData, timestamp: Date.now() });
-          }).catch(console.error);
+      const cached = await redis.get<{ data: unknown, timestamp: number }>(SEARCH_CONSOLE_CACHE_KEY);
+      if (cached && cached.data) {
+        const parsed = SearchConsoleStatusSchema.safeParse(cached.data);
+        if (parsed.success) {
+          const isStale = (Date.now() - cached.timestamp) > (SEARCH_CONSOLE_CACHE_TTL * 1000);
+          if (isStale) {
+            // Stale-while-revalidate: Fetch in background
+            fetchSearchConsoleStatusFromGoogle().then(freshData => {
+              redis?.set(SEARCH_CONSOLE_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+            }).catch(error => {
+              logger.error('SearchConsole', 'Background fetch failed.', {}, error);
+            });
+          }
+          return parsed.data;
+        } else {
+          logger.warn('SearchConsole', 'Cached data corrupted. Evicting and refetching.', {}, parsed.error);
         }
-        return cached.data;
       }
     }
   } catch (err) {
-    console.error('[SearchConsole Cache Read Error]:', err);
+    logger.error('SearchConsole', 'Cache Read Error', {}, err);
   }
 
   const freshData = await fetchSearchConsoleStatusFromGoogle();
@@ -218,7 +236,7 @@ export async function getSearchConsoleStatus(): Promise<SearchConsoleStatus> {
       await redis.set(SEARCH_CONSOLE_CACHE_KEY, { data: freshData, timestamp: Date.now() });
     }
   } catch (err) {
-    console.error('[SearchConsole Cache Write Error]:', err);
+    logger.error('SearchConsole', 'Cache Write Error', {}, err);
   }
 
   return freshData;
