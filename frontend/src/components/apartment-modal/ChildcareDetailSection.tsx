@@ -426,9 +426,12 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
               </div>
             </div>
             {!childcareData.isOverridden && (
-              <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-3 pl-1 leading-relaxed break-keep">
-                * 개별 단지 내 어린이집(예: 단지 내 국공립 어린이집 등)의 상세 인프라 및 단지별 실측 도보 거리는 정밀 매핑 준비 중입니다. 현재는 해당 행정동({dong}) 내 대표 보육 시설 정보가 표시됩니다.
-              </p>
+              <div className="bg-surface border border-border/30 rounded-xl p-3 mt-3 flex items-start gap-2">
+                <span className="text-[12px] mt-0.5">💡</span>
+                <p className="text-[10.5px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed break-keep">
+                  개별 단지 내 어린이집(예: 단지 내 국공립 어린이집 등)의 상세 인프라 및 단지별 실측 도보 거리는 정밀 매핑 준비 중입니다. 현재는 해당 행정동({dong}) 내 대표 보육 시설 정보가 표시됩니다.
+                </p>
+              </div>
             )}
           </>
         )}
@@ -438,20 +441,45 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">초등 통학로 안심 길목 진단</span>
-          <span className="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
+          <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/30">
             준비 중
           </span>
         </div>
 
-        <div className="bg-body border border-border/45 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center">
-            <Clock size={22} className="animate-pulse" />
+        <div className="bg-body border border-border/45 rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-400/30 via-teal-400/40 to-emerald-400/30 animate-pulse" />
+          
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 max-w-[450px]">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-[#0d9488] flex items-center justify-center">
+              <Clock size={22} className="animate-spin" style={{ animationDuration: '6s' }} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[14px] font-extrabold text-primary">더 정확하고 유용한 통학 안전 진단 서비스 준비 중</span>
+              <p className="text-[11.5px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed break-keep">
+                실제 공공 데이터 및 지자체 안전 시설물(CCTV, 안전 펜스 등) GIS 연계 데이터를 정합 분석하여 보다 실체적이고 유용한 안심 통학로 진단 정보를 제공할 예정입니다.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[13.5px] font-extrabold text-primary">더 정확하고 유용한 통학 안전 진단 서비스 준비 중</span>
-            <p className="text-[11.5px] font-bold text-neutral-400 dark:text-neutral-500 max-w-[450px] leading-relaxed">
-              실제 공공 데이터 및 지자체 안전 시설물(CCTV, 안전 펜스 등) GIS 연계 데이터를 정합 분석하여 보다 실체적이고 유용한 안심 통학로 진단 정보를 제공할 예정입니다.
-            </p>
+
+          {/* 예고 빌더 위젯 */}
+          <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0 bg-surface border border-border/40 p-4 rounded-xl text-left">
+            <div className="text-[11px] font-black text-secondary border-b border-border/30 pb-1.5 mb-1 flex items-center gap-1.5">
+              🛡️ 분석 예정 안심 지표
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>스쿨존 어린이 보호구역 반경 진단</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                <span>통학로 횡단보도 및 교통 신호 가시성</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                <span>지자체 GIS 연계 안전 방범 CCTV 분포</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

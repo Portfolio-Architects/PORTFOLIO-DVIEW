@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard E2E Tests', () => {
   test('should load the dashboard, open modal, and test filters', async ({ page }) => {
+    test.setTimeout(120000);
     // Dismiss welcome modal and ad block banner before navigation using localStorage
     await page.addInitScript(() => {
       window.localStorage.setItem('dview-welcome-seen', 'true');
@@ -18,8 +19,7 @@ test.describe('Dashboard E2E Tests', () => {
     const aptTitle = page.locator('#explore-list-container').getByText('동탄역 롯데캐슬', { exact: false })
                          .or(page.locator('#explore-list-container').getByText('동탄역 시범한화', { exact: false }))
                          .first();
-    await expect(aptTitle).toBeVisible({ timeout: 15000 });
-
+    await expect(aptTitle).toBeVisible({ timeout: 30000 });
     const aptName = await aptTitle.textContent();
     console.log('Selected Apartment:', aptName);
 

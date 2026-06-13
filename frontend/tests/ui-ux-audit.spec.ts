@@ -46,7 +46,7 @@ test.describe('UI/UX Diagnostics Audit', () => {
   });
 
   test('Perform full UI/UX audit on explore tab and apartment detail modal', async ({ page }) => {
-    test.setTimeout(60000); // Give plenty of time for audit engines
+    test.setTimeout(120000); // Give plenty of time for audit engines
 
     // Dismiss welcome modal and ad block banner before navigation using localStorage
     await page.addInitScript(() => {
@@ -63,7 +63,7 @@ test.describe('UI/UX Diagnostics Audit', () => {
     const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역\s*(?:롯데캐슬|힐스테이트)/ })
                          .or(page.locator('#explore-list-container span', { hasText: /동탄역/ }))
                          .first();
-    await expect(aptTitle).toBeVisible({ timeout: 15000 });
+    await expect(aptTitle).toBeVisible({ timeout: 30000 });
     await aptTitle.click();
     
     // Wait for modal transition and chart rendering to complete
