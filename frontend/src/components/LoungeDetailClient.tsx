@@ -53,6 +53,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     return null;
   });
   const [comments, setComments] = useState<PostComment[]>([]);
+  const [recommendedPosts, setRecommendedPosts] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(!initialPost);
@@ -142,6 +143,43 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       setLoading(false);
     };
     fetchPost();
+  }, [postId]);
+
+  // Fetch recommended posts (Lounge Popular Talks)
+  useEffect(() => {
+    if (!postId) return;
+    const fetchRecommended = async () => {
+      try {
+        const q = query(
+          collection(db, 'posts').withConverter(postConverter),
+          orderBy('createdAt', 'desc'),
+          limit(30)
+        );
+        const snap = await getDocs(q);
+        const list: any[] = [];
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (docSnap.id !== postId) {
+            list.push({
+              id: docSnap.id,
+              title: data.title,
+              category: data.category,
+              authorName: data.authorName || '익명',
+              views: data.views || 0,
+              likes: data.likes || 0,
+              createdAt: data.createdAt,
+            });
+          }
+        });
+        const sorted = list
+          .sort((a, b) => (b.views + b.likes * 5) - (a.views + a.likes * 5))
+          .slice(0, 3);
+        setRecommendedPosts(sorted);
+      } catch (err) {
+        console.warn('Failed to fetch recommended posts:', err);
+      }
+    };
+    fetchRecommended();
   }, [postId]);
 
   // Listen to comments
@@ -751,6 +789,61 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             </ul>
           )}
         </div>
+
+        {/* Recommended Posts (이 시간 인기 토크) */}
+        {recommendedPosts.length > 0 && (
+          <div className="bg-surface rounded-2xl border border-border p-5 mt-4 shadow-sm">
+            <h3 className="text-[14.5px] font-extrabold text-primary flex items-center gap-1.5 mb-4 px-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
+              <span>이 시간 동탄 라운지 인기 토크</span>
+            </h3>
+            <div className="flex flex-col gap-3">
+              {recommendedPosts.map((recPost) => (
+                <div
+                  key={recPost.id}
+                  onClick={() => {
+                    if (isModal) {
+                      window.location.hash = `post=${recPost.id}`;
+                    } else {
+                      router.push(`/lounge/${recPost.id}`);
+                    }
+                  }}
+                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/50 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 rounded-xl cursor-pointer transition-all group"
+                >
+                  <div className="flex flex-col gap-1.5 min-w-0 flex-1 pr-4">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                        (recPost.category === '동탄 임장/분석' || recPost.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
+                        (recPost.category === '부동산 고민상담' || recPost.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red' :
+                        (recPost.category === '동탄 청약/대출' || recPost.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue' :
+                        'bg-surface border border-border text-secondary'
+                      }`}>
+                        {recPost.category === '임장기' ? '동탄 임장/분석' : 
+                         recPost.category === '부동산 기초' ? '부동산 고민상담' :
+                         recPost.category === '정책자금 대출' ? '동탄 청약/대출' :
+                         recPost.category}
+                      </span>
+                      <span className="text-[11.5px] font-semibold text-tertiary truncate">
+                        {recPost.authorName}
+                      </span>
+                    </div>
+                    <h4 className="text-[14px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors truncate">
+                      {recPost.title}
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-3 text-[12px] font-bold text-tertiary shrink-0">
+                    <span className="flex items-center gap-0.5"><Eye size={12}/> {recPost.views}</span>
+                    <span className="flex items-center gap-0.5 text-rose-500"><Heart size={12} className="fill-current"/> {recPost.likes}</span>
+                    <ChevronRight size={14} className="text-tertiary group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
       </div>
     </>
