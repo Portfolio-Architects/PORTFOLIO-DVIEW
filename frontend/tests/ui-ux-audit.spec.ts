@@ -55,7 +55,7 @@ test.describe('UI/UX Diagnostics Audit', () => {
     });
 
     // Navigate to the main page
-    await page.goto('/#imjang');
+    await page.goto('/?tab=imjang');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000); // Allow full client hydration and router stability
 

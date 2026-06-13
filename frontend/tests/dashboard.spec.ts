@@ -8,8 +8,8 @@ test.describe('Dashboard E2E Tests', () => {
       window.localStorage.setItem('dview-adblock-banner-dismissed', Date.now().toString());
     });
 
-    // 1. Load the main page directly on the Apartment Explore tab (#imjang)
-    await page.goto('/#imjang');
+    // 1. Load the main page directly on the Apartment Explore tab (?tab=imjang)
+    await page.goto('/?tab=imjang');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000); // Allow full client hydration and router stability
 

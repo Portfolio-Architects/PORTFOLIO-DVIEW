@@ -39,7 +39,7 @@ export default function ContextualB2BAdBanner({
       case 'interior':
         return <Brush className="text-amber-500 shrink-0" size={20} />;
       case 'academy':
-        return <GraduationCap className="text-blue-500 shrink-0" size={20} />;
+        return <GraduationCap className="text-indigo-500 shrink-0" size={20} />;
       case 'cleaning':
       default:
         return <Sparkles className="text-emerald-500 shrink-0" size={20} />;
@@ -54,7 +54,7 @@ export default function ContextualB2BAdBanner({
       case 'interior':
         return 'from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10 border-amber-100/80 dark:border-amber-900/30';
       case 'academy':
-        return 'from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 border-blue-100/80 dark:border-blue-900/30';
+        return 'from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/10 border-indigo-100/80 dark:border-indigo-900/30';
       case 'cleaning':
       default:
         return 'from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/10 dark:to-emerald-900/5 border-emerald-100/60 dark:border-emerald-900/20';
@@ -107,7 +107,7 @@ export default function ContextualB2BAdBanner({
             <span className={`px-2 py-0.5 rounded-lg text-[10.5px] font-black border uppercase tracking-wider ${
               ad.adType === 'insurance' ? 'text-teal-600 bg-teal-50 border-teal-100 dark:bg-teal-950/30 dark:text-teal-400 dark:border-teal-900/30' :
               ad.adType === 'interior' ? 'text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/30' :
-              ad.adType === 'academy' ? 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/30' :
+              ad.adType === 'academy' ? 'text-indigo-600 bg-indigo-50 border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/30' :
               'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/30'
             }`}>
               {ad.badge}
@@ -131,7 +131,7 @@ export default function ContextualB2BAdBanner({
         className={`px-4.5 py-3 rounded-2xl font-black text-[12.5px] transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm active:scale-95 group-hover:translate-x-0.5 duration-200 cursor-pointer ${
           ad.adType === 'insurance' ? 'bg-[#fee500] hover:bg-[#fddc00] text-[#191919]' :
           ad.adType === 'interior' ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/10' :
-          ad.adType === 'academy' ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/10' :
+          ad.adType === 'academy' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/10' :
           'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/10'
         }`}
       >
