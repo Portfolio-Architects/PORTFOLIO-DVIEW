@@ -101,18 +101,45 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
     }
   }
 
-  // 3. Live fetch
-  const freshData = await fetchCsvFromGoogle(sheetName);
-  sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: now };
+  // 3. Live fetch with resilient fallback on failure
+  try {
+    const freshData = await fetchCsvFromGoogle(sheetName);
+    sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: now };
 
-  if (redis) {
-    try {
-      await redis.set(cacheKey, { data: freshData, timestamp: now });
-    } catch (e) {
-      logger.error('fetchCsv', `Redis write failed for sheet: ${sheetName}`, undefined, e);
+    if (redis) {
+      try {
+        await redis.set(cacheKey, { data: freshData, timestamp: now });
+      } catch (e) {
+        logger.error('fetchCsv', `Redis write failed for sheet: ${sheetName}`, undefined, e);
+      }
     }
+    return freshData;
+  } catch (error) {
+    logger.error('fetchCsv', `Live fetch failed for sheet: ${sheetName}, attempting fallback cache`, undefined, error as Error);
+
+    // Fallback 1: Stale memory cache
+    if (sheetsMemoryCache[cacheKey]) {
+      logger.warn('fetchCsv', `Falling back to stale memory cache for sheet: ${sheetName}`);
+      return sheetsMemoryCache[cacheKey].data;
+    }
+
+    // Fallback 2: Stale Redis cache
+    if (redis) {
+      try {
+        const cached = await redis.get<{ data: string[][]; timestamp: number }>(cacheKey);
+        if (cached && cached.data) {
+          logger.warn('fetchCsv', `Falling back to stale Redis cache for sheet: ${sheetName}`);
+          return cached.data;
+        }
+      } catch (redisError) {
+        logger.error('fetchCsv', `Redis read fallback failed for sheet: ${sheetName}`, undefined, redisError as Error);
+      }
+    }
+
+    // Fallback 3: Return empty array
+    logger.error('fetchCsv', `No cache available for sheet: ${sheetName}. Returning empty array.`, undefined, error as Error);
+    return [];
   }
-  return freshData;
 }
 
 async function fetchCsvFromGoogle(sheetName: string): Promise<string[][]> {
