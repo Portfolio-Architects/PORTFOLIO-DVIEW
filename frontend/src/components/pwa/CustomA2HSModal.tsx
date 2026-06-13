@@ -48,15 +48,15 @@ export default function CustomA2HSModal() {
           <div className="bg-body rounded-xl p-4 mb-6">
             <ul className="space-y-2 text-sm text-secondary">
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-[#008262] dark:bg-[#00d29d] rounded-full"></span>
                 브라우저 주소창 없이 전체화면으로 넓게 보기
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-[#008262] dark:bg-[#00d29d] rounded-full"></span>
                 클릭 한 번으로 관심 아파트 실시간 접속
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-[#008262] dark:bg-[#00d29d] rounded-full"></span>
                 네이티브 앱 수준의 빠르고 부드러운 속도
               </li>
             </ul>
@@ -71,7 +71,7 @@ export default function CustomA2HSModal() {
             </button>
             <button
               onClick={handleInstall}
-              className="flex-1 py-3.5 px-4 bg-toss-blue text-surface font-semibold rounded-xl hover:bg-blue-600 active:scale-[0.98] transition-all shadow-sm"
+              className="flex-1 py-3.5 px-4 bg-[#008262] dark:bg-[#00b386] text-surface font-semibold rounded-xl hover:bg-[#006950] dark:hover:bg-[#008262] active:scale-[0.98] transition-all shadow-sm"
             >
               지금 추가하기
             </button>
