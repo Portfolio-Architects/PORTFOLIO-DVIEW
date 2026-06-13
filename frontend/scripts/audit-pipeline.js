@@ -267,8 +267,24 @@ function auditE2ETests() {
       log(colors.cyan, '🔄 Generating UI/UX self-improvement report...');
       execSync('node scripts/generate-ui-ux-report.js', { stdio: 'inherit' });
       
-      // Copy to Gemini Artifacts folder
-      const artifactDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\29abde95-942b-4780-9317-a9fefbfbde86';
+      // Copy to Gemini Artifacts folder dynamically (find the latest active session folder)
+      let artifactDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\29abde95-942b-4780-9317-a9fefbfbde86'; // fallback
+      try {
+        const baseBrainDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain';
+        if (fs.existsSync(baseBrainDir)) {
+          const dirs = fs.readdirSync(baseBrainDir)
+            .map(name => ({ name, path: path.join(baseBrainDir, name) }))
+            .filter(item => fs.statSync(item.path).isDirectory() && !item.name.startsWith('.'))
+            .map(item => ({ ...item, mtime: fs.statSync(item.path).mtime.getTime() }))
+            .sort((a, b) => b.mtime - a.mtime);
+          if (dirs.length > 0) {
+            artifactDir = dirs[0].path;
+          }
+        }
+      } catch (e) {
+        log(colors.yellow, `⚠️ Failed to resolve active artifact directory dynamically: ${e.message}`);
+      }
+
       if (fs.existsSync(artifactDir)) {
         const sourceReport = path.resolve(process.cwd(), 'scratch/ui_ux_improvement_report.md');
         const destReport = path.join(artifactDir, 'PORTFOLIO DVIEW - UI-UX Diagnostics Report.md');
