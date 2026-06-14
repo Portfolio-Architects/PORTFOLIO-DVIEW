@@ -21,6 +21,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface GapInvestmentExplorerProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -39,6 +40,7 @@ export default function GapInvestmentExplorer({
   onSelectApt,
   onOpenAdModal,
 }: GapInvestmentExplorerProps) {
+  const { showToast } = usePWA();
   const [localMaxGap, setLocalMaxGap] = useState<number>(20000);
   const [maxGap, setMaxGap] = useState<number>(20000); // Filter value
   const debouncedMaxGap = useDebounce(localMaxGap, 200);
@@ -62,45 +64,65 @@ export default function GapInvestmentExplorer({
     navigator.clipboard.writeText(shareUrl).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
+      showToast('갭투자 큐레이션 필터 링크가 클립보드에 복사되었습니다! 💚');
     }).catch(err => {
       console.error('Failed to copy URL:', err);
+      showToast('링크 복사에 실패했습니다.');
     });
   };
 
-  // Parse initial query params on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      
-      const gapParam = params.get('maxGap');
-      if (gapParam) {
-        const parsed = parseInt(gapParam, 10);
-        if (!isNaN(parsed) && parsed >= 3000 && parsed <= 60000) {
-          setMaxGap(parsed);
-          setLocalMaxGap(parsed);
-        }
+  // Helper to sync states from URL query parameters
+  const syncStatesFromUrl = () => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    
+    const gapParam = params.get('maxGap');
+    if (gapParam) {
+      const parsed = parseInt(gapParam, 10);
+      if (!isNaN(parsed) && parsed >= 3000 && parsed <= 60000) {
+        setMaxGap(parsed);
+        setLocalMaxGap(parsed);
       }
-
-      const dongParam = params.get('dong');
-      if (dongParam) {
-        setSelectedDong(dongParam);
-      }
-
-      const minJeonseParam = params.get('minJeonse');
-      if (minJeonseParam) {
-        const parsed = parseInt(minJeonseParam, 10);
-        if (!isNaN(parsed) && [0, 60, 70, 80].includes(parsed)) {
-          setMinJeonseRate(parsed);
-        }
-      }
-
-      const sortByParam = params.get('sortBy');
-      if (sortByParam) {
-        if (['gapScore', 'gapAsc', 'ratioDesc', 'pyeongPriceAsc', 'householdCountDesc'].includes(sortByParam)) {
-          setSortBy(sortByParam);
-        }
-      }
+    } else {
+      setMaxGap(20000);
+      setLocalMaxGap(20000);
     }
+
+    const dongParam = params.get('dong');
+    setSelectedDong(dongParam);
+
+    const minJeonseParam = params.get('minJeonse');
+    if (minJeonseParam) {
+      const parsed = parseInt(minJeonseParam, 10);
+      if (!isNaN(parsed) && [0, 60, 70, 80].includes(parsed)) {
+        setMinJeonseRate(parsed);
+      }
+    } else {
+      setMinJeonseRate(0);
+    }
+
+    const sortByParam = params.get('sortBy');
+    if (sortByParam && ['gapScore', 'gapAsc', 'ratioDesc', 'pyeongPriceAsc', 'householdCountDesc'].includes(sortByParam)) {
+      setSortBy(sortByParam);
+    } else {
+      setSortBy('gapScore');
+    }
+  };
+
+  // Sync states on mount and register popstate listener
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    syncStatesFromUrl();
+
+    const handlePopState = () => {
+      syncStatesFromUrl();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   // Sync debounced values to filter
@@ -108,53 +130,47 @@ export default function GapInvestmentExplorer({
     setMaxGap(debouncedMaxGap);
   }, [debouncedMaxGap]);
 
-  // Sync state variables to URL query parameters
+  // Sync state variables to URL query parameters with history push/replace strategy
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      let changed = false;
+      
+      const urlMaxGap = params.get('maxGap') ? parseInt(params.get('maxGap')!, 10) : 20000;
+      const urlDong = params.get('dong');
+      const urlMinJeonse = params.get('minJeonse') ? parseInt(params.get('minJeonse')!, 10) : 0;
+      const urlSortBy = params.get('sortBy') || 'gapScore';
 
-      const currentGap = params.get('maxGap');
-      if (currentGap !== String(maxGap)) {
-        if (!(currentGap === null && maxGap === 20000)) {
-          params.set('maxGap', String(maxGap));
-          changed = true;
+      const gapChanged = urlMaxGap !== maxGap;
+      const dongChanged = urlDong !== selectedDong;
+      const minJeonseChanged = urlMinJeonse !== minJeonseRate;
+      const sortByChanged = urlSortBy !== sortBy;
+
+      if (gapChanged || dongChanged || minJeonseChanged || sortByChanged) {
+        const newParams = new URLSearchParams();
+        
+        if (maxGap !== 20000) {
+          newParams.set('maxGap', String(maxGap));
         }
-      }
-
-      const currentDong = params.get('dong');
-      if (currentDong !== selectedDong) {
         if (selectedDong) {
-          params.set('dong', selectedDong);
-        } else {
-          params.delete('dong');
+          newParams.set('dong', selectedDong);
         }
-        changed = true;
-      }
-
-      const currentMinJeonse = params.get('minJeonse');
-      if (currentMinJeonse !== String(minJeonseRate)) {
         if (minJeonseRate > 0) {
-          params.set('minJeonse', String(minJeonseRate));
-        } else {
-          params.delete('minJeonse');
+          newParams.set('minJeonse', String(minJeonseRate));
         }
-        changed = true;
-      }
-
-      const currentSortBy = params.get('sortBy');
-      if (currentSortBy !== sortBy) {
         if (sortBy !== 'gapScore') {
-          params.set('sortBy', sortBy);
-        } else {
-          params.delete('sortBy');
+          newParams.set('sortBy', sortBy);
         }
-        changed = true;
-      }
 
-      if (changed) {
-        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
-        window.history.replaceState(null, '', newUrl);
+        const queryStr = newParams.toString();
+        const newUrl = window.location.pathname + (queryStr ? '?' + queryStr : '') + window.location.hash;
+
+        // If only maxGap (budget slider) changed, replace state to avoid polluting history stack.
+        // If dropdown filters changed, push state to build history.
+        if (dongChanged || minJeonseChanged || sortByChanged) {
+          window.history.pushState(null, '', newUrl);
+        } else {
+          window.history.replaceState(null, '', newUrl);
+        }
       }
     }
   }, [maxGap, selectedDong, minJeonseRate, sortBy]);
@@ -209,11 +225,14 @@ export default function GapInvestmentExplorer({
       const rawRatio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
       const ratio = isNaN(rawRatio) || !isFinite(rawRatio) ? 0 : rawRatio;
 
-      // 갭투자 적합성 지수(Gap Score) 연산 도입
-      // 1) 전세가율 점수 (55%): 50%일 때 0점, 80% 이상일 때 100점
+      // 갭투자 적합성 지수(Gap Score) 연산 도입 - 4차원 공식 개편
+      // 1) 전세가율 점수 (45%): 50%일 때 0점, 80% 이상일 때 100점
       const ratioScore = Math.max(0, Math.min(100, ((ratio - 0.5) / 0.3) * 100));
 
-      // 2) 최근 30일 거래 회전율 활성 점수 (25%) (30일 거래량 미존재 시 90일 보완 적용)
+      // 2) 갭 투자금 절대 규모 점수 (20%): 1억 이하 100점, 2.5억 이상 0점, 사이 선형 보간 (1억=10000, 2.5억=25000)
+      const gapAmountScore = Math.max(0, Math.min(100, 100 - ((gap - 10000) / 15000) * 100));
+
+      // 3) 최근 30일 거래 회전율 활성 점수 (20%) (30일 거래량 미존재 시 90일 보완 적용)
       const txCount = sum?.avg1MTxCount || sum?.avg3MTxCount || 0;
       let txScore = 0;
       if (txCount >= 10) txScore = 100;
@@ -222,7 +241,7 @@ export default function GapInvestmentExplorer({
       else if (txCount >= 1) txScore = 40;
       else txScore = 0;
 
-      // 3) 단지 규모 세대수 점수 (20%)
+      // 4) 단지 규모 세대수 점수 (15%)
       const hh = apt.householdCount || 0;
       let hhScore = 0;
       if (hh >= 1000) hhScore = 100;
@@ -231,7 +250,7 @@ export default function GapInvestmentExplorer({
       else if (hh >= 100) hhScore = 40;
       else hhScore = 20;
 
-      const gapScore = Math.round(ratioScore * 0.55 + txScore * 0.25 + hhScore * 0.20);
+      const gapScore = Math.round(ratioScore * 0.45 + gapAmountScore * 0.20 + txScore * 0.20 + hhScore * 0.15);
 
       return {
         apt,
@@ -348,6 +367,22 @@ export default function GapInvestmentExplorer({
 
   return (
     <div className="w-full bg-surface border border-border rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
+      <style>{`
+        @keyframes pastelEmeraldPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(0, 130, 98, 0.4);
+          }
+          70% {
+            box-shadow: 0 0 0 6px rgba(0, 130, 98, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(0, 130, 98, 0);
+          }
+        }
+        .animate-emerald-pulse {
+          animation: pastelEmeraldPulse 2s infinite;
+        }
+      `}</style>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center justify-between w-full sm:w-auto">
@@ -668,12 +703,12 @@ export default function GapInvestmentExplorer({
                       </span>
                     </div>
                     <div className="flex flex-col gap-1 items-end shrink-0">
-                      <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border ${
-                        item.gapScore >= 80 ? 'bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] border-[#00b386]/20' :
+                      <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border transition-all ${
+                        item.gapScore >= 80 ? 'bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] border-[#00b386]/20 animate-emerald-pulse' :
                         item.gapScore >= 60 ? 'bg-[#e6f3f0] dark:bg-[#008262]/10 text-[#008262] dark:text-[#00d29d] border-[#008262]/20 dark:border-[#00d29d]/20' :
                         'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
                       }`}>
-                        {item.gapScore >= 80 ? '🔥 GAP 우수' : item.gapScore >= 60 ? '✅ GAP 보통' : '⚠️ 관망 권장'}
+                        {item.gapScore >= 80 ? '🔥 S등급 (우수)' : item.gapScore >= 60 ? '✅ A등급 (보통)' : '⚠️ B등급 (관망)'}
                       </span>
                       <span className="text-[10px] font-bold text-tertiary">
                         지수 {item.gapScore}점
