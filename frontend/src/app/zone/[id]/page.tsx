@@ -5,8 +5,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from '@/lib/DashboardFacade';
+import dynamic from 'next/dynamic';
 import { ZONES, dongToZoneId, getZoneById } from '@/lib/zones';
-import FieldReportModal from '@/components/ApartmentModal';
+
+const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+  console.warn('FieldReportModal Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 

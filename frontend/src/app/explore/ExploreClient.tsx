@@ -8,7 +8,6 @@ import dynamic from 'next/dynamic';
 import { MessageSquare } from 'lucide-react';
 
 import LoginGateModal from '@/components/ui/LoginGateModal';
-import TossApartmentExploreClient from '@/components/TossApartmentExploreClient';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +38,12 @@ const ModalSkeleton = () => (
 );
 
 // Heavy components dynamic load
+const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient').catch(err => {
+  console.warn('TossApartmentExploreClient Chunk Load failure, page reload initiated', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   console.warn('FieldReportModal Chunk Load failure, page reload initiated', err);
   if (typeof window !== 'undefined') window.location.reload();

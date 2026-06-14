@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
-import LoungeFeedClient from '@/components/LoungeFeedClient';
+const LoungeFeedClient = dynamic(() => import('@/components/LoungeFeedClient').catch(err => {
+  console.warn('LoungeFeedClient Chunk Load failure, initiating fallback reload', err);
+  if (typeof window !== 'undefined') window.location.reload();
+  return { default: () => null };
+}), { ssr: false });
+
 const LoungeComposeClient = dynamic(() => import('@/components/LoungeComposeClient').catch(err => {
   console.warn('LoungeComposeClient Chunk Load failure, initiating fallback reload', err);
   if (typeof window !== 'undefined') window.location.reload();
