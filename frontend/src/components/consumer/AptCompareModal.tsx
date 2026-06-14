@@ -745,8 +745,8 @@ export default function AptCompareModal({
     const targetEndYear = 26;
     const targetEndMonth = 6;
     if (timelineMonths.length > 0) {
-      let lastMonthStr = timelineMonths[timelineMonths.length - 1];
-      let [yStr, mStr] = lastMonthStr.split('.');
+      const lastMonthStr = timelineMonths[timelineMonths.length - 1];
+      const [yStr, mStr] = lastMonthStr.split('.');
       let y = parseInt(yStr);
       let m = parseInt(mStr);
       while (y < targetEndYear || (y === targetEndYear && m < targetEndMonth)) {

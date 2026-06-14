@@ -186,19 +186,29 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const origin = location.origin;
   const targetUrl = event.notification.data?.url || '/';
+  const absoluteTargetUrl = new URL(targetUrl, origin).toString();
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Focus existing window if available
+      // 1. First, check if there is an exact URL match open
       for (const client of clientList) {
-        if (client.url === targetUrl && 'focus' in client) {
+        if (client.url === absoluteTargetUrl && 'focus' in client) {
           return client.focus();
         }
       }
-      // Or open new window
+      // 2. Otherwise, find any open tab on the same origin, focus and navigate it
+      for (const client of clientList) {
+        const clientUrlObj = new URL(client.url, origin);
+        if (clientUrlObj.origin === origin && 'focus' in client && 'navigate' in client) {
+          client.focus();
+          return client.navigate(absoluteTargetUrl);
+        }
+      }
+      // 3. Or open a new window if no tabs are open
       if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
+        return clients.openWindow(absoluteTargetUrl);
       }
     })
   );
