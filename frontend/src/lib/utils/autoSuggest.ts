@@ -1,15 +1,41 @@
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 import { findTxKey, normalizeAptName } from './apartmentMapping';
+
+export const AutoSuggestParamsSchema = z.object({
+  aptName: z.string(),
+  txSummaryData: z.record(z.string(), z.unknown()),
+});
+
+export const EditDistanceParamsSchema = z.object({
+  a: z.string(),
+  b: z.string(),
+});
+
+export const LocationPrefixesSchema = z.array(z.string());
+export const NameSuffixesSchema = z.array(z.string());
 
 const LOCATION_PREFIXES = [
   '숲속마을동탄','푸른마을동탄','나루마을동탄',
   '동탄역시범','동탄시범다은마을','동탄시범한빛마을','동탄시범나루마을',
   '시범다은마을','시범한빛마을','시범나루마을','시범',
   '반탄솔빛마을','솔빛마을','예당마을','새강마을',
-  '동탄2신도시','동탄신도시','동탄숲속마을','동탄푸른마을','동탄나루마을',
+  '동탄2신도시','동탄신도시','동탄숲속마을','동탄나루마을','동탄푸른마을',
   '동탄호수공원역','동탄호수공원','동탄호수','동탄역',
   '화성동탄2','능동역','호수공원역','동탄2','동탄',
 ];
 const NAME_SUFFIXES = ['역', '2단지', '1단지', '3단지', '4단지', '5단지', '단지'];
+
+// Validate static lists at startup
+const validatedPrefixes = LocationPrefixesSchema.safeParse(LOCATION_PREFIXES);
+if (!validatedPrefixes.success) {
+  logger.error('autoSuggest', 'LOCATION_PREFIXES static data validation failed', { error: String(validatedPrefixes.error) });
+}
+
+const validatedSuffixes = NameSuffixesSchema.safeParse(NAME_SUFFIXES);
+if (!validatedSuffixes.success) {
+  logger.error('autoSuggest', 'NAME_SUFFIXES static data validation failed', { error: String(validatedSuffixes.error) });
+}
 
 export function stripPrefix(n: string) {
   for (const p of LOCATION_PREFIXES) if (n.startsWith(p) && n.length > p.length) return n.slice(p.length);
@@ -22,7 +48,13 @@ export function stripSuffix(n: string) {
 }
 
 export function editDistance(a: string, b: string): number {
-  const m = a.length, n = b.length;
+  const validation = EditDistanceParamsSchema.safeParse({ a, b });
+  if (!validation.success) {
+    logger.warn('autoSuggest.editDistance', 'Parameter validation failed', { error: String(validation.error) });
+    return Math.max(a?.length || 0, b?.length || 0);
+  }
+  const { a: vA, b: vB } = validation.data;
+  const m = vA.length, n = vB.length;
   if (m === 0) return n;
   if (n === 0) return m;
   const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
@@ -30,16 +62,24 @@ export function editDistance(a: string, b: string): number {
   for (let j = 0; j <= n; j++) dp[0][j] = j;
   for (let i = 1; i <= m; i++)
     for (let j = 1; j <= n; j++)
-      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+(vA[i-1]===vB[j-1]?0:1));
   return dp[m][n];
 }
 
 export function autoSuggest<T>(aptName: string, txSummaryData: Record<string, T>): string | null {
-  const exactOrHardcoded = findTxKey(aptName, txSummaryData);
+  const validation = AutoSuggestParamsSchema.safeParse({ aptName, txSummaryData });
+  if (!validation.success) {
+    logger.warn('autoSuggest.autoSuggest', 'Parameter validation failed', { error: String(validation.error) });
+    return null;
+  }
+  const { aptName: vAptName, txSummaryData: vTxSummaryData } = validation.data;
+  const castTxSummaryData = vTxSummaryData as Record<string, T>;
+
+  const exactOrHardcoded = findTxKey(vAptName, castTxSummaryData);
   if (exactOrHardcoded) return exactOrHardcoded;
 
-  const norm = normalizeAptName(aptName);
-  const keys = Object.keys(txSummaryData);
+  const norm = normalizeAptName(vAptName);
+  const keys = Object.keys(castTxSummaryData);
   if (!norm || norm.length < 2) return null;
   if (keys.includes(norm)) return norm;
   const stripped = stripPrefix(norm);
@@ -67,3 +107,4 @@ export function autoSuggest<T>(aptName: string, txSummaryData: Record<string, T>
   }
   return bestKey;
 }
+

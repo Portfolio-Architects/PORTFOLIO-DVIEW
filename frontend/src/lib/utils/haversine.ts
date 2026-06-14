@@ -5,31 +5,42 @@
  * Used for apartment-to-POI distance calculations.
  */
 
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
 /** Earth's mean radius in meters */
 const EARTH_RADIUS_M = 6_371_000;
 
+/** Zod schema for geographic coordinates */
+export const CoordSchema = z.object({
+  lat: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => !isNaN(val) && val >= -90 && val <= 90),
+  lng: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => !isNaN(val) && val >= -180 && val <= 180),
+});
+
 /** A geographic coordinate (latitude, longitude in degrees) */
-export interface Coord {
-  lat: number;
-  lng: number;
-}
+export type Coord = z.infer<typeof CoordSchema>;
 
 /**
  * Calculates the Haversine distance between two coordinates.
  * @returns Distance in meters (rounded to nearest integer)
  */
-export function haversineDistance(a: Coord, b: Coord): number {
-  if (!a || !b || isNaN(a.lat) || isNaN(a.lng) || isNaN(b.lat) || isNaN(b.lng)) {
+export function haversineDistance(a: any, b: any): number {
+  const parsedA = CoordSchema.safeParse(a);
+  const parsedB = CoordSchema.safeParse(b);
+  if (!parsedA.success || !parsedB.success) {
     return 0;
   }
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
+  const coordA = parsedA.data;
+  const coordB = parsedB.data;
+
+  const dLat = toRad(coordB.lat - coordA.lat);
+  const dLng = toRad(coordB.lng - coordA.lng);
 
   const sinLat = Math.sin(dLat / 2);
   const sinLng = Math.sin(dLng / 2);
 
   const h = sinLat * sinLat +
-    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinLng * sinLng;
+    Math.cos(toRad(coordA.lat)) * Math.cos(toRad(coordB.lat)) * sinLng * sinLng;
 
   // Prevent Math.asin(Math.sqrt(h)) from returning NaN if h is slightly out of [0, 1] bounds due to precision errors
   const clampedH = Math.max(0, Math.min(1, h));
@@ -43,19 +54,31 @@ export function findNearest<T extends Coord & { name: string }>(
   origin: Coord,
   pois: T[]
 ): (T & { distance: number }) | null {
-  if (pois.length === 0) return null;
+  const parsedOrigin = CoordSchema.safeParse(origin);
+  if (!parsedOrigin.success) {
+    logger.warn('haversine.findNearest', 'Invalid origin coordinate', { origin, error: String(parsedOrigin.error) });
+    return null;
+  }
+  const vOrigin = parsedOrigin.data;
+  if (!pois || pois.length === 0) return null;
 
-  let nearest = pois[0];
-  let minDist = haversineDistance(origin, pois[0]);
+  let nearest: T | null = null;
+  let minDist = Infinity;
 
-  for (let i = 1; i < pois.length; i++) {
-    const dist = haversineDistance(origin, pois[i]);
+  for (const poi of pois) {
+    const parsedPoi = CoordSchema.safeParse(poi);
+    if (!parsedPoi.success) {
+      logger.warn('haversine.findNearest', `Invalid POI coordinate for ${poi?.name}`, { poi, error: String(parsedPoi.error) });
+      continue;
+    }
+    const dist = haversineDistance(vOrigin, parsedPoi.data);
     if (dist < minDist) {
       minDist = dist;
-      nearest = pois[i];
+      nearest = poi;
     }
   }
 
+  if (!nearest) return null;
   return { ...nearest, distance: minDist };
 }
 
@@ -63,7 +86,15 @@ export function findNearest<T extends Coord & { name: string }>(
  * Counts POIs within a given radius (meters) from origin.
  */
 export function countWithinRadius(origin: Coord, pois: Coord[], radiusM: number): number {
-  return pois.filter(p => haversineDistance(origin, p) <= radiusM).length;
+  const parsedOrigin = CoordSchema.safeParse(origin);
+  if (!parsedOrigin.success) return 0;
+  const vOrigin = parsedOrigin.data;
+
+  if (!pois || !Array.isArray(pois)) return 0;
+  return pois.filter(p => {
+    const parsedP = CoordSchema.safeParse(p);
+    return parsedP.success && haversineDistance(vOrigin, parsedP.data) <= radiusM;
+  }).length;
 }
 
 /**
@@ -75,12 +106,10 @@ export function parseCoordString(coordStr: string): Coord | null {
   // Clean brackets, parentheses, braces, and spaces
   const cleaned = coordStr.replace(/[\[\]\(\)\{\}\s]/g, '');
   const parts = cleaned.split(',').map(s => parseFloat(s));
-  if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-    const lat = parts[0];
-    const lng = parts[1];
-    // Validate bounds for Earth coordinates to prevent downstream errors
-    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-      return { lat, lng };
+  if (parts.length >= 2) {
+    const parsed = CoordSchema.safeParse({ lat: parts[0], lng: parts[1] });
+    if (parsed.success) {
+      return parsed.data;
     }
   }
   return null;
@@ -89,3 +118,4 @@ export function parseCoordString(coordStr: string): Coord | null {
 function toRad(deg: number): number {
   return deg * (Math.PI / 180);
 }
+

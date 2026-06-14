@@ -3,10 +3,21 @@
  * 토스증권 주식 아이콘 스타일의 이니셜 아바타에 사용
  */
 
-interface BrandStyle {
-  initial: string;
-  color: string;
-}
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+export const BrandStyleSchema = z.object({
+  initial: z.string(),
+  color: z.string(),
+});
+export type BrandStyle = z.infer<typeof BrandStyleSchema>;
+
+export const BrandMapSchema = z.record(z.string(), BrandStyleSchema);
+
+export const GetBrandStyleParamsSchema = z.object({
+  aptName: z.string(),
+  brand: z.string().optional().nullable(),
+});
 
 const BRAND_MAP: Record<string, BrandStyle> = {
   // 대림
@@ -54,6 +65,12 @@ const BRAND_MAP: Record<string, BrandStyle> = {
   '제일풍경채': { initial: 'J', color: '#00695C' },
 };
 
+// Validate BRAND_MAP at startup
+const validatedBrandMap = BrandMapSchema.safeParse(BRAND_MAP);
+if (!validatedBrandMap.success) {
+  logger.error('brandMapping', 'BRAND_MAP static data validation failed', { error: String(validatedBrandMap.error) });
+}
+
 /**
  * 아파트 이름이나 브랜드에서 이니셜과 컬러를 추출합니다.
  * 1차: apt.brand로 직접 매핑
@@ -61,20 +78,27 @@ const BRAND_MAP: Record<string, BrandStyle> = {
  * 3차: 이름 첫 글자 + 기본 그레이
  */
 export function getBrandStyle(aptName: string, brand?: string): BrandStyle {
+  const validation = GetBrandStyleParamsSchema.safeParse({ aptName, brand });
+  if (!validation.success) {
+    logger.warn('brandMapping.getBrandStyle', 'Parameter validation failed', { error: String(validation.error) });
+    return { initial: '?', color: '#9E9E9E' };
+  }
+  const { aptName: vAptName, brand: vBrand } = validation.data;
+
   // 1차: brand 필드 매핑
-  if (brand) {
+  if (vBrand) {
     for (const [key, style] of Object.entries(BRAND_MAP)) {
-      if (brand.includes(key)) return style;
+      if (vBrand.includes(key)) return style;
     }
   }
 
   // 2차: 아파트 이름에서 브랜드 키워드 검색
   for (const [key, style] of Object.entries(BRAND_MAP)) {
-    if (aptName.includes(key)) return style;
+    if (vAptName.includes(key)) return style;
   }
 
   // 3차: 이름 첫 글자 기반 동적 생성
-  const firstChar = aptName.charAt(0);
+  const firstChar = vAptName.charAt(0) || '?';
   // 한글 첫 자음으로 일관된 색상 생성
   const code = firstChar.charCodeAt(0);
   const hue = (code * 137) % 360; // 골든 앵글로 분산
@@ -83,3 +107,4 @@ export function getBrandStyle(aptName: string, brand?: string): BrandStyle {
     color: `hsl(${hue}, 45%, 45%)`,
   };
 }
+
