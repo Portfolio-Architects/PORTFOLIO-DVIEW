@@ -1,32 +1,43 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
+
+const bypassNoticeQuerySchema = z.object({
+  url: z.string()
+  .url('Invalid URL format.')
+  .refine((url) => {
+    try {
+      const parsed = new URL(url);
+      const hostname = parsed.hostname;
+      return hostname === 'hscity.go.kr' || hostname.endsWith('.hscity.go.kr');
+    } catch {
+      return false;
+    }
+  }, {
+    message: 'Invalid target URL domain. Only 화성시청 (hscity.go.kr) URLs are allowed.',
+  }),
+});
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const targetUrl = searchParams.get('url');
+    const targetUrlParam = searchParams.get('url');
 
-    if (!targetUrl) {
-      return new NextResponse('Missing URL parameter', { status: 400 });
+    const parsed = bypassNoticeQuerySchema.safeParse({ url: targetUrlParam });
+
+    if (!parsed.success) {
+      logger.warn('BypassNoticeAPI.GET', 'Invalid target URL parameter', {
+        url: targetUrlParam,
+        errors: parsed.error.format(),
+      });
+      
+      const errorMsg = parsed.error.issues[0]?.message || 'Invalid parameters';
+      return new NextResponse(errorMsg, { status: 400 });
     }
 
-    // URL 유효성 및 도메인 검증
-    // 허용된 외부 도메인: *.hscity.go.kr 및 hscity.go.kr (오픈 리다이렉트 방지)
-    let isValidDomain = false;
-    try {
-      const parsedUrl = new URL(targetUrl);
-      const hostname = parsedUrl.hostname;
-      if (hostname === 'hscity.go.kr' || hostname.endsWith('.hscity.go.kr')) {
-        isValidDomain = true;
-      }
-    } catch (e) {
-      // Invalid URL
-    }
-
-    if (!isValidDomain) {
-      return new NextResponse('Invalid target URL domain. Only 화성시청 (hscity.go.kr) URLs are allowed.', { status: 400 });
-    }
+    const { url: targetUrl } = parsed.data;
 
     // HTML 브릿지 페이지
     // 1. Meta Refresh를 사용하여 네이티브 브라우저 리디렉션 처리 (보안 프로그램 ASTX 등의 JS 탐지 차단 무력화)
@@ -99,6 +110,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: any) {
+    logger.error('BypassNoticeAPI.GET', 'Bypass redirect error', {}, error as Error);
     return new NextResponse(`Bypass redirect error: ${error.message}`, { status: 500 });
   }
 }
