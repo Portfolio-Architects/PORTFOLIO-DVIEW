@@ -28,6 +28,7 @@ import type { FieldReportData } from "@/lib/types/report.types";
 import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
 import { useSettings } from "@/lib/contexts/SettingsContext";
+import { useAuth } from "@/hooks/useAuth";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
 import {
@@ -43,6 +44,8 @@ import {
   Calculator,
   TrendingDown,
   Train,
+  Star,
+  ArrowRight,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -345,11 +348,58 @@ export default function MacroDashboardClient({
   typeMap = {},
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
+  const { user, handleLogin } = useAuth();
   const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
   const { data: locationScores } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher);
+  const { data: postsData } = useSWR('/api/posts?limit=50', fetcher);
   const noticesLoading = !noticesData && !noticesError;
+
+  const watchlistBriefings = useMemo(() => {
+    if (!userFavorites || userFavorites.size === 0) return [];
+    const posts = postsData?.posts || [];
+    
+    return Array.from(userFavorites).map((aptName) => {
+      const txKey = findTxKey(aptName, txSummaryData, nameMapping);
+      const summary = txKey ? txSummaryData[txKey] : null;
+      
+      const normalizedApt = normalizeAptName(aptName);
+      const shortAptName = aptName.replace(/동탄역|동탄/g, '').trim();
+      
+      const relatedPosts = posts.filter((post: any) => {
+        const titleLower = (post.title || '').toLowerCase();
+        const summaryLower = (post.summary || '').toLowerCase();
+        return titleLower.includes(normalizedApt.toLowerCase()) || 
+               summaryLower.includes(normalizedApt.toLowerCase()) ||
+               (shortAptName.length > 2 && (titleLower.includes(shortAptName.toLowerCase()) || summaryLower.includes(shortAptName.toLowerCase())));
+      });
+      
+      let hasNewTx = false;
+      if (summary?.recent) {
+        hasNewTx = summary.recent.some((tx: any) => {
+          const dt = parseDateHelper(tx.date, summary.latestDate);
+          if (dt) {
+            const limitDate = new Date('2026-06-14');
+            limitDate.setDate(limitDate.getDate() - 14);
+            return dt >= limitDate;
+          }
+          return false;
+        });
+      }
+      
+      return {
+        aptName,
+        displayName: getDisplayAptName ? getDisplayAptName(aptName) : aptName,
+        dong: summary?.dong || '',
+        latestPrice: summary?.latestPriceEok || '-',
+        latestRent: summary?.latestRentDepositEok || '-',
+        hasNewTx,
+        relatedPostsCount: relatedPosts.length,
+        relatedPosts: relatedPosts.slice(0, 2),
+      };
+    });
+  }, [userFavorites, txSummaryData, nameMapping, postsData]);
 
   const railNotices = useMemo(() => {
     if (!noticesData?.notices) return [];
@@ -1242,6 +1292,17 @@ export default function MacroDashboardClient({
       }
     });
 
+    // 역방향 매핑 맵 생성 (txKey -> 시트 설정 커스텀 명칭)
+    const txKeyToCustomNameMap = new Map<string, string>();
+    if (nameMapping) {
+      for (const [customName, tKey] of Object.entries(nameMapping)) {
+        if (tKey) {
+          txKeyToCustomNameMap.set(tKey, customName);
+          txKeyToCustomNameMap.set(normalizeAptName(tKey), customName);
+        }
+      }
+    }
+
     txKeyToAptMap.forEach((apt, txKey) => {
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
       const sum = txSummaryData[txKey];
@@ -1276,9 +1337,11 @@ export default function MacroDashboardClient({
             const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
             const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
 
+            const customAptName = txKeyToCustomNameMap.get(txKey) || txKeyToCustomNameMap.get(normalizeAptName(txKey)) || apt.name;
+
             groups[dateKey].items.push({
               aptName: apt.name,
-              displayAptName: getDisplayAptName(apt.name),
+              displayAptName: getDisplayAptName(customAptName),
               dong: apt.dong || sum.dong || "",
               priceEok: tx.priceEok,
               priceVal: tx.priceVal || parsePriceEokHelper(tx.priceEok),
@@ -1675,6 +1738,141 @@ interface GroupedCategory {
         }
       />
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full">
+
+        {/* 🌟 내 관심 단지 투데이 브리핑 / 로그인 유도 */}
+        {!user ? (
+          <div className="w-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-surface dark:from-emerald-950/20 dark:via-zinc-900/10 dark:to-zinc-950 border border-emerald-500/20 rounded-3xl p-6 sm:p-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden group">
+            {/* Background glowing glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+            
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4.5 z-10">
+              <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform duration-300">
+                <Star size={28} className="fill-emerald-500 text-emerald-500 animate-pulse" />
+              </div>
+              <div className="flex flex-col gap-1.5 text-center sm:text-left">
+                <h4 className="text-[16px] sm:text-[18px] font-black text-primary tracking-tight leading-snug">
+                  로그인하고 나만의 동탄 아파트 브리핑판을 열어보세요!
+                </h4>
+                <p className="text-[12.5px] text-secondary font-semibold max-w-[580px] leading-relaxed break-keep">
+                  간단히 로그인하시면 찜한 관심 단지의 **실거래 알림(매일 아침 배달)**, 이웃 주민들이 소통하는 **실시간 라운지 댓글/글쓰기**, **나에게 맞는 AI 아파트 매칭** 데이터를 안전하게 저장하고 구독할 수 있습니다.
+                </p>
+              </div>
+            </div>
+            
+            <button 
+              onClick={handleLogin}
+              className="w-full md:w-auto px-6 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-[13.5px] sm:text-[14px] font-extrabold transition-all duration-200 active:scale-[0.98] shadow-md shadow-emerald-900/10 flex items-center justify-center gap-2.5 z-10 cursor-pointer border-none shrink-0"
+            >
+              <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+                <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.578-7.859-8s3.53-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C18.155 2.1 15.42 1 12.24 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.985 0-.74-.08-1.3-.176-1.855H12.24z"/>
+              </svg>
+              <span>3초만에 Google 로그인하기</span>
+              <ArrowRight size={14} strokeWidth={2.5} />
+            </button>
+          </div>
+        ) : (!userFavorites || userFavorites.size === 0) ? (
+          <div className="w-full bg-gradient-to-br from-teal-500/5 to-emerald-500/5 border border-[#0d9488]/15 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+                <Star size={20} className="fill-amber-500" />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <h4 className="text-[14.5px] font-extrabold text-primary">관심 단지 소식을 실시간으로 받아보세요</h4>
+                <p className="text-[12px] text-secondary font-semibold">아파트 상세 화면에서 별표(★)를 누르면 매일 업데이트되는 실거래가와 커뮤니티 글을 모아 볼 수 있습니다.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  const el = document.getElementById('accordion-header-동탄역세권');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="px-4 py-2.5 bg-[#00d29d] hover:bg-[#00b386] text-white text-[12.5px] font-extrabold rounded-xl transition-colors cursor-pointer border-none shadow-sm flex items-center gap-1.5 shrink-0"
+            >
+              <span>단지 구경하러 가기</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        ) : (
+          <div className="w-full mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Star size={16} className="fill-amber-400 text-amber-400" />
+              <h3 className="text-[15.5px] font-black text-primary tracking-tight">내 관심 단지 투데이 브리핑</h3>
+              <span className="text-[10px] font-bold text-tertiary bg-body px-2 py-0.5 rounded-full border border-border/50">
+                총 {watchlistBriefings.length}개 단지
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {watchlistBriefings.map((brief) => (
+                <div 
+                  key={brief.aptName}
+                  onClick={() => onSelectApt && onSelectApt(brief.aptName)}
+                  className="bg-surface border border-border hover:border-[#00d29d]/40 rounded-2xl p-4 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all duration-300 relative group overflow-hidden"
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-[10px] font-bold text-tertiary">{brief.dong}</span>
+                      <h4 className="text-[14px] font-black text-primary truncate group-hover:text-[#00d29d] transition-colors" title={brief.displayName}>
+                        {brief.displayName}
+                      </h4>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      {brief.hasNewTx && (
+                        <span className="bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#00b386] dark:text-[#00d29d] text-[9.5px] font-black px-1.5 py-0.5 rounded-[4px] border border-transparent animate-pulse">
+                          신규 실거래
+                        </span>
+                      )}
+                      {brief.relatedPostsCount > 0 && (
+                        <span className="bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 text-[9.5px] font-black px-1.5 py-0.5 rounded-[4px] border border-transparent">
+                          토크 {brief.relatedPostsCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 bg-body/50 dark:bg-[#1c1c1e]/30 rounded-xl p-2.5 text-center">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[9.5px] text-tertiary font-bold">최신 매매가</span>
+                      <span className="text-[13px] font-black text-primary">{brief.latestPrice}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5 border-l border-border/40">
+                      <span className="text-[9.5px] text-tertiary font-bold">최신 전세가</span>
+                      <span className="text-[13px] font-black text-primary">{brief.latestRent}</span>
+                    </div>
+                  </div>
+                  
+                  {brief.relatedPosts.length > 0 ? (
+                    <div className="flex flex-col gap-1.5 pt-2 border-t border-border/40">
+                      <span className="text-[9.5px] text-secondary font-black flex items-center gap-1 select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        최근 라운지 대화
+                      </span>
+                      {brief.relatedPosts.map((post: any) => (
+                        <div 
+                          key={post.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/lounge?post=${post.id}`;
+                          }}
+                          className="text-[11.5px] font-bold text-secondary truncate hover:text-[#00d29d] transition-colors flex justify-between items-center gap-2"
+                        >
+                          <span className="truncate">💬 {post.title}</span>
+                          <span className="text-[9px] text-tertiary font-bold shrink-0">{post.commentCount > 0 && `(${post.commentCount})`}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[10.5px] text-tertiary font-semibold text-center py-1 select-none">
+                      등록된 라운지 게시글이 없습니다.
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0">
           {/* Left Column Container */}
@@ -2115,6 +2313,141 @@ interface GroupedCategory {
                   }`} title={`거래 활성화 등급: ${card3Data.currentCount >= 250 ? '활성(🟢)' : card3Data.currentCount >= 180 ? '보통(🟡)' : '위축(🔴)'}`} />
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 💬 실시간 웅성웅성 & 실거래 분석 피드 영역 */}
+        <div className="flex flex-col md:flex-row gap-6 mt-6 w-full">
+          {/* Left: 실시간 웅성웅성 라운지 토크 위젯 */}
+          <div className="w-full md:w-1/2 bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm min-h-[380px]">
+            <div className="flex justify-between items-center border-b border-border/50 pb-3.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
+                  실시간 라운지
+                </span>
+                <h4 className="text-[15px] font-black text-primary tracking-tight">
+                  동탄 웅성웅성 인기 대화
+                </h4>
+              </div>
+              <button 
+                onClick={() => {
+                  window.location.href = '/lounge';
+                }}
+                className="text-[11.5px] font-bold text-secondary hover:text-[#00d29d] transition-colors bg-transparent border-none cursor-pointer"
+              >
+                라운지 전체보기 ➔
+              </button>
+            </div>
+            
+            <div className="flex flex-grow flex-col gap-3">
+              {(!postsData?.posts || postsData.posts.length === 0) ? (
+                <div className="flex-grow flex items-center justify-center text-tertiary text-[12px] font-medium py-8 border border-dashed border-border/40 rounded-2xl">
+                  아직 라운지 이야기가 등록되지 않았습니다.
+                </div>
+              ) : (
+                postsData.posts.slice(0, 4).map((post: any) => (
+                  <div 
+                    key={post.id}
+                    onClick={() => {
+                      window.location.href = `/lounge?post=${post.id}`;
+                    }}
+                    className="flex justify-between items-center p-3 hover:bg-body/50 dark:hover:bg-zinc-950/20 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995]"
+                  >
+                    <div className="flex flex-col gap-1 min-w-0 mr-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9.5px] font-bold text-[#00b386] dark:text-[#00d29d] bg-[#00d29d]/10 dark:bg-[#00d29d]/20 px-1.5 py-0.5 rounded shrink-0">
+                          {post.category || '기타'}
+                        </span>
+                        <span className="text-[12.5px] font-bold text-primary truncate group-hover:text-[#00d29d] transition-colors">
+                          {post.title}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-tertiary font-medium line-clamp-1">
+                        {post.summary || '내용 없음'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0 text-[10.5px] text-tertiary font-semibold">
+                      <span className="flex items-center gap-1">
+                        💬 {post.commentCount}
+                      </span>
+                      <span>
+                        조회 {post.views}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Right: 오늘의 동탄 실거래 분석 피드 */}
+          <div className="w-full md:w-1/2 bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm min-h-[380px]">
+            <div className="flex justify-between items-center border-b border-border/50 pb-3.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#00d29d]/10 dark:bg-[#00d29d]/25 text-[#00b386] dark:text-[#00d29d] text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
+                  실거래 분석
+                </span>
+                <h4 className="text-[15px] font-black text-primary tracking-tight">
+                  오늘의 동탄 거래 요약 피드
+                </h4>
+              </div>
+              <span className="text-[10.5px] font-bold text-tertiary bg-body px-2.5 py-1 rounded-full border border-border/50">
+                실시간 업데이트
+              </span>
+            </div>
+
+            <div className="flex-grow flex flex-col justify-between py-1">
+              {dailyTimelineData.length === 0 ? (
+                <div className="flex-grow flex items-center justify-center text-tertiary text-[12px] font-medium py-8 border border-dashed border-border/40 rounded-2xl">
+                  최근 거래 내역이 아직 등록되지 않았습니다.
+                </div>
+              ) : (
+                (() => {
+                  const topGroup = dailyTimelineData[0];
+                  const newHighs = topGroup.items.filter(item => item.delta && item.delta > 0);
+                  const totalTxs = topGroup.items.length;
+                  
+                  return (
+                    <div className="flex flex-col gap-4 flex-grow justify-between">
+                      {/* Summary Banner */}
+                      <div className="p-4 bg-gradient-to-br from-teal-500/8 to-emerald-500/3 dark:from-[#0d9488]/10 dark:to-emerald-950/5 border border-[#0d9488]/20 rounded-xl">
+                        <div className="text-[12.5px] font-bold text-primary leading-relaxed break-keep">
+                          📢 <span className="text-[#0d9488] dark:text-[#00d29d] font-extrabold">{topGroup.dateStr}</span> 기준 동탄 부동산 시장에서 총 <span className="font-extrabold text-[#00b386]">{totalTxs}개</span> 단지의 거래가 등록되었으며, 그 중 <span className="font-extrabold text-[#ff4b5c]">{newHighs.length}개</span> 단지에서 실거래 최고가 경신 시그널이 관측되었습니다.
+                        </div>
+                      </div>
+
+                      {/* Timeline Feed items */}
+                      <div className="flex flex-col gap-2 flex-grow justify-end">
+                        {topGroup.items.slice(0, 3).map((item, idx) => (
+                          <div 
+                            key={`${item.aptName}-${idx}`}
+                            onClick={() => onSelectApt && onSelectApt(item.aptName)}
+                            className="flex items-center justify-between p-3 bg-body hover:bg-body/80 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995]"
+                          >
+                            <div className="flex flex-col gap-1 min-w-0 mr-2">
+                              <span className="text-[12.5px] font-bold text-primary group-hover:text-[#00d29d] transition-colors truncate">
+                                {item.displayAptName || item.aptName}
+                              </span>
+                              <span className="text-[10.5px] text-tertiary font-semibold">
+                                {item.dong} · {areaUnit === 'm2' ? `${Math.round(item.area)}㎡` : `${Math.round(item.areaPyeong)}평`} · {item.floor}층
+                              </span>
+                            </div>
+                            <div className="flex flex-col items-end shrink-0">
+                              <span className="text-[13.5px] font-black text-[#ff4b5c] tracking-tight">
+                                {item.priceEok}
+                              </span>
+                              <span className="text-[9.5px] font-bold text-tertiary">
+                                {item.delta && item.delta > 0 ? `▲ ${formatDeltaPrice(item.delta)}` : '신고가 경신'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
             </div>
           </div>
         </div>

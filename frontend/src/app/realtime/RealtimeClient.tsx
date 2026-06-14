@@ -540,6 +540,17 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
       normalizedAptMap.set(normalizeAptName(a.name), a);
     });
 
+    // 역방향 매핑 맵 생성 (txKey -> 시트 설정 커스텀 명칭)
+    const txKeyToCustomNameMap = new Map<string, string>();
+    if (nameMapping) {
+      for (const [customName, tKey] of Object.entries(nameMapping)) {
+        if (tKey) {
+          txKeyToCustomNameMap.set(tKey, customName);
+          txKeyToCustomNameMap.set(normalizeAptName(tKey), customName);
+        }
+      }
+    }
+
     processedTransactionsList.forEach((tx) => {
       if (!tx.isNewHigh) return; // 신고가 경신 거래만 대상
       
@@ -567,9 +578,11 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
       const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
       const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
 
+      const customAptName = txKeyToCustomNameMap.get(tx.aptName) || txKeyToCustomNameMap.get(normalizeAptName(tx.aptName)) || targetApt?.name || tx.aptName;
+
       timelineGroups[dateKey].items.push({
         aptName: tx.aptName,
-        displayAptName: getDisplayAptName(targetApt?.name || tx.aptName),
+        displayAptName: getDisplayAptName(customAptName),
         dong: tx.dong,
         priceEok: tx.priceEok,
         priceVal: tx.priceVal,

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
@@ -126,7 +126,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (!auth) return;
+      
+      const isMobile = typeof window !== 'undefined' && 
+        (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768);
+        
+      if (isMobile) {
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (error) {
       logger.error('AuthProvider.handleLogin', 'Login failed', {}, error);
     }

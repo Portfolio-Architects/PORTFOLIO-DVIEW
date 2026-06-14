@@ -11,6 +11,54 @@ interface LoginGateModalProps {
 }
 
 export default function LoginGateModal({ isOpen, onClose, message, onLogin }: LoginGateModalProps) {
+  const [isInApp, setIsInApp] = React.useState(false);
+  const [copySuccess, setCopySuccess] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !isOpen) return;
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isKakao = /kakaotalk/i.test(userAgent);
+    const isNaver = /naver/i.test(userAgent);
+    const isLine = /line/i.test(userAgent);
+    const isInstagram = /instagram/i.test(userAgent);
+    const isFacebook = /fb_iab|fb4a|fban|fbios/i.test(userAgent);
+    const isTwitter = /twitter|twttr/i.test(userAgent);
+    setIsInApp(isKakao || isNaver || isLine || isInstagram || isFacebook || isTwitter);
+  }, [isOpen]);
+
+  const handleCopyLink = async () => {
+    const text = window.location.href;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+        return;
+      }
+    } catch (e) {
+      console.warn('Clipboard write failed, falling back:', e);
+    }
+    
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.position = 'fixed';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      }
+    } catch (err) {
+      alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -48,29 +96,48 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
 
         {/* Title */}
         <h2 className="text-[19px] sm:text-[21px] font-black leading-snug tracking-tight mb-3">
-          로그인이 필요한 기능입니다
+          {isInApp ? '외부 브라우저로 접속해 주세요' : '로그인이 필요한 기능입니다'}
         </h2>
 
         {/* Customized Message */}
         <p className="text-[13px] sm:text-[14px] text-slate-300 leading-relaxed break-keep mb-7">
-          {message}
+          {isInApp 
+            ? '구글 보안 정책으로 인해 카카오톡/네이버 등의 인앱 브라우저에서는 구글 로그인이 불가능합니다. 우측 상단의 메뉴(︙)에서 "다른 브라우저로 열기"를 선택하시거나, 아래 버튼을 눌러 주소를 복사한 후 Safari 또는 Chrome에서 실행해 주세요.' 
+            : message}
         </p>
 
-        {/* Social Google Login Button (Toss-style layout) */}
-        <button
-          onClick={() => {
-            onLogin();
-            onClose();
-          }}
-          className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.97] shadow-lg shadow-emerald-900/20"
-        >
-          {/* Simple Google Icon Simulation inside CSS */}
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.578-7.859-8s3.53-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C18.155 2.1 15.42 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.985 0-.74-.08-1.3-.176-1.855H12.24z"/>
-          </svg>
-          <span>Google 계정으로 로그인</span>
-          <ArrowRight size={16} strokeWidth={2.5} />
-        </button>
+        {/* Action Button */}
+        {isInApp ? (
+          <button
+            onClick={handleCopyLink}
+            className={`w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.97] shadow-lg ${
+              copySuccess 
+                ? 'bg-emerald-600 border border-emerald-600 text-white' 
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
+          >
+            <svg className="w-5 h-5 fill-none stroke-current" strokeWidth={2.5} viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span>{copySuccess ? '링크 복사 완료!' : '주소(URL) 복사하기'}</span>
+            <ArrowRight size={16} strokeWidth={2.5} />
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              onLogin();
+              onClose();
+            }}
+            className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.97] shadow-lg shadow-emerald-900/20"
+          >
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+              <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.578-7.859-8s3.53-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C18.155 2.1 15.42 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.985 0-.74-.08-1.3-.176-1.855H12.24z"/>
+            </svg>
+            <span>Google 계정으로 로그인</span>
+            <ArrowRight size={16} strokeWidth={2.5} />
+          </button>
+        )}
         
         {/* Secondary Dismiss Text Link */}
         <button 
