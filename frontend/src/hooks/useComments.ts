@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+const CommentSchema = z.object({
+  id: z.string().catch(''),
+  text: z.string().catch(''),
+  authorUid: z.string().catch(''),
+  authorName: z.string().catch('익명'),
+  createdAt: z.any().optional(),
+}).passthrough();
 
 export interface UseCommentsReturn {
   commentsData: Record<string, CommentData[]>;
@@ -25,7 +35,16 @@ export function useComments(
     
     if (dashboardFacade.listenToComments) {
       const unsubscribe = dashboardFacade.listenToComments(actualReportId, (comments) => {
-        setCommentsData(prev => ({ ...prev, [actualReportId]: comments }));
+        const validatedComments = Array.isArray(comments)
+          ? comments.map(c => {
+              const parsed = CommentSchema.safeParse(c);
+              if (!parsed.success) {
+                logger.warn('useComments.listenToComments', 'Invalid comment record detected', { record: c });
+              }
+              return parsed.success ? parsed.data : c;
+            })
+          : [];
+        setCommentsData(prev => ({ ...prev, [actualReportId]: validatedComments as CommentData[] }));
       });
       return () => unsubscribe();
     }
@@ -62,7 +81,7 @@ export function useComments(
         }),
       });
     } catch (pushErr) {
-      console.warn('Failed to send push notification trigger:', pushErr);
+      logger.warn('useComments.handleSubmitComment', 'Failed to send push notification trigger', {}, pushErr as Error);
     }
 
     setCommentInput(prev => ({ ...prev, [reportId]: '' }));
