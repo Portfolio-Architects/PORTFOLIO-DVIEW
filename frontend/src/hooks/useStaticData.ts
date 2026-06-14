@@ -3,6 +3,21 @@ import useSWR from 'swr';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/lib/types/transaction';
+import { z } from 'zod';
+
+const FirestoreTransactionSchema = z.object({
+  aptName: z.string().min(1),
+  dealType: z.string().catch('매매'),
+  contractYm: z.union([z.string(), z.number()]).transform(val => String(val)),
+  contractDay: z.union([z.string(), z.number()]).transform(val => String(val)),
+  price: z.number().catch(0),
+  deposit: z.number().catch(0),
+  monthlyRent: z.number().catch(0),
+  area: z.number().catch(0),
+  areaPyeong: z.number().catch(0),
+  floor: z.number().catch(0),
+  contractDate: z.string().optional(),
+});
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -122,8 +137,12 @@ function mergeTransactions(
   const merged = JSON.parse(JSON.stringify(staticSummary)) as Record<string, AptTxSummary>;
 
   newTxs.forEach((tx) => {
-    const rawAptName = tx.aptName || '';
-    if (!rawAptName) return;
+    const validation = FirestoreTransactionSchema.safeParse(tx);
+    if (!validation.success) {
+      return; // Skip invalid records safely
+    }
+    const validatedTx = validation.data;
+    const rawAptName = validatedTx.aptName;
 
     // 아파트명 정규화 (sync-transactions.js 와 통일)
     const aptKey = rawAptName
@@ -137,11 +156,11 @@ function mergeTransactions(
     const target = merged[aptKey];
     if (!target) return; // Google Sheet상 승인된 동탄 아파트 단지가 아니면 패스
 
-    const contractYmStr = String(tx.contractYm || '');
+    const contractYmStr = validatedTx.contractYm;
     if (contractYmStr.length < 6) return;
 
-    const isSale = tx.dealType !== '전세' && tx.dealType !== '월세';
-    const txDateFormatted = `${contractYmStr.substring(4)}.${tx.contractDay}`; // MM.DD 포맷
+    const isSale = validatedTx.dealType !== '전세' && validatedTx.dealType !== '월세';
+    const txDateFormatted = `${contractYmStr.substring(4)}.${validatedTx.contractDay}`; // MM.DD 포맷
 
     if (isSale) {
       // 1. 매매 중복 검증
@@ -150,19 +169,19 @@ function mergeTransactions(
       }
       const isDup = target.recent.some(r => 
         r.date === txDateFormatted &&
-        Math.abs(r.area - tx.area) < 0.01 &&
-        r.floor === tx.floor &&
-        parsePriceEokToMan(r.priceEok) === tx.price
+        Math.abs(r.area - validatedTx.area) < 0.01 &&
+        r.floor === validatedTx.floor &&
+        parsePriceEokToMan(r.priceEok) === validatedTx.price
       );
       if (isDup) return;
 
-      const priceDisplay = formatPriceEok(tx.price || 0);
+      const priceDisplay = formatPriceEok(validatedTx.price || 0);
       const newRecentItem = {
         date: txDateFormatted,
         priceEok: priceDisplay,
-        areaPyeong: tx.areaPyeong || (tx.area * 0.3025 * 1.33),
-        floor: tx.floor || 0,
-        area: tx.area
+        areaPyeong: validatedTx.areaPyeong || (validatedTx.area * 0.3025 * 1.33),
+        floor: validatedTx.floor || 0,
+        area: validatedTx.area
       };
 
       // 병합 및 정렬 (최근 25건 컷)
@@ -173,26 +192,26 @@ function mergeTransactions(
       target.txCount = (target.txCount || 0) + 1;
 
       // 단지 전체 최고가 검증
-      if (tx.price > (target.maxPrice || 0)) {
-        target.maxPrice = tx.price;
+      if (validatedTx.price > (target.maxPrice || 0)) {
+        target.maxPrice = validatedTx.price;
         target.maxPriceEok = priceDisplay;
       }
 
       // 평형별 최고가 갱신
-      const areaKey = (Math.round(tx.area * 100) / 100).toFixed(2);
+      const areaKey = (Math.round(validatedTx.area * 100) / 100).toFixed(2);
       if (!target.maxPriceByArea) target.maxPriceByArea = {};
-      if (!target.maxPriceByArea[areaKey] || tx.price > target.maxPriceByArea[areaKey]) {
-        target.maxPriceByArea[areaKey] = tx.price;
+      if (!target.maxPriceByArea[areaKey] || validatedTx.price > target.maxPriceByArea[areaKey]) {
+        target.maxPriceByArea[areaKey] = validatedTx.price;
       }
 
       // 최근 거래 메타데이터 업데이트
-      const txFullDate = tx.contractDate || `${tx.contractYm}${tx.contractDay}`;
+      const txFullDate = validatedTx.contractDate || `${validatedTx.contractYm}${validatedTx.contractDay}`;
       if (!target.latestDate || txFullDate >= target.latestDate) {
         target.latestDate = txFullDate;
-        target.latestPrice = tx.price || 0;
+        target.latestPrice = validatedTx.price || 0;
         target.latestPriceEok = priceDisplay;
-        target.latestArea = tx.areaPyeong || (tx.area * 0.3025 * 1.33);
-        target.latestFloor = tx.floor || 0;
+        target.latestArea = validatedTx.areaPyeong || (validatedTx.area * 0.3025 * 1.33);
+        target.latestFloor = validatedTx.floor || 0;
       }
 
       // 평균값 재산출
@@ -200,10 +219,9 @@ function mergeTransactions(
 
     } else {
       // 2. 임대차 (전세/월세) 처리
-      const txFullDate = tx.contractDate || `${contractYmStr}${tx.contractDay}`;
-      const isJeonse = tx.dealType === '전세';
-      const deposit = Number(tx.deposit) || 0;
-      const monthlyRent = Number(tx.monthlyRent) || 0;
+      const txFullDate = validatedTx.contractDate || `${contractYmStr}${validatedTx.contractDay}`;
+      const deposit = validatedTx.deposit || 0;
+      const monthlyRent = validatedTx.monthlyRent || 0;
       const convertedDeposit = deposit + (monthlyRent ? Math.round(monthlyRent * 12 / 0.055) : 0);
       const priceDisplay = formatPriceEok(convertedDeposit) + (monthlyRent ? `/${monthlyRent}` : '');
 
@@ -212,12 +230,12 @@ function mergeTransactions(
         // 중복이 아닐 때만 갱신
         const isRentDup = target.latestRentDate === txFullDate && 
                           target.latestRentDeposit === convertedDeposit && 
-                          target.latestRentMonthly === (tx.monthlyRent || 0);
+                          target.latestRentMonthly === monthlyRent;
         if (!isRentDup) {
           target.latestRentDate = txFullDate;
           target.latestRentDeposit = convertedDeposit;
           target.latestRentDepositEok = formatPriceEok(convertedDeposit);
-          target.latestRentMonthly = tx.monthlyRent || 0;
+          target.latestRentMonthly = monthlyRent;
           target.rentTxCount = (target.rentTxCount || 0) + 1;
         }
       }
