@@ -264,16 +264,46 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
 
   const { triggerCustomA2HSModal } = usePWA();
 
+  // 4차 속도 개선: 아파트 이름 매핑 및 O(1) 해시 맵 캐싱
+  const apartmentsMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (!sheetApartments) return map;
+    Object.values(sheetApartments).flat().forEach(apt => {
+      map.set(normalizeAptName(apt.name), apt);
+      map.set(apt.name, apt);
+      if (apt.txKey) {
+        map.set(normalizeAptName(apt.txKey), apt);
+        map.set(apt.txKey, apt);
+      }
+    });
+    return map;
+  }, [sheetApartments]);
+
+  const findApartmentMeta = useCallback((aptName: string) => {
+    if (!apartmentsMap || apartmentsMap.size === 0) return null;
+    const norm = normalizeAptName(aptName);
+    let apt = apartmentsMap.get(norm) || apartmentsMap.get(aptName);
+    if (!apt && nameMapping) {
+      const alias = nameMapping[norm] || nameMapping[aptName];
+      if (alias) {
+        apt = apartmentsMap.get(normalizeAptName(alias)) || apartmentsMap.get(alias);
+      }
+    }
+    return apt || null;
+  }, [apartmentsMap, nameMapping]);
+
   const fieldReportsMap = useMemo(() => {
     const map = new Map<string, any>();
     if (!fieldReports || !sheetApartments) return map;
-    const allApts = Object.values(sheetApartments).flat();
-    allApts.forEach(apt => {
-      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
-      if (report) map.set(apt.name, report);
+    
+    fieldReports.forEach(report => {
+      const apt = findApartmentMeta(report.apartmentName);
+      if (apt) {
+        map.set(apt.name, report);
+      }
     });
     return map;
-  }, [fieldReports, sheetApartments, nameMapping]);
+  }, [fieldReports, sheetApartments, findApartmentMeta]);
 
   const [selectedDong, setSelectedDong] = useState('all');
   const [selectedPyeong, setSelectedPyeong] = useState('all');
@@ -314,6 +344,24 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
 
   useEffect(() => {
     setMounted(true);
+
+    // 4차 속도 개선: 브라우저 유휴 시간(Idle time)에 무거운 계산기/비교 모달 청크들을 백그라운드 프리로드
+    const preloadHeavyChunks = () => {
+      import('@/components/ApartmentModal').catch(() => {});
+      import('@/components/consumer/AptCompareModal').catch(() => {});
+      import('@/components/consumer/JeonseSafetyCalculator').catch(() => {});
+      import('@/components/consumer/MortgageCalculator').catch(() => {});
+      import('@/components/consumer/PropertyTaxCalculator').catch(() => {});
+      import('@/components/consumer/SellTimingCalculator').catch(() => {});
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
+      } else {
+        setTimeout(preloadHeavyChunks, 2000);
+      }
+    }
   }, []);
 
   // Handle #apt= hash to open modal automatically
@@ -436,11 +484,10 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
 
   const processedTransactionsList = useMemo(() => {
     if (!sheetApartments || !txSummary) return [];
-    const allApts = Object.values(sheetApartments).flat();
     const list: TxWithDelta[] = [];
 
     Object.entries(txSummary).forEach(([txKey, sum]: [string, any]) => {
-      const apt = allApts.find(a => isSameApartment(a.name, txKey, nameMapping));
+      const apt = findApartmentMeta(txKey);
       if (!apt) return;
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
 
@@ -468,7 +515,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     });
 
     return list.sort((a, b) => b.date.localeCompare(a.date));
-  }, [sheetApartments, txSummary, nameMapping, publicRentalSet]);
+  }, [sheetApartments, txSummary, findApartmentMeta, publicRentalSet]);
 
   // 2. 가공된 processedTransactionsList에서 신고가(isNewHigh)들만 필터링하여 일자별 타임라인 구성
   const dailyTimelineData = useMemo(() => {
