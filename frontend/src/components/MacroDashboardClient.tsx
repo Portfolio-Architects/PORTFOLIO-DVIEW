@@ -1984,7 +1984,7 @@ interface GroupedCategory {
                       <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
                         {selectedTimelineApt ? (
                           <>
-                            <span className="text-[#00d29d] font-black">🏠 내 단지 브리핑:</span>
+                            <span className="text-[#00d29d] font-black">내 단지 브리핑:</span>
                             <span className="truncate max-w-[150px] sm:max-w-[220px]" title={selectedTimelineApt}>{selectedTimelineApt}</span>
                           </>
                         ) : (
@@ -2110,7 +2110,7 @@ interface GroupedCategory {
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                       <div className="flex flex-col gap-1 min-w-0">
                         <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
-                          🏠 <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
+                          <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
                         </span>
                         <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
                           {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
