@@ -211,10 +211,13 @@ async function main() {
           byApt[aptName] = records
             .map(d => ({
               ...d,
-              contractDate: d.contractDate || `${d.contractYm}${String(d.contractDay).padStart(2, '0')}`,
+              contractDate: d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`,
               dong: d.dong || ''
             }))
-            .filter(d => d.contractDate < cutoffDate);
+            .filter(d => {
+              const hasValidYm = d.contractYm && d.contractYm.length === 6 && /^\d{6}$/.test(d.contractYm);
+              return hasValidYm && d.contractDate < cutoffDate;
+            });
         }
       }
       console.log(`✅ ${Object.keys(byApt).length}개 아파트의 기존 데이터 로드 완료`);
@@ -484,7 +487,13 @@ async function main() {
     txs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
 
     // --- 동탄 전체 가격 지수(거시 트렌드) 계산 ---
-    const standardTxs = saleTxs.filter(t => t.areaPyeong >= 30 && t.areaPyeong <= 36);
+    const standardTxs = saleTxs.filter(t => 
+      t.areaPyeong >= 30 && 
+      t.areaPyeong <= 36 &&
+      t.contractYm &&
+      t.contractYm.length === 6 &&
+      /^\d{6}$/.test(t.contractYm)
+    );
     standardTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
 
     if (standardTxs.length > 0) {
@@ -498,7 +507,15 @@ async function main() {
     }
 
     // --- 동탄 전체 전세 가격 지수(거시 트렌드) 계산 ---
-    const standardJeonseTxs = rentTxs.filter(t => t.areaPyeong >= 30 && t.areaPyeong <= 36 && t.deposit > 0 && (!t.monthlyRent || t.monthlyRent === 0));
+    const standardJeonseTxs = rentTxs.filter(t => 
+      t.areaPyeong >= 30 && 
+      t.areaPyeong <= 36 && 
+      t.deposit > 0 && 
+      (!t.monthlyRent || t.monthlyRent === 0) &&
+      t.contractYm &&
+      t.contractYm.length === 6 &&
+      /^\d{6}$/.test(t.contractYm)
+    );
     standardJeonseTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
 
     if (standardJeonseTxs.length > 0) {

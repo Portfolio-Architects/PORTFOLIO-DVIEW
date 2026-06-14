@@ -269,12 +269,23 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
   const apartmentsMap = useMemo(() => {
     const map = new Map<string, any>();
     if (!sheetApartments) return map;
+    
+    const setIfEmptyOrReal = (key: string, apt: any) => {
+      const existing = map.get(key);
+      const isNewReal = apt.lat !== 0 && apt.latitude !== 0 && apt.lat !== undefined && apt.latitude !== undefined;
+      const isExistingFallback = !existing || existing.lat === 0 || existing.latitude === 0 || !existing.lat;
+      
+      if (!existing || (isNewReal && isExistingFallback)) {
+        map.set(key, apt);
+      }
+    };
+
     Object.values(sheetApartments).flat().forEach(apt => {
-      map.set(normalizeAptName(apt.name), apt);
-      map.set(apt.name, apt);
+      setIfEmptyOrReal(normalizeAptName(apt.name), apt);
+      setIfEmptyOrReal(apt.name, apt);
       if (apt.txKey) {
-        map.set(normalizeAptName(apt.txKey), apt);
-        map.set(apt.txKey, apt);
+        setIfEmptyOrReal(normalizeAptName(apt.txKey), apt);
+        setIfEmptyOrReal(apt.txKey, apt);
       }
     });
     return map;
