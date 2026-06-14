@@ -223,15 +223,13 @@ export default function AptFitFinder({
     });
   };
 
-  // Main matching algorithm logic
-  const topRecommendations = useMemo(() => {
-    if (step !== 9) return [];
-
+  // Precompute static apartment metrics & price lookups to reduce CPU load when answers/step changes
+  const precomputedApts = useMemo(() => {
     const apts = Object.values(sheetApartments)
       .flat()
       .filter(apt => !publicRentalSet.has(apt.name));
 
-    const scoredApts = apts.map(apt => {
+    return apts.map(apt => {
       const report = fieldReportsMap.get(apt.name);
       const m = getEffectiveMetrics(apt, report, locationScores, nameMapping);
       
@@ -244,6 +242,20 @@ export default function AptFitFinder({
       const rentPrice = summary ? (summary.avg3MRentDeposit || summary.latestRentDeposit || 0) : 0;
       const jeonseRatio = salesPrice > 0 && rentPrice > 0 ? (rentPrice / salesPrice) * 100 : 0;
 
+      return {
+        apt,
+        m,
+        salesPrice,
+        jeonseRatio
+      };
+    });
+  }, [sheetApartments, publicRentalSet, fieldReportsMap, locationScores, nameMapping, txSummaryData]);
+
+  // Main matching algorithm logic
+  const topRecommendations = useMemo(() => {
+    if (step !== 9) return [];
+
+    const scoredApts = precomputedApts.map(({ apt, m, salesPrice, jeonseRatio }) => {
       let score = 35; // baseline
 
       // 1. Budget Question Matching (Total: 25pts)
@@ -526,7 +538,7 @@ export default function AptFitFinder({
     return scoredApts
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
       .slice(0, 3);
-  }, [step, sheetApartments, publicRentalSet, fieldReportsMap, nameMapping, txSummaryData, answers, locationScores]);
+  }, [step, precomputedApts, answers]);
 
   const priceFormatter = (priceMan: number) => {
     if (!priceMan || priceMan === 0) return '실거래 정보 없음';
