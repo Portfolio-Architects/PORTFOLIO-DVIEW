@@ -55,7 +55,7 @@ export const RomanMapSchema = z.record(z.string(), z.string());
  * "힐스테이트동탄역" → "힐스테이트동탄역"
  */
 export function normalizeAptName(name: string | undefined | null): string {
-  const parsed = z.string().catch('').parse(name);
+  const parsed = typeof name === 'string' ? name : (z.string().catch('').parse(name) || '');
   if (!parsed) return '';
   return parsed
     .normalize('NFC')                      // 한글 자음/모음 분리 현상 변환 (NFD -> NFC)
@@ -104,7 +104,7 @@ if (!validatedDisplay.success) {
  * Google Sheets에 이전 이름("동탄풍성신미주")이 있을 경우 현재 이름("동탄역 신미주")으로 변환
  */
 export function getDisplayAptName(name: string | undefined | null): string {
-  const parsed = z.string().catch('').parse(name);
+  const parsed = typeof name === 'string' ? name : (z.string().catch('').parse(name) || '');
   if (!parsed) return '';
   return DISPLAY_NAME_MAPPING[parsed] || DISPLAY_NAME_MAPPING[normalizeAptName(parsed)] || parsed;
 }
@@ -117,12 +117,24 @@ export function isSameApartment(
   txName: string | undefined | null,
   manualMapping?: Record<string, string>
 ): boolean {
-  const validation = IsSameApartmentParamsSchema.safeParse({ reportName, txName, manualMapping });
-  if (!validation.success) {
-    logger.warn('apartmentMapping.isSameApartment', 'Parameter validation failed', { error: String(validation.error) });
-    return false;
+  let rName = reportName;
+  let tName = txName;
+  let mMapping = manualMapping;
+
+  const isFastPath = (reportName === undefined || reportName === null || typeof reportName === 'string') &&
+                     (txName === undefined || txName === null || typeof txName === 'string') &&
+                     (!manualMapping || typeof manualMapping === 'object');
+
+  if (!isFastPath) {
+    const validation = IsSameApartmentParamsSchema.safeParse({ reportName, txName, manualMapping });
+    if (!validation.success) {
+      logger.warn('apartmentMapping.isSameApartment', 'Parameter validation failed', { error: String(validation.error) });
+      return false;
+    }
+    rName = validation.data.reportName;
+    tName = validation.data.txName;
+    mMapping = validation.data.manualMapping;
   }
-  const { reportName: rName, txName: tName, manualMapping: mMapping } = validation.data;
   if (!rName || !tName) return false;
 
   const a = normalizeAptName(rName);
@@ -299,12 +311,22 @@ export function findTxKey<T>(
   manualMapping?: Record<string, string>,
   isRetry = false
 ): string | null {
-  const validation = FindTxKeyParamsSchema.safeParse({ aptName, txMap, manualMapping, isRetry });
-  if (!validation.success) {
-    logger.warn('apartmentMapping.findTxKey', 'Parameter validation failed', { error: String(validation.error) });
-    return null;
+  let vAptName = aptName;
+  let vManualMapping = manualMapping;
+  let vIsRetry = isRetry;
+
+  const isFastPath = typeof aptName === 'string' && txMap && typeof txMap === 'object' && (!manualMapping || typeof manualMapping === 'object');
+
+  if (!isFastPath) {
+    const validation = FindTxKeyParamsSchema.safeParse({ aptName, txMap, manualMapping, isRetry });
+    if (!validation.success) {
+      logger.warn('apartmentMapping.findTxKey', 'Parameter validation failed', { error: String(validation.error) });
+      return null;
+    }
+    vAptName = validation.data.aptName;
+    vManualMapping = validation.data.manualMapping;
+    vIsRetry = validation.data.isRetry || false;
   }
-  const { aptName: vAptName, manualMapping: vManualMapping, isRetry: vIsRetry = false } = validation.data;
 
   if (!vAptName || !txMap || typeof txMap !== 'object') return null;
 
@@ -434,12 +456,20 @@ if (!validatedAreaTypeMap.success) {
  * 매핑이 없으면 null 반환.
  */
 export function getAreaType(aptName: string, areaStr: string): string | null {
-  const validation = GetAreaTypeParamsSchema.safeParse({ aptName, areaStr });
-  if (!validation.success) {
-    logger.warn('apartmentMapping.getAreaType', 'Parameter validation failed', { error: String(validation.error) });
-    return null;
+  let vAptName = aptName;
+  let vAreaStr = areaStr;
+
+  const isFastPath = typeof aptName === 'string' && typeof areaStr === 'string';
+
+  if (!isFastPath) {
+    const validation = GetAreaTypeParamsSchema.safeParse({ aptName, areaStr });
+    if (!validation.success) {
+      logger.warn('apartmentMapping.getAreaType', 'Parameter validation failed', { error: String(validation.error) });
+      return null;
+    }
+    vAptName = validation.data.aptName;
+    vAreaStr = validation.data.areaStr;
   }
-  const { aptName: vAptName, areaStr: vAreaStr } = validation.data;
 
   const normalized = normalizeAptName(vAptName);
   const typeMap = AREA_TYPE_MAP[normalized];
@@ -459,12 +489,20 @@ export function findTypeMapEntry(
   aptName: string,
   area: number
 ): TypeMapEntry | null {
-  const validation = FindTypeMapEntryParamsSchema.safeParse({ aptName, area });
-  if (!validation.success) {
-    logger.warn('apartmentMapping.findTypeMapEntry', 'Invalid basic parameters', { error: String(validation.error) });
-    return null;
+  let vAptName = aptName;
+  let vArea = area;
+
+  const isFastPath = typeof aptName === 'string' && typeof area === 'number';
+
+  if (!isFastPath) {
+    const validation = FindTypeMapEntryParamsSchema.safeParse({ aptName, area });
+    if (!validation.success) {
+      logger.warn('apartmentMapping.findTypeMapEntry', 'Invalid basic parameters', { error: String(validation.error) });
+      return null;
+    }
+    vAptName = validation.data.aptName;
+    vArea = validation.data.area;
   }
-  const { aptName: vAptName, area: vArea } = validation.data;
 
   if (!typeMap || typeof typeMap !== 'object' || !vAptName || !vArea) return null;
 
