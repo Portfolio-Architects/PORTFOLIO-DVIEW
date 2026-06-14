@@ -18,6 +18,7 @@ import InAppBrowserBypass from '@/components/pwa/InAppBrowserBypass';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
+import { headers } from 'next/headers';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
@@ -89,11 +90,14 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') || '';
+
   return (
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head>
@@ -105,16 +109,17 @@ export default function RootLayout({
           strategy="lazyOnload" 
           integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
           crossOrigin="anonymous"
+          nonce={nonce}
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SWRProvider>
             <SettingsProvider>
               <AuthProvider>
                 {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
-                <Script src="/js/pwa-register.js" strategy="afterInteractive" />
+                <Script src="/js/pwa-register.js" strategy="afterInteractive" nonce={nonce} />
                 
                 {/* 🔧 ResizeObserver loop error shield to prevent janks in charts */}
-                <Script src="/js/resize-observer-shield.js" strategy="afterInteractive" />
+                <Script src="/js/resize-observer-shield.js" strategy="afterInteractive" nonce={nonce} />
                 <NextTopLoader color="#00d29d" showSpinner={false} />
                 <PWAProvider>
                   <InAppBrowserBypass />
@@ -141,7 +146,7 @@ export default function RootLayout({
                 
                 {/* Google Analytics 4 (Only renders in production if NEXT_PUBLIC_GA_ID exists to prevent local dev/test data contamination) */}
                 {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production' && (
-                  <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+                  <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} nonce={nonce} />
                 )}
                 
                 {/* Google AdSense Script (Only renders if NEXT_PUBLIC_ADSENSE_CLIENT_ID exists) */}
@@ -150,6 +155,7 @@ export default function RootLayout({
                     async
                     src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
                     crossOrigin="anonymous"
+                    nonce={nonce}
                   />
                 )}
 

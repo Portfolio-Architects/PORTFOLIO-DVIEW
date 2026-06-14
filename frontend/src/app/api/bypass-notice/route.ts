@@ -22,6 +22,7 @@ const bypassNoticeQuerySchema = z.object({
 
 export async function GET(request: Request) {
   try {
+    const nonce = request.headers.get('x-nonce') || '';
     const { searchParams } = new URL(request.url);
     const targetUrlParam = searchParams.get('url');
 
@@ -87,7 +88,7 @@ export async function GET(request: Request) {
 <body>
   <div class="spinner"></div>
   <p class="message">화성시청 원문 페이지로 안전하게 이동하고 있습니다...</p>
-  <script type="text/javascript">
+  <script type="text/javascript" nonce="${nonce}">
     // Meta Refresh가 작동하지 않는 일부 특수 환경 브라우저를 위한 JS Fallback
     setTimeout(function() {
       try {
