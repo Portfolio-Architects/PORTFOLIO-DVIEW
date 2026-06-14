@@ -903,16 +903,49 @@ async function main() {
       if (normalizedDealType !== '전세' && normalizedDealType !== '월세') {
         normalizedDealType = '매매';
       }
-      const key = `${r.contractYm}_${r.contractDay}_${r.price}_${r.deposit}_${r.monthlyRent}_${Math.round(r.area * 100) / 100}_${r.floor}_${normalizedDealType}`;
+
+      const isRent = normalizedDealType === '전세' || normalizedDealType === '월세';
+      const cleanPrice = isRent ? 0 : (Number(r.price) || 0);
+      const cleanDeposit = isRent ? (Number(r.deposit) || 0) : 0;
+      const cleanRent = isRent ? (Number(r.monthlyRent) || 0) : 0;
+
+      const cleanDay = String(r.contractDay || '').trim().padStart(2, '0');
+      const cleanFloor = Number(r.floor) || 0;
+
+      const key = `${r.contractYm}_${cleanDay}_${cleanPrice}_${cleanDeposit}_${cleanRent}_${Math.round(r.area * 100) / 100}_${cleanFloor}_${normalizedDealType}`;
       
       if (!seen.has(key)) {
         seen.set(key, r);
       } else {
-        // 이미 존재하면, 더 풍부한 정보(공백이나 기본값 '매매'가 아닌 구체적 타입)를 가진 레코드로 대체
+        // 중복인 경우, 더 정보가 풍부한 레코드를 선택하여 병합
         const existing = seen.get(key);
-        const isExistingEmpty = !existing.dealType || existing.dealType.trim() === '' || existing.dealType.trim() === '매매';
-        const isNewNotEmpty = r.dealType && r.dealType.trim() !== '' && r.dealType.trim() !== '매매';
-        if (isExistingEmpty && isNewNotEmpty) {
+
+        const getRichnessScore = (item) => {
+          let score = 0;
+          // 1. 거래 형태(dealType)가 공백이나 기본 '매매'가 아닌 구체적인 값(중개거래, 직거래 등)인 경우 가점
+          const dt = item.dealType ? item.dealType.trim() : '';
+          if (dt && dt !== '' && dt !== '매매' && dt !== '전세' && dt !== '월세') {
+            score += 2;
+          }
+          // 2. 계약구분(reqGb)이 존재하는 경우 가점
+          if (item.reqGb && item.reqGb.trim() && item.reqGb.trim() !== '-') {
+            score += 1;
+          }
+          // 3. 갱신요구권 사용여부(rnuYn)가 존재하는 경우 가점
+          if (item.rnuYn && item.rnuYn.trim() && item.rnuYn.trim() !== '-') {
+            score += 1;
+          }
+          // 4. 전월세 거래인데 price(보증금 등으로 오기된 값)가 유효하게 채워진 경우 가점
+          if (isRent && Number(item.price) > 0) {
+            score += 1;
+          }
+          return score;
+        };
+
+        const existingScore = getRichnessScore(existing);
+        const newScore = getRichnessScore(r);
+
+        if (newScore > existingScore) {
           seen.set(key, r);
         }
       }
