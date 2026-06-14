@@ -7,7 +7,9 @@ import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 
-const PAGE_DATA_CACHE_TTL = 300; // 5 minutes in-memory cache for Firestore + Sheets merge
+const PAGE_DATA_CACHE_TTL = 3600; // 1 hour in-memory cache for Firestore + Sheets merge
+
+let isRefreshingPageData = false;
 
 const TypeMapItemSchema = z.object({
   aptName: z.string(),
@@ -69,10 +71,33 @@ export type InitialPageData = z.infer<typeof InitialPageDataSchema>;
 export async function getInitialData(): Promise<InitialPageData> {
   const now = Date.now();
   const cache = (globalThis as any)._initialPageDataCache;
-  if (cache && (now - cache.timestamp) < PAGE_DATA_CACHE_TTL * 1000) {
+
+  if (cache) {
+    const isStale = (now - cache.timestamp) > PAGE_DATA_CACHE_TTL * 1000;
+    if (isStale && !isRefreshingPageData) {
+      isRefreshingPageData = true;
+      logger.info('DashboardData', 'Cache is stale, starting background revalidation.');
+      fetchFreshData()
+        .then((freshData) => {
+          (globalThis as any)._initialPageDataCache = { data: freshData, timestamp: Date.now() };
+          isRefreshingPageData = false;
+          logger.info('DashboardData', 'Background revalidation completed successfully.');
+        })
+        .catch((err) => {
+          logger.error('DashboardData', 'Background revalidation failed', {}, err);
+          isRefreshingPageData = false;
+        });
+    }
     return cache.data;
   }
 
+  logger.info('DashboardData', 'Cache miss, performing initial synchronous fetch.');
+  const freshData = await fetchFreshData();
+  (globalThis as any)._initialPageDataCache = { data: freshData, timestamp: Date.now() };
+  return freshData;
+}
+
+async function fetchFreshData(): Promise<InitialPageData> {
   const result: InitialPageData = {
     favoriteCounts: {},
     typeMap: [],
@@ -92,14 +117,18 @@ export async function getInitialData(): Promise<InitialPageData> {
 
   const fetchFavCounts = async () => {
     if (redis) {
-      const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
-      if (cachedCounts && Object.keys(cachedCounts).length > 0) {
-        result.favoriteCounts = cachedCounts as Record<string, number>;
-        return;
+      try {
+        const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
+        if (cachedCounts && Object.keys(cachedCounts).length > 0) {
+          result.favoriteCounts = cachedCounts as Record<string, number>;
+          return;
+        }
+      } catch (e) {
+        logger.warn('DashboardData', 'Redis favCounts read error, falling back to Firebase', {}, e);
       }
     }
     if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
+      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 3000);
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
@@ -120,7 +149,7 @@ export async function getInitialData(): Promise<InitialPageData> {
       }
     }
     if (adminDb) {
-      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
+      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 3000);
       if (metaDoc.exists) {
         const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
         result.apartmentMeta = metaData;
@@ -144,7 +173,7 @@ export async function getInitialData(): Promise<InitialPageData> {
       }
     }
     if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
+      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 3000);
       const reports = snap.docs.map(doc => {
         const data = doc.data();
         let createdAtStr = '방금 전';
@@ -245,12 +274,33 @@ export async function getInitialData(): Promise<InitialPageData> {
     fetchTxSummary().catch(e => logger.warn('DashboardData', 'txSummary error', {}, e)),
   ]);
 
+  if (Object.keys(result.apartmentMeta).length === 0) {
+    try {
+      const filePath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(fileContent);
+        const fallbackMeta: Record<string, { dong: string; txKey: string }> = {};
+        if (parsed.byDong) {
+          Object.entries(parsed.byDong).forEach(([dongName, apts]: [string, any]) => {
+            apts.forEach((a: any) => {
+              fallbackMeta[a.name] = { dong: dongName, txKey: a.txKey || a.name };
+            });
+          });
+        }
+        result.apartmentMeta = fallbackMeta;
+        logger.info('DashboardData', 'Injected fallback apartmentMeta from static json file');
+      }
+    } catch (e) {
+      logger.error('DashboardData', 'Failed to load fallback apartmentMeta', {}, e);
+    }
+  }
+
   const parsed = InitialPageDataSchema.safeParse(result);
   if (!parsed.success) {
     logger.warn('DashboardData', 'Validation failed for initial page data, returning raw result.', {}, parsed.error);
     return result;
   }
 
-  (globalThis as any)._initialPageDataCache = { data: parsed.data, timestamp: Date.now() };
   return parsed.data;
 }
