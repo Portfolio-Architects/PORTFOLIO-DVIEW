@@ -1,3 +1,35 @@
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// Isomorphic Zod custom guards for browser-only types
+const IsomorphicHTMLElementSchema = z.custom<any>((val) => {
+  if (typeof window === 'undefined' || typeof HTMLElement === 'undefined') return true;
+  return val instanceof HTMLElement;
+}, 'Must be a valid HTMLElement');
+
+const IsomorphicDocumentSchema = z.custom<any>((val) => {
+  if (typeof window === 'undefined' || typeof Document === 'undefined') return true;
+  return val instanceof Document;
+}, 'Must be a valid Document');
+
+export const Html2CanvasOptionsSchema = z.object({
+  useCORS: z.boolean().optional(),
+  allowTaint: z.boolean().optional(),
+  backgroundColor: z.string().nullable().optional(),
+  scale: z.number().positive().optional(),
+  logging: z.boolean().optional(),
+  onclone: z.function().optional(),
+  width: z.number().positive().optional(),
+  height: z.number().positive().optional(),
+  scrollX: z.number().optional(),
+  scrollY: z.number().optional(),
+  x: z.number().optional(),
+  y: z.number().optional(),
+  foreignObjectRendering: z.boolean().optional(),
+  imageTimeout: z.number().nonnegative().optional(),
+  removeContainer: z.boolean().optional(),
+  ignoreElements: z.function().optional(),
+}).catchall(z.any());
 
 const replaceNestedFunction = (str: string, funcName: string, fallbackValue: string) => {
   let index = 0;
@@ -57,6 +89,14 @@ function proxyStyleDeclaration(style: CSSStyleDeclaration): CSSStyleDeclaration 
 }
 
 export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
+  const docValidation = IsomorphicDocumentSchema.safeParse(clonedDoc);
+  if (!docValidation.success) {
+    logger.warn('html2canvasPatch.patchClonedDocumentForHtml2canvas', 'Invalid clonedDoc provided', {
+      error: String(docValidation.error)
+    });
+    return;
+  }
+
   // 0. Force Light Mode on the cloned document for clean pastel cute card rendering
   try {
     const htmlEl = clonedDoc.documentElement;
@@ -76,7 +116,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
       bodyEl.style.color = '#191f28';
     }
   } catch (e) {
-    console.warn("Failed to reset dark-mode classes on clone:", e);
+    logger.warn("html2canvasPatch.patchClonedDocumentForHtml2canvas", "Failed to reset dark-mode classes on clone", { error: String(e) });
   }
 
   // 0.2. Fix duplicate SVG render missing issues on mobile browsers
@@ -92,7 +132,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
       }
     }
   } catch (e) {
-    console.warn("Failed to patch clone SVG icons:", e);
+    logger.warn("html2canvasPatch.patchClonedDocumentForHtml2canvas", "Failed to patch clone SVG icons", { error: String(e) });
   }
 
   // 1. Clean <style> tags content
@@ -105,7 +145,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
       }
     }
   } catch (e) {
-    console.warn("Failed to clean style tags:", e);
+    logger.warn("html2canvasPatch.patchClonedDocumentForHtml2canvas", "Failed to clean style tags", { error: String(e) });
   }
 
   // 2. Clean styleSheets rules directly
@@ -129,7 +169,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
       }
     }
   } catch (e) {
-    console.warn("Error cleaning styleSheets:", e);
+    logger.warn("html2canvasPatch.patchClonedDocumentForHtml2canvas", "Error cleaning styleSheets", { error: String(e) });
   }
 
   // 3. Clean inline styles and shadows
@@ -152,7 +192,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
       }
     }
   } catch (e) {
-    console.warn("Failed to clean elements:", e);
+    logger.warn("html2canvasPatch.patchClonedDocumentForHtml2canvas", "Failed to clean elements", { error: String(e) });
   }
 
   // 4. Override getComputedStyle of the cloned document's window
@@ -164,7 +204,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
         return proxyStyleDeclaration(style);
       };
     } catch (e) {
-      console.warn("Failed to override getComputedStyle:", e);
+      logger.warn("html2canvasPatch.patchClonedDocumentForHtml2canvas", "Failed to override getComputedStyle", { error: String(e) });
     }
   }
 }
@@ -173,6 +213,16 @@ export async function safeHtml2canvas(
   element: HTMLElement,
   options: any = {}
 ): Promise<HTMLCanvasElement> {
+  const elementVal = IsomorphicHTMLElementSchema.safeParse(element);
+  const optionsVal = Html2CanvasOptionsSchema.safeParse(options);
+  if (!elementVal.success || !optionsVal.success) {
+    logger.warn('html2canvasPatch.safeHtml2canvas', 'Invalid arguments provided', {
+      elementError: elementVal.success ? undefined : String(elementVal.error),
+      optionsError: optionsVal.success ? undefined : String(optionsVal.error),
+    });
+  }
+
+  const validatedOptions = optionsVal.success ? optionsVal.data : (options || {});
   const html2canvas = (await import('html2canvas')).default;
   let originalGetComputedStyle: typeof window.getComputedStyle | undefined = undefined;
   if (typeof window !== 'undefined') {
@@ -183,8 +233,8 @@ export async function safeHtml2canvas(
     };
   }
 
-  const originalOnclone = options.onclone;
-  options.onclone = (clonedDoc: Document) => {
+  const originalOnclone = validatedOptions.onclone;
+  validatedOptions.onclone = (clonedDoc: Document) => {
     patchClonedDocumentForHtml2canvas(clonedDoc);
     if (originalOnclone) {
       originalOnclone(clonedDoc);
@@ -192,7 +242,7 @@ export async function safeHtml2canvas(
   };
 
   try {
-    return await html2canvas(element, options);
+    return await html2canvas(element, validatedOptions);
   } finally {
     if (typeof window !== 'undefined' && originalGetComputedStyle) {
       window.getComputedStyle = originalGetComputedStyle;
@@ -205,6 +255,16 @@ export async function safeHtml2canvasPro(
   element: HTMLElement,
   options: any = {}
 ): Promise<HTMLCanvasElement> {
+  const elementVal = IsomorphicHTMLElementSchema.safeParse(element);
+  const optionsVal = Html2CanvasOptionsSchema.safeParse(options);
+  if (!elementVal.success || !optionsVal.success) {
+    logger.warn('html2canvasPatch.safeHtml2canvasPro', 'Invalid arguments provided', {
+      elementError: elementVal.success ? undefined : String(elementVal.error),
+      optionsError: optionsVal.success ? undefined : String(optionsVal.error),
+    });
+  }
+
+  const validatedOptions = optionsVal.success ? optionsVal.data : (options || {});
   let originalGetComputedStyle: typeof window.getComputedStyle | undefined = undefined;
   if (typeof window !== 'undefined') {
     originalGetComputedStyle = window.getComputedStyle;
@@ -214,8 +274,8 @@ export async function safeHtml2canvasPro(
     };
   }
 
-  const originalOnclone = options.onclone;
-  options.onclone = (clonedDoc: Document) => {
+  const originalOnclone = validatedOptions.onclone;
+  validatedOptions.onclone = (clonedDoc: Document) => {
     patchClonedDocumentForHtml2canvas(clonedDoc);
     if (originalOnclone) {
       originalOnclone(clonedDoc);
@@ -223,7 +283,7 @@ export async function safeHtml2canvasPro(
   };
 
   try {
-    return await html2canvasProInstance(element, options);
+    return await html2canvasProInstance(element, validatedOptions);
   } finally {
     if (typeof window !== 'undefined' && originalGetComputedStyle) {
       window.getComputedStyle = originalGetComputedStyle;
