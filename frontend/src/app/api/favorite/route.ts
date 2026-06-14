@@ -11,12 +11,17 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { verifyAuthHeader } from '@/lib/authUtils';
 import { redis } from '@/lib/redis';
 import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
 // 보안: NoSQL Injection 및 오버플로우 공격 방어용 인바운드 스키마 검증
 const favSchema = z.object({
   aptName: z.string().min(1).max(100).trim(), // 아파트 이름 길이 제한 및 스크러빙
+});
+
+const favoriteQuerySchema = z.object({
+  userId: z.string().min(1),
 });
 
 export async function POST(request: NextRequest) {
@@ -50,7 +55,7 @@ export async function POST(request: NextRequest) {
       const countRef = adminDb.collection('favoriteCounts').doc(aptName);
       await countRef.set({ count: FieldValue.increment(-1), aptName }, { merge: true });
       if (redis) {
-        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, -1).catch(err => console.warn('Redis HINCRBY error:', err));
+        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, -1).catch(err => logger.warn('FavoriteAPI.POST', 'Redis HINCRBY error', { aptName }, err as Error));
       }
       return NextResponse.json({ favorited: false });
     } else {
@@ -60,12 +65,12 @@ export async function POST(request: NextRequest) {
       const countRef = adminDb.collection('favoriteCounts').doc(aptName);
       await countRef.set({ count: FieldValue.increment(1), aptName }, { merge: true });
       if (redis) {
-        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, 1).catch(err => console.warn('Redis HINCRBY error:', err));
+        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, 1).catch(err => logger.warn('FavoriteAPI.POST', 'Redis HINCRBY error', { aptName }, err as Error));
       }
       return NextResponse.json({ favorited: true });
     }
   } catch (error: unknown) {
-    console.error('[favorite] Error:', error);
+    logger.error('FavoriteAPI.POST', 'Failed to toggle favorite', {}, error as Error);
     return NextResponse.json({ error: 'Internal server error', details: (error as Error)?.message || String(error) }, { status: 500 });
   }
 }
@@ -88,6 +93,12 @@ export async function GET(request: NextRequest) {
     const userId = decodedToken.uid;
 
     const requestedUserId = request.nextUrl.searchParams.get('userId');
+    const queryParse = favoriteQuerySchema.safeParse({ userId: requestedUserId });
+    if (!queryParse.success) {
+      logger.warn('FavoriteAPI.GET', 'Invalid query parameters', { errors: queryParse.error.format() });
+      return NextResponse.json({ favorites: [], warning: 'Bad Request' }, { status: 400 });
+    }
+
     if (requestedUserId && requestedUserId !== userId) {
       return NextResponse.json({ favorites: [], warning: 'Forbidden' }, { status: 403 });
     }
@@ -102,7 +113,7 @@ export async function GET(request: NextRequest) {
     const favorites = snap.docs.map(d => d.data().aptName as string);
     return NextResponse.json({ favorites });
   } catch (error: unknown) {
-    console.error('[favorite GET] Error:', error);
+    logger.error('FavoriteAPI.GET', 'Failed to fetch favorites', {}, error as Error);
     // Return [] instead of 500 to prevent app crashes if Firebase hangs
     return NextResponse.json({ favorites: [], error: String(error) }, { status: 200 });
   }

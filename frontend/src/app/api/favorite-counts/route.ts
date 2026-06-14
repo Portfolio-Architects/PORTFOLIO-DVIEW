@@ -1,10 +1,6 @@
-/**
- * GET /api/favorite-counts
- * Returns favorite counts for all apartments.
- * Response: { counts: Record<string, number> }
- */
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +18,7 @@ export async function GET() {
     });
     return NextResponse.json({ counts });
   } catch (error) {
-    console.error('[favorite-counts] Error:', error);
+    logger.error('FavoriteCountsAPI.GET', 'Failed to fetch favorite counts', {}, error as Error);
     return NextResponse.json({ counts: {} });
   }
 }
