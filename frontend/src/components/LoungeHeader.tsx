@@ -29,98 +29,168 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
   return (
     <>
       {/* Dynamic Minimal Sticky Header */}
-      <div 
-        className={`flex fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 items-center justify-between px-3 md:px-10 lg:px-16 h-[68px] ${
-          isScrolled ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
-           <span className="text-[#008262] dark:text-[#00d29d]">PORTFOLIO</span>
-           <span className="text-tertiary font-normal text-[13px]">|</span>
-           <span className="text-secondary font-semibold text-[14px]">D-VIEW</span>
-        </span>
-        <div className="flex items-center -mr-1">
-          <FloatingUserBar />
+      {activeTab !== 'imjang' && (
+        <div 
+          className={`flex fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 items-center justify-between px-3 md:px-10 lg:px-16 h-[68px] ${
+            isScrolled ? 'translate-y-0' : '-translate-y-full'
+          }`}
+        >
+          <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
+             <span className="text-[#008262] dark:text-[#00d29d]">PORTFOLIO</span>
+             <span className="text-tertiary font-normal text-[13px]">|</span>
+             <span className="text-secondary font-semibold text-[14px]">D-VIEW</span>
+          </span>
+
+          {/* Center: Sticky Nav Tabs for Desktop (Segmented Control Style matched to DashboardClient) */}
+          <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="스티키 메뉴">
+            <Link
+              href="/#overview"
+              onClick={() => {
+                if (onTabChange) onTabChange('overview');
+                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+              }}
+              className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                activeTab === 'overview'
+                  ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                  : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+              }`}
+            >
+              <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+              데이터 랩
+            </Link>
+            
+            <Link
+              href="/explore"
+              className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                activeTab === 'imjang'
+                  ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                  : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+              }`}
+            >
+              <Home size={18} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+              <span>아파트 탐색</span>
+            </Link>
+
+            <Link
+              href="/realtime"
+              className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                activeTab === 'realtime'
+                  ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                  : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+              }`}
+            >
+              <TrendingUp size={18} className={activeTab === 'realtime' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+              <span>실거래</span>
+            </Link>
+
+            <Link
+              href="/#gap"
+              className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                activeTab === 'gap'
+                  ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                  : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+              }`}
+            >
+              <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+              <span>큐레이션</span>
+            </Link>
+            
+            <Link
+              href="/#lounge"
+              className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                activeTab === 'lounge'
+                  ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                  : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+              }`}
+            >
+              <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+              <span>커뮤니티</span>
+            </Link>
+          </nav>
+
+          <div className="flex items-center -mr-1">
+            <FloatingUserBar />
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Main Header — Minimalist Navigation integrated */}
-      <header className="hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border relative z-40" role="banner">
+      <header className={`hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border ${
+        activeTab === 'imjang' ? 'sticky top-0 z-50' : 'relative z-40'
+      }`} role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between h-[68px] gap-4 md:gap-0">
             
             {/* Mobile: Top Bar */}
             <div className="md:hidden flex items-center justify-end w-full">
               <FloatingUserBar />
             </div>
 
-            {/* Center: Nav Tabs (Segmented Control Style) */}
-            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+            {/* Center: Nav Tabs (Segmented Control Style matched to DashboardClient) */}
+            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <Link
                 href="/#overview"
                 onClick={() => {
                   if (onTabChange) onTabChange('overview');
                   setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                 }}
-                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
+                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'overview'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <LayoutDashboard size={16} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 데이터 랩
               </Link>
               
               <Link
                 href="/explore"
-                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
+                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'imjang'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <Home size={18} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
               </Link>
 
               <Link
                 href="/realtime"
-                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
+                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'realtime'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <TrendingUp size={16} className={activeTab === 'realtime' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <TrendingUp size={18} className={activeTab === 'realtime' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>실거래</span>
               </Link>
 
               <Link
                 href="/#gap"
-                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
+                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'gap'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <Coins size={16} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>큐레이션</span>
               </Link>
               
               <Link
                 href="/#lounge"
-                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
+                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'lounge'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <MessageSquare size={16} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>커뮤니티</span>
               </Link>
-
-
 
             </nav>
 

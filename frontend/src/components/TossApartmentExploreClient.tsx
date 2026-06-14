@@ -698,7 +698,7 @@ export default function TossApartmentExploreClient({
       {/* Main Content Area */}
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
-          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[75px] self-start max-h-[calc(100vh-100px)] overflow-y-auto md:rounded-l-2xl custom-scrollbar">
+          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start max-h-[calc(100vh-100px)] overflow-y-auto md:rounded-l-2xl custom-scrollbar">
 
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -1073,7 +1073,7 @@ export default function TossApartmentExploreClient({
 
         <div className="flex-1 min-h-0 flex flex-col relative">
           {/* Table Header */}
-          <div className="hidden md:flex sticky top-[75px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none shadow-sm shadow-black/[0.01]">
+          <div className="hidden md:flex sticky top-[68px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none shadow-sm shadow-black/[0.01]">
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
