@@ -825,74 +825,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
             {/* 2. 2-Column Layout for Timeline and Overall Feed */}
             <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               
-              {/* Left Column: Daily New High Prices Timeline */}
-              <div className="flex flex-col bg-surface rounded-2xl border border-border/80 shadow-sm px-5 py-6 min-h-[500px]">
-                <div className="flex justify-between items-center gap-2 mb-4 pb-2 border-b border-border/40">
-                  <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight flex items-center gap-2">
-                    <Sparkles size={18} className="text-amber-500 fill-amber-100" />
-                    일자별 신고가 단지
-                  </h2>
-                  <span className="text-[11px] text-red-500 font-extrabold bg-red-50 dark:bg-red-950/20 px-2.5 py-1 rounded-lg shrink-0">
-                    신고가 경신
-                  </span>
-                </div>
-
-                <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
-                  {filteredTimelineData.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
-                      조건에 부합하는 신고가 거래가 없습니다.
-                    </div>
-                  ) : (
-                    filteredTimelineData.map((group) => (
-                      <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-border/80">
-                        {/* Timeline Dot */}
-                        <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-border border-2 border-surface" />
-                        
-                        {/* Date Heading */}
-                        <h3 className="text-[13px] font-black text-secondary flex items-center gap-1.5 mb-1">
-                          <Calendar size={13} className="text-tertiary" />
-                          {group.dateStr}
-                        </h3>
-
-                        {/* Items */}
-                        <div className="flex flex-col gap-2">
-                          {group.items.map((item, idx) => (
-                            <div
-                              key={`${item.aptName}-${idx}`}
-                              onClick={() => handleAptClickByName(item.aptName)}
-                              className="flex flex-col p-3 rounded-xl cursor-pointer bg-body hover:bg-body/80 border border-border/40 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 shadow-sm transition-all duration-200 hover:-translate-y-0.5 group gap-1.5"
-                            >
-                              {/* Name & High Price Badge */}
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]">
-                                  {item.aptName}
-                                </span>
-                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/20 shrink-0 whitespace-nowrap">
-                                  {item.delta && item.delta > 0 
-                                    ? `+${formatPriceValue(item.delta)}${item.deltaPercent ? ` (${item.deltaPercent.toFixed(1)}%)` : ''}`
-                                    : '신고가'}
-                                </span>
-                              </div>
-
-                              {/* Spec and Price */}
-                              <div className="flex items-center justify-between text-[11px] text-tertiary font-semibold">
-                                <span>
-                                  {item.dong} • {item.areaLabelPyeong} • {item.floor}층
-                                </span>
-                                <span className="text-primary font-black text-[12.5px]">
-                                  {formatPriceValue(item.priceVal)}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column: Recent Transactions Feed (Latest 50 Transactions) */}
+              {/* Left Column: Recent Transactions Feed (Latest 50 Transactions) */}
               <div className="flex flex-col bg-surface rounded-2xl border border-border/80 shadow-sm px-5 py-6 min-h-[500px]">
                 <div className="flex justify-between items-center gap-2 mb-4 pb-2 border-b border-border/40">
                   <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight flex items-center gap-2">
@@ -956,6 +889,73 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                           <span className="text-primary font-black text-[12.5px]">
                             {formatPriceValue(tx.priceVal)}
                           </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Daily New High Prices Timeline */}
+              <div className="flex flex-col bg-surface rounded-2xl border border-border/80 shadow-sm px-5 py-6 min-h-[500px]">
+                <div className="flex justify-between items-center gap-2 mb-4 pb-2 border-b border-border/40">
+                  <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight flex items-center gap-2">
+                    <Sparkles size={18} className="text-amber-500 fill-amber-100" />
+                    일자별 신고가 단지
+                  </h2>
+                  <span className="text-[11px] text-red-500 font-extrabold bg-red-50 dark:bg-red-950/20 px-2.5 py-1 rounded-lg shrink-0">
+                    신고가 경신
+                  </span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
+                  {filteredTimelineData.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
+                      조건에 부합하는 신고가 거래가 없습니다.
+                    </div>
+                  ) : (
+                    filteredTimelineData.map((group) => (
+                      <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-border/80">
+                        {/* Timeline Dot */}
+                        <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-border border-2 border-surface" />
+                        
+                        {/* Date Heading */}
+                        <h3 className="text-[13px] font-black text-secondary flex items-center gap-1.5 mb-1">
+                          <Calendar size={13} className="text-tertiary" />
+                          {group.dateStr}
+                        </h3>
+
+                        {/* Items */}
+                        <div className="flex flex-col gap-2">
+                          {group.items.map((item, idx) => (
+                            <div
+                              key={`${item.aptName}-${idx}`}
+                              onClick={() => handleAptClickByName(item.aptName)}
+                              className="flex flex-col p-3 rounded-xl cursor-pointer bg-body hover:bg-body/80 border border-border/40 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 shadow-sm transition-all duration-200 hover:-translate-y-0.5 group gap-1.5"
+                            >
+                              {/* Name & High Price Badge */}
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]">
+                                  {item.aptName}
+                                </span>
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/20 shrink-0 whitespace-nowrap">
+                                  {item.delta && item.delta > 0 
+                                    ? `+${formatPriceValue(item.delta)}${item.deltaPercent ? ` (${item.deltaPercent.toFixed(1)}%)` : ''}`
+                                    : '신고가'}
+                                </span>
+                              </div>
+
+                              {/* Spec and Price */}
+                              <div className="flex items-center justify-between text-[11px] text-tertiary font-semibold">
+                                <span>
+                                  {item.dong} • {item.areaLabelPyeong} • {item.floor}층
+                                </span>
+                                <span className="text-primary font-black text-[12.5px]">
+                                  {formatPriceValue(item.priceVal)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))
