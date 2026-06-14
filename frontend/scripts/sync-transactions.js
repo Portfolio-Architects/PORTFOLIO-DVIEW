@@ -31,6 +31,7 @@ const TransactionRecordSchema = z.object({
   floor: z.union([z.number(), z.string()]).optional().nullable(),
   dong: z.string().optional().nullable(),
   buildYear: z.union([z.number(), z.string()]).optional().nullable(),
+  cancelDate: z.string().optional().nullable(),
 });
 
 const OUTPUT_PATH = path.resolve(__dirname, '../public/data/tx-summary.json');
@@ -258,6 +259,7 @@ async function main() {
       floor: d.floor,
       dong: d.dong,
       buildYear: d.buildYear || d.constructionYear,
+      cancelDate: d.cancelDate,
     };
 
     const parsed = TransactionRecordSchema.safeParse(rawRecord);
@@ -303,6 +305,7 @@ async function main() {
         dong: validData.dong || '',
         dealType: validData.dealType,
         contractDate: cDate,
+        cancelDate: validData.cancelDate || '',
       });
   });
 
@@ -331,6 +334,7 @@ async function main() {
       floor: d.floor,
       dong: d.dong,
       buildYear: d.buildYear || d.constructionYear,
+      cancelDate: d.cancelDate,
     };
 
     const parsed = TransactionRecordSchema.safeParse(rawRecord);
@@ -376,6 +380,7 @@ async function main() {
         dong: validData.dong || '',
         dealType: validData.dealType,
         contractDate: cDate,
+        cancelDate: validData.cancelDate || '',
       });
   });
 
@@ -894,6 +899,7 @@ async function main() {
       areaPyeong: t.areaPyeong,
       floor: t.floor,
       dealType: t.dealType || '',
+      cancelDate: t.cancelDate || '',
     }));
 
     // Deduplicate records to prevent duplicate rows in the UI
