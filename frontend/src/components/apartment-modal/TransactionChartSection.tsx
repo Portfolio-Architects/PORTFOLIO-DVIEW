@@ -162,12 +162,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const now = new Date();
   const getRecentAvgByMonths = (months: number) => {
     const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
-    const filtered = rawData.filter(d => {
-      const y = Math.floor(d.yearMonth / 100);
-      const m = d.yearMonth % 100;
-      const day = d.contractDay || 1;
-      return new Date(y, m - 1, day) >= cutoffDate;
-    });
+    const cutoffMs = cutoffDate.getTime();
+    const filtered = rawData.filter(d => d.ts >= cutoffMs);
     if (filtered.length === 0) return 0;
     return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
   };
