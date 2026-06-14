@@ -12,6 +12,15 @@ export interface RecentTx {
   areaPyeong: number;
   floor: number;
   area: number;
+  priceVal?: number;
+  dealType?: string;
+  isNewHigh?: boolean;
+  newHighDelta?: number;
+  prevPriceVal?: number;
+  delta?: number;
+  deltaPercent?: number;
+  contractDate?: string;
+  dateLabel?: string;
 }
 
 export interface AptTxSummary {

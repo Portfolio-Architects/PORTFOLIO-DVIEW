@@ -1235,82 +1235,52 @@ export default function MacroDashboardClient({
       if (txKey && txSummaryData[txKey]) {
         const sum = txSummaryData[txKey];
         if (sum.recent && sum.recent.length > 0) {
-          // Group transactions by areaKey to trace historical price trend per area size
-          const areaGroups: Record<string, any[]> = {};
           sum.recent.forEach((tx) => {
-            const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : 'default';
+            // 빌드타임에 전체 거래를 바탕으로 사전 판정된 진짜 신고가만 대상화
+            if (!tx.isNewHigh) return;
+
             const dt = parseDateHelper(tx.date, sum.latestDate);
-            const price = parsePriceEokHelper(tx.priceEok);
-            if (dt && price > 0) {
-              if (!areaGroups[areaKey]) {
-                areaGroups[areaKey] = [];
+            if (!dt) return;
+
+            // 미래 혹은 가짜 일자 오차 방어
+            const diffMs = maxDateTime - dt.getTime();
+            const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+            if (diffDays >= 0) {
+              const dateKey = tx.date;
+              const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+              const dayName = daysOfWeek[dt.getDay()];
+              const month = dt.getMonth() + 1;
+              const dateVal = dt.getDate();
+              const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+
+              if (!groups[dateKey]) {
+                groups[dateKey] = {
+                  dateStr,
+                  timestamp: dt.getTime(),
+                  items: [],
+                };
               }
-              areaGroups[areaKey].push({ tx, dt, price });
+
+              const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
+              const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
+              const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
+
+              groups[dateKey].items.push({
+                aptName: apt.name,
+                dong: apt.dong || sum.dong || "",
+                priceEok: tx.priceEok,
+                priceVal: tx.priceVal || parsePriceEokHelper(tx.priceEok),
+                areaPyeong: tx.areaPyeong,
+                area: tx.area,
+                floor: tx.floor,
+                type: "high",
+                delta: tx.newHighDelta || tx.delta || 0,
+                deltaPercent: tx.deltaPercent || 0,
+                prevPriceVal: tx.prevPriceVal,
+                areaLabelM2: labelM2,
+                areaLabelPyeong: labelPyeong,
+              });
             }
-          });
-
-          // Process each area size ascending in time to determine strict new highs
-          Object.keys(areaGroups).forEach((areaKey) => {
-            const sorted = areaGroups[areaKey].sort((a, b) => a.dt.getTime() - b.dt.getTime());
-            let currentMax = 0;
-
-            sorted.forEach((item, index) => {
-              const { tx, dt, price } = item;
-              let isNewHigh = false;
-              let delta = 0;
-
-              let deltaPercent = 0;
-              if (index === 0) {
-                currentMax = price;
-              } else {
-                if (price > currentMax) {
-                  isNewHigh = true;
-                  delta = price - currentMax;
-                  deltaPercent = (delta / currentMax) * 100;
-                  currentMax = price;
-                }
-              }
-
-              // Check if it is a new high and falls within valid timeline (exclude future errors)
-              const diffMs = maxDateTime - dt.getTime();
-              const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-              if (isNewHigh && diffDays >= 0) {
-                const dateKey = tx.date;
-                const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-                const dayName = daysOfWeek[dt.getDay()];
-                const month = dt.getMonth() + 1;
-                const dateVal = dt.getDate();
-                const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
-
-                if (!groups[dateKey]) {
-                  groups[dateKey] = {
-                    dateStr,
-                    timestamp: dt.getTime(),
-                    items: [],
-                  };
-                }
-
-                const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
-                const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
-                const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
-
-                groups[dateKey].items.push({
-                  aptName: apt.name,
-                  dong: apt.dong || sum.dong || "",
-                  priceEok: tx.priceEok,
-                  priceVal: price,
-                  areaPyeong: tx.areaPyeong,
-                  area: tx.area,
-                  floor: tx.floor,
-                  type: "high",
-                  delta: delta,
-                  deltaPercent: deltaPercent,
-                  prevPriceVal: delta && delta > 0 ? price - delta : undefined,
-                  areaLabelM2: labelM2,
-                  areaLabelPyeong: labelPyeong,
-                });
-              }
-            });
           });
         }
       }
@@ -1327,7 +1297,7 @@ export default function MacroDashboardClient({
           items: sortedItems,
         };
       });
-  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime]);
+  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime, typeMap]);
 
 
   const toggleGroup = (title: string) => {
