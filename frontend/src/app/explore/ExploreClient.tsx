@@ -220,6 +220,24 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
 
   useEffect(() => {
     setMounted(true);
+
+    const preloadHeavyChunks = () => {
+      import('@/components/TossApartmentExploreClient').catch(() => {});
+      import('@/components/ApartmentModal').catch(() => {});
+      import('@/components/consumer/AptCompareModal').catch(() => {});
+      import('@/components/consumer/JeonseSafetyCalculator').catch(() => {});
+      import('@/components/consumer/MortgageCalculator').catch(() => {});
+      import('@/components/consumer/PropertyTaxCalculator').catch(() => {});
+      import('@/components/consumer/SellTimingCalculator').catch(() => {});
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
+      } else {
+        setTimeout(preloadHeavyChunks, 2000);
+      }
+    }
   }, []);
 
   // Handle #apt= hash to open modal automatically
