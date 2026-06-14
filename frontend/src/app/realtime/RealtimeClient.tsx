@@ -272,8 +272,8 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     
     const setIfEmptyOrReal = (key: string, apt: any) => {
       const existing = map.get(key);
-      const isNewReal = apt.lat !== 0 && apt.latitude !== 0 && apt.lat !== undefined && apt.latitude !== undefined;
-      const isExistingFallback = !existing || existing.lat === 0 || existing.latitude === 0 || !existing.lat;
+      const isNewReal = apt.lat !== 0 && apt.lat !== undefined;
+      const isExistingFallback = !existing || existing.lat === 0 || !existing.lat;
       
       if (!existing || (isNewReal && isExistingFallback)) {
         map.set(key, apt);

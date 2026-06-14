@@ -897,15 +897,27 @@ async function main() {
     }));
 
     // Deduplicate records to prevent duplicate rows in the UI
-    const seen = new Set();
-    const uniqueRecords = [];
+    const seen = new Map();
     for (const r of records) {
-      const key = `${r.contractYm}_${r.contractDay}_${r.price}_${r.deposit}_${r.monthlyRent}_${Math.round(r.area * 100) / 100}_${r.floor}_${r.dealType}`;
+      let normalizedDealType = r.dealType ? r.dealType.trim() : '';
+      if (normalizedDealType !== '전세' && normalizedDealType !== '월세') {
+        normalizedDealType = '매매';
+      }
+      const key = `${r.contractYm}_${r.contractDay}_${r.price}_${r.deposit}_${r.monthlyRent}_${Math.round(r.area * 100) / 100}_${r.floor}_${normalizedDealType}`;
+      
       if (!seen.has(key)) {
-        seen.add(key);
-        uniqueRecords.push(r);
+        seen.set(key, r);
+      } else {
+        // 이미 존재하면, 더 풍부한 정보(공백이나 기본값 '매매'가 아닌 구체적 타입)를 가진 레코드로 대체
+        const existing = seen.get(key);
+        const isExistingEmpty = !existing.dealType || existing.dealType.trim() === '' || existing.dealType.trim() === '매매';
+        const isNewNotEmpty = r.dealType && r.dealType.trim() !== '' && r.dealType.trim() !== '매매';
+        if (isExistingEmpty && isNewNotEmpty) {
+          seen.set(key, r);
+        }
       }
     }
+    const uniqueRecords = Array.from(seen.values());
 
     // 3차 속도 개선: IQR 아웃라이어 빌드 타임 선 연산 (클라이언트 CPU 부하 0ms 최적화)
     const groups = {};

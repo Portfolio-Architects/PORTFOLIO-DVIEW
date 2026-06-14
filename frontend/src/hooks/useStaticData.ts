@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/lib/types/transaction';
 import { z } from 'zod';
+import { BUILD_VERSION } from '@/lib/build-version';
 
 const FirestoreTransactionSchema = z.object({
   aptName: z.string().min(1),
@@ -299,7 +300,7 @@ export function useTxData(
       trendColor: string;
       badge: string;
     };
-  }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
+  }>(shouldFetch ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, fetcher, {
     fallbackData: initialTxSummary ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
     revalidateOnFocus: false,
     revalidateIfStale: false,
@@ -378,7 +379,7 @@ export function useTxData(
   }, [summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   const { data: trendData, error: trendError, isLoading: isTrendLoading } = useSWR<DongtanMacroTrendPoint[]>(
-    shouldFetch ? '/data/macro-trend.json' : null,
+    shouldFetch ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
     fetcher,
     {
       fallbackData: initialMacroTrend,
@@ -410,7 +411,7 @@ export function useLocationScores() {
     }
   }, []);
 
-  const { data, error, isLoading } = useSWR<Record<string, any>>(shouldFetch ? '/data/location-scores.json' : null, fetcher, {
+  const { data, error, isLoading } = useSWR<Record<string, any>>(shouldFetch ? `/data/location-scores.json?v=${BUILD_VERSION}` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     revalidateOnReconnect: false,
