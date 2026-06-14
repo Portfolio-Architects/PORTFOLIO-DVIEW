@@ -740,7 +740,45 @@ export default function MacroDashboardClient({
     return ["동탄 아파트 전체"];
   }, []);
 
-  const deferredMacroTrendData = useDeferredValue(macroTrendData);
+  const paddedMacroTrendData = useMemo(() => {
+    if (!macroTrendData || macroTrendData.length === 0) return [];
+    
+    const currentYear = 2026;
+    const currentMonth = 6;
+    
+    const lastPoint = macroTrendData[macroTrendData.length - 1];
+    if (!lastPoint || !lastPoint.name) return macroTrendData;
+    
+    const parts = lastPoint.name.split(".");
+    if (parts.length !== 2) return macroTrendData;
+    
+    let lastYear = 2000 + parseInt(parts[0]);
+    let lastMonth = parseInt(parts[1]);
+    
+    const padded = [...macroTrendData];
+    
+    while (true) {
+      if (lastYear > currentYear || (lastYear === currentYear && lastMonth >= currentMonth)) {
+        break;
+      }
+      
+      lastMonth++;
+      if (lastMonth > 12) {
+        lastMonth = 1;
+        lastYear++;
+      }
+      
+      const newName = `${String(lastYear).slice(2)}.${String(lastMonth).padStart(2, '0')}`;
+      padded.push({
+        ...lastPoint,
+        name: newName,
+      });
+    }
+    
+    return padded;
+  }, [macroTrendData]);
+
+  const deferredMacroTrendData = useDeferredValue(paddedMacroTrendData);
 
   const selectedAptSummary = useMemo(() => {
     if (!selectedTimelineApt || !txSummaryData) return null;

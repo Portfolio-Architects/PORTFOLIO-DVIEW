@@ -742,6 +742,23 @@ export default function AptCompareModal({
     // Limit to last 24 months for readability if list is too long
     const timelineMonths = allMonths.slice(-24);
 
+    const targetEndYear = 26;
+    const targetEndMonth = 6;
+    if (timelineMonths.length > 0) {
+      let lastMonthStr = timelineMonths[timelineMonths.length - 1];
+      let [yStr, mStr] = lastMonthStr.split('.');
+      let y = parseInt(yStr);
+      let m = parseInt(mStr);
+      while (y < targetEndYear || (y === targetEndYear && m < targetEndMonth)) {
+        m++;
+        if (m > 12) {
+          m = 1;
+          y++;
+        }
+        timelineMonths.push(`${String(y).padStart(2, '0')}.${String(m).padStart(2, '0')}`);
+      }
+    }
+
     // Interpolation (Carry-forward)
     let lastA1: number | null = null;
     let lastA2: number | null = null;

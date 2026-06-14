@@ -261,8 +261,11 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     })
     .sort((a, b) => a.ts - b.ts);
 
-  const minTs = monthlyData.length > 0 ? monthlyData[0].ts : Date.now() - 365 * 24 * 3600 * 1000;
-  const maxTs = monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].ts : Date.now();
+  const minTs = monthlyData.length > 0 ? monthlyData[0].ts : new Date(2021, 2, 15).getTime();
+  const maxTs = Math.max(
+    monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].ts : 0,
+    new Date(2026, 5, 15).getTime()
+  );
 
   // Compute global stable minP/maxP across BOTH sale and jeonse to keep Y-axis identical
   const getEokPrice = (tx: any, isJeonse: boolean) => {
