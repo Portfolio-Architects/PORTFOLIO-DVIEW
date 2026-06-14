@@ -7,23 +7,7 @@ import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from 
 import { DongApartment } from '@/lib/dong-apartments';
 import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { BUILD_VERSION } from '@/lib/build-version';
-import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-
-const RawTransactionRecordSchema = z.object({
-  dealType: z.string().optional().catch(undefined),
-  deposit: z.number().optional().catch(undefined),
-  monthlyRent: z.number().optional().catch(undefined),
-  price: z.number().catch(0),
-  area: z.number().catch(0),
-  areaPyeong: z.number().catch(0),
-  contractYm: z.union([z.string(), z.number()]).transform(val => String(val)).catch(''),
-  contractDay: z.union([z.string(), z.number()]).transform(val => String(val)).catch('1'),
-  floor: z.number().catch(0),
-  cancelDate: z.string().optional().catch(undefined),
-  reqGb: z.string().optional().catch(undefined),
-  rnuYn: z.string().optional().catch(undefined),
-});
 
 export interface TransactionRecord {
   no: number;
