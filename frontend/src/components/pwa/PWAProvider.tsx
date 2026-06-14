@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
+
 
 
 
@@ -214,13 +216,39 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       setPushSubscription(sub);
       
       // Save subscription to the backend
-      await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub, uid: uid || null })
-      });
-      
-      console.log('Push Subscribed & Saved:', JSON.stringify(sub));
+      if (typeof window !== 'undefined' && !navigator.onLine) {
+        try {
+          await enqueueOfflineRequest({
+            url: '/api/push/subscribe',
+            method: 'POST',
+            body: { subscription: sub, uid: uid || null }
+          });
+          showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다 💚');
+        } catch (err) {
+          console.error('Failed to enqueue push subscription', err);
+        }
+      } else {
+        try {
+          await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription: sub, uid: uid || null })
+          });
+          console.log('Push Subscribed & Saved:', JSON.stringify(sub));
+        } catch (fetchErr) {
+          console.warn('Failed to save push subscription online, queuing offline', fetchErr);
+          try {
+            await enqueueOfflineRequest({
+              url: '/api/push/subscribe',
+              method: 'POST',
+              body: { subscription: sub, uid: uid || null }
+            });
+            showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다 💚');
+          } catch (err) {
+            console.error('Failed to enqueue push subscription after fetch failure', err);
+          }
+        }
+      }
       return true;
     } catch (error) {
       console.error('Error subscribing to push', error);

@@ -20,7 +20,9 @@ import { syncManagerPostToScoutingReport } from '@/lib/services/post.service';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+
 import { sharePostToKakao } from '@/lib/utils/kakaoShare';
 
 // Memory backups for anonymous session in case localStorage is blocked in sandboxed frames
@@ -341,6 +343,43 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
 
     commentLockRef.current = true;
     setIsSending(true);
+
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      try {
+        let displayName = '익명이웃';
+        let authorUid = null;
+        if (user && userProfile) {
+          displayName = getDisplayName(userProfile);
+          authorUid = user.uid;
+        } else {
+          displayName = getAnonymousNickname();
+          authorUid = getAnonymousUid();
+        }
+
+        await enqueueOfflineRequest({
+          url: '/api/comments',
+          method: 'POST',
+          body: {
+            text: commentText.trim(),
+            authorName: displayName,
+            authorUid: authorUid || '',
+            postId: postId
+          }
+        });
+        setCommentText('');
+        showToast('네트워크가 연결되지 않아 댓글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
+        lastCommentTimeRef.current = Date.now();
+        triggerCustomA2HSModal();
+      } catch (err) {
+        console.error('Failed to enqueue comment request', err);
+        alert('댓글 작성에 실패했습니다.');
+      } finally {
+        setIsSending(false);
+        commentLockRef.current = false;
+      }
+      return;
+    }
+
     try {
       let displayName = '익명이웃';
       let authorUid = null;
@@ -363,8 +402,37 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       setCommentText('');
       lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
-    } catch {
-      alert('댓글 작성에 실패했습니다.');
+    } catch (error) {
+      console.warn('Comment creation failed online, attempting offline fallback', error);
+      try {
+        let displayName = '익명이웃';
+        let authorUid = null;
+        if (user && userProfile) {
+          displayName = getDisplayName(userProfile);
+          authorUid = user.uid;
+        } else {
+          displayName = getAnonymousNickname();
+          authorUid = getAnonymousUid();
+        }
+
+        await enqueueOfflineRequest({
+          url: '/api/comments',
+          method: 'POST',
+          body: {
+            text: commentText.trim(),
+            authorName: displayName,
+            authorUid: authorUid || '',
+            postId: postId
+          }
+        });
+        setCommentText('');
+        showToast('네트워크 오류로 댓글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
+        lastCommentTimeRef.current = Date.now();
+        triggerCustomA2HSModal();
+      } catch (queueErr) {
+        console.error('Failed to enqueue comment request', queueErr);
+        alert('댓글 작성에 실패했습니다.');
+      }
     } finally {
       setIsSending(false);
       commentLockRef.current = false;

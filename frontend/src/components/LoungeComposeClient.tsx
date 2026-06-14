@@ -14,6 +14,8 @@ import { isAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
+
 
 interface Props {
   currentTab: string;
@@ -282,6 +284,36 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                   if (!user || !postTitle.trim()) return;
                   submitLockRef.current = true;
                   setIsSubmitting(true);
+
+                  if (typeof window !== 'undefined' && !navigator.onLine) {
+                    try {
+                      await enqueueOfflineRequest({
+                        url: '/api/posts',
+                        method: 'POST',
+                        body: {
+                          title: postTitle.trim(),
+                          content: postContent.trim(),
+                          category: postCategory,
+                          authorUid: user.uid,
+                          authorName: displayAuthorName,
+                          verifiedApartment: displayApartment,
+                          verificationLevel: isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || ''),
+                          imageUrl: null
+                        }
+                      });
+                      setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+                      showToast('네트워크가 연결되지 않아 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
+                      submitLockRef.current = false;
+                    } catch (err) {
+                      console.error('Failed to enqueue post request', err);
+                      alert('글 작성에 실패했습니다.');
+                      submitLockRef.current = false;
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                    return;
+                  }
+
                   try {
                     await dashboardFacade.addPost(
                       postTitle.trim(), 
@@ -313,8 +345,29 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
 
                     // Refresh the route to show the new post from the server component
                     router.refresh();
-                  } catch {
-                    alert('글 작성에 실패했습니다.');
+                  } catch (error) {
+                    console.warn('Post creation failed online, attempting offline fallback', error);
+                    try {
+                      await enqueueOfflineRequest({
+                        url: '/api/posts',
+                        method: 'POST',
+                        body: {
+                          title: postTitle.trim(),
+                          content: postContent.trim(),
+                          category: postCategory,
+                          authorUid: user.uid,
+                          authorName: displayAuthorName,
+                          verifiedApartment: displayApartment,
+                          verificationLevel: isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || ''),
+                          imageUrl: null
+                        }
+                      });
+                      setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+                      showToast('네트워크 오류로 인해 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
+                    } catch (queueErr) {
+                      console.error('Failed to enqueue post request', queueErr);
+                      alert('글 작성에 실패했습니다.');
+                    }
                     submitLockRef.current = false;
                   }
                   finally {

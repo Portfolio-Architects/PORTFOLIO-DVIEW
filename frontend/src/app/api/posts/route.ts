@@ -144,3 +144,40 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    if (!db) {
+      logger.warn('PostsAPI.POST', 'Firebase Admin DB not initialized');
+      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+    }
+
+    const body = await req.json();
+    const { title, content, category, authorUid, authorName, verifiedApartment, verificationLevel, imageUrl } = body;
+
+    if (!title || !content || !category || !authorUid) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const docRef = await db.collection('posts').add({
+      title,
+      content,
+      category,
+      authorUid,
+      authorName: authorName || '익명',
+      verifiedApartment: verifiedApartment || '',
+      verificationLevel: verificationLevel || '',
+      imageUrl: imageUrl || null,
+      likes: 0,
+      views: 0,
+      commentCount: 0,
+      createdAt: Timestamp.now(),
+    });
+
+    logger.info('PostsAPI.POST', 'Post created via background sync API', { id: docRef.id });
+    return NextResponse.json({ status: 'success', id: docRef.id });
+  } catch (error: any) {
+    logger.error('PostsAPI.POST', 'Create post api error', {}, error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
