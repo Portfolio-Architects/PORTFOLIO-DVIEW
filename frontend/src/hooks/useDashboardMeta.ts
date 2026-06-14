@@ -5,6 +5,29 @@ import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMappin
 import type { KPIData } from '@/lib/types/dashboard.types';
 import type { FieldReportData } from '@/lib/types/report.types';
 import type { DongtanMacroTrendPoint, AptTxSummary } from '@/lib/types/transaction';
+import { z } from 'zod';
+
+const TypeMapEntrySchema = z.object({
+  aptName: z.string().catch(''),
+  area: z.union([z.string(), z.number()]).catch(''),
+  typeM2: z.string().catch(''),
+  typePyeong: z.string().catch(''),
+});
+
+const ApartmentMetaValueSchema = z.object({
+  dong: z.string().optional().catch(undefined),
+  txKey: z.string().optional().catch(undefined),
+  isPublicRental: z.boolean().optional().catch(undefined),
+}).catchall(z.any());
+
+const ApartmentsByDongResponseSchema = z.object({
+  byDong: z.record(z.string(), z.array(z.any())).optional().catch(undefined),
+}).passthrough();
+
+const DashboardInitResponseSchema = z.object({
+  typeMap: z.array(TypeMapEntrySchema).optional().catch(undefined),
+  apartmentMeta: z.record(z.string(), ApartmentMetaValueSchema).optional().catch(undefined),
+}).passthrough();
 
 export interface DashboardInitialDataLocal {
   typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
@@ -83,12 +106,22 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     fetch('/api/apartments-by-dong')
       .then(r => r.json())
       .then(data => {
-        if (!unmounted && data.byDong && Object.keys(data.byDong).length > 0) {
+        if (unmounted) return;
+        const validation = ApartmentsByDongResponseSchema.safeParse(data);
+        if (!validation.success) {
+          logger.warn('useDashboardMeta.fetchApartments', 'Validation failed for /api/apartments-by-dong', {
+            errors: validation.error.issues.map(e => e.message),
+          });
+          return;
+        }
+        const validatedData = validation.data;
+        if (validatedData.byDong && Object.keys(validatedData.byDong).length > 0) {
           const updatedByDong = Object.fromEntries(
-            Object.entries(data.byDong).map(([dong, apts]) => {
-              const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a.name) }));
+            Object.entries(validatedData.byDong).map(([dong, apts]) => {
+              const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a?.name || '') }));
               const dedupedMap = new Map<string, DongApartment>();
               for (const a of mappedApts) {
+                if (!a) continue;
                 const existing = dedupedMap.get(a.name);
                 if (!existing || (a.lat !== 0 && existing.lat === 0) || (a.householdCount && !existing.householdCount)) {
                   dedupedMap.set(a.name, a);
@@ -112,19 +145,28 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     let unmounted = false;
     fetch('/api/dashboard-init').then(r => r.json()).then(data => {
       if (unmounted) return;
-      if (data.typeMap) {
+      const validation = DashboardInitResponseSchema.safeParse(data);
+      if (!validation.success) {
+        logger.warn('useDashboardMeta.fetchDashboardInit', 'Validation failed for /api/dashboard-init', {
+          errors: validation.error.issues.map(e => e.message),
+        });
+        setNameMapping({});
+        return;
+      }
+      const validatedData = validation.data;
+      if (validatedData.typeMap) {
         const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
-        for (const e of data.typeMap) {
+        for (const e of validatedData.typeMap) {
           const key = normalizeAptName(e.aptName);
           if (!map[key]) map[key] = {};
           map[key][String(Number(e.area))] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
         }
         setTypeMap(map);
       }
-      if (data.apartmentMeta) {
+      if (validatedData.apartmentMeta) {
         const mapping: Record<string, string> = {};
         const rentals = new Set<string>();
-        for (const [name, meta] of Object.entries(data.apartmentMeta)) {
+        for (const [name, meta] of Object.entries(validatedData.apartmentMeta)) {
           if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
           if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
           if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
