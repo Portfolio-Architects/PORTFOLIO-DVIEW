@@ -704,7 +704,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     };
   }, [processedTransactionsList, isTxMatchingFilters]);
 
-  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+
 
   return (
     <>
@@ -843,7 +843,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                       조건에 부합하는 신고가 거래가 없습니다.
                     </div>
                   ) : (
-                    ((isTimelineExpanded || filteredTimelineData.length <= 5) ? filteredTimelineData : filteredTimelineData.slice(0, 5)).map((group) => (
+                    filteredTimelineData.map((group) => (
                       <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-border/80">
                         {/* Timeline Dot */}
                         <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-border border-2 border-surface" />
@@ -890,15 +890,6 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                     ))
                   )}
                 </div>
-
-                {filteredTimelineData.length > 5 && (
-                  <button
-                    onClick={() => setIsTimelineExpanded(prev => !prev)}
-                    className="w-full mt-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12.5px] rounded-xl border border-border/40 transition-all text-center focus:outline-none"
-                  >
-                    {isTimelineExpanded ? '접기' : `신고가 단지 더보기 (${filteredTimelineData.length - 5}개 더보기)`}
-                  </button>
-                )}
               </div>
 
               {/* Right Column: Recent Transactions Feed (Latest 50 Transactions) */}
