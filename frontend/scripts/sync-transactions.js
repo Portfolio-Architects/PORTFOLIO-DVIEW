@@ -196,8 +196,8 @@ function getLocalAptTxKeys() {
   const keys = new Set();
   try {
     const aptsPath = path.resolve(__dirname, '../public/data/apartments-by-dong.json');
-    if (fs.existsSync(aptsxPath)) {
-      const data = JSON.parse(fs.readFileSync(aptsxPath, 'utf-8'));
+    if (fs.existsSync(aptsPath)) {
+      const data = JSON.parse(fs.readFileSync(aptsPath, 'utf-8'));
       if (data && data.byDong) {
         Object.values(data.byDong).forEach(apts => {
           apts.forEach(apt => {

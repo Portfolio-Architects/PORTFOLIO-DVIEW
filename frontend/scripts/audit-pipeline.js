@@ -148,7 +148,8 @@ function auditDataConsistency() {
               } else {
                 const parsed = JSON.parse(fileContent);
                 if (Array.isArray(parsed) && parsed.length === 0) {
-                  fileEmpty = true;
+                  // 빈 배열([])은 거래가 없는 신축 단지 등의 정상 상태이므로 빈 파일 경고에서 제외
+                  fileEmpty = false;
                 }
               }
             } catch (err) {

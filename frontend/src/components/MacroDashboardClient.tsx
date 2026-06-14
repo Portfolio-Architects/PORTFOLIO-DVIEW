@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useDeferredValue, useEffect } from "react";
+import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
@@ -37,6 +37,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  ChevronLeft,
   MessageSquare,
   Building2,
   Compass,
@@ -471,6 +472,21 @@ export default function MacroDashboardClient({
   const [visibleNoticeCount, setVisibleNoticeCount] = useState(6);
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
+
+  const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
+  const favIndex = useMemo(() => favoritesArray.indexOf(selectedTimelineApt || ""), [favoritesArray, selectedTimelineApt]);
+
+  const handlePrevFavorite = useCallback(() => {
+    if (favoritesArray.length <= 1 || favIndex === -1) return;
+    const nextIndex = (favIndex - 1 + favoritesArray.length) % favoritesArray.length;
+    setSelectedTimelineApt(favoritesArray[nextIndex]);
+  }, [favoritesArray, favIndex]);
+
+  const handleNextFavorite = useCallback(() => {
+    if (favoritesArray.length <= 1 || favIndex === -1) return;
+    const nextIndex = (favIndex + 1) % favoritesArray.length;
+    setSelectedTimelineApt(favoritesArray[nextIndex]);
+  }, [favoritesArray, favIndex]);
 
   // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
   useEffect(() => {
@@ -1983,10 +1999,31 @@ interface GroupedCategory {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
                         {selectedTimelineApt ? (
-                          <>
+                          <span className="flex items-center gap-2">
                             <span className="text-[#00d29d] font-black">내 단지 브리핑:</span>
                             <span className="truncate max-w-[150px] sm:max-w-[220px]" title={selectedTimelineApt}>{selectedTimelineApt}</span>
-                          </>
+                            {favoritesArray.length > 1 && favIndex !== -1 && (
+                              <span className="inline-flex items-center gap-1 ml-1 bg-body dark:bg-zinc-800 border border-border/60 rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={handlePrevFavorite}
+                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  title="이전 관심단지"
+                                >
+                                  <ChevronLeft size={13} />
+                                </button>
+                                <span className="text-[10px] font-bold text-tertiary px-1 select-none">
+                                  {favIndex + 1}/{favoritesArray.length}
+                                </span>
+                                <button
+                                  onClick={handleNextFavorite}
+                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  title="다음 관심단지"
+                                >
+                                  <ChevronRight size={13} />
+                                </button>
+                              </span>
+                            )}
+                          </span>
                         ) : (
                           "📊 동탄 아파트 대표 가격 추이"
                         )}
