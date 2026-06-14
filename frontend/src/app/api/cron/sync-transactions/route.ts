@@ -8,6 +8,8 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { sendMail } from '@/lib/mailService';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,7 +94,7 @@ async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
       }
     }
   } catch(e) {
-    console.error('Failed to fetch typeMap in cron sync:', e);
+    logger.error('SyncTransactionsAPI.fetchTypeMap', 'Failed to fetch typeMap in cron sync', {}, e as Error);
   }
   return typeMap;
 }
@@ -122,20 +124,59 @@ function extractDong(umdNm: string): string {
   return umdNm || '';
 }
 
+const authHeaderSchema = z.string().refine(
+  (val) => val === `Bearer ${process.env.CRON_SECRET}`,
+  { message: 'Invalid authorization token' }
+);
+
+const transactionRecordSchema = z.object({
+  sigungu: z.string(),
+  dong: z.string(),
+  aptName: z.string(),
+  area: z.number(),
+  areaPyeong: z.number(),
+  contractYm: z.string().length(6),
+  contractDay: z.string().length(2),
+  contractDate: z.string().length(8),
+  price: z.number().nonnegative(),
+  deposit: z.number().nonnegative(),
+  monthlyRent: z.number().nonnegative(),
+  floor: z.number(),
+  buyer: z.string().optional().nullable(),
+  seller: z.string().optional().nullable(),
+  buildYear: z.number().nonnegative(),
+  roadName: z.string().optional().nullable(),
+  cancelDate: z.string().optional().nullable(),
+  dealType: z.string(),
+  agentLocation: z.string().optional().nullable(),
+  registrationDate: z.string().optional().nullable(),
+  housingType: z.string().optional().nullable(),
+  source: z.string(),
+  _key: z.string(),
+  reqGb: z.string().optional(),
+  rnuYn: z.string().optional(),
+});
+
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (
-      process.env.NODE_ENV !== 'development' &&
-      authHeader !== `Bearer ${process.env.CRON_SECRET}`
-    ) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (process.env.NODE_ENV !== 'development') {
+      const authHeader = request.headers.get('authorization') || '';
+      const authResult = authHeaderSchema.safeParse(authHeader);
+      if (!authResult.success) {
+        logger.warn('SyncTransactionsAPI.GET', 'Unauthorized access attempt', {
+          authHeader: authHeader ? 'Present' : 'Missing',
+          error: authResult.error.message,
+        });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     if (!API_KEY) {
+      logger.error('SyncTransactionsAPI.GET', 'BUILDING_API_KEY is not configured', {});
       return NextResponse.json({ error: 'BUILDING_API_KEY not set' }, { status: 500 });
     }
     if (!db) {
+      logger.error('SyncTransactionsAPI.GET', 'Firebase DB not initialized', {});
       return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
     }
 
@@ -167,7 +208,6 @@ export async function GET(request: Request) {
 
     for (const ym of Array.from(monthsToSync).sort()) {
       // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
-      // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로 감면하며, db.getAll()의 네트워크 대기 시간을 제거하여 타임아웃 방지
       const existingMap = new Map<string, string>(); // _key -> cancelDate
       try {
         const existingSnap = await collRef
@@ -178,7 +218,7 @@ export async function GET(request: Request) {
           existingMap.set(doc.id, doc.data().cancelDate || '');
         });
       } catch (err: any) {
-        console.warn(`[${ym}] 기존 데이터 조회 실패: ${err.message}`);
+        logger.warn('SyncTransactionsAPI.GET', `[${ym}] 기존 데이터 조회 실패`, { message: err.message });
       }
 
       const monthRecords: any[] = [];
@@ -192,7 +232,11 @@ export async function GET(request: Request) {
         do {
           const url = `${API_BASE_TRADE}?serviceKey=${API_KEY}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
           const res = await fetch(url);
-          if (!res.ok) { syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${res.status}`); break; }
+          if (!res.ok) { 
+            syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${res.status}`); 
+            logger.error('SyncTransactionsAPI.GET', `Failed to fetch trade data page ${page}`, { ym, currentLawd, status: res.status });
+            break; 
+          }
 
           const text = await res.text();
           // Parse XML response
@@ -259,8 +303,16 @@ export async function GET(request: Request) {
               _key: key,
             };
 
-            monthRecords.push(record);
-            newTransactionsOfMonth.push(record);
+            const parsedRecord = transactionRecordSchema.safeParse(record);
+            if (parsedRecord.success) {
+              monthRecords.push(parsedRecord.data);
+              newTransactionsOfMonth.push(parsedRecord.data);
+            } else {
+              logger.warn('SyncTransactionsAPI.GET', 'Invalid scraped trade transaction record', {
+                errors: parsedRecord.error.format(),
+                recordKey: record._key,
+              });
+            }
           }
 
           page++;
@@ -274,7 +326,11 @@ export async function GET(request: Request) {
         do {
           const url = `${API_BASE_RENT}?serviceKey=${API_KEY}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
           const res = await fetch(url);
-          if (!res.ok) { syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: HTTP ${res.status}`); break; }
+          if (!res.ok) { 
+            syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: HTTP ${res.status}`); 
+            logger.error('SyncTransactionsAPI.GET', `Failed to fetch rent data page ${rentPage}`, { ym, currentLawd, status: res.status });
+            break; 
+          }
 
           const text = await res.text();
           const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
@@ -340,8 +396,17 @@ export async function GET(request: Request) {
               rnuYn: get('useRRRight') || '',
               _key: key,
             };
-            monthRecords.push(record);
-            newTransactionsOfMonth.push(record);
+            
+            const parsedRecord = transactionRecordSchema.safeParse(record);
+            if (parsedRecord.success) {
+              monthRecords.push(parsedRecord.data);
+              newTransactionsOfMonth.push(parsedRecord.data);
+            } else {
+              logger.warn('SyncTransactionsAPI.GET', 'Invalid scraped rent transaction record', {
+                errors: parsedRecord.error.format(),
+                recordKey: record._key,
+              });
+            }
           }
           rentPage++;
         } while (rentPage * 1000 <= rentTotalCount + 1000);
@@ -424,7 +489,7 @@ export async function GET(request: Request) {
                     <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px;">
                       <thead>
                         <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                          <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">단지명</th>
+                           <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">단지명</th>
                           <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">평형/면적</th>
                           <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700;">거래 금액</th>
                           <th style="padding: 10px 8px; font-size: 11px; color: #475569; font-weight: 700; text-align: center;">층</th>
@@ -458,10 +523,11 @@ export async function GET(request: Request) {
               });
             }
             syncLog.push(`Sent notification emails to ${subscribers.length} active subscribers`);
+            logger.info('SyncTransactionsAPI.GET', `Sent notification emails to ${subscribers.length} active subscribers`, { count: subscribers.length });
           }
         }
       } catch (mailErr: any) {
-        console.error('Failed to send notification email during sync:', mailErr);
+        logger.error('SyncTransactionsAPI.GET', 'Failed to send notification email during sync', {}, mailErr as Error);
         syncLog.push(`Mail Notification Error: ${mailErr.message}`);
       }
     }
@@ -472,11 +538,14 @@ export async function GET(request: Request) {
         const deployRes = await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST' });
         if (deployRes.ok) {
           syncLog.push('Vercel Deploy Hook Triggered Successfully');
+          logger.info('SyncTransactionsAPI.GET', 'Vercel Deploy Hook Triggered Successfully', {});
         } else {
           syncLog.push(`Vercel Deploy Hook Failed: HTTP ${deployRes.status}`);
+          logger.warn('SyncTransactionsAPI.GET', 'Vercel Deploy Hook Failed', { status: deployRes.status });
         }
       } catch (err) {
         syncLog.push(`Vercel Deploy Hook Error: ${(err as Error).message}`);
+        logger.error('SyncTransactionsAPI.GET', 'Vercel Deploy Hook Error', {}, err as Error);
       }
     }
 
@@ -492,11 +561,14 @@ export async function GET(request: Request) {
         if (pushRes.ok) {
           const pushResult = await pushRes.json();
           syncLog.push(`Web Push Triggered: ${JSON.stringify(pushResult)}`);
+          logger.info('SyncTransactionsAPI.GET', 'Web Push Triggered successfully', { result: pushResult });
         } else {
           syncLog.push(`Web Push Trigger Failed: HTTP ${pushRes.status}`);
+          logger.warn('SyncTransactionsAPI.GET', 'Web Push Trigger Failed', { status: pushRes.status });
         }
       } catch (err) {
         syncLog.push(`Web Push Trigger Error: ${(err as Error).message}`);
+        logger.error('SyncTransactionsAPI.GET', 'Web Push Trigger Error', {}, err as Error);
       }
     }
 
@@ -507,7 +579,7 @@ export async function GET(request: Request) {
       log: syncLog,
     });
   } catch (error: unknown) {
-    console.error('Sync error:', error);
+    logger.error('SyncTransactionsAPI.GET', 'Sync error', {}, error as Error);
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

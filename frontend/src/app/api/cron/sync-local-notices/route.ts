@@ -3,6 +3,8 @@ import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -296,13 +298,35 @@ function checkIfDongtan(title: string, dept: string): boolean {
   return DONGTAN_KEYWORDS.some(k => t.includes(k) || d.includes(k));
 }
 
+const syncLocalNoticesQuerySchema = z.object({
+  full: z.string().optional().transform(v => v === 'true'),
+});
+
+const noticeItemSchema = z.object({
+  id: z.string(),
+  originalId: z.string(),
+  title: z.string(),
+  url: z.string().url(),
+  dept: z.string(),
+  date: z.string(),
+  isDongtan: z.boolean(),
+  source: z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture']),
+  createdAt: z.string(),
+  content: z.string().optional(),
+});
+
+const authHeaderSchema = z.string().refine(
+  (val) => val === `Bearer ${process.env.CRON_SECRET}`,
+  { message: 'Invalid authorization token' }
+);
+
 export async function GET(request: Request) {
   try {
-    // 개발 모드에서 무차별적인 호출로 인한 타겟 서버(화성시청) WAF IP 차단 및 부하 방지 (인메모리 쿨타임 가드)
+    // 개발 모드에서 WAF 차단 방지 (쿨타임)
     if (process.env.NODE_ENV === 'development') {
       const now = Date.now();
       if (now - lastSyncExecutionTime < DEV_SYNC_COOLDOWN_MS) {
-        console.warn('[Sync-Notices] Dev mode execution throttled to prevent target WAF IP block.');
+        logger.warn('SyncLocalNoticesAPI.GET', 'Dev mode execution throttled to prevent target WAF IP block', {});
         return NextResponse.json({ 
           status: 'skipped', 
           message: 'Sync throttled in dev mode to protect target IP block. Cooldown: 30s.' 
@@ -311,23 +335,36 @@ export async function GET(request: Request) {
       lastSyncExecutionTime = now;
     }
 
-    // 1. Authorization check for production
-    const authHeader = request.headers.get('authorization');
-    if (
-      process.env.NODE_ENV !== 'development' &&
-      authHeader !== `Bearer ${process.env.CRON_SECRET}`
-    ) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // 1. Authorization check
+    if (process.env.NODE_ENV !== 'development') {
+      const authHeader = request.headers.get('authorization') || '';
+      const authResult = authHeaderSchema.safeParse(authHeader);
+      if (!authResult.success) {
+        logger.warn('SyncLocalNoticesAPI.GET', 'Unauthorized access attempt', {
+          authHeader: authHeader ? 'Present' : 'Missing',
+          error: authResult.error.message,
+        });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     if (!db) {
+      logger.error('SyncLocalNoticesAPI.GET', 'Firebase DB not initialized', {});
       return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
     }
 
-    // 2. Fetch pages (we scrape page 1 and page 2 by default, or 1 to 10 if full is true)
-    // 개발 모드에서는 디폴트 1페이지만 조회하여 부하를 최소화
+    // 2. Fetch pages
     const { searchParams } = new URL(request.url);
-    const isFull = searchParams.get('full') === 'true';
+    const parsedQuery = syncLocalNoticesQuerySchema.safeParse({
+      full: searchParams.get('full'),
+    });
+
+    if (!parsedQuery.success) {
+      logger.warn('SyncLocalNoticesAPI.GET', 'Invalid query parameters', { errors: parsedQuery.error.format() });
+      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+    }
+
+    const { full: isFull } = parsedQuery.data;
     const pages = isFull ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : (process.env.NODE_ENV === 'development' ? [1] : [1, 2, 3, 4]);
     const notices: NoticeItem[] = [];
 
@@ -343,7 +380,7 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          console.error(`Failed to fetch Source 1 board page ${page}: HTTP ${res.status}`);
+          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 1 board page ${page}`, { status: res.status });
           continue;
         }
 
@@ -354,7 +391,6 @@ export async function GET(request: Request) {
         const rows = $('table').first().find('tr');
 
         rows.each((idx, tr) => {
-          // Skip header row
           if (idx === 0) return;
 
           const tds = $(tr).find('td');
@@ -374,7 +410,7 @@ export async function GET(request: Request) {
                 ? link 
                 : `https://www.hscity.go.kr${link}`;
 
-              notices.push({
+              const item = {
                 id: `bbs_${originalId}`,
                 originalId,
                 title,
@@ -382,14 +418,21 @@ export async function GET(request: Request) {
                 dept,
                 date,
                 isDongtan: true,
-                source: 'bbs',
+                source: 'bbs' as const,
                 createdAt: new Date().toISOString()
-              });
+              };
+
+              const parsedItem = noticeItemSchema.safeParse(item);
+              if (parsedItem.success) {
+                notices.push(parsedItem.data);
+              } else {
+                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 1)', { errors: parsedItem.error.format() });
+              }
             }
           }
         });
       } catch (err) {
-        console.error(`Error scraping Source 1 page ${page}:`, err);
+        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 1 page ${page}`, {}, err as Error);
       }
     }
 
@@ -405,7 +448,7 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          console.error(`Failed to fetch Source 3 board page ${page}: HTTP ${res.status}`);
+          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 3 board page ${page}`, { status: res.status });
           continue;
         }
 
@@ -416,7 +459,6 @@ export async function GET(request: Request) {
         const rows = $('table').first().find('tr');
 
         rows.each((idx, tr) => {
-          // Skip header row
           if (idx === 0) return;
 
           const tds = $(tr).find('td');
@@ -436,7 +478,7 @@ export async function GET(request: Request) {
                 ? link 
                 : `https://www.hscity.go.kr${link}`;
 
-              notices.push({
+              const item = {
                 id: `rail_${originalId}`,
                 originalId,
                 title,
@@ -444,14 +486,21 @@ export async function GET(request: Request) {
                 dept,
                 date,
                 isDongtan: true,
-                source: 'rail',
+                source: 'rail' as const,
                 createdAt: new Date().toISOString()
-              });
+              };
+
+              const parsedItem = noticeItemSchema.safeParse(item);
+              if (parsedItem.success) {
+                notices.push(parsedItem.data);
+              } else {
+                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 3)', { errors: parsedItem.error.format() });
+              }
             }
           }
         });
       } catch (err) {
-        console.error(`Error scraping Source 3 page ${page}:`, err);
+        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 3 page ${page}`, {}, err as Error);
       }
     }
 
@@ -467,7 +516,7 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          console.error(`Failed to fetch Source 5 (Tram) board page ${page}: HTTP ${res.status}`);
+          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 5 (Tram) board page ${page}`, { status: res.status });
           continue;
         }
 
@@ -478,7 +527,6 @@ export async function GET(request: Request) {
         const rows = $('table').first().find('tr');
 
         rows.each((idx, tr) => {
-          // Skip header row
           if (idx === 0) return;
 
           const tds = $(tr).find('td');
@@ -498,7 +546,7 @@ export async function GET(request: Request) {
                 ? link 
                 : `https://www.hscity.go.kr${link}`;
 
-              notices.push({
+              const item = {
                 id: `rail_1154_${originalId}`,
                 originalId,
                 title,
@@ -506,14 +554,21 @@ export async function GET(request: Request) {
                 dept,
                 date,
                 isDongtan: true,
-                source: 'rail',
+                source: 'rail' as const,
                 createdAt: new Date().toISOString()
-              });
+              };
+
+              const parsedItem = noticeItemSchema.safeParse(item);
+              if (parsedItem.success) {
+                notices.push(parsedItem.data);
+              } else {
+                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 5)', { errors: parsedItem.error.format() });
+              }
             }
           }
         });
       } catch (err) {
-        console.error(`Error scraping Source 5 (Tram) page ${page}:`, err);
+        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 5 (Tram) page ${page}`, {}, err as Error);
       }
     }
 
@@ -544,7 +599,7 @@ export async function GET(request: Request) {
           });
 
           if (!res.ok) {
-            console.error(`Failed to fetch Source 4 board page ${page} for ${deptItem.name}: HTTP ${res.status}`);
+            logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 4 board page ${page} for ${deptItem.name}`, { status: res.status });
             continue;
           }
 
@@ -555,7 +610,6 @@ export async function GET(request: Request) {
           const rows = $('table').first().find('tr');
 
           rows.each((idx, tr) => {
-            // Skip header row
             if (idx === 0) return;
 
             const tds = $(tr).find('td');
@@ -575,7 +629,7 @@ export async function GET(request: Request) {
                   ? link 
                   : `https://www.hscity.go.kr${link}`;
 
-                notices.push({
+                const item = {
                   id: `dong_${deptItem.code}_${originalId}`,
                   originalId,
                   title,
@@ -583,14 +637,21 @@ export async function GET(request: Request) {
                   dept,
                   date,
                   isDongtan: true,
-                  source: 'dong',
+                  source: 'dong' as const,
                   createdAt: new Date().toISOString()
-                });
+                };
+
+                const parsedItem = noticeItemSchema.safeParse(item);
+                if (parsedItem.success) {
+                  notices.push(parsedItem.data);
+                } else {
+                  logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 4)', { errors: parsedItem.error.format() });
+                }
               }
             }
           });
         } catch (err) {
-          console.error(`Error scraping Source 4 page ${page} for ${deptItem.name}:`, err);
+          logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 4 page ${page} for ${deptItem.name}`, {}, err as Error);
         }
       }
     }
@@ -607,7 +668,7 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          console.error(`Failed to fetch Source 2 board page ${page}: HTTP ${res.status}`);
+          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 2 board page ${page}`, { status: res.status });
           continue;
         }
 
@@ -639,7 +700,7 @@ export async function GET(request: Request) {
             if (isDongtan) {
               const absoluteUrl = `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`;
 
-              notices.push({
+              const item = {
                 id: `gosi_${originalId}`,
                 originalId,
                 title,
@@ -647,30 +708,51 @@ export async function GET(request: Request) {
                 dept,
                 date,
                 isDongtan: true,
-                source: 'gosi',
+                source: 'gosi' as const,
                 createdAt: new Date().toISOString()
-              });
+              };
+
+              const parsedItem = noticeItemSchema.safeParse(item);
+              if (parsedItem.success) {
+                notices.push(parsedItem.data);
+              } else {
+                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 2)', { errors: parsedItem.error.format() });
+              }
             }
           }
         });
       } catch (err) {
-        console.error(`Error scraping Source 2 page ${page}:`, err);
+        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 2 page ${page}`, {}, err as Error);
       }
     }
 
     // --- Source 6: 동탄 하이퍼로컬 문화/행사/축제 생성 및 적재 ---
     const cultureEvents = generateCultureEvents();
-    notices.push(...cultureEvents);
+    cultureEvents.forEach((item) => {
+      const parsedItem = noticeItemSchema.safeParse(item);
+      if (parsedItem.success) {
+        notices.push(parsedItem.data);
+      } else {
+        logger.warn('SyncLocalNoticesAPI.GET', 'Invalid culture event notice item', { errors: parsedItem.error.format() });
+      }
+    });
 
     // --- Source 7: AI 부동산 시황 & 갭투자 리포트 생성 및 적재 ---
     const aiReports = generateAIReports(TX_SUMMARY);
-    notices.push(...aiReports);
+    aiReports.forEach((item) => {
+      const parsedItem = noticeItemSchema.safeParse(item);
+      if (parsedItem.success) {
+        notices.push(parsedItem.data);
+      } else {
+        logger.warn('SyncLocalNoticesAPI.GET', 'Invalid AI report notice item', { errors: parsedItem.error.format() });
+      }
+    });
 
     if (notices.length === 0) {
       return NextResponse.json({ success: true, count: 0, message: 'No notices scraped' });
     }
 
-    // 3. Batch save to Firestore in chunks of 500 to prevent 500 write limit crash
+    // 3. Batch save to Firestore in chunks of 500
     const collRef = db.collection('local_notices');
     let written = 0;
 
@@ -693,9 +775,9 @@ export async function GET(request: Request) {
           redis.del('DTDLS:cache:localNotices:filterDongtan:true'),
           redis.del('DTDLS:cache:localNotices:filterDongtan:false')
         ]);
-        console.log('[Sync-Notices] Redis localNotices cache invalidated successfully.');
+        logger.info('SyncLocalNoticesAPI.GET', 'Redis localNotices cache invalidated successfully', {});
       } catch (err) {
-        console.warn('[Sync-Notices] Redis cache invalidation error:', err);
+        logger.warn('SyncLocalNoticesAPI.GET', 'Redis cache invalidation error', {}, err as Error);
       }
     }
 
@@ -703,11 +785,11 @@ export async function GET(request: Request) {
       success: true,
       scrapedCount: notices.length,
       writtenCount: written,
-      notices: notices.slice(0, 5) // Return sample for debug
+      notices: notices.slice(0, 5)
     });
 
   } catch (error: unknown) {
-    console.error('Error syncing local notices:', error);
+    logger.error('SyncLocalNoticesAPI.GET', 'Error syncing local notices', {}, error as Error);
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
