@@ -1,18 +1,30 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { sendMail } from '@/lib/mailService';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
+
+const subscribeSchema = z.object({
+  email: z.string().email('유효한 이메일 주소를 입력해주세요.').max(100).trim().toLowerCase(),
+  types: z.object({
+    realtime: z.boolean().optional(),
+    weekly: z.boolean().optional(),
+  }).optional(),
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, types } = body;
-
-    // 1. 유효성 검사
-    if (!email || !email.includes('@')) {
-      return NextResponse.json({ error: '유효한 이메일 주소를 입력해주세요.' }, { status: 400 });
+    const parsed = subscribeSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      logger.warn('SubscribeAPI.POST', 'Invalid subscription payload', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
     }
+
+    const { email, types } = parsed.data;
 
     if (!db) {
       return NextResponse.json({ error: '데이터베이스 연결이 비활성화 상태입니다.' }, { status: 500 });
@@ -26,14 +38,14 @@ export async function POST(request: Request) {
     }
 
     // 2. Firestore 저장 (subscriptions 컬렉션)
-    const docRef = db.collection('subscriptions').doc(email.trim().toLowerCase());
+    const docRef = db.collection('subscriptions').doc(email);
     
     // 기존 데이터 존재 여부 확인 후 병합
     const docSnap = await docRef.get();
     const now = new Date();
     
     const dataToSave = {
-      email: email.trim().toLowerCase(),
+      email,
       realtime,
       weekly,
       status: 'active' as const,
@@ -68,7 +80,7 @@ export async function POST(request: Request) {
           <!-- Subscription Box -->
           <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 30px;">
             <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-              <tr>
+               <tr>
                 <td style="color: #64748b; width: 90px; padding: 6px 0; font-weight: bold;">이메일</td>
                 <td style="color: #334155; padding: 6px 0; font-weight: 600;">${email}</td>
               </tr>
@@ -100,7 +112,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Subscription API Error:', error);
+    logger.error('SubscribeAPI.POST', 'Subscription API Error', {}, error as Error);
     return NextResponse.json({ error: error.message || '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 }

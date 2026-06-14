@@ -1,14 +1,26 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
+
+const unsubscribeQuerySchema = z.object({
+  email: z.string().email('유효한 이메일 주소를 입력해주세요.').max(100).trim().toLowerCase(),
+});
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const email = searchParams.get('email');
+    const emailParam = searchParams.get('email');
 
-    if (!email || !email.includes('@')) {
+    const parsed = unsubscribeQuerySchema.safeParse({ email: emailParam });
+
+    if (!parsed.success) {
+      logger.warn('UnsubscribeAPI.GET', 'Invalid unsubscribe parameters', {
+        email: emailParam,
+        errors: parsed.error.format(),
+      });
       return new NextResponse(
         `<html>
           <head>
@@ -35,15 +47,18 @@ export async function GET(request: Request) {
       );
     }
 
+    const { email } = parsed.data;
+
     if (!db) {
+      logger.error('UnsubscribeAPI.GET', 'Database is offline', {});
       throw new Error('Database is offline');
     }
 
-    const emailKey = email.trim().toLowerCase();
-    const docRef = db.collection('subscriptions').doc(emailKey);
+    const docRef = db.collection('subscriptions').doc(email);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
+      logger.warn('UnsubscribeAPI.GET', 'Subscription not found', { email });
       return new NextResponse(
         `<html>
           <head>
@@ -61,7 +76,7 @@ export async function GET(request: Request) {
           <body>
             <div class="card">
               <h1>정보를 찾을 수 없음</h1>
-              <p>구독자로 등록되지 않은 이메일 주소(${emailKey})입니다. 이미 구독이 해지되었거나 잘못된 메일 주소일 수 있습니다.</p>
+              <p>구독자로 등록되지 않은 이메일 주소(${email})입니다. 이미 구독이 해지되었거나 잘못된 메일 주소일 수 있습니다.</p>
               <a href="/" class="btn">D-VIEW 홈으로 이동</a>
             </div>
           </body>
@@ -97,7 +112,7 @@ export async function GET(request: Request) {
           <div class="card">
             <div class="icon">✓</div>
             <h1>알림 구독이 해지되었습니다</h1>
-            <p><span class="email-badge">${emailKey}</span> 계정으로 발송되던 D-VIEW 실거래 소식 및 리포트 발송이 정상적으로 중단되었습니다.</p>
+            <p><span class="email-badge">${email}</span> 계정으로 발송되던 D-VIEW 실거래 소식 및 리포트 발송이 정상적으로 중단되었습니다.</p>
             <a href="/" class="btn">D-VIEW 데이터 랩 가기</a>
           </div>
         </body>
@@ -105,7 +120,7 @@ export async function GET(request: Request) {
       { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 200 }
     );
   } catch (error: any) {
-    console.error('Unsubscribe API Error:', error);
+    logger.error('UnsubscribeAPI.GET', 'Unsubscribe API Error', {}, error as Error);
     return new NextResponse(
       `<html>
         <head>
