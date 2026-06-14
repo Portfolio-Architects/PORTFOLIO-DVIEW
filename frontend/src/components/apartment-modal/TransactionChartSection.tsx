@@ -485,7 +485,6 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   ]}
                   tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
                   tickLine={false} tickMargin={6}
-                  nice={false as any}
                   allowDataOverflow={true}
                   tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}년 ${String(d.getMonth()+1).padStart(2,'0')}월`; }}
                 />
