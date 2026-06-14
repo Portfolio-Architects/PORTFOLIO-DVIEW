@@ -44,6 +44,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   useSwipeNavigation({ onBack: () => isModal ? router.back() : router.back() });
 
   const lastCommentTimeRef = useRef<number>(0);
+  const commentLockRef = useRef<boolean>(false);
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -322,6 +323,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   };
 
   const handleComment = async () => {
+    if (commentLockRef.current) return;
     if (!commentText.trim()) return;
     
     // 글자수 제한 방어
@@ -337,6 +339,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       return;
     }
 
+    commentLockRef.current = true;
     setIsSending(true);
     try {
       let displayName = '익명이웃';
@@ -364,6 +367,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       alert('댓글 작성에 실패했습니다.');
     } finally {
       setIsSending(false);
+      commentLockRef.current = false;
     }
   };
 

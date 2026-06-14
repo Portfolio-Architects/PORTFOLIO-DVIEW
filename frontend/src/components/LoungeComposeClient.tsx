@@ -23,6 +23,7 @@ interface Props {
 export default function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
   const router = useRouter();
   const { showToast } = usePWA();
+  const submitLockRef = useRef(false);
   const [user, setUser] = useState<User | null>(null);
   const [footerOffset, setFooterOffset] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -277,7 +278,9 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
               </div>
               <button
                 onClick={async () => {
+                  if (submitLockRef.current) return;
                   if (!user || !postTitle.trim()) return;
+                  submitLockRef.current = true;
                   setIsSubmitting(true);
                   try {
                     await dashboardFacade.addPost(
@@ -310,8 +313,13 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
 
                     // Refresh the route to show the new post from the server component
                     router.refresh();
-                  } catch { alert('글 작성에 실패했습니다.'); }
-                  finally { setIsSubmitting(false); }
+                  } catch {
+                    alert('글 작성에 실패했습니다.');
+                    submitLockRef.current = false;
+                  }
+                  finally {
+                    setIsSubmitting(false);
+                  }
                 }}
                 disabled={isSubmitting || !postTitle.trim()}
                 className="flex items-center gap-2 px-6 py-3 bg-[#008262] hover:bg-[#006b50] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95 shadow-sm shadow-[#008262]/10"
