@@ -1,7 +1,25 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
+
+// 보안 및 데이터 정합성: GA4 API 응답 및 Mock 데이터 검증용 스키마 정의
+const popularAptItemSchema = z.object({
+  aptName: z.string().min(1),
+  views: z.number().nonnegative(),
+});
+const popularAptListSchema = z.array(popularAptItemSchema);
+
+const ga4RowSchema = z.object({
+  dimensionValues: z.array(z.object({ value: z.string().nullable().optional() })).optional().nullable(),
+  metricValues: z.array(z.object({ value: z.string().nullable().optional() })).optional().nullable(),
+}).optional().nullable();
+
+const ga4ResponseSchema = z.object({
+  rows: z.array(ga4RowSchema).optional().nullable(),
+});
 
 export async function GET() {
   const propertyId = process.env.GA4_PROPERTY_ID;
@@ -25,7 +43,7 @@ export async function GET() {
     const minutes = new Date().getMinutes();
     const seconds = new Date().getSeconds();
     
-    const data = mockApts
+    const rawData = mockApts
       .map((apt, idx) => {
         // 시간에 따라 랭킹 가중치가 유동적으로 변하게 함
         const noise = Math.sin(minutes + idx) * 15 + Math.cos(seconds + idx) * 5;
@@ -35,7 +53,13 @@ export async function GET() {
       .sort((a, b) => b.views - a.views)
       .slice(0, 5);
 
-    return NextResponse.json({ success: true, isMock: true, data });
+    const parsed = popularAptListSchema.safeParse(rawData);
+    if (!parsed.success) {
+      logger.warn('RealtimePopularAPI.GET', 'Mock popular apt list schema mismatch', { errors: parsed.error.format() });
+      return NextResponse.json({ success: true, isMock: true, data: rawData });
+    }
+
+    return NextResponse.json({ success: true, isMock: true, data: parsed.data });
   }
 
   try {
@@ -62,9 +86,16 @@ export async function GET() {
       limit: 20,
     });
 
-    const popularApts: Record<string, number> = {};
+    const parsedResponse = ga4ResponseSchema.safeParse(response);
+    if (!parsedResponse.success) {
+      logger.warn('RealtimePopularAPI.GET', 'GA4 runRealtimeReport response schema mismatch', { errors: parsedResponse.error.format() });
+    }
 
-    response.rows?.forEach((row: any) => {
+    const popularApts: Record<string, number> = {};
+    const rows = parsedResponse.success ? parsedResponse.data.rows : response.rows;
+
+    rows?.forEach((row: any) => {
+      if (!row) return;
       const path = row.dimensionValues?.[0]?.value || '';
       const views = parseInt(row.metricValues?.[0]?.value || '0', 10);
       
@@ -104,10 +135,16 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ success: true, isMock: false, data: sortedData });
+    const finalParsed = popularAptListSchema.safeParse(sortedData);
+    if (!finalParsed.success) {
+      logger.warn('RealtimePopularAPI.GET', 'Final popular apt list schema mismatch', { errors: finalParsed.error.format() });
+      return NextResponse.json({ success: true, isMock: false, data: sortedData });
+    }
+
+    return NextResponse.json({ success: true, isMock: false, data: finalParsed.data });
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
-    console.error('GA4 Realtime Report Error:', error);
+    logger.error('RealtimePopularAPI.GET', 'GA4 Realtime Report Error', {}, error as Error);
     return NextResponse.json({ success: false, error: errMessage }, { status: 500 });
   }
 }
