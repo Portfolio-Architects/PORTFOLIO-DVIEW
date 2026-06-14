@@ -457,24 +457,24 @@ function FieldReportModal({
     switch (theme) {
       case 'gap':
         return {
-          title: `🚀 갭투자 추천! ${aptName}`,
-          desc: `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%! 예산 맞춤 갭투자 가능 여부를 D-VIEW에서 바로 조회해보세요.`
+          title: `💸 실투자금 얼마? ${aptName} 갭투자 가치분석`,
+          desc: `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%! 내 예산 맞춤 소액 갭투자 진단 결과를 D-VIEW에서 1초 만에 조회해보세요.`
         };
       case 'school':
         return {
-          title: `🏫 학세권&초품아 정보: ${aptName}`,
-          desc: `도보 통학이 가능한 학군 분석 완료. 최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}% 정보를 지금 확인해보세요.`
+          title: `🏫 동탄 맘카페 난리난 초품아/학세권 분석: ${aptName}`,
+          desc: `안심 도보 통학로 및 학원가 셔틀 정보 탑재. 최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%의 상세 분석을 지금 확인해보세요.`
         };
       case 'deal':
         return {
-          title: `📉 최신 실거래 정보: ${aptName}`,
-          desc: `최근 실거래 ${priceStr} (전세가율 ${ratio.toFixed(1)}%). 급매 여부 및 세부 등락 트렌드를 D-VIEW에서 체크하세요.`
+          title: `📉 고점 대비 얼마나 빠졌을까? ${aptName} 실거래 분석`,
+          desc: `최근 실거래 ${priceStr} (전세가율 ${ratio.toFixed(1)}%). 역대 최고가 대비 하락폭과 급매물 매수 타이밍을 D-VIEW에서 체크하세요.`
         };
       case 'value':
       default:
         return {
-          title: `🧐 지금 사면 호구일까? ${aptName} 가치분석`,
-          desc: `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`
+          title: `🧐 지금 사면 호구될까? ${aptName} 가치분석 리포트`,
+          desc: `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`
         };
     }
   };
@@ -1275,17 +1275,17 @@ function FieldReportModal({
     const eduScoreInfo = report.metrics ? calculateEducationScore(report.metrics) : null;
     const infraScoreInfo = report.metrics ? calculateInfraScore(report.metrics) : null;
 
-    const summaryText = `🏠 동탄 ${displayAptName} 가치분석 요약 📊
-🔥 "동탄 부동산 3040이 선택한 가장 정확한 아파트 분석!"
-💬 동탄 엄마·아빠 단톡방 화제의 리포트
+    const summaryText = `🏠 [가치분석] 동탄 ${displayAptName} 실거래 & 인프라 요약 📊
+🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"
+👉 지금 매수해도 안전할까요? 호구 방지 가치분석 결과:
 
 💸 최근 실거래가: ${latestPrice}${latestArea ? ` (전용 ${latestArea})` : ''}
-${eduScoreInfo ? `🏫 학군/육아 환경 지수: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description}\n` : ''}${infraScoreInfo ? `🚇 입지/교통 인프라 지수: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description}\n` : ''}
-👀 우리 아이 키우기에 이 단지가 진짜 좋을까요?
-💡 최근 실거래 상승/하락 추이와 학원 셔틀, 역세권 호재까지 D-VIEW에서 1초 만에 확인해 보세요!
+${eduScoreInfo ? `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n` : ''}${infraScoreInfo ? `🚇 교통/생활 입지: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n` : ''}
+👀 적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!
+💡 실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.
 👉 ${shareUrl}
 
-#DVIEW #동탄부동산 #가치분석 #아파트실거래 #육아소통 #동탄맘 #신혼부부`;
+#DVIEW #동탄부동산 #가치분석 #아파트실거래 #학세권 #동탄맘 #신혼부부`;
 
     navigator.clipboard.writeText(summaryText).then(() => {
       showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");

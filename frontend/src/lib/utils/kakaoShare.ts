@@ -234,13 +234,13 @@ export const shareAptToKakao = async (params: ShareAptParams) => {
       }
     }
 
-    const description = customDesc || `최근 실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n현재 D-VIEW에서 10년 치 트렌드를 확인하세요.`;
+    const description = customDesc || `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`;
     const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
 
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: customTitle || `${aptName}, 지금 사면 호구일까?`,
+        title: customTitle || `🧐 지금 사면 호구될까? ${aptName} 가치분석 리포트`,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,
@@ -403,13 +403,13 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams) 
     const baseUrl = window.location.origin;
     const finalImageUrl = `${baseUrl}/api/og?type=jeonse&title=${encodeURIComponent(aptName)}&status=${encodeURIComponent(riskLabel)}&ratio=${debtRatio.toFixed(1)}&price=${encodeURIComponent(marketPriceStr)}&lien=${encodeURIComponent(lienStr)}&totalDebt=${encodeURIComponent(totalDebtStr)}`;
 
-    const description = `매매시세: ${marketPriceStr}\n보증금: ${jeonseStr} | 융자금: ${lienStr}\n부채비율: ${debtRatio.toFixed(1)}% [${riskLabel}]`;
+    const description = `🚨 HUG 보증보험 가입 여부 및 경매 낙찰 안전마진 진단 결과:\n보증금 ${jeonseStr} | 부채비율 ${debtRatio.toFixed(1)}% [${riskLabel}]\n소중한 보증금 반환 안전 지수를 D-VIEW에서 1초 만에 진단받으세요!`;
     const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=kakaotalk&utm_medium=share&utm_campaign=jeonse_share`;
 
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: `[전세 안전진단] ${aptName} (${dong})`,
+        title: `⚠️ 내 전세금, 깡통전세 위험은? [${aptName} 안전진단]`,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,
