@@ -26,6 +26,7 @@ interface PWAContextType {
   pushSubscription: PushSubscription | null;
   subscribeToPush: (uid?: string | null) => Promise<boolean>;
   showToast: (message: string) => void;
+  isIOS: boolean;
 }
 
 const PWAContext = createContext<PWAContextType>({
@@ -39,6 +40,7 @@ const PWAContext = createContext<PWAContextType>({
   pushSubscription: null,
   subscribeToPush: async () => false,
   showToast: () => {},
+  isIOS: false,
 });
 
 export const usePWA = () => useContext(PWAContext);
@@ -65,6 +67,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [showCustomA2HSModal, setShowCustomA2HSModal] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   
   // Push Notification state
   const [isPushSupported, setIsPushSupported] = useState(false);
@@ -80,6 +83,18 @@ export function PWAProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('dview-swr-cache');
       }
     } catch {}
+
+    // iOS detection and manual installation guide eligibility
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isIphone = ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod');
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+
+    if (isIphone) {
+      setIsIOS(true);
+      if (!isStandalone) {
+        setIsInstallable(true);
+      }
+    }
 
     // 🔧 Multi-tab LocalStorage synchronization
     const handleStorageChange = (e: StorageEvent) => {
@@ -153,6 +168,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const triggerA2HSPrompt = async () => {
+    if (isIOS) return false;
     if (!deferredPrompt) return false;
     
     await deferredPrompt.prompt();
@@ -167,7 +183,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   };
 
   const triggerCustomA2HSModal = () => {
-    if (isInstallable && deferredPrompt) {
+    if (isInstallable && (deferredPrompt || isIOS)) {
       setShowCustomA2HSModal(true);
     }
   };
@@ -232,6 +248,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
         pushSubscription,
         subscribeToPush,
         showToast,
+        isIOS,
       }}
     >
       {children}
