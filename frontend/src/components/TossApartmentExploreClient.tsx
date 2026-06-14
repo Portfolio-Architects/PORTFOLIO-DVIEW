@@ -688,7 +688,7 @@ export default function TossApartmentExploreClient({
       {/* Standardized Hero Header */}
       <div className="shrink-0">
         <PageHeroHeader 
-          title="D-VIEW 아파트 탐색"
+          title="D-VIEW 실거래"
           subtitleStrong="동탄 전역 아파트 비교 분석"
           subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
         />

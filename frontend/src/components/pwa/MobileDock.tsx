@@ -18,7 +18,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
-          { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/explore' },
+          { id: 'imjang' as const, label: '실거래', icon: Home, href: '/explore' },
           { id: 'gap' as const, label: '큐레이션', icon: Coins, href: '/#gap' },
           { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/#lounge' },
         ].map(tab => {

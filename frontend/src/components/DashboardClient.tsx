@@ -881,7 +881,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
               >
                 <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>아파트 탐색</span>
+                <span>실거래</span>
               </button>
               
               <button
