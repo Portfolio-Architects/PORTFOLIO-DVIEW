@@ -301,10 +301,10 @@ export function useTxData(
     };
   }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
     fallbackData: initialTxSummary ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
-    revalidateOnFocus: true,
-    revalidateIfStale: true,
-    revalidateOnReconnect: true,
-    dedupingInterval: 300000
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 3600000 // 1 hour cache
   });
 
   // 2. Firestore 실시간 최근 7일 거래 페칭
@@ -312,10 +312,10 @@ export function useTxData(
     shouldFetch ? 'recent-firestore-txs' : null,
     fetchRecentTxsFromFirestore,
     {
-      revalidateOnFocus: true,
-      revalidateIfStale: true,
-      revalidateOnReconnect: true,
-      dedupingInterval: 60000 // 1 minute cache for real-time check
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 300000 // 5 minutes cache to prevent spamming Firestore reads
     }
   );
 
