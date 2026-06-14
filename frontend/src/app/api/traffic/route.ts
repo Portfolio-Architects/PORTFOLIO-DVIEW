@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,8 @@ export async function POST(request: NextRequest) {
     const parsed = trafficSchema.safeParse(rawBody);
     
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Bad Request: Invalid Payload' }, { status: 400 });
+      logger.warn('TrafficAPI.POST', 'Invalid traffic payload', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
     }
     
     const { action, contentId, title, type } = parsed.data;
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: 'Action failed' }, { status: 400 });
   } catch (error: unknown) {
-    console.error('[Traffic API] Error:', error);
+    logger.error('TrafficAPI.POST', 'Failed to record traffic', {}, error as Error);
     return NextResponse.json({ error: 'Internal server error', details: (error as Error)?.message }, { status: 500 });
   }
 }
