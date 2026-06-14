@@ -8,7 +8,7 @@ import coordCorrections from '../../../public/data/coordinate-corrections.json';
 import typeMapStatic from '../../../public/data/type-map.json';
 import apartmentsByDongStatic from '../../../public/data/apartments-by-dong.json';
 import { FULL_DONG_DATA } from '../dong-apartments';
-import { normalizeAptName } from '../utils/apartmentMapping';
+import { normalizeAptName, isSameApartment } from '../utils/apartmentMapping';
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
@@ -302,11 +302,10 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
   }
 
   // 1-1. FULL_DONG_DATA와 비교하여 구글 시트에 누락된 아파트를 기본값으로 채워 넣음 (Defensive Data Integration)
-  const existingAptNames = new Set(apartments.map(a => normalizeAptName(a.name)));
   for (const [dongName, aptNames] of Object.entries(FULL_DONG_DATA)) {
     for (const aptName of aptNames) {
-      const normalized = normalizeAptName(aptName);
-      if (!existingAptNames.has(normalized)) {
+      const alreadyExists = apartments.some(a => isSameApartment(a.name, aptName));
+      if (!alreadyExists) {
         const fallbackApt: SheetApartment = {
           name: aptName,
           dong: dongName,
@@ -317,7 +316,6 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
         const parsed = SheetApartmentSchema.safeParse(fallbackApt);
         if (parsed.success) {
           apartments.push(parsed.data);
-          existingAptNames.add(normalized);
         }
       }
     }

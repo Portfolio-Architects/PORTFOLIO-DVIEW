@@ -80,12 +80,19 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '동탄2신도시금강펜테리움': '여울동금강펜테리움센트럴파크',
   '동탄나루마을동탄역유보라': '나루마을동탄역유보라여울숲1.0',
   '동탄역시범우남퍼스트빌': '동탄역시범우남퍼스트빌아파트',
+  '동탄호수공원금강펜테리움센트럴파크2차': '호수공원금강펜테리움센트럴파크Ⅱ',
+  '동탄호수공원금강펜테리움센트럴파크2': '호수공원금강펜테리움센트럴파크Ⅱ',
+  '금강펜테리움센트럴파크4차': '목동금강펜테리움센트럴파크4차',
 };
 
 const DISPLAY_NAME_MAPPING: Record<string, string> = {
   '동탄풍성신미주': '동탄역 신미주',
   '그린힐반도유보라아이비파크101단지': '그린힐 반도유보라 아이비파크 10단지',
   '레이크힐반도유보라아이비파크10.2': '레이크힐 반도유보라 아이비파크 10-2단지',
+  '동탄역시범금강펜테리움센트럴파크Ⅲ': '동탄역 시범 금강펜테리움 센트럴파크 3차',
+  '동탄역시범금강펜테리움센트럴파크3': '동탄역 시범 금강펜테리움 센트럴파크 3차',
+  '호수공원금강펜테리움센트럴파크Ⅱ': '동탄호수공원 금강펜테리움 센트럴파크 2차',
+  '목동금강펜테리움센트럴파크4차': '금강펜테리움 센트럴파크 4차',
 };
 
 // Validate mapping structures at startup
@@ -143,6 +150,11 @@ export function isSameApartment(
 
   // 하드코딩 매핑 체크 (양방향)
   if (HARDCODED_MAPPING[a] === b || HARDCODED_MAPPING[b] === a) return true;
+
+  // 심층 정규화 비교 (로마숫자, '차' 등)
+  const da = deepNormalize(a);
+  const db = deepNormalize(b);
+  if (da === db) return true;
   
   // 수동 매핑 체크
   if (mMapping) {
@@ -374,7 +386,14 @@ export function findTxKey<T>(
 
   // 0단계: 수동 매핑 (최우선)
   if (vManualMapping) {
-    const mapped = vManualMapping[vAptName] || vManualMapping[norm];
+    let mapped = vManualMapping[vAptName] || vManualMapping[norm];
+    if (!mapped) {
+      // isSameApartment를 활용한 역방향 매핑 키 탐색 시도
+      const matchedKey = Object.keys(vManualMapping).find(k => isSameApartment(k, vAptName, vManualMapping));
+      if (matchedKey) {
+        mapped = vManualMapping[matchedKey];
+      }
+    }
     if (mapped && mapped in normalizedTxMap) {
       const res = normalizedTxMap[mapped];
       resolvedMap.set(cacheKey, res);
