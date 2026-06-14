@@ -187,11 +187,11 @@ export default function GapInvestmentExplorer({
     return `${priceMan.toLocaleString()}만`;
   };
 
-  // Find all complexes and compute their gap info
-  const allValidGapItems = useMemo(() => {
+  // Find all complexes, compute their gap info, and collect overall stats in a single pass
+  const gapData = useMemo(() => {
     const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
     
-    return allApts.map(apt => {
+    const items = allApts.map(apt => {
       const rawKey = apt.txKey || apt.name;
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
       const sum = txSummaryData[txKey];
@@ -244,42 +244,63 @@ export default function GapInvestmentExplorer({
         pyeongPrice,
       };
     }).filter(item => item.sales > 0 && item.jeonse > 0 && item.gap > 0 && !isNaN(item.gap) && !isNaN(item.ratio));
-  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
 
-  // Overall Statistics for Analytics Board
-  const avgJeonseRate = useMemo(() => {
-    if (allValidGapItems.length === 0) return 0;
-    const validItems = allValidGapItems.filter(item => !isNaN(item.ratio) && isFinite(item.ratio));
-    if (validItems.length === 0) return 0;
-    const sum = validItems.reduce((acc, item) => acc + item.ratio, 0);
-    return Math.round((sum / validItems.length) * 100);
-  }, [allValidGapItems]);
+    // Collect all statistics in a single O(N) pass to prevent multiple array traversals
+    let ratioSum = 0;
+    let validRatioCount = 0;
+    let lowGap = 0;
+    let highRatioCount = 0;
+    let minGapVal = Infinity;
+    let minGapObj: any = null;
+    const dongSet = new Set<string>();
 
-  const lowGapCount = useMemo(() => {
-    return allValidGapItems.filter(item => item.gap <= 15000).length;
-  }, [allValidGapItems]);
-
-  const highJeonseRatio = useMemo(() => {
-    if (allValidGapItems.length === 0) return 0;
-    const count = allValidGapItems.filter(item => item.ratio >= 0.7).length;
-    return Math.round((count / allValidGapItems.length) * 100);
-  }, [allValidGapItems]);
-
-  const minGapItem = useMemo(() => {
-    if (allValidGapItems.length === 0) return null;
-    return [...allValidGapItems].sort((a, b) => a.gap - b.gap)[0];
-  }, [allValidGapItems]);
-
-  // Dynamic Dongs List
-  const dongsList = useMemo(() => {
-    const set = new Set<string>();
-    allValidGapItems.forEach(item => {
+    items.forEach(item => {
+      // 1. ratio statistics
+      if (!isNaN(item.ratio) && isFinite(item.ratio)) {
+        ratioSum += item.ratio;
+        validRatioCount++;
+      }
+      // 2. low gap count
+      if (item.gap <= 15000) {
+        lowGap++;
+      }
+      // 3. high ratio count
+      if (item.ratio >= 0.7) {
+        highRatioCount++;
+      }
+      // 4. track min gap (O(N) search instead of O(N log N) sort)
+      if (item.gap < minGapVal) {
+        minGapVal = item.gap;
+        minGapObj = item;
+      }
+      // 5. collect dongs
       if (item.apt.dong) {
-        set.add(item.apt.dong);
+        dongSet.add(item.apt.dong);
       }
     });
-    return Array.from(set).sort();
-  }, [allValidGapItems]);
+
+    const avgJeonseRateVal = validRatioCount > 0 ? Math.round((ratioSum / validRatioCount) * 100) : 0;
+    const highJeonseRatioVal = items.length > 0 ? Math.round((highRatioCount / items.length) * 100) : 0;
+    const sortedDongs = Array.from(dongSet).sort();
+
+    return {
+      items,
+      avgJeonseRate: avgJeonseRateVal,
+      lowGapCount: lowGap,
+      highJeonseRatio: highJeonseRatioVal,
+      minGapItem: minGapObj,
+      dongsList: sortedDongs
+    };
+  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
+
+  const {
+    items: allValidGapItems,
+    avgJeonseRate,
+    lowGapCount,
+    highJeonseRatio,
+    minGapItem,
+    dongsList
+  } = gapData;
 
   // Filter and Sort the Gap list
   const gapList = useMemo(() => {
