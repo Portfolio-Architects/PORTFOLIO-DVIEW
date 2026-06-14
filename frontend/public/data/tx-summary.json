@@ -402,7 +402,7 @@
           "dateLabel": "5월 15일"
         }
       ],
-      "rentTxCount": 1171,
+      "rentTxCount": 945,
       "latestRentDeposit": 44273,
       "latestRentDepositEok": "4억4,273",
       "latestRentMonthly": 180,
@@ -814,7 +814,7 @@
           "dateLabel": "4월 4일"
         }
       ],
-      "rentTxCount": 619,
+      "rentTxCount": 495,
       "latestRentDeposit": 29000,
       "latestRentDepositEok": "2억9,000",
       "latestRentMonthly": 0,
@@ -1228,7 +1228,7 @@
           "dateLabel": "3월 27일"
         }
       ],
-      "rentTxCount": 2175,
+      "rentTxCount": 1778,
       "latestRentDeposit": 27300,
       "latestRentDepositEok": "2억7,300",
       "latestRentMonthly": 0,
@@ -1643,7 +1643,7 @@
           "dateLabel": "4월 16일"
         }
       ],
-      "rentTxCount": 562,
+      "rentTxCount": 419,
       "latestRentDeposit": 34545,
       "latestRentDepositEok": "3억4,545",
       "latestRentMonthly": 140,
@@ -2055,7 +2055,7 @@
           "dateLabel": "2월 28일"
         }
       ],
-      "rentTxCount": 1045,
+      "rentTxCount": 779,
       "latestRentDeposit": 52000,
       "latestRentDepositEok": "5억2,000",
       "latestRentMonthly": 0,
@@ -2474,7 +2474,7 @@
           "dateLabel": "4월 11일"
         }
       ],
-      "rentTxCount": 535,
+      "rentTxCount": 421,
       "latestRentDeposit": 39375,
       "latestRentDepositEok": "3억9,375",
       "latestRentMonthly": 0,
@@ -2886,7 +2886,7 @@
           "dateLabel": "4월 18일"
         }
       ],
-      "rentTxCount": 560,
+      "rentTxCount": 416,
       "latestRentDeposit": 49000,
       "latestRentDepositEok": "4억9,000",
       "latestRentMonthly": 0,
@@ -3298,7 +3298,7 @@
           "dateLabel": "12월 22일"
         }
       ],
-      "rentTxCount": 330,
+      "rentTxCount": 266,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,
@@ -3713,7 +3713,7 @@
           "dateLabel": "4월 30일"
         }
       ],
-      "rentTxCount": 685,
+      "rentTxCount": 636,
       "latestRentDeposit": 14044,
       "latestRentDepositEok": "1억4,044",
       "latestRentMonthly": 31,
@@ -4126,15 +4126,15 @@
           "dateLabel": "4월 24일"
         }
       ],
-      "rentTxCount": 1203,
+      "rentTxCount": 931,
       "latestRentDeposit": 35000,
       "latestRentDepositEok": "3억5,000",
       "latestRentMonthly": 0,
       "latestRentDate": "20260612",
       "avg1MRentDeposit": 32500,
       "avg1MRentDepositEok": "3억2,500",
-      "avg3MRentDeposit": 31100,
-      "avg3MRentDepositEok": "3억1,100"
+      "avg3MRentDeposit": 31000,
+      "avg3MRentDepositEok": "3억1,000"
     },
     "시범한빛마을금호어울림": {
       "dong": "반송동",
@@ -4546,7 +4546,7 @@
           "dateLabel": "2월 7일"
         }
       ],
-      "rentTxCount": 1608,
+      "rentTxCount": 1361,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -4965,7 +4965,7 @@
           "dateLabel": "12월 7일"
         }
       ],
-      "rentTxCount": 1707,
+      "rentTxCount": 1420,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -5389,7 +5389,7 @@
           "dateLabel": "4월 18일"
         }
       ],
-      "rentTxCount": 1228,
+      "rentTxCount": 998,
       "latestRentDeposit": 55000,
       "latestRentDepositEok": "5억5,000",
       "latestRentMonthly": 0,
@@ -5804,7 +5804,7 @@
           "dateLabel": "3월 14일"
         }
       ],
-      "rentTxCount": 1108,
+      "rentTxCount": 913,
       "latestRentDeposit": 41000,
       "latestRentDepositEok": "4억1,000",
       "latestRentMonthly": 165,
@@ -6223,7 +6223,7 @@
           "dateLabel": "5월 16일"
         }
       ],
-      "rentTxCount": 1600,
+      "rentTxCount": 1206,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -6635,7 +6635,7 @@
           "dateLabel": "3월 30일"
         }
       ],
-      "rentTxCount": 1069,
+      "rentTxCount": 821,
       "latestRentDeposit": 35727,
       "latestRentDepositEok": "3억5,727",
       "latestRentMonthly": 150,
@@ -7045,7 +7045,7 @@
           "dateLabel": "6월 3일"
         }
       ],
-      "rentTxCount": 223,
+      "rentTxCount": 175,
       "latestRentDeposit": 37500,
       "latestRentDepositEok": "3억7,500",
       "latestRentMonthly": 0,
@@ -7459,7 +7459,7 @@
           "dateLabel": "3월 22일"
         }
       ],
-      "rentTxCount": 799,
+      "rentTxCount": 488,
       "latestRentDeposit": 45545,
       "latestRentDepositEok": "4억5,545",
       "latestRentMonthly": 140,
@@ -7871,7 +7871,7 @@
           "dateLabel": "1월 26일"
         }
       ],
-      "rentTxCount": 872,
+      "rentTxCount": 744,
       "latestRentDeposit": 53000,
       "latestRentDepositEok": "5억3,000",
       "latestRentMonthly": 220,
@@ -8285,7 +8285,7 @@
           "dateLabel": "5월 1일"
         }
       ],
-      "rentTxCount": 410,
+      "rentTxCount": 323,
       "latestRentDeposit": 35727,
       "latestRentDepositEok": "3억5,727",
       "latestRentMonthly": 150,
@@ -8701,7 +8701,7 @@
           "dateLabel": "4월 10일"
         }
       ],
-      "rentTxCount": 1258,
+      "rentTxCount": 1009,
       "latestRentDeposit": 51455,
       "latestRentDepositEok": "5억1,455",
       "latestRentMonthly": 190,
@@ -9116,7 +9116,7 @@
           "dateLabel": "1월 24일"
         }
       ],
-      "rentTxCount": 187,
+      "rentTxCount": 143,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -9534,7 +9534,7 @@
           "dateLabel": "5월 16일"
         }
       ],
-      "rentTxCount": 1192,
+      "rentTxCount": 975,
       "latestRentDeposit": 24150,
       "latestRentDepositEok": "2억4,150",
       "latestRentMonthly": 0,
@@ -9949,7 +9949,7 @@
           "dateLabel": "3월 21일"
         }
       ],
-      "rentTxCount": 781,
+      "rentTxCount": 613,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,
@@ -9975,7 +9975,7 @@
       },
       "minPrice": 27500,
       "minPriceEok": "2억7,500",
-      "txCount": 988,
+      "txCount": 989,
       "avg1MPrice": 69500,
       "avg1MPriceEok": "6억9,500",
       "avg1MPerPyeong": 2147,
@@ -10361,7 +10361,7 @@
           "dateLabel": "5월 9일"
         }
       ],
-      "rentTxCount": 1848,
+      "rentTxCount": 1504,
       "latestRentDeposit": 44909,
       "latestRentDepositEok": "4억4,909",
       "latestRentMonthly": 160,
@@ -10774,7 +10774,7 @@
           "dateLabel": "2월 14일"
         }
       ],
-      "rentTxCount": 505,
+      "rentTxCount": 386,
       "latestRentDeposit": 38818,
       "latestRentDepositEok": "3억8,818",
       "latestRentMonthly": 155,
@@ -11188,7 +11188,7 @@
           "dateLabel": "12월 11일"
         }
       ],
-      "rentTxCount": 623,
+      "rentTxCount": 525,
       "latestRentDeposit": 31500,
       "latestRentDepositEok": "3억1,500",
       "latestRentMonthly": 0,
@@ -11604,7 +11604,7 @@
           "dateLabel": "11월 22일"
         }
       ],
-      "rentTxCount": 997,
+      "rentTxCount": 837,
       "latestRentDeposit": 49000,
       "latestRentDepositEok": "4억9,000",
       "latestRentMonthly": 0,
@@ -12016,7 +12016,7 @@
           "dateLabel": "1월 21일"
         }
       ],
-      "rentTxCount": 367,
+      "rentTxCount": 287,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -12431,7 +12431,7 @@
           "dateLabel": "4월 13일"
         }
       ],
-      "rentTxCount": 698,
+      "rentTxCount": 532,
       "latestRentDeposit": 35000,
       "latestRentDepositEok": "3억5,000",
       "latestRentMonthly": 0,
@@ -12857,7 +12857,7 @@
           "dateLabel": "5월 1일"
         }
       ],
-      "rentTxCount": 850,
+      "rentTxCount": 675,
       "latestRentDeposit": 39500,
       "latestRentDepositEok": "3억9,500",
       "latestRentMonthly": 0,
@@ -13273,7 +13273,7 @@
           "dateLabel": "4월 1일"
         }
       ],
-      "rentTxCount": 1763,
+      "rentTxCount": 1463,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
@@ -13686,7 +13686,7 @@
           "dateLabel": "4월 7일"
         }
       ],
-      "rentTxCount": 582,
+      "rentTxCount": 440,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -14103,7 +14103,7 @@
           "dateLabel": "3월 26일"
         }
       ],
-      "rentTxCount": 1097,
+      "rentTxCount": 836,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -14516,7 +14516,7 @@
           "dateLabel": "4월 4일"
         }
       ],
-      "rentTxCount": 79,
+      "rentTxCount": 71,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -14934,7 +14934,7 @@
           "dateLabel": "2월 10일"
         }
       ],
-      "rentTxCount": 1176,
+      "rentTxCount": 998,
       "latestRentDeposit": 55000,
       "latestRentDepositEok": "5억5,000",
       "latestRentMonthly": 0,
@@ -15354,7 +15354,7 @@
           "dateLabel": "4월 22일"
         }
       ],
-      "rentTxCount": 888,
+      "rentTxCount": 686,
       "latestRentDeposit": 49000,
       "latestRentDepositEok": "4억9,000",
       "latestRentMonthly": 0,
@@ -15766,7 +15766,7 @@
           "dateLabel": "5월 4일"
         }
       ],
-      "rentTxCount": 1029,
+      "rentTxCount": 799,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -16187,7 +16187,7 @@
           "dateLabel": "5월 8일"
         }
       ],
-      "rentTxCount": 417,
+      "rentTxCount": 333,
       "latestRentDeposit": 29000,
       "latestRentDepositEok": "2억9,000",
       "latestRentMonthly": 110,
@@ -16589,20 +16589,20 @@
         {
           "date": "02.11",
           "contractDate": "20260211",
-          "priceEok": "4억9,500",
-          "priceVal": 4.95,
-          "areaPyeong": 29.947499999999998,
-          "floor": 25,
-          "area": 73.33,
-          "dealType": "중개거래",
+          "priceEok": "5억1,000",
+          "priceVal": 5.1,
+          "areaPyeong": 30.25,
+          "floor": 27,
+          "area": 72.68,
+          "dealType": "직거래",
           "isNewHigh": false,
-          "prevPriceVal": 4.9,
-          "delta": 0.05,
-          "deltaPercent": 1.0204081632653061,
+          "prevPriceVal": 4.98,
+          "delta": 0.12,
+          "deltaPercent": 2.4096385542168677,
           "dateLabel": "2월 11일"
         }
       ],
-      "rentTxCount": 1273,
+      "rentTxCount": 1055,
       "latestRentDeposit": 36727,
       "latestRentDepositEok": "3억6,727",
       "latestRentMonthly": 150,
@@ -17020,7 +17020,7 @@
           "dateLabel": "4월 2일"
         }
       ],
-      "rentTxCount": 1744,
+      "rentTxCount": 1488,
       "latestRentDeposit": 39000,
       "latestRentDepositEok": "3억9,000",
       "latestRentMonthly": 0,
@@ -17435,7 +17435,7 @@
           "dateLabel": "1월 10일"
         }
       ],
-      "rentTxCount": 1043,
+      "rentTxCount": 867,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -17463,7 +17463,7 @@
       },
       "minPrice": 29300,
       "minPriceEok": "2억9,300",
-      "txCount": 687,
+      "txCount": 686,
       "avg1MPrice": 68500,
       "avg1MPriceEok": "6억8,500",
       "avg1MPerPyeong": 2669,
@@ -17851,7 +17851,7 @@
           "dateLabel": "4월 20일"
         }
       ],
-      "rentTxCount": 209,
+      "rentTxCount": 172,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,
@@ -18263,7 +18263,7 @@
           "dateLabel": "3월 23일"
         }
       ],
-      "rentTxCount": 399,
+      "rentTxCount": 298,
       "latestRentDeposit": 55000,
       "latestRentDepositEok": "5억5,000",
       "latestRentMonthly": 0,
@@ -18606,21 +18606,6 @@
         {
           "date": "01.17",
           "contractDate": "20260117",
-          "priceEok": "9억1,000",
-          "priceVal": 9.1,
-          "areaPyeong": 33.275,
-          "floor": 11,
-          "area": 84.9989,
-          "dealType": "중개거래",
-          "isNewHigh": false,
-          "prevPriceVal": 10.2,
-          "delta": -1.1,
-          "deltaPercent": -10.784313725490197,
-          "dateLabel": "1월 17일"
-        },
-        {
-          "date": "01.17",
-          "contractDate": "20260117",
           "priceEok": "10억",
           "priceVal": 10,
           "areaPyeong": 33.275,
@@ -18631,6 +18616,21 @@
           "prevPriceVal": 9.1,
           "delta": 0.9,
           "deltaPercent": 9.89010989010989,
+          "dateLabel": "1월 17일"
+        },
+        {
+          "date": "01.17",
+          "contractDate": "20260117",
+          "priceEok": "9억1,000",
+          "priceVal": 9.1,
+          "areaPyeong": 33.275,
+          "floor": 11,
+          "area": 84.9989,
+          "dealType": "중개거래",
+          "isNewHigh": false,
+          "prevPriceVal": 10.2,
+          "delta": -1.1,
+          "deltaPercent": -10.784313725490197,
           "dateLabel": "1월 17일"
         },
         {
@@ -18679,7 +18679,7 @@
           "dateLabel": "11월 9일"
         }
       ],
-      "rentTxCount": 32,
+      "rentTxCount": 28,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
@@ -18707,7 +18707,7 @@
       },
       "minPrice": 34800,
       "minPriceEok": "3억4,800",
-      "txCount": 472,
+      "txCount": 471,
       "avg1MPrice": 68100,
       "avg1MPriceEok": "6억8,100",
       "avg1MPerPyeong": 2038,
@@ -19094,7 +19094,7 @@
           "dateLabel": "4월 18일"
         }
       ],
-      "rentTxCount": 1086,
+      "rentTxCount": 881,
       "latestRentDeposit": 21635,
       "latestRentDepositEok": "2억1,635",
       "latestRentMonthly": 0,
@@ -19511,7 +19511,7 @@
           "dateLabel": "4월 4일"
         }
       ],
-      "rentTxCount": 1472,
+      "rentTxCount": 1198,
       "latestRentDeposit": 38091,
       "latestRentDepositEok": "3억8,091",
       "latestRentMonthly": 60,
@@ -19922,7 +19922,7 @@
           "dateLabel": "3월 21일"
         }
       ],
-      "rentTxCount": 429,
+      "rentTxCount": 332,
       "latestRentDeposit": 26000,
       "latestRentDepositEok": "2억6,000",
       "latestRentMonthly": 0,
@@ -20335,7 +20335,7 @@
           "dateLabel": "4월 22일"
         }
       ],
-      "rentTxCount": 647,
+      "rentTxCount": 508,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -20747,7 +20747,7 @@
           "dateLabel": "4월 25일"
         }
       ],
-      "rentTxCount": 764,
+      "rentTxCount": 604,
       "latestRentDeposit": 49000,
       "latestRentDepositEok": "4억9,000",
       "latestRentMonthly": 0,
@@ -21165,7 +21165,7 @@
           "dateLabel": "1월 31일"
         }
       ],
-      "rentTxCount": 850,
+      "rentTxCount": 731,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -21576,7 +21576,7 @@
           "dateLabel": "3월 26일"
         }
       ],
-      "rentTxCount": 29,
+      "rentTxCount": 26,
       "latestRentDeposit": 42273,
       "latestRentDepositEok": "4억2,273",
       "latestRentMonthly": 180,
@@ -22001,7 +22001,7 @@
           "dateLabel": "1월 17일"
         }
       ],
-      "rentTxCount": 205,
+      "rentTxCount": 115,
       "latestRentDeposit": 57000,
       "latestRentDepositEok": "5억7,000",
       "latestRentMonthly": 220,
@@ -22418,7 +22418,7 @@
           "dateLabel": "4월 2일"
         }
       ],
-      "rentTxCount": 1363,
+      "rentTxCount": 1120,
       "latestRentDeposit": 58364,
       "latestRentDepositEok": "5억8,364",
       "latestRentMonthly": 130,
@@ -22841,7 +22841,7 @@
           "dateLabel": "1월 10일"
         }
       ],
-      "rentTxCount": 2013,
+      "rentTxCount": 1666,
       "latestRentDeposit": 67000,
       "latestRentDepositEok": "6억7,000",
       "latestRentMonthly": 0,
@@ -23258,7 +23258,7 @@
           "dateLabel": "5월 16일"
         }
       ],
-      "rentTxCount": 2751,
+      "rentTxCount": 2247,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -23675,7 +23675,7 @@
           "dateLabel": "2월 13일"
         }
       ],
-      "rentTxCount": 904,
+      "rentTxCount": 712,
       "latestRentDeposit": 44000,
       "latestRentDepositEok": "4억4,000",
       "latestRentMonthly": 0,
@@ -23700,7 +23700,7 @@
       },
       "minPrice": 24980,
       "minPriceEok": "2억4,980",
-      "txCount": 636,
+      "txCount": 637,
       "avg1MPrice": 69400,
       "avg1MPriceEok": "6억9,400",
       "avg1MPerPyeong": 2685,
@@ -24088,7 +24088,7 @@
           "dateLabel": "3월 30일"
         }
       ],
-      "rentTxCount": 733,
+      "rentTxCount": 579,
       "latestRentDeposit": 36225,
       "latestRentDepositEok": "3억6,225",
       "latestRentMonthly": 0,
@@ -24500,7 +24500,7 @@
           "dateLabel": "4월 23일"
         }
       ],
-      "rentTxCount": 894,
+      "rentTxCount": 653,
       "latestRentDeposit": 38850,
       "latestRentDepositEok": "3억8,850",
       "latestRentMonthly": 0,
@@ -24910,7 +24910,7 @@
           "dateLabel": "3월 29일"
         }
       ],
-      "rentTxCount": 110,
+      "rentTxCount": 90,
       "latestRentDeposit": 28500,
       "latestRentDepositEok": "2억8,500",
       "latestRentMonthly": 0,
@@ -24943,7 +24943,7 @@
       },
       "minPrice": 46000,
       "minPriceEok": "4억6,000",
-      "txCount": 827,
+      "txCount": 828,
       "avg1MPrice": 171100,
       "avg1MPriceEok": "17억1,100",
       "avg1MPerPyeong": 4121,
@@ -25340,7 +25340,7 @@
           "dateLabel": "5월 9일"
         }
       ],
-      "rentTxCount": 1953,
+      "rentTxCount": 1576,
       "latestRentDeposit": 70909,
       "latestRentDepositEok": "7억909",
       "latestRentMonthly": 50,
@@ -25754,7 +25754,7 @@
           "dateLabel": "2월 13일"
         }
       ],
-      "rentTxCount": 1039,
+      "rentTxCount": 846,
       "latestRentDeposit": 38000,
       "latestRentDepositEok": "3억8,000",
       "latestRentMonthly": 0,
@@ -26168,7 +26168,7 @@
           "dateLabel": "5월 6일"
         }
       ],
-      "rentTxCount": 1016,
+      "rentTxCount": 778,
       "latestRentDeposit": 57000,
       "latestRentDepositEok": "5억7,000",
       "latestRentMonthly": 0,
@@ -26581,7 +26581,7 @@
           "dateLabel": "5월 16일"
         }
       ],
-      "rentTxCount": 1129,
+      "rentTxCount": 892,
       "latestRentDeposit": 25255,
       "latestRentDepositEok": "2억5,255",
       "latestRentMonthly": 102,
@@ -26994,7 +26994,7 @@
           "dateLabel": "4월 27일"
         }
       ],
-      "rentTxCount": 872,
+      "rentTxCount": 676,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -27407,7 +27407,7 @@
           "dateLabel": "4월 29일"
         }
       ],
-      "rentTxCount": 960,
+      "rentTxCount": 759,
       "latestRentDeposit": 36636,
       "latestRentDepositEok": "3억6,636",
       "latestRentMonthly": 145,
@@ -27820,7 +27820,7 @@
           "dateLabel": "4월 24일"
         }
       ],
-      "rentTxCount": 473,
+      "rentTxCount": 377,
       "latestRentDeposit": 38800,
       "latestRentDepositEok": "3억8,800",
       "latestRentMonthly": 0,
@@ -28232,7 +28232,7 @@
           "dateLabel": "3월 27일"
         }
       ],
-      "rentTxCount": 555,
+      "rentTxCount": 436,
       "latestRentDeposit": 43000,
       "latestRentDepositEok": "4억3,000",
       "latestRentMonthly": 0,
@@ -28644,15 +28644,15 @@
           "dateLabel": "11월 18일"
         }
       ],
-      "rentTxCount": 421,
+      "rentTxCount": 348,
       "latestRentDeposit": 36500,
       "latestRentDepositEok": "3억6,500",
       "latestRentMonthly": 0,
       "latestRentDate": "20260609",
       "avg1MRentDeposit": 38200,
       "avg1MRentDepositEok": "3억8,200",
-      "avg3MRentDeposit": 39900,
-      "avg3MRentDepositEok": "3억9,900"
+      "avg3MRentDeposit": 39500,
+      "avg3MRentDepositEok": "3억9,500"
     },
     "동탄역유림노르웨이숲": {
       "dong": "여울동",
@@ -29064,15 +29064,15 @@
           "dateLabel": "3월 19일"
         }
       ],
-      "rentTxCount": 33,
+      "rentTxCount": 34,
       "latestRentDeposit": 84000,
       "latestRentDepositEok": "8억4,000",
       "latestRentMonthly": 0,
       "latestRentDate": "20260609",
       "avg1MRentDeposit": 84000,
       "avg1MRentDepositEok": "8억4,000",
-      "avg3MRentDeposit": 59100,
-      "avg3MRentDepositEok": "5억9,100"
+      "avg3MRentDeposit": 58000,
+      "avg3MRentDepositEok": "5억8,000"
     },
     "동탄역센트럴예미지": {
       "dong": "영천동",
@@ -29477,7 +29477,7 @@
           "dateLabel": "2월 10일"
         }
       ],
-      "rentTxCount": 350,
+      "rentTxCount": 290,
       "latestRentDeposit": 65000,
       "latestRentDepositEok": "6억5,000",
       "latestRentMonthly": 0,
@@ -29900,7 +29900,7 @@
           "dateLabel": "3월 21일"
         }
       ],
-      "rentTxCount": 127,
+      "rentTxCount": 107,
       "latestRentDeposit": 58000,
       "latestRentDepositEok": "5억8,000",
       "latestRentMonthly": 0,
@@ -29926,7 +29926,7 @@
       },
       "minPrice": 33893,
       "minPriceEok": "3억3,893",
-      "txCount": 443,
+      "txCount": 442,
       "avg1MPrice": 76800,
       "avg1MPriceEok": "7억6,800",
       "avg1MPerPyeong": 2334,
@@ -30314,7 +30314,7 @@
           "dateLabel": "3월 10일"
         }
       ],
-      "rentTxCount": 533,
+      "rentTxCount": 424,
       "latestRentDeposit": 47000,
       "latestRentDepositEok": "4억7,000",
       "latestRentMonthly": 0,
@@ -30727,7 +30727,7 @@
           "dateLabel": "4월 4일"
         }
       ],
-      "rentTxCount": 491,
+      "rentTxCount": 372,
       "latestRentDeposit": 37200,
       "latestRentDepositEok": "3억7,200",
       "latestRentMonthly": 0,
@@ -31139,7 +31139,7 @@
           "dateLabel": "4월 8일"
         }
       ],
-      "rentTxCount": 2376,
+      "rentTxCount": 1933,
       "latestRentDeposit": 29000,
       "latestRentDepositEok": "2억9,000",
       "latestRentMonthly": 0,
@@ -31552,7 +31552,7 @@
           "dateLabel": "6월 14일"
         }
       ],
-      "rentTxCount": 836,
+      "rentTxCount": 713,
       "latestRentDeposit": 25377,
       "latestRentDepositEok": "2억5,377",
       "latestRentMonthly": 76,
@@ -31965,7 +31965,7 @@
           "dateLabel": "4월 11일"
         }
       ],
-      "rentTxCount": 69,
+      "rentTxCount": 64,
       "latestRentDeposit": 54000,
       "latestRentDepositEok": "5억4,000",
       "latestRentMonthly": 0,
@@ -32377,7 +32377,7 @@
           "dateLabel": "3월 19일"
         }
       ],
-      "rentTxCount": 71,
+      "rentTxCount": 68,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -32795,7 +32795,7 @@
           "dateLabel": "4월 22일"
         }
       ],
-      "rentTxCount": 3044,
+      "rentTxCount": 2560,
       "latestRentDeposit": 40000,
       "latestRentDepositEok": "4억",
       "latestRentMonthly": 0,
@@ -33207,7 +33207,7 @@
           "dateLabel": "8월 20일"
         }
       ],
-      "rentTxCount": 494,
+      "rentTxCount": 421,
       "latestRentDeposit": 44273,
       "latestRentDepositEok": "4억4,273",
       "latestRentMonthly": 180,
@@ -33618,7 +33618,7 @@
           "dateLabel": "3월 2일"
         }
       ],
-      "rentTxCount": 1042,
+      "rentTxCount": 879,
       "latestRentDeposit": 35727,
       "latestRentDepositEok": "3억5,727",
       "latestRentMonthly": 150,
@@ -34037,7 +34037,7 @@
           "dateLabel": "4월 15일"
         }
       ],
-      "rentTxCount": 675,
+      "rentTxCount": 554,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -34460,7 +34460,7 @@
           "dateLabel": "1월 5일"
         }
       ],
-      "rentTxCount": 720,
+      "rentTxCount": 612,
       "latestRentDeposit": 22618,
       "latestRentDepositEok": "2억2,618",
       "latestRentMonthly": 89,
@@ -34872,7 +34872,7 @@
           "dateLabel": "3월 21일"
         }
       ],
-      "rentTxCount": 688,
+      "rentTxCount": 546,
       "latestRentDeposit": 30745,
       "latestRentDepositEok": "3억745",
       "latestRentMonthly": 140,
@@ -35290,7 +35290,7 @@
           "dateLabel": "2월 5일"
         }
       ],
-      "rentTxCount": 1365,
+      "rentTxCount": 1131,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -35711,7 +35711,7 @@
           "dateLabel": "10월 17일"
         }
       ],
-      "rentTxCount": 20,
+      "rentTxCount": 18,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,
@@ -36132,7 +36132,7 @@
           "dateLabel": "2월 4일"
         }
       ],
-      "rentTxCount": 772,
+      "rentTxCount": 649,
       "latestRentDeposit": 41000,
       "latestRentDepositEok": "4억1,000",
       "latestRentMonthly": 0,
@@ -36158,7 +36158,7 @@
       },
       "minPrice": 27500,
       "minPriceEok": "2억7,500",
-      "txCount": 699,
+      "txCount": 698,
       "avg1MPrice": 79500,
       "avg1MPriceEok": "7억9,500",
       "avg1MPerPyeong": 2362,
@@ -36555,7 +36555,7 @@
           "dateLabel": "12월 6일"
         }
       ],
-      "rentTxCount": 833,
+      "rentTxCount": 698,
       "latestRentDeposit": 48000,
       "latestRentDepositEok": "4억8,000",
       "latestRentMonthly": 0,
@@ -36968,7 +36968,7 @@
           "dateLabel": "4월 24일"
         }
       ],
-      "rentTxCount": 1022,
+      "rentTxCount": 807,
       "latestRentDeposit": 39000,
       "latestRentDepositEok": "3억9,000",
       "latestRentMonthly": 0,
@@ -37378,7 +37378,7 @@
           "dateLabel": "3월 17일"
         }
       ],
-      "rentTxCount": 750,
+      "rentTxCount": 581,
       "latestRentDeposit": 24591,
       "latestRentDepositEok": "2억4,591",
       "latestRentMonthly": 5,
@@ -37751,21 +37751,6 @@
         {
           "date": "01.31",
           "contractDate": "20260131",
-          "priceEok": "9억5,000",
-          "priceVal": 9.5,
-          "areaPyeong": 37.207499999999996,
-          "floor": 14,
-          "area": 97.3043,
-          "dealType": "중개거래",
-          "isNewHigh": false,
-          "prevPriceVal": 10.13,
-          "delta": -0.63,
-          "deltaPercent": -6.219151036525173,
-          "dateLabel": "1월 31일"
-        },
-        {
-          "date": "01.31",
-          "contractDate": "20260131",
           "priceEok": "10억1,300",
           "priceVal": 10.13,
           "areaPyeong": 37.207499999999996,
@@ -37777,6 +37762,21 @@
           "prevPriceVal": 9.5,
           "delta": 0.63,
           "deltaPercent": 6.631578947368421,
+          "dateLabel": "1월 31일"
+        },
+        {
+          "date": "01.31",
+          "contractDate": "20260131",
+          "priceEok": "9억5,000",
+          "priceVal": 9.5,
+          "areaPyeong": 37.207499999999996,
+          "floor": 14,
+          "area": 97.3043,
+          "dealType": "중개거래",
+          "isNewHigh": false,
+          "prevPriceVal": 10.13,
+          "delta": -0.63,
+          "deltaPercent": -6.219151036525173,
           "dateLabel": "1월 31일"
         },
         {
@@ -37796,7 +37796,7 @@
           "dateLabel": "1월 31일"
         }
       ],
-      "rentTxCount": 24,
+      "rentTxCount": 21,
       "latestRentDeposit": 60000,
       "latestRentDepositEok": "6억",
       "latestRentMonthly": 0,
@@ -38215,7 +38215,7 @@
           "dateLabel": "4월 29일"
         }
       ],
-      "rentTxCount": 1154,
+      "rentTxCount": 893,
       "latestRentDeposit": 70000,
       "latestRentDepositEok": "7억",
       "latestRentMonthly": 0,
@@ -38627,7 +38627,7 @@
           "dateLabel": "12월 6일"
         }
       ],
-      "rentTxCount": 501,
+      "rentTxCount": 400,
       "latestRentDeposit": 53550,
       "latestRentDepositEok": "5억3,550",
       "latestRentMonthly": 0,
@@ -38657,7 +38657,7 @@
       },
       "minPrice": 31000,
       "minPriceEok": "3억1,000",
-      "txCount": 1214,
+      "txCount": 1213,
       "avg1MPrice": 89900,
       "avg1MPriceEok": "8억9,900",
       "avg1MPerPyeong": 3233,
@@ -39054,7 +39054,7 @@
           "dateLabel": "5월 9일"
         }
       ],
-      "rentTxCount": 2110,
+      "rentTxCount": 1689,
       "latestRentDeposit": 38000,
       "latestRentDepositEok": "3억8,000",
       "latestRentMonthly": 0,
@@ -39470,7 +39470,7 @@
           "dateLabel": "2월 13일"
         }
       ],
-      "rentTxCount": 617,
+      "rentTxCount": 489,
       "latestRentDeposit": 38850,
       "latestRentDepositEok": "3억8,850",
       "latestRentMonthly": 0,
@@ -39881,7 +39881,7 @@
           "dateLabel": "1월 31일"
         }
       ],
-      "rentTxCount": 347,
+      "rentTxCount": 258,
       "latestRentDeposit": 34728,
       "latestRentDepositEok": "3억4,728",
       "latestRentMonthly": 0,
@@ -40304,7 +40304,7 @@
           "dateLabel": "2월 25일"
         }
       ],
-      "rentTxCount": 100,
+      "rentTxCount": 82,
       "latestRentDeposit": 47200,
       "latestRentDepositEok": "4억7,200",
       "latestRentMonthly": 0,
@@ -40704,20 +40704,20 @@
         {
           "date": "06.27",
           "contractDate": "20250627",
-          "priceEok": "5억6,000",
-          "priceVal": 5.6,
+          "priceEok": "6억500",
+          "priceVal": 6.05,
           "areaPyeong": 31.7625,
-          "floor": 3,
-          "area": 84.496,
+          "floor": 13,
+          "area": 84.23,
           "dealType": "중개거래",
           "isNewHigh": false,
-          "prevPriceVal": 5.5,
-          "delta": 0.1,
-          "deltaPercent": 1.8181818181818181,
+          "prevPriceVal": 6,
+          "delta": 0.05,
+          "deltaPercent": 0.8333333333333334,
           "dateLabel": "6월 27일"
         }
       ],
-      "rentTxCount": 463,
+      "rentTxCount": 392,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -41140,7 +41140,7 @@
           "dateLabel": "3월 23일"
         }
       ],
-      "rentTxCount": 385,
+      "rentTxCount": 308,
       "latestRentDeposit": 41636,
       "latestRentDepositEok": "4억1,636",
       "latestRentMonthly": 145,
@@ -41170,7 +41170,7 @@
       },
       "minPrice": 65000,
       "minPriceEok": "6억5,000",
-      "txCount": 198,
+      "txCount": 199,
       "avg1MPrice": 107700,
       "avg1MPriceEok": "10억7,700",
       "avg1MPerPyeong": 3019,
@@ -41559,7 +41559,7 @@
           "dateLabel": "4월 5일"
         }
       ],
-      "rentTxCount": 485,
+      "rentTxCount": 382,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
@@ -41988,7 +41988,7 @@
           "dateLabel": "2월 10일"
         }
       ],
-      "rentTxCount": 1257,
+      "rentTxCount": 1005,
       "latestRentDeposit": 67000,
       "latestRentDepositEok": "6억7,000",
       "latestRentMonthly": 0,
@@ -42404,7 +42404,7 @@
           "dateLabel": "3월 28일"
         }
       ],
-      "rentTxCount": 422,
+      "rentTxCount": 318,
       "latestRentDeposit": 51000,
       "latestRentDepositEok": "5억1,000",
       "latestRentMonthly": 0,
@@ -42821,7 +42821,7 @@
           "dateLabel": "11월 3일"
         }
       ],
-      "rentTxCount": 852,
+      "rentTxCount": 723,
       "latestRentDeposit": 75000,
       "latestRentDepositEok": "7억5,000",
       "latestRentMonthly": 0,
@@ -43248,7 +43248,7 @@
           "dateLabel": "4월 9일"
         }
       ],
-      "rentTxCount": 1217,
+      "rentTxCount": 1001,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,
@@ -43676,7 +43676,7 @@
           "dateLabel": "4월 25일"
         }
       ],
-      "rentTxCount": 2615,
+      "rentTxCount": 2126,
       "latestRentDeposit": 59000,
       "latestRentDepositEok": "5억9,000",
       "latestRentMonthly": 0,
@@ -44094,7 +44094,7 @@
           "dateLabel": "11월 6일"
         }
       ],
-      "rentTxCount": 1153,
+      "rentTxCount": 973,
       "latestRentDeposit": 49000,
       "latestRentDepositEok": "4억9,000",
       "latestRentMonthly": 0,
@@ -44125,7 +44125,7 @@
       },
       "minPrice": 34500,
       "minPriceEok": "3억4,500",
-      "txCount": 365,
+      "txCount": 366,
       "avg1MPrice": 112500,
       "avg1MPriceEok": "11억2,500",
       "avg1MPerPyeong": 3380,
@@ -44519,7 +44519,7 @@
           "dateLabel": "2월 20일"
         }
       ],
-      "rentTxCount": 566,
+      "rentTxCount": 457,
       "latestRentDeposit": 45455,
       "latestRentDepositEok": "4억5,455",
       "latestRentMonthly": 80,
@@ -44935,7 +44935,7 @@
           "dateLabel": "4월 13일"
         }
       ],
-      "rentTxCount": 111,
+      "rentTxCount": 94,
       "latestRentDeposit": 55000,
       "latestRentDepositEok": "5억5,000",
       "latestRentMonthly": 0,
@@ -45355,15 +45355,15 @@
           "dateLabel": "2월 9일"
         }
       ],
-      "rentTxCount": 108,
+      "rentTxCount": 89,
       "latestRentDeposit": 50000,
       "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
       "latestRentDate": "20260601",
       "avg1MRentDeposit": 58900,
       "avg1MRentDepositEok": "5억8,900",
-      "avg3MRentDeposit": 56600,
-      "avg3MRentDepositEok": "5억6,600"
+      "avg3MRentDeposit": 56300,
+      "avg3MRentDepositEok": "5억6,300"
     },
     "동탄2아이파크1단지": {
       "dong": "장지동",
@@ -45767,7 +45767,7 @@
           "dateLabel": "2월 5일"
         }
       ],
-      "rentTxCount": 294,
+      "rentTxCount": 236,
       "latestRentDeposit": 37000,
       "latestRentDepositEok": "3억7,000",
       "latestRentMonthly": 0,
@@ -46183,7 +46183,7 @@
           "dateLabel": "12월 5일"
         }
       ],
-      "rentTxCount": 864,
+      "rentTxCount": 736,
       "latestRentDeposit": 59273,
       "latestRentDepositEok": "5억9,273",
       "latestRentMonthly": 180,
@@ -46602,7 +46602,7 @@
           "dateLabel": "1월 21일"
         }
       ],
-      "rentTxCount": 861,
+      "rentTxCount": 718,
       "latestRentDeposit": 13305,
       "latestRentDepositEok": "1억3,305",
       "latestRentMonthly": 23,
@@ -47017,7 +47017,7 @@
           "dateLabel": "2월 4일"
         }
       ],
-      "rentTxCount": 934,
+      "rentTxCount": 784,
       "latestRentDeposit": 39690,
       "latestRentDepositEok": "3억9,690",
       "latestRentMonthly": 0,
@@ -47435,20 +47435,20 @@
         {
           "date": "02.06",
           "contractDate": "20260206",
-          "priceEok": "9억4,000",
-          "priceVal": 9.4,
-          "areaPyeong": 33.5775,
-          "floor": 3,
-          "area": 84.9962,
+          "priceEok": "9억4,400",
+          "priceVal": 9.44,
+          "areaPyeong": 32.9725,
+          "floor": 2,
+          "area": 84.8,
           "dealType": "중개거래",
           "isNewHigh": false,
-          "prevPriceVal": 10.2,
-          "delta": -0.8,
-          "deltaPercent": -7.8431372549019605,
+          "prevPriceVal": 9.73,
+          "delta": -0.29,
+          "deltaPercent": -2.9804727646454263,
           "dateLabel": "2월 6일"
         }
       ],
-      "rentTxCount": 615,
+      "rentTxCount": 489,
       "latestRentDeposit": 43392,
       "latestRentDepositEok": "4억3,392",
       "latestRentMonthly": 0,
@@ -47870,7 +47870,7 @@
           "dateLabel": "2월 11일"
         }
       ],
-      "rentTxCount": 79,
+      "rentTxCount": 60,
       "latestRentDeposit": 71400,
       "latestRentDepositEok": "7억1,400",
       "latestRentMonthly": 0,
@@ -48293,7 +48293,7 @@
           "dateLabel": "10월 28일"
         }
       ],
-      "rentTxCount": 245,
+      "rentTxCount": 207,
       "latestRentDeposit": 70000,
       "latestRentDepositEok": "7억",
       "latestRentMonthly": 0,
@@ -48715,7 +48715,7 @@
           "dateLabel": "3월 7일"
         }
       ],
-      "rentTxCount": 62,
+      "rentTxCount": 54,
       "latestRentDeposit": 41475,
       "latestRentDepositEok": "4억1,475",
       "latestRentMonthly": 0,
@@ -49133,7 +49133,7 @@
           "dateLabel": "3월 21일"
         }
       ],
-      "rentTxCount": 697,
+      "rentTxCount": 573,
       "latestRentDeposit": 64000,
       "latestRentDepositEok": "6억4,000",
       "latestRentMonthly": 0,
@@ -49969,7 +49969,7 @@
           "dateLabel": "4월 6일"
         }
       ],
-      "rentTxCount": 720,
+      "rentTxCount": 557,
       "latestRentDeposit": 78750,
       "latestRentDepositEok": "7억8,750",
       "latestRentMonthly": 0,
@@ -50383,7 +50383,7 @@
           "dateLabel": "12월 25일"
         }
       ],
-      "rentTxCount": 653,
+      "rentTxCount": 560,
       "latestRentDeposit": 38727,
       "latestRentDepositEok": "3억8,727",
       "latestRentMonthly": 150,
@@ -50806,7 +50806,7 @@
           "dateLabel": "10월 26일"
         }
       ],
-      "rentTxCount": 32,
+      "rentTxCount": 30,
       "latestRentDeposit": 72000,
       "latestRentDepositEok": "7억2,000",
       "latestRentMonthly": 0,
@@ -51220,7 +51220,7 @@
           "dateLabel": "2월 7일"
         }
       ],
-      "rentTxCount": 828,
+      "rentTxCount": 696,
       "latestRentDeposit": 40900,
       "latestRentDepositEok": "4억900",
       "latestRentMonthly": 0,
@@ -51444,21 +51444,6 @@
         {
           "date": "02.07",
           "contractDate": "20260207",
-          "priceEok": "6억2,700",
-          "priceVal": 6.27,
-          "areaPyeong": 31.46,
-          "floor": 24,
-          "area": 76.4593,
-          "dealType": "중개거래",
-          "isNewHigh": false,
-          "prevPriceVal": 6.78,
-          "delta": -0.51,
-          "deltaPercent": -7.52212389380531,
-          "dateLabel": "2월 7일"
-        },
-        {
-          "date": "02.07",
-          "contractDate": "20260207",
           "priceEok": "6억4,000",
           "priceVal": 6.4,
           "areaPyeong": 30.855,
@@ -51469,6 +51454,21 @@
           "prevPriceVal": 6.45,
           "delta": -0.05,
           "deltaPercent": -0.7751937984496124,
+          "dateLabel": "2월 7일"
+        },
+        {
+          "date": "02.07",
+          "contractDate": "20260207",
+          "priceEok": "6억2,700",
+          "priceVal": 6.27,
+          "areaPyeong": 31.46,
+          "floor": 24,
+          "area": 76.4593,
+          "dealType": "중개거래",
+          "isNewHigh": false,
+          "prevPriceVal": 6.78,
+          "delta": -0.51,
+          "deltaPercent": -7.52212389380531,
           "dateLabel": "2월 7일"
         },
         {
@@ -51637,7 +51637,7 @@
           "dateLabel": "1월 17일"
         }
       ],
-      "rentTxCount": 2206,
+      "rentTxCount": 1946,
       "latestRentDeposit": 38727,
       "latestRentDepositEok": "3억8,727",
       "latestRentMonthly": 40,
@@ -52051,7 +52051,7 @@
           "dateLabel": "2월 4일"
         }
       ],
-      "rentTxCount": 2055,
+      "rentTxCount": 1804,
       "latestRentDeposit": 45000,
       "latestRentDepositEok": "4억5,000",
       "latestRentMonthly": 0,
@@ -52463,7 +52463,7 @@
           "dateLabel": "9월 22일"
         }
       ],
-      "rentTxCount": 841,
+      "rentTxCount": 755,
       "latestRentDeposit": 49273,
       "latestRentDepositEok": "4억9,273",
       "latestRentMonthly": 180,
@@ -52883,7 +52883,7 @@
           "dateLabel": "1월 4일"
         }
       ],
-      "rentTxCount": 1559,
+      "rentTxCount": 1406,
       "latestRentDeposit": 42000,
       "latestRentDepositEok": "4억2,000",
       "latestRentMonthly": 0,

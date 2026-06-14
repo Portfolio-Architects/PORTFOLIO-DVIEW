@@ -515,6 +515,22 @@ export default function MacroDashboardClient({
   const [visibleNoticeCount, setVisibleNoticeCount] = useState(6);
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
+
+  // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
+  useEffect(() => {
+    // 이미 선택된 단지가 있다면 덮어쓰지 않음
+    if (selectedTimelineApt) return;
+    
+    // 유저가 로그인 상태이고 관심단지가 있는 경우
+    if (user && userFavorites && userFavorites.size > 0) {
+      // Set의 첫 번째 요소를 기본 관심 단지로 선택
+      const firstFav = Array.from(userFavorites)[0];
+      if (firstFav) {
+        setSelectedTimelineApt(firstFav);
+      }
+    }
+  }, [user, userFavorites, selectedTimelineApt]);
+
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -893,6 +909,31 @@ export default function MacroDashboardClient({
 
     return finalChartData;
   }, [selectedAptSummary, deferredMacroTrendData, aptRealTxData]);
+
+  const getAptBriefingMessage = React.useCallback((summary: AptTxSummary, aptName: string) => {
+    const isFav = userFavorites?.has(aptName);
+    const prefix = isFav ? "⭐ 관심 단지 리포트: " : "📊 단지 요약: ";
+    
+    const txCount = summary.avg3MTxCount || 0;
+    const priceStr = summary.avg3MPriceEok || summary.latestPriceEok || "-";
+    const rentStr = summary.avg3MRentDepositEok || summary.latestRentDepositEok || "-";
+    
+    if (txCount === 0) {
+      return `${prefix}${aptName}은 최근 90일간 실거래 내역이 없지만, 직전 거래 기준 매매 ${priceStr}, 전세 ${rentStr}선에 시세가 형성되어 있습니다.`;
+    }
+    
+    const saleVal = summary.avg3MPrice || summary.latestPrice || 0;
+    const rentVal = summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
+    const gapVal = saleVal - rentVal;
+    let gapStr = "-";
+    if (gapVal > 0) {
+      gapStr = `${(gapVal / 10000).toFixed(1)}억`;
+    }
+    
+    const rentRate = saleVal > 0 ? Math.round((rentVal / saleVal) * 100) : 0;
+    
+    return `${prefix}${aptName}은 최근 90일 동안 ${txCount}건의 실거래가 발생했습니다. 평균 매매 ${priceStr}, 평균 전세 ${rentStr}선이며, 예상 갭투자금은 약 ${gapStr} (전세가율 ${rentRate}%) 수준입니다.`;
+  }, [userFavorites]);
 
   const lineData = useMemo(() => {
     const sourceData = selectedAptChartData || deferredMacroTrendData;
@@ -2117,16 +2158,31 @@ interface GroupedCategory {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <div className="flex flex-col gap-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-[15px] font-bold text-primary tracking-tight truncate max-w-[360px] sm:max-w-none">
-                        {(!isMobileViewport && selectedTimelineApt) ? `${selectedTimelineApt} 가격 추이` : "동탄 아파트 대표 가격 변화 추이"}
+                      <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
+                        {selectedTimelineApt ? (
+                          <>
+                            <span className="text-[#00d29d] font-black">🏠 내 단지 브리핑:</span>
+                            <span className="truncate max-w-[150px] sm:max-w-[220px]" title={selectedTimelineApt}>{selectedTimelineApt}</span>
+                          </>
+                        ) : (
+                          "📊 동탄 아파트 대표 가격 추이"
+                        )}
                       </h3>
-                      {(!isMobileViewport && selectedTimelineApt) && (
-                        <button
-                          onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
-                          className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
-                        >
-                          상세 리포트 보기 ➔
-                        </button>
+                      {selectedTimelineApt && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
+                            className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                          >
+                            상세 리포트 보기 ➔
+                          </button>
+                          <button
+                            onClick={() => setSelectedTimelineApt(null)}
+                            className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                          >
+                            전체 추이 ✕
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -2168,7 +2224,7 @@ interface GroupedCategory {
                 </div>
 
                 {/* 개선된 여백 채우기용 슬림한 실거래 요약 바 */}
-                {(!isMobileViewport && selectedAptSummary) && (
+                {selectedAptSummary && (
                   <div className="mt-4 pt-3 border-t border-border/60 flex-none">
                     <div className="bg-zinc-50/70 dark:bg-zinc-900/30 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3">
                       {/* Top Row: Title Badge & Target Info */}
@@ -2216,104 +2272,50 @@ interface GroupedCategory {
                           </span>
                         </div>
                       </div>
+
+                      {/* AI Briefing Message */}
+                      <div className="mt-1 text-[11.5px] font-semibold text-secondary leading-relaxed bg-[#e0fbf4]/40 dark:bg-emerald-950/20 border border-emerald-500/10 rounded-xl p-2.5">
+                        {getAptBriefingMessage(selectedAptSummary, selectedTimelineApt!)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Call to Action (CTA) Banner for Non-selected / Guest users */}
+                {!selectedTimelineApt && (
+                  <div className="mt-4 pt-3 border-t border-border/60 flex-none">
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
+                          🏠 <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
+                        </span>
+                        <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
+                          {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (!user) {
+                            handleLogin();
+                          } else {
+                            const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
+                            if (searchEl) {
+                              (searchEl as HTMLElement).focus();
+                              searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                          }
+                        }}
+                        className="px-3.5 py-2 bg-[#00d29d] hover:bg-[#00d29d]/90 text-white border-none rounded-xl text-[12px] font-extrabold cursor-pointer transition-colors shadow-sm shrink-0 self-stretch sm:self-auto text-center"
+                      >
+                        {user ? "단지 등록하기" : "3초 간편 로그인"}
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 동탄 시장 요약 종합 모니터링 카드 [NEW] */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm md:min-h-[290px] md:flex-1 justify-between">
-              {/* Header */}
-              <div className="flex justify-between items-center border-b border-border/50 pb-3.5 shrink-0">
-                <div className="relative group/title flex items-center gap-2 min-w-0">
-                  <span className="bg-toss-blue-light text-toss-blue text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
-                    종합 모니터링
-                  </span>
-                  <h4 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight truncate flex items-center gap-1.5">
-                    동탄 시장 거래 종합 지표
-                    <Info className="w-4 h-4 text-tertiary cursor-pointer hover:text-secondary transition-colors" />
-                  </h4>
-                  <div 
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute bottom-full left-0 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[12px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep"
-                  >
-                    최근 90일 실거래 및 GA4 실시간 로그 분석에 기반한 동탄 11개 행정동 시장 거래 지표 총괄 모니터링 대시보드입니다.
-                    <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#191f28]"></div>
-                  </div>
-                </div>
-                <span className="text-[11px] text-secondary font-bold bg-[#f2f4f6] dark:bg-zinc-800 border border-border/30 px-2.5 py-1 rounded-lg shrink-0">
-                  최신 기준
-                </span>
-              </div>
 
-              {/* Metrics 2x2 Grid */}
-              <div className="grid grid-cols-2 gap-3 flex-1 py-1.5">
-                {/* Avg Sale */}
-                <div className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] transition-all">
-                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight">시장 평균 매매가</span>
-                  <span className="text-[20px] sm:text-[22px] font-extrabold text-primary tracking-tight mt-2.5">
-                    {macroSalePriceText}
-                  </span>
-                </div>
-                
-                {/* Avg Rent */}
-                <div className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] transition-all">
-                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight">시장 평균 전세가</span>
-                  <span className="text-[20px] sm:text-[22px] font-extrabold text-primary tracking-tight mt-2.5">
-                    {macroRentPriceText}
-                  </span>
-                </div>
-
-                {/* Average Jeonse Rate */}
-                <div className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] transition-all">
-                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight flex items-center gap-1.5 flex-wrap">
-                    평균 전세가율
-                    {gapRankingDong !== "전체" && (
-                      <span className="bg-[#e6fcf5] dark:bg-emerald-950/40 text-[#03c75a] dark:text-[#00d29d] text-[9.5px] font-black px-1.5 py-0.5 rounded-[4px]">
-                        {gapRankingDong}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[20px] sm:text-[22px] font-extrabold text-[#03c75a] dark:text-[#00d29d] tracking-tight mt-2.5">
-                    {averageJeonseRateText}
-                  </span>
-                </div>
-
-                {/* Hot Complex */}
-                <div 
-                  onClick={() => onSelectApt && card4Data.name !== "-" && onSelectApt(card4Data.name)}
-                  className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-border bg-[#f8f9fa] dark:bg-zinc-950/40 min-h-[96px] cursor-pointer hover:border-toss-blue hover:bg-surface transition-all duration-200 group/hot"
-                >
-                  <span className="text-[11.5px] sm:text-[12.5px] font-bold text-secondary tracking-tight group-hover/hot:text-toss-blue transition-colors">최고 관심 단지</span>
-                  <span className="text-[13px] sm:text-[14.5px] font-extrabold text-primary tracking-tight mt-2.5 line-clamp-2 leading-snug group-hover/hot:text-toss-blue transition-colors" title={card4Data.name}>
-                    {card4Data.name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Footer Market Signal Info */}
-              <div className="flex items-center justify-between mt-2 px-3 py-2.5 bg-[#f8f9fa] dark:bg-zinc-950/30 border border-border/60 rounded-xl">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="bg-[#e2f9f3] dark:bg-[#12392c] text-[#03c75a] text-[10.5px] font-black px-2 py-0.5 rounded-[6px] shrink-0">
-                    마켓 시그널
-                  </span>
-                  <span className="text-[12px] font-bold text-secondary truncate">
-                    최근 7일 거래량: {card3Data.currentCount}건 ({card3Data.badge})
-                  </span>
-                </div>
-                
-                {/* Traffic Light Signal */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11.5px] font-bold text-secondary">시장 강도</span>
-                  <span className={`w-2.5 h-2.5 rounded-full ${
-                    card3Data.currentCount >= 250 ? 'bg-[#03c75a] shadow-[0_0_8px_rgba(3,199,90,0.6)]' :
-                    card3Data.currentCount >= 180 ? 'bg-[#ff9500] shadow-[0_0_8px_rgba(255,149,0,0.6)]' :
-                    'bg-[#ff3b30] shadow-[0_0_8px_rgba(255,59,48,0.6)]'
-                  }`} title={`거래 활성화 등급: ${card3Data.currentCount >= 250 ? '활성(🟢)' : card3Data.currentCount >= 180 ? '보통(🟡)' : '위축(🔴)'}`} />
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

@@ -3,7 +3,6 @@
 import { MessageSquare, X, LayoutDashboard, Home, Search, Coins, TrendingUp } from 'lucide-react';
 
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
-import { TrendingTicker } from '@/components/ui/TrendingTicker';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
@@ -299,13 +298,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { user, userProfile, anonProfile, handleLogin, handleLogout } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
-  const { data: popularData, error: popularError } = useSWR('/api/realtime-popular', fetcher, { refreshInterval: 60000 });
-
-  useEffect(() => {
-    if (popularError) {
-      console.warn('[DashboardClient] Failed to fetch GA4 realtime popular complexes, falling back to local favorites counts:', popularError);
-    }
-  }, [popularError]);
   
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -711,70 +703,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     
   const allApts = useMemo(() => rawApts.filter(a => !publicRentalSet.has(a.name)), [rawApts, publicRentalSet]);
 
-  const popularAptItems = useMemo(() => {
-    if (!sheetApartments || !favoriteCounts || !txSummary) return [];
-
-    if (popularData?.success && Array.isArray(popularData.data) && popularData.data.length > 0) {
-      const flatApts = Object.values(sheetApartments).flat();
-
-      return popularData.data.map((gaItem: any, index: number) => {
-        const gaName = gaItem.aptName;
-        const apt = flatApts.find((a) => isSameApartment(a.name, gaName));
-        const resolvedName = apt ? apt.name : gaName;
-        const favCount = favoriteCounts[resolvedName] || 0;
-        const txKey = findTxKey(resolvedName, txSummary, nameMapping);
-        const summary = txKey ? txSummary[txKey] : undefined;
-        const avg3M = summary?.avg3MTxCount || 0;
-        const latestPrice = summary?.latestPriceEok || "";
-        const dong = apt?.dong || summary?.dong || "";
-
-        return {
-          name: resolvedName,
-          dong,
-          favCount,
-          avg3M,
-          latestPrice,
-          rank: index + 1,
-        };
-      });
-    }
-
-    // GA4 API 로딩 중이거나 데이터가 없는 경우 Fallback (기존 관심도 랭킹 산출식)
-    const apts = Object.values(sheetApartments)
-      .flat()
-      .filter((apt) => !publicRentalSet.has(apt.name));
-
-    const items = apts.map((apt) => {
-      const favCount = favoriteCounts[apt.name] || 0;
-      const txKey = findTxKey(apt.name, txSummary, nameMapping);
-      const summary = txKey ? txSummary[txKey] : undefined;
-      const avg3M = summary?.avg3MTxCount || 0;
-      const latestPrice = summary?.latestPriceEok || "";
-      const dong = apt.dong || summary?.dong || "";
-      return {
-        name: apt.name,
-        dong,
-        favCount,
-        avg3M,
-        latestPrice,
-      };
-    });
-
-    items.sort((a, b) => {
-      if (b.favCount !== a.favCount) return b.favCount - a.favCount;
-      return b.avg3M - a.avg3M;
-    });
-
-    const sliced = items.slice(0, 5);
-
-    return sliced.map((item, index) => {
-      return {
-        ...item,
-        rank: index + 1,
-      };
-    });
-  }, [sheetApartments, favoriteCounts, txSummary, nameMapping, publicRentalSet, popularData]);
-
   const enrichedApts = useMemo(() => {
     return allApts.map(apt => {
       const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
@@ -926,9 +854,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           </div>
         </div>
       </header>
-
-      {/* 실시간 인기 아파트 티커 */}
-      <TrendingTicker popularAptItems={popularAptItems} onSelectApt={handleAptClickByName} />
 
       {/* Main Container */}
       <main 
