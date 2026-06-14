@@ -194,7 +194,11 @@ async function fetchFreshData(): Promise<InitialPageData> {
 
   const fetchFavCounts = async () => {
     if (pipelinedFavs && Object.keys(pipelinedFavs).length > 0) {
-      result.favoriteCounts = pipelinedFavs as Record<string, number>;
+      const castedFavs: Record<string, number> = {};
+      Object.entries(pipelinedFavs).forEach(([k, v]) => {
+        castedFavs[k] = Number(v) || 0;
+      });
+      result.favoriteCounts = castedFavs;
       return;
     }
     if (adminDb) {
@@ -212,8 +216,12 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchMeta = async () => {
-    if (pipelinedMeta && typeof pipelinedMeta === 'object' && Object.keys(pipelinedMeta).length > 0) {
-      result.apartmentMeta = pipelinedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+    let parsedMeta = pipelinedMeta;
+    if (typeof pipelinedMeta === 'string') {
+      try { parsedMeta = JSON.parse(pipelinedMeta); } catch { parsedMeta = null; }
+    }
+    if (parsedMeta && typeof parsedMeta === 'object' && Object.keys(parsedMeta).length > 0) {
+      result.apartmentMeta = parsedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
       return;
     }
     if (adminDb) {
@@ -229,8 +237,12 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchReports = async () => {
-    if (pipelinedReports && Array.isArray(pipelinedReports) && pipelinedReports.length > 0) {
-      result.fieldReports = pipelinedReports;
+    let parsedReports = pipelinedReports;
+    if (typeof pipelinedReports === 'string') {
+      try { parsedReports = JSON.parse(pipelinedReports); } catch { parsedReports = null; }
+    }
+    if (parsedReports && Array.isArray(parsedReports) && parsedReports.length > 0) {
+      result.fieldReports = parsedReports;
       return;
     }
     if (adminDb) {
