@@ -688,21 +688,9 @@ export default function TossApartmentExploreClient({
       {/* Standardized Hero Header */}
       <div className="shrink-0">
         <PageHeroHeader 
-          title="D-VIEW 실거래"
+          title="D-VIEW 아파트 탐색"
           subtitleStrong="동탄 전역 아파트 비교 분석"
           subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
-        />
-      </div>
-
-      {/* Real-time Hot Complex Ranking Card */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 shrink-0 bg-transparent">
-        <HotComplexRanking
-          sheetApartments={sheetApartments}
-          fieldReportsMap={fieldReportsMap}
-          favoriteCounts={favoriteCounts}
-          onSelectApt={handleSelectApt}
-          txSummaryData={txSummaryData}
-          nameMapping={nameMapping}
         />
       </div>
 

@@ -81,6 +81,18 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
                 }`}
               >
                 <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>아파트 탐색</span>
+              </Link>
+
+              <Link
+                href="/realtime"
+                className={`flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] font-extrabold transition-all duration-300 rounded-[10px] ${
+                  activeTab === 'realtime'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                }`}
+              >
+                <TrendingUp size={16} className={activeTab === 'realtime' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                 <span>실거래</span>
               </Link>
 
