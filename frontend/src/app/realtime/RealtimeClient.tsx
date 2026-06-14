@@ -101,11 +101,28 @@ const parseDateHelper = (dateStr?: string | number, latestDateStr?: string) => {
   return null;
 };
 
-// Helper to parse price
 const parsePriceEokHelper = (priceEokStr?: string | number) => {
   if (!priceEokStr) return 0;
-  const val = parseFloat(String(priceEokStr));
-  return isNaN(val) ? 0 : val;
+  if (typeof priceEokStr === 'number') return priceEokStr;
+  
+  let total = 0;
+  const clean = String(priceEokStr).replace(/,/g, '').trim();
+  if (clean.includes('억')) {
+    const parts = clean.split('억');
+    total += parseFloat(parts[0]) || 0;
+    if (parts[1]) {
+      const tenMillion = parseFloat(parts[1].replace(/[^0-9.]/g, '')) || 0;
+      total += tenMillion / 10000;
+    }
+  } else {
+    const val = parseFloat(clean.replace(/[^0-9.]/g, '')) || 0;
+    if (val >= 100) {
+      total = val / 10000;
+    } else {
+      total = val;
+    }
+  }
+  return total;
 };
 
 const formatDeltaPrice = (deltaVal: number) => {
