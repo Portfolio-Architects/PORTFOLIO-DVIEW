@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const runtime = 'edge';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
@@ -8,15 +10,28 @@ export const revalidate = 0; // force-dynamic
 
 import { loadAllCached, resolveApartment, filterByBBox, clearCache, StationPOI } from '@/lib/services/locationService';
 
+const locationScoresQuerySchema = z.object({
+  apartment: z.string().min(1, 'apartment parameter is required'),
+  refresh: z.string().optional().transform((v) => v === '1'),
+});
+
 // ── GET Handler ────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  const apartment = request.nextUrl.searchParams.get('apartment');
-  const forceRefresh = request.nextUrl.searchParams.get('refresh') === '1';
+  const { searchParams } = request.nextUrl;
+  const parsedQuery = locationScoresQuerySchema.safeParse({
+    apartment: searchParams.get('apartment'),
+    refresh: searchParams.get('refresh'),
+  });
 
-  if (!apartment) {
+  if (!parsedQuery.success) {
+    logger.warn('LocationScoresAPI.GET', 'Invalid query parameters', {
+      errors: parsedQuery.error.format(),
+    });
     return NextResponse.json({ error: 'apartment parameter is required' }, { status: 400 });
   }
+
+  const { apartment, refresh: forceRefresh } = parsedQuery.data;
 
   try {
     // Force cache invalidation when admin requests fresh data
@@ -29,6 +44,10 @@ export async function GET(request: NextRequest) {
 
     const apt = resolveApartment(apartment, apartments);
     if (!apt) {
+      logger.warn('LocationScoresAPI.GET', 'Unknown apartment requested', {
+        apartment,
+        totalAvailable: apartments.length
+      });
       return NextResponse.json(
         {
           error: `Unknown apartment: ${apartment}`,
@@ -54,11 +73,11 @@ export async function GET(request: NextRequest) {
     const gtxSrtLine = stations.filter(s => s.line.includes('GTX') || s.line.includes('SRT'));
     const indeokwonLine = stations.filter(s => s.line.includes('인덕원') || s.line.includes('동탄인덕원'));
     const tramLine = stations.filter(s => s.line.includes('트램') || s.line.includes('동탄트램') || s.line.includes('도시철도'));
-    console.log('[DEBUG] tramLine =>', tramLine);
+    logger.info('LocationScoresAPI.GET', 'Filter tram lines status', { count: tramLine.length });
     const nearestStationBase = gtxSrtLine.length > 0 ? findNearest(aptCoord, gtxSrtLine) : findNearest(aptCoord, stations);
     const nearestIndeokwonBase = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
     const nearestTramBase = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
-    console.log('[DEBUG] nearestTramBase =>', nearestTramBase);
+    logger.info('LocationScoresAPI.GET', 'Nearest tram base status', { nearestTramBase: nearestTramBase?.name || null });
 
     // Enrich with line name from sheet column C
     const findStationLine = (name: string | undefined, pool: StationPOI[]) => pool.find(s => s.name === name)?.line || null;
@@ -175,10 +194,9 @@ export async function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? (error as Error).message : 'Unknown error';
-    console.error('[LOCATION_SCORES] Error:', msg);
+    logger.error('LocationScoresAPI.GET', 'Failed to calculate location scores', {}, error as Error);
     return NextResponse.json(
-      { error: 'Failed to calculate location scores', detail: msg },
+      { error: 'Failed to calculate location scores', detail: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
