@@ -15,6 +15,14 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { createHash } from 'crypto';
 import { ADMIN_EMAILS } from '@/lib/config/admin.config';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// 보안: NoSQL Injection 및 오버플로우 방어용 스키마 검증
+const reportViewSchema = z.object({
+  reportId: z.string().min(1).max(100).trim(),
+  userEmail: z.string().max(100).optional(),
+});
 
 /** Lazy-init Firebase Admin (avoids build-time execution) */
 function getAdminDb() {
@@ -27,10 +35,12 @@ function getAdminDb() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { reportId, userEmail } = await request.json();
-    if (!reportId || typeof reportId !== 'string') {
-      return NextResponse.json({ error: 'reportId is required' }, { status: 400 });
+    const rawBody = await request.json();
+    const parsed = reportViewSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
     }
+    const { reportId, userEmail } = parsed.data;
 
     // ── Admin exclusion ──
     if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
@@ -82,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ counted: true });
   } catch (error: unknown) {
-    console.error('[report-view] Error:', error instanceof Error ? error.message : String(error));
+    logger.error('ReportViewAPI.POST', 'Failed to track report view', {}, error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
