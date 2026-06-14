@@ -471,6 +471,11 @@ export default function MacroDashboardClient({
   const [newsTab, setNewsTab] = useState<"news" | "notice">("news");
   const [visibleNoticeCount, setVisibleNoticeCount] = useState(6);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
@@ -490,6 +495,7 @@ export default function MacroDashboardClient({
 
   // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
   useEffect(() => {
+    if (!mounted) return;
     // 이미 선택된 단지가 있다면 덮어쓰지 않음
     if (selectedTimelineApt) return;
     
@@ -501,7 +507,7 @@ export default function MacroDashboardClient({
         setSelectedTimelineApt(firstFav);
       }
     }
-  }, [user, userFavorites, selectedTimelineApt]);
+  }, [user, userFavorites, selectedTimelineApt, mounted]);
 
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
@@ -515,10 +521,12 @@ export default function MacroDashboardClient({
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     if (!selectedTimelineApt) {
       setAptRealTxData(null);
       return;
     }
+    let active = true;
     setIsAptTxLoading(true);
     const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
     
@@ -528,21 +536,33 @@ export default function MacroDashboardClient({
         return res.json();
       })
       .then(data => {
-        setAptRealTxData(data);
+        if (active) {
+          setAptRealTxData(data);
+        }
       })
       .catch(err => {
         console.error("Error fetching apt real tx data:", err);
-        setAptRealTxData(null);
+        if (active) {
+          setAptRealTxData(null);
+        }
       })
       .finally(() => {
-        setIsAptTxLoading(false);
+        if (active) {
+          setIsAptTxLoading(false);
+        }
       });
-  }, [selectedTimelineApt, txSummaryData, nameMapping]);
+
+    return () => {
+      active = false;
+    };
+  }, [selectedTimelineApt, txSummaryData, nameMapping, mounted]);
 
 
 
   React.useEffect(() => {
+    let active = true;
     async function fetchNews() {
+      if (!mounted) return;
       const FALLBACK_NEWS: MacroNewsItem[] = [
         {
           id: "fb-1",
@@ -570,20 +590,29 @@ export default function MacroDashboardClient({
         const res = await fetch("/api/macro/news");
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const json = await res.json();
-        if (json.status === "success" && json.data) {
-          setNewsData(json.data);
-        } else {
-          setNewsData(FALLBACK_NEWS);
+        if (active) {
+          if (json.status === "success" && json.data) {
+            setNewsData(json.data);
+          } else {
+            setNewsData(FALLBACK_NEWS);
+          }
         }
       } catch (err) {
         console.warn("Failed to fetch news, using local fallback news data.", err);
-        setNewsData(FALLBACK_NEWS);
+        if (active) {
+          setNewsData(FALLBACK_NEWS);
+        }
       } finally {
-        setNewsLoading(false);
+        if (active) {
+          setNewsLoading(false);
+        }
       }
     }
     fetchNews();
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [mounted]);
 
   React.useEffect(() => {
     const handleScroll = () => {

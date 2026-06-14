@@ -458,7 +458,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         
         <div ref={containerRef} className="h-[320px] md:h-[360px] w-full relative">
           {typeof window !== 'undefined' && isChartReady && dimensions.width > 0 && dimensions.height > 0 ? (
-            <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1} debounce={100}>
+            <ResponsiveContainer width={dimensions.width} height={dimensions.height} minWidth={1} minHeight={1} debounce={100}>
               <ComposedChart 
                 data={monthlyData} 
                 margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
