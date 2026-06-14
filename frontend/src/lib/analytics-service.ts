@@ -1,38 +1,44 @@
+import { z } from 'zod';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { redis } from '@/lib/redis';
+import { logger } from '@/lib/services/logger';
 
 // Keys for Redis caching
 const PUBLIC_ANALYTICS_CACHE_KEY = 'dtdls:analytics:public:lkg';
 const ADMIN_ANALYTICS_CACHE_KEY = 'dtdls:analytics:admin:lkg';
 
+// Zod validation schemas
+export const PublicAnalyticsDataSchema = z.object({
+  mau: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+  dau: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+  totalViews: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+  avgSessionDuration: z.string().catch('0m 0s'),
+});
+export type PublicAnalyticsData = z.infer<typeof PublicAnalyticsDataSchema>;
+
+export const AdminAnalyticsRowSchema = z.object({
+  date: z.string(),
+  activeUsers: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+  pageViews: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+});
+export type AdminAnalyticsRow = z.infer<typeof AdminAnalyticsRowSchema>;
+
+export const AdminAnalyticsDataSchema = z.object({
+  daily: z.array(AdminAnalyticsRowSchema),
+  monthly: z.array(z.object({
+    month: z.string(),
+    mau: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+    avgDau: z.union([z.string(), z.number()]).transform(val => parseInt(String(val), 10) || 0),
+  })),
+  totalViews: z.union([z.string(), z.number()]).optional().transform(val => val !== undefined ? parseInt(String(val), 10) : undefined),
+  avgSessionDuration: z.string().optional(),
+  isMock: z.boolean().optional(),
+});
+export type AdminAnalyticsData = z.infer<typeof AdminAnalyticsDataSchema>;
+
 // Local in-memory backup to prevent Google API thundering herd / quota exhaustion when Redis is down
 let memoryPublicLKG: PublicAnalyticsData | null = null;
 let memoryAdminLKG: AdminAnalyticsData | null = null;
-
-export interface PublicAnalyticsData {
-  mau: number;
-  dau: number;
-  totalViews: number;
-  avgSessionDuration: string;
-}
-
-export interface AdminAnalyticsRow {
-  date: string;
-  activeUsers: number;
-  pageViews: number;
-}
-
-export interface AdminAnalyticsData {
-  daily: AdminAnalyticsRow[];
-  monthly: {
-    month: string;
-    mau: number;
-    avgDau: number;
-  }[];
-  totalViews?: number;
-  avgSessionDuration?: string;
-  isMock?: boolean;
-}
 
 // TTLs in seconds
 const PUBLIC_CACHE_TTL = 3600; // 1 hour
@@ -87,7 +93,14 @@ async function fetchPublicAnalyticsFromGA(): Promise<PublicAnalyticsData> {
   const seconds = avgDurationSeconds % 60;
   const avgSessionDuration = `${minutes}m ${seconds}s`;
 
-  return { mau, dau, totalViews, avgSessionDuration };
+  const rawData = { mau, dau, totalViews, avgSessionDuration };
+  const validation = PublicAnalyticsDataSchema.safeParse(rawData);
+  if (validation.success) {
+    return validation.data;
+  } else {
+    logger.error('analytics-service.fetchPublicAnalyticsFromGA', 'Fetched data validation failed', { error: String(validation.error) });
+    return { mau: 0, dau: 0, totalViews: 0, avgSessionDuration: '0m 0s' };
+  }
 }
 
 /**
@@ -96,18 +109,25 @@ async function fetchPublicAnalyticsFromGA(): Promise<PublicAnalyticsData> {
 export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
   try {
     if (redis) {
-      const cached = await redis.get<{ data: PublicAnalyticsData, timestamp: number }>(PUBLIC_ANALYTICS_CACHE_KEY);
-      if (cached) {
-        memoryPublicLKG = cached.data; // Sync memory backup
-        const isStale = (Date.now() - cached.timestamp) > (PUBLIC_CACHE_TTL * 1000);
-        if (isStale) {
-          // Stale-while-revalidate: Fetch in background
-          fetchPublicAnalyticsFromGA().then(freshData => {
-            memoryPublicLKG = freshData;
-            redis?.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
-          }).catch(console.error);
+      const cached = await redis.get<{ data: unknown, timestamp: number }>(PUBLIC_ANALYTICS_CACHE_KEY);
+      if (cached && cached.data) {
+        const parsed = PublicAnalyticsDataSchema.safeParse(cached.data);
+        if (parsed.success) {
+          memoryPublicLKG = parsed.data; // Sync memory backup
+          const isStale = (Date.now() - cached.timestamp) > (PUBLIC_CACHE_TTL * 1000);
+          if (isStale) {
+            // Stale-while-revalidate: Fetch in background
+            fetchPublicAnalyticsFromGA().then(freshData => {
+              memoryPublicLKG = freshData;
+              redis?.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+            }).catch(err => {
+              logger.error('analytics-service.getPublicAnalyticsLKG', 'Background fetch failed', {}, err);
+            });
+          }
+          return parsed.data;
+        } else {
+          logger.warn('analytics-service.getPublicAnalyticsLKG', 'Cached public data validation failed', { error: String(parsed.error) });
         }
-        return cached.data;
       }
     }
 
@@ -120,7 +140,7 @@ export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
     }
     return freshData;
   } catch (error) {
-    console.error('[Public GA4 API LKG] Error, serving memory fallback:', error);
+    logger.error('analytics-service.getPublicAnalyticsLKG', 'Error, serving memory fallback', {}, error);
     if (memoryPublicLKG) {
       return memoryPublicLKG; // Bypass Google API quota exhaustion under failure
     }
@@ -270,9 +290,16 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
     const seconds = avgDurationSeconds % 60;
     const avgSessionDuration = `${minutes}m ${seconds}s`;
 
-    return { daily, monthly, totalViews, avgSessionDuration, isMock: false };
+    const rawResult = { daily, monthly, totalViews, avgSessionDuration, isMock: false };
+    const validation = AdminAnalyticsDataSchema.safeParse(rawResult);
+    if (validation.success) {
+      return validation.data;
+    } else {
+      logger.error('analytics-service.fetchAdminAnalyticsFromGA', 'Fetched data validation failed', { error: String(validation.error) });
+      return generateMockAdminAnalytics();
+    }
   } catch (err) {
-    console.error('Failed to query GA4 reports, falling back to mock data:', err);
+    logger.warn('analytics-service.fetchAdminAnalyticsFromGA', 'Failed to query GA4 reports, falling back to mock data', {}, err);
     return generateMockAdminAnalytics();
   }
 }
@@ -283,18 +310,25 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
 export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
   try {
     if (redis) {
-      const cached = await redis.get<{ data: AdminAnalyticsData, timestamp: number }>(ADMIN_ANALYTICS_CACHE_KEY);
-      if (cached) {
-        memoryAdminLKG = cached.data; // Sync memory backup
-        const isStale = (Date.now() - cached.timestamp) > (ADMIN_CACHE_TTL * 1000);
-        if (isStale) {
-          // Stale-while-revalidate
-          fetchAdminAnalyticsFromGA().then(freshData => {
-            memoryAdminLKG = freshData;
-            redis?.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
-          }).catch(console.error);
+      const cached = await redis.get<{ data: unknown, timestamp: number }>(ADMIN_ANALYTICS_CACHE_KEY);
+      if (cached && cached.data) {
+        const parsed = AdminAnalyticsDataSchema.safeParse(cached.data);
+        if (parsed.success) {
+          memoryAdminLKG = parsed.data; // Sync memory backup
+          const isStale = (Date.now() - cached.timestamp) > (ADMIN_CACHE_TTL * 1000);
+          if (isStale) {
+            // Stale-while-revalidate
+            fetchAdminAnalyticsFromGA().then(freshData => {
+              memoryAdminLKG = freshData;
+              redis?.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
+            }).catch(err => {
+              logger.error('analytics-service.getAdminAnalyticsLKG', 'Background fetch failed', {}, err);
+            });
+          }
+          return parsed.data;
+        } else {
+          logger.warn('analytics-service.getAdminAnalyticsLKG', 'Cached admin data validation failed', { error: String(parsed.error) });
         }
-        return cached.data;
       }
     }
 
@@ -305,10 +339,11 @@ export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
     }
     return freshData;
   } catch (error) {
-    console.error('[Admin GA4 API LKG] Error, serving memory fallback:', error);
+    logger.error('analytics-service.getAdminAnalyticsLKG', 'Error, serving memory fallback', {}, error);
     if (memoryAdminLKG) {
       return memoryAdminLKG; // Bypass Google API quota exhaustion under failure
     }
     return generateMockAdminAnalytics();
   }
 }
+
