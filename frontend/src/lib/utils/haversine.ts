@@ -18,6 +18,7 @@ export const CoordSchema = z.object({
 });
 
 /** A geographic coordinate (latitude, longitude in degrees) */
+/** A geographic coordinate (latitude, longitude in degrees) */
 export type Coord = z.infer<typeof CoordSchema>;
 
 /**
@@ -25,22 +26,41 @@ export type Coord = z.infer<typeof CoordSchema>;
  * @returns Distance in meters (rounded to nearest integer)
  */
 export function haversineDistance(a: any, b: any): number {
-  const parsedA = CoordSchema.safeParse(a);
-  const parsedB = CoordSchema.safeParse(b);
-  if (!parsedA.success || !parsedB.success) {
-    return 0;
-  }
-  const coordA = parsedA.data;
-  const coordB = parsedB.data;
+  let latA: number, lngA: number;
+  let latB: number, lngB: number;
 
-  const dLat = toRad(coordB.lat - coordA.lat);
-  const dLng = toRad(coordB.lng - coordA.lng);
+  if (a && typeof a.lat === 'number' && typeof a.lng === 'number' && !isNaN(a.lat) && !isNaN(a.lng)) {
+    latA = a.lat;
+    lngA = a.lng;
+  } else {
+    const parsedA = CoordSchema.safeParse(a);
+    if (!parsedA.success) return 0;
+    latA = parsedA.data.lat;
+    lngA = parsedA.data.lng;
+  }
+
+  if (b && typeof b.lat === 'number' && typeof b.lng === 'number' && !isNaN(b.lat) && !isNaN(b.lng)) {
+    latB = b.lat;
+    lngB = b.lng;
+  } else {
+    const parsedB = CoordSchema.safeParse(b);
+    if (!parsedB.success) return 0;
+    latB = parsedB.data.lat;
+    lngB = parsedB.data.lng;
+  }
+
+  // Check bounds
+  if (latA < -90 || latA > 90 || lngA < -180 || lngA > 180) return 0;
+  if (latB < -90 || latB > 90 || lngB < -180 || lngB > 180) return 0;
+
+  const dLat = toRad(latB - latA);
+  const dLng = toRad(lngB - lngA);
 
   const sinLat = Math.sin(dLat / 2);
   const sinLng = Math.sin(dLng / 2);
 
   const h = sinLat * sinLat +
-    Math.cos(toRad(coordA.lat)) * Math.cos(toRad(coordB.lat)) * sinLng * sinLng;
+    Math.cos(toRad(latA)) * Math.cos(toRad(latB)) * sinLng * sinLng;
 
   // Prevent Math.asin(Math.sqrt(h)) from returning NaN if h is slightly out of [0, 1] bounds due to precision errors
   const clampedH = Math.max(0, Math.min(1, h));
@@ -54,24 +74,42 @@ export function findNearest<T extends Coord & { name: string }>(
   origin: Coord,
   pois: T[]
 ): (T & { distance: number }) | null {
-  const parsedOrigin = CoordSchema.safeParse(origin);
-  if (!parsedOrigin.success) {
-    logger.warn('haversine.findNearest', 'Invalid origin coordinate', { origin, error: String(parsedOrigin.error) });
-    return null;
+  let vOriginLat: number, vOriginLng: number;
+  if (origin && typeof origin.lat === 'number' && typeof origin.lng === 'number' && !isNaN(origin.lat) && !isNaN(origin.lng)) {
+    vOriginLat = origin.lat;
+    vOriginLng = origin.lng;
+  } else {
+    const parsedOrigin = CoordSchema.safeParse(origin);
+    if (!parsedOrigin.success) {
+      logger.warn('haversine.findNearest', 'Invalid origin coordinate', { origin, error: String(parsedOrigin.error) });
+      return null;
+    }
+    vOriginLat = parsedOrigin.data.lat;
+    vOriginLng = parsedOrigin.data.lng;
   }
-  const vOrigin = parsedOrigin.data;
+
   if (!pois || pois.length === 0) return null;
 
   let nearest: T | null = null;
   let minDist = Infinity;
+  const originObj = { lat: vOriginLat, lng: vOriginLng };
 
   for (const poi of pois) {
-    const parsedPoi = CoordSchema.safeParse(poi);
-    if (!parsedPoi.success) {
-      logger.warn('haversine.findNearest', `Invalid POI coordinate for ${poi?.name}`, { poi, error: String(parsedPoi.error) });
-      continue;
+    let poiLat: number, poiLng: number;
+    if (poi && typeof poi.lat === 'number' && typeof poi.lng === 'number' && !isNaN(poi.lat) && !isNaN(poi.lng)) {
+      poiLat = poi.lat;
+      poiLng = poi.lng;
+    } else {
+      const parsedPoi = CoordSchema.safeParse(poi);
+      if (!parsedPoi.success) {
+        logger.warn('haversine.findNearest', `Invalid POI coordinate for ${poi?.name}`, { poi, error: String(parsedPoi.error) });
+        continue;
+      }
+      poiLat = parsedPoi.data.lat;
+      poiLng = parsedPoi.data.lng;
     }
-    const dist = haversineDistance(vOrigin, parsedPoi.data);
+
+    const dist = haversineDistance(originObj, { lat: poiLat, lng: poiLng });
     if (dist < minDist) {
       minDist = dist;
       nearest = poi;
@@ -86,15 +124,38 @@ export function findNearest<T extends Coord & { name: string }>(
  * Counts POIs within a given radius (meters) from origin.
  */
 export function countWithinRadius(origin: Coord, pois: Coord[], radiusM: number): number {
-  const parsedOrigin = CoordSchema.safeParse(origin);
-  if (!parsedOrigin.success) return 0;
-  const vOrigin = parsedOrigin.data;
+  let originLat: number, originLng: number;
+  if (origin && typeof origin.lat === 'number' && typeof origin.lng === 'number' && !isNaN(origin.lat) && !isNaN(origin.lng)) {
+    originLat = origin.lat;
+    originLng = origin.lng;
+  } else {
+    const parsedOrigin = CoordSchema.safeParse(origin);
+    if (!parsedOrigin.success) return 0;
+    originLat = parsedOrigin.data.lat;
+    originLng = parsedOrigin.data.lng;
+  }
 
   if (!pois || !Array.isArray(pois)) return 0;
-  return pois.filter(p => {
-    const parsedP = CoordSchema.safeParse(p);
-    return parsedP.success && haversineDistance(vOrigin, parsedP.data) <= radiusM;
-  }).length;
+
+  const originObj = { lat: originLat, lng: originLng };
+  let count = 0;
+
+  for (const p of pois) {
+    let pLat: number, pLng: number;
+    if (p && typeof p.lat === 'number' && typeof p.lng === 'number' && !isNaN(p.lat) && !isNaN(p.lng)) {
+      pLat = p.lat;
+      pLng = p.lng;
+    } else {
+      const parsedP = CoordSchema.safeParse(p);
+      if (!parsedP.success) continue;
+      pLat = parsedP.data.lat;
+      pLng = parsedP.data.lng;
+    }
+    if (haversineDistance(originObj, { lat: pLat, lng: pLng }) <= radiusM) {
+      count++;
+    }
+  }
+  return count;
 }
 
 /**
