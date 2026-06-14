@@ -261,6 +261,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     })
     .sort((a, b) => a.ts - b.ts);
 
+  const minTs = monthlyData.length > 0 ? monthlyData[0].ts : Date.now() - 365 * 24 * 3600 * 1000;
+  const maxTs = monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].ts : Date.now();
+
   // Compute global stable minP/maxP across BOTH sale and jeonse to keep Y-axis identical
   const getEokPrice = (tx: any, isJeonse: boolean) => {
     let rawPrice = tx.price;
@@ -475,10 +478,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                <XAxis dataKey="ts" type="number" scale="time" domain={[zoomDomain.left, zoomDomain.right]}
+                <XAxis dataKey="ts" type="number" scale="time"
+                  domain={[
+                    zoomDomain.left === 'dataMin' ? minTs : zoomDomain.left,
+                    zoomDomain.right === 'dataMax' ? maxTs : zoomDomain.right
+                  ]}
                   tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
                   tickLine={false} tickMargin={6}
-                  nice={false}
+                  nice={false as any}
                   allowDataOverflow={true}
                   tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}년 ${String(d.getMonth()+1).padStart(2,'0')}월`; }}
                 />
