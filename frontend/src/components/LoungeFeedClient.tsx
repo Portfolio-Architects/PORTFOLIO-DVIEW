@@ -66,11 +66,21 @@ const CATEGORY_MAP: Record<string, string[]> = {
 
 export function formatRelativeTime(dateInput: number | string | Date | undefined): string {
   if (!dateInput) return '방금 전';
-  const date = new Date(dateInput);
-  if (isNaN(date.getTime())) return '방금 전';
   
-  const now = new Date();
-  const diffMs = Math.max(0, now.getTime() - date.getTime());
+  const nowMs = Date.now();
+  let timeMs = 0;
+  
+  if (typeof dateInput === 'number') {
+    timeMs = dateInput;
+  } else if (dateInput instanceof Date) {
+    timeMs = dateInput.getTime();
+  } else {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return '방금 전';
+    timeMs = d.getTime();
+  }
+  
+  const diffMs = Math.max(0, nowMs - timeMs);
   const diffMin = Math.floor(diffMs / (1000 * 60));
   const diffHour = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDay = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -80,6 +90,8 @@ export function formatRelativeTime(dateInput: number | string | Date | undefined
   if (diffHour < 24) return `${diffHour}시간 전`;
   if (diffDay < 7) return `${diffDay}일 전`;
   
+  const date = new Date(timeMs);
+  const now = new Date(nowMs);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -118,18 +130,16 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
   const hotPosts = useMemo(() => {
     const now = Date.now();
-    return [...posts]
-      .sort((a, b) => {
-        const aAgeDays = (now - a.createdAt) / (1000 * 60 * 60 * 24);
-        const bAgeDays = (now - b.createdAt) / (1000 * 60 * 60 * 24);
-        
-        // Time decay formula: Score = (Views + Likes*5 + CommentCount*10) / (AgeInDays + 1)^1.2
-        const aScore = (a.views + a.likes * 5 + (a.commentCount || 0) * 10) / Math.pow(aAgeDays + 1, 1.2);
-        const bScore = (b.views + b.likes * 5 + (b.commentCount || 0) * 10) / Math.pow(bAgeDays + 1, 1.2);
-        
-        return bScore - aScore;
-      })
-      .slice(0, 4);
+    const postsWithScore = posts.map(post => {
+      const ageDays = (now - post.createdAt) / (1000 * 60 * 60 * 24);
+      const score = (post.views + post.likes * 5 + (post.commentCount || 0) * 10) / Math.pow(ageDays + 1, 1.2);
+      return { post, score };
+    });
+
+    return postsWithScore
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map(item => item.post);
   }, [posts]);
 
   const isReachingEnd = data && (data.length === 0 || (data[data.length - 1] && data[data.length - 1].length < 20));
@@ -306,9 +316,11 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     setSelectedNoticeId(null);
   };
 
-  const filteredPosts = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
-    ? []
-    : posts.filter((p) => (CATEGORY_MAP[currentTab] || [currentTab]).includes(p.category || '기타'));
+  const filteredPosts = useMemo(() => {
+    if (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식') return [];
+    const targetCategories = CATEGORY_MAP[currentTab] || [currentTab];
+    return posts.filter((p) => targetCategories.includes(p.category || '기타'));
+  }, [posts, currentTab]);
 
   // Auto-fetch if the current category has no posts but there are more posts in the DB
   useEffect(() => {
