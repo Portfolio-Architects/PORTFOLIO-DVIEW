@@ -213,8 +213,8 @@ export default function GapInvestmentExplorer({
       // 1) 전세가율 점수 (55%): 50%일 때 0점, 80% 이상일 때 100점
       const ratioScore = Math.max(0, Math.min(100, ((ratio - 0.5) / 0.3) * 100));
 
-      // 2) 최근 3개월 거래 회전율 활성 점수 (25%)
-      const txCount = sum?.avg3MTxCount || 0;
+      // 2) 최근 30일 거래 회전율 활성 점수 (25%) (30일 거래량 미존재 시 90일 보완 적용)
+      const txCount = sum?.avg1MTxCount || sum?.avg3MTxCount || 0;
       let txScore = 0;
       if (txCount >= 10) txScore = 100;
       else if (txCount >= 5) txScore = 90;
@@ -632,7 +632,7 @@ export default function GapInvestmentExplorer({
       <div className="flex items-start gap-2.5 bg-body/60 dark:bg-slate-900/40 p-4 rounded-2xl mb-6 text-[12px] sm:text-[13px] text-secondary border border-border/30">
         <HelpCircle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
         <p className="leading-relaxed break-keep">
-          최근 3개월 실거래가(매매 및 전세) 평균을 기초로 계산한 투자금액(갭) 정보입니다. 직거래나 비정상 거래는 제외될 수 있으며 실제 매물 가격과는 차이가 있을 수 있습니다.
+          최근 1개월(없을 시 3개월) 실거래가(매매 및 전세) 평균을 기초로 계산한 투자금액(갭) 정보입니다. 직거래나 비정상 거래는 제외될 수 있으며 실제 매물 가격과는 차이가 있을 수 있습니다.
         </p>
       </div>
 
@@ -806,10 +806,10 @@ export default function GapInvestmentExplorer({
                           </p>
                           <p className="text-tertiary font-semibold mt-0.5 leading-normal">
                             {item.txCount <= 2 
-                              ? '최근 3개월 실거래가 2건 이하로, 매도 시 자금 회수 및 엑시트가 지연될 수 있습니다.'
+                              ? '최근 30일(혹은 3개월) 실거래가 2건 이하로, 매도 시 자금 회수 및 엑시트가 지연될 수 있습니다.'
                               : item.txCount <= 5 
-                              ? '최근 3개월 3~5건 거래가 발생하여, 표준적인 시장 환금성을 보입니다.'
-                              : '최근 3개월 6건 이상으로 거래가 활발하여 언제든 자금 회수(Exit)가 용이합니다.'}
+                              ? '최근 30일(혹은 3개월) 3~5건 거래가 발생하여, 표준적인 시장 환금성을 보입니다.'
+                              : '최근 30일(혹은 3개월) 6건 이상으로 거래가 활발하여 언제든 자금 회수(Exit)가 용이합니다.'}
                           </p>
                         </div>
                       </div>

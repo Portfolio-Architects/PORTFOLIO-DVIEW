@@ -745,28 +745,37 @@ function FieldReportModal({
     }
 
     const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const oneMonthAgoNum = oneMonthAgo.getFullYear() * 10000 + (oneMonthAgo.getMonth() + 1) * 100 + oneMonthAgo.getDate();
+
     const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
     const threeMonthsAgoNum = threeMonthsAgo.getFullYear() * 10000 + (threeMonthsAgo.getMonth() + 1) * 100 + threeMonthsAgo.getDate();
 
-    const isRecent = (t: any) => {
-      return (t.contractDateNum || 0) >= threeMonthsAgoNum;
-    };
+    const isRecent1M = (t: any) => (t.contractDateNum || 0) >= oneMonthAgoNum;
+    const isRecent3M = (t: any) => (t.contractDateNum || 0) >= threeMonthsAgoNum;
 
     const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
     const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
 
-    const recentSales = sales.filter(isRecent);
-    const recentRents = rents.filter(isRecent);
+    const recentSales1M = sales.filter(isRecent1M);
+    const recentSales3M = sales.filter(isRecent3M);
 
-    const avg3MSale = recentSales.length > 0
-      ? Math.round(recentSales.reduce((sum, t) => sum + t.price, 0) / recentSales.length)
-      : (sales.length > 0 ? sales[0].price : 0);
+    const recentRents1M = rents.filter(isRecent1M);
+    const recentRents3M = rents.filter(isRecent3M);
+
+    const avg3MSale = recentSales1M.length > 0
+      ? Math.round(recentSales1M.reduce((sum, t) => sum + t.price, 0) / recentSales1M.length)
+      : (recentSales3M.length > 0
+        ? Math.round(recentSales3M.reduce((sum, t) => sum + t.price, 0) / recentSales3M.length)
+        : (sales.length > 0 ? sales[0].price : 0));
 
     const getJeonseEq = (t: any) => t.calculatedPrice || t.price || 0;
 
-    const avg3MRent = recentRents.length > 0
-      ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
-      : (rents.length > 0 ? getJeonseEq(rents[0]) : 0);
+    const avg3MRent = recentRents1M.length > 0
+      ? Math.round(recentRents1M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents1M.length)
+      : (recentRents3M.length > 0
+        ? Math.round(recentRents3M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents3M.length)
+        : (rents.length > 0 ? getJeonseEq(rents[0]) : 0));
 
     const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
 
@@ -1897,7 +1906,7 @@ ${eduScoreInfo ? `🏫 학군/육아 환경 지수: 🌟 ${eduScoreInfo.score}�
                           ratio={jeonseSafetyData.ratio}
                           latestPrice={jeonseSafetyData.latestPrice}
                           latestDeposit={jeonseSafetyData.latestDeposit}
-                          volume3M={txSummary ? (txSummary.avg3MTxCount || 0) : 0}
+                          volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
                           householdCount={report.metrics?.householdCount || 0}
                           onOpenAdModal={onOpenAdModal}
                         />
