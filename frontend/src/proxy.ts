@@ -2,9 +2,34 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Ratelimit } from "@upstash/ratelimit";
 import { redis } from "@/lib/redis";
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 // Upstash 글로벌 Rate Limiter (Edge 호환)
 const RATE_LIMIT_POINTS = 60; // 분당 60회 허용
+
+// Zod schema for proxy configurations
+const ProxyConfigSchema = z.object({
+  rateLimitPoints: z.number().int().positive().catch(60),
+  allowedOrigins: z.array(z.string()).min(1),
+});
+
+const proxyConfig = ProxyConfigSchema.parse({
+  rateLimitPoints: RATE_LIMIT_POINTS,
+  allowedOrigins: [
+    'localhost:',
+    '127.0.0.1:',
+    'vercel.app',
+    'dview.kr'
+  ]
+});
+
+// Zod schema for request metadata validation
+const RequestMetadataSchema = z.object({
+  ip: z.string().catch('127.0.0.1'),
+  origin: z.string().catch(''),
+  referer: z.string().catch(''),
+});
 
 let ratelimit: Ratelimit | null = null;
 
@@ -13,13 +38,13 @@ try {
   if (redis) {
     ratelimit = new Ratelimit({
       redis: redis,
-      limiter: Ratelimit.slidingWindow(RATE_LIMIT_POINTS, "1 m"),
+      limiter: Ratelimit.slidingWindow(proxyConfig.rateLimitPoints, "1 m"),
       analytics: false,
       prefix: "DTDLS:ratelimit", // 멀티 프로젝트 Isolation을 위한 Prefix
     });
   }
 } catch (error) {
-  console.warn("Failed to initialize Upstash Ratelimit:", error);
+  logger.warn("proxy.init", "Failed to initialize Upstash Ratelimit", {}, error);
 }
 
 export async function proxy(request: NextRequest) {
@@ -43,22 +68,22 @@ export async function proxy(request: NextRequest) {
   if (process.env.NODE_ENV === 'development') {
     return NextResponse.next();
   }
-  // 클라이언트 IP 추출 (Vercel 환경 지원 시 x-real-ip 최우선)
-  const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
-  
-  // 1. Rate Limiting & CORS (API 라우트에 국한)
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    // Origin / Referer validation (Prevent unauthorized external scraping)
-    const ALLOWED_ORIGINS = [
-      'localhost:',
-      '127.0.0.1:',
-      'vercel.app',
-      'dview.kr'
-    ];
-    const origin = request.headers.get('origin') || '';
-    const referer = request.headers.get('referer') || '';
 
-    const hasAllowedOrigin = ALLOWED_ORIGINS.some(allowed => 
+  // Safe parse request headers using Zod
+  const headersValidation = RequestMetadataSchema.safeParse({
+    ip: request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1',
+    origin: request.headers.get('origin') || '',
+    referer: request.headers.get('referer') || '',
+  });
+
+  const { ip, origin, referer } = headersValidation.success
+    ? headersValidation.data
+    : { ip: '127.0.0.1', origin: '', referer: '' };
+
+  // 1. Rate Limiting & CORS (API 라우트에 국한)
+  if (pathname.startsWith('/api/')) {
+    // Origin / Referer validation (Prevent unauthorized external scraping)
+    const hasAllowedOrigin = proxyConfig.allowedOrigins.some(allowed => 
       origin.includes(allowed) || referer.includes(allowed)
     );
 
@@ -93,7 +118,7 @@ export async function proxy(request: NextRequest) {
         }
       } catch (err) {
         // Redis 연결 에러 시 요청을 차단하지 않고 Bypass (Fail-Open 방식)
-        console.warn("Upstash RateLimiter Error, bypassing:", err);
+        logger.warn("proxy.api", "Upstash RateLimiter Error, bypassing", {}, err);
       }
     }
   }
@@ -157,4 +182,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|_vercel|assets|css|js|images|data|tx-data|sw\\.js|manifest\\.webmanifest|ads\\.txt|robots\\.txt|sitemap\\.xml).*)',
   ],
 };
-
