@@ -25,7 +25,7 @@ const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err =
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
-import { normalizeAptName, findTxKey, findTypeMapEntry } from "@/lib/utils/apartmentMapping";
+import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
 import { useSettings } from "@/lib/contexts/SettingsContext";
 import FloatingUserBar from "@/components/FloatingUserBar";
@@ -60,6 +60,7 @@ export interface TimelineItem {
   prevPriceVal?: number;
   areaLabelM2?: string;
   areaLabelPyeong?: string;
+  displayAptName?: string;
 }
 
 interface MacroNewsItem {
@@ -1277,6 +1278,7 @@ export default function MacroDashboardClient({
 
             groups[dateKey].items.push({
               aptName: apt.name,
+              displayAptName: getDisplayAptName(apt.name),
               dong: apt.dong || sum.dong || "",
               priceEok: tx.priceEok,
               priceVal: tx.priceVal || parsePriceEokHelper(tx.priceEok),
@@ -1723,8 +1725,8 @@ interface GroupedCategory {
                           >
                             {/* 1st Row: Apt Name & High Price Badge */}
                             <div className="flex items-center justify-between gap-3">
-                              <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]" title={item.aptName}>
-                                {item.aptName}
+                              <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]" title={item.displayAptName || item.aptName}>
+                                {item.displayAptName || item.aptName}
                               </span>
                               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shrink-0 whitespace-nowrap">
                                 {item.delta && item.delta > 0 

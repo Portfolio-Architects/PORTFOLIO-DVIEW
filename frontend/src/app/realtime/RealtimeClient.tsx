@@ -20,7 +20,7 @@ import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
-import { isSameApartment, normalizeAptName, findTxKey, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
@@ -150,6 +150,7 @@ interface TimelineItem {
   prevPriceVal?: number;
   areaLabelM2: string;
   areaLabelPyeong: string;
+  displayAptName?: string;
 }
 
 export default function RealtimeClient({ initialDashboardData }: { initialDashboardData?: DashboardInitialDataLocal }) {
@@ -568,6 +569,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
 
       timelineGroups[dateKey].items.push({
         aptName: tx.aptName,
+        displayAptName: getDisplayAptName(targetApt?.name || tx.aptName),
         dong: tx.dong,
         priceEok: tx.priceEok,
         priceVal: tx.priceVal,
@@ -963,8 +965,8 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                             >
                               {/* Name & High Price Badge */}
                               <div className="flex items-center justify-between gap-3">
-                                <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]">
-                                  {item.aptName}
+                                <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]" title={item.displayAptName || item.aptName}>
+                                  {item.displayAptName || item.aptName}
                                 </span>
                                 <span className="text-[10px] font-black px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/20 shrink-0 whitespace-nowrap">
                                   {item.delta && item.delta > 0 
