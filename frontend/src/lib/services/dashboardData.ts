@@ -7,6 +7,39 @@ import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 
+interface StaticDataCacheEntry<T> {
+  data: T;
+  mtimeMs: number;
+}
+
+const getGlobalStaticDataCache = (): Record<string, StaticDataCacheEntry<any>> => {
+  if (!(globalThis as any)._globalStaticDataCache) {
+    (globalThis as any)._globalStaticDataCache = {};
+  }
+  return (globalThis as any)._globalStaticDataCache;
+};
+
+async function readJsonFileCached<T>(relativePath: string, fallback: T): Promise<T> {
+  const filePath = path.resolve(process.cwd(), relativePath);
+  try {
+    const stats = await fs.promises.stat(filePath);
+    const mtimeMs = stats.mtimeMs;
+    const cache = getGlobalStaticDataCache();
+    
+    if (cache[relativePath] && cache[relativePath].mtimeMs === mtimeMs) {
+      return cache[relativePath].data;
+    }
+    
+    const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(fileContent);
+    cache[relativePath] = { data: parsed, mtimeMs };
+    return parsed;
+  } catch (e) {
+    logger.warn('DashboardData', `Failed to read or parse cached JSON file: ${relativePath}`, {}, e);
+    return fallback;
+  }
+}
+
 const PAGE_DATA_CACHE_TTL = 3600; // 1 hour in-memory cache for Firestore + Sheets merge
 
 let isRefreshingPageData = false;
@@ -128,7 +161,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       }
     }
     if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 3000);
+      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 1500);
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
@@ -149,7 +182,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       }
     }
     if (adminDb) {
-      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 3000);
+      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 1500);
       if (metaDoc.exists) {
         const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
         result.apartmentMeta = metaData;
@@ -173,7 +206,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       }
     }
     if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 3000);
+      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 1500);
       const reports = snap.docs.map(doc => {
         const data = doc.data();
         let createdAtStr = '방금 전';
@@ -231,34 +264,15 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchMacroTrend = async () => {
-    try {
-      const filePath = path.resolve(process.cwd(), 'public/data/macro-trend.json');
-      if (fs.existsSync(filePath)) {
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        result.macroTrend = JSON.parse(fileContent);
-      } else {
-        result.macroTrend = [];
-      }
-    } catch (e) {
-      logger.warn('DashboardData', 'Failed to read macro-trend.json', {}, e);
-      result.macroTrend = [];
-    }
+    result.macroTrend = await readJsonFileCached<any[]>('public/data/macro-trend.json', []);
   };
 
   const fetchTxSummary = async () => {
-    try {
-      const filePath = path.resolve(process.cwd(), 'public/data/tx-summary.json');
-      if (fs.existsSync(filePath)) {
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const parsed = JSON.parse(fileContent);
-        result.txSummary = parsed.summary || parsed;
-        result.recent7DaysVolume = parsed.recent7DaysVolume;
-      } else {
-        result.txSummary = {};
-        result.recent7DaysVolume = undefined;
-      }
-    } catch (e) {
-      logger.warn('DashboardData', 'Failed to read tx-summary.json', {}, e);
+    const parsed = await readJsonFileCached<any>('public/data/tx-summary.json', null);
+    if (parsed) {
+      result.txSummary = parsed.summary || parsed;
+      result.recent7DaysVolume = parsed.recent7DaysVolume;
+    } else {
       result.txSummary = {};
       result.recent7DaysVolume = undefined;
     }
@@ -275,24 +289,16 @@ async function fetchFreshData(): Promise<InitialPageData> {
   ]);
 
   if (Object.keys(result.apartmentMeta).length === 0) {
-    try {
-      const filePath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
-      if (fs.existsSync(filePath)) {
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const parsed = JSON.parse(fileContent);
-        const fallbackMeta: Record<string, { dong: string; txKey: string }> = {};
-        if (parsed.byDong) {
-          Object.entries(parsed.byDong).forEach(([dongName, apts]: [string, any]) => {
-            apts.forEach((a: any) => {
-              fallbackMeta[a.name] = { dong: dongName, txKey: a.txKey || a.name };
-            });
-          });
-        }
-        result.apartmentMeta = fallbackMeta;
-        logger.info('DashboardData', 'Injected fallback apartmentMeta from static json file');
-      }
-    } catch (e) {
-      logger.error('DashboardData', 'Failed to load fallback apartmentMeta', {}, e);
+    const parsed = await readJsonFileCached<any>('public/data/apartments-by-dong.json', null);
+    if (parsed && parsed.byDong) {
+      const fallbackMeta: Record<string, { dong: string; txKey: string }> = {};
+      Object.entries(parsed.byDong).forEach(([dongName, apts]: [string, any]) => {
+        apts.forEach((a: any) => {
+          fallbackMeta[a.name] = { dong: dongName, txKey: a.txKey || a.name };
+        });
+      });
+      result.apartmentMeta = fallbackMeta;
+      logger.info('DashboardData', 'Injected fallback apartmentMeta from static json file');
     }
   }
 
