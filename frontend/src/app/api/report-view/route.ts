@@ -35,7 +35,19 @@ function getAdminDb() {
 
 export async function POST(request: NextRequest) {
   try {
-    const rawBody = await request.json();
+    let rawBody: any;
+    try {
+      const text = await request.text();
+      if (!text.trim()) {
+        logger.warn('ReportViewAPI.POST', 'Empty request body', {});
+        return NextResponse.json({ error: 'Bad Request: Empty Payload' }, { status: 400 });
+      }
+      rawBody = JSON.parse(text);
+    } catch (jsonErr) {
+      logger.warn('ReportViewAPI.POST', 'Invalid JSON format', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Bad Request: Invalid JSON' }, { status: 400 });
+    }
+
     const parsed = reportViewSchema.safeParse(rawBody);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
