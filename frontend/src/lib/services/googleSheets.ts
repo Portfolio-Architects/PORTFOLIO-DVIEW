@@ -7,6 +7,8 @@ import path from 'path';
 import coordCorrections from '../../../public/data/coordinate-corrections.json';
 import typeMapStatic from '../../../public/data/type-map.json';
 import apartmentsByDongStatic from '../../../public/data/apartments-by-dong.json';
+import { FULL_DONG_DATA } from '../dong-apartments';
+import { normalizeAptName } from '../utils/apartmentMapping';
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
@@ -296,6 +298,28 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
       apartments.push(parsed.data);
     } else {
       logger.warn('fetchSheetApartmentsByDong', 'Skipped invalid apartment row', { name, issues: parsed.error.issues });
+    }
+  }
+
+  // 1-1. FULL_DONG_DATA와 비교하여 구글 시트에 누락된 아파트를 기본값으로 채워 넣음 (Defensive Data Integration)
+  const existingAptNames = new Set(apartments.map(a => normalizeAptName(a.name)));
+  for (const [dongName, aptNames] of Object.entries(FULL_DONG_DATA)) {
+    for (const aptName of aptNames) {
+      const normalized = normalizeAptName(aptName);
+      if (!existingAptNames.has(normalized)) {
+        const fallbackApt: SheetApartment = {
+          name: aptName,
+          dong: dongName,
+          lat: 0,
+          lng: 0,
+          txKey: aptName
+        };
+        const parsed = SheetApartmentSchema.safeParse(fallbackApt);
+        if (parsed.success) {
+          apartments.push(parsed.data);
+          existingAptNames.add(normalized);
+        }
+      }
     }
   }
 
