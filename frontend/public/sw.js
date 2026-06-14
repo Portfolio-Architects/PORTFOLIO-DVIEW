@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1781430479104';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1781430479104';
+const CACHE_NAME = 'dview-cache-v-1781430715133';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1781430715133';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -53,6 +53,24 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+  // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Stale-While-Revalidate
+  if (url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) {
+    event.respondWith(
+      caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
+        return cache.match(req).then((cachedRes) => {
+          const fetchPromise = fetch(req).then((networkRes) => {
+            if (networkRes.status === 200) {
+              cache.put(req, networkRes.clone());
+            }
+            return networkRes;
+          }).catch(() => null);
+          return cachedRes || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+
 
 
   // Default: Network First, Fallback to Cache (and save to Dynamic Cache on success)
