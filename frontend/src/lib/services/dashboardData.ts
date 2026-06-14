@@ -203,6 +203,11 @@ async function fetchFreshData(): Promise<InitialPageData> {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
+      if (redis && Object.keys(result.favoriteCounts).length > 0) {
+        redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => 
+          logger.warn('DashboardData.fetchFavCounts', 'Redis favoriteCounts write-back failed', {}, err)
+        );
+      }
     }
   };
 
