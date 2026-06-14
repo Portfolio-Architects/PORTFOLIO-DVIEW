@@ -1227,62 +1227,71 @@ export default function MacroDashboardClient({
 
     if (!sheetApartments || !txSummaryData) return [];
 
+    // O(1) txKey to Apartment map to prevent duplicate listings and ensure official name usage
+    const txKeyToAptMap = new Map<string, DongApartment>();
     const allApts = Object.values(sheetApartments).flat();
 
     allApts.forEach((apt) => {
-      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
       const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-      if (txKey && txSummaryData[txKey]) {
-        const sum = txSummaryData[txKey];
-        if (sum.recent && sum.recent.length > 0) {
-          sum.recent.forEach((tx) => {
-            // 빌드타임에 전체 거래를 바탕으로 사전 판정된 진짜 신고가만 대상화
-            if (!tx.isNewHigh) return;
-
-            const dt = parseDateHelper(tx.date, sum.latestDate);
-            if (!dt) return;
-
-            // 미래 혹은 가짜 일자 오차 방어
-            const diffMs = maxDateTime - dt.getTime();
-            const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-            if (diffDays >= 0) {
-              const dateKey = tx.date;
-              const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-              const dayName = daysOfWeek[dt.getDay()];
-              const month = dt.getMonth() + 1;
-              const dateVal = dt.getDate();
-              const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
-
-              if (!groups[dateKey]) {
-                groups[dateKey] = {
-                  dateStr,
-                  timestamp: dt.getTime(),
-                  items: [],
-                };
-              }
-
-              const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
-              const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
-              const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
-
-              groups[dateKey].items.push({
-                aptName: apt.name,
-                dong: apt.dong || sum.dong || "",
-                priceEok: tx.priceEok,
-                priceVal: tx.priceVal || parsePriceEokHelper(tx.priceEok),
-                areaPyeong: tx.areaPyeong,
-                area: tx.area,
-                floor: tx.floor,
-                type: "high",
-                delta: tx.newHighDelta || tx.delta || 0,
-                deltaPercent: tx.deltaPercent || 0,
-                prevPriceVal: tx.prevPriceVal,
-                areaLabelM2: labelM2,
-                areaLabelPyeong: labelPyeong,
-              });
-            }
-          });
+      if (txKey) {
+        const existing = txKeyToAptMap.get(txKey);
+        if (!existing || apt.name === txKey || normalizeAptName(apt.name) === normalizeAptName(txKey)) {
+          txKeyToAptMap.set(txKey, apt);
         }
+      }
+    });
+
+    txKeyToAptMap.forEach((apt, txKey) => {
+      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
+      const sum = txSummaryData[txKey];
+      if (sum && sum.recent && sum.recent.length > 0) {
+        sum.recent.forEach((tx) => {
+          // 빌드타임에 전체 거래를 바탕으로 사전 판정된 진짜 신고가만 대상화
+          if (!tx.isNewHigh) return;
+
+          const dt = parseDateHelper(tx.date, sum.latestDate);
+          if (!dt) return;
+
+          // 미래 혹은 가짜 일자 오차 방어
+          const diffMs = maxDateTime - dt.getTime();
+          const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+          if (diffDays >= 0) {
+            const dateKey = tx.date;
+            const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+            const dayName = daysOfWeek[dt.getDay()];
+            const month = dt.getMonth() + 1;
+            const dateVal = dt.getDate();
+            const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+
+            if (!groups[dateKey]) {
+              groups[dateKey] = {
+                dateStr,
+                timestamp: dt.getTime(),
+                items: [],
+              };
+            }
+
+            const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
+            const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
+            const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
+
+            groups[dateKey].items.push({
+              aptName: apt.name,
+              dong: apt.dong || sum.dong || "",
+              priceEok: tx.priceEok,
+              priceVal: tx.priceVal || parsePriceEokHelper(tx.priceEok),
+              areaPyeong: tx.areaPyeong,
+              area: tx.area,
+              floor: tx.floor,
+              type: "high",
+              delta: tx.newHighDelta || tx.delta || 0,
+              deltaPercent: tx.deltaPercent || 0,
+              prevPriceVal: tx.prevPriceVal,
+              areaLabelM2: labelM2,
+              areaLabelPyeong: labelPyeong,
+            });
+          }
+        });
       }
     });
 
