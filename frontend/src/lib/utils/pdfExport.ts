@@ -1,10 +1,34 @@
 import { safeHtml2canvas } from './html2canvasPatch';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// Zod schemas for export parameters validation
+export const PdfExportParamsSchema = z.object({
+  elementId: z.string().min(1, 'elementId must be a non-empty string'),
+  filename: z.string()
+    .min(1, 'filename must be a non-empty string')
+    .regex(/\.pdf$/i, 'filename must end with .pdf extension')
+    .catch('DVIEW_Report.pdf'),
+});
 
 export async function exportToPDF(elementId: string, filename: string = 'DVIEW_Report.pdf') {
+  // 1. Validate parameters using Zod schema
+  const validation = PdfExportParamsSchema.safeParse({ elementId, filename });
+  if (!validation.success) {
+    logger.warn('pdfExport.exportToPDF', 'Invalid parameters provided for PDF export', {
+      error: String(validation.error),
+      elementId,
+      filename
+    });
+    return false;
+  }
+
+  const validated = validation.data;
+  
   const jsPDF = (await import('jspdf')).default;
-  const element = document.getElementById(elementId);
+  const element = document.getElementById(validated.elementId);
   if (!element) {
-    console.error(`Element with id ${elementId} not found`);
+    logger.error('pdfExport.exportToPDF', 'Element not found in DOM', { elementId: validated.elementId });
     return false;
   }
 
@@ -54,11 +78,19 @@ export async function exportToPDF(elementId: string, filename: string = 'DVIEW_R
     }
 
     // 4. PDF 저장
-    pdf.save(filename);
+    pdf.save(validated.filename);
     
+    logger.info('pdfExport.exportToPDF', 'PDF exported successfully', {
+      elementId: validated.elementId,
+      filename: validated.filename
+    });
     return true;
-  } catch (error) {
-    console.error('Error generating PDF:', error);
+  } catch (error: any) {
+    logger.error('pdfExport.exportToPDF', 'Error generating PDF', {
+      elementId: validated.elementId,
+      filename: validated.filename,
+      error: error.message || String(error)
+    });
     throw error;
   }
 }
