@@ -7,6 +7,23 @@ import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from 
 import { DongApartment } from '@/lib/dong-apartments';
 import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { BUILD_VERSION } from '@/lib/build-version';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+const RawTransactionRecordSchema = z.object({
+  dealType: z.string().optional().catch(undefined),
+  deposit: z.number().optional().catch(undefined),
+  monthlyRent: z.number().optional().catch(undefined),
+  price: z.number().catch(0),
+  area: z.number().catch(0),
+  areaPyeong: z.number().catch(0),
+  contractYm: z.union([z.string(), z.number()]).transform(val => String(val)).catch(''),
+  contractDay: z.union([z.string(), z.number()]).transform(val => String(val)).catch('1'),
+  floor: z.number().catch(0),
+  cancelDate: z.string().optional().catch(undefined),
+  reqGb: z.string().optional().catch(undefined),
+  rnuYn: z.string().optional().catch(undefined),
+});
 
 export interface TransactionRecord {
   no: number;
@@ -166,33 +183,57 @@ export function useApartmentDetails(
           evaluatedPrice: 0,
         };
       }
-      const isRent = r.dealType === '전세' || r.dealType === '월세';
+
+      const validation = RawTransactionRecordSchema.safeParse(r);
+      if (!validation.success) {
+        logger.warn('useApartmentDetails.modalTransactions', 'Transaction record validation failed', {
+          errors: validation.error.issues.map(e => e.message),
+          record: r
+        });
+      }
+
+      const validatedR = validation.success ? validation.data : {
+        dealType: undefined,
+        deposit: undefined,
+        monthlyRent: undefined,
+        price: 0,
+        area: 0,
+        areaPyeong: 0,
+        contractYm: '',
+        contractDay: '1',
+        floor: 0,
+        cancelDate: undefined,
+        reqGb: undefined,
+        rnuYn: undefined,
+      };
+
+      const isRent = validatedR.dealType === '전세' || validatedR.dealType === '월세';
       const evaluatedPrice = isRent
-        ? (r.deposit || 0) + (r.monthlyRent ? Math.round(r.monthlyRent * 12 / 0.055) : 0)
-        : (r.price || 0);
-      const areaKey = Math.round(r.area || 0);
+        ? (validatedR.deposit || 0) + (validatedR.monthlyRent ? Math.round(validatedR.monthlyRent * 12 / 0.055) : 0)
+        : (validatedR.price || 0);
+      const areaKey = Math.round(validatedR.area || 0);
       const typeKey = isRent ? 'rent' : 'sale';
       const groupKey = `${areaKey}_${typeKey}`;
 
       let eokStr = '';
       if (isRent) {
-         eokStr = formatPriceEok(r.deposit || 0);
-         if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
+         eokStr = formatPriceEok(validatedR.deposit || 0);
+         if (validatedR.dealType === '월세' && validatedR.monthlyRent) eokStr += ` / ${validatedR.monthlyRent}만`;
       } else {
-         eokStr = formatPriceEok(r.price || 0);
+         eokStr = formatPriceEok(validatedR.price || 0);
       }
 
       return {
         no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
-        area: r.area || 0, areaPyeong: r.areaPyeong || 0,
-        contractYm: r.contractYm || '', contractDay: String(r.contractDay || '1'),
-        contractDate: r.contractYm ? `${r.contractYm}${String(r.contractDay || '1').padStart(2, '0')}` : '',
-        price: r.price || 0, priceEok: eokStr,
-        deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
-        floor: r.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
-        cancelDate: r.cancelDate || '', dealType: r.dealType || '',
+        area: validatedR.area || 0, areaPyeong: validatedR.areaPyeong || 0,
+        contractYm: validatedR.contractYm || '', contractDay: String(validatedR.contractDay || '1'),
+        contractDate: validatedR.contractYm ? `${validatedR.contractYm}${String(validatedR.contractDay || '1').padStart(2, '0')}` : '',
+        price: validatedR.price || 0, priceEok: eokStr,
+        deposit: validatedR.deposit || 0, monthlyRent: validatedR.monthlyRent || 0,
+        floor: validatedR.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
+        cancelDate: validatedR.cancelDate || '', dealType: validatedR.dealType || '',
         agentLocation: '', registrationDate: '-', housingType: '',
-        reqGb: r.reqGb || '', rnuYn: r.rnuYn || '',
+        reqGb: validatedR.reqGb || '', rnuYn: validatedR.rnuYn || '',
         // IQR용 메타데이터 임시 저장
         groupKey,
         evaluatedPrice,
