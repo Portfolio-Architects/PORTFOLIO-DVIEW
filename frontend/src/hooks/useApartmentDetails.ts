@@ -128,7 +128,7 @@ export function useApartmentDetails(
     
     const timer = setTimeout(() => {
       setShouldFetchFull(true);
-    }, 1500); // 1.5s delay to keep initial mount ultra-fast
+    }, 200); // 200ms delay to keep initial mount ultra-fast
     
     return () => clearTimeout(timer);
   }, [selectedReport]);
@@ -165,8 +165,7 @@ export function useApartmentDetails(
   const modalTransactions = useMemo(() => {
     if (!records || records.length === 0) return [];
 
-    // 1단계: 평가용 거래 정보 매핑
-    const mapped = records.map((r, i) => {
+    return records.map((r: any, i) => {
       if (!r || typeof r !== 'object') {
         return {
           no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
@@ -179,109 +178,31 @@ export function useApartmentDetails(
           cancelDate: '', dealType: '',
           agentLocation: '', registrationDate: '-', housingType: '',
           reqGb: '', rnuYn: '',
-          groupKey: '0_sale',
-          evaluatedPrice: 0,
+          isOutlier: false,
         };
       }
 
-      const validation = RawTransactionRecordSchema.safeParse(r);
-      if (!validation.success) {
-        logger.warn('useApartmentDetails.modalTransactions', 'Transaction record validation failed', {
-          errors: validation.error.issues.map(e => e.message),
-          record: r
-        });
-      }
-
-      const validatedR = validation.success ? validation.data : {
-        dealType: undefined,
-        deposit: undefined,
-        monthlyRent: undefined,
-        price: 0,
-        area: 0,
-        areaPyeong: 0,
-        contractYm: '',
-        contractDay: '1',
-        floor: 0,
-        cancelDate: undefined,
-        reqGb: undefined,
-        rnuYn: undefined,
-      };
-
-      const isRent = validatedR.dealType === '전세' || validatedR.dealType === '월세';
-      const evaluatedPrice = isRent
-        ? (validatedR.deposit || 0) + (validatedR.monthlyRent ? Math.round(validatedR.monthlyRent * 12 / 0.055) : 0)
-        : (validatedR.price || 0);
-      const areaKey = Math.round(validatedR.area || 0);
-      const typeKey = isRent ? 'rent' : 'sale';
-      const groupKey = `${areaKey}_${typeKey}`;
-
+      const isRent = r.dealType === '전세' || r.dealType === '월세';
       let eokStr = '';
       if (isRent) {
-         eokStr = formatPriceEok(validatedR.deposit || 0);
-         if (validatedR.dealType === '월세' && validatedR.monthlyRent) eokStr += ` / ${validatedR.monthlyRent}만`;
+         eokStr = formatPriceEok(r.deposit || 0);
+         if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
       } else {
-         eokStr = formatPriceEok(validatedR.price || 0);
+         eokStr = formatPriceEok(r.price || 0);
       }
 
       return {
         no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
-        area: validatedR.area || 0, areaPyeong: validatedR.areaPyeong || 0,
-        contractYm: validatedR.contractYm || '', contractDay: String(validatedR.contractDay || '1'),
-        contractDate: validatedR.contractYm ? `${validatedR.contractYm}${String(validatedR.contractDay || '1').padStart(2, '0')}` : '',
-        price: validatedR.price || 0, priceEok: eokStr,
-        deposit: validatedR.deposit || 0, monthlyRent: validatedR.monthlyRent || 0,
-        floor: validatedR.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
-        cancelDate: validatedR.cancelDate || '', dealType: validatedR.dealType || '',
+        area: r.area || 0, areaPyeong: r.areaPyeong || 0,
+        contractYm: r.contractYm || '', contractDay: String(r.contractDay || '1'),
+        contractDate: r.contractYm ? `${r.contractYm}${String(r.contractDay || '1').padStart(2, '0')}` : '',
+        price: r.price || 0, priceEok: eokStr,
+        deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
+        floor: r.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
+        cancelDate: r.cancelDate || '', dealType: r.dealType || '',
         agentLocation: '', registrationDate: '-', housingType: '',
-        reqGb: validatedR.reqGb || '', rnuYn: validatedR.rnuYn || '',
-        // IQR용 메타데이터 임시 저장
-        groupKey,
-        evaluatedPrice,
-      };
-    });
-
-    // 2단계: 그룹화하여 IQR 경계 계산
-    const groups: Record<string, number[]> = {};
-    mapped.forEach(item => {
-      if (!groups[item.groupKey]) {
-        groups[item.groupKey] = [];
-      }
-      groups[item.groupKey].push(item.evaluatedPrice);
-    });
-
-    const iqrBounds: Record<string, { lower: number; upper: number; count: number }> = {};
-    Object.entries(groups).forEach(([groupKey, prices]) => {
-      const sortedPrices = [...prices].sort((a, b) => a - b);
-      const getPercentile = (arr: number[], val: number) => {
-        if (arr.length === 0) return 0;
-        const idx = (arr.length - 1) * val;
-        const base = Math.floor(idx);
-        const rest = idx - base;
-        if (arr[base + 1] !== undefined) {
-          return arr[base] + rest * (arr[base + 1] - arr[base]);
-        } else {
-          return arr[base];
-        }
-      };
-      const q1 = getPercentile(sortedPrices, 0.25);
-      const q3 = getPercentile(sortedPrices, 0.75);
-      const iqr = q3 - q1;
-      iqrBounds[groupKey] = {
-        lower: q1 - 1.5 * iqr,
-        upper: q3 + 1.5 * iqr,
-        count: prices.length
-      };
-    });
-
-    // 3단계: 최종 modalTransactions 구성
-    return mapped.map(item => {
-      const bounds = iqrBounds[item.groupKey];
-      const isOutlier = bounds && bounds.count >= 4 && (item.evaluatedPrice < bounds.lower);
-      
-      const { groupKey, evaluatedPrice, ...rest } = item;
-      return {
-        ...rest,
-        isOutlier: !!isOutlier
+        reqGb: r.reqGb || '', rnuYn: r.rnuYn || '',
+        isOutlier: !!r.isOutlier
       };
     });
   }, [records, fileKey]);
