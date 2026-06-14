@@ -350,7 +350,7 @@ async function getInitialData() {
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
       if (redis && Object.keys(result.favoriteCounts).length > 0) {
-        redis.hmset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => console.warn('Redis HMSET error:', err));
+        redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => console.warn('Redis HSET error:', err));
       }
     }
   };

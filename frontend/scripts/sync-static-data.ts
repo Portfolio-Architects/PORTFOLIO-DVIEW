@@ -72,7 +72,7 @@ async function main() {
   // 1. Sync Type Map
   console.log('📡 Fetching Type Map from Google Sheets...');
   const typeMapStart = Date.now();
-  const typeMap = await fetchSheetTypeMap();
+  const typeMap = await fetchSheetTypeMap(true);
   
   // Zod validation for Type Map
   const typeMapParsed = z.array(TypeMapItemSchema).safeParse(typeMap);
@@ -89,7 +89,7 @@ async function main() {
   // 2. Sync Apartments by Dong
   console.log('📡 Fetching and calculating Apartments by Dong (including distance calculations)...');
   const aptsStart = Date.now();
-  const aptsData = await fetchSheetApartmentsByDong();
+  const aptsData = await fetchSheetApartmentsByDong(true);
   
   // Zod validation for Apartments by Dong
   const aptsParsed = ApartmentsByDongResultSchema.safeParse(aptsData);

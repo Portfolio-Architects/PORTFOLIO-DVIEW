@@ -110,24 +110,52 @@ export async function getInitialData(): Promise<InitialPageData> {
     if (isStale && !isRefreshingPageData) {
       isRefreshingPageData = true;
       logger.info('DashboardData', 'Cache is stale, starting background revalidation.');
-      fetchFreshData()
-        .then((freshData) => {
-          (globalThis as any)._initialPageDataCache = { data: freshData, timestamp: Date.now() };
-          isRefreshingPageData = false;
+      
+      // Promise Coalescing 적용하여 백그라운드 리밸리데이션도 단 1회만 구동되도록 병합
+      let fetchPromise = (globalThis as any)._activeFreshDataPromise;
+      if (!fetchPromise) {
+        fetchPromise = fetchFreshData()
+          .then((freshData) => {
+            (globalThis as any)._initialPageDataCache = { data: freshData, timestamp: Date.now() };
+            return freshData;
+          })
+          .finally(() => {
+            isRefreshingPageData = false;
+            (globalThis as any)._activeFreshDataPromise = null;
+          });
+        (globalThis as any)._activeFreshDataPromise = fetchPromise;
+      }
+
+      fetchPromise
+        .then(() => {
           logger.info('DashboardData', 'Background revalidation completed successfully.');
         })
-        .catch((err) => {
+        .catch((err: any) => {
           logger.error('DashboardData', 'Background revalidation failed', {}, err);
-          isRefreshingPageData = false;
         });
     }
     return cache.data;
   }
 
+  // 캐시 미스 상태에서 최초 1회만 fetchFreshData가 실행되도록 Promise Coalescing 적용 (Thundering Herd 완치)
+  let fetchPromise = (globalThis as any)._activeFreshDataPromise;
+  if (fetchPromise) {
+    logger.info('DashboardData', 'Cache miss, joining active in-progress data fetch.');
+    return fetchPromise;
+  }
+
   logger.info('DashboardData', 'Cache miss, performing initial synchronous fetch.');
-  const freshData = await fetchFreshData();
-  (globalThis as any)._initialPageDataCache = { data: freshData, timestamp: Date.now() };
-  return freshData;
+  fetchPromise = fetchFreshData()
+    .then((freshData) => {
+      (globalThis as any)._initialPageDataCache = { data: freshData, timestamp: Date.now() };
+      return freshData;
+    })
+    .finally(() => {
+      (globalThis as any)._activeFreshDataPromise = null;
+    });
+  
+  (globalThis as any)._activeFreshDataPromise = fetchPromise;
+  return fetchPromise;
 }
 
 async function fetchFreshData(): Promise<InitialPageData> {

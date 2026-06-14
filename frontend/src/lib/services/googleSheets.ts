@@ -167,8 +167,8 @@ export interface TypeMapItem {
   typePyeong: string;
 }
 
-export async function fetchSheetTypeMap(): Promise<TypeMapItem[]> {
-  if (process.env.BYPASS_LOCAL_CACHE !== 'true') {
+export async function fetchSheetTypeMap(bypassLocalCache: boolean = false): Promise<TypeMapItem[]> {
+  if (!bypassLocalCache) {
     return typeMapStatic as TypeMapItem[];
   }
 
@@ -208,7 +208,7 @@ function findColIndex(headers: string[], possibleNames: string[]): number {
 }
 
 export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = false) {
-  if (process.env.BYPASS_LOCAL_CACHE !== 'true' && !bypassLocalCache) {
+  if (!bypassLocalCache) {
     return apartmentsByDongStatic;
   }
 

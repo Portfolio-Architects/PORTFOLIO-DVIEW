@@ -23,7 +23,6 @@ import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import Footer from '@/components/Footer';
 import MobileBottomAd from '@/components/pwa/MobileBottomAd';
-import { headers } from 'next/headers';
 import dynamic from 'next/dynamic';
 import WelcomeModal from '@/components/ui/WelcomeModal';
 
@@ -90,13 +89,11 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const nonce = (await headers()).get('x-nonce') || undefined;
-
   return (
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head>
@@ -108,42 +105,16 @@ export default async function RootLayout({
           strategy="lazyOnload" 
           integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
           crossOrigin="anonymous"
-          nonce={nonce}
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SWRProvider>
             <SettingsProvider>
               <AuthProvider>
                 {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
-                <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
-                  if ('serviceWorker' in navigator) {
-                    if ('${process.env.NODE_ENV}' === 'development') {
-                      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for(let registration of registrations) {
-                          registration.unregister();
-                        }
-                      });
-                    } else {
-                      window.addEventListener('load', function() {
-                        navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                          console.log('ServiceWorker registration failed: ', err);
-                        });
-                      });
-                    }
-                  }
-                `}} />
+                <Script src="/js/pwa-register.js" strategy="afterInteractive" />
                 
                 {/* 🔧 ResizeObserver loop error shield to prevent janks in charts */}
-                <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `
-                  if (typeof window !== 'undefined') {
-                    window.addEventListener('error', function(e) {
-                      if (e && (e.message === 'ResizeObserver loop limit exceeded' || e.message === 'ResizeObserver loop completed with undelivered notifications.' || (e.reason && e.reason.message && e.reason.message.includes('ResizeObserver')))) {
-                        e.stopImmediatePropagation();
-                        e.preventDefault();
-                      }
-                    });
-                  }
-                `}} />
+                <Script src="/js/resize-observer-shield.js" strategy="afterInteractive" />
                 <NextTopLoader color="#00d29d" showSpinner={false} />
                 <PWAProvider>
                   <InAppBrowserBypass />
@@ -174,12 +145,11 @@ export default async function RootLayout({
                 )}
                 
                 {/* Google AdSense Script (Only renders if NEXT_PUBLIC_ADSENSE_CLIENT_ID exists) */}
-                {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+                 {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
                   <script
                     async
                     src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
                     crossOrigin="anonymous"
-                    nonce={nonce}
                   />
                 )}
 

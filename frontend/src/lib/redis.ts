@@ -131,6 +131,48 @@ export class ResilientRedisWrapper {
       return this.fallback.hset(key, value);
     }
   }
+
+  async hmset(key: string, value: Record<string, any>): Promise<any> {
+    return this.hset(key, value);
+  }
+
+  pipeline(): any {
+    if (this.client) {
+      try {
+        return this.client.pipeline();
+      } catch (e) {
+        logger.warn("ResilientRedis.pipeline", "Upstash Redis pipeline creation failed, falling back to mock", {}, e);
+      }
+    }
+    // Fallback Mock Pipeline
+    const commands: (() => Promise<any>)[] = [];
+    const mockPipeline = {
+      get: (key: string) => {
+        commands.push(() => this.get(key));
+        return mockPipeline;
+      },
+      set: (key: string, value: any, options?: any) => {
+        commands.push(() => this.set(key, value, options));
+        return mockPipeline;
+      },
+      hgetall: (key: string) => {
+        commands.push(() => this.hgetall(key));
+        return mockPipeline;
+      },
+      hset: (key: string, value: Record<string, any>) => {
+        commands.push(() => this.hset(key, value));
+        return mockPipeline;
+      },
+      hmset: (key: string, value: Record<string, any>) => {
+        commands.push(() => this.hmset(key, value));
+        return mockPipeline;
+      },
+      exec: async () => {
+        return await Promise.all(commands.map(cmd => cmd().catch(() => null)));
+      }
+    };
+    return mockPipeline;
+  }
 }
 
 const RedisEnvSchema = z.object({

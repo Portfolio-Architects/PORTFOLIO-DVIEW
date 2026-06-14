@@ -76,9 +76,8 @@ export async function GET() {
         const parsed = favoriteCountsSchema.safeParse(rawCounts);
         if (parsed.success) {
           result.favoriteCounts = parsed.data;
-          // Background Async: Redis 캐시에 복제 저장
-          redis.hmset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => {
-            logger.warn('DashboardInitAPI.GET', 'Redis HMSET error', {}, err as Error);
+          redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => {
+            logger.warn('DashboardInitAPI.GET', 'Redis HSET error', {}, err as Error);
           });
         } else {
           logger.warn('DashboardInitAPI.GET', 'Firestore favoriteCounts schema mismatch', { errors: parsed.error.format() });

@@ -50,6 +50,16 @@ try {
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // 0.5. 메인페이지 tab=imjang 리다이렉트 처리 (Edge 단에서 고속 리다이렉트)
+  if (pathname === '/') {
+    const tab = request.nextUrl.searchParams.get('tab');
+    if (tab === 'imjang') {
+      const search = request.nextUrl.searchParams.get('search');
+      const query = search ? `?search=${encodeURIComponent(search)}` : '';
+      return NextResponse.redirect(new URL(`/explore${query}`, request.url));
+    }
+  }
+
   // 정적 자원 및 JSON 청크 요청에 대한 에지 미들웨어 고속 탈출 가드(Fast Path)
   if (
     pathname.startsWith('/data/') ||

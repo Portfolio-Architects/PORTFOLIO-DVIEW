@@ -1,6 +1,4 @@
 import { Suspense } from 'react';
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import Script from 'next/script';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
@@ -53,18 +51,7 @@ async function DashboardDataLoader() {
   return <DashboardClient initialDashboardData={initialData} />;
 }
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string; search?: string }>;
-}) {
-  const resolvedParams = await searchParams;
-  if (resolvedParams?.tab === 'imjang') {
-    const query = resolvedParams.search ? `?search=${encodeURIComponent(resolvedParams.search)}` : '';
-    redirect(`/explore${query}`);
-  }
-
-  const nonce = (await headers()).get('x-nonce') || undefined;
+export default async function Page() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   const jsonLd = {
@@ -110,7 +97,6 @@ export default async function Page({
       <Script
         id="jsonld-main-schema"
         type="application/ld+json"
-        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={<DashboardSkeleton />}>
