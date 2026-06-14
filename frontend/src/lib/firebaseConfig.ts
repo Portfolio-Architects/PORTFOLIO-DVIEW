@@ -3,8 +3,28 @@ import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
-const firebaseConfig = {
+// Zod schemas for Firebase config and App Check config validation
+export const FirebaseConfigSchema = z.object({
+  apiKey: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_API_KEY is missing'),
+  authDomain: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN is missing'),
+  projectId: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_PROJECT_ID is missing'),
+  storageBucket: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is missing'),
+  messagingSenderId: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID is missing'),
+  appId: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_APP_ID is missing'),
+  measurementId: z.string().optional(),
+});
+export type FirebaseConfig = z.infer<typeof FirebaseConfigSchema>;
+
+export const AppCheckConfigSchema = z.object({
+  recaptchaKey: z.string().min(1, 'Recaptcha key is missing'),
+  debugToken: z.string().optional(),
+});
+export type AppCheckConfig = z.infer<typeof AppCheckConfigSchema>;
+
+const configValidation = FirebaseConfigSchema.safeParse({
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -12,10 +32,14 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-};
+});
 
-const app = getApps().length === 0 && firebaseConfig.apiKey
-  ? initializeApp(firebaseConfig) 
+if (!configValidation.success && typeof window !== 'undefined') {
+  logger.warn('firebaseConfig.init', 'Firebase configuration validation failed', { error: String(configValidation.error) });
+}
+
+const app = getApps().length === 0 && configValidation.success
+  ? initializeApp(configValidation.data) 
   : (getApps().length > 0 ? getApps()[0] : null);
 
 export const db = (app ? initializeFirestore(app, { 
@@ -23,7 +47,6 @@ export const db = (app ? initializeFirestore(app, {
   ignoreUndefinedProperties: true,
   experimentalForceLongPolling: true
 }) : null) as unknown as ReturnType<typeof initializeFirestore>;
-
 
 export const auth = (app ? getAuth(app) : null) as unknown as ReturnType<typeof getAuth>;
 export const googleProvider = new GoogleAuthProvider();
@@ -33,6 +56,7 @@ export const storage = (app ? getStorage(app) : null) as unknown as ReturnType<t
 if (typeof window !== 'undefined' && app) {
   const isDev = process.env.NODE_ENV === 'development';
   const debugToken = process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN;
+  const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   if (isDev) {
     if (debugToken) {
@@ -40,15 +64,17 @@ if (typeof window !== 'undefined' && app) {
       (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken === 'true' ? true : debugToken;
     } else {
       // By default in dev, we don't force App Check unless a debug token is configured.
-      // This prevents console spam of 403 (Forbidden) errors.
-      console.log('[AppCheck] Local development: App Check token exchange skipped since NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN is not configured.');
+      logger.info('firebaseConfig.appCheck', 'Local development: App Check token exchange skipped since NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN is not configured.');
     }
   }
 
-  const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  const appCheckValidation = AppCheckConfigSchema.safeParse({
+    recaptchaKey,
+    debugToken,
+  });
 
   // Initialize App Check if we have recaptcha key in production, or if we are in dev and have a debug token
-  if ((!isDev && recaptchaKey) || (isDev && debugToken)) {
+  if ((!isDev && appCheckValidation.success) || (isDev && debugToken)) {
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
@@ -57,12 +83,11 @@ if (typeof window !== 'undefined' && app) {
         isTokenAutoRefreshEnabled: true
       });
     } catch (err) {
-      console.warn('[AppCheck] Failed to initialize App Check:', err);
+      logger.warn('firebaseConfig.appCheck', 'Failed to initialize App Check', {}, err);
     }
   } else {
     if (!isDev) {
-      console.warn('[AppCheck] Skipped initialization: No recaptcha key configured.');
+      logger.warn('firebaseConfig.appCheck', 'Skipped initialization: No recaptcha key configured', { error: String(appCheckValidation.error) });
     }
   }
 }
-
