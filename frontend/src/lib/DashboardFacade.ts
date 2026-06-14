@@ -36,6 +36,76 @@ import * as PostService from '@/lib/services/post.service';
 import * as ReportService from '@/lib/services/reportService';
 import { createInitialKPIs, startKPISimulation } from '@/lib/services/kpi.service';
 import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
+
+// Isomorphic Zod custom guard for File type to prevent ReferenceError in Node SSR
+const IsomorphicFileSchema = z.custom<any>((val) => {
+  if (typeof File === 'undefined') return true;
+  return val instanceof File;
+}, 'Must be a valid File object').optional();
+
+export const AddPostInputSchema = z.object({
+  title: z.string().min(1, '제목은 필수 입력 사항입니다.'),
+  content: z.string().min(1, '본문은 필수 입력 사항입니다.'),
+  category: z.string().min(1, '카테고리는 필수 입력 사항입니다.'),
+  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+  imageFile: IsomorphicFileSchema,
+  authorEmail: z.string().nullable().optional(),
+  customNickname: z.string().optional(),
+});
+
+export const AddFieldReportInputSchema = z.object({
+  apartmentName: z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.'),
+  sections: z.record(z.string(), z.any()), // ReportSections
+  premiumScores: z.record(z.string(), z.number()).nullable(),
+  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+  imageEntries: z.array(
+    z.object({
+      file: IsomorphicFileSchema,
+      category: z.string(),
+    })
+  ),
+});
+
+export const AddFieldReportCommentInputSchema = z.object({
+  reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
+  text: z.string().min(1, '댓글 내용은 필수 입력 사항입니다.'),
+  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+});
+
+export const AddUserReviewInputSchema = z.object({
+  apartmentName: z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.'),
+  rating: z.number().min(1).max(5, '평점은 1에서 5 사이여야 합니다.'),
+  content: z.string().min(1, '리뷰 내용은 필수 입력 사항입니다.'),
+  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+  imageFile: IsomorphicFileSchema,
+});
+
+export const UpdateNicknameInputSchema = z.object({
+  uid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+  nickname: z.string().min(1, '닉네임은 필수 입력 사항입니다.'),
+});
+
+export const UpdatePhotoURLInputSchema = z.object({
+  uid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+  photoURL: z.string().url('유효한 URL이어야 합니다.').or(z.string().min(1)),
+});
+
+export const GetFullReportInputSchema = z.string().min(1, '보고서 ID는 필수 입력 사항입니다.');
+export const GetFullReportByApartmentNameInputSchema = z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.');
+export const DeleteReviewInputSchema = z.string().min(1, '리뷰 ID는 필수 입력 사항입니다.');
+export const DeletePostInputSchema = z.string().min(1, '게시글 ID는 필수 입력 사항입니다.');
+export const IncrementLikeInputSchema = z.string().min(1, '게시글 ID는 필수 입력 사항입니다.');
+export const IncrementPostViewInputSchema = z.object({
+  postId: z.string().min(1, '게시글 ID는 필수 입력 사항입니다.'),
+  title: z.string().optional(),
+});
+export const IncrementFieldReportViewInputSchema = z.object({
+  reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
+  title: z.string().optional(),
+});
+export const IncrementFieldReportLikeInputSchema = z.string().min(1, '보고서 ID는 필수 입력 사항입니다.');
+export const IncrementReviewLikeInputSchema = z.string().min(1, '리뷰 ID는 필수 입력 사항입니다.');
 
 // --- Strategy Interface (preserved for extensibility) ---
 
@@ -277,25 +347,178 @@ export class DashboardFacade {
   public getKPIs(): KPIData[] { return this.strategy.getKPIs(); }
   public getNewsFeed(): NewsItemData[] { return this.strategy.getNewsFeed(); }
   public getFieldReports(): FieldReportData[] { return this.strategy.getFieldReports ? this.strategy.getFieldReports() : []; }
-  public async getFullReport(reportId: string): Promise<FieldReportData | null> { return this.strategy.getFullReport ? await this.strategy.getFullReport(reportId) : null; }
-  public async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> { return this.strategy.getFullReportByApartmentName ? await this.strategy.getFullReportByApartmentName(apartmentName) : null; }
+  
+  public async getFullReport(reportId: string): Promise<FieldReportData | null> {
+    const validation = GetFullReportInputSchema.safeParse(reportId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.getFullReport', 'Invalid reportId provided', { error: validation.error.format(), reportId });
+      return null;
+    }
+    return this.strategy.getFullReport ? await this.strategy.getFullReport(reportId) : null;
+  }
+  
+  public async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
+    const validation = GetFullReportByApartmentNameInputSchema.safeParse(apartmentName);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.getFullReportByApartmentName', 'Invalid apartmentName provided', { error: validation.error.format(), apartmentName });
+      return null;
+    }
+    return this.strategy.getFullReportByApartmentName ? await this.strategy.getFullReportByApartmentName(apartmentName) : null;
+  }
+  
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
-  public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) { if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail, customNickname); }
-  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
-  public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
-  public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) { if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile); }
-  public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }
-  public async getUserProfile(uid: string) { return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null; }
-  public async updateNickname(uid: string, nickname: string) { await UserRepo.updateNickname(uid, nickname); }
-  public async updatePhotoURL(uid: string, photoURL: string) { await UserRepo.updatePhotoURL(uid, photoURL); }
-  public async incrementLike(postId: string) { if (this.strategy.incrementLike) await this.strategy.incrementLike(postId); }
-  public async incrementPostView(postId: string, title?: string) { if (this.strategy.incrementPostView) await this.strategy.incrementPostView(postId, title); }
-  public async incrementFieldReportView(reportId: string, title?: string) { if (this.strategy.incrementFieldReportView) await this.strategy.incrementFieldReportView(reportId, title); }
-  public async incrementFieldReportLike(reportId: string) { if (this.strategy.incrementFieldReportLike) await this.strategy.incrementFieldReportLike(reportId); }
-  public async incrementReviewLike(reviewId: string) { if (this.strategy.incrementReviewLike) await this.strategy.incrementReviewLike(reviewId); }
-  public async deleteReview(reviewId: string) { if (this.strategy.deleteReview) await this.strategy.deleteReview(reviewId); }
-  public async deletePost(postId: string) { if (this.strategy.deletePost) await this.strategy.deletePost(postId); }
+  
+  public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) {
+    const validation = AddPostInputSchema.safeParse({ title, content, category, authorUid, imageFile, authorEmail, customNickname });
+    if (!validation.success) {
+      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
+      logger.warn('DashboardFacade.addPost', 'Validation failed', { error: validation.error.format() });
+      if (typeof window !== 'undefined') {
+        alert('글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
+      }
+      return;
+    }
+    if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
+  }
+  
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
+    const validation = AddFieldReportInputSchema.safeParse({ apartmentName, sections, premiumScores, authorUid, imageEntries });
+    if (!validation.success) {
+      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
+      logger.warn('DashboardFacade.addFieldReport', 'Validation failed', { error: validation.error.format() });
+      if (typeof window !== 'undefined') {
+        alert('임장기 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
+      }
+      return;
+    }
+    if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
+  }
+  
+  public async addFieldReportComment(reportId: string, text: string, authorUid: string) {
+    const validation = AddFieldReportCommentInputSchema.safeParse({ reportId, text, authorUid });
+    if (!validation.success) {
+      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
+      logger.warn('DashboardFacade.addFieldReportComment', 'Validation failed', { error: validation.error.format() });
+      if (typeof window !== 'undefined') {
+        alert('댓글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
+      }
+      return;
+    }
+    if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid);
+  }
+  
+  public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
+    const validation = AddUserReviewInputSchema.safeParse({ apartmentName, rating, content, authorUid, imageFile });
+    if (!validation.success) {
+      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
+      logger.warn('DashboardFacade.addUserReview', 'Validation failed', { error: validation.error.format() });
+      if (typeof window !== 'undefined') {
+        alert('리뷰 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
+      }
+      return;
+    }
+    if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile);
+  }
+  
+  public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
+    const validation = GetFullReportInputSchema.safeParse(reportId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.listenToComments', 'Invalid reportId provided', { error: validation.error.format(), reportId });
+      return () => {};
+    }
+    return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {};
+  }
+  
+  public async getUserProfile(uid: string) {
+    if (!uid || typeof uid !== 'string') {
+      logger.warn('DashboardFacade.getUserProfile', 'Invalid uid provided', { uid });
+      return null;
+    }
+    return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null;
+  }
+  
+  public async updateNickname(uid: string, nickname: string) {
+    const validation = UpdateNicknameInputSchema.safeParse({ uid, nickname });
+    if (!validation.success) {
+      logger.warn('DashboardFacade.updateNickname', 'Validation failed', { error: validation.error.format() });
+      return;
+    }
+    await UserRepo.updateNickname(uid, nickname);
+  }
+  
+  public async updatePhotoURL(uid: string, photoURL: string) {
+    const validation = UpdatePhotoURLInputSchema.safeParse({ uid, photoURL });
+    if (!validation.success) {
+      logger.warn('DashboardFacade.updatePhotoURL', 'Validation failed', { error: validation.error.format() });
+      return;
+    }
+    await UserRepo.updatePhotoURL(uid, photoURL);
+  }
+  
+  public async incrementLike(postId: string) {
+    const validation = IncrementLikeInputSchema.safeParse(postId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.incrementLike', 'Invalid postId provided', { error: validation.error.format(), postId });
+      return;
+    }
+    if (this.strategy.incrementLike) await this.strategy.incrementLike(postId);
+  }
+  
+  public async incrementPostView(postId: string, title?: string) {
+    const validation = IncrementPostViewInputSchema.safeParse({ postId, title });
+    if (!validation.success) {
+      logger.warn('DashboardFacade.incrementPostView', 'Validation failed', { error: validation.error.format() });
+      return;
+    }
+    if (this.strategy.incrementPostView) await this.strategy.incrementPostView(postId, title);
+  }
+  
+  public async incrementFieldReportView(reportId: string, title?: string) {
+    const validation = IncrementFieldReportViewInputSchema.safeParse({ reportId, title });
+    if (!validation.success) {
+      logger.warn('DashboardFacade.incrementFieldReportView', 'Validation failed', { error: validation.error.format() });
+      return;
+    }
+    if (this.strategy.incrementFieldReportView) await this.strategy.incrementFieldReportView(reportId, title);
+  }
+  
+  public async incrementFieldReportLike(reportId: string) {
+    const validation = IncrementFieldReportLikeInputSchema.safeParse(reportId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.incrementFieldReportLike', 'Invalid reportId provided', { error: validation.error.format(), reportId });
+      return;
+    }
+    if (this.strategy.incrementFieldReportLike) await this.strategy.incrementFieldReportLike(reportId);
+  }
+  
+  public async incrementReviewLike(reviewId: string) {
+    const validation = IncrementReviewLikeInputSchema.safeParse(reviewId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.incrementReviewLike', 'Invalid reviewId provided', { error: validation.error.format(), reviewId });
+      return;
+    }
+    if (this.strategy.incrementReviewLike) await this.strategy.incrementReviewLike(reviewId);
+  }
+  
+  public async deleteReview(reviewId: string) {
+    const validation = DeleteReviewInputSchema.safeParse(reviewId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.deleteReview', 'Invalid reviewId provided', { error: validation.error.format(), reviewId });
+      return;
+    }
+    if (this.strategy.deleteReview) await this.strategy.deleteReview(reviewId);
+  }
+  
+  public async deletePost(postId: string) {
+    const validation = DeletePostInputSchema.safeParse(postId);
+    if (!validation.success) {
+      logger.warn('DashboardFacade.deletePost', 'Invalid postId provided', { error: validation.error.format(), postId });
+      return;
+    }
+    if (this.strategy.deletePost) await this.strategy.deletePost(postId);
+  }
+  
   public getDongtanApartments(): string[] { return this.strategy.getDongtanApartments ? this.strategy.getDongtanApartments() : []; }
   public isAdmin(email: string | null | undefined): boolean { return this.strategy.isAdmin ? this.strategy.isAdmin(email) : false; }
 }
