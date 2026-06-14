@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import { getInitialData } from '@/lib/services/dashboardData';
 import RealtimeClient from './RealtimeClient';
 
@@ -36,10 +37,47 @@ async function RealtimeDataLoader() {
   return <RealtimeClient initialDashboardData={initialData} />;
 }
 
-export default function RealtimePage() {
+export default async function RealtimePage() {
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') || undefined;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${baseUrl}/realtime#webpage`,
+    "url": `${baseUrl}/realtime`,
+    "name": "D-VIEW 실거래 | 동탄 전역 아파트 실시간 최근 실거래가 및 신고가 내역",
+    "description": "동탄 179개 아파트 단지의 실시간 최근 실거래가 및 일자별 신고가 경신 내역 대시보드를 제공합니다.",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "D-VIEW 홈",
+          "item": baseUrl
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "실거래",
+          "item": `${baseUrl}/realtime`
+        }
+      ]
+    }
+  };
+
   return (
-    <Suspense fallback={<RealtimeSkeleton />}>
-      <RealtimeDataLoader />
-    </Suspense>
+    <>
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Suspense fallback={<RealtimeSkeleton />}>
+        <RealtimeDataLoader />
+      </Suspense>
+    </>
   );
 }

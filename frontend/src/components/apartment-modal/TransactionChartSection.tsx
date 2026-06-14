@@ -157,7 +157,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       areaLabelM2: tx.areaLabelM2,
       areaLabelPyeong: tx.areaLabelPyeong,
     };
-  });
+  }).filter(d => d.yearMonth <= 202606);
 
   const now = new Date();
   const getRecentAvgByMonths = (months: number) => {
@@ -478,7 +478,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                 <XAxis dataKey="ts" type="number" scale="time" domain={[zoomDomain.left, zoomDomain.right]}
                   tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: 'var(--border-color)' }}
                   tickLine={false} tickMargin={6}
-                  tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
+                  nice={false}
+                  allowDataOverflow={true}
+                  tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}년 ${String(d.getMonth()+1).padStart(2,'0')}월`; }}
                 />
                 <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
                   tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
@@ -509,7 +511,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     return (
                       <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
                         <div className="text-tertiary text-[12px] font-bold mb-2">
-                          {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
+                          {new Date(item?.ts).getFullYear()}년 {String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                         </div>
                         <div className="flex flex-col gap-1.5">
                           {item?.saleAvg != null && (
