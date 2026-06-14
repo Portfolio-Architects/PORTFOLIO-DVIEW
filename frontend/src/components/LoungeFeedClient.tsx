@@ -188,6 +188,18 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     
     checkParams();
     window.addEventListener('hashchange', checkParams);
+
+    const preloadDetail = () => {
+      import('@/components/LoungeDetailClient').catch(() => {});
+    };
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(preloadDetail, { timeout: 3000 });
+      } else {
+        setTimeout(preloadDetail, 2000);
+      }
+    }
+
     return () => window.removeEventListener('hashchange', checkParams);
   }, []);
 

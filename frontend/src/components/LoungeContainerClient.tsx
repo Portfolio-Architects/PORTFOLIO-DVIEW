@@ -58,6 +58,17 @@ export default function LoungeContainerClient({
       
       handleHashChange(); // Run once on mount
       
+      // Preload heavy lounge components on idle
+      const preloadLoungeChunks = () => {
+        import('@/components/LoungeFeedClient').catch(() => {});
+        import('@/components/LoungeComposeClient').catch(() => {});
+      };
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
+      } else {
+        setTimeout(preloadLoungeChunks, 2000);
+      }
+
       window.addEventListener('hashchange', handleHashChange);
       return () => window.removeEventListener('hashchange', handleHashChange);
     }
