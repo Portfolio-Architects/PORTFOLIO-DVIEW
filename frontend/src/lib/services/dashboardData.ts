@@ -142,6 +142,22 @@ async function fetchFreshData(): Promise<InitialPageData> {
     recent7DaysVolume: undefined,
   };
 
+  // Upstash Redis 파이프라인 일괄 실행을 통해 RTT 네트워크 왕복 최소화 (서버 사이드 레이턴시 절감)
+  let pipelineResults: any[] = [null, null, null];
+  if (redis) {
+    try {
+      const p = redis.pipeline();
+      p.hgetall('DTDLS:cache:favoriteCounts');
+      p.get('DTDLS:cache:apartmentMeta');
+      p.get('DTDLS:cache:fieldReports');
+      pipelineResults = await p.exec();
+    } catch (e) {
+      logger.warn('DashboardData', 'Redis pipeline execution failed, falling back to sequential / DB', {}, e);
+    }
+  }
+
+  const [pipelinedFavs, pipelinedMeta, pipelinedReports] = pipelineResults;
+
   const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
     Promise.race([
       promise,
@@ -149,16 +165,9 @@ async function fetchFreshData(): Promise<InitialPageData> {
     ]);
 
   const fetchFavCounts = async () => {
-    if (redis) {
-      try {
-        const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
-        if (cachedCounts && Object.keys(cachedCounts).length > 0) {
-          result.favoriteCounts = cachedCounts as Record<string, number>;
-          return;
-        }
-      } catch (e) {
-        logger.warn('DashboardData', 'Redis favCounts read error, falling back to Firebase', {}, e);
-      }
+    if (pipelinedFavs && Object.keys(pipelinedFavs).length > 0) {
+      result.favoriteCounts = pipelinedFavs as Record<string, number>;
+      return;
     }
     if (adminDb) {
       const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 1500);
@@ -170,16 +179,9 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchMeta = async () => {
-    if (redis) {
-      try {
-        const cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
-        if (cachedMeta && typeof cachedMeta === 'object') {
-          result.apartmentMeta = cachedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
-          return;
-        }
-      } catch (e) {
-        logger.warn('DashboardData', 'Redis meta read error', {}, e);
-      }
+    if (pipelinedMeta && typeof pipelinedMeta === 'object' && Object.keys(pipelinedMeta).length > 0) {
+      result.apartmentMeta = pipelinedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+      return;
     }
     if (adminDb) {
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 1500);
@@ -194,16 +196,9 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchReports = async () => {
-    if (redis) {
-      try {
-        const cachedReports = await redis.get('DTDLS:cache:fieldReports');
-        if (cachedReports && Array.isArray(cachedReports)) {
-          result.fieldReports = cachedReports;
-          return;
-        }
-      } catch (e) {
-        logger.warn('DashboardData', 'Redis reports read error', {}, e);
-      }
+    if (pipelinedReports && Array.isArray(pipelinedReports) && pipelinedReports.length > 0) {
+      result.fieldReports = pipelinedReports;
+      return;
     }
     if (adminDb) {
       const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 1500);

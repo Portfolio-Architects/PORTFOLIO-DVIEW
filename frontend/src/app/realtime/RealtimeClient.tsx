@@ -439,114 +439,32 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     const allApts = Object.values(sheetApartments).flat();
     const list: TxWithDelta[] = [];
 
-    // 아파트+면적별로 거래 리스트를 묶을 맵 (Key: aptName_area)
-    const groups: Record<string, { tx: any; apt: any; sum: any; priceVal: number; date: string }[]> = {};
-
-    Object.entries(txSummary).forEach(([txKey, sum]) => {
+    Object.entries(txSummary).forEach(([txKey, sum]: [string, any]) => {
       const apt = allApts.find(a => isSameApartment(a.name, txKey, nameMapping));
       if (!apt) return;
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
 
       if (sum.recent && sum.recent.length > 0) {
-        // 단지의 가장 최근 거래 연도/월 구하기
-        const latestDateStr = sum.latestDate ? String(sum.latestDate) : '';
-        const latestYear = latestDateStr.length === 8 ? parseInt(latestDateStr.substring(0, 4), 10) : 2026;
-        const latestMonth = latestDateStr.length === 8 ? parseInt(latestDateStr.substring(4, 6), 10) : 6;
-
         sum.recent.forEach((tx: any) => {
-          const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : 'default';
-          const groupKey = `${apt.name}_${areaKey}`;
-          if (!groups[groupKey]) {
-            groups[groupKey] = [];
-          }
-
-          // date가 YYYYMMDD인지 MM.DD인지 파악하여 YYYYMMDD 규격화
-          let fullDate = String(tx.date);
-          if (fullDate.includes('.')) {
-            const parts = fullDate.split('.');
-            const m = parseInt(parts[0], 10);
-            const d = parseInt(parts[1], 10);
-            const latestDay = latestDateStr.length === 8 ? parseInt(latestDateStr.substring(6, 8), 10) : 1;
-            
-            let y = latestYear;
-            // 월이 최근 거래 월보다 크거나, 월이 같지만 일이 최근 거래 일보다 크다면 전년도 거래로 판단
-            if (m > latestMonth || (m === latestMonth && d > latestDay)) {
-              y = latestYear - 1;
-            }
-            fullDate = `${y}${String(m).padStart(2, '0')}${String(d).padStart(2, '0')}`;
-          }
-
-          groups[groupKey].push({
-            tx,
-            apt,
-            sum,
-            priceVal: parsePriceEokHelper(tx.priceEok),
-            date: fullDate
+          list.push({
+            aptName: apt.name,
+            dong: apt.dong || sum.dong || '',
+            date: tx.contractDate || '',
+            dateLabel: tx.dateLabel || '',
+            priceEok: tx.priceEok,
+            priceVal: tx.priceVal || 0,
+            areaPyeong: tx.areaPyeong,
+            area: tx.area,
+            floor: tx.floor,
+            dealType: tx.dealType || '매매',
+            prevPriceVal: tx.prevPriceVal,
+            delta: tx.delta || 0,
+            deltaPercent: tx.deltaPercent || 0,
+            isNewHigh: !!tx.isNewHigh,
+            newHighDelta: tx.newHighDelta
           });
         });
       }
-    });
-
-    Object.values(groups).forEach(groupTxs => {
-      // 날짜 오름차순, 동일 날짜 시 층/가격 오름차순 정렬
-      const sorted = groupTxs.sort((a, b) => {
-        const dateComp = a.date.localeCompare(b.date);
-        if (dateComp !== 0) return dateComp;
-        const floorComp = (a.tx.floor || 0) - (b.tx.floor || 0);
-        if (floorComp !== 0) return floorComp;
-        return a.priceVal - b.priceVal;
-      });
-
-      let currentMax = 0;
-
-      sorted.forEach((item, index) => {
-        let isNewHigh = false;
-        let newHighDelta: number | undefined;
-        let prevPriceVal: number | undefined;
-        let delta: number | undefined;
-        let deltaPercent: number | undefined;
-
-        if (index === 0) {
-          currentMax = item.priceVal;
-        } else {
-          if (item.priceVal > currentMax) {
-            isNewHigh = true;
-            newHighDelta = item.priceVal - currentMax;
-            currentMax = item.priceVal;
-          }
-          
-          const prev = sorted[index - 1];
-          prevPriceVal = prev.priceVal;
-          delta = item.priceVal - prev.priceVal;
-          deltaPercent = prev.priceVal > 0 ? (delta / prev.priceVal) * 100 : 0;
-        }
-
-        const dt = parseDateHelper(item.date);
-        let dateLabel = '';
-        if (dt) {
-          const month = dt.getMonth() + 1;
-          const dateVal = dt.getDate();
-          dateLabel = `${month}월 ${dateVal}일`;
-        }
-
-        list.push({
-          aptName: item.apt.name,
-          dong: item.apt.dong || item.sum.dong || '',
-          date: item.date,
-          dateLabel,
-          priceEok: item.tx.priceEok,
-          priceVal: item.priceVal,
-          areaPyeong: item.tx.areaPyeong,
-          area: item.tx.area,
-          floor: item.tx.floor,
-          dealType: item.tx.dealType,
-          prevPriceVal,
-          delta,
-          deltaPercent,
-          isNewHigh,
-          newHighDelta
-        });
-      });
     });
 
     return list.sort((a, b) => b.date.localeCompare(a.date));

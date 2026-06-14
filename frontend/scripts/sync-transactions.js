@@ -515,6 +515,54 @@ async function main() {
     const prices = saleTxs.map(t => t.price).filter(p => p > 0);
     const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+
+    // 면적별 정렬 및 변동성(delta), 신고가(isNewHigh) 선계산
+    const saleTxsForDeltas = [...saleTxs];
+    const areaGroups = {};
+    saleTxsForDeltas.forEach(t => {
+      const areaKey = t.area ? (Math.round(t.area * 100) / 100).toFixed(2) : 'default';
+      if (!areaGroups[areaKey]) areaGroups[areaKey] = [];
+      areaGroups[areaKey].push(t);
+    });
+
+    Object.values(areaGroups).forEach(group => {
+      group.sort((a, b) => {
+        const dateComp = a.contractDate.localeCompare(b.contractDate);
+        if (dateComp !== 0) return dateComp;
+        const floorComp = (a.floor || 0) - (b.floor || 0);
+        if (floorComp !== 0) return floorComp;
+        return a.price - b.price;
+      });
+
+      let currentMax = 0;
+      group.forEach((item, index) => {
+        let isNewHigh = false;
+        let newHighDelta = 0;
+        let prevPriceVal = 0;
+        let delta = 0;
+        let deltaPercent = 0;
+
+        if (index === 0) {
+          currentMax = item.price;
+        } else {
+          if (item.price > currentMax) {
+            isNewHigh = true;
+            newHighDelta = item.price - currentMax;
+            currentMax = item.price;
+          }
+          const prev = group[index - 1];
+          prevPriceVal = prev.price;
+          delta = item.price - prev.price;
+          deltaPercent = prev.price > 0 ? (delta / prev.price) * 100 : 0;
+        }
+
+        item.isNewHigh = isNewHigh;
+        item.newHighDelta = newHighDelta;
+        item.prevPriceVal = prevPriceVal;
+        item.delta = delta;
+        item.deltaPercent = deltaPercent;
+      });
+    });
     
     // contractDate 기준으로 내림차순 정렬
     saleTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
@@ -648,13 +696,31 @@ async function main() {
       avg3MPriceEok: formatPriceEok(avg3MPrice),
       avg3MPerPyeong,
       avg3MTxCount: recent3MonthSale.length,
-      recent: saleTxs.slice(0, 25).map(t => ({
-        date: `${t.contractYm.slice(4)}.${t.contractDay}`,
-        priceEok: t.priceEok,
-        areaPyeong: t.areaPyeong,
-        floor: t.floor,
-        area: t.area,
-      })),
+      recent: saleTxs.slice(0, 25).map(t => {
+        const dt = parseYYYYMMDD(t.contractDate);
+        let dateLabel = '';
+        if (dt) {
+          const month = dt.getMonth() + 1;
+          const dateVal = dt.getDate();
+          dateLabel = `${month}월 ${dateVal}일`;
+        }
+        return {
+          date: `${t.contractYm.slice(4)}.${t.contractDay}`,
+          contractDate: t.contractDate,
+          priceEok: t.priceEok,
+          priceVal: t.price / 10000,
+          areaPyeong: t.areaPyeong,
+          floor: t.floor,
+          area: t.area,
+          dealType: t.dealType || '매매',
+          isNewHigh: !!t.isNewHigh,
+          newHighDelta: t.newHighDelta ? t.newHighDelta / 10000 : undefined,
+          prevPriceVal: t.prevPriceVal ? t.prevPriceVal / 10000 : undefined,
+          delta: t.delta ? t.delta / 10000 : 0,
+          deltaPercent: t.deltaPercent || 0,
+          dateLabel
+        };
+      }),
       
       // 전월세 데이터
       rentTxCount: rentTxs.length,
