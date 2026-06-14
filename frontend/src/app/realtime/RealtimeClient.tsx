@@ -627,6 +627,35 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     return processedTransactionsList.filter(isTxMatchingFilters).slice(0, 50);
   }, [processedTransactionsList, isTxMatchingFilters]);
 
+  // 4.5. 필터링된 실거래 목록을 날짜별 그룹으로 그루핑 (UI 일원화)
+  const dailyTransactionsData = useMemo(() => {
+    const groups: Record<string, { dateStr: string; timestamp: number; items: TxWithDelta[] }> = {};
+
+    filteredTransactionsList.forEach((tx) => {
+      const dt = parseDateHelper(tx.date);
+      if (!dt) return;
+
+      const dateKey = tx.date;
+      if (!groups[dateKey]) {
+        const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+        const dayName = daysOfWeek[dt.getDay()];
+        const month = dt.getMonth() + 1;
+        const dateVal = dt.getDate();
+        const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+
+        groups[dateKey] = {
+          dateStr,
+          timestamp: dt.getTime(),
+          items: []
+        };
+      }
+
+      groups[dateKey].items.push(tx);
+    });
+
+    return Object.values(groups).sort((a, b) => b.timestamp - a.timestamp);
+  }, [filteredTransactionsList]);
+
   // 5. 실거래 대시보드 메트릭 연산 (선택된 필터 조건 기준 리액티브 연산)
   const dashboardMetrics = useMemo(() => {
     const targetList = processedTransactionsList.filter(isTxMatchingFilters);
@@ -837,58 +866,74 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                   </span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-2 mt-2">
-                  {filteredTransactionsList.length === 0 ? (
+                <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
+                  {dailyTransactionsData.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                       조건에 부합하는 최근 실거래 데이터가 없습니다.
                     </div>
                   ) : (
-                    filteredTransactionsList.map((tx, idx) => (
-                      <div
-                        key={`${tx.aptName}-${idx}`}
-                        onClick={() => handleAptClickByName(tx.aptName)}
-                        className="flex flex-col p-3 rounded-xl cursor-pointer bg-body hover:bg-body/80 border border-border/40 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 shadow-sm transition-all duration-200 hover:-translate-y-0.5 group gap-1.5"
-                      >
-                        {/* Name & Badges */}
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]">
-                            {tx.aptName}
-                          </span>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {tx.delta !== undefined ? (
-                              tx.delta > 0 ? (
-                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/20 shrink-0 whitespace-nowrap flex items-center">
-                                  <ArrowUpRight size={11} className="mr-0.5" />
-                                  +{formatPriceValue(tx.delta)}
-                                </span>
-                              ) : tx.delta < 0 ? (
-                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shrink-0 whitespace-nowrap flex items-center">
-                                  <ArrowDownRight size={11} className="mr-0.5" />
-                                  -{formatPriceValue(Math.abs(tx.delta))}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700/10 shrink-0 whitespace-nowrap">
-                                  보합
-                                </span>
-                              )
-                            ) : null}
+                    dailyTransactionsData.map((group) => (
+                      <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-border/80">
+                        {/* Timeline Dot */}
+                        <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-border border-2 border-surface" />
+                        
+                        {/* Date Heading */}
+                        <h3 className="text-[13px] font-black text-secondary flex items-center gap-1.5 mb-1">
+                          <Calendar size={13} className="text-tertiary" />
+                          {group.dateStr}
+                        </h3>
 
-                            {tx.dealType && (
-                              <span className="text-[10px] font-black px-2 py-0.5 rounded text-secondary bg-surface border border-border/50 shrink-0 whitespace-nowrap">
-                                {tx.dealType}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                        {/* Items */}
+                        <div className="flex flex-col gap-2">
+                          {group.items.map((tx, idx) => (
+                            <div
+                              key={`${tx.aptName}-${idx}`}
+                              onClick={() => handleAptClickByName(tx.aptName)}
+                              className="flex flex-col p-3 rounded-xl cursor-pointer bg-body hover:bg-body/80 border border-border/40 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 shadow-sm transition-all duration-200 hover:-translate-y-0.5 group gap-1.5"
+                            >
+                              {/* Name & Badges */}
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]">
+                                  {tx.aptName}
+                                </span>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {tx.delta !== undefined ? (
+                                    tx.delta > 0 ? (
+                                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/20 shrink-0 whitespace-nowrap flex items-center">
+                                        <ArrowUpRight size={11} className="mr-0.5" />
+                                        +{formatPriceValue(tx.delta)}
+                                      </span>
+                                    ) : tx.delta < 0 ? (
+                                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shrink-0 whitespace-nowrap flex items-center">
+                                        <ArrowDownRight size={11} className="mr-0.5" />
+                                        -{formatPriceValue(Math.abs(tx.delta))}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700/10 shrink-0 whitespace-nowrap">
+                                        보합
+                                      </span>
+                                    )
+                                  ) : null}
 
-                        {/* Spec and Price */}
-                        <div className="flex items-center justify-between text-[11px] text-tertiary font-semibold">
-                          <span>
-                            {tx.dong} • {Math.round(tx.areaPyeong)}평 • {tx.floor}층 • {tx.dateLabel}
-                          </span>
-                          <span className="text-primary font-black text-[12.5px]">
-                            {formatPriceValue(tx.priceVal)}
-                          </span>
+                                  {tx.dealType && (
+                                    <span className="text-[10px] font-black px-2 py-0.5 rounded text-secondary bg-surface border border-border/50 shrink-0 whitespace-nowrap">
+                                      {tx.dealType}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Spec and Price */}
+                              <div className="flex items-center justify-between text-[11px] text-tertiary font-semibold">
+                                <span>
+                                  {tx.dong} • {Math.round(tx.areaPyeong)}평 • {tx.floor}층
+                                </span>
+                                <span className="text-primary font-black text-[12.5px]">
+                                  {formatPriceValue(tx.priceVal)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))
