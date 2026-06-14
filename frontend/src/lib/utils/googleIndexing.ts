@@ -1,4 +1,17 @@
 import { JWT } from 'google-auth-library';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
+
+// Zod schemas for Google Search Console Indexing parameters and service account keys
+export const GoogleIndexingParamsSchema = z.object({
+  url: z.string().url('Invalid absolute URL format for indexing'),
+  type: z.enum(['URL_UPDATED', 'URL_DELETED']).catch('URL_UPDATED'),
+});
+
+export const GoogleServiceAccountKeySchema = z.object({
+  client_email: z.string().email('Invalid service account client email'),
+  private_key: z.string().min(1, 'Private key cannot be empty'),
+});
 
 /**
  * Request Google Search Console Indexing for a specific URL
@@ -6,10 +19,26 @@ import { JWT } from 'google-auth-library';
  * @param type Action type: 'URL_UPDATED' (create/modify) or 'URL_DELETED' (delete)
  */
 export async function requestGoogleIndexing(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED') {
+  // 1. Validate Input parameters using Zod
+  const paramsValidation = GoogleIndexingParamsSchema.safeParse({ url, type });
+  if (!paramsValidation.success) {
+    logger.warn('googleIndexing.requestGoogleIndexing', 'Invalid parameters provided for indexing', {
+      error: String(paramsValidation.error),
+      url,
+      type
+    });
+    // Return graceful error response to prevent crash in caller
+    return { success: false, error: paramsValidation.error.message };
+  }
+
+  const validatedParams = paramsValidation.data;
   const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
   if (!serviceAccountKey) {
-    console.warn(`[GoogleIndexing-Mock] GOOGLE_SERVICE_ACCOUNT_KEY is missing. Skipping API call for URL: ${url} (Action: ${type})`);
+    logger.warn('googleIndexing.requestGoogleIndexing', 'GOOGLE_SERVICE_ACCOUNT_KEY is missing. Skipping API call', {
+      url: validatedParams.url,
+      type: validatedParams.type
+    });
     return { success: true, message: 'Mock mode: success without api call', mock: true };
   }
 
@@ -23,13 +52,17 @@ export async function requestGoogleIndexing(url: string, type: 'URL_UPDATED' | '
       keyData = JSON.parse(decoded);
     }
 
-    if (!keyData.client_email || !keyData.private_key) {
-      throw new Error('Required fields (client_email, private_key) are missing in the credentials');
+    // 2. Validate Google service account key configuration using Zod
+    const keyValidation = GoogleServiceAccountKeySchema.safeParse(keyData);
+    if (!keyValidation.success) {
+      throw new Error(`Google service account configuration validation failed: ${keyValidation.error.message}`);
     }
 
+    const validatedKey = keyValidation.data;
+
     const jwtClient = new JWT({
-      email: keyData.client_email,
-      key: keyData.private_key.replace(/\\n/g, '\n'), // Ensure correct newline formatting in private key
+      email: validatedKey.client_email,
+      key: validatedKey.private_key.replace(/\\n/g, '\n'), // Ensure correct newline formatting in private key
       scopes: ['https://www.googleapis.com/auth/indexing'],
     });
 
@@ -39,15 +72,21 @@ export async function requestGoogleIndexing(url: string, type: 'URL_UPDATED' | '
       url: 'https://indexing.googleapis.com/v3/urlNotifications:publish',
       method: 'POST',
       data: {
-        url,
-        type,
+        url: validatedParams.url,
+        type: validatedParams.type,
       },
     });
 
-    console.log(`[GoogleIndexing-Success] Requested indexing for ${url}. Response status:`, response.status);
+    logger.info('googleIndexing.requestGoogleIndexing', 'Requested indexing successfully', {
+      url: validatedParams.url,
+      status: response.status
+    });
     return { success: true, status: response.status, data: response.data };
   } catch (error: any) {
-    console.error(`[GoogleIndexing-Error] Failed indexing request for ${url}:`, error.message || error);
+    logger.error('googleIndexing.requestGoogleIndexing', 'Failed indexing request', {
+      url: validatedParams.url,
+      error: error.message || String(error)
+    });
     // Graceful error fallback to avoid breaking parent workflow
     return { success: false, error: error.message || String(error) };
   }
