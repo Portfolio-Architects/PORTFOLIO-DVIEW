@@ -696,19 +696,24 @@ function FieldReportModal({
         const filtered = group.filter((t, idx) => {
           // 앞뒤 5건씩 총 11건의 국소 윈도우 생성
           const windowTxs = group.slice(Math.max(0, idx - 5), Math.min(group.length, idx + 6));
-          // 캐시된 calculatedPrice를 직접 읽음 (불필요한 중복 분기 및 수식 연산 제거)
-          const prices = windowTxs.map(wt => wt.calculatedPrice);
           const p = t.calculatedPrice;
           
-          if (prices.length < 4) return true; // 비교 표본이 부족하면 패스
+          // 현재 분석하려는 항목을 제외한 윈도우의 통계를 활용하여 이상치 탐지의 자가 오염 방지
+          const localIdx = idx - Math.max(0, idx - 5);
+          const otherPrices = windowTxs.filter((_, wIdx) => wIdx !== localIdx).map(wt => wt.calculatedPrice);
           
-          const mean = prices.reduce((sum, val) => sum + val, 0) / prices.length;
-          const variance = prices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / prices.length;
+          if (otherPrices.length < 3) return true; // 비교 표본이 부족하면 패스
+          
+          const mean = otherPrices.reduce((sum, val) => sum + val, 0) / otherPrices.length;
+          const variance = otherPrices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / otherPrices.length;
           const stdDev = Math.sqrt(variance);
           
-          // 상위 가격(상승 거래)은 이상치 필터링에서 제외하고 하위 가격만 필터링 (최소 5% 편차 여유 적용)
-          if (p >= mean) return true;
-          return (mean - p) <= 2 * Math.max(stdDev, mean * 0.05);
+          // 1. 하위 가격(급매 등) 필터링: 최소 5% 편차 여유 기준 2 표준편차 이하인 거래 제외
+          if (p < mean) {
+            return (mean - p) <= 2 * Math.max(stdDev, mean * 0.05);
+          }
+          // 2. 상위 가격(기입 오류 또는 10억/110 등 기형 월세 거래) 필터링: 3 표준편차 초과 시 제외
+          return (p - mean) <= 3 * Math.max(stdDev, mean * 0.05);
         });
         validTxs.push(...filtered);
       });

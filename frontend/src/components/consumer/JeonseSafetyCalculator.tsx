@@ -23,7 +23,7 @@ function getEstimatedMarketPrice(apt: DongApartment, txSummaryData: Record<strin
   const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
   const summary = txKey ? txSummaryData[txKey] : null;
   if (summary) {
-    const val = summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0;
+    const val = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
     if (val > 0) return val;
   }
   

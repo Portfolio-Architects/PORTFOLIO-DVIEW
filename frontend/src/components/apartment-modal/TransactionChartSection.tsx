@@ -431,8 +431,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         </div>
         
         <div className="flex w-full gap-2 sm:gap-3 mb-5">
-          {[{label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}].map((item) => {
-            const isTarget = item.label === '3개월';
+          {[{label: '1개월', val: momentum.m1}, {label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}].map((item) => {
+            const isTarget = item.label === '1개월';
             return (
               <div 
                 key={item.label} 

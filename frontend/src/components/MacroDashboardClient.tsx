@@ -757,8 +757,8 @@ export default function MacroDashboardClient({
       const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
       const macroJeonseVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
 
-      const aptSaleVal = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0) / 10000;
-      const aptJeonseVal = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0) / 10000;
+      const aptSaleVal = (selectedAptSummary.avg1MPrice || selectedAptSummary.avg3MPrice || selectedAptSummary.latestPrice || 0) / 10000;
+      const aptJeonseVal = (selectedAptSummary.avg1MRentDeposit || selectedAptSummary.avg3MRentDeposit || selectedAptSummary.latestRentDeposit || 0) / 10000;
 
       const saleFactor = aptSaleVal > 0 ? aptSaleVal / macroSaleVal : 1;
       const jeonseFactor = aptJeonseVal > 0 ? aptJeonseVal / macroJeonseVal : (aptSaleVal > 0 ? (aptSaleVal * 0.6) / macroJeonseVal : 1);
@@ -825,8 +825,8 @@ export default function MacroDashboardClient({
     const realFirstSaleIndex = firstSaleAnchorIndex;
     const realFirstRentIndex = firstRentAnchorIndex;
 
-    const fallbackSalePrice = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 80000) / 10000;
-    const fallbackRentPrice = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 48000) / 10000;
+    const fallbackSalePrice = (selectedAptSummary.avg1MPrice || selectedAptSummary.avg3MPrice || selectedAptSummary.latestPrice || 80000) / 10000;
+    const fallbackRentPrice = (selectedAptSummary.avg1MRentDeposit || selectedAptSummary.avg3MRentDeposit || selectedAptSummary.latestRentDeposit || 48000) / 10000;
 
     if (firstSaleAnchorIndex === -1) {
       firstSaleAnchorIndex = deferredMacroTrendData.length - 1;
@@ -915,16 +915,16 @@ export default function MacroDashboardClient({
     const isFav = userFavorites?.has(aptName);
     const prefix = isFav ? "⭐ 관심 단지 리포트: " : "📊 단지 요약: ";
     
-    const txCount = summary.avg3MTxCount || 0;
-    const priceStr = summary.avg3MPriceEok || summary.latestPriceEok || "-";
-    const rentStr = summary.avg3MRentDepositEok || summary.latestRentDepositEok || "-";
+    const txCount = summary.avg1MTxCount || summary.avg3MTxCount || 0;
+    const priceStr = summary.avg1MPriceEok || summary.avg3MPriceEok || summary.latestPriceEok || "-";
+    const rentStr = summary.avg1MRentDepositEok || summary.avg3MRentDepositEok || summary.latestRentDepositEok || "-";
     
     if (txCount === 0) {
-      return `${prefix}${aptName}은 최근 90일간 실거래 내역이 없지만, 직전 거래 기준 매매 ${priceStr}, 전세 ${rentStr}선에 시세가 형성되어 있습니다.`;
+      return `${prefix}${aptName}은 최근 30일간 실거래 내역이 없지만, 직전 거래 기준 매매 ${priceStr}, 전세 ${rentStr}선에 시세가 형성되어 있습니다.`;
     }
     
-    const saleVal = summary.avg3MPrice || summary.latestPrice || 0;
-    const rentVal = summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
+    const saleVal = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
+    const rentVal = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
     const gapVal = saleVal - rentVal;
     let gapStr = "-";
     if (gapVal > 0) {
@@ -933,7 +933,7 @@ export default function MacroDashboardClient({
     
     const rentRate = saleVal > 0 ? Math.round((rentVal / saleVal) * 100) : 0;
     
-    return `${prefix}${aptName}은 최근 90일 동안 ${txCount}건의 실거래가 발생했습니다. 평균 매매 ${priceStr}, 평균 전세 ${rentStr}선이며, 예상 갭투자금은 약 ${gapStr} (전세가율 ${rentRate}%) 수준입니다.`;
+    return `${prefix}${aptName}은 최근 30일 동안 ${txCount}건의 실거래가 발생했습니다. 평균 매매 ${priceStr}, 평균 전세 ${rentStr}선이며, 예상 갭투자금은 약 ${gapStr} (전세가율 ${rentRate}%) 수준입니다.`;
   }, [userFavorites]);
 
   const lineData = useMemo(() => {
@@ -1165,8 +1165,8 @@ export default function MacroDashboardClient({
         const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
         if (txKey && txSummaryData[txKey]) {
           const sum = txSummaryData[txKey];
-          const avgSale = sum.avg3MPrice || sum.latestPrice || 0;
-          const avgRent = sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+          const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
+          const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
 
           if (avgSale > 0 && avgRent > 0) {
             const rate = (avgRent / avgSale) * 100;
@@ -1227,8 +1227,8 @@ export default function MacroDashboardClient({
       const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
       if (txKey && txSummaryData[txKey]) {
         const sum = txSummaryData[txKey];
-        const avgSale = sum.avg3MPrice || sum.latestPrice || 0;
-        const avgRent = sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+        const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
+        const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
 
         if (avgSale > 0 && avgRent > 0) {
           const rate = (avgRent / avgSale) * 100;
@@ -1299,8 +1299,8 @@ export default function MacroDashboardClient({
       const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
       if (txKey && txSummaryData[txKey]) {
         const sum = txSummaryData[txKey];
-        const avgSale = sum.avg3MPrice || sum.latestPrice || 0;
-        const avgRent = sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+        const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
+        const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
         if (avgSale > 0 && avgRent > 0) {
           const rate = (avgRent / avgSale) * 100;
           if (rate > 20 && rate < 100) {
@@ -1556,7 +1556,7 @@ interface GroupedCategory {
         const tx = txKey ? txSummaryData[txKey] : undefined;
 
         if (tx) {
-          const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
+          const sales = tx.avg1MPrice || tx.avg3MPrice || tx.latestPrice || 0;
           if (sales > 0) {
             const maxPrice = tx.maxPrice || sales;
             const mdd =
@@ -1578,8 +1578,8 @@ interface GroupedCategory {
             }
 
             const pyeongPrice =
-              tx.avg3MPerPyeong ||
               tx.avg1MPerPyeong ||
+              tx.avg3MPerPyeong ||
               (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
 
             // distToDongtan은 상단에서 미리 계산함
@@ -1655,8 +1655,8 @@ interface GroupedCategory {
 
   const { gapText, jeonseRateText, hasValues } = useMemo(() => {
     if (!selectedAptSummary) return { gapText: "-", jeonseRateText: "-", hasValues: false };
-    const sale = selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0;
-    const rent = selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0;
+    const sale = selectedAptSummary.avg1MPrice || selectedAptSummary.avg3MPrice || selectedAptSummary.latestPrice || 0;
+    const rent = selectedAptSummary.avg1MRentDeposit || selectedAptSummary.avg3MRentDeposit || selectedAptSummary.latestRentDeposit || 0;
     if (sale > 0 && rent > 0) {
       const gapVal = sale - rent;
       const fmtGap = formatEokWithUnit(gapVal);
@@ -3173,8 +3173,8 @@ interface GroupedCategory {
 
               {/* 실거래 요약 테이블 */}
               {selectedAptSummary && (() => {
-                const avgSale = (selectedAptSummary.avg3MPrice || selectedAptSummary.avg1MPrice || selectedAptSummary.latestPrice || 0);
-                const avgRent = (selectedAptSummary.avg3MRentDeposit || selectedAptSummary.avg1MRentDeposit || selectedAptSummary.latestRentDeposit || 0);
+                const avgSale = (selectedAptSummary.avg1MPrice || selectedAptSummary.avg3MPrice || selectedAptSummary.latestPrice || 0);
+                const avgRent = (selectedAptSummary.avg1MRentDeposit || selectedAptSummary.avg3MRentDeposit || selectedAptSummary.latestRentDeposit || 0);
                 const hasValues = avgSale > 0 && avgRent > 0;
                 const gap = hasValues ? avgSale - avgRent : 0;
                 
@@ -3193,21 +3193,21 @@ interface GroupedCategory {
                         실거래 요약
                       </span>
                       <span className="text-[10px] text-tertiary font-bold px-2 py-0.5 rounded border border-border/30">
-                        최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
+                        최근 30일 매매 {selectedAptSummary.avg1MTxCount || 0}건
                       </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-bold text-tertiary">평균 매매(3M)</span>
+                        <span className="text-[11px] font-bold text-tertiary">평균 매매(1M)</span>
                         <span className="text-[13.5px] font-extrabold text-primary truncate">
-                          {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
+                          {selectedAptSummary.avg1MPriceEok || selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[11px] font-bold text-tertiary">평균 전세(3M)</span>
+                        <span className="text-[11px] font-bold text-tertiary">평균 전세(1M)</span>
                         <span className="text-[13.5px] font-extrabold text-primary truncate">
-                          {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
+                          {selectedAptSummary.avg1MRentDepositEok || selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">

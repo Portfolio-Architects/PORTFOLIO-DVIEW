@@ -239,8 +239,8 @@ export async function generateMetadata(props: {
     ogUrl.searchParams.set('price', formatPriceEok(aptSummary.latestPrice));
   }
   
-  const salesVal = aptSummary ? (aptSummary.avg3MPrice || aptSummary.avg1MPrice || aptSummary.latestPrice || 0) : 0;
-  const jeonseVal = aptSummary ? (aptSummary.avg3MRentDeposit || aptSummary.avg1MRentDeposit || aptSummary.latestRentDeposit || 0) : 0;
+  const salesVal = aptSummary ? (aptSummary.avg1MPrice || aptSummary.avg3MPrice || aptSummary.latestPrice || 0) : 0;
+  const jeonseVal = aptSummary ? (aptSummary.avg1MRentDeposit || aptSummary.avg3MRentDeposit || aptSummary.latestRentDeposit || 0) : 0;
   const ratioPercent = salesVal > 0 && jeonseVal > 0 ? Math.round((jeonseVal / salesVal) * 100) : 0;
   if (ratioPercent > 0) {
     ogUrl.searchParams.set('ratio', ratioPercent.toString());
@@ -700,7 +700,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             <h2>{decodedName} 실거래 데이터 요약</h2>
             <ul>
               <li>최근 매매가: {aptSummary?.latestPriceEok ? `${aptSummary.latestPriceEok}억` : '정보 없음'}</li>
-              <li>최근 3개월 평균가: {aptSummary?.avg3MPriceEok ? `${aptSummary.avg3MPriceEok}억` : '정보 없음'}</li>
+              <li>최근 1개월 평균가: {aptSummary?.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음'}</li>
               <li>최근 전세가: {aptSummary?.latestRentDepositEok ? `${aptSummary.latestRentDepositEok}억` : '정보 없음'}</li>
             </ul>
           </div>

@@ -104,8 +104,8 @@ export default function ChopoomaCuration({
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
       const sum = txSummaryData[txKey];
 
-      const sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
-      const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      const sales = sum ? (sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0) : 0;
+      const jeonse = sum ? (sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0) : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
 
       return {

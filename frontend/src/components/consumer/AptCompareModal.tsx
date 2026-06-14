@@ -490,10 +490,10 @@ export default function AptCompareModal({
     const txKey = findTxKey(apt1.name, txSummaryData, nameMapping);
     const summary = txKey ? txSummaryData[txKey] : null;
 
-    const avg3MPriceVal = summary ? (summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0) : 0;
-    const avg3MRentVal = summary ? (summary.avg3MRentDeposit || summary.avg1MRentDeposit || summary.latestRentDeposit || 0) : 0;
+    const avg3MPriceVal = summary ? (summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0) : 0;
+    const avg3MRentVal = summary ? (summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0) : 0;
     const jeonseRatioVal = avg3MPriceVal > 0 && avg3MRentVal > 0 ? (avg3MRentVal / avg3MPriceVal) * 100 : 0;
-    const avg3MPerPyeongVal = summary ? (summary.avg3MPerPyeong || summary.avg1MPerPyeong || 0) : 0;
+    const avg3MPerPyeongVal = summary ? (summary.avg1MPerPyeong || summary.avg3MPerPyeong || 0) : 0;
 
     return {
       ...effective,
@@ -511,10 +511,10 @@ export default function AptCompareModal({
     const txKey = findTxKey(apt2.name, txSummaryData, nameMapping);
     const summary = txKey ? txSummaryData[txKey] : null;
 
-    const avg3MPriceVal = summary ? (summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0) : 0;
-    const avg3MRentVal = summary ? (summary.avg3MRentDeposit || summary.avg1MRentDeposit || summary.latestRentDeposit || 0) : 0;
+    const avg3MPriceVal = summary ? (summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0) : 0;
+    const avg3MRentVal = summary ? (summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0) : 0;
     const jeonseRatioVal = avg3MPriceVal > 0 && avg3MRentVal > 0 ? (avg3MRentVal / avg3MPriceVal) * 100 : 0;
-    const avg3MPerPyeongVal = summary ? (summary.avg3MPerPyeong || summary.avg1MPerPyeong || 0) : 0;
+    const avg3MPerPyeongVal = summary ? (summary.avg1MPerPyeong || summary.avg3MPerPyeong || 0) : 0;
 
     return {
       ...effective,

@@ -538,9 +538,9 @@ export default function TossApartmentExploreClient({
 
       const sum = txSummaryData[txKey];
       
-      const pyeongPrice = sum?.avg3MPerPyeong || sum?.avg1MPerPyeong || (sum?.latestArea ? sum.latestPrice / (sum.latestArea / 3.3058) : 0);
-      const sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
-      const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      const pyeongPrice = sum?.avg1MPerPyeong || sum?.avg3MPerPyeong || (sum?.latestArea ? sum.latestPrice / (sum.latestArea / 3.3058) : 0);
+      const sales = sum ? (sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0) : 0;
+      const jeonse = sum ? (sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0) : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
       const dropRatio = sum && sum.maxPrice && sum.avg1MPrice && sum.maxPrice > sum.avg1MPrice ? (sum.maxPrice - sum.avg1MPrice) / sum.maxPrice : 0;
       const volume3M = sum?.avg3MTxCount || 0;

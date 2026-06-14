@@ -196,13 +196,13 @@ export default function GapInvestmentExplorer({
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
       const sum = txSummaryData[txKey];
 
-      let sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
+      let sales = sum ? (sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0) : 0;
       if (isNaN(sales) || sales < 0) sales = 0;
 
-      let jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      let jeonse = sum ? (sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0) : 0;
       if (isNaN(jeonse) || jeonse < 0) jeonse = 0;
 
-      let pyeongPrice = sum ? (sum.avg3MPerPyeong || sum.avg1MPerPyeong || 0) : 0;
+      let pyeongPrice = sum ? (sum.avg1MPerPyeong || sum.avg3MPerPyeong || 0) : 0;
       if (isNaN(pyeongPrice) || pyeongPrice < 0) pyeongPrice = 0;
       
       const gap = sales > 0 && jeonse > 0 ? sales - jeonse : 0;
