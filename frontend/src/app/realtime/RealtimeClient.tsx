@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import dynamic from 'next/dynamic';
 
-import { MessageSquare, Calendar, ShieldAlert, ArrowUpRight, TrendingUp, Sparkles, Building, Landmark } from 'lucide-react';
+import { MessageSquare, Calendar, ShieldAlert, ArrowUpRight, ArrowDownRight, TrendingUp, Sparkles, Building, Landmark, Filter } from 'lucide-react';
 
 import LoginGateModal from '@/components/ui/LoginGateModal';
-import HotComplexRanking from '@/components/HotComplexRanking';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
+import RealtimeSummaryCards from '@/components/RealtimeSummaryCards';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
@@ -258,6 +258,43 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     return map;
   }, [fieldReports, sheetApartments, nameMapping]);
 
+  const [selectedDong, setSelectedDong] = useState('all');
+  const [selectedPyeong, setSelectedPyeong] = useState('all');
+  const [selectedPrice, setSelectedPrice] = useState('all');
+
+  // 법정동 리스트 동적 추출
+  const dongList = useMemo(() => {
+    if (!sheetApartments) return [];
+    const dongs = new Set<string>();
+    Object.values(sheetApartments).flat().forEach(apt => {
+      if (apt.dong) dongs.add(apt.dong);
+    });
+    return ['all', ...Array.from(dongs).sort()];
+  }, [sheetApartments]);
+
+  // 필터 매칭 헬퍼 함수
+  const isTxMatchingFilters = useCallback((tx: { dong: string; areaPyeong: number; priceVal: number }) => {
+    if (selectedDong !== 'all' && tx.dong !== selectedDong) return false;
+
+    if (selectedPyeong !== 'all') {
+      const p = tx.areaPyeong;
+      if (selectedPyeong === 'under20' && p >= 20) return false;
+      if (selectedPyeong === '20s' && (p < 20 || p >= 30)) return false;
+      if (selectedPyeong === '30s' && (p < 30 || p >= 40)) return false;
+      if (selectedPyeong === 'over40' && p < 40) return false;
+    }
+
+    if (selectedPrice !== 'all') {
+      const pVal = tx.priceVal;
+      if (selectedPrice === 'under6' && pVal > 6) return false;
+      if (selectedPrice === '6to9' && (pVal <= 6 || pVal > 9)) return false;
+      if (selectedPrice === '9to12' && (pVal <= 9 || pVal > 12)) return false;
+      if (selectedPrice === 'over12' && pVal <= 12) return false;
+    }
+
+    return true;
+  }, [selectedDong, selectedPyeong, selectedPrice]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -361,143 +398,294 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
     }
   }, [handleToggleFavorite, handleRequestLogin, user, userFavorites, triggerCustomA2HSModal]);
 
-  // Compute Daily New High Prices Timeline Data (copied from MacroDashboardClient)
-  const dailyTimelineData = useMemo(() => {
-    const groups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
+  // 1. 직전 거래 대비 변동폭 및 최고가 경신(신고가) 여부를 포함하는 전체 실거래 목록 가공
+  interface TxWithDelta {
+    aptName: string;
+    dong: string;
+    date: string;
+    dateLabel: string;
+    priceEok: string;
+    priceVal: number;
+    areaPyeong: number;
+    area: number;
+    floor: number;
+    dealType?: string;
+    prevPriceVal?: number;
+    delta?: number;
+    deltaPercent?: number;
+    isNewHigh: boolean;
+    newHighDelta?: number;
+  }
+
+  const processedTransactionsList = useMemo(() => {
     if (!sheetApartments || !txSummary) return [];
-
     const allApts = Object.values(sheetApartments).flat();
-    const latestDate = Object.values(txSummary).reduce((max: number, sum: any) => {
-      const parsed = parseDateHelper(sum.latestDate);
-      return parsed && parsed.getTime() > max ? parsed.getTime() : max;
-    }, 0);
-    const maxDateTime = latestDate > 0 ? latestDate : Date.now();
+    const list: TxWithDelta[] = [];
 
-    allApts.forEach((apt) => {
+    // 아파트+면적별로 거래 리스트를 묶을 맵 (Key: aptName_area)
+    const groups: Record<string, { tx: any; apt: any; sum: any; priceVal: number; date: string }[]> = {};
+
+    Object.entries(txSummary).forEach(([txKey, sum]) => {
+      const apt = allApts.find(a => isSameApartment(a.name, txKey, nameMapping));
+      if (!apt) return;
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
-      const txKey = findTxKey(apt.name, txSummary, nameMapping);
-      if (txKey && txSummary[txKey]) {
-        const sum = txSummary[txKey];
-        if (sum.recent && sum.recent.length > 0) {
-          const areaGroups: Record<string, any[]> = {};
-          sum.recent.forEach((tx: any) => {
-            const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : 'default';
-            const dt = parseDateHelper(tx.date, sum.latestDate);
-            const price = parsePriceEokHelper(tx.priceEok);
-            if (dt && price > 0) {
-              if (!areaGroups[areaKey]) {
-                areaGroups[areaKey] = [];
-              }
-              areaGroups[areaKey].push({ tx, dt, price });
+
+      if (sum.recent && sum.recent.length > 0) {
+        // 단지의 가장 최근 거래 연도/월 구하기
+        const latestDateStr = sum.latestDate ? String(sum.latestDate) : '';
+        const latestYear = latestDateStr.length === 8 ? parseInt(latestDateStr.substring(0, 4), 10) : 2026;
+        const latestMonth = latestDateStr.length === 8 ? parseInt(latestDateStr.substring(4, 6), 10) : 6;
+
+        sum.recent.forEach((tx: any) => {
+          const areaKey = tx.area ? (Math.round(tx.area * 100) / 100).toFixed(2) : 'default';
+          const groupKey = `${apt.name}_${areaKey}`;
+          if (!groups[groupKey]) {
+            groups[groupKey] = [];
+          }
+
+          // date가 YYYYMMDD인지 MM.DD인지 파악하여 YYYYMMDD 규격화
+          let fullDate = String(tx.date);
+          if (fullDate.includes('.')) {
+            const parts = fullDate.split('.');
+            const m = parseInt(parts[0], 10);
+            const d = parseInt(parts[1], 10);
+            const latestDay = latestDateStr.length === 8 ? parseInt(latestDateStr.substring(6, 8), 10) : 1;
+            
+            let y = latestYear;
+            // 월이 최근 거래 월보다 크거나, 월이 같지만 일이 최근 거래 일보다 크다면 전년도 거래로 판단
+            if (m > latestMonth || (m === latestMonth && d > latestDay)) {
+              y = latestYear - 1;
             }
+            fullDate = `${y}${String(m).padStart(2, '0')}${String(d).padStart(2, '0')}`;
+          }
+
+          groups[groupKey].push({
+            tx,
+            apt,
+            sum,
+            priceVal: parsePriceEokHelper(tx.priceEok),
+            date: fullDate
           });
+        });
+      }
+    });
 
-          Object.keys(areaGroups).forEach((areaKey) => {
-            const sorted = areaGroups[areaKey].sort((a, b) => a.dt.getTime() - b.dt.getTime());
-            let currentMax = 0;
+    Object.values(groups).forEach(groupTxs => {
+      // 날짜 오름차순, 동일 날짜 시 층/가격 오름차순 정렬
+      const sorted = groupTxs.sort((a, b) => {
+        const dateComp = a.date.localeCompare(b.date);
+        if (dateComp !== 0) return dateComp;
+        const floorComp = (a.tx.floor || 0) - (b.tx.floor || 0);
+        if (floorComp !== 0) return floorComp;
+        return a.priceVal - b.priceVal;
+      });
 
-            sorted.forEach((item, index) => {
-              const { tx, dt, price } = item;
-              let isNewHigh = false;
-              let delta = 0;
-              let deltaPercent = 0;
+      let currentMax = 0;
 
-              if (index === 0) {
-                currentMax = price;
-              } else {
-                if (price > currentMax) {
-                  isNewHigh = true;
-                  delta = price - currentMax;
-                  deltaPercent = (delta / currentMax) * 100;
-                  currentMax = price;
-                }
-              }
+      sorted.forEach((item, index) => {
+        let isNewHigh = false;
+        let newHighDelta: number | undefined;
+        let prevPriceVal: number | undefined;
+        let delta: number | undefined;
+        let deltaPercent: number | undefined;
 
-              const diffMs = maxDateTime - dt.getTime();
-              const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-              if (isNewHigh && diffDays >= 0) {
-                const dateKey = tx.date;
-                const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-                const dayName = daysOfWeek[dt.getDay()];
-                const month = dt.getMonth() + 1;
-                const dateVal = dt.getDate();
-                const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+        if (index === 0) {
+          currentMax = item.priceVal;
+        } else {
+          if (item.priceVal > currentMax) {
+            isNewHigh = true;
+            newHighDelta = item.priceVal - currentMax;
+            currentMax = item.priceVal;
+          }
+          
+          const prev = sorted[index - 1];
+          prevPriceVal = prev.priceVal;
+          delta = item.priceVal - prev.priceVal;
+          deltaPercent = prev.priceVal > 0 ? (delta / prev.priceVal) * 100 : 0;
+        }
 
-                if (!groups[dateKey]) {
-                  groups[dateKey] = {
-                    dateStr,
-                    timestamp: dt.getTime(),
-                    items: [],
-                  };
-                }
+        const dt = parseDateHelper(item.date);
+        let dateLabel = '';
+        if (dt) {
+          const month = dt.getMonth() + 1;
+          const dateVal = dt.getDate();
+          dateLabel = `${month}월 ${dateVal}일`;
+        }
 
-                const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
-                const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
-                const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
+        list.push({
+          aptName: item.apt.name,
+          dong: item.apt.dong || item.sum.dong || '',
+          date: item.date,
+          dateLabel,
+          priceEok: item.tx.priceEok,
+          priceVal: item.priceVal,
+          areaPyeong: item.tx.areaPyeong,
+          area: item.tx.area,
+          floor: item.tx.floor,
+          dealType: item.tx.dealType,
+          prevPriceVal,
+          delta,
+          deltaPercent,
+          isNewHigh,
+          newHighDelta
+        });
+      });
+    });
 
-                groups[dateKey].items.push({
-                  aptName: apt.name,
-                  dong: apt.dong || sum.dong || "",
-                  priceEok: tx.priceEok,
-                  priceVal: price,
-                  areaPyeong: tx.areaPyeong,
-                  area: tx.area,
-                  floor: tx.floor,
-                  type: "high",
-                  delta: delta,
-                  deltaPercent: deltaPercent,
-                  prevPriceVal: delta && delta > 0 ? price - delta : undefined,
-                  areaLabelM2: labelM2,
-                  areaLabelPyeong: labelPyeong,
-                });
-              }
-            });
-          });
+    return list.sort((a, b) => b.date.localeCompare(a.date));
+  }, [sheetApartments, txSummary, nameMapping, publicRentalSet]);
+
+  // 2. 가공된 processedTransactionsList에서 신고가(isNewHigh)들만 필터링하여 일자별 타임라인 구성
+  const dailyTimelineData = useMemo(() => {
+    const timelineGroups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
+
+    processedTransactionsList.forEach((tx) => {
+      if (!tx.isNewHigh) return; // 신고가 경신 거래만 대상
+      
+      const dt = parseDateHelper(tx.date);
+      if (!dt) return;
+
+      const dateKey = tx.date;
+      if (!timelineGroups[dateKey]) {
+        const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+        const dayName = daysOfWeek[dt.getDay()];
+        const month = dt.getMonth() + 1;
+        const dateVal = dt.getDate();
+        const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+
+        timelineGroups[dateKey] = {
+          dateStr,
+          timestamp: dt.getTime(),
+          items: []
+        };
+      }
+
+      const allApts = Object.values(sheetApartments).flat();
+      const targetApt = allApts.find(a => isSameApartment(a.name, tx.aptName, nameMapping));
+      const t = typeMap && targetApt ? findTypeMapEntry(typeMap, targetApt.name, tx.area) : null;
+      const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
+      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
+
+      timelineGroups[dateKey].items.push({
+        aptName: tx.aptName,
+        dong: tx.dong,
+        priceEok: tx.priceEok,
+        priceVal: tx.priceVal,
+        areaPyeong: tx.areaPyeong,
+        area: tx.area,
+        floor: tx.floor,
+        type: "high",
+        delta: tx.newHighDelta || 0,
+        deltaPercent: tx.prevPriceVal && tx.newHighDelta ? (tx.newHighDelta / tx.prevPriceVal) * 100 : 0,
+        prevPriceVal: tx.prevPriceVal,
+        areaLabelM2: labelM2,
+        areaLabelPyeong: labelPyeong,
+      });
+    });
+
+    return Object.values(timelineGroups).sort((a, b) => b.timestamp - a.timestamp);
+  }, [processedTransactionsList, sheetApartments, typeMap, nameMapping]);
+
+  // 3. 신고가 데이터 필터링 적용
+  const filteredTimelineData = useMemo(() => {
+    return dailyTimelineData
+      .map(group => {
+        const filteredItems = group.items.filter(item => 
+          isTxMatchingFilters({
+            dong: item.dong,
+            areaPyeong: item.areaPyeong,
+            priceVal: item.priceVal
+          })
+        );
+        return {
+          ...group,
+          items: filteredItems
+        };
+      })
+      .filter(group => group.items.length > 0);
+  }, [dailyTimelineData, isTxMatchingFilters]);
+
+  // 4. 실거래 목록 필터링 및 슬라이싱 (50건 제한)
+  const filteredTransactionsList = useMemo(() => {
+    return processedTransactionsList.filter(isTxMatchingFilters).slice(0, 50);
+  }, [processedTransactionsList, isTxMatchingFilters]);
+
+  // 5. 실거래 대시보드 메트릭 연산 (선택된 필터 조건 기준 리액티브 연산)
+  const dashboardMetrics = useMemo(() => {
+    const targetList = processedTransactionsList.filter(isTxMatchingFilters);
+
+    if (targetList.length === 0) {
+      return {
+        recent7DaysCount: 0,
+        prev7DaysCount: 0,
+        recent30DaysCount: 0,
+        newHighCount30Days: 0,
+        newHighRatio30Days: 0,
+        upTransactionsCount30Days: 0,
+        upTransactionsRatio30Days: 0,
+      };
+    }
+
+    let latestTime = 0;
+    targetList.forEach(tx => {
+      const dt = parseDateHelper(tx.date);
+      if (dt && dt.getTime() > latestTime) {
+        latestTime = dt.getTime();
+      }
+    });
+
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const refDate = latestTime > 0 ? new Date(latestTime) : new Date();
+    
+    const sevenDaysAgo = new Date(refDate.getTime() - 7 * oneDayMs);
+    const fourteenDaysAgo = new Date(refDate.getTime() - 14 * oneDayMs);
+    const thirtyDaysAgo = new Date(refDate.getTime() - 30 * oneDayMs);
+
+    let recent7DaysCount = 0;
+    let prev7DaysCount = 0;
+    let recent30DaysCount = 0;
+    let newHighCount30Days = 0;
+    let upTransactionsCount30Days = 0;
+    let upTransactionsWithPrevCount30Days = 0;
+
+    targetList.forEach(tx => {
+      const dt = parseDateHelper(tx.date);
+      if (!dt) return;
+      const t = dt.getTime();
+
+      if (t >= sevenDaysAgo.getTime() && t <= refDate.getTime()) {
+        recent7DaysCount++;
+      } else if (t >= fourteenDaysAgo.getTime() && t < sevenDaysAgo.getTime()) {
+        prev7DaysCount++;
+      }
+
+      if (t >= thirtyDaysAgo.getTime() && t <= refDate.getTime()) {
+        recent30DaysCount++;
+        if (tx.isNewHigh) {
+          newHighCount30Days++;
+        }
+        if (tx.delta !== undefined) {
+          upTransactionsWithPrevCount30Days++;
+          if (tx.delta > 0) {
+            upTransactionsCount30Days++;
+          }
         }
       }
     });
 
-    return Object.values(groups).sort((a, b) => b.timestamp - a.timestamp);
-  }, [sheetApartments, txSummary, typeMap, nameMapping, publicRentalSet]);
+    const newHighRatio30Days = recent30DaysCount > 0 ? (newHighCount30Days / recent30DaysCount) * 100 : 0;
+    const upTransactionsRatio30Days = upTransactionsWithPrevCount30Days > 0 ? (upTransactionsCount30Days / upTransactionsWithPrevCount30Days) * 100 : 0;
 
-  // Compute Recent Transactions overall list
-  const recentTransactionsList = useMemo(() => {
-    if (!sheetApartments || !txSummary) return [];
-    const list: { aptName: string; dong: string; date: string; dateLabel: string; priceEok: string; priceVal: number; areaPyeong: number; area: number; floor: number; dealType?: string }[] = [];
-    const allApts = Object.values(sheetApartments).flat();
-
-    allApts.forEach(apt => {
-      const txKey = findTxKey(apt.name, txSummary, nameMapping);
-      if (txKey && txSummary[txKey]) {
-        const sum = txSummary[txKey];
-        if (sum.recent && sum.recent.length > 0) {
-          sum.recent.forEach((tx: any) => {
-            const dt = parseDateHelper(tx.date);
-            let dateLabel = '';
-            if (dt) {
-              const month = dt.getMonth() + 1;
-              const dateVal = dt.getDate();
-              dateLabel = `${month}월 ${dateVal}일`;
-            }
-            list.push({
-              aptName: apt.name,
-              dong: apt.dong || '',
-              date: tx.date,
-              dateLabel,
-              priceEok: tx.priceEok,
-              priceVal: parsePriceEokHelper(tx.priceEok),
-              areaPyeong: tx.areaPyeong,
-              area: tx.area,
-              floor: tx.floor,
-              dealType: tx.dealType
-            });
-          });
-        }
-      }
-    });
-
-    return list.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 50);
-  }, [sheetApartments, txSummary, nameMapping]);
+    return {
+      recent7DaysCount,
+      prev7DaysCount,
+      recent30DaysCount,
+      newHighCount30Days,
+      newHighRatio30Days,
+      upTransactionsCount30Days,
+      upTransactionsRatio30Days
+    };
+  }, [processedTransactionsList, isTxMatchingFilters]);
 
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
 
@@ -522,17 +710,100 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
               />
             </div>
 
-            {/* 1. Hot Complex Ranking (Recent Transactions) */}
-            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 shrink-0 bg-transparent">
-              <HotComplexRanking
-                sheetApartments={sheetApartments}
-                fieldReportsMap={fieldReportsMap}
-                favoriteCounts={favoriteCounts}
-                onSelectApt={handleAptClickByName}
-                txSummaryData={txSummary}
-                nameMapping={nameMapping || {}}
-              />
+            {/* Realtime Summary Metrics Dashboard */}
+            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-4 shrink-0">
+              <RealtimeSummaryCards metrics={dashboardMetrics} />
             </div>
+
+            {/* Realtime Filter Section */}
+            <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 flex flex-col gap-4 shrink-0 bg-transparent">
+              <div className="flex flex-col gap-3 bg-surface/40 backdrop-blur-md border border-border/60 rounded-2xl p-4 sm:p-5 shadow-sm">
+                
+                {/* 1. 법정동 필터 */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="text-[12px] font-black text-secondary shrink-0 w-16 sm:w-20 flex items-center gap-1">
+                    <Filter size={12} className="text-tertiary" />
+                    법정동
+                  </span>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                    {dongList.map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setSelectedDong(d)}
+                        className={`text-[11.5px] font-extrabold px-3 py-1.5 rounded-full border transition-all duration-200 whitespace-nowrap focus:outline-none ${
+                          selectedDong === d
+                            ? 'bg-[#008262] text-white border-[#008262] dark:bg-[#00b386] dark:border-[#00b386] shadow-sm shadow-[#008262]/20'
+                            : 'bg-body/70 text-secondary border-border/50 hover:bg-border/30'
+                        }`}
+                      >
+                        {d === 'all' ? '전체' : d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. 평형대 필터 */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1 border-t border-border/30 sm:border-none">
+                  <span className="text-[12px] font-black text-secondary shrink-0 w-16 sm:w-20 flex items-center gap-1">
+                    <Filter size={12} className="text-tertiary" />
+                    평형대
+                  </span>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                    {[
+                      { key: 'all', label: '전체' },
+                      { key: 'under20', label: '20평 미만' },
+                      { key: '20s', label: '20평대' },
+                      { key: '30s', label: '30평대 (국평)' },
+                      { key: 'over40', label: '40평대 이상' },
+                    ].map((p) => (
+                      <button
+                        key={p.key}
+                        onClick={() => setSelectedPyeong(p.key)}
+                        className={`text-[11.5px] font-extrabold px-3 py-1.5 rounded-full border transition-all duration-200 whitespace-nowrap focus:outline-none ${
+                          selectedPyeong === p.key
+                            ? 'bg-[#008262] text-white border-[#008262] dark:bg-[#00b386] dark:border-[#00b386] shadow-sm shadow-[#008262]/20'
+                            : 'bg-body/70 text-secondary border-border/50 hover:bg-border/30'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. 금액 필터 */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1 border-t border-border/30 sm:border-none">
+                  <span className="text-[12px] font-black text-secondary shrink-0 w-16 sm:w-20 flex items-center gap-1">
+                    <Filter size={12} className="text-tertiary" />
+                    매매가
+                  </span>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                    {[
+                      { key: 'all', label: '전체' },
+                      { key: 'under6', label: '6억 이하' },
+                      { key: '6to9', label: '6억~9억' },
+                      { key: '9to12', label: '9억~12억' },
+                      { key: 'over12', label: '12억 초과' },
+                    ].map((pr) => (
+                      <button
+                        key={pr.key}
+                        onClick={() => setSelectedPrice(pr.key)}
+                        className={`text-[11.5px] font-extrabold px-3 py-1.5 rounded-full border transition-all duration-200 whitespace-nowrap focus:outline-none ${
+                          selectedPrice === pr.key
+                            ? 'bg-[#008262] text-white border-[#008262] dark:bg-[#00b386] dark:border-[#00b386] shadow-sm shadow-[#008262]/20'
+                            : 'bg-body/70 text-secondary border-border/50 hover:bg-border/30'
+                        }`}
+                      >
+                        {pr.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+
 
             {/* 2. 2-Column Layout for Timeline and Overall Feed */}
             <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 md:pt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
@@ -550,12 +821,12 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                 </div>
 
                 <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
-                  {dailyTimelineData.length === 0 ? (
+                  {filteredTimelineData.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
-                      등록된 신고가 거래가 없습니다.
+                      조건에 부합하는 신고가 거래가 없습니다.
                     </div>
                   ) : (
-                    ((isTimelineExpanded || dailyTimelineData.length <= 5) ? dailyTimelineData : dailyTimelineData.slice(0, 5)).map((group) => (
+                    ((isTimelineExpanded || filteredTimelineData.length <= 5) ? filteredTimelineData : filteredTimelineData.slice(0, 5)).map((group) => (
                       <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-border/80">
                         {/* Timeline Dot */}
                         <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-border border-2 border-surface" />
@@ -572,16 +843,16 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                             <div
                               key={`${item.aptName}-${idx}`}
                               onClick={() => handleAptClickByName(item.aptName)}
-                              className="flex flex-col p-3 rounded-xl cursor-pointer bg-body hover:bg-body/70 border border-transparent hover:border-border/50 transition-all group gap-1"
+                              className="flex flex-col p-3 rounded-xl cursor-pointer bg-body hover:bg-body/80 border border-border/40 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 shadow-sm transition-all duration-200 hover:-translate-y-0.5 group gap-1.5"
                             >
                               {/* Name & High Price Badge */}
                               <div className="flex items-center justify-between gap-3">
                                 <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]">
                                   {item.aptName}
                                 </span>
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 shrink-0 whitespace-nowrap">
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/20 shrink-0 whitespace-nowrap">
                                   {item.delta && item.delta > 0 
-                                    ? `+${formatPriceValue(item.delta)}`
+                                    ? `+${formatPriceValue(item.delta)}${item.deltaPercent ? ` (${item.deltaPercent.toFixed(1)}%)` : ''}`
                                     : '신고가'}
                                 </span>
                               </div>
@@ -591,7 +862,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                                 <span>
                                   {item.dong} • {item.areaLabelPyeong} • {item.floor}층
                                 </span>
-                                <span className="text-primary font-black text-[12px]">
+                                <span className="text-primary font-black text-[12.5px]">
                                   {formatPriceValue(item.priceVal)}
                                 </span>
                               </div>
@@ -603,12 +874,12 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                   )}
                 </div>
 
-                {dailyTimelineData.length > 5 && (
+                {filteredTimelineData.length > 5 && (
                   <button
                     onClick={() => setIsTimelineExpanded(prev => !prev)}
                     className="w-full mt-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12.5px] rounded-xl border border-border/40 transition-all text-center focus:outline-none"
                   >
-                    {isTimelineExpanded ? '접기' : `신고가 단지 더보기 (${dailyTimelineData.length - 5}개 더보기)`}
+                    {isTimelineExpanded ? '접기' : `신고가 단지 더보기 (${filteredTimelineData.length - 5}개 더보기)`}
                   </button>
                 )}
               </div>
@@ -621,21 +892,21 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                     최근 실거래 목록
                   </h2>
                   <span className="text-[11px] text-tertiary font-extrabold bg-body px-2.5 py-1 rounded-lg shrink-0">
-                    최근 50건
+                    최근 {filteredTransactionsList.length}건
                   </span>
                 </div>
 
                 <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-2 mt-2">
-                  {recentTransactionsList.length === 0 ? (
+                  {filteredTransactionsList.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
-                      최근 실거래 데이터가 없습니다.
+                      조건에 부합하는 최근 실거래 데이터가 없습니다.
                     </div>
                   ) : (
-                    recentTransactionsList.map((tx, idx) => (
+                    filteredTransactionsList.map((tx, idx) => (
                       <div
                         key={`${tx.aptName}-${idx}`}
                         onClick={() => handleAptClickByName(tx.aptName)}
-                        className="flex items-center justify-between p-3.5 rounded-xl cursor-pointer bg-body hover:bg-body/75 border border-transparent hover:border-border/50 transition-all group"
+                        className="flex items-center justify-between p-3.5 rounded-xl cursor-pointer bg-body hover:bg-body/80 border border-border/40 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 shadow-sm transition-all duration-200 hover:-translate-y-0.5 group"
                       >
                         <div className="flex flex-col gap-1 min-w-0 mr-3">
                           <span className="text-[13px] font-extrabold text-primary group-hover:text-[#008262] dark:text-[#00d29d] transition-colors leading-tight truncate">
@@ -645,15 +916,35 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
                             {tx.dong} • {Math.round(tx.areaPyeong)}평 • {tx.floor}층 • {tx.dateLabel}
                           </span>
                         </div>
-                        <div className="flex flex-col items-end shrink-0">
-                          <span className="text-[13px] font-black text-[#008262] dark:text-[#00d29d]">
+                        <div className="flex flex-col items-end shrink-0 gap-1">
+                          <span className="text-[13px] font-black text-primary">
                             {formatPriceValue(tx.priceVal)}
                           </span>
-                          {tx.dealType && (
-                            <span className="text-[9px] font-bold text-secondary bg-surface border border-border/50 px-1.5 py-0.5 rounded-md mt-0.5 scale-90 origin-right">
-                              {tx.dealType}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1 scale-90 origin-right">
+                            {tx.delta !== undefined ? (
+                              tx.delta > 0 ? (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/10 flex items-center">
+                                  <ArrowUpRight size={10} className="mr-0.5" />
+                                  +{formatPriceValue(tx.delta)}
+                                </span>
+                              ) : tx.delta < 0 ? (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/10 flex items-center">
+                                  <ArrowDownRight size={10} className="mr-0.5" />
+                                  -{formatPriceValue(Math.abs(tx.delta))}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700/10">
+                                  보합
+                                </span>
+                              )
+                            ) : null}
+
+                            {tx.dealType && (
+                              <span className="text-[9px] font-extrabold text-secondary bg-surface border border-border/50 px-1.5 py-0.5 rounded">
+                                {tx.dealType}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))

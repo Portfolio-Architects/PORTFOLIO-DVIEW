@@ -283,6 +283,16 @@ function getManualMappingKey(manualMapping?: Record<string, string>): string {
  * 
  * @returns 매칭된 키 (없으면 null)
  */
+function extractDong(name: string): string | null {
+  const dongs = ['오산동', '청계동', '영천동', '송동', '목동', '산척동', '장지동', '신동', '반송동', '석우동', '능동', '방교동', '금곡동', '여울동'];
+  for (const dong of dongs) {
+    if (name.includes(dong)) {
+      return dong;
+    }
+  }
+  return null;
+}
+
 export function findTxKey<T>(
   aptName: string, 
   txMap: Record<string, T>, 
@@ -359,13 +369,21 @@ export function findTxKey<T>(
 
   // 2단계: 접두사 및 접미사 제거 후 매칭
   const stripped = stripLocationSuffix(stripLocationPrefix(norm));
+  const aptDong = extractDong(vAptName);
+
   if (stripped !== norm && stripped in normalizedTxMap) {
     const res = normalizedTxMap[stripped];
-    resolvedMap.set(cacheKey, res);
-    return res;
+    const keyDong = extractDong(res);
+    if (!aptDong || !keyDong || aptDong === keyDong) {
+      resolvedMap.set(cacheKey, res);
+      return res;
+    }
   }
 
   for (const key of Object.keys(txMap)) {
+    const keyDong = extractDong(key);
+    if (aptDong && keyDong && aptDong !== keyDong) continue;
+
     const normKey = normalizeAptName(key);
     if (stripLocationSuffix(stripLocationPrefix(normKey)) === stripped) {
       const res = key;
@@ -377,6 +395,9 @@ export function findTxKey<T>(
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
   for (const key of Object.keys(txMap)) {
+    const keyDong = extractDong(key);
+    if (aptDong && keyDong && aptDong !== keyDong) continue;
+
     const normKey = normalizeAptName(key);
     const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
     if (keyDeep === deepNorm || deepNormalize(stripLocationSuffix(stripLocationPrefix(normKey))) === deepNorm) {
