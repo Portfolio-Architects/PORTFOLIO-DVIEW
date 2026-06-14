@@ -21,6 +21,7 @@ import { usePWA } from '@/components/pwa/PWAProvider';
 import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import { isSameApartment, normalizeAptName, findTxKey, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
+import { DongApartment } from '@/lib/dong-apartments';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
@@ -521,6 +522,12 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
   const dailyTimelineData = useMemo(() => {
     const timelineGroups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
 
+    const allApts = Object.values(sheetApartments).flat();
+    const normalizedAptMap = new Map<string, DongApartment>();
+    allApts.forEach(a => {
+      normalizedAptMap.set(normalizeAptName(a.name), a);
+    });
+
     processedTransactionsList.forEach((tx) => {
       if (!tx.isNewHigh) return; // 신고가 경신 거래만 대상
       
@@ -542,8 +549,8 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
         };
       }
 
-      const allApts = Object.values(sheetApartments).flat();
-      const targetApt = allApts.find(a => isSameApartment(a.name, tx.aptName, nameMapping));
+      const normName = normalizeAptName(tx.aptName);
+      const targetApt = normalizedAptMap.get(normName) || allApts.find(a => isSameApartment(a.name, tx.aptName, nameMapping));
       const t = typeMap && targetApt ? findTypeMapEntry(typeMap, targetApt.name, tx.area) : null;
       const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
       const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;

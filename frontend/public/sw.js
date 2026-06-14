@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1781432286202';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1781432286202';
+const CACHE_NAME = 'dview-cache-v-1781432525795';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1781432525795';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
