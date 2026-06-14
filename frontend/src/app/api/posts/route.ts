@@ -33,6 +33,10 @@ const PostsQuerySchema = z.object({
   ),
 });
 
+let cachedData: any = null;
+let lastCacheTime = 0;
+const CACHE_TTL = 15000; // 15 seconds
+
 export async function GET(req: Request) {
   try {
     if (!db) {
@@ -52,6 +56,13 @@ export async function GET(req: Request) {
     }
 
     const { lastCreatedAt: lastCreatedAtStr, limit: limitVal } = queryParse.data;
+
+    // Cache key checks: apply only for default first page to preserve fresh paging and compose updates
+    const isFirstPage = !lastCreatedAtStr && limitVal === 20;
+    const now = Date.now();
+    if (isFirstPage && cachedData && (now - lastCacheTime < CACHE_TTL)) {
+      return NextResponse.json(cachedData);
+    }
 
     let q = db.collection('posts')
       .orderBy('createdAt', 'desc')
@@ -121,6 +132,11 @@ export async function GET(req: Request) {
       status: 'success',
       posts: []
     };
+
+    if (isFirstPage) {
+      cachedData = responseData;
+      lastCacheTime = now;
+    }
 
     return NextResponse.json(responseData);
   } catch (error: any) {

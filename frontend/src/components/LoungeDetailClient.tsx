@@ -34,6 +34,10 @@ interface PostComment {
   createdAt: string;
 }
 
+// Memory caches to eliminate blank screen flickers on modal transition
+const postLocalCache: Record<string, Record<string, unknown>> = {};
+const commentsLocalCache: Record<string, PostComment[]> = {};
+
 export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
   const router = useRouter();
   const { triggerCustomA2HSModal, showToast } = usePWA();
@@ -44,19 +48,29 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [post, setPost] = useState<Record<string, unknown> | null>(() => {
+    if (postId && postLocalCache[postId]) {
+      return postLocalCache[postId];
+    }
     if (initialPost) {
-      return {
+      const formatted = {
         ...initialPost,
         createdAt: initialPost.createdAt ? new Date(initialPost.createdAt as string | number | Date).toLocaleDateString('ko-KR') : '방금 전'
       };
+      postLocalCache[postId] = formatted;
+      return formatted;
     }
     return null;
   });
-  const [comments, setComments] = useState<PostComment[]>([]);
+  const [comments, setComments] = useState<PostComment[]>(() => {
+    return postId ? (commentsLocalCache[postId] || []) : [];
+  });
   const [recommendedPosts, setRecommendedPosts] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [loading, setLoading] = useState(!initialPost);
+  const [loading, setLoading] = useState(() => {
+    if (postId && postLocalCache[postId]) return false;
+    return !initialPost;
+  });
 
   const [dongtanApartments, setDongtanApartments] = useState<string[]>([]);
   
@@ -106,7 +120,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
       if (snap.exists()) {
         const data = snap.data();
-        setPost({
+        const formatted = {
           id: snap.id,
           title: data.title,
           category: data.category,
@@ -118,7 +132,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           verifiedApartment: data.verifiedApartment,
           verificationLevel: data.verificationLevel,
           createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
-        });
+        };
+        postLocalCache[postId] = formatted;
+        setPost(formatted);
         
         // Track View Server side once
         if (!viewIncremented) {
@@ -134,7 +150,11 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               await dashboardFacade.incrementPostView(postId, data.title);
             }
             // Optionally update UI view count locally immediately
-            setPost((p) => p ? { ...p, views: (Number(p.views) || 0) + 1 } : p);
+            setPost((p) => {
+              const updated = p ? { ...p, views: (Number(p.views) || 0) + 1 } : p;
+              if (updated) postLocalCache[postId] = updated;
+              return updated;
+            });
           } catch (e) {
             console.error('View tracking failed', e);
           }
@@ -197,6 +217,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
         });
       });
+      commentsLocalCache[postId] = list;
       setComments(list);
     });
     return () => unsub();
@@ -359,7 +380,11 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       // Sync edited manager report to scoutingReports.premiumContent using the shared service helper
       await syncManagerPostToScoutingReport(editTitle, editContent, editCategory, user?.email, dongtanApartments);
 
-      setPost((prev) => prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev);
+      setPost((prev) => {
+        const updated = prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev;
+        if (updated) postLocalCache[postId] = updated;
+        return updated;
+      });
       setIsEditing(false);
     } catch (e) {
       console.error(e);
