@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
+
+const FavoriteCountsResponseSchema = z.object({
+  counts: z.record(z.string(), z.number()).optional().catch(undefined),
+}).passthrough();
+
+const FavoriteListResponseSchema = z.object({
+  favorites: z.array(z.string()).optional().catch(undefined),
+}).passthrough();
 
 export function useFavorites(user: User | null, initialFavoriteCounts: Record<string, number> = {}) {
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
@@ -12,11 +21,20 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     fetch('/api/favorite-counts')
       .then(res => res.json())
       .then(data => {
-        if (!unmounted && data.counts) {
-          setFavoriteCounts(data.counts);
+        if (unmounted) return;
+        const validation = FavoriteCountsResponseSchema.safeParse(data);
+        if (!validation.success) {
+          logger.warn('useFavorites.fetchFavoriteCounts', 'Validation failed for /api/favorite-counts', {
+            errors: validation.error.issues.map(e => e.message),
+          });
+          return;
+        }
+        const validatedData = validation.data;
+        if (validatedData.counts) {
+          setFavoriteCounts(validatedData.counts);
         }
       })
-      .catch(err => logger.warn('Dashboard', 'Failed to fetch global favorite counts', {}, err));
+      .catch(err => logger.warn('useFavorites.fetchFavoriteCounts', 'Failed to fetch global favorite counts', {}, err));
     return () => { unmounted = true; };
   }, []);
 
@@ -26,9 +44,22 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       user.getIdToken().then(idToken => {
         fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } })
           .then(r => r.json())
-          .then(data => { if (!unmounted && data.favorites) setUserFavorites(new Set(data.favorites)); })
-          .catch(err => logger.warn('Dashboard', 'Failed to fetch favorites', {}, err));
-      }).catch(err => logger.warn('Dashboard', 'Auth token fetch failed', {}, err));
+          .then(data => {
+            if (unmounted) return;
+            const validation = FavoriteListResponseSchema.safeParse(data);
+            if (!validation.success) {
+              logger.warn('useFavorites.fetchFavorites', 'Validation failed for /api/favorite', {
+                errors: validation.error.issues.map(e => e.message),
+              });
+              return;
+            }
+            const validatedData = validation.data;
+            if (validatedData.favorites) {
+              setUserFavorites(new Set(validatedData.favorites));
+            }
+          })
+          .catch(err => logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err));
+      }).catch(err => logger.warn('useFavorites.authToken', 'Auth token fetch failed', {}, err));
     } else {
       setUserFavorites(new Set());
     }
