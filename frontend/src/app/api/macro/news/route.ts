@@ -1,21 +1,69 @@
 import { NextResponse } from 'next/server';
 import Parser from 'rss-parser';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const revalidate = 3600; // Cache for 1 hour
 
 const parser = new Parser();
 
-export async function GET() {
+const macroNewsQuerySchema = z.object({
+  limit: z.string().optional().transform((v) => {
+    if (!v) return 100;
+    const parsed = parseInt(v, 10);
+    return isNaN(parsed) ? 100 : Math.min(Math.max(parsed, 1), 100);
+  }),
+});
+
+const googleNewsItemSchema = z.object({
+  title: z.string().optional().default(''),
+  link: z.string().url().optional().default(''),
+  pubDate: z.string().optional().default(''),
+});
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const parsedQuery = macroNewsQuerySchema.safeParse({
+      limit: searchParams.get('limit') || undefined,
+    });
+
+    if (!parsedQuery.success) {
+      logger.warn('MacroNewsAPI.GET', 'Invalid query parameters', {
+        errors: parsedQuery.error.format(),
+      });
+      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+    }
+
+    const { limit } = parsedQuery.data;
+
     // Google News RSS Search Query for "동탄 부동산"
     const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
     const feed = await parser.parseURL(feedUrl);
 
-    // Get up to 100 news items
-    const rawItems = feed.items.slice(0, 100);
+    // Get up to limit news items
+    const rawItems = feed.items.slice(0, limit);
 
     const newsItems = rawItems.map((item, index) => {
-      let title = item.title || '';
+      const parsedItem = googleNewsItemSchema.safeParse(item);
+      let title = '';
+      let link = '';
+      let pubDate = '';
+
+      if (parsedItem.success) {
+        title = parsedItem.data.title;
+        link = parsedItem.data.link;
+        pubDate = parsedItem.data.pubDate;
+      } else {
+        logger.warn('MacroNewsAPI.GET', 'Invalid RSS feed item format', {
+          errors: parsedItem.error.format(),
+          index,
+        });
+        title = item.title || '';
+        link = item.link || '';
+        pubDate = item.pubDate || '';
+      }
+
       let publisher = 'NEWS';
       
       // Google News appends the publisher at the end of the title after a ' - '
@@ -64,8 +112,8 @@ export async function GET() {
         category: category,
         sub: publisher, // We use the publisher as the subtitle
         title: title,
-        link: item.link,
-        pubDate: item.pubDate,
+        link: link,
+        pubDate: pubDate,
       };
     });
 
@@ -74,7 +122,7 @@ export async function GET() {
       data: newsItems,
     });
   } catch (error) {
-    console.error('Error fetching Google News RSS:', error);
+    logger.error('MacroNewsAPI.GET', 'Error fetching Google News RSS', {}, error as Error);
     return NextResponse.json(
       { status: 'error', message: 'Failed to fetch news data' },
       { status: 500 }

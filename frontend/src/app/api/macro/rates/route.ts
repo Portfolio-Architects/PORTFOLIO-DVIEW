@@ -1,13 +1,42 @@
 import { NextResponse } from 'next/server';
 import { MACRO_CONFIG } from '@/lib/macro-summary';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 // ECOS API: 시장금리(일일) - 817Y002 (국고채 3년: 010200000)
 // ECOS API: 예금은행 대출금리(신규취급액 기준, 월별) - 121Y006 (주택담보대출: BECBLA0302)
 
-export async function GET() {
+const macroRatesQuerySchema = z.object({
+  refresh: z.string().optional().transform((v) => v === '1'),
+});
+
+const ecosRowSchema = z.object({
+  DATA_VALUE: z.string(),
+  TIME: z.string().optional(),
+});
+
+const ecosResponseSchema = z.object({
+  StatisticSearch: z.object({
+    row: z.array(ecosRowSchema),
+  }),
+});
+
+export async function GET(request: Request) {
   const ECOS_API_KEY = process.env.ECOS_API_KEY;
   const FALLBACK_RISK_FREE_RATE = MACRO_CONFIG.macroEnvironment.riskFreeRate;
   const FALLBACK_FUNDING_COST = MACRO_CONFIG.macroEnvironment.fundingCost;
+
+  const { searchParams } = new URL(request.url);
+  const parsedQuery = macroRatesQuerySchema.safeParse({
+    refresh: searchParams.get('refresh') || undefined,
+  });
+
+  if (!parsedQuery.success) {
+    logger.warn('MacroRatesAPI.GET', 'Invalid query parameters', {
+      errors: parsedQuery.error.format(),
+    });
+    return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+  }
 
   // 1. API 키가 없으면 바로 Fallback 반환
   if (!ECOS_API_KEY || ECOS_API_KEY === 'pending') {
@@ -67,8 +96,10 @@ export async function GET() {
 
     if (riskFreeRes.ok) {
       const riskData = await riskFreeRes.json();
-      if (riskData && riskData.StatisticSearch && riskData.StatisticSearch.row && riskData.StatisticSearch.row.length > 0) {
-        const latest = riskData.StatisticSearch.row[riskData.StatisticSearch.row.length - 1];
+      const parsedRisk = ecosResponseSchema.safeParse(riskData);
+      if (parsedRisk.success) {
+        const rows = parsedRisk.data.StatisticSearch.row;
+        const latest = rows[rows.length - 1];
         if (latest && latest.DATA_VALUE) {
           const val = parseFloat(latest.DATA_VALUE);
           if (!isNaN(val)) {
@@ -77,13 +108,19 @@ export async function GET() {
             isLive = true;
           }
         }
+      } else {
+        logger.warn('MacroRatesAPI.GET', 'Invalid risk-free rate ECOS response structure', {
+          errors: parsedRisk.error.format()
+        });
       }
     }
 
     if (fundingCostRes.ok) {
       const fundingData = await fundingCostRes.json();
-      if (fundingData && fundingData.StatisticSearch && fundingData.StatisticSearch.row && fundingData.StatisticSearch.row.length > 0) {
-        const latest = fundingData.StatisticSearch.row[fundingData.StatisticSearch.row.length - 1];
+      const parsedFunding = ecosResponseSchema.safeParse(fundingData);
+      if (parsedFunding.success) {
+        const rows = parsedFunding.data.StatisticSearch.row;
+        const latest = rows[rows.length - 1];
         if (latest && latest.DATA_VALUE) {
           const val = parseFloat(latest.DATA_VALUE);
           if (!isNaN(val)) {
@@ -91,6 +128,10 @@ export async function GET() {
             isLive = true;
           }
         }
+      } else {
+        logger.warn('MacroRatesAPI.GET', 'Invalid funding cost ECOS response structure', {
+          errors: parsedFunding.error.format()
+        });
       }
     }
 
@@ -107,7 +148,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Failed to fetch from ECOS API:', error);
+    logger.error('MacroRatesAPI.GET', 'Failed to fetch from ECOS API', {}, error as Error);
     // 호출 실패 시 서버 다운을 막기 위한 Fallback
     return NextResponse.json({
       success: true,
