@@ -1859,7 +1859,7 @@ ${eduScoreInfo ? `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${ed
                     <ErrorBoundary name="밸류에이션 분석">
                       <AdvancedValuationMetrics report={report} transactions={transactions} />
                     </ErrorBoundary>
-                    <BuyOrWaitVote aptName={report.apartmentName} />
+                    <BuyOrWaitVote aptName={report.apartmentName} valuationStatus={valuation.status} valuationAmount={valuation.amount} />
                   </div>
                   {!isUnlocked && (
                     <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">

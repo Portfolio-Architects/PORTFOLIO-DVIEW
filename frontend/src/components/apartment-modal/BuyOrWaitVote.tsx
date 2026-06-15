@@ -6,11 +6,17 @@ import useSWR, { mutate } from 'swr';
 
 interface BuyOrWaitVoteProps {
   aptName: string;
+  valuationStatus?: 'undervalued' | 'overvalued' | 'fair' | string | null;
+  valuationAmount?: string;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
+export default function BuyOrWaitVote({ 
+  aptName,
+  valuationStatus = 'fair',
+  valuationAmount = '0'
+}: BuyOrWaitVoteProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -176,6 +182,33 @@ export default function BuyOrWaitVote({ aptName }: BuyOrWaitVoteProps) {
               {userVote === 'wait' && <Check size={12} className="text-amber-500" />}
               관망 유지 {waitCount}명
             </span>
+          </div>
+
+          {/* AI 가치-심리 매칭 진단 패널 */}
+          <div className="mt-2.5 p-4 rounded-xl border border-border bg-[#0d9488]/5 dark:bg-[#0d9488]/10 text-left">
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="text-[11px] font-black text-[#0d9488] bg-[#0d9488]/10 px-2 py-0.5 rounded">
+                AI 진단
+              </span>
+              <span className="text-[12.5px] font-black text-primary tracking-tight">
+                가치-심리 매칭 분석
+              </span>
+            </div>
+            <p className="text-[12px] font-medium text-secondary leading-relaxed break-keep">
+              {(() => {
+                if (valuationStatus === 'undervalued') {
+                  return buyPercent >= 50
+                    ? `💡 AI 가치 분석 결과(저평가 상태, 약 ${valuationAmount} 메리트)와 대중의 매수 우위 심리(${buyPercent}%)가 완전히 일치합니다. 안전마진을 확보한 진입 기회일 수 있습니다.`
+                    : `⚠️ 시장은 저평가 국면(약 ${valuationAmount} 메리트)이지만 대중은 관망세(${waitPercent}%)를 유지하고 있습니다. 군중과 반대로 가는 역발상적 분할 매수를 검토해볼 시점입니다.`;
+                } else if (valuationStatus === 'overvalued') {
+                  return waitPercent >= 50
+                    ? `💡 AI 가치 분석 결과(고평가 상태, 약 ${valuationAmount} 격차)와 대중의 관망 우위 심리(${waitPercent}%)가 일치합니다. 무리한 추격 매수보다는 시장 가격 조정을 차분히 대기하는 것이 유리합니다.`
+                    : `🚨 시장은 고평가 상태(약 ${valuationAmount} 고평가)이나 대중의 매수 찬성 심리(${buyPercent}%)가 강하게 작동하고 있습니다. 군중 심리에 휩쓸린 상단 추격 매수를 경계하시기 바랍니다.`;
+                } else {
+                  return `⚖️ 현재 이 아파트의 시세는 DCF 내재가치와 균형(적정가 수준)을 이루고 있습니다. 대중들의 의견(매수 ${buyPercent}% vs 관망 ${waitPercent}%)과 개인의 자금 계획을 매칭하여 판단하시길 권장합니다.`;
+                }
+              })()}
+            </p>
           </div>
         </div>
       )}
