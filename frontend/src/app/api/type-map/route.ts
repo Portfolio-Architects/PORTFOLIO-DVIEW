@@ -7,7 +7,7 @@ import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
 const TYPE_MAP_TAB = SHEET_TABS.TYPE_MAP;
 
-export const revalidate = 0; // force-dynamic
+export const dynamic = 'force-dynamic';
 
 export interface TypeMapEntry {
   aptName: string;

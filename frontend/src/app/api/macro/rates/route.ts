@@ -3,6 +3,8 @@ import { MACRO_CONFIG } from '@/lib/macro-summary';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
+export const dynamic = 'force-dynamic';
+
 // ECOS API: 시장금리(일일) - 817Y002 (국고채 3년: 010200000)
 // ECOS API: 예금은행 대출금리(신규취급액 기준, 월별) - 121Y006 (주택담보대출: BECBLA0302)
 
