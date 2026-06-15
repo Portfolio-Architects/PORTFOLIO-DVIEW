@@ -3,6 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 
+import { logger } from '@/lib/services/logger';
+
 export async function getEngineeringReport() {
   let markdownContent = '';
   const reportMetadata = { date: '', grade: '', branch: '', status: '' };
@@ -40,8 +42,9 @@ export async function getEngineeringReport() {
 
   } catch (error) {
     markdownContent = '# 리포트를 불러올 수 없습니다.\n파일 경로를 확인해주세요.';
-    console.error('Error reading engineering report:', error);
+    logger.error('getEngineeringReportAction', 'Error reading engineering report', {}, error as Error);
   }
 
   return { metadata: reportMetadata, markdownContent };
 }
+

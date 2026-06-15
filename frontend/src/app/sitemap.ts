@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { logger } from '@/lib/services/logger';
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
@@ -52,7 +53,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
             }
           });
         } catch (err) {
-          console.error('Failed to fetch scoutingReports for sitemap', err);
+          logger.error('Sitemap.apartmentSitemap', 'Failed to fetch scoutingReports for sitemap', {}, err as Error);
         }
       }
       
@@ -74,7 +75,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
         routes.push(routeData);
       });
     } catch (error) {
-      console.error('Failed to generate apartment sitemap', error);
+      logger.error('Sitemap.apartmentSitemap', 'Failed to generate apartment sitemap', {}, error as Error);
     }
 
     return routes;
@@ -115,7 +116,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
           });
         });
       } catch (error) {
-        console.error('Failed to fetch posts for sitemap', error);
+        logger.error('Sitemap.postsSitemap', 'Failed to fetch posts for sitemap', {}, error as Error);
       }
     }
 
