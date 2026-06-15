@@ -1,13 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
+
+const VoteGetSchema = z.object({
+  aptName: z.string().nullable().optional(),
+});
+
+const VotePostSchema = z.object({
+  aptName: z.string().min(1),
+  voteType: z.enum(['buy', 'wait']),
+});
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const aptName = searchParams.get('aptName');
+    const aptNameParam = searchParams.get('aptName');
+
+    const parsed = VoteGetSchema.safeParse({ aptName: aptNameParam });
+    if (!parsed.success) {
+      logger.warn('ApartmentVoteAPI.GET', 'Invalid query parameters', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
+    }
+
+    const { aptName } = parsed.data;
 
     if (!adminDb) {
       return NextResponse.json({ buyCount: 0, waitCount: 0 });
@@ -39,7 +58,7 @@ export async function GET(request: NextRequest) {
       waitCount: data.waitCount || 0,
     });
   } catch (error: any) {
-    console.error('Error fetching votes:', error);
+    logger.error('ApartmentVoteAPI.GET', 'Error fetching votes', {}, error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -47,13 +66,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { aptName, voteType } = body;
-
-    if (!aptName || !['buy', 'wait'].includes(voteType)) {
-      return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
+    const parsed = VotePostSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      logger.warn('ApartmentVoteAPI.POST', 'Invalid request body payload', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Invalid parameters', details: parsed.error.issues }, { status: 400 });
     }
 
+    const { aptName, voteType } = parsed.data;
+
     if (!adminDb) {
+      logger.warn('ApartmentVoteAPI.POST', 'adminDb is not configured. Falling back to dummy success responses.');
       return NextResponse.json({ success: true, buyCount: voteType === 'buy' ? 1 : 0, waitCount: voteType === 'wait' ? 1 : 0 });
     }
 
@@ -85,13 +108,15 @@ export async function POST(request: NextRequest) {
     const updatedSnap = await docRef.get();
     const updatedData = updatedSnap.data() || { buyCount: 0, waitCount: 0 };
 
+    logger.info('ApartmentVoteAPI.POST', 'Vote recorded successfully', { aptName, voteType });
+
     return NextResponse.json({
       success: true,
       buyCount: updatedData.buyCount,
       waitCount: updatedData.waitCount,
     });
   } catch (error: any) {
-    console.error('Error recording vote:', error);
+    logger.error('ApartmentVoteAPI.POST', 'Error recording vote', {}, error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
