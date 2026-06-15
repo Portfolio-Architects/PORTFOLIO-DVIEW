@@ -178,7 +178,7 @@ describe('GapInvestmentExplorer', () => {
 
     // Check if the detailed risk explanations are displayed
     expect(screen.getByText(/보증금 미반환 위험/)).toBeInTheDocument(); // For 동탄센트럴자이 (ratio 84% >= 80% -> 위험)
-    expect(screen.getByText(/최근 3개월 실거래가 2건 이하/)).toBeInTheDocument(); // For 동탄센트럴자이 (txCount 1 <= 2 -> 높음)
+    expect(screen.getByText(/최근 30일\(혹은 3개월\) 실거래가 2건 이하/)).toBeInTheDocument(); // For 동탄센트럴자이 (txCount 1 <= 2 -> 높음)
     expect(screen.getByText(/300세대 미만 소단지/)).toBeInTheDocument(); // For 동탄센트럴자이 (householdCount 200 < 300 -> 높음)
   });
 });
