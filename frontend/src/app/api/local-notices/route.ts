@@ -220,7 +220,7 @@ export async function GET(request: Request) {
       notices: [], 
       lastUpdated: null, 
       source: 'fallback_error', 
-      error: error instanceof Error ? error.message : String(error) 
+      error: 'Failed to fetch local notices'
     });
   }
 }
