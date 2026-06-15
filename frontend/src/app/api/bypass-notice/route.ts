@@ -20,6 +20,15 @@ const bypassNoticeQuerySchema = z.object({
   }),
 });
 
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export async function GET(request: Request) {
   try {
     const nonce = request.headers.get('x-nonce') || '';
@@ -39,6 +48,7 @@ export async function GET(request: Request) {
     }
 
     const { url: targetUrl } = parsed.data;
+    const escapedUrl = escapeHtml(targetUrl);
 
     // HTML 브릿지 페이지
     // 1. Meta Refresh를 사용하여 네이티브 브라우저 리디렉션 처리 (보안 프로그램 ASTX 등의 JS 탐지 차단 무력화)
@@ -49,7 +59,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer" />
-  <meta http-equiv="refresh" content="0; url=${targetUrl}" />
+  <meta http-equiv="refresh" content="0; url=${escapedUrl}" />
   <title>페이지 이동 중...</title>
   <style>
     body {
@@ -112,6 +122,6 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     logger.error('BypassNoticeAPI.GET', 'Bypass redirect error', {}, error as Error);
-    return new NextResponse(`Bypass redirect error: ${error.message}`, { status: 500 });
+    return new NextResponse('Bypass redirect error occurred', { status: 500 });
   }
 }
