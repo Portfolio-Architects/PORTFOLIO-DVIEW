@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '@/lib/services/logger';
 
 let fontBoldBuffer: ArrayBuffer | null = null;
 let fontRegularBuffer: ArrayBuffer | null = null;
@@ -89,7 +90,7 @@ export async function GET(req: NextRequest) {
       fontRegularBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
     }
   } catch (fontErr) {
-    console.error('Failed to pre-load local Web Fonts for OG image generator:', fontErr);
+    logger.error('OGImageAPI.GET', 'Failed to pre-load local Web Fonts for OG image generator', {}, fontErr as Error);
     // Fail-safe: Fallback gracefully to default Satori system sans-serif fonts
   }
 
@@ -2286,7 +2287,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (e: any) {
-    console.error('OG Image Generation Error:', e);
+    logger.error('OGImageAPI.GET', 'OG Image Generation Error', {}, e);
     try {
       return new ImageResponse(
         (
@@ -2322,7 +2323,7 @@ export async function GET(req: NextRequest) {
         }
       );
     } catch (fallbackErr) {
-      console.error('OG Fallback Image Generation Error:', fallbackErr);
+      logger.error('OGImageAPI.GET', 'OG Fallback Image Generation Error', {}, fallbackErr as Error);
       return new Response('Failed to generate OG image', { status: 500 });
     }
   }
