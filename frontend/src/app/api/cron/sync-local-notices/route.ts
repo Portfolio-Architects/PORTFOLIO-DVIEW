@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
+import { sendMail } from '@/lib/mailService';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
@@ -316,11 +317,16 @@ const noticeItemSchema = z.object({
 });
 
 const authHeaderSchema = z.string().refine(
-  (val) => val === `Bearer ${process.env.CRON_SECRET}`,
-  { message: 'Invalid authorization token' }
+  (val) => {
+    const secret = process.env.CRON_SECRET;
+    if (!secret || secret.trim() === '') return false;
+    return val === `Bearer ${secret}`;
+  },
+  { message: 'Invalid or unconfigured authorization token' }
 );
 
 export async function GET(request: Request) {
+  const scrapeErrors: string[] = [];
   try {
     // 개발 모드에서 WAF 차단 방지 (쿨타임)
     if (process.env.NODE_ENV === 'development') {
@@ -380,7 +386,9 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 1 board page ${page}`, { status: res.status });
+          const errMsg = `Failed to fetch Source 1 board page ${page}: HTTP ${res.status}`;
+          logger.error('SyncLocalNoticesAPI.GET', errMsg, { status: res.status });
+          scrapeErrors.push(errMsg);
           continue;
         }
 
@@ -432,7 +440,9 @@ export async function GET(request: Request) {
           }
         });
       } catch (err) {
-        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 1 page ${page}`, {}, err as Error);
+        const errMsg = `Error scraping Source 1 page ${page}: ${(err as Error).message}`;
+        logger.error('SyncLocalNoticesAPI.GET', errMsg, {}, err as Error);
+        scrapeErrors.push(errMsg);
       }
     }
 
@@ -448,7 +458,9 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 3 board page ${page}`, { status: res.status });
+          const errMsg = `Failed to fetch Source 3 board page ${page}: HTTP ${res.status}`;
+          logger.error('SyncLocalNoticesAPI.GET', errMsg, { status: res.status });
+          scrapeErrors.push(errMsg);
           continue;
         }
 
@@ -500,7 +512,9 @@ export async function GET(request: Request) {
           }
         });
       } catch (err) {
-        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 3 page ${page}`, {}, err as Error);
+        const errMsg = `Error scraping Source 3 page ${page}: ${(err as Error).message}`;
+        logger.error('SyncLocalNoticesAPI.GET', errMsg, {}, err as Error);
+        scrapeErrors.push(errMsg);
       }
     }
 
@@ -516,7 +530,9 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 5 (Tram) board page ${page}`, { status: res.status });
+          const errMsg = `Failed to fetch Source 5 (Tram) board page ${page}: HTTP ${res.status}`;
+          logger.error('SyncLocalNoticesAPI.GET', errMsg, { status: res.status });
+          scrapeErrors.push(errMsg);
           continue;
         }
 
@@ -568,7 +584,9 @@ export async function GET(request: Request) {
           }
         });
       } catch (err) {
-        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 5 (Tram) page ${page}`, {}, err as Error);
+        const errMsg = `Error scraping Source 5 (Tram) page ${page}: ${(err as Error).message}`;
+        logger.error('SyncLocalNoticesAPI.GET', errMsg, {}, err as Error);
+        scrapeErrors.push(errMsg);
       }
     }
 
@@ -599,7 +617,9 @@ export async function GET(request: Request) {
           });
 
           if (!res.ok) {
-            logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 4 board page ${page} for ${deptItem.name}`, { status: res.status });
+            const errMsg = `Failed to fetch Source 4 board page ${page} for ${deptItem.name}: HTTP ${res.status}`;
+            logger.error('SyncLocalNoticesAPI.GET', errMsg, { status: res.status });
+            scrapeErrors.push(errMsg);
             continue;
           }
 
@@ -651,7 +671,9 @@ export async function GET(request: Request) {
             }
           });
         } catch (err) {
-          logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 4 page ${page} for ${deptItem.name}`, {}, err as Error);
+          const errMsg = `Error scraping Source 4 page ${page} for ${deptItem.name}: ${(err as Error).message}`;
+          logger.error('SyncLocalNoticesAPI.GET', errMsg, {}, err as Error);
+          scrapeErrors.push(errMsg);
         }
       }
     }
@@ -668,7 +690,9 @@ export async function GET(request: Request) {
         });
 
         if (!res.ok) {
-          logger.error('SyncLocalNoticesAPI.GET', `Failed to fetch Source 2 board page ${page}`, { status: res.status });
+          const errMsg = `Failed to fetch Source 2 board page ${page}: HTTP ${res.status}`;
+          logger.error('SyncLocalNoticesAPI.GET', errMsg, { status: res.status });
+          scrapeErrors.push(errMsg);
           continue;
         }
 
@@ -722,7 +746,9 @@ export async function GET(request: Request) {
           }
         });
       } catch (err) {
-        logger.error('SyncLocalNoticesAPI.GET', `Error scraping Source 2 page ${page}`, {}, err as Error);
+        const errMsg = `Error scraping Source 2 page ${page}: ${(err as Error).message}`;
+        logger.error('SyncLocalNoticesAPI.GET', errMsg, {}, err as Error);
+        scrapeErrors.push(errMsg);
       }
     }
 
@@ -781,15 +807,46 @@ export async function GET(request: Request) {
       }
     }
 
+    // 스크래핑 오류가 있을 경우 관리자 이메일 발송
+    if (scrapeErrors.length > 0) {
+      try {
+        await sendMail({
+          to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
+          subject: `🚨 [D-VIEW] 하이퍼로컬 공지사항 동기화 스크래핑 장애 경보 (${scrapeErrors.length}건 발생)`,
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; color: #1e293b; line-height: 1.6;">
+              <div style="background-color: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <h2 style="font-size: 19px; font-weight: 900; color: #dc2626; margin-top: 0; margin-bottom: 8px;">
+                  🚨 공지사항 동기화 외부 크롤링 장애 감지
+                </h2>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
+                  화성시청 웹사이트 등 하이퍼로컬 소스 스크래핑 과정에서 오류가 검출되었습니다.
+                </p>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 24px; font-family: monospace; font-size: 12px; color: #334155; max-height: 250px; overflow-y: auto;">
+                  ${scrapeErrors.map(err => `• ${err}`).join('<br />')}
+                </div>
+                <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                  타깃 사이트의 WAF 차단 정책 변화, 혹은 웹사이트 마크업 변경 여부를 점검하시기 바랍니다.
+                </p>
+              </div>
+            </div>
+          `
+        });
+      } catch (mailErr) {
+        logger.error('SyncLocalNoticesAPI.GET', 'Failed to send scraping error email notification', {}, mailErr as Error);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       scrapedCount: notices.length,
       writtenCount: written,
-      notices: notices.slice(0, 5)
+      notices: notices.slice(0, 5),
+      errors: scrapeErrors.length > 0 ? scrapeErrors : undefined
     });
 
   } catch (error: unknown) {
     logger.error('SyncLocalNoticesAPI.GET', 'Error syncing local notices', {}, error as Error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
