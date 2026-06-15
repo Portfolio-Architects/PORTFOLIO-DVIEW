@@ -9,6 +9,15 @@ const unsubscribeQuerySchema = z.object({
   email: z.string().email('유효한 이메일 주소를 입력해주세요.').max(100).trim().toLowerCase(),
 });
 
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -76,7 +85,7 @@ export async function GET(request: Request) {
           <body>
             <div class="card">
               <h1>정보를 찾을 수 없음</h1>
-              <p>구독자로 등록되지 않은 이메일 주소(${email})입니다. 이미 구독이 해지되었거나 잘못된 메일 주소일 수 있습니다.</p>
+              <p>구독자로 등록되지 않은 이메일 주소(${escapeHtml(email)})입니다. 이미 구독이 해지되었거나 잘못된 메일 주소일 수 있습니다.</p>
               <a href="/" class="btn">D-VIEW 홈으로 이동</a>
             </div>
           </body>
@@ -112,7 +121,7 @@ export async function GET(request: Request) {
           <div class="card">
             <div class="icon">✓</div>
             <h1>알림 구독이 해지되었습니다</h1>
-            <p><span class="email-badge">${email}</span> 계정으로 발송되던 D-VIEW 실거래 소식 및 리포트 발송이 정상적으로 중단되었습니다.</p>
+            <p><span class="email-badge">${escapeHtml(email)}</span> 계정으로 발송되던 D-VIEW 실거래 소식 및 리포트 발송이 정상적으로 중단되었습니다.</p>
             <a href="/" class="btn">D-VIEW 데이터 랩 가기</a>
           </div>
         </body>
@@ -136,7 +145,7 @@ export async function GET(request: Request) {
           <div class="card">
             <h1>서비스 오류</h1>
             <p>구독 해지 처리 중 내부 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</p>
-            <p style="font-size: 12px; color: #94a3b8;">${error.message}</p>
+            <p style="font-size: 12px; color: #94a3b8;">Internal Server Error</p>
           </div>
         </body>
       </html>`,

@@ -113,6 +113,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     logger.error('SubscribeAPI.POST', 'Subscription API Error', {}, error as Error);
-    return NextResponse.json({ error: error.message || '서버 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 }
