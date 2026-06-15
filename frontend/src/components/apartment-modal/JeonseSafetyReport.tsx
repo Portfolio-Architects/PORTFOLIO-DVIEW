@@ -25,8 +25,24 @@ export default function JeonseSafetyReport({
   householdCount,
   onOpenAdModal
 }: JeonseSafetyReportProps) {
+  // Safe Fallback for inputs
+  const safeLatestPrice = Math.max(0, latestPrice || 0);
+  const safeLatestDeposit = Math.max(0, latestDeposit || 0);
+  const safeVolume3M = Math.max(0, volume3M || 0);
+  const safeHouseholdCount = Math.max(0, householdCount || 0);
+
+  const safeRatio = useMemo(() => {
+    if (typeof ratio === 'number' && !isNaN(ratio) && ratio > 0) {
+      return ratio;
+    }
+    if (safeLatestPrice > 0) {
+      return safeLatestDeposit / safeLatestPrice;
+    }
+    return 0;
+  }, [ratio, safeLatestPrice, safeLatestDeposit]);
+
   // Convert ratio to percentage
-  const jeonseRatePercent = ratio * 100;
+  const jeonseRatePercent = safeRatio * 100;
 
   // 1. Calculate Score Details
   const scoreDetails = useMemo(() => {
@@ -40,23 +56,29 @@ export default function JeonseSafetyReport({
 
     // B. Auction Clearance Margin Score (Max 20)
     // Local clearance rate in Hwaseong-si / Dongtan is approx 78%
-    const auctionLimit = latestPrice * 0.78;
+    const auctionLimit = safeLatestPrice * 0.78;
     let marginScore = 0;
-    if (latestDeposit < auctionLimit) marginScore = 20;
-    else if (latestDeposit < latestPrice) marginScore = 10;
-    else marginScore = 0;
+    if (safeLatestPrice === 0 || safeLatestDeposit === 0) {
+      marginScore = 0; // 데이터 결측 시 마진 점수는 0점 처리
+    } else if (safeLatestDeposit < auctionLimit) {
+      marginScore = 20;
+    } else if (safeLatestDeposit < safeLatestPrice) {
+      marginScore = 10;
+    } else {
+      marginScore = 0;
+    }
 
     // C. Liquidity Score (Max 20)
     let liquidityScore = 0;
-    if (volume3M >= 10) liquidityScore = 20;
-    else if (volume3M >= 5) liquidityScore = 15;
-    else if (volume3M >= 1) liquidityScore = 10;
+    if (safeVolume3M >= 10) liquidityScore = 20;
+    else if (safeVolume3M >= 5) liquidityScore = 15;
+    else if (safeVolume3M >= 1) liquidityScore = 10;
     else liquidityScore = 5;
 
     // D. Scale Score (Max 10)
     let scaleScore = 0;
-    if (householdCount >= 1000) scaleScore = 10;
-    else if (householdCount >= 500) scaleScore = 7;
+    if (safeHouseholdCount >= 1000) scaleScore = 10;
+    else if (safeHouseholdCount >= 500) scaleScore = 7;
     else scaleScore = 4;
 
     const totalScore = ratioScore + marginScore + liquidityScore + scaleScore;
@@ -94,7 +116,7 @@ export default function JeonseSafetyReport({
       gradeGuide,
       auctionLimit
     };
-  }, [jeonseRatePercent, latestPrice, latestDeposit, volume3M, householdCount]);
+  }, [jeonseRatePercent, safeLatestPrice, safeLatestDeposit, safeVolume3M, safeHouseholdCount]);
 
   const {
     totalScore,
@@ -137,8 +159,8 @@ export default function JeonseSafetyReport({
     shareJeonseSafetyToKakao({
       aptName,
       dong,
-      marketPrice: latestPrice,
-      jeonseAmount: latestDeposit,
+      marketPrice: safeLatestPrice,
+      jeonseAmount: safeLatestDeposit,
       lienAmount: 0,
       debtRatio: jeonseRatePercent,
       riskLabel: gradeLabel,
@@ -249,7 +271,7 @@ export default function JeonseSafetyReport({
               </div>
               <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
                 화성시 경매 낙찰기준가(매매가의 78%)는 **{Math.round(auctionLimit).toLocaleString()}만원**입니다. 
-                전세금({latestDeposit.toLocaleString()}만원)이 낙찰가보다 {latestDeposit < auctionLimit ? '낮아 안전합니다.' : '높아 경매 진행 시 유실 우려가 있습니다.'}
+                전세금({safeLatestDeposit.toLocaleString()}만원)이 낙찰가보다 {safeLatestDeposit < auctionLimit ? '낮아 안전합니다.' : '높아 경매 진행 시 유실 우려가 있습니다.'}
               </p>
             </div>
           </div>
@@ -265,8 +287,8 @@ export default function JeonseSafetyReport({
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{liquidityScore} / 20점</span>
               </div>
               <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
-                최근 3개월 매매 거래량은 **{volume3M}건**입니다. 
-                {volume3M >= 5 ? '유동성이 풍부하여 보증금 반환 지연 시 급매 처분 등을 통한 조기 자금 회수가 수월합니다.' : '거래가 뜸하여 자금 회수 정체 리스크가 다소 우려됩니다.'}
+                최근 3개월 매매 거래량은 **{safeVolume3M}건**입니다. 
+                {safeVolume3M >= 5 ? '유동성이 풍부하여 보증금 반환 지연 시 급매 처분 등을 통한 조기 자금 회수가 수월합니다.' : '거래가 뜸하여 자금 회수 정체 리스크가 다소 우려됩니다.'}
               </p>
             </div>
           </div>
@@ -282,7 +304,7 @@ export default function JeonseSafetyReport({
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{scaleScore} / 10점</span>
               </div>
               <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
-                본 단지는 총 **{householdCount.toLocaleString()}세대** 대규모 단지입니다. 세대 규모가 클수록 시세 왜곡이나 갑작스러운 하방 위험에 대한 방어력이 높아 보증 위험이 낮아집니다.
+                본 단지는 총 **{safeHouseholdCount.toLocaleString()}세대** 대규모 단지입니다. 세대 규모가 클수록 시세 왜곡이나 갑작스러운 하방 위험에 대한 방어력이 높아 보증 위험이 낮아집니다.
               </p>
             </div>
           </div>
