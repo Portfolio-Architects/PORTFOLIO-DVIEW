@@ -1275,11 +1275,19 @@ function FieldReportModal({
     const eduScoreInfo = report.metrics ? calculateEducationScore(report.metrics) : null;
     const infraScoreInfo = report.metrics ? calculateInfraScore(report.metrics) : null;
 
+    let valuationLabel = '⚖️ 적정 수준 (시세와 적정 가치 균형 상태)';
+    if (valuation.status === 'undervalued') {
+      valuationLabel = `🟢 저평가 상태 (적정가 대비 약 ${valuation.amount} 메리트!)`;
+    } else if (valuation.status === 'overvalued') {
+      valuationLabel = `🚨 고평가 상태 (적정가 대비 약 ${valuation.amount} 고평가)`;
+    }
+
     const summaryText = `🏠 [가치분석] 동탄 ${displayAptName} 실거래 & 인프라 요약 📊
 🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"
 👉 지금 매수해도 안전할까요? 호구 방지 가치분석 결과:
 
 💸 최근 실거래가: ${latestPrice}${latestArea ? ` (전용 ${latestArea})` : ''}
+📈 내재가치 평가: ${valuationLabel}
 ${eduScoreInfo ? `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n` : ''}${infraScoreInfo ? `🚇 교통/생활 입지: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n` : ''}
 👀 적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!
 💡 실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.
