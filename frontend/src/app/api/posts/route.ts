@@ -33,6 +33,17 @@ const PostsQuerySchema = z.object({
   ),
 });
 
+const PostCreateSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1),
+  category: z.string().min(1),
+  authorUid: z.string().min(1),
+  authorName: z.string().optional().default('익명'),
+  verifiedApartment: z.string().optional().default(''),
+  verificationLevel: z.string().optional().default(''),
+  imageUrl: z.string().nullable().optional().default(null),
+});
+
 let cachedData: any = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 15000; // 15 seconds
@@ -153,21 +164,33 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, content, category, authorUid, authorName, verifiedApartment, verificationLevel, imageUrl } = body;
-
-    if (!title || !content || !category || !authorUid) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const parsed = PostCreateSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      logger.warn('PostsAPI.POST', 'Invalid post creation payload', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Invalid request payload', details: parsed.error.issues }, { status: 400 });
     }
+
+    const { 
+      title, 
+      content, 
+      category, 
+      authorUid, 
+      authorName, 
+      verifiedApartment, 
+      verificationLevel, 
+      imageUrl 
+    } = parsed.data;
 
     const docRef = await db.collection('posts').add({
       title,
       content,
       category,
       authorUid,
-      authorName: authorName || '익명',
-      verifiedApartment: verifiedApartment || '',
-      verificationLevel: verificationLevel || '',
-      imageUrl: imageUrl || null,
+      authorName,
+      verifiedApartment,
+      verificationLevel,
+      imageUrl,
       likes: 0,
       views: 0,
       commentCount: 0,

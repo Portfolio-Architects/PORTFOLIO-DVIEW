@@ -2,8 +2,25 @@ import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/services/logger';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const CommentCreateSchema = z.object({
+  text: z.string().min(1),
+  authorUid: z.string().min(1),
+  authorName: z.string().optional().default('익명'),
+  postId: z.string().optional(),
+  reportId: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.postId && !data.reportId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Either postId or reportId must be provided',
+      path: ['postId']
+    });
+  }
+});
 
 export async function POST(req: Request) {
   try {
@@ -13,11 +30,14 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { text, authorUid, authorName, postId, reportId } = body;
-
-    if (!text || !authorUid || (!postId && !reportId)) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const parsed = CommentCreateSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      logger.warn('CommentsAPI.POST', 'Invalid comment creation payload', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Invalid request payload', details: parsed.error.issues }, { status: 400 });
     }
+
+    const { text, authorUid, authorName, postId, reportId } = parsed.data;
 
     // Determine target collection and doc ref
     if (postId) {
