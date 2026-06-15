@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import webpush from 'web-push';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,7 @@ export async function POST(req: Request) {
   try {
     // 1. Firebase Admin and VAPID Keys Check
     if (!db) {
+      logger.error('NotifyNewHighAPI.POST', 'Firebase Admin not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     
@@ -15,7 +17,7 @@ export async function POST(req: Request) {
     const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
     
     if (!publicVapidKey || !privateVapidKey) {
-      console.warn('[PUSH-NEW-HIGH] VAPID keys not configured in env.');
+      logger.warn('NotifyNewHighAPI.POST', 'VAPID keys not configured in env.');
       return NextResponse.json({ error: 'VAPID keys not configured' }, { status: 500 });
     }
     
@@ -36,6 +38,7 @@ export async function POST(req: Request) {
       .get();
 
     if (txSnap.empty) {
+      logger.info('NotifyNewHighAPI.POST', 'No recent transactions to check');
       return NextResponse.json({ success: true, message: 'No recent transactions to check' });
     }
 
@@ -62,9 +65,9 @@ export async function POST(req: Request) {
       
       // If this transaction is currently the highest entry in history
       const isCurrentTxHighest = 
-        history[0].contractDate === contractDate && 
-        history[0].price === price && 
-        history[0].floor === floor;
+         history[0].contractDate === contractDate && 
+         history[0].price === price && 
+         history[0].floor === floor;
       
       if (isCurrentTxHighest) {
         let isNewHigh = false;
@@ -98,6 +101,7 @@ export async function POST(req: Request) {
     }
 
     if (newHighs.length === 0) {
+      logger.info('NotifyNewHighAPI.POST', 'No new high transactions detected');
       return NextResponse.json({ success: true, message: 'No new high transactions detected' });
     }
 
@@ -119,6 +123,7 @@ export async function POST(req: Request) {
     const subsSnap = await db.collection('push_subscriptions').get();
     
     if (subsSnap.empty) {
+      logger.info('NotifyNewHighAPI.POST', 'No push subscribers found', { newHighsDetected: newHighs.length });
       return NextResponse.json({ 
         success: true, 
         message: 'No push subscribers found', 
@@ -140,17 +145,18 @@ export async function POST(req: Request) {
         await webpush.sendNotification(sub, notificationPayload);
         sentCount++;
       } catch (err: any) {
-        console.error('[PUSH-NEW-HIGH] Failed to send to endpoint:', sub.endpoint, err);
+        logger.error('NotifyNewHighAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: err.statusCode }, err);
         // Clean up invalid or expired subscriptions
         if (err.statusCode === 410 || err.statusCode === 404) {
           await doc.ref.delete();
-          console.log('[PUSH-NEW-HIGH] Deleted expired subscription:', doc.id);
+          logger.info('NotifyNewHighAPI.POST', 'Deleted expired subscription', { docId: doc.id });
         }
       }
     });
 
     await Promise.all(promises);
 
+    logger.info('NotifyNewHighAPI.POST', 'New high notification process completed', { sentCount, newHighsDetected: newHighs.length, notifiedApt: mainHigh.aptName });
     return NextResponse.json({
       success: true,
       sentCount,
@@ -158,7 +164,8 @@ export async function POST(req: Request) {
       notifiedApt: mainHigh.aptName
     });
   } catch (error: any) {
-    console.error('Notify New High Error:', error);
+    logger.error('NotifyNewHighAPI.POST', 'Notify New High Error', {}, error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

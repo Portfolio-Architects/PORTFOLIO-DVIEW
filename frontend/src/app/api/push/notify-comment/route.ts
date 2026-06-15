@@ -1,18 +1,32 @@
 import { NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import webpush from 'web-push';
+import { z } from 'zod';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
+const NotifyCommentInputSchema = z.object({
+  reportId: z.string(),
+  commentText: z.string(),
+  authorName: z.string(),
+  commentAuthorUid: z.string().optional(),
+});
+
 export async function POST(req: Request) {
   try {
-    const { reportId, commentText, authorName, commentAuthorUid } = await req.json();
+    const body = await req.json();
+    const parsed = NotifyCommentInputSchema.safeParse(body);
 
-    if (!reportId || !commentText || !authorName) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    if (!parsed.success) {
+      logger.warn('NotifyCommentAPI.POST', 'Invalid notify-comment payload', { errors: parsed.error.format() });
+      return NextResponse.json({ error: 'Missing or invalid required parameters', details: parsed.error.issues }, { status: 400 });
     }
 
+    const { reportId, commentText, authorName, commentAuthorUid } = parsed.data;
+
     if (!db) {
+      logger.error('NotifyCommentAPI.POST', 'Firebase Admin not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
 
@@ -21,6 +35,7 @@ export async function POST(req: Request) {
     const reportSnap = await reportRef.get();
     
     if (!reportSnap.exists) {
+      logger.warn('NotifyCommentAPI.POST', 'Field report not found', { reportId });
       return NextResponse.json({ error: 'Field report not found' }, { status: 404 });
     }
 
@@ -30,6 +45,7 @@ export async function POST(req: Request) {
 
     // 2. Prevent sending notification to oneself
     if (!reportAuthorUid || reportAuthorUid === commentAuthorUid) {
+      logger.info('NotifyCommentAPI.POST', 'Skipping notification: self-comment or no author UID', { reportId, reportAuthorUid, commentAuthorUid });
       return NextResponse.json({ success: true, message: 'Self-comment or no author UID' });
     }
 
@@ -38,7 +54,7 @@ export async function POST(req: Request) {
     const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
 
     if (!publicVapidKey || !privateVapidKey) {
-      console.warn('[PUSH] VAPID keys not configured in env.');
+      logger.warn('NotifyCommentAPI.POST', 'VAPID keys not configured in env.');
       return NextResponse.json({ error: 'VAPID keys not configured' }, { status: 500 });
     }
 
@@ -54,6 +70,7 @@ export async function POST(req: Request) {
       .get();
 
     if (subsSnap.empty) {
+      logger.info('NotifyCommentAPI.POST', 'No subscriptions found for report author', { reportAuthorUid });
       return NextResponse.json({ success: true, message: 'No subscriptions found for report author' });
     }
 
@@ -71,20 +88,22 @@ export async function POST(req: Request) {
         await webpush.sendNotification(sub, notificationPayload);
         sentCount++;
       } catch (err: any) {
-        console.error('[PUSH] Failed to send to endpoint:', sub.endpoint, err);
+        logger.error('NotifyCommentAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: err.statusCode }, err);
         // If subscription is expired or invalid, remove it
         if (err.statusCode === 410 || err.statusCode === 404) {
           await doc.ref.delete();
-          console.log('[PUSH] Deleted expired subscription:', doc.id);
+          logger.info('NotifyCommentAPI.POST', 'Deleted expired subscription', { docId: doc.id });
         }
       }
     });
 
     await Promise.all(promises);
 
+    logger.info('NotifyCommentAPI.POST', 'Push notifications process completed', { sentCount, reportAuthorUid });
     return NextResponse.json({ success: true, sentCount });
   } catch (error: any) {
-    console.error('Notify Comment Error:', error);
+    logger.error('NotifyCommentAPI.POST', 'Notify Comment Error', {}, error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
