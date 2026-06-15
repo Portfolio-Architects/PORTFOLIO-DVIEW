@@ -24,6 +24,15 @@ import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
+const ExploreListSkeleton = () => (
+  <div className="w-full flex flex-col gap-3 animate-pulse">
+    <div className="w-full h-12 bg-black/5 dark:bg-surface/5 rounded-2xl mb-4" />
+    {[1, 2, 3, 4, 5, 6].map(i => (
+      <div key={i} className="w-full h-[72px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
+    ))}
+  </div>
+);
+
 const ModalSkeleton = () => (
   <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-pulse p-4">
     <div className="bg-surface w-full max-w-[1200px] h-[90vh] rounded-3xl shadow-2xl border border-border/80 p-6 flex flex-col gap-4">
@@ -42,7 +51,7 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
   console.warn('TossApartmentExploreClient Chunk Load failure, page reload initiated', err);
   if (typeof window !== 'undefined') window.location.reload();
   return { default: () => null };
-}), { ssr: false });
+}), { ssr: false, loading: () => <ExploreListSkeleton /> });
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   console.warn('FieldReportModal Chunk Load failure, page reload initiated', err);
