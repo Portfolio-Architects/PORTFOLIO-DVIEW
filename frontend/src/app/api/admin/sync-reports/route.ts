@@ -4,11 +4,18 @@ import { calculatePremiumScores } from '@/lib/utils/scoring';
 import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { requestGoogleIndexing } from '@/lib/utils/googleIndexing';
 import { logger } from '@/lib/services/logger';
+import { verifyAdmin } from '@/lib/authUtils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const isAdmin = await verifyAdmin(request);
+  if (!isAdmin) {
+    logger.warn('SyncReportsAPI.GET', 'Unauthorized attempts to trigger reports sync');
+    return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+  }
+
   if (!adminDb) {
     return NextResponse.json({ error: 'No admin db configured' }, { status: 500 });
   }

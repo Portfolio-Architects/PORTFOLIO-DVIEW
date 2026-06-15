@@ -1,15 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requestGoogleIndexing } from '@/lib/utils/googleIndexing';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { verifyAdmin } from '@/lib/authUtils';
 
 const IndexingInputSchema = z.object({
   url: z.string().url(),
   action: z.enum(['URL_UPDATED', 'URL_DELETED']).optional().default('URL_UPDATED'),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const isAdmin = await verifyAdmin(request);
+    if (!isAdmin) {
+      logger.warn('IndexingAPI.POST', 'Unauthorized attempts to trigger Google Indexing');
+      return NextResponse.json({ success: false, error: 'Unauthorized: Admin access required' }, { status: 403 });
+    }
+
     const body = await request.json();
     const parsed = IndexingInputSchema.safeParse(body);
     
