@@ -239,6 +239,63 @@ export async function GET(request: Request) {
           }
 
           const text = await res.text();
+
+          // 1. Validate Government API Response structure and check for API-level errors
+          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
+          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
+          const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+          const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+
+          if (resultCode && resultCode !== '00') {
+            const errMsg = `Government API Error [${resultCode}]: ${resultMsg || 'Unknown Error'}`;
+            logger.error('SyncTransactionsAPI.GET', errMsg, { ym, currentLawd, page });
+            syncLog.push(`Gov API Error ${resultCode} on ${ym} (${currentLawd}) page ${page}: ${resultMsg}`);
+            
+            // Critical API Error (e.g. invalid key, expired, call limit exceeded) - Send email alert
+            try {
+              await sendMail({
+                to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
+                subject: `🚨 [D-VIEW] 국토부 실거래가 매매 API 장애 경보 (${resultCode})`,
+                html: `
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; color: #1e293b; line-height: 1.6;">
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                      <h2 style="font-size: 19px; font-weight: 900; color: #dc2626; margin-top: 0; margin-bottom: 8px;">
+                        🚨 국토교통부 실거래가 매매 API 장애 감지
+                      </h2>
+                      <p style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
+                        실거래가 배치 수집 도중 국토교통부 OpenAPI 서버로부터 정상 응답이 아닌 오류 응답을 수신했습니다.
+                      </p>
+                      <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px; font-size: 13px;">
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569; width: 120px;">감지 시각</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">\${new Date().toLocaleString('ko-KR')}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">연월 / 지역코드</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">\${ym} / \${currentLawd} (페이지: \${page})</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">결과 코드</td>
+                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">\${resultCode}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">에러 메시지</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">\${resultMsg}</td>
+                        </tr>
+                      </table>
+                      <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                        본 배치 수집 단계가 중단되었습니다. 공공데이터포털의 API 트래픽 한도 초과 또는 서비스 인증키 등록 상태를 즉시 정밀 진단해 주시기 바랍니다.
+                      </p>
+                    </div>
+                  </div>
+                `
+              });
+            } catch (mailErr) {
+              logger.error('SyncTransactionsAPI.GET', 'Failed to send API error email notification', {}, mailErr as Error);
+            }
+            break;
+          }
+
           // Parse XML response
           const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
           totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
@@ -333,6 +390,63 @@ export async function GET(request: Request) {
           }
 
           const text = await res.text();
+
+          // 1. Validate Government API Response structure and check for API-level errors
+          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
+          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
+          const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+          const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+
+          if (resultCode && resultCode !== '00') {
+            const errMsg = `Government API Rent Error [${resultCode}]: ${resultMsg || 'Unknown Error'}`;
+            logger.error('SyncTransactionsAPI.GET', errMsg, { ym, currentLawd, rentPage });
+            syncLog.push(`Gov API Rent Error ${resultCode} on ${ym} (${currentLawd}) page ${rentPage}: ${resultMsg}`);
+            
+            // API 장애 발생 시 관리자에게 이메일 경고 발송
+            try {
+              await sendMail({
+                to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
+                subject: `🚨 [D-VIEW] 국토부 실거래가 전월세 API 장애 경보 (${resultCode})`,
+                html: `
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; color: #1e293b; line-height: 1.6;">
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                      <h2 style="font-size: 19px; font-weight: 900; color: #dc2626; margin-top: 0; margin-bottom: 8px;">
+                        🚨 국토교통부 실거래가 전월세 API 장애 감지
+                      </h2>
+                      <p style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
+                        실거래가 배치 수집 도중 국토교통부 OpenAPI 서버로부터 정상 응답이 아닌 오류 응답을 수신했습니다.
+                      </p>
+                      <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px; font-size: 13px;">
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569; width: 120px;">감지 시각</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">\${new Date().toLocaleString('ko-KR')}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">연월 / 지역코드</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">\${ym} / \${currentLawd} (페이지: \${rentPage})</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">결과 코드</td>
+                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">\${resultCode}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">에러 메시지</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">\${resultMsg}</td>
+                        </tr>
+                      </table>
+                      <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                        본 배치 수집 단계가 중단되었습니다. 공공데이터포털의 API 트래픽 한도 초과 또는 서비스 인증키 등록 상태를 즉시 정밀 진단해 주시기 바랍니다.
+                      </p>
+                    </div>
+                  </div>
+                `
+              });
+            } catch (mailErr) {
+              logger.error('SyncTransactionsAPI.GET', 'Failed to send Rent API error email notification', {}, mailErr as Error);
+            }
+            break;
+          }
+
           const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
           rentTotalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
           if (rentTotalCount === 0) break;
