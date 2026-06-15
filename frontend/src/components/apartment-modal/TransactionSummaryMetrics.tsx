@@ -101,9 +101,13 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       })();
       if (label) {
         const supplyM2Match = label.match(/\d+(\.\d+)?/);
-        if (supplyM2Match) return parseFloat(supplyM2Match[0]) * 0.3025;
+        if (supplyM2Match) {
+          const val = parseFloat(supplyM2Match[0]) * 0.3025;
+          return val > 0 ? val : Math.max(1, tx.areaPyeong || (tx.area * 0.3025));
+        }
       }
-      return tx.area * 0.3025 * 1.33; 
+      const fallbackVal = tx.area * 0.3025 * 1.33;
+      return fallbackVal > 0 ? fallbackVal : 1; 
     };
 
     const formatEok = (priceMan: number) => {
@@ -156,21 +160,26 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
     const filteredSales = baseTx.filter(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
     const filteredJeonses = baseTx.filter(tx => tx.dealType === '전세');
 
-    const getAvgForGap = (txs: TransactionRecord[]) => {
-      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-      const recent = txs.filter(tx => getTxDate(tx) >= sixMonthsAgo);
-      const targetList = recent.length > 0 ? recent : txs;
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+    const recentSales = filteredSales.filter(tx => getTxDate(tx) >= sixMonthsAgo);
+    const recentJeonses = filteredJeonses.filter(tx => getTxDate(tx) >= sixMonthsAgo);
+
+    const isRecentFallback = (filteredSales.length > 0 && recentSales.length === 0) || 
+                             (filteredJeonses.length > 0 && recentJeonses.length === 0);
+
+    const getAvgForGap = (txs: TransactionRecord[], recentTxs: TransactionRecord[]) => {
+      const targetList = recentTxs.length > 0 ? recentTxs : txs;
       return targetList.length > 0 ? targetList.reduce((sum, tx) => sum + tx.price, 0) / targetList.length : 0;
     };
 
-    const avgSalePrice = getAvgForGap(filteredSales);
-    const avgJeonsePrice = getAvgForGap(filteredJeonses);
+    const avgSalePrice = getAvgForGap(filteredSales, recentSales);
+    const avgJeonsePrice = getAvgForGap(filteredJeonses, recentJeonses);
     const gapPrice = avgSalePrice > 0 && avgJeonsePrice > 0 ? (avgSalePrice - avgJeonsePrice) : 0;
     const jeonseRatio = avgSalePrice > 0 && avgJeonsePrice > 0 ? (avgJeonsePrice / avgSalePrice) * 100 : 0;
 
     const gapPriceEok = gapPrice > 0 ? formatEok(Math.round(gapPrice)) : null;
 
-    return { typeFilters, periodData, avgSalePrice, avgJeonsePrice, gapPriceEok, jeonseRatio };
+    return { typeFilters, periodData, avgSalePrice, avgJeonsePrice, gapPriceEok, jeonseRatio, isRecentFallback };
   }, [transactions, apartmentName, typeMap, areaUnit, priceTypeFilter, periodDealType]);
 
   if (transactions.length === 0 || metrics.periodData.length === 0) return null;
@@ -225,7 +234,9 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
             <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[12px] font-bold text-tertiary">실투자금 (매매-전세 갭)</span>
-                <span className="text-[11px] text-tertiary font-medium">최근 6개월 평균 실거래 기준</span>
+                <span className="text-[11px] text-tertiary font-medium">
+                  {metrics.isRecentFallback ? '전체 평균 대체 기준' : '최근 6개월 평균 실거래 기준'}
+                </span>
               </div>
               <div className="text-right">
                 <span className="text-[18px] font-black text-toss-blue tabular-nums">{metrics.gapPriceEok}</span>
@@ -235,7 +246,9 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
             <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
-                <span className="text-[11px] text-tertiary font-medium">매매 대비 전세 가격 비율</span>
+                <span className="text-[11px] text-tertiary font-medium">
+                  {metrics.isRecentFallback ? '전체 평균 대체 기준 (매매 대비 전세 비율)' : '매매 대비 전세 가격 비율'}
+                </span>
               </div>
               <div className="text-right">
                 <span className="text-[18px] font-black text-[#00d29d] tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
