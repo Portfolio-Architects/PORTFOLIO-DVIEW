@@ -119,7 +119,14 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       return `${Math.round(priceMan).toLocaleString()}만`;
     };
 
-    const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + t.price, 0) / baseTx.length : 0;
+    const getTxPrice = (tx: TransactionRecord) => {
+      if (tx.dealType === '월세') {
+        return (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+      }
+      return tx.price;
+    };
+
+    const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + getTxPrice(t), 0) / baseTx.length : 0;
     const sortedBaseTx = [...baseTx].sort((a, b) => getTxDate(b).getTime() - getTxDate(a).getTime());
     const fallbackTx = sortedBaseTx.length > 0 ? sortedBaseTx[0] : null;
 
@@ -132,11 +139,11 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       let count = filtered.length;
 
       if (filtered.length > 0) {
-        rawAvgPrice = filtered.reduce((s, t) => s + t.price, 0) / filtered.length;
-        perPyeong = Math.round(filtered.reduce((s, tx) => s + (tx.price / getTxSupplyPyeong(tx)), 0) / filtered.length);
+        rawAvgPrice = filtered.reduce((s, t) => s + getTxPrice(t), 0) / filtered.length;
+        perPyeong = Math.round(filtered.reduce((s, tx) => s + (getTxPrice(tx) / getTxSupplyPyeong(tx)), 0) / filtered.length);
       } else if (fallbackTx) {
-        rawAvgPrice = fallbackTx.price;
-        perPyeong = Math.round(fallbackTx.price / getTxSupplyPyeong(fallbackTx));
+        rawAvgPrice = getTxPrice(fallbackTx);
+        perPyeong = Math.round(getTxPrice(fallbackTx) / getTxSupplyPyeong(fallbackTx));
         count = 0;
       }
 

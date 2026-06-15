@@ -477,6 +477,7 @@ export default function MacroDashboardClient({
   }, []);
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
+  const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
   const favIndex = useMemo(() => favoritesArray.indexOf(selectedTimelineApt || ""), [favoritesArray, selectedTimelineApt]);
@@ -496,18 +497,28 @@ export default function MacroDashboardClient({
   // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
   useEffect(() => {
     if (!mounted) return;
-    // 이미 선택된 단지가 있다면 덮어쓰지 않음
-    if (selectedTimelineApt) return;
     
-    // 유저가 로그인 상태이고 관심단지가 있는 경우
-    if (user && userFavorites && userFavorites.size > 0) {
-      // Set의 첫 번째 요소를 기본 관심 단지로 선택
-      const firstFav = Array.from(userFavorites)[0];
-      if (firstFav) {
-        setSelectedTimelineApt(firstFav);
-      }
+    // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 초기화 상태 유지
+    if (!user || !userFavorites || userFavorites.size === 0) {
+      setHasSetDefaultApt(false);
+      return;
     }
-  }, [user, userFavorites, selectedTimelineApt, mounted]);
+
+    // 이미 디폴트 아파트를 설정했거나, 유저가 수동으로 아파트를 선택한 경우 스킵
+    if (hasSetDefaultApt || selectedTimelineApt) {
+      if (selectedTimelineApt && !hasSetDefaultApt) {
+        setHasSetDefaultApt(true);
+      }
+      return;
+    }
+    
+    // Set의 첫 번째 요소를 기본 관심 단지로 선택
+    const firstFav = Array.from(userFavorites)[0];
+    if (firstFav) {
+      setSelectedTimelineApt(firstFav);
+      setHasSetDefaultApt(true);
+    }
+  }, [user, userFavorites, selectedTimelineApt, mounted, hasSetDefaultApt]);
 
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
@@ -1825,7 +1836,7 @@ interface GroupedCategory {
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 min-h-[420px] min-w-0">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 md:min-h-[910px] md:max-h-[910px] md:flex-1 min-h-[420px] min-w-0">
               <div className="flex justify-between items-center gap-2 mb-4">
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 신고가 단지
@@ -1835,7 +1846,7 @@ interface GroupedCategory {
                 </span>
               </div>
 
-              <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2">
+              <div className="flex-1 overflow-y-auto md:max-h-[800px] max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0">
                 {dailyTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     등록된 신고가 거래가 없습니다.
@@ -1945,9 +1956,182 @@ interface GroupedCategory {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Right Column Container */}
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0">
+            {/* Right Panel: Interactive Market Feed & Trend */}
+            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:min-h-[490px] min-h-[420px] min-w-0">
+              <div className="flex-1 flex flex-col min-h-[300px]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
+                        {selectedTimelineApt ? (
+                          <span className="flex items-center gap-2">
+                            <span className="text-[#00d29d] font-black">내 단지 브리핑:</span>
+                            <span className="truncate max-w-[150px] sm:max-w-[220px]" title={selectedTimelineApt}>{selectedTimelineApt}</span>
+                            {favoritesArray.length > 1 && favIndex !== -1 && (
+                              <span className="inline-flex items-center gap-1 ml-1 bg-body dark:bg-zinc-800 border border-border/60 rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={handlePrevFavorite}
+                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  title="이전 관심단지"
+                                >
+                                  <ChevronLeft size={13} />
+                                </button>
+                                <span className="text-[10px] font-bold text-tertiary px-1 select-none">
+                                  {favIndex + 1}/{favoritesArray.length}
+                                </span>
+                                <button
+                                  onClick={handleNextFavorite}
+                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                                  title="다음 관심단지"
+                                >
+                                  <ChevronRight size={13} />
+                                </button>
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          "동탄 아파트 대표 가격 추이"
+                        )}
+                      </h3>
+                    </div>
+                    {selectedTimelineApt ? (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
+                          className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                        >
+                          상세 리포트 보기 ➔
+                        </button>
+                        <button
+                          onClick={() => setSelectedTimelineApt(null)}
+                          className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                        >
+                          전체 추이 ✕
+                        </button>
+                      </div>
+                    ) : (
+                      mounted && user && userFavorites && userFavorites.size > 0 && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => {
+                              const firstFav = Array.from(userFavorites)[0];
+                              if (firstFav) setSelectedTimelineApt(firstFav);
+                            }}
+                            className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0 flex items-center gap-1"
+                          >
+                            ⭐ 내 관심단지 보기
+                          </button>
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
+                    {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
+                          ? "bg-surface text-primary shadow-sm"
+                          : "text-tertiary hover:text-secondary"
+                          }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-full flex-grow mt-2 sm:mt-0 md:h-[330px] md:min-h-[330px] h-[260px] min-h-[260px] relative">
+                  <MacroTrendChart
+                    lineData={mainLineData}
+                    xTicks={mainXTicks}
+                    yTicks={mainYTicks}
+                    timeframe={timeframe}
+                  />
+                </div>
+
+                 {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
+                <div className="flex items-center justify-center gap-3 mt-1.5 flex-none">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                    <span>평균 매매가</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
+                    <span>평균 전세가</span>
+                  </div>
+                </div>
+
+
+
+                {/* Bottom Card Area: either Favorites List or CTA Banner */}
+                {mounted && userFavorites && userFavorites.size > 0 ? (
+                  <div className="mt-2 pt-2.5 border-t border-border/60 flex-none animate-in fade-in duration-200">
+                    <div className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-border/40 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+                      <span className="text-[12.5px] font-bold text-primary flex items-center gap-1.5">
+                        <span className="text-[#00d29d] font-black">⭐ 내 관심단지 시세 바로보기</span>
+                      </span>
+                      <div className="flex flex-wrap gap-1.5 max-h-[72px] overflow-y-auto pr-1 scrollbar-thin">
+                        {favoritesArray.map((fav) => {
+                          const isActive = fav === selectedTimelineApt;
+                          return (
+                            <button
+                              key={fav}
+                              onClick={() => setSelectedTimelineApt(fav)}
+                              className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 border shadow-sm ${
+                                isActive
+                                  ? "bg-[#e0fbf4] text-[#00d29d] border-[#00d29d]/50"
+                                  : "bg-surface hover:bg-neutral-50 dark:hover:bg-zinc-800 text-secondary hover:text-primary border-border/60"
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-[#00d29d]" : "bg-tertiary"}`} />
+                              {fav}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-2 pt-2.5 border-t border-border/60 flex-none">
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
+                          <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
+                        </span>
+                        <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
+                          {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (!user) {
+                            handleLogin();
+                          } else {
+                            const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
+                            if (searchEl) {
+                              (searchEl as HTMLElement).focus();
+                              searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                          }
+                        }}
+                        className="px-3.5 py-2 bg-[#00d29d] hover:bg-[#00d29d]/90 text-white border-none rounded-xl text-[12px] font-extrabold cursor-pointer transition-colors shadow-sm shrink-0 self-stretch sm:self-auto text-center"
+                      >
+                        {user ? "단지 등록하기" : "3초 간편 로그인"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* 동탄 철도 교통 게시판 위젯 */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:min-h-[360px] md:flex-1 justify-start">
+            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:min-h-[360px] justify-start">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
@@ -2054,202 +2238,14 @@ interface GroupedCategory {
               </div>
             </div>
 
-          </div>
-
-          {/* Right Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0">
-            {/* Right Panel: Interactive Market Feed & Trend */}
-            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:min-h-[490px] min-h-[420px] min-w-0">
-              <div className="flex-1 flex flex-col min-h-[300px]">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
-                        {selectedTimelineApt ? (
-                          <span className="flex items-center gap-2">
-                            <span className="text-[#00d29d] font-black">내 단지 브리핑:</span>
-                            <span className="truncate max-w-[150px] sm:max-w-[220px]" title={selectedTimelineApt}>{selectedTimelineApt}</span>
-                            {favoritesArray.length > 1 && favIndex !== -1 && (
-                              <span className="inline-flex items-center gap-1 ml-1 bg-body dark:bg-zinc-800 border border-border/60 rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  onClick={handlePrevFavorite}
-                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
-                                  title="이전 관심단지"
-                                >
-                                  <ChevronLeft size={13} />
-                                </button>
-                                <span className="text-[10px] font-bold text-tertiary px-1 select-none">
-                                  {favIndex + 1}/{favoritesArray.length}
-                                </span>
-                                <button
-                                  onClick={handleNextFavorite}
-                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
-                                  title="다음 관심단지"
-                                >
-                                  <ChevronRight size={13} />
-                                </button>
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          "📊 동탄 아파트 대표 가격 추이"
-                        )}
-                      </h3>
-                      {selectedTimelineApt && (
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
-                            className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
-                          >
-                            상세 리포트 보기 ➔
-                          </button>
-                          <button
-                            onClick={() => setSelectedTimelineApt(null)}
-                            className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
-                          >
-                            전체 추이 ✕
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
-                    {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
-                      <button
-                        key={tf}
-                        onClick={() => setTimeframe(tf)}
-                        className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
-                          ? "bg-surface text-primary shadow-sm"
-                          : "text-tertiary hover:text-secondary"
-                          }`}
-                      >
-                        {tf}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="w-full flex-grow mt-2 sm:mt-0 md:h-[330px] md:min-h-[330px] h-[260px] min-h-[260px] relative">
-                  <MacroTrendChart
-                    lineData={mainLineData}
-                    xTicks={mainXTicks}
-                    yTicks={mainYTicks}
-                    timeframe={timeframe}
-                  />
-                </div>
-
-                {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
-                <div className="flex items-center justify-center gap-3 mt-3.5 flex-none">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
-                    <span>평균 매매가</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
-                    <span>평균 전세가</span>
-                  </div>
-                </div>
-
-                {/* 개선된 여백 채우기용 슬림한 실거래 요약 바 */}
-                {selectedAptSummary && (
-                  <div className="mt-4 pt-3 border-t border-border/60 flex-none">
-                    <div className="bg-zinc-50/70 dark:bg-zinc-900/30 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3">
-                      {/* Top Row: Title Badge & Target Info */}
-                      <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center justify-center bg-teal-500/10 text-teal-600 dark:text-teal-400 font-extrabold text-[11px] px-2 py-0.5 rounded-[6px] shrink-0 gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-                            실거래 요약
-                          </span>
-                          <div className="flex items-baseline gap-1.5 min-w-0">
-                            <span className="text-[12px] text-primary font-extrabold truncate max-w-[280px] sm:max-w-[360px]" title={selectedTimelineApt || "선택 단지"}>
-                              {selectedTimelineApt || "선택 단지"}
-                            </span>
-                            {selectedAptSummary.dong && (
-                              <span className="text-[10.5px] text-tertiary font-medium shrink-0">
-                                {selectedAptSummary.dong}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-[11px] text-tertiary font-semibold bg-white dark:bg-zinc-850 px-2 py-0.5 rounded-md border border-border/30">
-                          이 단지 최근 90일 매매 {selectedAptSummary.avg3MTxCount || 0}건
-                        </span>
-                      </div>
-
-                      {/* Bottom Row: 3-Column Grid for Metrics */}
-                      <div className="grid grid-cols-3 gap-2 divide-x divide-border/40 text-center">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 매매(3M)</span>
-                          <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
-                            {selectedAptSummary.avg3MPriceEok || selectedAptSummary.latestPriceEok || "-"}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1 pl-1">
-                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">평균 전세(3M)</span>
-                          <span className="text-[14px] sm:text-[15.5px] font-black text-primary truncate">
-                            {selectedAptSummary.avg3MRentDepositEok || selectedAptSummary.latestRentDepositEok || "-"}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1 pl-1">
-                          <span className="text-[11px] sm:text-[12px] font-bold text-tertiary">예상 갭투자금</span>
-                          <span className="text-[14px] sm:text-[15.5px] font-black text-teal-600 dark:text-teal-400 truncate">
-                            {hasValues ? gapText : "-"}
-                            {hasValues && <span className="text-[10.5px] font-extrabold text-secondary ml-1">({jeonseRateText})</span>}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* AI Briefing Message */}
-                      <div className="mt-1 text-[11.5px] font-semibold text-secondary leading-relaxed bg-[#e0fbf4]/40 dark:bg-emerald-950/20 border border-emerald-500/10 rounded-xl p-2.5">
-                        {getAptBriefingMessage(selectedAptSummary, selectedTimelineApt!)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Call to Action (CTA) Banner for Non-selected / Guest users */}
-                {!selectedTimelineApt && (
-                  <div className="mt-4 pt-3 border-t border-border/60 flex-none">
-                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
-                      <div className="flex flex-col gap-1 min-w-0">
-                        <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
-                          <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
-                        </span>
-                        <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
-                          {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          if (!user) {
-                            handleLogin();
-                          } else {
-                            const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
-                            if (searchEl) {
-                              (searchEl as HTMLElement).focus();
-                              searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                          }
-                        }}
-                        className="px-3.5 py-2 bg-[#00d29d] hover:bg-[#00d29d]/90 text-white border-none rounded-xl text-[12px] font-extrabold cursor-pointer transition-colors shadow-sm shrink-0 self-stretch sm:self-auto text-center"
-                      >
-                        {user ? "단지 등록하기" : "3초 간편 로그인"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
 
           </div>
         </div>
 
-        {/* 💬 실시간 웅성웅성 & 실거래 분석 피드 영역 */}
-        <div className="flex flex-col md:flex-row gap-6 mt-6 w-full">
-          {/* Left: 실시간 웅성웅성 라운지 토크 위젯 */}
-          <div className="w-full md:w-1/2 bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm min-h-[380px]">
+        {/* 💬 실시간 웅성웅성 라운지 토크 위젯 */}
+        <div className="flex flex-col gap-6 mt-6 w-full">
+          {/* Left: 실시간 웅성웅성 라운지 토크 위젯 (Full-width) */}
+          <div className="w-full bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm min-h-[300px]">
             <div className="flex justify-between items-center border-b border-border/50 pb-3.5">
               <div className="flex items-center gap-2">
                 <span className="bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
@@ -2306,76 +2302,6 @@ interface GroupedCategory {
                     </div>
                   </div>
                 ))
-              )}
-            </div>
-          </div>
-
-          {/* Right: 오늘의 동탄 실거래 분석 피드 */}
-          <div className="w-full md:w-1/2 bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm min-h-[380px]">
-            <div className="flex justify-between items-center border-b border-border/50 pb-3.5">
-              <div className="flex items-center gap-2">
-                <span className="bg-[#00d29d]/10 dark:bg-[#00d29d]/25 text-[#00b386] dark:text-[#00d29d] text-[11px] font-black px-2.5 py-1 rounded-lg shrink-0">
-                  실거래 분석
-                </span>
-                <h4 className="text-[15px] font-black text-primary tracking-tight">
-                  오늘의 동탄 거래 요약 피드
-                </h4>
-              </div>
-              <span className="text-[10.5px] font-bold text-tertiary bg-body px-2.5 py-1 rounded-full border border-border/50">
-                실시간 업데이트
-              </span>
-            </div>
-
-            <div className="flex-grow flex flex-col justify-between py-1">
-              {dailyTimelineData.length === 0 ? (
-                <div className="flex-grow flex items-center justify-center text-tertiary text-[12px] font-medium py-8 border border-dashed border-border/40 rounded-2xl">
-                  최근 거래 내역이 아직 등록되지 않았습니다.
-                </div>
-              ) : (
-                (() => {
-                  const topGroup = dailyTimelineData[0];
-                  const newHighs = topGroup.items.filter(item => item.delta && item.delta > 0);
-                  const totalTxs = topGroup.items.length;
-                  
-                  return (
-                    <div className="flex flex-col gap-4 flex-grow justify-between">
-                      {/* Summary Banner */}
-                      <div className="p-4 bg-gradient-to-br from-teal-500/8 to-emerald-500/3 dark:from-[#0d9488]/10 dark:to-emerald-950/5 border border-[#0d9488]/20 rounded-xl">
-                        <div className="text-[12.5px] font-bold text-primary leading-relaxed break-keep">
-                          📢 <span className="text-[#0d9488] dark:text-[#00d29d] font-extrabold">{topGroup.dateStr}</span> 기준 동탄 부동산 시장에서 총 <span className="font-extrabold text-[#00b386]">{totalTxs}개</span> 단지의 거래가 등록되었으며, 그 중 <span className="font-extrabold text-[#ff4b5c]">{newHighs.length}개</span> 단지에서 실거래 최고가 경신 시그널이 관측되었습니다.
-                        </div>
-                      </div>
-
-                      {/* Timeline Feed items */}
-                      <div className="flex flex-col gap-2 flex-grow justify-end">
-                        {topGroup.items.slice(0, 3).map((item, idx) => (
-                          <div 
-                            key={`${item.aptName}-${idx}`}
-                            onClick={() => onSelectApt && onSelectApt(item.aptName)}
-                            className="flex items-center justify-between p-3 bg-body hover:bg-body/80 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995]"
-                          >
-                            <div className="flex flex-col gap-1 min-w-0 mr-2">
-                              <span className="text-[12.5px] font-bold text-primary group-hover:text-[#00d29d] transition-colors truncate">
-                                {item.displayAptName || item.aptName}
-                              </span>
-                              <span className="text-[10.5px] text-tertiary font-semibold">
-                                {item.dong} · {areaUnit === 'm2' ? `${Math.round(item.area)}㎡` : `${Math.round(item.areaPyeong)}평`} · {item.floor}층
-                              </span>
-                            </div>
-                            <div className="flex flex-col items-end shrink-0">
-                              <span className="text-[13.5px] font-black text-[#ff4b5c] tracking-tight">
-                                {item.priceEok}
-                              </span>
-                              <span className="text-[9.5px] font-bold text-tertiary">
-                                {item.delta && item.delta > 0 ? `▲ ${formatDeltaPrice(item.delta)}` : '신고가 경신'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()
               )}
             </div>
           </div>

@@ -38,7 +38,10 @@ export default function InAppBrowserBypass() {
 
     const isInApp = isKakao || isNaver || isLine || isInstagram || isFacebook || isTwitter;
 
-    if (isInApp) {
+    const dismissedTime = localStorage.getItem('dview_inapp_bypass_dismissed');
+    const isDismissed = dismissedTime && (Date.now() - parseInt(dismissedTime, 10) < 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    if (isInApp && !isDismissed) {
       let appName = 'other';
       if (isKakao) appName = 'kakaotalk';
       else if (isNaver) appName = 'naver';
@@ -77,6 +80,15 @@ export default function InAppBrowserBypass() {
       }
     }
   }, []);
+
+  const handleDismiss = () => {
+    try {
+      localStorage.setItem('dview_inapp_bypass_dismissed', Date.now().toString());
+    } catch (e) {
+      console.warn('Failed to save in-app dismiss state:', e);
+    }
+    setShowOverlay(false);
+  };
 
   const handleRedirectClick = () => {
     const currentUrl = window.location.href;
@@ -263,7 +275,7 @@ export default function InAppBrowserBypass() {
           
           {/* Close/Browse button */}
           <button
-            onClick={() => setShowOverlay(false)}
+            onClick={handleDismiss}
             className="w-full py-2.5 rounded-2xl text-[12px] font-bold text-tertiary hover:text-secondary transition-all"
           >
             그냥 둘러볼래요 (구글 로그인 불가)
