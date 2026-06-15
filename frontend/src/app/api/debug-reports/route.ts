@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
+import { verifyAdmin } from '@/lib/authUtils';
+
+export const dynamic = 'force-dynamic';
 
 const debugReportsQuerySchema = z.object({
   limit: z.preprocess(
@@ -10,8 +13,15 @@ const debugReportsQuerySchema = z.object({
   ),
 });
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    // Admin Authorization Check
+    const isAdmin = await verifyAdmin(request);
+    if (!isAdmin) {
+      logger.warn('DebugReportsAPI.GET', 'Unauthorized attempt to trigger debug reports fetch');
+      return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const parsedQuery = debugReportsQuerySchema.safeParse({
       limit: searchParams.get('limit') || undefined,
