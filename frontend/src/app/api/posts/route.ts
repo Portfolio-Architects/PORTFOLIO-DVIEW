@@ -34,8 +34,8 @@ const PostsQuerySchema = z.object({
 });
 
 const PostCreateSchema = z.object({
-  title: z.string().min(1),
-  content: z.string().min(1),
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(20000),
   category: z.string().min(1),
   authorUid: z.string().min(1),
   authorName: z.string().optional().default('익명'),

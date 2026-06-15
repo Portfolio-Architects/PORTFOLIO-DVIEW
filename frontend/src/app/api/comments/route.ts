@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const dynamic = 'force-dynamic';
 
 const CommentCreateSchema = z.object({
-  text: z.string().min(1),
+  text: z.string().min(1).max(500),
   authorUid: z.string().min(1),
   authorName: z.string().optional().default('익명'),
   postId: z.string().optional(),

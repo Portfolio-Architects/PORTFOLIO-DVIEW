@@ -281,7 +281,28 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
               <button
                 onClick={async () => {
                   if (submitLockRef.current) return;
-                  if (!user || !postTitle.trim()) return;
+                  if (!user) return;
+                  
+                  const trimmedTitle = postTitle.trim();
+                  const trimmedContent = postContent.trim();
+                  
+                  if (!trimmedTitle) {
+                    alert('제목을 입력해 주세요.');
+                    return;
+                  }
+                  if (!trimmedContent) {
+                    alert('내용을 입력해 주세요.');
+                    return;
+                  }
+                  if (trimmedTitle.length > 200) {
+                    alert('제목은 최대 200자까지 작성할 수 있습니다.');
+                    return;
+                  }
+                  if (trimmedContent.length > 20000) {
+                    alert('내용은 최대 20,000자까지 작성할 수 있습니다.');
+                    return;
+                  }
+
                   submitLockRef.current = true;
                   setIsSubmitting(true);
 
@@ -291,8 +312,8 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                         url: '/api/posts',
                         method: 'POST',
                         body: {
-                          title: postTitle.trim(),
-                          content: postContent.trim(),
+                          title: trimmedTitle,
+                          content: trimmedContent,
                           category: postCategory,
                           authorUid: user.uid,
                           authorName: displayAuthorName,
@@ -316,8 +337,8 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
 
                   try {
                     await dashboardFacade.addPost(
-                      postTitle.trim(), 
-                      postContent.trim(), 
+                      trimmedTitle, 
+                      trimmedContent, 
                       postCategory, 
                       user.uid, 
                       undefined, 
@@ -352,8 +373,8 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                         url: '/api/posts',
                         method: 'POST',
                         body: {
-                          title: postTitle.trim(),
-                          content: postContent.trim(),
+                          title: trimmedTitle,
+                          content: trimmedContent,
                           category: postCategory,
                           authorUid: user.uid,
                           authorName: displayAuthorName,
@@ -374,7 +395,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                     setIsSubmitting(false);
                   }
                 }}
-                disabled={isSubmitting || !postTitle.trim()}
+                disabled={isSubmitting || !postTitle.trim() || !postContent.trim()}
                 className="flex items-center gap-2 px-6 py-3 bg-[#008262] hover:bg-[#006b50] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95 shadow-sm shadow-[#008262]/10"
               >
                 {isSubmitting ? '작성 중...' : '작성 완료'}
