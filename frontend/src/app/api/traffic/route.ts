@@ -53,6 +53,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Action failed' }, { status: 400 });
   } catch (error: unknown) {
     logger.error('TrafficAPI.POST', 'Failed to record traffic', {}, error as Error);
-    return NextResponse.json({ error: 'Internal server error', details: (error as Error)?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
