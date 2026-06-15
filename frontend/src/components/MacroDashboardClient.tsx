@@ -1832,11 +1832,11 @@ interface GroupedCategory {
 
 
 
-        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0">
+        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0 md:h-[870px]">
           {/* Left Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0">
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 md:min-h-[910px] md:max-h-[910px] md:flex-1 min-h-[420px] min-w-0">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 md:h-full min-h-[420px] min-w-0">
               <div className="flex justify-between items-center gap-2 mb-4">
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 신고가 단지
@@ -1846,7 +1846,7 @@ interface GroupedCategory {
                 </span>
               </div>
 
-              <div className="flex-1 overflow-y-auto md:max-h-[800px] max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0">
+              <div className="flex-1 overflow-y-auto md:max-h-none max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0">
                 {dailyTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     등록된 신고가 거래가 없습니다.
@@ -1959,9 +1959,9 @@ interface GroupedCategory {
           </div>
 
           {/* Right Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0">
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full">
             {/* Right Panel: Interactive Market Feed & Trend */}
-            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:min-h-[490px] min-h-[420px] min-w-0">
+            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 min-h-[420px] min-w-0">
               <div className="flex-1 flex flex-col min-h-[300px]">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <div className="flex flex-col gap-1 min-w-0">
@@ -2076,14 +2076,14 @@ interface GroupedCategory {
                       <span className="text-[12.5px] font-bold text-primary flex items-center gap-1.5">
                         <span className="text-[#00d29d] font-black">⭐ 내 관심단지 시세 바로보기</span>
                       </span>
-                      <div className="flex flex-wrap gap-1.5 max-h-[72px] overflow-y-auto pr-1 scrollbar-thin">
+                      <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1.5 pr-1 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/80 [&::-webkit-webkit-scrollbar-thumb]:rounded-full scrollbar-thin">
                         {favoritesArray.map((fav) => {
                           const isActive = fav === selectedTimelineApt;
                           return (
                             <button
                               key={fav}
                               onClick={() => setSelectedTimelineApt(fav)}
-                              className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 border shadow-sm ${
+                              className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 border shadow-sm shrink-0 ${
                                 isActive
                                   ? "bg-[#e0fbf4] text-[#00d29d] border-[#00d29d]/50"
                                   : "bg-surface hover:bg-neutral-50 dark:hover:bg-zinc-800 text-secondary hover:text-primary border-border/60"
@@ -2131,7 +2131,7 @@ interface GroupedCategory {
             </div>
 
             {/* 동탄 철도 교통 게시판 위젯 */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:min-h-[360px] justify-start">
+            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:h-[360px] justify-start">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
