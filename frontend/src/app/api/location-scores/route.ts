@@ -6,7 +6,7 @@ export const runtime = 'edge';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { Coord, haversineDistance, findNearest, countWithinRadius, parseCoordString } from '@/lib/utils/haversine';
 
-export const revalidate = 0; // force-dynamic
+export const dynamic = 'force-dynamic';
 
 import { loadAllCached, resolveApartment, filterByBBox, clearCache, StationPOI } from '@/lib/services/locationService';
 
@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     logger.error('LocationScoresAPI.GET', 'Failed to calculate location scores', {}, error as Error);
     return NextResponse.json(
-      { error: 'Failed to calculate location scores', detail: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to calculate location scores', detail: 'Failed to calculate location scores' },
       { status: 500 }
     );
   }
