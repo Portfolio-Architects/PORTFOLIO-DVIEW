@@ -1,5 +1,6 @@
 const DB_NAME = 'dview-offline-db';
 const STORE_NAME = 'sync-queue';
+import { logger } from '@/lib/services/logger';
 
 export interface OfflineRequestPayload {
   url: string;
@@ -53,7 +54,7 @@ export async function enqueueOfflineRequest(payload: OfflineRequestPayload): Pro
     request.onerror = () => reject(request.error);
   });
 
-  console.log('[OfflineSync] Request enqueued to offline DB:', mutation);
+  logger.info('OfflineSync', 'Request enqueued to offline DB', { id: mutation.id, url: payload.url });
 
   // Register background sync if service worker is active and sync is supported
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -62,10 +63,10 @@ export async function enqueueOfflineRequest(payload: OfflineRequestPayload): Pro
       const syncReg = (registration as any).sync;
       if (syncReg) {
         await syncReg.register('sync-mutations');
-        console.log('[OfflineSync] Registered sync-mutations tag in Service Worker');
+        logger.info('OfflineSync', 'Registered sync-mutations tag in Service Worker');
       }
     } catch (err) {
-      console.warn('[OfflineSync] Background Sync registration failed, will rely on next online event', err);
+      logger.warn('OfflineSync', 'Background Sync registration failed, will rely on next online event', {}, err as Error);
     }
   }
 }

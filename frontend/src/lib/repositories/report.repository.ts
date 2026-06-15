@@ -119,22 +119,23 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
 
   return onSnapshot(q, (snapshot) => {
     const mapped = mapSnapshot(snapshot);
-    console.trace('[ReportRepo] Invoking callback with mapped.length:', mapped.length);
+    logger.debug('ReportRepository.listenToScoutingReports', 'Invoking callback with mapped reports', { count: mapped.length });
     callback(mapped);
   }, (error) => {
-    console.error('[ReportRepo] onSnapshot error, falling back to unordered query:', error.message);
+    logger.error('ReportRepository.listenToScoutingReports', 'onSnapshot error, falling back to unordered query', {}, error);
     // Fallback: query without orderBy (no index needed)
     const fallbackQ = query(collection(db, 'scoutingReports'), limit(30));
     onSnapshot(fallbackQ, (fallbackSnapshot) => {
       const fallbackMapped = mapSnapshot(fallbackSnapshot);
-      console.trace('[ReportRepo] Invoking callback from fallback with length:', fallbackMapped.length);
+      logger.debug('ReportRepository.listenToScoutingReports', 'Invoking callback from fallback', { count: fallbackMapped.length });
       callback(fallbackMapped);
     }, (fallbackError) => {
-      console.error('[ReportRepo] Fallback also failed:', fallbackError.message);
-      console.trace('[ReportRepo] Invoking callback from fallback error with length: 0');
+      logger.error('ReportRepository.listenToScoutingReports', 'Fallback also failed', {}, fallbackError);
+      logger.debug('ReportRepository.listenToScoutingReports', 'Invoking callback from fallback error with length 0');
       callback([]);
     });
   });
+
 }
 
 export async function getFullReport(reportId: string): Promise<FieldReportData | null> {
