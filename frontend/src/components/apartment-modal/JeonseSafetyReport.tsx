@@ -315,9 +315,9 @@ export default function JeonseSafetyReport({
       {(grade === 'caution' || grade === 'danger') && (
         <div className="border border-orange-500/20 bg-orange-500/5 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex-1 text-center sm:text-left min-w-0">
-            <h5 className="text-[14px] font-black text-primary mb-1">
+            <p className="text-[14px] font-black text-primary mb-1">
               ⚠️ 임차인 필수: 전세보증금 반환보증보험 가입 요건 확인
-            </h5>
+            </p>
             <p className="text-[12px] font-bold text-secondary">
               전세가율 {jeonseRatePercent.toFixed(1)}%로 HUG 보증보험 가입이 거절되거나 특별 보증이 필요할 수 있습니다. 
             </p>
