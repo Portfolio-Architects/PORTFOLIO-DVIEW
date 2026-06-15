@@ -4,7 +4,7 @@ import { rateLimiter } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
-export const revalidate = 0; // force-dynamic
+export const dynamic = 'force-dynamic';
 
 const ApartmentsQuerySchema = z.object({
   bypassCache: z.preprocess((val) => val === 'true', z.boolean()),
@@ -35,6 +35,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err: unknown) {
     logger.error('ApartmentsByDongAPI.GET', 'Error loading apartments', {}, err as Error);
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to load apartments' }, { status: 500 });
   }
 }
