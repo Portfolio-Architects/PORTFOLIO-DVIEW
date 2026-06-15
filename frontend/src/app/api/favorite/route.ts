@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error: unknown) {
     logger.error('FavoriteAPI.POST', 'Failed to toggle favorite', {}, error as Error);
-    return NextResponse.json({ error: 'Internal server error', details: (error as Error)?.message || String(error) }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -115,6 +115,6 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     logger.error('FavoriteAPI.GET', 'Failed to fetch favorites', {}, error as Error);
     // Return [] instead of 500 to prevent app crashes if Firebase hangs
-    return NextResponse.json({ favorites: [], error: String(error) }, { status: 200 });
+    return NextResponse.json({ favorites: [], error: 'Failed to fetch favorites' }, { status: 200 });
   }
 }
