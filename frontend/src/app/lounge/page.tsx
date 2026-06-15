@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
 import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
+import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,8 +60,8 @@ export default async function LoungePage({
   try {
     posts = await PostRepo.getRecentPosts(50);
   } catch (error: unknown) {
-    console.error('Failed to fetch lounge posts server-side', error);
-    errorMessage = (error as Error)?.message || String(error);
+    logger.error('LoungePage.fetchPosts', 'Failed to fetch lounge posts server-side', {}, error as Error);
+    errorMessage = 'Failed to load posts. Please try again later.';
   }
 
   const nonce = (await headers()).get('x-nonce') || undefined;
