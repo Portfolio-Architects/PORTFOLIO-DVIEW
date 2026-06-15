@@ -19,6 +19,7 @@ export const ContentViewSchema = z.object({
 }).passthrough();
 
 export async function incrementWebsiteVisit(): Promise<void> {
+  if (typeof window === 'undefined') return;
   try {
     await fetch('/api/traffic', {
       method: 'POST',
@@ -31,6 +32,7 @@ export async function incrementWebsiteVisit(): Promise<void> {
 }
 
 export async function incrementContentView(contentId: string, title: string, type: 'lounge' | 'report'): Promise<void> {
+  if (typeof window === 'undefined') return;
   try {
     await fetch('/api/traffic', {
       method: 'POST',
