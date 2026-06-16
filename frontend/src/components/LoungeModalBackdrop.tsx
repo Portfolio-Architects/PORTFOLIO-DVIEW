@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 
-export default function LoungeModalBackdrop({ children, onClose }: { children: ReactNode, onClose?: () => void }) {
+const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, onClose }: { children: ReactNode, onClose?: () => void }) {
   const router = useRouter();
 
   const handleClose = () => {
@@ -36,4 +36,7 @@ export default function LoungeModalBackdrop({ children, onClose }: { children: R
       </div>
     </div>
   );
-}
+});
+
+LoungeModalBackdrop.displayName = 'LoungeModalBackdrop';
+export default LoungeModalBackdrop;

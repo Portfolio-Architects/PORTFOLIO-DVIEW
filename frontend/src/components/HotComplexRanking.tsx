@@ -18,7 +18,7 @@ interface HotComplexRankingProps {
   nameMapping: Record<string, string>;
 }
 
-export default function HotComplexRanking({
+const HotComplexRanking = React.memo(function HotComplexRanking({
   sheetApartments,
   fieldReportsMap,
   favoriteCounts,
@@ -210,4 +210,7 @@ export default function HotComplexRanking({
       )}
     </div>
   );
-}
+});
+
+HotComplexRanking.displayName = 'HotComplexRanking';
+export default HotComplexRanking;

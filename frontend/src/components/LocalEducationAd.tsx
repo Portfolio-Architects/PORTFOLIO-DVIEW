@@ -28,7 +28,7 @@ const isGradeEligible = (aptGrade: string, adMinGrade: string) => {
   return aptIndex >= adIndex;
 };
 
-export default function LocalEducationAd({ dong = '', educationGrade, apartmentName }: LocalEducationAdProps) {
+const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educationGrade, apartmentName }: LocalEducationAdProps) {
   const [matchedAd, setMatchedAd] = useState<AdItem | null>(null);
   const [loading, setLoading] = useState(true);
   const mountedRef = React.useRef(true);
@@ -162,4 +162,7 @@ export default function LocalEducationAd({ dong = '', educationGrade, apartmentN
       </div>
     </div>
   );
-}
+});
+
+LocalEducationAd.displayName = 'LocalEducationAd';
+export default LocalEducationAd;

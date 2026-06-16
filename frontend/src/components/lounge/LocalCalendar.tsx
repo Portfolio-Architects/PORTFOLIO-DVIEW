@@ -19,7 +19,7 @@ interface LocalCalendarProps {
   events: LocalEvent[];
 }
 
-export function LocalCalendar({ events }: LocalCalendarProps) {
+export const LocalCalendar = React.memo(function LocalCalendar({ events }: LocalCalendarProps) {
   const [selectedEvent, setSelectedEvent] = useState<LocalEvent | null>(null);
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -273,4 +273,6 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
       )}
     </div>
   );
-}
+});
+
+LocalCalendar.displayName = 'LocalCalendar';

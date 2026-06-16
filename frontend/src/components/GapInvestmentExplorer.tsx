@@ -32,7 +32,7 @@ interface GapInvestmentExplorerProps {
   onOpenAdModal?: () => void;
 }
 
-export default function GapInvestmentExplorer({
+const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -928,4 +928,7 @@ export default function GapInvestmentExplorer({
       )}
     </div>
   );
-}
+});
+
+GapInvestmentExplorer.displayName = 'GapInvestmentExplorer';
+export default GapInvestmentExplorer;
