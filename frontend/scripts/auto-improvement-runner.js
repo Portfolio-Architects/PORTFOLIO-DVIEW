@@ -45,12 +45,81 @@ function performPreRunCleanups() {
 function getHistory() {
   try {
     if (fs.existsSync(HISTORY_JSON_PATH)) {
-      return JSON.parse(fs.readFileSync(HISTORY_JSON_PATH, 'utf8'));
+      const rawData = JSON.parse(fs.readFileSync(HISTORY_JSON_PATH, 'utf8'));
+      
+      // 1. completedTasks 하위 호환성 마이그레이션 (단순 string인 경우 객체로 정규화)
+      if (rawData.completedTasks && Array.isArray(rawData.completedTasks)) {
+        rawData.completedTasks = rawData.completedTasks.map((item, idx) => {
+          if (typeof item === 'string') {
+            return {
+              task: item,
+              completedAt: new Date().toISOString(),
+              phase: rawData.phase ? Math.max(1, rawData.phase - (rawData.completedTasks.length - idx)) : 1,
+              status: 'success',
+              durationMs: 0,
+              metrics: {
+                typescript: true,
+                eslint: true,
+                dataConsistency: true,
+                bundleSizes: true,
+                e2e: true,
+                firestore: true
+              }
+            };
+          }
+          return item;
+        });
+      } else {
+        rawData.completedTasks = [];
+      }
+
+      // 2. history 배열 필드 초기화 (시각화 대시보드 전용 타임시리즈 데이터 구조)
+      if (!rawData.history || !Array.isArray(rawData.history)) {
+        rawData.history = rawData.completedTasks.map(item => ({
+          phase: item.phase || 1,
+          task: item.task,
+          timestamp: item.completedAt,
+          status: item.status || 'success',
+          durationMs: item.durationMs || 0,
+          metrics: item.metrics || {
+            typescript: true,
+            eslint: true,
+            dataConsistency: true,
+            bundleSizes: true,
+            e2e: true,
+            firestore: true
+          }
+        }));
+      } else {
+        // history 배열 요소 마이그레이션
+        rawData.history = rawData.history.map(item => {
+          if (typeof item === 'string') {
+            return {
+              phase: 1,
+              task: item,
+              timestamp: new Date().toISOString(),
+              status: 'success',
+              durationMs: 0,
+              metrics: {
+                typescript: true,
+                eslint: true,
+                dataConsistency: true,
+                bundleSizes: true,
+                e2e: true,
+                firestore: true
+              }
+            };
+          }
+          return item;
+        });
+      }
+
+      return rawData;
     }
   } catch (err) {
     log(colors.red, `⚠️ Failed to read loop history: ${err.message}`);
   }
-  return { phase: 0, failures: {}, currentTaskIndex: 0, completedTasks: [] };
+  return { phase: 0, failures: {}, currentTaskIndex: 0, completedTasks: [], history: [] };
 }
 
 // 3. Save Loop History
@@ -79,6 +148,7 @@ async function main() {
   log(colors.magenta, '🤖 DVIEW Auto Self-Improvement Runner Starting');
   log(colors.magenta, '==================================================\n');
 
+  const phaseStartTime = Date.now();
   performPreRunCleanups();
 
   const history = getHistory();
@@ -106,6 +176,31 @@ async function main() {
 
   // Run audit
   const passed = runAudit();
+  const durationMs = Date.now() - phaseStartTime;
+
+  // Read individual metrics from scratch/audit-results.json
+  let metrics = {
+    typescript: false,
+    eslint: false,
+    dataConsistency: false,
+    bundleSizes: false,
+    e2e: false,
+    firestore: false
+  };
+
+  const auditResultsPath = path.join(PROJECT_ROOT, 'frontend/scratch/audit-results.json');
+  if (fs.existsSync(auditResultsPath)) {
+    try {
+      const auditData = JSON.parse(fs.readFileSync(auditResultsPath, 'utf8'));
+      if (auditData && auditData.metrics) {
+        metrics = { ...metrics, ...auditData.metrics };
+      }
+      // Clean up temporary results file
+      fs.unlinkSync(auditResultsPath);
+    } catch (err) {
+      log(colors.red, `⚠️ Failed to read or delete temporary audit results: ${err.message}`);
+    }
+  }
 
   if (passed) {
     log(colors.green, `✅ Audit PASSED for task: "${taskText}"`);
@@ -116,7 +211,10 @@ async function main() {
       if (gitStatus) {
         log(colors.cyan, '💾 Committing refactoring milestones...');
         execSync('git add -A', { cwd: PROJECT_ROOT });
-        execSync(`git commit -m "Auto Refactoring: ${taskText} - Phase ${history.phase}"`, { cwd: PROJECT_ROOT });
+        
+        // Escape quotes to avoid PowerShell issues on Windows
+        const escapedTaskText = taskText.replace(/"/g, "'");
+        execSync(`git commit -m "Auto Refactoring: ${escapedTaskText} - Phase ${history.phase}"`, { cwd: PROJECT_ROOT });
         log(colors.green, '   ✅ Git commit generated.');
       } else {
         log(colors.yellow, '   ℹ️ No file changes detected to commit.');
@@ -134,7 +232,26 @@ async function main() {
     if (history.failures[taskText]) {
       delete history.failures[taskText];
     }
-    history.completedTasks.push(taskText);
+
+    const taskResult = {
+      task: taskText,
+      completedAt: new Date().toISOString(),
+      phase: history.phase,
+      status: 'success',
+      durationMs,
+      metrics
+    };
+
+    history.completedTasks.push(taskResult);
+    history.history.push({
+      phase: history.phase,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      durationMs,
+      metrics
+    });
+
     saveHistory(history);
     process.exit(0);
   } else {
@@ -143,6 +260,15 @@ async function main() {
     // Increment failure counter
     history.failures[taskText] = (history.failures[taskText] || 0) + 1;
     log(colors.yellow, `⚠️ Failure Count for this task: ${history.failures[taskText]}/2`);
+
+    history.history.push({
+      phase: history.phase,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      status: 'failed',
+      durationMs,
+      metrics
+    });
 
     if (history.failures[taskText] >= 2) {
       log(colors.red, '\n🛑 [Stop-the-Line] Task failed 2 consecutive times.');

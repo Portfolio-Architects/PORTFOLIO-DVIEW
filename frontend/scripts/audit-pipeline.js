@@ -387,6 +387,32 @@ async function run() {
   console.log('');
   const firestorePassed = await auditFirestoreCosts();
 
+  const results = {
+    timestamp: new Date().toISOString(),
+    metrics: {
+      typescript: tsPassed,
+      eslint: eslintPassed,
+      dataConsistency: consistencyPassed,
+      bundleSizes: sizesPassed,
+      e2e: e2ePassed,
+      firestore: firestorePassed
+    }
+  };
+
+  try {
+    const scratchDir = path.resolve(process.cwd(), 'scratch');
+    if (!fs.existsSync(scratchDir)) {
+      fs.mkdirSync(scratchDir, { recursive: true });
+    }
+    fs.writeFileSync(
+      path.join(scratchDir, 'audit-results.json'),
+      JSON.stringify(results, null, 2),
+      'utf8'
+    );
+  } catch (err) {
+    console.error('Failed to write audit-results.json:', err);
+  }
+
   log(colors.magenta, '\n==================================================');
   if (tsPassed && eslintPassed && consistencyPassed && sizesPassed && e2ePassed && firestorePassed) {
     log(colors.green, '✅ Pipeline Status: SUCCESS (All essential checks passed)');
