@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Send, Building2, User, MessageSquare } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -15,6 +15,13 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +37,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
         createdAt: serverTimestamp(),
       });
       setIsSuccess(true);
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
         onClose();
       }, 2000);
     } catch (error) {
