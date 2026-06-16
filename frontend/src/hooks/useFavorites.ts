@@ -18,6 +18,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
 
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
+    // Prevent memory leaks and state updates on unmounted components using a boolean flag
     let unmounted = false;
     fetch('/api/favorite-counts')
       .then(res => res.json())
