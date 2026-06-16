@@ -6,9 +6,11 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import useSWRInfinite from 'swr/infinite';
 import ReactMarkdown from 'react-markdown';
+import { safeReload } from '@/lib/utils/safeReload';
+
 const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient').catch(err => {
   console.warn('LoungeDetailClient Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('LoungeDetailClient');
   return { default: () => null };
 }), { ssr: false });
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';

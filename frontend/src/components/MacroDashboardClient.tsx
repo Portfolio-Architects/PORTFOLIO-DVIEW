@@ -2,9 +2,10 @@ import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } fr
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
+import { safeReload } from "@/lib/utils/safeReload";
 const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
   console.warn('MacroTrendChart Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('MacroTrendChart');
   return { default: () => null };
 }), {
   ssr: false,
@@ -16,7 +17,7 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
 });
 const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err => {
   console.warn('AptFitFinder Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AptFitFinder');
   return { default: () => null };
 }), {
   ssr: false,
