@@ -13,7 +13,6 @@
  * while delegating all operations to the appropriate layer.
  */
 // Removed static Firebase Storage imports to defer loading
-import { compressImage } from '@/lib/utils/imageCompression';
 
 // Types (re-export for backward compatibility)
 export type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
@@ -36,7 +35,7 @@ import * as PostService from '@/lib/services/post.service';
 import * as ReportService from '@/lib/services/reportService';
 import { createInitialKPIs, startKPISimulation } from '@/lib/services/kpi.service';
 import { logger } from '@/lib/services/logger';
-import { z } from 'zod';
+
 
 // Import validation schemas from facade.schemas.ts
 import {
