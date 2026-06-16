@@ -1060,17 +1060,17 @@ const FieldReportModal = React.memo(function FieldReportModal({
           document.body.removeChild(a);
         } catch (e) {
           console.error('Canvas tainting or drawing error:', e);
-          window.open(imageUrl, '_blank');
+          window.open(imageUrl, '_blank', 'noopener,noreferrer');
         }
       };
       
       img.onerror = () => {
         console.warn('Canvas download failed due to load error, falling back to original image.');
-        window.open(imageUrl, '_blank');
+        window.open(imageUrl, '_blank', 'noopener,noreferrer');
       };
     } catch (error) {
       console.error('Failed to download watermarked image', error);
-      window.open(imageUrl, '_blank');
+      window.open(imageUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
