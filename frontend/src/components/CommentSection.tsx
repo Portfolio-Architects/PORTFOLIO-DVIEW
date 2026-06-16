@@ -2,7 +2,7 @@ import { UserCircle, MessageSquare } from 'lucide-react';
 import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
 import { usePWA } from '@/components/pwa/PWAProvider';
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 
 interface CommentSectionProps {
@@ -16,7 +16,7 @@ interface CommentSectionProps {
   onRequestLogin?: (message: string) => void;
 }
 
-export default function CommentSection({
+const CommentSection = React.memo(function CommentSection({
   comments,
   commentInput,
   onCommentChange,
@@ -320,7 +320,7 @@ export default function CommentSection({
       </div>
     </div>
   );
-}
+});
 
 /** 멘션 하이라이트 파싱 헬퍼 함수 */
 function renderCommentText(text: string) {
@@ -344,7 +344,7 @@ function renderCommentText(text: string) {
 }
 
 /** Single comment item */
-function CommentItem({ 
+const CommentItem = React.memo(function CommentItem({ 
   comment, 
   isHighlighted, 
   onClickAuthor 
@@ -381,4 +381,8 @@ function CommentItem({
       </div>
     </div>
   );
-}
+});
+
+CommentItem.displayName = 'CommentItem';
+CommentSection.displayName = 'CommentSection';
+export default CommentSection;
