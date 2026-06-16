@@ -17,7 +17,7 @@ interface EducationAnalysisSectionProps {
   displayAptName: string;
 }
 
-export default function EducationAnalysisSection({
+const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   report,
   isUnlocked,
   inline = false,
@@ -408,4 +408,6 @@ export default function EducationAnalysisSection({
       </div>
     </section>
   );
-}
+});
+
+export default EducationAnalysisSection;
