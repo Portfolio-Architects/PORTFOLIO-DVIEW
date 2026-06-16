@@ -294,4 +294,6 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   );
 });
 
+MacroTrendChart.displayName = 'MacroTrendChart';
+
 export default MacroTrendChart;
