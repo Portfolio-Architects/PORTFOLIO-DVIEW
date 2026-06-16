@@ -23,9 +23,12 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
   const [selectedEvent, setSelectedEvent] = useState<LocalEvent | null>(null);
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
@@ -76,11 +79,19 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
       clearTimeout(copyTimeoutRef.current);
     }
     navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopiedEventId(event.id);
-      copyTimeoutRef.current = setTimeout(() => setCopiedEventId(null), 2000);
+      if (mountedRef.current) {
+        setCopiedEventId(event.id);
+        copyTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setCopiedEventId(null);
+          }
+        }, 2000);
+      }
     }).catch((err) => {
       console.error('Clipboard copy failed:', err);
-      alert('링크 복사에 실패했습니다.');
+      if (mountedRef.current) {
+        alert('링크 복사에 실패했습니다.');
+      }
     });
   };
 
