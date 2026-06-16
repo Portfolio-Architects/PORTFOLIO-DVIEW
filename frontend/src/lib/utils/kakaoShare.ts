@@ -1056,3 +1056,68 @@ export const shareSellTimingToKakao = async (params: ShareSellTimingParams) => {
     alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
   }
 };
+
+export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise<boolean> => {
+  const validation = ShareAptParamsSchema.safeParse(params);
+  if (!validation.success) {
+    logger.warn('kakaoShare.copyAptSummaryToClipboard', 'Invalid parameters for copyAptSummaryToClipboard', {
+      error: String(validation.error),
+      params
+    });
+    return false;
+  }
+  const { aptName, priceEok, priceMan, ratio, valStatus, valAmount, customDesc } = validation.data;
+
+  const priceStr =
+    priceMan > 0
+      ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
+      : `${priceEok}억원`;
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  // Utilizes client side hash routing exactly same as shareAptToKakao
+  const shareUrl = `${baseUrl}/#apt=${encodeURIComponent(aptName)}&utm_source=clipboard&utm_medium=share&utm_campaign=apt_detail`;
+
+  let valuationLabel = '⚖️ 적정 수준 (시세와 적정 가치 균형 상태)';
+  if (valStatus === 'undervalued') {
+    valuationLabel = `🟢 저평가 상태 (적정가 대비 약 ${valAmount} 메리트!)`;
+  } else if (valStatus === 'overvalued') {
+    valuationLabel = `🚨 고평가 상태 (적정가 대비 약 ${valAmount} 고평가)`;
+  }
+
+  let text = `📢 [DVIEW] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약 📊\n`;
+  text += `🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"\n`;
+  text += `👉 지금 매수해도 안전할까요? 호구 방지 가치분석 결과:\n\n`;
+  text += `💸 최근 실거래가: ${priceStr}\n`;
+  text += `📈 내재가치 평가: ${valuationLabel}\n`;
+  
+  if (customDesc) {
+    text += `${customDesc}`;
+  }
+
+  text += `👀 적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!\n`;
+  text += `💡 실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.\n`;
+  text += `👉 ${shareUrl}\n\n`;
+  text += `#DVIEW #동탄부동산 #가치분석 #아파트실거래 #학세권 #동탄맘 #신혼부부`;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const success = document.execCommand('copy');
+      textArea.remove();
+      return success;
+    }
+  } catch (err) {
+    logger.error('kakaoShare.copyAptSummaryToClipboard', 'Failed to copy text', { error: String(err) });
+    return false;
+  }
+};

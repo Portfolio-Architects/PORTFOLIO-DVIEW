@@ -57,7 +57,7 @@ const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModa
   return () => null;
 }), { ssr: false });
 import { useSettings } from '@/lib/contexts/SettingsContext';
-import { shareAptToKakao } from '@/lib/utils/kakaoShare';
+import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
 const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
   console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
   safeReload('BuyOrWaitVote');
@@ -1267,44 +1267,45 @@ function FieldReportModal({
     });
   };
 
-  const handleCopySummary = () => {
-    const baseUrl = window.location.origin;
-    const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
-    const latestSale = transactions.find(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
-    const latestPrice = latestSale ? (latestSale.priceEok || `${(latestSale.price / 10000).toFixed(1)}억`) : '기록 없음';
-    const latestArea = latestSale ? (latestSale.areaLabelM2 || `${latestSale.area}㎡`) : '';
+  const handleCopySummary = async () => {
+    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const latestSale = saleTxs[0];
+    const latestJeonse = jeonseTxs[0];
+    const price = latestSale ? latestSale.price : 0;
+    const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
+    const priceEok = Math.floor(price / 10000);
+    const priceMan = price % 10000;
+    const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
 
     const eduScoreInfo = report.metrics ? calculateEducationScore(report.metrics) : null;
     const infraScoreInfo = report.metrics ? calculateInfraScore(report.metrics) : null;
 
-    let valuationLabel = '⚖️ 적정 수준 (시세와 적정 가치 균형 상태)';
-    if (valuation.status === 'undervalued') {
-      valuationLabel = `🟢 저평가 상태 (적정가 대비 약 ${valuation.amount} 메리트!)`;
-    } else if (valuation.status === 'overvalued') {
-      valuationLabel = `🚨 고평가 상태 (적정가 대비 약 ${valuation.amount} 고평가)`;
+    let customDesc = '';
+    if (eduScoreInfo) {
+      customDesc += `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n`;
+    }
+    if (infraScoreInfo) {
+      customDesc += `🚇 교통/생활 입지: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n`;
     }
 
-    const summaryText = `🏠 [가치분석] 동탄 ${displayAptName} 실거래 & 인프라 요약 📊
-🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"
-👉 지금 매수해도 안전할까요? 호구 방지 가치분석 결과:
+    const success = await copyAptSummaryToClipboard({
+      aptName: displayAptName,
+      priceEok,
+      priceMan,
+      ratio,
+      valStatus: valuation.status,
+      valAmount: valuation.amount,
+      customDesc
+    });
 
-💸 최근 실거래가: ${latestPrice}${latestArea ? ` (전용 ${latestArea})` : ''}
-📈 내재가치 평가: ${valuationLabel}
-${eduScoreInfo ? `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n` : ''}${infraScoreInfo ? `🚇 교통/생활 입지: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n` : ''}
-👀 적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!
-💡 실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.
-👉 ${shareUrl}
-
-#DVIEW #동탄부동산 #가치분석 #아파트실거래 #학세권 #동탄맘 #신혼부부`;
-
-    navigator.clipboard.writeText(summaryText).then(() => {
+    if (success) {
       showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");
       setCopiedStatus('summary');
       setTimeout(() => setCopiedStatus(null), 1500);
-    }).catch((err) => {
-      console.error("Summary copy failed:", err);
+    } else {
       showToast("요약본 복사에 실패했습니다.");
-    });
+    }
   };
 
   const handleNativeShare = async () => {
