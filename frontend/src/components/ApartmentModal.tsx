@@ -556,6 +556,7 @@ function FieldReportModal({
   const [managerPost, setManagerPost] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
+    let active = true;
     if (!report.premiumContent || !report.apartmentName) return;
 
     const fetchPost = async () => {
@@ -572,6 +573,7 @@ function FieldReportModal({
           limit(1)
         );
         let snap = await getDocs(qApt1);
+        if (!active) return;
         if (!snap.empty) {
           matchedId = snap.docs[0].id;
           matchedTitle = snap.docs[0].data().title;
@@ -585,6 +587,7 @@ function FieldReportModal({
             limit(1)
           );
           snap = await getDocs(qApt2);
+          if (!active) return;
           if (!snap.empty) {
             matchedId = snap.docs[0].id;
             matchedTitle = snap.docs[0].data().title;
@@ -599,6 +602,7 @@ function FieldReportModal({
             limit(20)
           );
           const snap1 = await getDocs(q1);
+          if (!active) return;
           snap1.forEach((d) => {
             if (matchedId) return;
             const data = d.data();
@@ -620,6 +624,7 @@ function FieldReportModal({
             limit(1)
           );
           snap = await getDocs(qApt3);
+          if (!active) return;
           if (!snap.empty) {
             matchedId = snap.docs[0].id;
             matchedTitle = snap.docs[0].data().title;
@@ -634,6 +639,7 @@ function FieldReportModal({
             limit(1)
           );
           snap = await getDocs(qApt4);
+          if (!active) return;
           if (!snap.empty) {
             matchedId = snap.docs[0].id;
             matchedTitle = snap.docs[0].data().title;
@@ -648,6 +654,7 @@ function FieldReportModal({
             limit(20)
           );
           const snap2 = await getDocs(q2);
+          if (!active) return;
           snap2.forEach((d) => {
             if (matchedId) return;
             const data = d.data();
@@ -660,13 +667,20 @@ function FieldReportModal({
           });
         }
 
-        setManagerPost(matchedId ? { id: matchedId, title: matchedTitle } : null);
+        if (active) {
+          setManagerPost(matchedId ? { id: matchedId, title: matchedTitle } : null);
+        }
       } catch (err) {
-        console.error('Failed to fetch matching manager post in modal:', err);
+        if (active) {
+          console.error('Failed to fetch matching manager post in modal:', err);
+        }
       }
     };
 
     fetchPost();
+    return () => {
+      active = false;
+    };
   }, [report.apartmentName, report.premiumContent]);
 
   const parsedTitle = useMemo(() => {
