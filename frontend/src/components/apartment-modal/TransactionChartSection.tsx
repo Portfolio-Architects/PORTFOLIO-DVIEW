@@ -651,3 +651,6 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     </div>
   );
 });
+
+TransactionChartSection.displayName = 'TransactionChartSection';
+
