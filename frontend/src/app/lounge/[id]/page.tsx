@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export const revalidate = 60; // Cache and revalidate page at most once every 60 seconds
 export const dynamicParams = true; // Enable on-demand generation for posts not pre-rendered
@@ -150,7 +151,7 @@ export default async function LoungePostPage(props: Props) {
         <script
           type="application/ld+json"
           nonce={nonce}
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
         />
       )}
       <LoungeDetailClient postId={id} initialPost={initialPost} />

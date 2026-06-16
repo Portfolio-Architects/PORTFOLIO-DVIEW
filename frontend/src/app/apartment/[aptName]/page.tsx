@@ -10,6 +10,7 @@ import path from 'path';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export interface LocationScore {
   distanceToElementary?: number;
@@ -548,7 +549,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       <script
         type="application/ld+json"
         nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       
       {/* Search Engine Optimization (SSR Content) */}

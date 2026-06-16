@@ -3,6 +3,7 @@ import LoungeContainerClient from '@/components/LoungeContainerClient';
 import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import { logger } from '@/lib/services/logger';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +88,7 @@ export default async function LoungePage({
       <script
         type="application/ld+json"
         nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto relative pb-[100px] sm:pb-12 animate-in fade-in duration-500">
         {errorMessage && (

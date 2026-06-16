@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { headers } from 'next/headers';
 import { getInitialData } from '@/lib/services/dashboardData';
 import ExploreClient from './ExploreClient';
+import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,38 +45,14 @@ export default async function ExplorePage() {
   const nonce = headersList.get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${baseUrl}/explore#webpage`,
-    "url": `${baseUrl}/explore`,
-    "name": "D-VIEW 아파트 탐색 | 동탄 전역 아파트 실거래가 및 입지 가치 비교",
-    "description": "동탄 179개 아파트 단지의 실거래가 변동 추이, 평단가 순위, 전세가율 갭투자 리스크 및 입지 가치 분석 표 제공.",
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "D-VIEW 홈",
-          "item": baseUrl
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "아파트 탐색",
-          "item": `${baseUrl}/explore`
-        }
-      ]
-    }
-  };
+  const jsonLd = getExploreSchema(baseUrl);
 
   return (
     <>
       <script
         type="application/ld+json"
         nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       <Suspense fallback={<ExploreSkeleton />}>
         <ExploreDataLoader />

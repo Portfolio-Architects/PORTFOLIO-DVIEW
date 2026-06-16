@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { headers } from 'next/headers';
 import NewsClient from './NewsClient';
+import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,38 +39,14 @@ export default async function NewsPage() {
   const nonce = headersList.get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${baseUrl}/news#webpage`,
-    "url": `${baseUrl}/news`,
-    "name": "D-VIEW 동탄 소식 | 실시간 부동산 뉴스 & 구정 행정 공지",
-    "description": "동탄 지역의 실시간 부동산 뉴스 및 화성시/동탄구청의 최신 구정 소식, 고시공고, 행사 축제 일정을 한데 모아 제공합니다.",
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "D-VIEW 홈",
-          "item": baseUrl
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "동탄 소식",
-          "item": `${baseUrl}/news`
-        }
-      ]
-    }
-  };
+  const jsonLd = getNewsMainSchema(baseUrl);
 
   return (
     <>
       <script
         type="application/ld+json"
         nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       <Suspense fallback={<NewsSkeleton />}>
         <NewsClient />

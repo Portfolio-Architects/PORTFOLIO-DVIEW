@@ -3,6 +3,7 @@ import Script from 'next/script';
 import { headers } from 'next/headers';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
+import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
 
 // Use Incremental Static Regeneration (ISR) to eliminate TTFB bottlenecks
 export const revalidate = 3600;
@@ -57,43 +58,7 @@ export default async function Page() {
   const nonce = headersList.get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://dongtanview.com/#website",
-        "url": "https://dongtanview.com",
-        "name": "D-VIEW | 동탄 아파트 가치분석",
-        "description": "동탄 179개 아파트의 실거래가·인프라·학군·현장 사진 가치 분석 플랫폼",
-        "publisher": {
-          "@id": "https://dongtanview.com/#organization"
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": {
-            "@type": "EntryPoint",
-            "urlTemplate": `${baseUrl}/?tab=imjang&search={search_term_string}`
-          },
-          "query-input": "required name=search_term_string"
-        },
-        "inLanguage": "ko-KR"
-      },
-      {
-        "@type": "Organization",
-        "@id": "https://dongtanview.com/#organization",
-        "name": "D-VIEW 부동산 데이터 랩스",
-        "url": "https://dongtanview.com",
-        "logo": {
-          "@type": "ImageObject",
-          "url": `${baseUrl}/d-view-icon.png`,
-          "width": 192,
-          "height": 192
-        },
-        "description": "동탄 전역 아파트 실거래가 추이, 전세가율 갭투자 리스크, 안심 보육 학군 지도 시각화 전문 기관"
-      }
-    ]
-  };
+  const jsonLd = getMainPageSchema(baseUrl);
 
   return (
     <>
@@ -101,7 +66,7 @@ export default async function Page() {
         id="jsonld-main-schema"
         type="application/ld+json"
         nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardDataLoader />
