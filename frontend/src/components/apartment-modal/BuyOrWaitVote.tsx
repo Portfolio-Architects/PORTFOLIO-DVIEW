@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ThumbsUp, HelpCircle, Users, Check } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 
@@ -20,6 +20,14 @@ export default function BuyOrWaitVote({
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const localStorageKey = `dview-vote-${aptName.replace(/\s+/g, '')}`;
 
@@ -69,8 +77,10 @@ export default function BuyOrWaitVote({
         } catch (e) {
           console.warn('Failed to save vote to localStorage:', e);
         }
-        setHasVoted(true);
-        setUserVote(type);
+        if (mountedRef.current) {
+          setHasVoted(true);
+          setUserVote(type);
+        }
         
         mutate(`/api/apartments/vote?aptName=${encodeURIComponent(aptName)}`, {
           buyCount: json.buyCount,
@@ -80,7 +90,9 @@ export default function BuyOrWaitVote({
     } catch (err) {
       console.error('Failed to submit vote:', err);
     } finally {
-      setIsSubmitting(false);
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 
