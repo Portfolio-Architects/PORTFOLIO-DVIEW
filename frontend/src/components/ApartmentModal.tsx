@@ -1263,6 +1263,32 @@ function FieldReportModal({
     }
   };
 
+  const fallbackCopyTextToClipboard = (text: string): boolean => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.width = "2em";
+    textArea.style.height = "2em";
+    textArea.style.padding = "0";
+    textArea.style.border = "none";
+    textArea.style.outline = "none";
+    textArea.style.boxShadow = "none";
+    textArea.style.background = "transparent";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (err) {
+      document.body.removeChild(textArea);
+      return false;
+    }
+  };
+
   const handleCopyLink = () => {
     const baseUrl = window.location.origin;
     let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
@@ -1274,14 +1300,28 @@ function FieldReportModal({
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${infraScoreInfo.grade}&score=${infraScoreInfo.score}`;
     }
 
-    navigator.clipboard.writeText(shareUrl).then(() => {
+    const executeSuccess = () => {
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
       setCopiedStatus('all-link');
       setTimeout(() => setCopiedStatus(null), 1500);
-    }).catch((err) => {
-      console.error("Link copy failed:", err);
-      showToast("링크 복사에 실패했습니다.");
-    });
+    };
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(shareUrl).then(executeSuccess).catch((err) => {
+        console.warn("Clipboard API failed, trying fallback copy:", err);
+        if (fallbackCopyTextToClipboard(shareUrl)) {
+          executeSuccess();
+        } else {
+          showToast("링크 복사에 실패했습니다.");
+        }
+      });
+    } else {
+      if (fallbackCopyTextToClipboard(shareUrl)) {
+        executeSuccess();
+      } else {
+        showToast("링크 복사에 실패했습니다.");
+      }
+    }
   };
 
   const handleCopySummary = async () => {
