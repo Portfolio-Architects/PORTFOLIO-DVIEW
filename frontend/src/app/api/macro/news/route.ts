@@ -3,7 +3,7 @@ import Parser from 'rss-parser';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
-export const revalidate = 3600; // Cache for 1 hour
+export const dynamic = 'force-dynamic';
 
 const parser = new Parser();
 
