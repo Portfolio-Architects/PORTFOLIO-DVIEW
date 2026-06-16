@@ -2,10 +2,31 @@ import { NextResponse } from 'next/server';
 import Parser from 'rss-parser';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import * as cheerio from 'cheerio';
 
 export const dynamic = 'force-dynamic';
 
 const parser = new Parser();
+
+// Helper: Fetch with AbortController timeout guard (3 seconds)
+async function fetchWithTimeout(url: string, timeoutMs: number = 3000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      },
+      next: { revalidate: 60 } // Cache feed locally for 60 seconds
+    });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
 
 const macroNewsQuerySchema = z.object({
   limit: z.string().optional().transform((v) => {
@@ -39,12 +60,51 @@ export async function GET(request: Request) {
 
     // Google News RSS Search Query for "동탄 부동산"
     const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
-    const feed = await parser.parseURL(feedUrl);
+    
+    let rawItems: any[] = [];
+    try {
+      const response = await fetchWithTimeout(feedUrl, 3000);
+      if (response.ok) {
+        const xmlText = await response.text();
+        
+        // 1차 시도: rss-parser를 통한 String 파싱
+        try {
+          const feed = await parser.parseString(xmlText);
+          rawItems = feed.items || [];
+        } catch (parseErr) {
+          logger.warn('MacroNewsAPI.GET', 'Primary RSS parser failed, falling back to Cheerio', {}, parseErr as Error);
+          
+          // 2차 시도 (폴백): Cheerio를 통한 XML 직접 파싱
+          try {
+            const $ = cheerio.load(xmlText, { xmlMode: true });
+            const items: any[] = [];
+            $('item').each((_, el) => {
+              const $el = $(el);
+              items.push({
+                title: $el.find('title').text() || '',
+                link: $el.find('link').text() || '',
+                pubDate: $el.find('pubDate').text() || '',
+              });
+            });
+            rawItems = items;
+          } catch (cheerioErr) {
+            logger.error('MacroNewsAPI.GET', 'Cheerio XML parser fallback failed', {}, cheerioErr as Error);
+            rawItems = [];
+          }
+        }
+      } else {
+        logger.warn('MacroNewsAPI.GET', `Failed to fetch RSS feed, status: ${response.status}`);
+        rawItems = [];
+      }
+    } catch (fetchErr) {
+      logger.error('MacroNewsAPI.GET', 'Fetch RSS feed timed out or failed', {}, fetchErr as Error);
+      rawItems = [];
+    }
 
     // Get up to limit news items
-    const rawItems = feed.items.slice(0, limit);
+    const slicedItems = rawItems.slice(0, limit);
 
-    const newsItems = rawItems.map((item, index) => {
+    const newsItems = slicedItems.map((item, index) => {
       const parsedItem = googleNewsItemSchema.safeParse(item);
       let title = '';
       let link = '';
