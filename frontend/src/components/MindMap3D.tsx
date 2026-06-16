@@ -36,7 +36,7 @@ interface MindMap3DProps {
   onSelectApt: (name: string) => void;
 }
 
-export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt }: MindMap3DProps) {
+const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData, onSelectApt }: MindMap3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredNode, setHoveredNode] = useState<Node3D | null>(null);
@@ -611,4 +611,8 @@ export default function MindMap3D({ sheetApartments, txSummaryData, onSelectApt 
       </div>
     </div>
   );
-}
+});
+
+MindMap3D.displayName = 'MindMap3D';
+
+export default MindMap3D;
