@@ -393,9 +393,6 @@ export function useTxData(
   if (summaryError) {
     console.error("useTxData SWR summary error:", summaryError);
   }
-  if (summaryData) {
-    console.log("useTxData summaryData keys:", Object.keys(summaryData), "summary exists:", !!(summaryData as any).summary, "keys of summary:", Object.keys((summaryData as any).summary || {}).length);
-  }
 
   return {
     txSummary: mergedSummary,
