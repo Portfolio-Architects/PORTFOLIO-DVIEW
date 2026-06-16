@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Send, GraduationCap, Brush, Sparkles, Phone, MessageSquare, Calendar, Home, CheckCircle2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -41,6 +41,13 @@ export default function B2BConsumerAdModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    };
+  }, []);
 
   // 학원 과목 토글
   const handleSubjectToggle = (subject: string) => {
@@ -88,7 +95,7 @@ export default function B2BConsumerAdModal({
         });
       }
       setIsSuccess(true);
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
         onClose();
       }, 2500);
     } catch (error) {
