@@ -148,6 +148,15 @@ export default function AptFitFinder({
   });
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const shareTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (shareTimeoutRef.current) {
+        clearTimeout(shareTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Auto transition from calculating screen to results
   useEffect(() => {
@@ -204,9 +213,12 @@ export default function AptFitFinder({
   const handleShare = () => {
     if (typeof window === 'undefined') return;
     const shareUrl = window.location.origin + window.location.pathname + '?tab=overview#fit-quiz';
+    if (shareTimeoutRef.current) {
+      clearTimeout(shareTimeoutRef.current);
+    }
     navigator.clipboard.writeText(shareUrl).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      shareTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     }).catch(err => {
       console.error('Failed to copy share link:', err);
     });
