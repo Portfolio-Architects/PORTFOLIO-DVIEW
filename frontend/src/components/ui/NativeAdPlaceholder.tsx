@@ -25,7 +25,7 @@ export const NativeAdPlaceholder = React.memo(function NativeAdPlaceholder({ loc
       if (ad.link.startsWith('/#')) {
         window.location.hash = ad.link.substring(2);
       } else {
-        window.open(ad.link, '_blank');
+        window.open(ad.link, '_blank', 'noopener,noreferrer');
       }
     }
   };
