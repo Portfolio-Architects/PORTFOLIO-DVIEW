@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -114,7 +114,7 @@ const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
   return `/api/posts?limit=20&lastCreatedAt=${lastPost.createdAt}`;
 };
 
-export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
+const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const { showToast } = usePWA();
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { data, error, size, setSize, isValidating } = useSWRInfinite<Post[]>(
@@ -1096,4 +1096,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       )}
     </div>
   );
-}
+});
+
+LoungeFeedClient.displayName = 'LoungeFeedClient';
+export default LoungeFeedClient;

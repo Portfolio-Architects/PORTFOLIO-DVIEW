@@ -15,7 +15,7 @@ interface ChopoomaCurationProps {
   onSelectApt: (name: string) => void;
 }
 
-export default function ChopoomaCuration({
+const ChopoomaCuration = React.memo(function ChopoomaCuration({
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -335,4 +335,7 @@ export default function ChopoomaCuration({
       )}
     </div>
   );
-}
+});
+
+ChopoomaCuration.displayName = 'ChopoomaCuration';
+export default ChopoomaCuration;

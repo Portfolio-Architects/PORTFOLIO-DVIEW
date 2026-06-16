@@ -3,7 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight, Share2 } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
@@ -60,7 +60,7 @@ const VerificationBadge = memo(({ apartment, level }: { apartment?: string; leve
 });
 VerificationBadge.displayName = 'VerificationBadge';
 
-export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
+const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
   const router = useRouter();
   const { triggerCustomA2HSModal, showToast } = usePWA();
   useSwipeNavigation({ onBack: () => isModal ? router.back() : router.back() });
@@ -1015,7 +1015,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       </div>
     </>
   );
-}
+});
+
+LoungeDetailClient.displayName = 'LoungeDetailClient';
 
 /**
  * Automatically parses text, finding any mention of dongtan apartments,
@@ -1072,4 +1074,6 @@ const autoLinkApartments = (content: string, apartments: string[]): string => {
 
   return finalContent;
 };
+
+export default LoungeDetailClient;
 

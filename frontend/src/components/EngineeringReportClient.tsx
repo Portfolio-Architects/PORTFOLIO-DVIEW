@@ -21,7 +21,7 @@ interface Props {
   contentRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function EngineeringReportClient({ metadata, markdownContent, contentRef }: Props) {
+const EngineeringReportClient = React.memo(function EngineeringReportClient({ metadata, markdownContent, contentRef }: Props) {
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -107,4 +107,7 @@ export default function EngineeringReportClient({ metadata, markdownContent, con
       </main>
     </div>
   );
-}
+});
+
+EngineeringReportClient.displayName = 'EngineeringReportClient';
+export default EngineeringReportClient;

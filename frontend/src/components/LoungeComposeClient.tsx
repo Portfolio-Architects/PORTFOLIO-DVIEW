@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-react';
 import { auth, googleProvider, storage } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
@@ -22,7 +22,7 @@ interface Props {
   onRequestLogin?: (message: string) => void;
 }
 
-export default function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
+const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
   const router = useRouter();
   const { showToast } = usePWA();
   const submitLockRef = useRef(false);
@@ -449,4 +449,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
       )}
     </>
   );
-}
+});
+
+LoungeComposeClient.displayName = 'LoungeComposeClient';
+export default LoungeComposeClient;
