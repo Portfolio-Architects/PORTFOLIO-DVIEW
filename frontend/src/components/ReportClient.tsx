@@ -15,6 +15,15 @@ export default function ReportClient() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;
@@ -45,7 +54,10 @@ export default function ReportClient() {
     try {
       await navigator.clipboard.writeText(engReportData.markdownContent);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Copy failed', err);
       alert('복사에 실패했습니다.');
