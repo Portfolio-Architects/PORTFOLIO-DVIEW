@@ -5,9 +5,15 @@ import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { requestGoogleIndexing } from '@/lib/utils/googleIndexing';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
+import { z } from 'zod';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const syncQuerySchema = z.object({
+  offset: z.string().optional().transform((v) => (v ? parseInt(v, 10) : 0)),
+  limit: z.string().optional().transform((v) => (v ? parseInt(v, 10) : 10)),
+});
 
 export async function GET(request: NextRequest) {
   const isAdmin = await verifyAdmin(request);
@@ -20,18 +26,42 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'No admin db configured' }, { status: 500 });
   }
 
-  // A basic safety check (e.g. only run locally or when explicitly allowed, but we'll allow it for this manual run)
+  const { searchParams } = new URL(request.url);
+  const parsedQuery = syncQuerySchema.safeParse({
+    offset: searchParams.get('offset') || undefined,
+    limit: searchParams.get('limit') || undefined,
+  });
+
+  if (!parsedQuery.success) {
+    logger.warn('SyncReportsAPI.GET', 'Invalid query parameters', {
+      errors: parsedQuery.error.format(),
+    });
+    return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
+  }
+
+  const { offset, limit } = parsedQuery.data;
   const baseUrl = request.nextUrl.origin;
 
   try {
     const snapshot = await adminDb.collection('scoutingReports').get();
+    const allDocs = snapshot.docs;
+    const totalCount = allDocs.length;
+
+    // Sort documents consistently to guarantee deterministic pagination
+    allDocs.sort((a, b) => a.id.localeCompare(b.id));
+
+    const slicedDocs = allDocs.slice(offset, offset + limit);
+    const hasMore = offset + limit < totalCount;
+
     let updatedCount = 0;
     const results: string[] = [];
     
     // Refresh cache once at the beginning
-    await fetch(`${baseUrl}/api/location-scores?apartment=dummy&refresh=1`, { cache: 'no-store' });
+    if (offset === 0) {
+      await fetch(`${baseUrl}/api/location-scores?apartment=dummy&refresh=1`, { cache: 'no-store' }).catch(() => {});
+    }
     
-    for (const doc of snapshot.docs) {
+    for (const doc of slicedDocs) {
       const data = doc.data();
       const aptName = data.apartmentName;
       
@@ -150,7 +180,14 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    return NextResponse.json({ success: true, updatedCount, results });
+    return NextResponse.json({
+      success: true,
+      updatedCount,
+      totalCount,
+      hasMore,
+      nextOffset: offset + limit,
+      results
+    });
   } catch (err: any) {
     logger.error('SyncReportsAPI.GET', 'Failed to execute reports sync', {}, err as Error);
     return NextResponse.json({ error: 'Failed to sync reports' }, { status: 500 });

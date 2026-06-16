@@ -69,6 +69,8 @@ export default function AdminDashboard() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isNoticeSyncing, setIsNoticeSyncing] = useState(false);
   const [isSheetsSyncing, setIsSheetsSyncing] = useState(false);
+  const [isReportsSyncing, setIsReportsSyncing] = useState(false);
+  const [reportsSyncProgress, setReportsSyncProgress] = useState({ current: 0, total: 0 });
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'unmatched'|'public'|'private'|'analyzed'|'verified'>('all');
   const [expandedDongs, setExpandedDongs] = useState<Set<string>>(new Set());
@@ -243,6 +245,46 @@ export default function AdminDashboard() {
       alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
     } finally {
       setIsNoticeSyncing(false);
+    }
+  };
+
+  const handleReportsSync = async () => {
+    if (!confirm('현장 리포트 분석 데이터(점수 및 인프라 거리 등)를 청크 단위로 순차 동기화하시겠습니까?\n이 작업은 각 아파트별 네이버 지도 연산 및 평점 계산을 수반하므로 시간이 걸릴 수 있습니다.')) return;
+    
+    setIsReportsSyncing(true);
+    setReportsSyncProgress({ current: 0, total: 0 });
+    
+    let offset = 0;
+    const limit = 15;
+    let hasMore = true;
+    let totalUpdated = 0;
+    
+    try {
+      while (hasMore) {
+        const res = await fetch(`/api/admin/sync-reports?offset=${offset}&limit=${limit}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `HTTP error ${res.status}`);
+        }
+        
+        const data = await res.json();
+        totalUpdated += data.updatedCount || 0;
+        
+        const total = data.totalCount || 0;
+        const nextOffset = data.nextOffset || (offset + limit);
+        setReportsSyncProgress({ current: Math.min(nextOffset, total), total });
+        
+        hasMore = data.hasMore;
+        offset = nextOffset;
+      }
+      
+      alert(`리포트 동기화 완료!\n- 동기화된 리포트: ${totalUpdated}건`);
+    } catch (e: any) {
+      console.error('Reports sync error:', e);
+      alert('리포트 동기화 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsReportsSyncing(false);
+      setReportsSyncProgress({ current: 0, total: 0 });
     }
   };
 
@@ -548,6 +590,11 @@ export default function AdminDashboard() {
             <RefreshCw size={16} className={isNoticeSyncing ? "animate-spin" : ""} /> 
             {isNoticeSyncing ? '동기화 중...' : '소식 수동 동기화'}
           </button>
+          <button onClick={handleReportsSync} disabled={isReportsSyncing}
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-amber-600 bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
+            <RefreshCw size={16} className={isReportsSyncing ? "animate-spin" : ""} /> 
+            {isReportsSyncing ? '동기화 중...' : '리포트 분석 동기화'}
+          </button>
           <button onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue hover:text-surface transition-all text-[13px]">
             <Plus size={16}/> 아파트 추가
@@ -556,6 +603,28 @@ export default function AdminDashboard() {
       </div>
 
       <div className={`transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+
+      {/* Reports Sync Progress Bar */}
+      {isReportsSyncing && (
+        <div className="bg-surface border border-border rounded-2xl p-5 mb-6 shadow-sm animate-in slide-in-from-top duration-300">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[13px] font-extrabold text-primary flex items-center gap-2">
+              <RefreshCw size={14} className="animate-spin text-amber-500" />
+              현장 리포트 분석 데이터 동기화 중...
+            </span>
+            <span className="text-[13px] font-bold text-amber-600 font-mono">
+              {reportsSyncProgress.current} / {reportsSyncProgress.total} 단지 
+              ({reportsSyncProgress.total > 0 ? Math.round((reportsSyncProgress.current / reportsSyncProgress.total) * 100) : 0}%)
+            </span>
+          </div>
+          <div className="w-full h-3 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300 ease-out" 
+              style={{ width: `${reportsSyncProgress.total > 0 ? (reportsSyncProgress.current / reportsSyncProgress.total) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Add Apartment Form */}
       {showAddForm && (
