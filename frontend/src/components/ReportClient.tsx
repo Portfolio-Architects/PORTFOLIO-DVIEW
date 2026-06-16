@@ -65,8 +65,16 @@ export default function ReportClient() {
   };
 
   useEffect(() => {
+    let active = true;
     setMounted(true);
-    getEngineeringReport().then(setEngReportData);
+    getEngineeringReport().then(data => {
+      if (active) {
+        setEngReportData(data);
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (

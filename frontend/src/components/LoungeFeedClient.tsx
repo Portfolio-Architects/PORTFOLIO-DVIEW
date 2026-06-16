@@ -230,21 +230,28 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   }, []);
 
   useEffect(() => {
+    let active = true;
     if (currentTab === '동탄 부동산 뉴스' && newsData.length === 0) {
       setNewsLoading(true);
       fetch("/api/macro/news")
         .then(res => res.json())
         .then((json: { status: string; data?: NewsItem[] }) => {
-          if (json.status === "success" && json.data) {
+          if (active && json.status === "success" && json.data) {
             setNewsData(json.data);
           }
         })
         .catch(err => console.warn('LoungeFeedClient - Failed to fetch news:', err instanceof Error ? err.message : err))
-        .finally(() => setNewsLoading(false));
+        .finally(() => {
+          if (active) setNewsLoading(false);
+        });
     }
+    return () => {
+      active = false;
+    };
   }, [currentTab, newsData.length]);
 
   useEffect(() => {
+    let active = true;
     if ((currentTab === '동탄구 소식' || selectedNoticeId) && noticesData.length === 0) {
       setNoticesLoading(true);
       
@@ -253,6 +260,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
         fetch("/data/local-events.json").then(res => res.json()).catch(() => [])
       ])
         .then(([noticesJson, eventsJson]: [any, any[]]) => {
+          if (!active) return;
           let mergedNotices: LocalNoticeItem[] = [];
           if (noticesJson && noticesJson.notices) {
             mergedNotices = [...noticesJson.notices];
@@ -278,9 +286,18 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             setLastUpdatedTime(noticesJson.lastUpdated);
           }
         })
-        .catch(err => console.warn('LoungeFeedClient - Failed to fetch notices or events:', err instanceof Error ? err.message : err))
-        .finally(() => setNoticesLoading(false));
+        .catch(err => {
+          if (active) {
+            console.warn('LoungeFeedClient - Failed to fetch notices or events:', err instanceof Error ? err.message : err);
+          }
+        })
+        .finally(() => {
+          if (active) setNoticesLoading(false);
+        });
     }
+    return () => {
+      active = false;
+    };
   }, [currentTab, selectedNoticeId, noticesData.length]);
 
   const loadMorePosts = useCallback(() => {
