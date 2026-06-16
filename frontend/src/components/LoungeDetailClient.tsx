@@ -770,7 +770,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                         const isManagerReport = post?.category === '동탄 임장/분석' || post?.category === '임장기' || String(post?.title || '').includes('매니저') || String(post?.title || '').includes('임장기') || String(post?.content || '').includes('매니저 임장기') || String(post?.author || '').includes('매니저') || String(post?.author || '').includes('D-VIEW') || String(post?.author || '').toLowerCase().includes('admin');
                         
                         return (
-                          <span className="block relative w-full rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px] group">
+                          <span className="block relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px] group">
                             <Image 
                               src={props.src} 
                               alt={props.alt || '첨부 이미지'} 
