@@ -13,6 +13,14 @@ interface PushSubscriptionModalProps {
 export default function PushSubscriptionModal({ isOpen, onClose, aptName }: PushSubscriptionModalProps) {
   const { subscribeToPush, showToast, isPushSupported } = usePWA();
   const [submitting, setSubmitting] = React.useState(false);
+  const mountedRef = React.useRef(true);
+
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -31,14 +39,16 @@ export default function PushSubscriptionModal({ isOpen, onClose, aptName }: Push
     setSubmitting(true);
     try {
       const success = await subscribeToPush();
-      if (success) {
+      if (success && mountedRef.current) {
         showToast(`🔔 ${aptName}의 실거래가 변동 알림 신청이 완료되었습니다!`);
         onClose();
       }
     } catch (err) {
       console.error('Subscription error in modal', err);
     } finally {
-      setSubmitting(false);
+      if (mountedRef.current) {
+        setSubmitting(false);
+      }
     }
   };
 
