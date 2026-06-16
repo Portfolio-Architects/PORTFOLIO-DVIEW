@@ -54,7 +54,7 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
   console.warn('TossApartmentExploreClient Chunk Load failure, page reload initiated', err);
   safeReload('TossApartmentExploreClient');
   return { default: () => null };
-}), { ssr: false, loading: () => <ExploreListSkeleton /> });
+}), { ssr: true, loading: () => <ExploreListSkeleton /> });
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   console.warn('FieldReportModal Chunk Load failure, page reload initiated', err);
