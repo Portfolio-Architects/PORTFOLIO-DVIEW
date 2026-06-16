@@ -301,8 +301,13 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
  * @throws FirestoreError if update fails
  */
 export async function incrementReportLike(reportId: string): Promise<void> {
-  const reportRef = doc(db, 'field_reports', reportId);
-  await updateDoc(reportRef, { likes: increment(1) });
+  try {
+    const reportRef = doc(db, 'field_reports', reportId);
+    await updateDoc(reportRef, { likes: increment(1) });
+  } catch (error) {
+    logger.error('ReportRepository.incrementReportLike', 'Failed to increment report like', { reportId }, error);
+    throw error;
+  }
 }
 
 /**
@@ -312,13 +317,21 @@ export async function incrementReportLike(reportId: string): Promise<void> {
  * @throws FirestoreError if update fails
  */
 export async function incrementReportView(reportId: string, title: string = '알 수 없는 리포트'): Promise<void> {
-  // Update global counter in scoutingReports (or field_reports depending on which collection is used)
-  const reportRef = doc(db, 'scoutingReports', reportId);
-  await updateDoc(reportRef, { viewCount: increment(1) }).catch(() => {
-    // some are in field_reports
-    const fbRef = doc(db, 'field_reports', reportId);
-    return updateDoc(fbRef, { viewCount: increment(1) }).catch(() => {});
-  });
-  
-  await TrafficRepo.incrementContentView(reportId, title, 'report');
+  try {
+    // Update global counter in scoutingReports (or field_reports depending on which collection is used)
+    const reportRef = doc(db, 'scoutingReports', reportId);
+    await updateDoc(reportRef, { viewCount: increment(1) }).catch((error) => {
+      // some are in field_reports
+      const fbRef = doc(db, 'field_reports', reportId);
+      return updateDoc(fbRef, { viewCount: increment(1) }).catch((fbError) => {
+        logger.error('ReportRepository.incrementReportView', 'Failed to increment report view in both collections', { reportId }, fbError);
+      });
+    });
+    
+    await TrafficRepo.incrementContentView(reportId, title, 'report');
+  } catch (error) {
+    logger.error('ReportRepository.incrementReportView', 'Failed to execute incrementReportView pipeline', { reportId }, error);
+    throw error;
+  }
 }
+

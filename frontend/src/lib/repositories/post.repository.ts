@@ -74,6 +74,8 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
     });
 
     callback(posts);
+  }, (error) => {
+    logger.error('PostRepository.listenToPosts', 'Real-time post listener failed', undefined, error);
   });
 }
 
@@ -93,14 +95,19 @@ export async function createPost(data: {
   verifiedApartment?: string;
   verificationLevel?: string;
 }): Promise<string> {
-  const docRef = await addDoc(collection(db, 'posts').withConverter(postConverter), {
-    ...data,
-    likes: 0,
-    views: 0,
-    createdAt: serverTimestamp(),
-  } as PostDocument);
-  logger.info('PostRepository.createPost', 'Post created', { id: docRef.id });
-  return docRef.id;
+  try {
+    const docRef = await addDoc(collection(db, 'posts').withConverter(postConverter), {
+      ...data,
+      likes: 0,
+      views: 0,
+      createdAt: serverTimestamp(),
+    } as PostDocument);
+    logger.info('PostRepository.createPost', 'Post created', { id: docRef.id });
+    return docRef.id;
+  } catch (error) {
+    logger.error('PostRepository.createPost', 'Failed to create post in Firestore', { title: data.title, authorUid: data.authorUid }, error);
+    throw error;
+  }
 }
 
 async function invalidatePostCache(postId: string): Promise<void> {
@@ -120,9 +127,14 @@ async function invalidatePostCache(postId: string): Promise<void> {
  * @throws FirestoreError if update fails
  */
 export async function incrementPostLike(postId: string): Promise<void> {
-  const postRef = doc(db, 'posts', postId).withConverter(postConverter);
-  await updateDoc(postRef, { likes: increment(1) });
-  await invalidatePostCache(postId);
+  try {
+    const postRef = doc(db, 'posts', postId).withConverter(postConverter);
+    await updateDoc(postRef, { likes: increment(1) });
+    await invalidatePostCache(postId);
+  } catch (error) {
+    logger.error('PostRepository.incrementPostLike', 'Failed to increment post like', { postId }, error);
+    throw error;
+  }
 }
 
 import * as TrafficRepo from '@/lib/repositories/traffic.repository';
@@ -134,10 +146,15 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
  * @throws FirestoreError if update fails
  */
 export async function incrementPostView(postId: string, title: string = '알 수 없는 글'): Promise<void> {
-  const postRef = doc(db, 'posts', postId).withConverter(postConverter);
-  await updateDoc(postRef, { views: increment(1) });
-  await TrafficRepo.incrementContentView(postId, title, 'lounge');
-  await invalidatePostCache(postId);
+  try {
+    const postRef = doc(db, 'posts', postId).withConverter(postConverter);
+    await updateDoc(postRef, { views: increment(1) });
+    await TrafficRepo.incrementContentView(postId, title, 'lounge');
+    await invalidatePostCache(postId);
+  } catch (error) {
+    logger.error('PostRepository.incrementPostView', 'Failed to increment post view', { postId }, error);
+    throw error;
+  }
 }
 
 /**
@@ -146,11 +163,17 @@ export async function incrementPostView(postId: string, title: string = '알 수
  * @throws FirestoreError if delete fails
  */
 export async function deletePost(postId: string): Promise<void> {
-  const postRef = doc(db, 'posts', postId).withConverter(postConverter);
-  await deleteDoc(postRef);
-  logger.info('PostRepository.deletePost', 'Post deleted', { postId });
-  await invalidatePostCache(postId);
+  try {
+    const postRef = doc(db, 'posts', postId).withConverter(postConverter);
+    await deleteDoc(postRef);
+    logger.info('PostRepository.deletePost', 'Post deleted', { postId });
+    await invalidatePostCache(postId);
+  } catch (error) {
+    logger.error('PostRepository.deletePost', 'Failed to delete post from Firestore', { postId }, error);
+    throw error;
+  }
 }
+
 
 /**
  * Fetches a single post. Supporting server-side (adminDb) and client-side (db) fetches.

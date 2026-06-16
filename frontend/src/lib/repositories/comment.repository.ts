@@ -29,20 +29,25 @@ export async function addComment(
   authorName: string,
   authorUid: string
 ): Promise<void> {
-  const commentsRef = collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter);
-  await addDoc(commentsRef, {
-    text,
-    authorName,
-    authorUid,
-    createdAt: serverTimestamp(),
-  });
+  try {
+    const commentsRef = collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter);
+    await addDoc(commentsRef, {
+      text,
+      authorName,
+      authorUid,
+      createdAt: serverTimestamp(),
+    });
 
-  // Increment parent report's comment counter
-  await updateDoc(doc(db, 'field_reports', reportId), {
-    commentCount: increment(1),
-  });
+    // Increment parent report's comment counter
+    await updateDoc(doc(db, 'field_reports', reportId), {
+      commentCount: increment(1),
+    });
 
-  logger.info('CommentRepository.addComment', 'Comment added', { reportId });
+    logger.info('CommentRepository.addComment', 'Comment added', { reportId });
+  } catch (error) {
+    logger.error('CommentRepository.addComment', 'Failed to add comment', { reportId, authorUid }, error);
+    throw error;
+  }
 }
 
 /**
@@ -90,6 +95,8 @@ export function listenToComments(
       }
     });
     callback(comments);
+  }, (error) => {
+    logger.error('CommentRepository.listenToComments', 'Real-time listener failed', { reportId }, error);
   });
 }
 

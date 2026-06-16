@@ -3,15 +3,13 @@
  * @description Data Access Layer for user reviews (동네 리뷰) in Firestore.
  * Architecture Layer: Repository (CRUD only)
  */
-import { db, storage } from '@/lib/firebaseConfig';
+import { db } from '@/lib/firebaseConfig';
 import {
   collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
   doc, updateDoc, increment, deleteDoc, getDocs
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { logger } from '@/lib/services/logger';
 import type { UserReview } from '@/lib/types/review.types';
-import { compressImage } from '@/lib/utils/imageCompression';
 import { z } from 'zod';
 
 const COLLECTION = 'user_reviews';
@@ -65,6 +63,8 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
       }
     });
     callback(reviews);
+  }, (error) => {
+    logger.error('ReviewRepository.listenToReviews', 'Real-time review listener failed', undefined, error);
   });
 }
 
@@ -144,42 +144,46 @@ export async function addReview(
   verificationLevel?: string,
   imageFile?: File,
 ): Promise<void> {
-  let photoURL: string | undefined;
+  try {
+    let photoURL: string | undefined;
 
-  // Upload image if provided
-  if (imageFile) {
-    try {
-      const compressed = await compressImage(imageFile);
-      const storageRef = ref(storage, `user_reviews/${Date.now()}_${imageFile.name}`);
-      const snapshot = await uploadBytes(storageRef, compressed);
-      photoURL = await getDownloadURL(snapshot.ref);
-    } catch (e) {
-      logger.error('ReviewRepository.addReview', 'Image upload failed', undefined, e);
+    // Upload image if provided via unified storage.service
+    if (imageFile) {
+      const { uploadImage } = await import('@/lib/services/storage.service');
+      photoURL = await uploadImage(imageFile, 'user_reviews');
     }
+
+    await addDoc(collection(db, COLLECTION), {
+      apartmentName,
+      rating,
+      content,
+      photoURL: photoURL || null,
+      author: authorNickname,
+      authorUid,
+      verifiedApartment: verifiedApartment || '',
+      verificationLevel: verificationLevel || '',
+      likes: 0,
+      createdAt: serverTimestamp(),
+    });
+
+    logger.info('ReviewRepository.addReview', 'User review created', { apartmentName, rating });
+  } catch (error) {
+    logger.error('ReviewRepository.addReview', 'Failed to add user review', { apartmentName, authorUid }, error);
+    throw error;
   }
-
-  await addDoc(collection(db, COLLECTION), {
-    apartmentName,
-    rating,
-    content,
-    photoURL: photoURL || null,
-    author: authorNickname,
-    authorUid,
-    verifiedApartment: verifiedApartment || '',
-    verificationLevel: verificationLevel || '',
-    likes: 0,
-    createdAt: serverTimestamp(),
-  });
-
-  logger.info('ReviewRepository.addReview', 'User review created', { apartmentName, rating });
 }
 
 /**
  * Increments the like count of a review.
  */
 export async function incrementReviewLike(reviewId: string): Promise<void> {
-  const reviewRef = doc(db, COLLECTION, reviewId);
-  await updateDoc(reviewRef, { likes: increment(1) });
+  try {
+    const reviewRef = doc(db, COLLECTION, reviewId);
+    await updateDoc(reviewRef, { likes: increment(1) });
+  } catch (error) {
+    logger.error('ReviewRepository.incrementReviewLike', 'Failed to increment review like', { reviewId }, error);
+    throw error;
+  }
 }
 
 /**
@@ -188,7 +192,13 @@ export async function incrementReviewLike(reviewId: string): Promise<void> {
  * @throws FirestoreError if delete fails
  */
 export async function deleteReview(reviewId: string): Promise<void> {
-  const reviewRef = doc(db, COLLECTION, reviewId);
-  await deleteDoc(reviewRef);
-  logger.info('ReviewRepository.deleteReview', 'Review deleted', { reviewId });
+  try {
+    const reviewRef = doc(db, COLLECTION, reviewId);
+    await deleteDoc(reviewRef);
+    logger.info('ReviewRepository.deleteReview', 'Review deleted', { reviewId });
+  } catch (error) {
+    logger.error('ReviewRepository.deleteReview', 'Failed to delete review', { reviewId }, error);
+    throw error;
+  }
 }
+

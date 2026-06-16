@@ -125,27 +125,43 @@ export async function setApartmentVerification(
   apartment: string,
   level: VerificationLevel
 ): Promise<void> {
-  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-  await updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level });
-  logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
+  try {
+    const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+    await updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level });
+    logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
+  } catch (error) {
+    logger.error('UserRepository.setApartmentVerification', 'Failed to set apartment verification', { uid, apartment, level }, error);
+    throw error;
+  }
 }
 
 /**
  * Updates the user's nickname.
  */
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
-  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-  await updateDoc(userRef, { nickname, hasSetNickname: true });
-  logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
+  try {
+    const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+    await updateDoc(userRef, { nickname, hasSetNickname: true });
+    logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
+  } catch (error) {
+    logger.error('UserRepository.updateNickname', 'Failed to update nickname', { uid, nickname }, error);
+    throw error;
+  }
 }
 
 /**
  * Updates the user's profile photo URL.
  */
 export async function updatePhotoURL(uid: string, photoURL: string): Promise<void> {
-  const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-  await updateDoc(userRef, { photoURL });
-  logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
+  try {
+    const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+    await updateDoc(userRef, { photoURL });
+    logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
+  } catch (error) {
+    logger.error('UserRepository.updatePhotoURL', 'Failed to update photo URL', { uid }, error);
+    throw error;
+  }
 }
+
 
 
