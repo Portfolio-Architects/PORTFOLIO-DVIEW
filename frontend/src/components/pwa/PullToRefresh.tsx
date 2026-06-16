@@ -29,6 +29,7 @@ export default function PullToRefresh({
   const progressRef = useRef<number>(0);
   const isRefreshingRef = useRef<boolean>(false);
   const mountedRef = useRef(true);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sync state with refs for event listener stability
   useEffect(() => {
@@ -43,6 +44,9 @@ export default function PullToRefresh({
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -95,7 +99,9 @@ export default function PullToRefresh({
             // Fallback to Next.js router refresh
             router.refresh();
             // Artificial delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise<void>(resolve => {
+              refreshTimeoutRef.current = setTimeout(resolve, 800);
+            });
           }
         } catch (error) {
           console.error("Refresh failed:", error);
