@@ -54,6 +54,7 @@ export default function GapInvestmentExplorer({
   const [showAll, setShowAll] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const shareTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,8 +68,14 @@ export default function GapInvestmentExplorer({
     }
 
     navigator.clipboard.writeText(shareUrl).then(() => {
-      setIsCopied(true);
-      shareTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
+      if (mountedRef.current) {
+        setIsCopied(true);
+      }
+      shareTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setIsCopied(false);
+        }
+      }, 2000);
       showToast('갭투자 큐레이션 필터 링크가 클립보드에 복사되었습니다! 💚');
     }).catch(err => {
       console.error('Failed to copy URL:', err);
@@ -116,6 +123,7 @@ export default function GapInvestmentExplorer({
 
   // Sync states on mount and register popstate listener
   useEffect(() => {
+    mountedRef.current = true;
     if (typeof window === 'undefined') return;
     
     syncStatesFromUrl();
@@ -126,6 +134,7 @@ export default function GapInvestmentExplorer({
 
     window.addEventListener('popstate', handlePopState);
     return () => {
+      mountedRef.current = false;
       window.removeEventListener('popstate', handlePopState);
       if (shareTimeoutRef.current) {
         clearTimeout(shareTimeoutRef.current);
