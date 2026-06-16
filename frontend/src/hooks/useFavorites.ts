@@ -128,6 +128,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
 
   const updateFavoriteOrder = async (newOrder: string[]) => {
     if (!user) return;
+    if (!isMountedRef.current) return;
 
     setUserFavorites(new Set(newOrder));
 
@@ -143,6 +144,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       });
       if (!res.ok) throw new Error('Failed to update favorite order');
     } catch (err) {
+      if (!isMountedRef.current) return;
       logger.warn('useFavorites.updateFavoriteOrder', 'Failed to save order to Firestore', {}, err as Error);
     }
   };
