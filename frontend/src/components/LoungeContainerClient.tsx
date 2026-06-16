@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
@@ -47,6 +47,7 @@ export default function LoungeContainerClient({
 }) {
   const [currentTab, setCurrentTab] = useState(searchParams?.notice ? '동탄구 소식' : '동탄 부동산 뉴스');
   const { data: events } = useSWR('/data/local-events.json', fetcher);
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -68,11 +69,14 @@ export default function LoungeContainerClient({
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
       } else {
-        setTimeout(preloadLoungeChunks, 2000);
+        preloadTimeoutRef.current = setTimeout(preloadLoungeChunks, 2000);
       }
 
       window.addEventListener('hashchange', handleHashChange);
-      return () => window.removeEventListener('hashchange', handleHashChange);
+      return () => {
+        window.removeEventListener('hashchange', handleHashChange);
+        if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
+      };
     }
   }, []);
   const categories = [
