@@ -26,7 +26,7 @@ export default function SWRProvider({ children }: { children: ReactNode }) {
       const targets = [
         '/data/location-scores.json',
         '/api/local-notices',
-        '/api/apartments'
+        '/api/apartments-by-dong'
       ];
 
       targets.forEach(url => {
