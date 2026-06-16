@@ -23,7 +23,7 @@ interface PendingPhoto {
   uploaderUid?: string;
 }
 
-export default function PendingPhotosPage() {
+const PendingPhotosPage = React.memo(function PendingPhotosPage() {
   const [photos, setPhotos] = useState<PendingPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -302,4 +302,8 @@ export default function PendingPhotosPage() {
       )}
     </div>
   );
-}
+});
+
+PendingPhotosPage.displayName = 'PendingPhotosPage';
+
+export default PendingPhotosPage;
