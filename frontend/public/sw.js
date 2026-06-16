@@ -133,22 +133,66 @@ async function deleteMutation(id) {
   });
 }
 
+async function updateMutation(mutation) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.put(mutation);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function handleSyncFailure(m) {
+  m.retries = (m.retries || 0) + 1;
+  if (m.retries > 5) {
+    await deleteMutation(m.id);
+    console.error(`[SW Sync] Mutation discarded after 5 failed retries: ${m.id}`);
+  } else {
+    const jitter = Math.random() * 1000;
+    const delay = 1000 * Math.pow(2, m.retries) + jitter;
+    m.nextAttempt = Date.now() + delay;
+    await updateMutation(m);
+    console.warn(`[SW Sync] Mutation failed (Retry #${m.retries}). Next attempt in ${Math.round(delay)}ms`);
+  }
+}
+
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-mutations') {
     event.waitUntil(
       (async () => {
         try {
           const mutations = await getOfflineMutations();
+          const now = Date.now();
           for (const m of mutations) {
-            // Replay the request
-            // We assume payload contains URL, method, headers, and body
+            // Check nextAttempt timing boundary
+            if (m.nextAttempt && m.nextAttempt > now) {
+              continue;
+            }
+
             if (m.type === 'API_REQUEST') {
-              await fetch(m.payload.url, {
-                method: m.payload.method,
-                headers: m.payload.headers,
-                body: JSON.stringify(m.payload.body)
-              });
-              await deleteMutation(m.id);
+              try {
+                const res = await fetch(m.payload.url, {
+                  method: m.payload.method,
+                  headers: m.payload.headers,
+                  body: JSON.stringify(m.payload.body)
+                });
+
+                if (res.ok) {
+                  await deleteMutation(m.id);
+                  console.log(`[SW Sync] Successfully replayed mutation: ${m.id}`);
+                } else {
+                  if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+                    await deleteMutation(m.id);
+                    console.warn(`[SW Sync] Discarded mutation due to client error (${res.status}): ${m.id}`);
+                  } else {
+                    await handleSyncFailure(m);
+                  }
+                }
+              } catch (err) {
+                await handleSyncFailure(m);
+              }
             }
           }
         } catch (err) {

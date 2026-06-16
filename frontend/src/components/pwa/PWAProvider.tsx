@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
+import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
 
 
 
@@ -79,6 +79,11 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    // Trigger initial offline sync queue processing on mount if online
+    if (typeof window !== 'undefined' && navigator.onLine) {
+      retryOfflineRequests();
+    }
+
     // Clear old SWR localStorage cache to ensure returning users get fresh data
     try {
       if (typeof window !== 'undefined') {
@@ -117,6 +122,13 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
     }
 
+    // 🔧 Online status restoration manual queue replay
+    const handleOnlineStatus = () => {
+      console.log('[PWAProvider] Network restored. Triggering manual offline sync queue replay...');
+      retryOfflineRequests();
+    };
+    window.addEventListener('online', handleOnlineStatus);
+
     // 1. A2HS Logic
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -128,11 +140,11 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       setDeferredPrompt(null);
       setIsInstallable(false);
       setShowCustomA2HSModal(false);
-      
+
       // Add PWA reward passes to localStorage
       const currentPasses = Number(localStorage.getItem('dview_free_passes') || '0');
       localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
-      
+
       setToastMessage('🎉 홈화면 앱 설치 감사 혜택! 무료 리포트 조회권 3회가 지급되었습니다.');
       setTimeout(() => {
         if (isMounted) {
@@ -163,6 +175,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('online', handleOnlineStatus);
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
       }

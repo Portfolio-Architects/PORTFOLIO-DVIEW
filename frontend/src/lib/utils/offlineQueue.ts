@@ -14,6 +14,8 @@ export interface OfflineMutation {
   type: 'API_REQUEST';
   payload: OfflineRequestPayload;
   timestamp: number;
+  retries?: number;
+  nextAttempt?: number;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -43,7 +45,9 @@ export async function enqueueOfflineRequest(payload: OfflineRequestPayload): Pro
     id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     type: 'API_REQUEST',
     payload,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    retries: 0,
+    nextAttempt: Date.now()
   };
 
   await new Promise<void>((resolve, reject) => {
@@ -68,5 +72,95 @@ export async function enqueueOfflineRequest(payload: OfflineRequestPayload): Pro
     } catch (err) {
       logger.warn('OfflineSync', 'Background Sync registration failed, will rely on next online event', {}, err as Error);
     }
+  }
+}
+
+/**
+ * Safely triggers offline mutation sync manually (primarily for browsers without SyncManager, e.g. Safari).
+ */
+export async function retryOfflineRequests(): Promise<void> {
+  if (typeof window === 'undefined' || !navigator.onLine) return;
+
+  try {
+    const db = await openDB();
+    const mutations = await new Promise<OfflineMutation[]>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result.sort((a: any, b: any) => a.timestamp - b.timestamp));
+      req.onerror = () => reject(req.error);
+    });
+
+    const now = Date.now();
+    for (const m of mutations) {
+      if (m.nextAttempt && m.nextAttempt > now) continue;
+
+      if (m.type === 'API_REQUEST') {
+        try {
+          const res = await fetch(m.payload.url, {
+            method: m.payload.method,
+            headers: {
+              'Content-Type': 'application/json',
+              ...m.payload.headers,
+            },
+            body: JSON.stringify(m.payload.body),
+          });
+
+          if (res.ok) {
+            await new Promise<void>((resolve, reject) => {
+              const tx = db.transaction(STORE_NAME, 'readwrite');
+              const store = tx.objectStore(STORE_NAME);
+              const req = store.delete(m.id);
+              req.onsuccess = () => resolve();
+              req.onerror = () => reject(req.error);
+            });
+            logger.info('OfflineSync', 'Manual sync replayed successfully', { id: m.id });
+          } else {
+            if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+              await new Promise<void>((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.delete(m.id);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+              });
+              logger.warn('OfflineSync', `Manual sync discarded (Client Error ${res.status})`, { id: m.id });
+            } else {
+              await handleManualSyncFailure(db, m);
+            }
+          }
+        } catch (err) {
+          await handleManualSyncFailure(db, m);
+        }
+      }
+    }
+  } catch (err) {
+    logger.error('OfflineSync', 'Manual queue processing failed', {}, err as Error);
+  }
+}
+
+async function handleManualSyncFailure(db: IDBDatabase, m: OfflineMutation): Promise<void> {
+  m.retries = (m.retries || 0) + 1;
+  if (m.retries > 5) {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.delete(m.id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+    logger.error('OfflineSync', 'Manual sync discarded after 5 retries', { id: m.id });
+  } else {
+    const jitter = Math.random() * 1000;
+    const delay = 1000 * Math.pow(2, m.retries) + jitter;
+    m.nextAttempt = Date.now() + delay;
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.put(m);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+    logger.warn('OfflineSync', `Manual sync failed (Retry #${m.retries}). Next in ${Math.round(delay)}ms`, { id: m.id });
   }
 }
