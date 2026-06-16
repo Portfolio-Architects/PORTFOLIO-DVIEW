@@ -251,6 +251,15 @@ export default function AIRecommendations({
 }: AIRecommendationsProps) {
   const { viewedApts, quizAnswers } = useDashboardData();
   const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Defer updates of viewed history and quiz answers to maintain 60fps interaction speed
   const deferredViewedApts = useDeferredValue(viewedApts);
@@ -632,9 +641,12 @@ export default function AIRecommendations({
   const handleCopyLink = () => {
     if (typeof window === 'undefined') return;
     const shareUrl = window.location.origin + '/?from=ai_recommend';
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(shareUrl).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     }).catch(err => console.error('Link copy failed:', err));
   };
 
