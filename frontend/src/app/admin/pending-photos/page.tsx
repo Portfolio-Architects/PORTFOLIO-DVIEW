@@ -28,6 +28,14 @@ export default function PendingPhotosPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
+  const mountedRef = React.useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const fetchPendingPhotos = async () => {
     setLoading(true);
     try {
@@ -36,6 +44,7 @@ export default function PendingPhotosPage() {
         where('status', '==', 'pending')
       );
       const snapshot = await getDocs(q);
+      if (!mountedRef.current) return;
       const fetched: PendingPhoto[] = [];
       snapshot.forEach(doc => {
         fetched.push({ id: doc.id, ...doc.data() } as PendingPhoto);
@@ -44,10 +53,14 @@ export default function PendingPhotosPage() {
       fetched.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setPhotos(fetched);
     } catch (error) {
-      console.error("Error fetching pending photos:", error);
-      alert('데이터를 불러오는데 실패했습니다.');
+      if (mountedRef.current) {
+        console.error("Error fetching pending photos:", error);
+        alert('데이터를 불러오는데 실패했습니다.');
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -63,6 +76,7 @@ export default function PendingPhotosPage() {
       // 1. Get the target apartment report
       const reportRef = doc(db, 'scoutingReports', photo.apartmentId);
       const reportSnap = await getDoc(reportRef);
+      if (!mountedRef.current) return;
       
       if (!reportSnap.exists()) {
         alert('연결된 아파트 정보를 찾을 수 없습니다.');
@@ -80,6 +94,7 @@ export default function PendingPhotosPage() {
       if (photo.uploaderUid && photo.uploaderUid !== 'anonymous') {
         const userRef = doc(db, 'users', photo.uploaderUid).withConverter(userProfileConverter);
         const userSnap = await getDoc(userRef);
+        if (!mountedRef.current) return;
         if (userSnap.exists()) {
           const userData = userSnap.data();
           uploaderPoints = (userData.uploaderPoints || 0) + 20;
@@ -99,6 +114,7 @@ export default function PendingPhotosPage() {
         }
       }
 
+      if (!mountedRef.current) return;
 
       // 3. Add new image with uploader points and tier tags
       const newImage = {
@@ -115,20 +131,28 @@ export default function PendingPhotosPage() {
         images: [...currentImages, newImage]
       });
 
+      if (!mountedRef.current) return;
+
       // 4. Update pending status
       await updateDoc(doc(db, 'pending_photos', photo.id), {
         status: 'approved',
         processedAt: new Date()
       });
 
+      if (!mountedRef.current) return;
+
       // 5. Remove from list
       setPhotos(prev => prev.filter(p => p.id !== photo.id));
       
     } catch (error) {
-      console.error("Approval failed:", error);
-      alert('승인 처리 중 오류가 발생했습니다.');
+      if (mountedRef.current) {
+        console.error("Approval failed:", error);
+        alert('승인 처리 중 오류가 발생했습니다.');
+      }
     } finally {
-      setProcessingId(null);
+      if (mountedRef.current) {
+        setProcessingId(null);
+      }
     }
   };
 
@@ -143,6 +167,8 @@ export default function PendingPhotosPage() {
         processedAt: new Date()
       });
 
+      if (!mountedRef.current) return;
+
       // 2. Try to delete from storage to save space (optional, but good practice)
       try {
         const imageRef = ref(storage, photo.url);
@@ -151,13 +177,19 @@ export default function PendingPhotosPage() {
         console.warn('Could not delete image from storage:', e);
       }
 
+      if (!mountedRef.current) return;
+
       // 3. Remove from list
       setPhotos(prev => prev.filter(p => p.id !== photo.id));
     } catch (error) {
-      console.error("Rejection failed:", error);
-      alert('거절 처리 중 오류가 발생했습니다.');
+      if (mountedRef.current) {
+        console.error("Rejection failed:", error);
+        alert('거절 처리 중 오류가 발생했습니다.');
+      }
     } finally {
-      setProcessingId(null);
+      if (mountedRef.current) {
+        setProcessingId(null);
+      }
     }
   };
 
