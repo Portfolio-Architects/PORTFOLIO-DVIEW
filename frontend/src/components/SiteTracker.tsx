@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { incrementWebsiteVisit } from '@/lib/repositories/traffic.repository';
 
 /**
@@ -8,7 +8,7 @@ import { incrementWebsiteVisit } from '@/lib/repositories/traffic.repository';
  * Mounts once per app load. Checks if the user has visited today via localStorage.
  * If not, it increments the daily websiteVisit counter in Firestore.
  */
-export default function SiteTracker() {
+const SiteTracker = React.memo(function SiteTracker() {
   useEffect(() => {
     // Only run on the browser
     if (typeof window === 'undefined') return;
@@ -36,4 +36,7 @@ export default function SiteTracker() {
   }, []);
 
   return null; // Invisible component
-}
+});
+
+SiteTracker.displayName = 'SiteTracker';
+export default SiteTracker;

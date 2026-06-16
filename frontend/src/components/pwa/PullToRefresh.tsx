@@ -12,7 +12,7 @@ interface PullToRefreshProps {
   disabled?: boolean;
 }
 
-export default function PullToRefresh({ 
+const PullToRefresh = React.memo(function PullToRefresh({ 
   children, 
   onRefresh,
   pullThreshold = 80,
@@ -182,4 +182,7 @@ export default function PullToRefresh({
       </div>
     </div>
   );
-}
+});
+
+PullToRefresh.displayName = 'PullToRefresh';
+export default PullToRefresh;

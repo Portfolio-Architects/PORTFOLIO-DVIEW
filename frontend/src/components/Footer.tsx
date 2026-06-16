@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import NotificationBanner from './NotificationBanner';
 
-export default function Footer() {
+const Footer = React.memo(function Footer() {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
@@ -92,4 +92,7 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+});
+
+Footer.displayName = 'Footer';
+export default Footer;

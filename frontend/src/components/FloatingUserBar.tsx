@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'firebase/auth';
@@ -15,7 +15,7 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function FloatingUserBar() {
+const FloatingUserBar = React.memo(function FloatingUserBar() {
   const { setIsSettingsModalOpen, areaUnit, setAreaUnit } = useSettings();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
@@ -320,4 +320,7 @@ export default function FloatingUserBar() {
       )}
     </>
   );
-}
+});
+
+FloatingUserBar.displayName = 'FloatingUserBar';
+export default FloatingUserBar;

@@ -10,7 +10,7 @@ interface PushSubscriptionModalProps {
   aptName: string;
 }
 
-export default function PushSubscriptionModal({ isOpen, onClose, aptName }: PushSubscriptionModalProps) {
+const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen, onClose, aptName }: PushSubscriptionModalProps) {
   const { subscribeToPush, showToast, isPushSupported } = usePWA();
   const [submitting, setSubmitting] = React.useState(false);
   const mountedRef = React.useRef(true);
@@ -137,4 +137,7 @@ export default function PushSubscriptionModal({ isOpen, onClose, aptName }: Push
       </div>
     </>
   );
-}
+});
+
+PushSubscriptionModal.displayName = 'PushSubscriptionModal';
+export default PushSubscriptionModal;
