@@ -40,8 +40,12 @@ export default function AdSense({
         }
         const ads = (window as any).adsbygoogle;
         if (ads && typeof ads.push === 'function') {
-          ads.push({});
-          initialized.current = true;
+          try {
+            ads.push({});
+            initialized.current = true;
+          } catch (pushErr) {
+            console.warn('[AdSense] adsbygoogle.push failed. This usually happens when an AdBlocker intercepts or freezes the adsbygoogle array:', pushErr);
+          }
         } else {
           console.warn('[AdSense] adsbygoogle is not an array or push method is missing. The script might be blocked or crippled.');
         }
