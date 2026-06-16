@@ -144,6 +144,9 @@ export default function PullToRefresh({
         element.removeEventListener('touchend', handleTouchEnd);
         element.removeEventListener('touchcancel', handleTouchCancel);
       }
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
     };
   }, [disabled, scrollContainerId, pullThreshold, onRefresh, router]);
 

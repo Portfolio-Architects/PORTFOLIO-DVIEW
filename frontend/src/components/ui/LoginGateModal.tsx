@@ -14,9 +14,12 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
   const [isInApp, setIsInApp] = React.useState(false);
   const [copySuccess, setCopySuccess] = React.useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   React.useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
@@ -40,9 +43,15 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
-        setCopySuccess(true);
+        if (mountedRef.current) {
+          setCopySuccess(true);
+        }
         if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
+        copyTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setCopySuccess(false);
+          }
+        }, 2000);
         return;
       }
     } catch (e) {
@@ -61,9 +70,15 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
       const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
       if (successful) {
-        setCopySuccess(true);
+        if (mountedRef.current) {
+          setCopySuccess(true);
+        }
         if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
+        copyTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setCopySuccess(false);
+          }
+        }, 2000);
       }
     } catch (err) {
       alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
