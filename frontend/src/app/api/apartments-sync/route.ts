@@ -6,6 +6,8 @@ import { verifyAdmin } from '@/lib/authUtils';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
+export const dynamic = 'force-dynamic';
+
 const ApartmentsSyncInputSchema = z.object({
   updates: z.array(z.object({
     ticker: z.string().optional(),
@@ -175,7 +177,7 @@ export async function POST(req: NextRequest) {
 
   } catch (err: unknown) {
     logger.error('ApartmentsSyncAPI.POST', 'Google Sheets Sync Error', {}, err as Error);
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to sync apartments data' }, { status: 500 });
   }
 }
 // Force Turbopack recompile
