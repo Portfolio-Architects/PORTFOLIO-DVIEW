@@ -102,28 +102,36 @@ export default function AdSense({
     const container = containerRef.current;
     if (!container) return;
 
-    const insElement = container.querySelector('ins.adsbygoogle');
-    if (!insElement) return;
+    const checkAndNotify = (el: Element) => {
+      const status = el.getAttribute('data-ad-status');
+      if (status === 'filled' || status === 'unfilled') {
+        onAdStatusChange(status as 'filled' | 'unfilled');
+      }
+    };
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'data-ad-status') {
-          const status = insElement.getAttribute('data-ad-status');
-          if (status === 'filled' || status === 'unfilled') {
-            onAdStatusChange(status as 'filled' | 'unfilled');
+          checkAndNotify(mutation.target as Element);
+        } else if (mutation.type === 'childList') {
+          const ins = container.querySelector('ins.adsbygoogle');
+          if (ins) {
+            checkAndNotify(ins);
           }
         }
       });
     });
 
-    observer.observe(insElement, {
+    observer.observe(container, {
       attributes: true,
+      childList: true,
+      subtree: true,
       attributeFilter: ['data-ad-status']
     });
 
-    const initialStatus = insElement.getAttribute('data-ad-status');
-    if (initialStatus === 'filled' || initialStatus === 'unfilled') {
-      onAdStatusChange(initialStatus as 'filled' | 'unfilled');
+    const insElement = container.querySelector('ins.adsbygoogle');
+    if (insElement) {
+      checkAndNotify(insElement);
     }
 
     return () => {
