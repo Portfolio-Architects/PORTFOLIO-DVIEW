@@ -118,15 +118,20 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
     return reports.sort((a, b) => (b as FieldReportData & { _rawTimestamp: number })._rawTimestamp - (a as FieldReportData & { _rawTimestamp: number })._rawTimestamp);
   };
 
-  return onSnapshot(q, (snapshot) => {
+  let activeUnsubscribe: (() => void) | null = null;
+  let isUnsubscribed = false;
+
+  const unsubPrimary = onSnapshot(q, (snapshot) => {
     const mapped = mapSnapshot(snapshot);
     logger.debug('ReportRepository.listenToScoutingReports', 'Invoking callback with mapped reports', { count: mapped.length });
     callback(mapped);
   }, (error) => {
     logger.error('ReportRepository.listenToScoutingReports', 'onSnapshot error, falling back to unordered query', {}, error);
+    if (isUnsubscribed) return;
+
     // Fallback: query without orderBy (no index needed)
     const fallbackQ = query(collection(db, 'scoutingReports'), limit(30));
-    onSnapshot(fallbackQ, (fallbackSnapshot) => {
+    const unsubFallback = onSnapshot(fallbackQ, (fallbackSnapshot) => {
       const fallbackMapped = mapSnapshot(fallbackSnapshot);
       logger.debug('ReportRepository.listenToScoutingReports', 'Invoking callback from fallback', { count: fallbackMapped.length });
       callback(fallbackMapped);
@@ -135,8 +140,18 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
       logger.debug('ReportRepository.listenToScoutingReports', 'Invoking callback from fallback error with length 0');
       callback([]);
     });
+
+    activeUnsubscribe = unsubFallback;
   });
 
+  activeUnsubscribe = unsubPrimary;
+
+  return () => {
+    isUnsubscribed = true;
+    if (activeUnsubscribe) {
+      activeUnsubscribe();
+    }
+  };
 }
 
 export async function getFullReport(reportId: string): Promise<FieldReportData | null> {
