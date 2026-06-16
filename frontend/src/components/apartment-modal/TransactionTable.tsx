@@ -321,3 +321,6 @@ const TransactionRow = React.memo(function TransactionRow({
     </div>
   );
 });
+
+TransactionRow.displayName = 'TransactionRow';
+
