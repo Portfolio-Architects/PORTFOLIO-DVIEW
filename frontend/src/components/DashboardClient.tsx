@@ -440,6 +440,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
 
   useEffect(() => {
+    let isMounted = true;
     setMounted(true);
     let idleId: number | null = null;
     if (typeof window !== 'undefined') {
@@ -457,6 +458,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       // Preload heavy chunks during idle time to improve LCP & Interaction responsiveness
       const preloadHeavyComponents = () => {
+        if (!isMounted) return;
         import('@/components/ApartmentModal').catch(() => {});
         import('@/components/GapInvestmentExplorer').catch(() => {});
         import('@/components/LoungeContainerClient').catch(() => {});
@@ -473,6 +475,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         const queryTab = queryParams.get('tab');
         const hasCuration = queryParams.has('chopoomaStep') || queryParams.has('maxGap');
 
+        if (!isMounted) return;
         startTransition(() => {
           if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=') || queryTab === 'lounge') {
             setActiveTab('lounge');
@@ -491,18 +494,23 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       const handleScroll = () => {
         if (scrollTimeout) return;
         scrollTimeout = window.requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 200);
+          if (isMounted) {
+            setIsScrolled(window.scrollY > 200);
+          }
           scrollTimeout = null;
         });
       };
       window.addEventListener('scroll', handleScroll, { passive: true });
 
       const handleOpenAdInquiry = () => {
-        setIsAdModalOpen(true);
+        if (isMounted) {
+          setIsAdModalOpen(true);
+        }
       };
       window.addEventListener('open-ad-inquiry', handleOpenAdInquiry);
 
       return () => {
+        isMounted = false;
         if (idleId !== null && 'cancelIdleCallback' in window) {
           (window as any).cancelIdleCallback(idleId);
         }

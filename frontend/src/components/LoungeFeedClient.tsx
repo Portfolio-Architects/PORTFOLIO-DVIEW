@@ -175,8 +175,10 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   }, [activeSubCategory, activeDongFilter]);
 
   useEffect(() => {
+    let isMounted = true;
     let idleId: number | null = null;
     const checkParams = () => {
+      if (!isMounted) return;
       // Check query parameter
       const params = new URLSearchParams(window.location.search);
       const noticeParam = params.get('notice');
@@ -210,6 +212,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     window.addEventListener('hashchange', checkParams);
 
     const preloadDetail = () => {
+      if (!isMounted) return;
       import('@/components/LoungeDetailClient').catch(() => {});
     };
     if (typeof window !== 'undefined') {
@@ -221,6 +224,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     }
 
     return () => {
+      isMounted = false;
       if (idleId !== null && 'cancelIdleCallback' in window) {
         (window as any).cancelIdleCallback(idleId);
       }

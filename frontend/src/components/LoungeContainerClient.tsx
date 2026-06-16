@@ -50,9 +50,11 @@ export default function LoungeContainerClient({
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     let idleId: number | null = null;
     if (typeof window !== 'undefined') {
       const handleHashChange = () => {
+        if (!isMounted) return;
         if (window.location.hash === '#lounge-news') {
           setCurrentTab('동탄 부동산 뉴스');
         } else if (window.location.hash.startsWith('#lounge-notices') || window.location.hash.includes('notice=')) {
@@ -64,6 +66,7 @@ export default function LoungeContainerClient({
       
       // Preload heavy lounge components on idle
       const preloadLoungeChunks = () => {
+        if (!isMounted) return;
         import('@/components/LoungeFeedClient').catch(() => {});
         import('@/components/LoungeComposeClient').catch(() => {});
       };
@@ -75,6 +78,7 @@ export default function LoungeContainerClient({
 
       window.addEventListener('hashchange', handleHashChange);
       return () => {
+        isMounted = false;
         if (idleId !== null && 'cancelIdleCallback' in window) {
           (window as any).cancelIdleCallback(idleId);
         }

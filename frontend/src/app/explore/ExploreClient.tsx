@@ -232,10 +232,12 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
   }, [fieldReports, sheetApartments, nameMapping]);
 
   useEffect(() => {
+    let isMounted = true;
     setMounted(true);
     let idleId: number | null = null;
 
     const preloadHeavyChunks = () => {
+      if (!isMounted) return;
       import('@/components/TossApartmentExploreClient').catch(() => {});
       import('@/components/ApartmentModal').catch(() => {});
       import('@/components/consumer/AptCompareModal').catch(() => {});
@@ -254,6 +256,7 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
     }
 
     return () => {
+      isMounted = false;
       if (idleId !== null && 'cancelIdleCallback' in window) {
         (window as any).cancelIdleCallback(idleId);
       }
