@@ -38,74 +38,25 @@ import { createInitialKPIs, startKPISimulation } from '@/lib/services/kpi.servic
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 
-// Isomorphic Zod custom guard for File type to prevent ReferenceError in Node SSR
-const IsomorphicFileSchema = z.custom<any>((val) => {
-  if (typeof File === 'undefined') return true;
-  return val instanceof File;
-}, 'Must be a valid File object').optional();
+// Import validation schemas from facade.schemas.ts
+import {
+  AddPostInputSchema,
+  AddFieldReportInputSchema,
+  AddFieldReportCommentInputSchema,
+  AddUserReviewInputSchema,
+  UpdateNicknameInputSchema,
+  UpdatePhotoURLInputSchema,
+  GetFullReportInputSchema,
+  GetFullReportByApartmentNameInputSchema,
+  DeleteReviewInputSchema,
+  DeletePostInputSchema,
+  IncrementLikeInputSchema,
+  IncrementPostViewInputSchema,
+  IncrementFieldReportViewInputSchema,
+  IncrementFieldReportLikeInputSchema,
+  IncrementReviewLikeInputSchema,
+} from '@/lib/validation/facade.schemas';
 
-export const AddPostInputSchema = z.object({
-  title: z.string().min(1, '제목은 필수 입력 사항입니다.'),
-  content: z.string().min(1, '본문은 필수 입력 사항입니다.'),
-  category: z.string().min(1, '카테고리는 필수 입력 사항입니다.'),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  imageFile: IsomorphicFileSchema,
-  authorEmail: z.string().nullable().optional(),
-  customNickname: z.string().optional(),
-});
-
-export const AddFieldReportInputSchema = z.object({
-  apartmentName: z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.'),
-  sections: z.record(z.string(), z.any()), // ReportSections
-  premiumScores: z.record(z.string(), z.number()).nullable(),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  imageEntries: z.array(
-    z.object({
-      file: IsomorphicFileSchema,
-      category: z.string(),
-    })
-  ),
-});
-
-export const AddFieldReportCommentInputSchema = z.object({
-  reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
-  text: z.string().min(1, '댓글 내용은 필수 입력 사항입니다.'),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-});
-
-export const AddUserReviewInputSchema = z.object({
-  apartmentName: z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.'),
-  rating: z.number().min(1).max(5, '평점은 1에서 5 사이여야 합니다.'),
-  content: z.string().min(1, '리뷰 내용은 필수 입력 사항입니다.'),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  imageFile: IsomorphicFileSchema,
-});
-
-export const UpdateNicknameInputSchema = z.object({
-  uid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  nickname: z.string().min(1, '닉네임은 필수 입력 사항입니다.'),
-});
-
-export const UpdatePhotoURLInputSchema = z.object({
-  uid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  photoURL: z.string().url('유효한 URL이어야 합니다.').or(z.string().min(1)),
-});
-
-export const GetFullReportInputSchema = z.string().min(1, '보고서 ID는 필수 입력 사항입니다.');
-export const GetFullReportByApartmentNameInputSchema = z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.');
-export const DeleteReviewInputSchema = z.string().min(1, '리뷰 ID는 필수 입력 사항입니다.');
-export const DeletePostInputSchema = z.string().min(1, '게시글 ID는 필수 입력 사항입니다.');
-export const IncrementLikeInputSchema = z.string().min(1, '게시글 ID는 필수 입력 사항입니다.');
-export const IncrementPostViewInputSchema = z.object({
-  postId: z.string().min(1, '게시글 ID는 필수 입력 사항입니다.'),
-  title: z.string().optional(),
-});
-export const IncrementFieldReportViewInputSchema = z.object({
-  reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
-  title: z.string().optional(),
-});
-export const IncrementFieldReportLikeInputSchema = z.string().min(1, '보고서 ID는 필수 입력 사항입니다.');
-export const IncrementReviewLikeInputSchema = z.string().min(1, '리뷰 ID는 필수 입력 사항입니다.');
 
 // --- Strategy Interface (preserved for extensibility) ---
 
