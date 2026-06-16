@@ -14,7 +14,7 @@ interface AdSenseProps {
   onAdStatusChange?: (status: 'filled' | 'unfilled') => void;
 }
 
-export default function AdSense({
+const AdSense = React.memo(function AdSense({
   adClient,
   adSlot,
   adFormat = 'auto',
@@ -255,4 +255,7 @@ export default function AdSense({
       />
     </div>
   );
-}
+});
+
+AdSense.displayName = 'AdSense';
+export default AdSense;

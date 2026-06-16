@@ -11,7 +11,7 @@ interface NativeAdPlaceholderProps {
   isCompact?: boolean;
 }
 
-export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isCompact }: NativeAdPlaceholderProps) {
+export const NativeAdPlaceholder = React.memo(function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isCompact }: NativeAdPlaceholderProps) {
   const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
   const [adStatus, setAdStatus] = React.useState<'loading' | 'filled' | 'unfilled'>('loading');
 
@@ -109,5 +109,7 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
       </div>
     </div>
   );
-}
+});
+
+NativeAdPlaceholder.displayName = 'NativeAdPlaceholder';
 

@@ -10,7 +10,7 @@ interface TooltipProps {
   className?: string;
 }
 
-export function Tooltip({ content, children, delay = 300, className = '' }: TooltipProps) {
+export const Tooltip = React.memo(function Tooltip({ content, children, delay = 300, className = '' }: TooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, placement: 'top' });
   const triggerRef = useRef<HTMLElement>(null);
@@ -165,4 +165,6 @@ export function Tooltip({ content, children, delay = 300, className = '' }: Tool
       )}
     </>
   );
-}
+});
+
+Tooltip.displayName = 'Tooltip';

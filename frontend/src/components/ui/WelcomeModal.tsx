@@ -20,7 +20,7 @@ function setCookie(name: string, value: string, days: number): void {
   document.cookie = `${name}=${value || ''}${expires}; path=/; SameSite=Lax; Secure`;
 }
 
-export default function WelcomeModal() {
+const WelcomeModal = React.memo(function WelcomeModal() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -144,4 +144,7 @@ export default function WelcomeModal() {
       </div>
     </div>
   );
-}
+});
+
+WelcomeModal.displayName = 'WelcomeModal';
+export default WelcomeModal;

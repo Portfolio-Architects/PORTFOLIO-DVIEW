@@ -10,7 +10,7 @@ interface LoginGateModalProps {
   onLogin: () => void;
 }
 
-export default function LoginGateModal({ isOpen, onClose, message, onLogin }: LoginGateModalProps) {
+const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, message, onLogin }: LoginGateModalProps) {
   const [isInApp, setIsInApp] = React.useState(false);
   const [copySuccess, setCopySuccess] = React.useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -175,4 +175,7 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
       </div>
     </div>
   );
-}
+});
+
+LoginGateModal.displayName = 'LoginGateModal';
+export default LoginGateModal;
