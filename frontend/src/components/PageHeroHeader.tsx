@@ -67,9 +67,13 @@ export default function PageHeroHeader({
       <div
         className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-all duration-300 ${
           isScrolled
-            ? "translate-y-0 opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
-            : "-translate-y-full opacity-0 pointer-events-none"
+            ? "opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
+            : "opacity-0 pointer-events-none"
         }`}
+        style={{
+          transform: isScrolled ? 'translate3d(0, 0, 0)' : 'translate3d(0, -100%, 0)',
+          willChange: 'transform'
+        }}
       >
         <div className="text-[16px] font-extrabold text-primary tracking-tight">
           {compactTitle || title}
