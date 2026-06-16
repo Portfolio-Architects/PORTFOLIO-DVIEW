@@ -4,7 +4,7 @@ import { logger } from '@/lib/services/logger';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 
 const TX_SUMMARY = (txSummaryDataRaw as any).summary;
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 const transactionSummaryQuerySchema = z.object({
   apartment: z.string().optional(),
