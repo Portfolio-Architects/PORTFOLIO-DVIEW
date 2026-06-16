@@ -9,7 +9,7 @@ import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
   FileText, Plus, RefreshCw, ShieldAlert
 } from 'lucide-react';
-import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
 import { DONGS } from '@/lib/dongs';
 import { FULL_DONG_DATA } from '@/lib/dong-apartments';
