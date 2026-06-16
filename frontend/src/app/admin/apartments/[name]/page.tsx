@@ -115,6 +115,7 @@ export default function ApartmentInfoPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const savedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Photos state
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -132,6 +133,7 @@ export default function ApartmentInfoPage() {
           try { URL.revokeObjectURL(photo.previewUrl); } catch { /* ignore */ }
         }
       });
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
     };
   }, []);
 
@@ -703,7 +705,7 @@ export default function ApartmentInfoPage() {
       }
 
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      savedTimeoutRef.current = setTimeout(() => setSaved(false), 2000);
       if (newName !== originalName) {
         router.replace(`/admin/apartments/${encodeURIComponent(newName)}`);
       } else {
