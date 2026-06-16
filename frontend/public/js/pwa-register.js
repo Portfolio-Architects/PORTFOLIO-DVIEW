@@ -23,13 +23,19 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
         console.warn('Failed to get service worker registrations:', err);
       });
     } else {
-      window.addEventListener('load', function() {
+      var registerSW = function() {
         if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
           navigator.serviceWorker.register('/sw.js').catch(function(err) {
             console.log('ServiceWorker registration failed: ', err);
           });
         }
-      });
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+      }
     }
   } catch (globalErr) {
     console.warn('PWA service worker registration guard caught error:', globalErr);
