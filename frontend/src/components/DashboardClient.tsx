@@ -311,6 +311,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder, isFavoritesLoading } = useFavorites(user, initialDashboardData?.favoriteCounts);
   
   const [mounted, setMounted] = useState(false);
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [isConsumerAdModalOpen, setIsConsumerAdModalOpen] = useState(false);
   const [consumerAdInfo, setConsumerAdInfo] = useState<{ adType: 'insurance' | 'interior' | 'academy' | 'cleaning'; adTitle: string } | null>(null);
@@ -463,7 +464,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
       } else {
-        setTimeout(preloadHeavyComponents, 1000);
+        preloadTimeoutRef.current = setTimeout(preloadHeavyComponents, 1000);
       }
 
       const handleHashChange = () => {
@@ -505,6 +506,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         window.removeEventListener('scroll', handleScroll);
         if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
         window.removeEventListener('open-ad-inquiry', handleOpenAdInquiry);
+        if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
       };
     }
   }, []);
