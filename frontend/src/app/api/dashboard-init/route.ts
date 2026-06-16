@@ -42,11 +42,22 @@ export async function GET() {
     apartmentMeta: {},
   };
 
-  const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
-    Promise.race([
-      promise,
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
+  const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+    let timeoutId: any;
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
+    });
+    return Promise.race([
+      promise.then((val) => {
+        clearTimeout(timeoutId);
+        return val;
+      }).catch((err) => {
+        clearTimeout(timeoutId);
+        throw err;
+      }),
+      timeoutPromise
     ]);
+  };
 
   // 1. Favorite counts (Redis First -> Firebase Fallback)
   try {
