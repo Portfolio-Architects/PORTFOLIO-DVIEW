@@ -3,7 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight, Share2 } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
@@ -227,7 +227,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     return () => unsub();
   }, [postId]);
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     if (!postId || isLiked) return;
     try {
       setIsLiked(true);
@@ -249,9 +249,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       }
       showToast("공감 처리에 실패했습니다.");
     }
-  };
+  }, [postId, isLiked, triggerCustomA2HSModal, showToast]);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (!post || !postId) return;
     
     // Extract first image from markdown content if exists, to use as custom thumbnail
@@ -279,7 +279,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         showToast("주소 복사에 실패하여, 브라우저 주소창의 링크를 사용해 주세요.");
       }
     }
-  };
+  }, [post, postId, showToast]);
 
   const getAnonymousNickname = () => {
     if (typeof window === 'undefined') return '익명이웃';
@@ -325,7 +325,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     }
   };
 
-  const handleComment = async () => {
+  const handleComment = useCallback(async () => {
     if (commentLockRef.current) return;
     if (!commentText.trim()) return;
     
@@ -438,9 +438,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       setIsSending(false);
       commentLockRef.current = false;
     }
-  };
+  }, [commentText, user, userProfile, postId, triggerCustomA2HSModal, showToast]);
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = useCallback(async () => {
     if (!postId || !editTitle.trim()) return;
     try {
       await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), {
@@ -463,9 +463,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       console.error(e);
       alert('수정에 실패했습니다.');
     }
-  };
+  }, [postId, editTitle, editContent, editCategory, user?.email, dongtanApartments]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -499,7 +499,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  };
+  }, [editContent]);
 
   /** Verification badge */
   const VerificationBadge = ({ apartment, level }: { apartment?: string; level?: string }) => {
