@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
   MapPin, X, Camera,
   Building, Info, Shield, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
@@ -343,6 +343,7 @@ function FieldReportModal({
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
+  const deferredAreaFilter = useDeferredValue(selectedAreaFilter);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
@@ -911,12 +912,12 @@ function FieldReportModal({
 
   // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {
-    if (selectedAreaFilter === '전체') return safeTransactions;
+    if (deferredAreaFilter === '전체') return safeTransactions;
     return safeTransactions.filter(tx => {
       const label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
-      return label === selectedAreaFilter;
+      return label === deferredAreaFilter;
     });
-  }, [safeTransactions, selectedAreaFilter, areaUnit]);
+  }, [safeTransactions, deferredAreaFilter, areaUnit]);
 
   // Hydration-safe portal mount
   useEffect(() => {
