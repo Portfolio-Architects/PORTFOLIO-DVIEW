@@ -67,6 +67,13 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
 
   const lastCommentTimeRef = useRef<number>(0);
   const commentLockRef = useRef<boolean>(false);
+  const uploadFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
+    };
+  }, []);
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -504,7 +511,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         const mdImage = `\n![이미지](${url})\n`;
         const newText = editContent.substring(0, start) + mdImage + editContent.substring(end);
         setEditContent(newText);
-        setTimeout(() => {
+        uploadFocusTimeoutRef.current = setTimeout(() => {
           textarea.focus();
           textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
         }, 10);
