@@ -14,7 +14,7 @@ const defaultFetcher = async (url: string) => {
   return res.json();
 };
 
-export default function SWRProvider({ children }: { children: ReactNode }) {
+const SWRProvider = React.memo(function SWRProvider({ children }: { children: ReactNode }) {
   const isOnline = useNetworkStatus();
 
   useEffect(() => {
@@ -80,4 +80,8 @@ export default function SWRProvider({ children }: { children: ReactNode }) {
       {children}
     </SWRConfig>
   );
-}
+});
+
+SWRProvider.displayName = 'SWRProvider';
+
+export default SWRProvider;
