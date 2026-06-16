@@ -228,6 +228,14 @@ async function main() {
     fs.writeFileSync(TASK_MD_PATH, updatedContent, 'utf8');
     log(colors.green, `✅ Marked task as completed in task.md.`);
 
+    // Run task-autogenerator.js to auto-generate more tasks when needed
+    try {
+      log(colors.cyan, '🔄 Running task-autogenerator.js check...');
+      execSync('node scripts/task-autogenerator.js', { cwd: path.join(PROJECT_ROOT, 'frontend'), stdio: 'inherit' });
+    } catch (autoGenErr) {
+      log(colors.red, `⚠️ task-autogenerator.js execution failed: ${autoGenErr.message}`);
+    }
+
     // Clear failure counter for this task
     if (history.failures[taskText]) {
       delete history.failures[taskText];
