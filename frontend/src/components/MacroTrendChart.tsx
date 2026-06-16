@@ -196,10 +196,10 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
               <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
             </linearGradient>
             <filter id="glowSale" x="-5%" y="-5%" width="110%" height="110%">
-              <feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#00d29d" floodOpacity="0.2" />
+              <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" floodColor="#00d29d" floodOpacity="0.12" />
             </filter>
             <filter id="glowRent" x="-5%" y="-5%" width="110%" height="110%">
-              <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#f9a825" floodOpacity="0.15" />
+              <feDropShadow dx="0" dy="1" stdDeviation="0.8" floodColor="#f9a825" floodOpacity="0.08" />
             </filter>
           </defs>
           <CartesianGrid
@@ -246,7 +246,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             name="평균 매매가"
             dataKey="동탄 아파트 전체"
             stroke="#00d29d"
-            strokeWidth={isBottomSheet ? 3 : 4}
+            strokeWidth={isBottomSheet ? 1.5 : 1.8}
             fill="url(#colorSale)"
             style={{ filter: "url(#glowSale)" }}
             animationDuration={isBottomSheet ? undefined : 300}
@@ -255,11 +255,11 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
                 ? false
                 : timeframe === "ALL" || timeframe === "5Y"
                 ? false
-                : { r: 5, strokeWidth: 2, fill: "var(--bg-surface)" }
+                : { r: 3.5, strokeWidth: 1.5, fill: "var(--bg-surface)" }
             }
             activeDot={{
-              r: isBottomSheet ? 5 : 6,
-              strokeWidth: isBottomSheet ? 2 : 3,
+              r: isBottomSheet ? 4.5 : 5,
+              strokeWidth: isBottomSheet ? 1.5 : 2,
               stroke: "var(--bg-surface)",
               fill: "#00d29d"
             }}
@@ -270,7 +270,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             name="평균 전세가"
             dataKey="동탄 아파트 전세 평균"
             stroke="#f9a825"
-            strokeWidth={2}
+            strokeWidth={isBottomSheet ? 1.0 : 1.2}
             fill="url(#colorRent)"
             style={{ filter: "url(#glowRent)" }}
             animationDuration={isBottomSheet ? undefined : 300}
@@ -279,11 +279,11 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
                 ? false
                 : timeframe === "ALL" || timeframe === "5Y"
                 ? false
-                : { r: 3, strokeWidth: 2, fill: "var(--bg-surface)" }
+                : { r: 2.5, strokeWidth: 1.5, fill: "var(--bg-surface)" }
             }
             activeDot={{
-              r: isBottomSheet ? 4 : 5,
-              strokeWidth: isBottomSheet ? 2 : 2.5,
+              r: isBottomSheet ? 3.5 : 4,
+              strokeWidth: isBottomSheet ? 1.5 : 2,
               stroke: "var(--bg-surface)",
               fill: "#f9a825"
             }}
