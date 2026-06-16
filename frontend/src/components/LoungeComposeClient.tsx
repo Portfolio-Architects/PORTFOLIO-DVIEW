@@ -139,6 +139,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
         }
         
         // Timeout to set focus back to textarea
+        if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
         uploadFocusTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current && textarea) {
             textarea.focus();
@@ -395,6 +396,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                         apartments.forEach((aptName) => {
                           localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
                         });
+                        if (rewardToastTimeoutRef.current) clearTimeout(rewardToastTimeoutRef.current);
                         rewardToastTimeoutRef.current = setTimeout(() => {
                           if (mountedRef.current) {
                             showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');

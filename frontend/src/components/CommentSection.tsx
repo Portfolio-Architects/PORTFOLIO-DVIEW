@@ -75,6 +75,7 @@ export default function CommentSection({
       onCommentChange(commentInput + mentionText);
     }
     
+    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
     focusTimeoutRef.current = setTimeout(() => {
       if (mountedRef.current && inputRef.current) {
         inputRef.current.focus();
@@ -115,6 +116,7 @@ export default function CommentSection({
     onCommentChange(words.join(' '));
     setShowSuggestions(false);
 
+    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
     focusTimeoutRef.current = setTimeout(() => {
       if (mountedRef.current && inputRef.current) {
         inputRef.current.focus();

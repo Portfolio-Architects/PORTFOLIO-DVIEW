@@ -42,6 +42,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
       if (mountedRef.current) {
         setIsSuccess(true);
       }
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
       successTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           onClose();

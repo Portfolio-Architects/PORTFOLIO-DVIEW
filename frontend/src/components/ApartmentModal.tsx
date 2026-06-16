@@ -1351,6 +1351,7 @@ function FieldReportModal({
       if (!mountedRef.current) return;
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
       setCopiedStatus('all-link');
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
       copiedTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           setCopiedStatus(null);
@@ -1411,6 +1412,7 @@ function FieldReportModal({
     if (success) {
       showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");
       setCopiedStatus('summary');
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
       copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
     } else {
       showToast("요약본 복사에 실패했습니다.");
@@ -1499,6 +1501,7 @@ function FieldReportModal({
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
               setCopiedStatus('edu-link');
+              if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
               copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
             });
           }
@@ -1507,6 +1510,7 @@ function FieldReportModal({
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
           setCopiedStatus('edu-link');
+          if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
           copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
         });
       }
@@ -1547,6 +1551,7 @@ function FieldReportModal({
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
               setCopiedStatus('infra-link');
+              if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
               copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
             });
           }
@@ -1555,6 +1560,7 @@ function FieldReportModal({
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
           setCopiedStatus('infra-link');
+          if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
           copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
         });
       }

@@ -485,6 +485,7 @@ export default function AdminDashboard() {
       setDeletedApts(new Set());
       if (mountedRef.current) {
         setSaved(true);
+        if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
         savedTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) setSaved(false);
         }, 2000);

@@ -93,6 +93,7 @@ const InteractiveHeart = memo(({
     setLocalFavorited(prev => !prev);
     setAnimate(true);
     onToggle(name);
+    if (animateTimeoutRef.current) clearTimeout(animateTimeoutRef.current);
     animateTimeoutRef.current = setTimeout(() => setAnimate(false), 300);
   };
 
@@ -873,6 +874,7 @@ export default function TossApartmentExploreClient({
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => {
+                if (searchFocusTimeoutRef.current) clearTimeout(searchFocusTimeoutRef.current);
                 searchFocusTimeoutRef.current = setTimeout(() => setIsSearchFocused(false), 200);
               }}
               role="searchbox"

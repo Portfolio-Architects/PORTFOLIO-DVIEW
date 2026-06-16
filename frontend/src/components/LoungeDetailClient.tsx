@@ -525,6 +525,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         if (mountedRef.current) {
           setEditContent(newText);
         }
+        if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
         uploadFocusTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current && textarea) {
             textarea.focus();

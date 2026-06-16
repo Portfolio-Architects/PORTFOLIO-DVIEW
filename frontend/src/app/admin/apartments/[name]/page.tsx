@@ -708,6 +708,7 @@ export default function ApartmentInfoPage() {
 
       if (mountedRef.current) {
         setSaved(true);
+        if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
         savedTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) setSaved(false);
         }, 2000);

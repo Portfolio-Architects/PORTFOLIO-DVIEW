@@ -197,7 +197,10 @@ export default function WriteFieldReport() {
         const existingSet = new Set(existing.map(f => `${f.name}__${f.size}`));
         const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
         const dupCount = allNew.length - unique.length;
-        if (dupCount > 0) alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+        if (dupCount > 0) {
+          if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
+          alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+        }
         if (unique.length === 0) return prev;
         // Also update previews
         const newPreviews = unique.map(file => URL.createObjectURL(file));
@@ -283,7 +286,10 @@ export default function WriteFieldReport() {
         const existingSet = new Set(existing.map(f => `${f.name}__${f.size}`));
         const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
         const dupCount = allNew.length - unique.length;
-        if (dupCount > 0) alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+        if (dupCount > 0) {
+          if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
+          alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+        }
         if (unique.length === 0) return prev;
         const newPreviews = unique.map(file => URL.createObjectURL(file));
         setImagePreviews(p => ({ ...p, [key]: [...(p[key] || []), ...newPreviews] }));

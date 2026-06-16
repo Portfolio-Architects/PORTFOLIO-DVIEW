@@ -117,6 +117,7 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
         setIsSuccess(true);
       }
       
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
       successTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           onClose();
