@@ -107,7 +107,7 @@ export async function createPost(
     );
 
     // 4. Trigger Google Search Console Indexing via Backend API asynchronously
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isUserAdmin) {
       const pageUrl = `${window.location.origin}/lounge/${postId}`;
       fetch('/api/admin/search-console/indexing', {
         method: 'POST',
