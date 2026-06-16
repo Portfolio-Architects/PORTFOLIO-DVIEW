@@ -68,3 +68,27 @@ export const IncrementFieldReportViewInputSchema = z.object({
 });
 export const IncrementFieldReportLikeInputSchema = z.string().min(1, '보고서 ID는 필수 입력 사항입니다.');
 export const IncrementReviewLikeInputSchema = z.string().min(1, '리뷰 ID는 필수 입력 사항입니다.');
+
+export const TransactionRecordSchema = z.object({
+  dong: z.string().default(''),
+  aptName: z.string().default(''),
+  area: z.number().default(0),
+  areaPyeong: z.number().default(0),
+  contractYm: z.string().default(''),
+  contractDay: z.string().default(''),
+  price: z.number().default(0),
+  priceEok: z.string().default(''),
+  deposit: z.number().optional(),
+  monthlyRent: z.number().optional(),
+  floor: z.number().default(0),
+  buildYear: z.number().default(0),
+  dealType: z.string().default('매매'),
+  reqGb: z.string().optional(),
+  rnuYn: z.string().optional(),
+  cancelDate: z.string().optional(),
+  isOutlier: z.boolean().optional(),
+  areaLabelM2: z.string().optional(),
+  areaLabelPyeong: z.string().optional(),
+});
+
+export const TransactionListSchema = z.array(TransactionRecordSchema);

@@ -17,6 +17,7 @@ import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
 import { safeReload } from '@/lib/utils/safeReload';
+import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 
 const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
   console.warn('CommentSection Chunk Load failure, initiating fallback reload', err);
@@ -312,6 +313,20 @@ function FieldReportModal({
   const [mounted, setMounted] = useState(false);
   const [isAnimationFinished, setIsAnimationFinished] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
+
+  // Zod-based safe transaction parsing guard to prevent null/undefined runtime exceptions
+  const safeTransactions = useMemo(() => {
+    if (!rawTransactions) return [];
+    const parsed = TransactionListSchema.safeParse(rawTransactions);
+    if (parsed.success) {
+      return parsed.data;
+    } else {
+      console.warn('[ApartmentModal] Transactions Zod validation failed, using fallback data parsing:', parsed.error);
+      return Array.isArray(rawTransactions) 
+        ? rawTransactions.filter(tx => tx && typeof tx === 'object') as any[]
+        : [];
+    }
+  }, [rawTransactions]);
 
   useEffect(() => {
     if (mounted) {
@@ -863,28 +878,28 @@ function FieldReportModal({
     }
 
     return { status, amount, ratio: jeonseRatio, priceStr };
-  }, [transactions, report]);
+  }, [safeTransactions, report]);
 
   const jeonseSafetyData = useMemo(() => {
-    if (!transactions || transactions.length === 0) return null;
-    const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
-    const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
-    
+    if (!safeTransactions || safeTransactions.length === 0) return null;
+    const sales = safeTransactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+    const rents = safeTransactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
+
     const latestSale = sales[0]?.price || 0;
     const latestRent = rents[0] ? (rents[0].calculatedPrice || rents[0].price || 0) : 0;
-    
+
     const ratio = latestSale > 0 ? (latestRent / latestSale) : 0;
-    
+
     return {
       latestPrice: latestSale,
       latestDeposit: latestRent,
       ratio
     };
-  }, [transactions]);
+  }, [safeTransactions]);
 
   // 특정 평형 필터 칩 목록 (사전 계산된 필드 활용)
   const areaFilterChips = useMemo(() => {
-    const rawAreas = Array.from(new Set(transactions.map(tx => {
+    const rawAreas = Array.from(new Set(safeTransactions.map(tx => {
       return areaUnit === 'm2' ? tx.areaLabelM2! : tx.areaLabelPyeong!;
     })));
     return ['전체', ...rawAreas.sort((a, b) => {
@@ -892,16 +907,16 @@ function FieldReportModal({
       const numB = parseInt(b.match(/\d+/)?.[0] || '0');
       return numA - numB;
     })];
-  }, [transactions, areaUnit]);
+  }, [safeTransactions, areaUnit]);
 
   // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {
-    if (selectedAreaFilter === '전체') return transactions;
-    return transactions.filter(tx => {
+    if (selectedAreaFilter === '전체') return safeTransactions;
+    return safeTransactions.filter(tx => {
       const label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
       return label === selectedAreaFilter;
     });
-  }, [transactions, selectedAreaFilter, areaUnit]);
+  }, [safeTransactions, selectedAreaFilter, areaUnit]);
 
   // Hydration-safe portal mount
   useEffect(() => {
