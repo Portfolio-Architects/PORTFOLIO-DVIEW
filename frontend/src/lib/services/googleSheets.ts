@@ -144,18 +144,51 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
   }
 }
 
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3, delayMs = 1000): Promise<Response> {
+  const TIMEOUT_MS = 8000; // 8 seconds timeout per attempt
+  
+  for (let i = 0; i < retries; i++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      
+      if (response.ok) {
+        return response;
+      }
+      
+      logger.warn('fetchWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} returned status ${response.status}`);
+    } catch (err: any) {
+      clearTimeout(id);
+      const isTimeout = err?.name === 'AbortError';
+      logger.warn('fetchWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} ${isTimeout ? 'TIMED OUT' : 'FAILED'}`, {
+        error: err?.message || String(err)
+      });
+    }
+    
+    if (i < retries - 1) {
+      const jitter = Math.random() * 200;
+      const currentDelay = delayMs * Math.pow(2, i) + jitter;
+      await new Promise(resolve => setTimeout(resolve, currentDelay));
+    }
+  }
+  
+  throw new Error(`Google Sheets fetch failed after ${retries} attempts`);
+}
+
 async function fetchCsvFromGoogle(sheetName: string): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1&_t=${Date.now()}`;
   try {
-    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
-    if (!res.ok) {
-      logger.error('fetchCsvFromGoogle', `Failed to fetch sheet: ${sheetName}, Status: ${res.status}`);
-      throw new Error(`Failed to fetch sheet: ${sheetName}`);
-    }
+    const res = await fetchWithRetry(csvUrl, { next: { revalidate: 3600 } });
     const text = await res.text();
     return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
   } catch (e) {
-    logger.error('fetchCsvFromGoogle', `Network error fetching sheet: ${sheetName}`, undefined, e);
+    logger.error('fetchCsvFromGoogle', `Exponential Backoff retry failed fetching sheet: ${sheetName}`, undefined, e);
     throw e;
   }
 }
