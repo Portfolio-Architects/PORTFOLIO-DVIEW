@@ -87,21 +87,8 @@ export interface DashboardDataStrategy {
   subscribeTo?(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void): () => void;
 }
 
-// --- Subscribable State Manager ---
-class Subscribable<T> {
-  private data: T;
-  private listeners = new Set<() => void>();
-  constructor(initialData: T) { this.data = initialData; }
-  get = (): T => this.data;
-  set = (newData: T) => {
-    this.data = newData;
-    this.listeners.forEach(cb => cb());
-  };
-  subscribe = (callback: () => void) => {
-    this.listeners.add(callback);
-    return () => { this.listeners.delete(callback); };
-  };
-}
+import { Subscribable } from '@/lib/utils/subscribable';
+
 
 // --- Firebase Strategy (delegates to repositories/services) ---
 
@@ -485,51 +472,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // --- React Hook (re-exported for backward compatibility) ---
-import { useSyncExternalStore, useCallback } from 'react';
+export { useDashboardData } from '@/hooks/useDashboardData';
 
-const EMPTY_ARRAY: any[] = [];
-
-/**
- * React hook providing reactive dashboard data via useSyncExternalStore.
- * Avoids global array spread deep-copies and triggers re-renders ONLY when specific data references change.
- */
-export function useDashboardData() {
-  const kpis = useSyncExternalStore(
-    useCallback((cb) => dashboardFacade.subscribeTo('kpis', cb), []),
-    () => dashboardFacade.getKPIs(),
-    () => EMPTY_ARRAY as KPIData[]
-  );
-
-  const newsFeed = useSyncExternalStore(
-    useCallback((cb) => dashboardFacade.subscribeTo('newsFeed', cb), []),
-    () => dashboardFacade.getNewsFeed(),
-    () => EMPTY_ARRAY as NewsItemData[]
-  );
-
-  const fieldReports = useSyncExternalStore(
-    useCallback((cb) => dashboardFacade.subscribeTo('fieldReports', cb), []),
-    () => dashboardFacade.getFieldReports(),
-    () => EMPTY_ARRAY as FieldReportData[]
-  );
-
-  const userReviews = useSyncExternalStore(
-    useCallback((cb) => dashboardFacade.subscribeTo('userReviews', cb), []),
-    () => dashboardFacade.getUserReviews(),
-    () => EMPTY_ARRAY as UserReview[]
-  );
-
-  const dongtanApartments = useSyncExternalStore(
-    useCallback((cb) => dashboardFacade.subscribeTo('dongtanApartments', cb), []),
-    () => dashboardFacade.getDongtanApartments(),
-    () => EMPTY_ARRAY as string[]
-  );
-
-  return { 
-    kpis, 
-    newsFeed, 
-    fieldReports, 
-    userReviews, 
-    dongtanApartments, 
-    adBanner: dashboardFacade.getAdBanner()
-  };
-}
