@@ -341,6 +341,13 @@ function FieldReportModal({
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
+  const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    };
+  }, []);
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
   const deferredAreaFilter = useDeferredValue(selectedAreaFilter);
@@ -1304,7 +1311,7 @@ function FieldReportModal({
     const executeSuccess = () => {
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
       setCopiedStatus('all-link');
-      setTimeout(() => setCopiedStatus(null), 1500);
+      copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
     };
 
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
@@ -1360,7 +1367,7 @@ function FieldReportModal({
     if (success) {
       showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");
       setCopiedStatus('summary');
-      setTimeout(() => setCopiedStatus(null), 1500);
+      copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
     } else {
       showToast("요약본 복사에 실패했습니다.");
     }
@@ -1448,7 +1455,7 @@ function FieldReportModal({
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
               setCopiedStatus('edu-link');
-              setTimeout(() => setCopiedStatus(null), 1500);
+              copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
             });
           }
         }
@@ -1456,7 +1463,7 @@ function FieldReportModal({
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
           setCopiedStatus('edu-link');
-          setTimeout(() => setCopiedStatus(null), 1500);
+          copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
         });
       }
       
@@ -1496,7 +1503,7 @@ function FieldReportModal({
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
               setCopiedStatus('infra-link');
-              setTimeout(() => setCopiedStatus(null), 1500);
+              copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
             });
           }
         }
@@ -1504,7 +1511,7 @@ function FieldReportModal({
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
           setCopiedStatus('infra-link');
-          setTimeout(() => setCopiedStatus(null), 1500);
+          copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
         });
       }
       
