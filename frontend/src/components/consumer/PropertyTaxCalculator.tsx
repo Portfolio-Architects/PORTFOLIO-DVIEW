@@ -66,6 +66,15 @@ export default function PropertyTaxCalculator({
   const [isCalculating, setIsCalculating] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -315,9 +324,12 @@ export default function PropertyTaxCalculator({
 
 💡 세금 계산 및 중개보수 정밀 진단 상세 내역은 D-VIEW에서 확인해 보세요!`;
 
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
