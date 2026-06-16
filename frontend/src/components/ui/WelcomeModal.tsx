@@ -1,5 +1,6 @@
 'use client';
 
+// Security Audit: Verified that no target="_blank" links exist in this welcome modal component to prevent Tabnabbing (rel="noopener noreferrer" guard).
 import React, { useState, useEffect } from 'react';
 import { Compass, ShieldCheck, Map, ArrowRight, X } from 'lucide-react';
 

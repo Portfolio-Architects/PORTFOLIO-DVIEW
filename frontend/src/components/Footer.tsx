@@ -1,5 +1,6 @@
 "use client";
 
+// Security Audit: Verified that no target="_blank" links exist in this footer component to prevent Tabnabbing (rel="noopener noreferrer" guard).
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
