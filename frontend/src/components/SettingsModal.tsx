@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Moon, Sun, Monitor, Scaling } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
-export default function SettingsModal() {
+const SettingsModal = React.memo(function SettingsModal() {
   const [mounted, setMounted] = useState(false);
   const { isSettingsModalOpen, setIsSettingsModalOpen, areaUnit, setAreaUnit, theme, setTheme } = useSettings();
 
@@ -110,4 +110,7 @@ export default function SettingsModal() {
     </div>,
     document.getElementById('modal-root') || document.body
   );
-}
+});
+
+SettingsModal.displayName = 'SettingsModal';
+export default SettingsModal;

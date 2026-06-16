@@ -1,14 +1,14 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { useNetworkStatus } from '@/lib/hooks/useNetworkStatus';
 import { WifiOff, Wifi } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 /**
  * Floating banner that appears when the user goes offline,
  * and briefly shows a "reconnected" message when they come back online.
  */
-export default function OfflineBanner() {
+const OfflineBanner = React.memo(function OfflineBanner() {
   const isOnline = useNetworkStatus();
   const [showReconnected, setShowReconnected] = useState(false);
   const [wasOffline, setWasOffline] = useState(false);
@@ -56,4 +56,7 @@ export default function OfflineBanner() {
       )}
     </div>
   );
-}
+});
+
+OfflineBanner.displayName = 'OfflineBanner';
+export default OfflineBanner;

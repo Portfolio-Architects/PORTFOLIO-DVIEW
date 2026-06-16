@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Smartphone, X, ChevronRight } from 'lucide-react';
 
-export default function NotificationBanner() {
+const NotificationBanner = React.memo(function NotificationBanner() {
   const [showPwaGuide, setShowPwaGuide] = useState(false);
 
   return (
@@ -20,7 +20,7 @@ export default function NotificationBanner() {
           </div>
           <div className="flex flex-col text-left min-w-0">
             <span className="text-[13px] font-black tracking-tight">D-VIEW 앱 홈 화면에 설치하기</span>
-            <span className="text-[11px] text-secondary mt-0.5 font-medium truncate">앱처럼 편리하게 실거래 알림과 대시보드를 이용해 보세요.</span>
+            <span className="text-[11px] text-secondary mt-0.5 font-medium truncate">앱처럼 편리하게 실거래 알림 and 대시보드를 이용해 보세요.</span>
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-tertiary shrink-0" />
@@ -65,4 +65,7 @@ export default function NotificationBanner() {
       )}
     </div>
   );
-}
+});
+
+NotificationBanner.displayName = 'NotificationBanner';
+export default NotificationBanner;

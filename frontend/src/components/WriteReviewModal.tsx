@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Star, Camera, Send } from 'lucide-react';
 import { useDashboardData, dashboardFacade } from '@/lib/DashboardFacade';
 
@@ -9,7 +9,7 @@ interface WriteReviewModalProps {
   userUid: string;
 }
 
-export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalProps) {
+const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid }: WriteReviewModalProps) {
   const { dongtanApartments } = useDashboardData();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedDong, setSelectedDong] = useState('');
@@ -250,4 +250,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
       </div>
     </div>
   );
-}
+});
+
+WriteReviewModal.displayName = 'WriteReviewModal';
+export default WriteReviewModal;
