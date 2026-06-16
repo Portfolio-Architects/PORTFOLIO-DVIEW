@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
-import { getInitialData } from '@/lib/services/dashboardData';
+import { getInitialData, readJsonFileCached } from '@/lib/services/dashboardData';
 import { headers } from 'next/headers';
 import { redis } from '@/lib/redis';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
@@ -67,17 +67,8 @@ function formatPriceEok(priceMan: number): string {
   return `${eok}억 ${remainder.toLocaleString()}`;
 }
 
-function getApartmentTransactions(aptName: string): Transaction[] {
-  try {
-    const filePath = path.join(process.cwd(), 'public', 'tx-data', `${aptName}.json`);
-    if (fs.existsSync(filePath)) {
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
-      return JSON.parse(fileContent);
-    }
-  } catch (error) {
-    logger.warn('ApartmentPage.getApartmentTransactions', `[SEO] Failed to read transaction file for ${aptName}`, {}, error as Error);
-  }
-  return [];
+async function getApartmentTransactions(aptName: string): Promise<Transaction[]> {
+  return readJsonFileCached<Transaction[]>(`public/tx-data/${aptName}.json`, []);
 }
 
 function getPyeongSummaries(txs: Transaction[]): PyeongSummary[] {
@@ -202,7 +193,7 @@ export async function generateMetadata(props: {
   }
   
   const aptSummary = TX_SUMMARY[decodedName];
-  const txs = getApartmentTransactions(decodedName);
+  const txs = await getApartmentTransactions(decodedName);
   const pyeongSummaries = getPyeongSummaries(txs);
   
   // Dynamic OG Image URL
@@ -368,7 +359,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   // --- SSR SEO HTML Block ---
   const aptSummary = TX_SUMMARY[decodedName];
-  const txs = getApartmentTransactions(decodedName);
+  const txs = await getApartmentTransactions(decodedName);
   const pyeongSummaries = getPyeongSummaries(txs);
   
   const salePrices = pyeongSummaries.map(p => p.latestPrice).filter(p => p > 0);
@@ -386,12 +377,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   // Load location scores dynamically to retrieve nearest school details
   let locationScore: LocationScore | null = null;
   try {
-    const scoresPath = path.join(process.cwd(), 'public', 'data', 'location-scores.json');
-    if (fs.existsSync(scoresPath)) {
-      const content = fs.readFileSync(scoresPath, 'utf-8');
-      const allScores = JSON.parse(content);
-      locationScore = allScores[decodedName];
-    }
+    const allScores = await readJsonFileCached<Record<string, LocationScore>>('public/data/location-scores.json', {});
+    locationScore = allScores[decodedName] || null;
   } catch (err) {
     logger.warn('ApartmentPage', `[SEO] Failed to read location-scores for ${decodedName}`, {}, err as Error);
   }

@@ -19,7 +19,7 @@ const getGlobalStaticDataCache = (): Record<string, StaticDataCacheEntry<any>> =
   return (globalThis as any)._globalStaticDataCache;
 };
 
-async function readJsonFileCached<T>(relativePath: string, fallback: T): Promise<T> {
+export async function readJsonFileCached<T>(relativePath: string, fallback: T): Promise<T> {
   const filePath = path.resolve(process.cwd(), relativePath);
   try {
     const stats = await fs.promises.stat(filePath);
