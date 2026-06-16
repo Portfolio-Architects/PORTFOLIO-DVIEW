@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useRef } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -53,7 +53,7 @@ type MetaMap = Record<string, AptMeta>;
 
 
 
-export default function AdminDashboard() {
+const AdminDashboard = React.memo(function AdminDashboard() {
   const router = useRouter();
   // ── State ──
   const [mounted, setMounted] = useState(false);
@@ -835,4 +835,8 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
-}
+});
+
+AdminDashboard.displayName = 'AdminDashboard';
+
+export default AdminDashboard;
