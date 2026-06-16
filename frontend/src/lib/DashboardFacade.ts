@@ -84,6 +84,7 @@ export interface DashboardDataStrategy {
   getDongtanApartments?(): string[];
   isAdmin(email: string | null | undefined): boolean;
   subscribeTo?(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void): () => void;
+  destroy?(): void;
 }
 
 import { Subscribable } from '@/lib/utils/subscribable';
@@ -107,6 +108,14 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     if (typeof window !== 'undefined') {
       this.init();
     }
+  }
+
+  public destroy() {
+    this.cleanupFns.forEach((fn) => {
+      try { fn(); } catch (err) { logger.error('FirebaseDashboardDataStrategy.destroy', 'Failed to run cleanup fn', {}, err); }
+    });
+    this.cleanupFns = [];
+    this.initialized = false;
   }
 
   private init() {
@@ -277,6 +286,11 @@ export class DashboardFacade {
     this.strategy = strategy || new FirebaseDashboardDataStrategy();
   }
 
+  public destroy() {
+    if (this.strategy.destroy) {
+      this.strategy.destroy();
+    }
+  }
   public setStrategy(strategy: DashboardDataStrategy) { this.strategy = strategy; }
   public subscribeTo(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void) {
     return this.strategy.subscribeTo ? this.strategy.subscribeTo(key, callback) : () => {};

@@ -439,6 +439,7 @@ export default function AptCompareModal({
 
   // Fetch transactions for Apartment 1
   useEffect(() => {
+    let active = true;
     if (!apt1) {
       setTxData1([]);
       return;
@@ -450,13 +451,23 @@ export default function AptCompareModal({
         if (!res.ok) throw new Error('No data');
         return res.json();
       })
-      .then(data => setTxData1(data))
-      .catch(() => setTxData1([]))
-      .finally(() => setIsTxLoading1(false));
+      .then(data => {
+        if (active) setTxData1(data);
+      })
+      .catch(() => {
+        if (active) setTxData1([]);
+      })
+      .finally(() => {
+        if (active) setIsTxLoading1(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [apt1, txSummaryData, nameMapping]);
 
   // Fetch transactions for Apartment 2
   useEffect(() => {
+    let active = true;
     if (!apt2) {
       setTxData2([]);
       return;
@@ -468,9 +479,18 @@ export default function AptCompareModal({
         if (!res.ok) throw new Error('No data');
         return res.json();
       })
-      .then(data => setTxData2(data))
-      .catch(() => setTxData2([]))
-      .finally(() => setIsTxLoading2(false));
+      .then(data => {
+        if (active) setTxData2(data);
+      })
+      .catch(() => {
+        if (active) setTxData2([]);
+      })
+      .finally(() => {
+        if (active) setIsTxLoading2(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [apt2, txSummaryData, nameMapping]);
 
   // Filter lists for Autocomplete
