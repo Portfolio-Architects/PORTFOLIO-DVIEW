@@ -36,7 +36,7 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
     if (isCompact) {
       return (
         <div className="w-full rounded-[20px] p-1.5 bg-[#f8fafc] dark:bg-[#1e293b]/30 border border-border overflow-hidden flex items-center justify-center min-h-[78px] md:min-h-[86px] h-[78px] md:h-[86px] relative">
-          {/* Shimmer Skeleton for CLS Prevention */}
+          {/* Shimmer Skeleton for CLS Prevention (uses GPU acceleration via will-change: background-position) */}
           {adStatus === 'loading' && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 px-4">
               <div className="w-full flex items-center justify-between gap-3">
