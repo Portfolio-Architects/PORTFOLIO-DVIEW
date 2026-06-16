@@ -66,7 +66,7 @@ function urlBase64ToUint8Array(base64String: string) {
 
 
 
-export function PWAProvider({ children }: { children: ReactNode }) {
+export const PWAProvider = React.memo(function PWAProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -446,4 +446,6 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       )}
     </PWAContext.Provider>
   );
-}
+});
+
+PWAProvider.displayName = 'PWAProvider';
