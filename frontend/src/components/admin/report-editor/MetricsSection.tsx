@@ -54,7 +54,7 @@ const TextInput = ({ name, label, placeholder }: { name: string, label: string, 
   );
 };
 
-export function MetricsSection({
+export const MetricsSection = React.memo(function MetricsSection({
   isCalculating,
   setIsCalculating,
   apiCategories,
@@ -313,4 +313,6 @@ export function MetricsSection({
       </div>
     </section>
   );
-}
+});
+
+MetricsSection.displayName = 'MetricsSection';

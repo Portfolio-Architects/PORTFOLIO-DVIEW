@@ -5,7 +5,7 @@ import { FormValues } from './types';
 import { IMAGE_CATEGORY_GROUPS, CAPTION_TEMPLATES } from './constants';
 import { extractCapturedDate } from '@/lib/utils/exif';
 
-export function ImageUploadSection() {
+export const ImageUploadSection = React.memo(function ImageUploadSection() {
   const { control, getValues, register } = useFormContext<FormValues>();
 
   const { fields: imageFields, append: appendImage, remove: removeImage, update: updateImage, replace: replaceImages } = useFieldArray({
@@ -364,4 +364,6 @@ export function ImageUploadSection() {
       </button>
     </section>
   );
-}
+});
+
+ImageUploadSection.displayName = 'ImageUploadSection';

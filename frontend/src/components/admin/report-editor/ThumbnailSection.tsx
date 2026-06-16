@@ -7,7 +7,7 @@ interface ThumbnailSectionProps {
   setThumbnailFile: (file: File | null) => void;
 }
 
-export function ThumbnailSection({
+export const ThumbnailSection = React.memo(function ThumbnailSection({
   thumbnailPreview,
   setThumbnailPreview,
   setThumbnailFile
@@ -73,4 +73,6 @@ export function ThumbnailSection({
       </div>
     </section>
   );
-}
+});
+
+ThumbnailSection.displayName = 'ThumbnailSection';

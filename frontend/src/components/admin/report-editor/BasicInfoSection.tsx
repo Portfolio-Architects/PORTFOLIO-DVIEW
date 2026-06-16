@@ -7,7 +7,7 @@ interface BasicInfoSectionProps {
   lockedMeta?: { dong: string; apartmentName: string };
 }
 
-export function BasicInfoSection({ lockedMeta }: BasicInfoSectionProps) {
+export const BasicInfoSection = React.memo(function BasicInfoSection({ lockedMeta }: BasicInfoSectionProps) {
   const { register, control } = useFormContext<FormValues>();
   
   const [dongData, setDongData] = useState<Record<string, string[]>>(FALLBACK_DONG_DATA);
@@ -114,4 +114,6 @@ export function BasicInfoSection({ lockedMeta }: BasicInfoSectionProps) {
       </div>
     </section>
   );
-}
+});
+
+BasicInfoSection.displayName = 'BasicInfoSection';
