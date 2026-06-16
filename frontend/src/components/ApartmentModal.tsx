@@ -1240,7 +1240,7 @@ function FieldReportModal({
       }
     } catch (error) {
       console.error("Image card download failed:", error);
-      showToast("이미지 카드 저장 중 오류가 발생했습니다.");
+      showToast("이미지 저장 중 오류가 발생했습니다. 상단의 '단톡방 요약 복사'를 통해 텍스트로 공유해 보세요!");
     } finally {
       setIsSharing(false);
     }

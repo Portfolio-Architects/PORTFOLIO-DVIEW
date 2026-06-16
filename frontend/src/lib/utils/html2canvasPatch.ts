@@ -264,7 +264,7 @@ export async function safeHtml2canvasPro(
     });
   }
 
-  const validatedOptions = optionsVal.success ? optionsVal.data : (options || {});
+  const validatedOptions = optionsVal.success ? { ...optionsVal.data } : { ...(options || {}) };
   let originalGetComputedStyle: typeof window.getComputedStyle | undefined = undefined;
   if (typeof window !== 'undefined') {
     originalGetComputedStyle = window.getComputedStyle;
@@ -283,7 +283,28 @@ export async function safeHtml2canvasPro(
   };
 
   try {
-    return await html2canvasProInstance(element, validatedOptions);
+    const initialScale = validatedOptions.scale || 1.0;
+    // Attempt progressive scale reductions (initial -> 1.5 -> 1.0 -> 0.8) to handle canvas OOM issues on low-end devices
+    const scalesToTry = [initialScale, 1.5, 1.0, 0.8].filter((s, idx, arr) => s <= initialScale && arr.indexOf(s) === idx);
+    let lastError: any = null;
+
+    for (const scale of scalesToTry) {
+      try {
+        validatedOptions.scale = scale;
+        const canvas = await html2canvasProInstance(element, validatedOptions);
+        if (canvas && canvas.width > 0 && canvas.height > 0) {
+          logger.info('html2canvasPatch.safeHtml2canvasPro', `Successfully captured canvas at scale ${scale}`);
+          return canvas;
+        }
+        throw new Error("Canvas generated empty or zero dimensions");
+      } catch (err) {
+        lastError = err;
+        logger.warn('html2canvasPatch.safeHtml2canvasPro', `Failed capture with scale ${scale}, attempting fallback...`, {
+          error: String(err)
+        });
+      }
+    }
+    throw lastError || new Error("All scale options failed");
   } finally {
     if (typeof window !== 'undefined' && originalGetComputedStyle) {
       window.getComputedStyle = originalGetComputedStyle;
