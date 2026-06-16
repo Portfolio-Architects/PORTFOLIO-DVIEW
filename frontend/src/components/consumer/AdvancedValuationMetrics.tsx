@@ -191,12 +191,14 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   }, [report, commuteDest]);
 
   useEffect(() => {
+    let active = true;
     const fetchOverrides = async () => {
       try {
         const { doc, getDoc } = await import('firebase/firestore');
         const { db } = await import('@/lib/firebaseConfig');
         const docRef = doc(db, 'settings/valuation_overrides');
         const docSnap = await getDoc(docRef);
+        if (!active) return;
         if (docSnap.exists()) {
           const data = docSnap.data();
           const normName = normalizeAptName(report.apartmentName);
@@ -209,19 +211,25 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
           setOverrideScore(0);
         }
       } catch (err) {
-        console.error('Failed to load valuation overrides:', err);
+        if (active) {
+          console.error('Failed to load valuation overrides:', err);
+        }
       }
     };
     fetchOverrides();
+    return () => {
+      active = false;
+    };
   }, [report.apartmentName]);
 
   useEffect(() => {
+    let active = true;
     const fetchMacroRates = async () => {
       try {
         const res = await fetch('/api/macro/rates');
         if (res.ok) {
           const json = await res.json();
-          if (json.success && json.data) {
+          if (active && json.success && json.data) {
             setMacroConfig(prev => ({
               ...prev,
               ...(json.data.riskFreeRate ? { riskFreeRate: json.data.riskFreeRate } : {}),
@@ -230,10 +238,15 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
           }
         }
       } catch (err) {
-        console.error('Failed to fetch real-time macro rates:', err);
+        if (active) {
+          console.error('Failed to fetch real-time macro rates:', err);
+        }
       }
     };
     fetchMacroRates();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // 3개월 기준일 계산 (가치평가 이평선)
