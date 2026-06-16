@@ -694,6 +694,6 @@ export async function GET(request: Request) {
     });
   } catch (error: unknown) {
     logger.error('SyncTransactionsAPI.GET', 'Sync error', {}, error as Error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Sync error' }, { status: 500 });
   }
 }
