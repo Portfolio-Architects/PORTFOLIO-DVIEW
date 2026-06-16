@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import useSWR from 'swr';
 import { useParams } from 'next/navigation';
 import ReportEditorForm from '@/components/admin/ReportEditorForm';
@@ -10,7 +10,7 @@ import { db } from '@/lib/firebaseConfig';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
 import { MapPin } from 'lucide-react';
 
-export default function EditReportPage() {
+const EditReportPage = React.memo(function EditReportPage() {
   const params = useParams();
   const id = params.id as string;
   const [isPending, startTransition] = useTransition();
@@ -81,4 +81,8 @@ export default function EditReportPage() {
       </div>
     </div>
   );
-}
+});
+
+EditReportPage.displayName = 'EditReportPage';
+
+export default EditReportPage;
