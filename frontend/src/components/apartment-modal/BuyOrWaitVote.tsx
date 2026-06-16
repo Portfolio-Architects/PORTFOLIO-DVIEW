@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ThumbsUp, HelpCircle, Users, Check } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 
@@ -12,7 +12,7 @@ interface BuyOrWaitVoteProps {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default function BuyOrWaitVote({ 
+const BuyOrWaitVote = React.memo(function BuyOrWaitVote({ 
   aptName,
   valuationStatus = 'fair',
   valuationAmount = '0'
@@ -226,4 +226,7 @@ export default function BuyOrWaitVote({
       )}
     </div>
   );
-}
+});
+
+BuyOrWaitVote.displayName = 'BuyOrWaitVote';
+export default BuyOrWaitVote;

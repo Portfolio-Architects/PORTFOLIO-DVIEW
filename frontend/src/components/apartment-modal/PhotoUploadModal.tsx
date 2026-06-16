@@ -29,7 +29,7 @@ const CATEGORIES = [
   { id: '기타', label: '기타' },
 ];
 
-export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, user }: PhotoUploadModalProps) {
+export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, user }: PhotoUploadModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [category, setCategory] = useState<string>('gateImg');
@@ -284,4 +284,6 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
     </div>,
     document.getElementById('modal-root') || document.body
   );
-}
+});
+
+PhotoUploadModal.displayName = 'PhotoUploadModal';
