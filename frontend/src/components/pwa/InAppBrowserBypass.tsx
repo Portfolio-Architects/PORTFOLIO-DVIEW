@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Copy, ExternalLink, Compass, AlertTriangle } from 'lucide-react';
 
-export default function InAppBrowserBypass() {
+const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
   const [inAppInfo, setInAppInfo] = useState<{
     isInApp: boolean;
     isAndroid: boolean;
@@ -361,4 +361,8 @@ export default function InAppBrowserBypass() {
       </div>
     </div>
   );
-}
+});
+
+InAppBrowserBypass.displayName = 'InAppBrowserBypass';
+
+export default InAppBrowserBypass;
