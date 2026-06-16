@@ -103,6 +103,17 @@ export async function createPost(data: {
   return docRef.id;
 }
 
+async function invalidatePostCache(postId: string): Promise<void> {
+  if (typeof window === 'undefined') {
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        await redis.del(`DTDLS:cache:loungePost:${postId}`).catch(() => {});
+      }
+    } catch (_) {}
+  }
+}
+
 /**
  * Increments the like counter on a post.
  * @param postId - The Firestore document ID
@@ -111,6 +122,7 @@ export async function createPost(data: {
 export async function incrementPostLike(postId: string): Promise<void> {
   const postRef = doc(db, 'posts', postId).withConverter(postConverter);
   await updateDoc(postRef, { likes: increment(1) });
+  await invalidatePostCache(postId);
 }
 
 import * as TrafficRepo from '@/lib/repositories/traffic.repository';
@@ -125,6 +137,7 @@ export async function incrementPostView(postId: string, title: string = '알 수
   const postRef = doc(db, 'posts', postId).withConverter(postConverter);
   await updateDoc(postRef, { views: increment(1) });
   await TrafficRepo.incrementContentView(postId, title, 'lounge');
+  await invalidatePostCache(postId);
 }
 
 /**
@@ -136,12 +149,30 @@ export async function deletePost(postId: string): Promise<void> {
   const postRef = doc(db, 'posts', postId).withConverter(postConverter);
   await deleteDoc(postRef);
   logger.info('PostRepository.deletePost', 'Post deleted', { postId });
+  await invalidatePostCache(postId);
 }
 
 /**
  * Fetches a single post. Supporting server-side (adminDb) and client-side (db) fetches.
  */
 export async function getPost(postId: string): Promise<any | null> {
+  const cacheKey = `DTDLS:cache:loungePost:${postId}`;
+
+  if (typeof window === 'undefined') {
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        const cached = await redis.get<any>(cacheKey);
+        if (cached !== null) {
+          if (cached === 'null') return null;
+          return cached;
+        }
+      }
+    } catch (e) {
+      logger.warn('PostRepository.getPost', 'Redis read error', { postId }, e as Error);
+    }
+  }
+
   let docData: any = null;
 
   if (typeof window === 'undefined') {
@@ -167,11 +198,29 @@ export async function getPost(postId: string): Promise<any | null> {
       }
     } catch (e) {
       logger.error('PostRepository.getPost', 'Client SDK fetch failed', { postId }, e);
+      if (typeof window === 'undefined') {
+        try {
+          const { redis } = await import('@/lib/redis');
+          if (redis) {
+            await redis.set(cacheKey, 'null', { ex: 60 }).catch(() => {});
+          }
+        } catch (_) {}
+      }
       return null;
     }
   }
 
-  if (!docData) return null;
+  if (!docData) {
+    if (typeof window === 'undefined') {
+      try {
+        const { redis } = await import('@/lib/redis');
+        if (redis) {
+          await redis.set(cacheKey, 'null', { ex: 60 }).catch(() => {});
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
 
   const parsed = PostDataSchema.safeParse(docData);
   if (!parsed.success) {
@@ -196,7 +245,7 @@ export async function getPost(postId: string): Promise<any | null> {
     }
   }
 
-  return {
+  const result = {
     id: docData.id,
     title: data.title || '',
     category: data.category || '',
@@ -209,6 +258,19 @@ export async function getPost(postId: string): Promise<any | null> {
     verificationLevel: data.verificationLevel || null,
     createdAt: createdAtMillis,
   };
+
+  if (typeof window === 'undefined') {
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        await redis.set(cacheKey, result, { ex: 15 }).catch(err =>
+          logger.warn('PostRepository.getPost', 'Redis write error', { postId }, err as Error)
+        );
+      }
+    } catch (_) {}
+  }
+
+  return result;
 }
 
 /**
