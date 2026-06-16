@@ -50,6 +50,16 @@ export default function FloatingUserBar() {
     };
   }, [profilePhotoPreview]);
 
+  // Prevent background scroll when profile edit modal is open
+  useEffect(() => {
+    if (!showProfileModal) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [showProfileModal]);
+
   return (
     <>
       {/* User Bar — Embeddable */}
