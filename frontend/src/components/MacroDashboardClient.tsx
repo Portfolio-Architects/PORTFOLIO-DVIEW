@@ -1968,67 +1968,36 @@ interface GroupedCategory {
                   <div className="flex flex-col gap-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
-                        {selectedTimelineApt ? (
-                          <span className="flex items-center gap-2">
-                            <span className="text-[#00d29d] font-black">내 단지 브리핑:</span>
-                            <span className="truncate max-w-[150px] sm:max-w-[220px]" title={selectedTimelineApt}>{selectedTimelineApt}</span>
-                            {favoritesArray.length > 1 && favIndex !== -1 && (
-                              <span className="inline-flex items-center gap-1 ml-1 bg-body dark:bg-zinc-800 border border-border/60 rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  onClick={handlePrevFavorite}
-                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
-                                  title="이전 관심단지"
-                                >
-                                  <ChevronLeft size={13} />
-                                </button>
-                                <span className="text-[10px] font-bold text-tertiary px-1 select-none">
-                                  {favIndex + 1}/{favoritesArray.length}
-                                </span>
-                                <button
-                                  onClick={handleNextFavorite}
-                                  className="p-1 hover:bg-neutral-100 dark:hover:bg-zinc-700 text-secondary hover:text-primary rounded transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
-                                  title="다음 관심단지"
-                                >
-                                  <ChevronRight size={13} />
-                                </button>
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          "동탄 아파트 대표 가격 추이"
-                        )}
+                        동탄 아파트 시세 추이
                       </h3>
-                    </div>
-                    {selectedTimelineApt ? (
-                      <div className="flex items-center gap-1.5 shrink-0">
+
+                      {mounted && user && userFavorites && userFavorites.size > 0 && (
+                        <select
+                          value={selectedTimelineApt || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedTimelineApt(val === "" ? null : val);
+                          }}
+                          className="px-2.5 py-1 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl text-[11px] font-extrabold cursor-pointer transition-all outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate"
+                        >
+                          <option value="">전체 추이 보기</option>
+                          {favoritesArray.map((fav) => (
+                            <option key={fav} value={fav}>
+                              {fav}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      {selectedTimelineApt && (
                         <button
                           onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
-                          className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
+                          className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-sm"
                         >
                           상세 리포트 보기 ➔
                         </button>
-                        <button
-                          onClick={() => setSelectedTimelineApt(null)}
-                          className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0"
-                        >
-                          전체 추이 ✕
-                        </button>
-                      </div>
-                    ) : (
-                      mounted && user && userFavorites && userFavorites.size > 0 && (
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            onClick={() => {
-                              const firstFav = Array.from(userFavorites)[0];
-                              if (firstFav) setSelectedTimelineApt(firstFav);
-                            }}
-                            className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-lg text-[11px] font-bold cursor-pointer transition-colors shrink-0 flex items-center gap-1"
-                          >
-                            ⭐ 내 관심단지 보기
-                          </button>
-                        </div>
-                      )
-                    )}
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
@@ -2071,34 +2040,7 @@ interface GroupedCategory {
 
 
                 {/* Bottom Card Area: either Favorites List or CTA Banner */}
-                {mounted && userFavorites && userFavorites.size > 0 ? (
-                  <div className="mt-2 pt-2.5 border-t border-border/60 flex-none animate-in fade-in duration-200">
-                    <div className="bg-zinc-50/50 dark:bg-zinc-900/20 border border-border/40 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
-                      <span className="text-[12.5px] font-bold text-primary flex items-center gap-1.5">
-                        <span className="text-[#00d29d] font-black">⭐ 내 관심단지 시세 바로보기</span>
-                      </span>
-                      <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1.5 pr-1 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/80 [&::-webkit-webkit-scrollbar-thumb]:rounded-full scrollbar-thin">
-                        {favoritesArray.map((fav) => {
-                          const isActive = fav === selectedTimelineApt;
-                          return (
-                            <button
-                              key={fav}
-                              onClick={() => setSelectedTimelineApt(fav)}
-                              className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all flex items-center gap-1.5 border shadow-sm shrink-0 ${
-                                isActive
-                                  ? "bg-[#e0fbf4] text-[#00d29d] border-[#00d29d]/50"
-                                  : "bg-surface hover:bg-neutral-50 dark:hover:bg-zinc-800 text-secondary hover:text-primary border-border/60"
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-[#00d29d]" : "bg-tertiary"}`} />
-                              {fav}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
+                {mounted && userFavorites && userFavorites.size > 0 ? null : (
                   <div className="mt-2 pt-2.5 border-t border-border/60 flex-none">
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                       <div className="flex flex-col gap-1 min-w-0">

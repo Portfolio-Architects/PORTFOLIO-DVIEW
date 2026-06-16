@@ -215,6 +215,22 @@ export async function getPost(postId: string): Promise<any | null> {
  * Fetches recent posts. Supporting server-side (adminDb) and client-side (db) fetches.
  */
 export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
+  const cacheKey = `DTDLS:cache:loungeRecentPosts:${limitCount}`;
+  
+  if (typeof window === 'undefined') {
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        const cached = await redis.get<any[]>(cacheKey);
+        if (cached) {
+          return cached;
+        }
+      }
+    } catch (e) {
+      logger.warn('PostRepository.getRecentPosts', 'Redis read error', { limitCount }, e as Error);
+    }
+  }
+
   let rawDocs: any[] = [];
 
   if (typeof window === 'undefined') {
@@ -247,7 +263,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
     }
   }
 
-  return rawDocs.map(docData => {
+  const posts = rawDocs.map(docData => {
     const parsed = PostDataSchema.safeParse(docData);
     if (!parsed.success) {
       logger.warn('PostRepository.getRecentPosts', 'Zod validation failed, using fallback/raw', { id: docData.id }, parsed.error);
@@ -300,6 +316,21 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
       verificationLevel: data.verificationLevel || null,
     };
   });
+
+  if (typeof window === 'undefined' && posts.length > 0) {
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        await redis.set(cacheKey, posts, { ex: 30 }).catch(err =>
+          logger.warn('PostRepository.getRecentPosts', 'Redis write error', { limitCount }, err as Error)
+        );
+      }
+    } catch (e) {
+      // Ignore dynamic import error if any
+    }
+  }
+
+  return posts;
 }
 
 

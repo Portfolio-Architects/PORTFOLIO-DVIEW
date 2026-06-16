@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
-import { fetchSheetTypeMap } from '@/lib/services/googleSheets';
+import { getInitialData } from '@/lib/services/dashboardData';
 import { headers } from 'next/headers';
 import { redis } from '@/lib/redis';
 import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
@@ -188,20 +188,17 @@ export async function generateMetadata(props: {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   
   let imageUrl = '';
-  if (adminDb) {
-    try {
-      const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', decodedName).limit(1).get();
-      if (!snap.empty) {
-        const data = snap.docs[0].data();
-        if (data.images && data.images.length > 0) {
-          imageUrl = data.images[0].url;
-        } else if (data.thumbnailUrl) {
-          imageUrl = data.thumbnailUrl;
-        }
+  try {
+    const reportData = await fetchScoutingReportCached(decodedName);
+    if (reportData) {
+      if (reportData.images && reportData.images.length > 0) {
+        imageUrl = reportData.images[0].url;
+      } else if ((reportData as any).thumbnailUrl) {
+        imageUrl = (reportData as any).thumbnailUrl;
       }
-    } catch (e) {
-      logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
     }
+  } catch (e) {
+    logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
   }
   
   const aptSummary = TX_SUMMARY[decodedName];
@@ -311,146 +308,41 @@ export async function generateStaticParams() {
   }));
 }
 
-async function getInitialData() {
-  const result: {
-    favoriteCounts: Record<string, number>;
-    typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
-    apartmentMeta: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
-    fieldReports?: any[];
-    kpis?: any[];
-  } = {
-    favoriteCounts: {},
-    typeMap: [],
-    apartmentMeta: {},
-    fieldReports: [],
-    kpis: createInitialKPIs(),
-  };
+async function fetchScoutingReportCached(aptName: string): Promise<FieldReportData | null> {
+  const cacheKey = `DTDLS:cache:reportByApt:${encodeURIComponent(aptName)}`;
+  if (redis) {
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached !== null) {
+        if (cached === 'null') return null;
+        return cached as FieldReportData;
+      }
+    } catch (e) {
+      logger.warn('ApartmentPage.fetchScoutingReportCached', 'Redis scouting report read error', { aptName }, e as Error);
+    }
+  }
 
-  const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
-    Promise.race([
-      promise,
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
-    ]);
-
-  const fetchFavCounts = async () => {
-    if (redis) {
-      try {
-        const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
-        if (cachedCounts && Object.keys(cachedCounts).length > 0) {
-          result.favoriteCounts = cachedCounts as Record<string, number>;
-          return;
+  if (adminDb) {
+    try {
+      const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', aptName).limit(1).get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data() as FieldReportData;
+        if (redis) {
+          await redis.set(cacheKey, data, { ex: 3600 }).catch(err => 
+            logger.warn('ApartmentPage.fetchScoutingReportCached', 'Redis write error', { aptName }, err as Error)
+          );
         }
-      } catch (e) {
-        logger.warn('ApartmentPage.getInitialData.fetchFavCounts', 'Redis favCounts read error', {}, e as Error);
-      }
-    }
-    if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 3000);
-      snap.docs.forEach((doc) => {
-        const data = doc.data();
-        if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
-      });
-      if (redis && Object.keys(result.favoriteCounts).length > 0) {
-        redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => logger.warn('ApartmentPage.getInitialData.fetchFavCounts', 'Redis HSET error', {}, err as Error));
-      }
-    }
-  };
-
-  const fetchMeta = async () => {
-    if (redis) {
-      try {
-        const cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
-        if (cachedMeta && typeof cachedMeta === 'object') {
-          result.apartmentMeta = cachedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
-          return;
-        }
-      } catch (e) {
-        logger.warn('ApartmentPage.getInitialData.fetchMeta', 'Redis meta read error', {}, e as Error);
-      }
-    }
-    if (adminDb) {
-      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 3000);
-      if (metaDoc.exists) {
-        const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
-        result.apartmentMeta = metaData;
-        if (redis && Object.keys(metaData).length > 0) {
-          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => logger.warn('ApartmentPage.getInitialData.fetchMeta', 'Redis meta write error', {}, e as Error));
+        return data;
+      } else {
+        if (redis) {
+          await redis.set(cacheKey, 'null', { ex: 300 }).catch(() => {});
         }
       }
+    } catch (e) {
+      logger.warn('ApartmentPage.fetchScoutingReportCached', 'Firestore read error', { aptName }, e as Error);
     }
-  };
-
-  const fetchReports = async () => {
-    if (redis) {
-      try {
-        const cachedReports = await redis.get('DTDLS:cache:fieldReports');
-        if (cachedReports && Array.isArray(cachedReports)) {
-          result.fieldReports = cachedReports;
-          return;
-        }
-      } catch (e) {
-        logger.warn('ApartmentPage.getInitialData.fetchReports', 'Redis reports read error', {}, e as Error);
-      }
-    }
-    if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
-      const reports = snap.docs.map(doc => {
-        const data = doc.data();
-        let createdAtStr = '방금 전';
-        let rawTimestamp = 0;
-        if (data.createdAt) {
-          if (typeof data.createdAt.toDate === 'function') {
-            const d = data.createdAt.toDate();
-            createdAtStr = d.toLocaleDateString('ko-KR');
-            rawTimestamp = d.getTime();
-          } else if (data.createdAt.seconds) {
-            const d = new Date(data.createdAt.seconds * 1000);
-            createdAtStr = d.toLocaleDateString('ko-KR');
-            rawTimestamp = d.getTime();
-          }
-        }
-        return {
-          id: doc.id,
-          dong: data.dong || '오산동 (동탄역)',
-          apartmentName: data.apartmentName,
-          premiumScores: data.premiumScores,
-          premiumContent: data.premiumContent,
-          pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
-          cons: '',
-          rating: 5,
-          author: '데이터 랩스',
-          likes: data.likes || 0,
-          viewCount: data.viewCount || 0,
-          commentCount: data.commentCount || 0,
-          imageUrl: data.thumbnailUrl || data.imageUrl,
-          thumbnail: data.thumbnail,
-          images: data.images || [],
-          metrics: data.metrics,
-          scoutingDate: data.scoutingDate || '',
-          createdAt: createdAtStr,
-          _rawTimestamp: rawTimestamp
-        };
-      });
-      result.fieldReports = reports;
-      if (redis && reports.length > 0) {
-        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => logger.warn('ApartmentPage.getInitialData.fetchReports', 'Redis reports write error', {}, e as Error));
-      }
-    }
-  };
-
-  const fetchTypeMap = async () => {
-    const data = await fetchSheetTypeMap();
-    result.typeMap = data;
-  };
-
-  await Promise.allSettled([
-    fetchFavCounts().catch(e => logger.warn('ApartmentPage.getInitialData', 'favCounts error', {}, e as Error)),
-    fetchMeta().catch(e => logger.warn('ApartmentPage.getInitialData', 'meta error', {}, e as Error)),
-    fetchReports().catch(e => logger.warn('ApartmentPage.getInitialData', 'reports error', {}, e as Error)),
-    fetchTypeMap().catch(e => logger.warn('ApartmentPage.getInitialData', 'typeMap error', {}, e as Error))
-  ]);
-
-  return result;
+  }
+  return null;
 }
 
 export default async function ApartmentPage(props: { params: Promise<{ aptName: string }> }) {
@@ -463,19 +355,15 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   // Fetch report for structured data (JSON-LD)
   let structuredImages: string[] = [];
   let matchedReportData: FieldReportData | null = null;
-  if (adminDb) {
-    try {
-      const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', decodedName).limit(1).get();
-      if (!snap.empty) {
-        const data = snap.docs[0].data() as FieldReportData;
-        matchedReportData = data;
-        if (data.images && Array.isArray(data.images)) {
-          structuredImages = data.images.map((img: { url?: string }) => img.url).filter((url): url is string => !!url);
-        }
+  try {
+    matchedReportData = await fetchScoutingReportCached(decodedName);
+    if (matchedReportData) {
+      if (matchedReportData.images && Array.isArray(matchedReportData.images)) {
+        structuredImages = matchedReportData.images.map((img: { url?: string }) => img.url).filter((url): url is string => !!url);
       }
-    } catch (e) {
-      logger.warn('ApartmentPage', 'Failed to fetch matched report data', { apartmentName: decodedName }, e as Error);
     }
+  } catch (e) {
+    logger.warn('ApartmentPage', 'Failed to fetch matched report data', { apartmentName: decodedName }, e as Error);
   }
 
   // --- SSR SEO HTML Block ---

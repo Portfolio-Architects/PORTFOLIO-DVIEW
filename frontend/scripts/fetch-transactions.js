@@ -62,7 +62,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
     try {
       const response = await axios.get(url, {
         ...options,
-        timeout: 10000 // 10초 타임아웃
+        timeout: 25000 // 25초 타임아웃으로 증가
       });
       return response;
     } catch (err) {

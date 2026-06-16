@@ -45,8 +45,8 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     const gapPriceStr = gapPrice > 0 ? `${gapPrice.toFixed(1)}억` : null;
 
     return (
-      <div className="bg-surface p-3.5 rounded-[14px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border flex flex-col gap-2 min-w-[160px]">
-        <div className="text-[13.5px] font-bold text-tertiary mb-1">
+      <div className="bg-surface/85 backdrop-blur-md dark:bg-zinc-900/80 p-3.5 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2 min-w-[170px] transition-all duration-200">
+        <div className="text-[12px] font-extrabold text-tertiary mb-0.5">
           {label}
         </div>
         {payload
@@ -65,11 +65,11 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                     className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: entry.color }}
                   />
-                  <span className="text-[14px] font-bold text-secondary">
+                  <span className="text-[13px] font-bold text-secondary">
                     {isRent ? "전세가" : "매매가"}
                   </span>
                 </div>
-                <span className="text-[14px] font-extrabold text-primary">
+                <span className="text-[13.5px] font-black text-primary">
                   {entry.value}억
                 </span>
               </div>
@@ -81,19 +81,19 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
             <div className="flex flex-col gap-1.5">
               {gapPriceStr && (
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[13px] font-bold text-tertiary">
+                  <span className="text-[12px] font-bold text-tertiary">
                     예상 갭차이
                   </span>
-                  <span className="text-[14.5px] font-extrabold text-teal-600 dark:text-teal-400">
+                  <span className="text-[13.5px] font-black text-[#00b386]">
                     {gapPriceStr}
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-between gap-4">
-                <span className="text-[13px] font-bold text-tertiary">
+                <span className="text-[12px] font-bold text-tertiary">
                   전세가율
                 </span>
-                <span className="text-[14.5px] font-extrabold text-[#f9a825]">
+                <span className="text-[13.5px] font-black text-[#f9a825]">
                   {ratio.toFixed(1)}%
                 </span>
               </div>
@@ -188,25 +188,32 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         >
           <defs>
             <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
+              <stop offset="5%" stopColor="#00d29d" stopOpacity={0.22} />
               <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
             </linearGradient>
             <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f9a825" stopOpacity={0.2} />
+              <stop offset="5%" stopColor="#f9a825" stopOpacity={0.18} />
               <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
             </linearGradient>
+            <filter id="glowSale" x="-5%" y="-5%" width="110%" height="110%">
+              <feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#00d29d" floodOpacity="0.2" />
+            </filter>
+            <filter id="glowRent" x="-5%" y="-5%" width="110%" height="110%">
+              <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#f9a825" floodOpacity="0.15" />
+            </filter>
           </defs>
           <CartesianGrid
             strokeWidth={0.7}
             vertical={false}
             horizontal={true}
-            stroke="rgba(148, 163, 184, 0.25)"
+            stroke="rgba(148, 163, 184, 0.12)"
+            strokeDasharray="3 3"
           />
           <XAxis
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
+            tick={{ fill: "var(--text-tertiary)", fontSize, fontFamily: "inherit", fontWeight: 700 }}
             dy={10}
             ticks={xTicks}
             tickFormatter={formatXAxisTick}
@@ -214,7 +221,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "var(--text-secondary)", fontSize, fontWeight: 600 }}
+            tick={{ fill: "var(--text-tertiary)", fontSize, fontFamily: "inherit", fontWeight: 700 }}
             tickFormatter={(value: number) =>
               value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
             }
@@ -227,7 +234,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             content={<CustomTooltip />}
             cursor={{
               stroke: "var(--border-color)",
-              strokeWidth: 2,
+              strokeWidth: 1.5,
               strokeDasharray: "3 3",
             }}
             isAnimationActive={!isBottomSheet}
@@ -241,6 +248,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             stroke="#00d29d"
             strokeWidth={isBottomSheet ? 3 : 4}
             fill="url(#colorSale)"
+            style={{ filter: "url(#glowSale)" }}
             animationDuration={isBottomSheet ? undefined : 300}
             dot={
               isBottomSheet
@@ -249,7 +257,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
                 ? false
                 : { r: 5, strokeWidth: 2, fill: "var(--bg-surface)" }
             }
-            activeDot={{ r: isBottomSheet ? 6 : 7 }}
+            activeDot={{
+              r: isBottomSheet ? 5 : 6,
+              strokeWidth: isBottomSheet ? 2 : 3,
+              stroke: "var(--bg-surface)",
+              fill: "#00d29d"
+            }}
           />
           <Area
             key="동탄 아파트 전세 평균"
@@ -259,6 +272,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             stroke="#f9a825"
             strokeWidth={2}
             fill="url(#colorRent)"
+            style={{ filter: "url(#glowRent)" }}
             animationDuration={isBottomSheet ? undefined : 300}
             dot={
               isBottomSheet
@@ -267,7 +281,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
                 ? false
                 : { r: 3, strokeWidth: 2, fill: "var(--bg-surface)" }
             }
-            activeDot={{ r: isBottomSheet ? 4 : 5 }}
+            activeDot={{
+              r: isBottomSheet ? 4 : 5,
+              strokeWidth: isBottomSheet ? 2 : 2.5,
+              stroke: "var(--bg-surface)",
+              fill: "#f9a825"
+            }}
           />
         </AreaChart>
       </ResponsiveContainer>

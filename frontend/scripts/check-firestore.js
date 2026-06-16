@@ -50,9 +50,8 @@ async function check() {
   
   snap.docs.forEach(doc => {
     const d = doc.data();
-    // 11억 (price: 110000) 이거나 floor: 9 인 거래 필터링
-    if (d.price === 110000 && d.floor === 9) {
-      console.log("MATCHING 11억 & 9층:");
+    if (d.contractDate >= '20260612' && d.contractDate <= '20260616') {
+      console.log("MATCHING DATE RANGE (06-12 ~ 06-16):");
       console.log(JSON.stringify({
         id: doc.id,
         aptName: d.aptName,
@@ -61,7 +60,8 @@ async function check() {
         contractDate: d.contractDate,
         floor: d.floor,
         area: d.area,
-        dealType: d.dealType
+        dealType: d.dealType,
+        isNewHigh: d.isNewHigh
       }, null, 2));
     }
   });
