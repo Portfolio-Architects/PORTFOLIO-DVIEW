@@ -120,14 +120,18 @@ export function getSafeMetrics(metrics: any): ScoringMetrics {
     parkingCount: fallback(m.parkingCount),
     parkingPerHousehold: fallback(m.parkingPerHousehold),
     yearBuilt: (() => {
-      const val = m.yearBuilt;
-      if (val === null || val === undefined) return new Date().getFullYear();
-      if (typeof val === 'number') return isNaN(val) ? new Date().getFullYear() : val;
-      if (typeof val === 'string') {
-        const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
-        return isNaN(num) ? new Date().getFullYear() : num;
+      try {
+        const val = m.yearBuilt;
+        if (val === null || val === undefined) return new Date().getFullYear();
+        if (typeof val === 'number') return isNaN(val) ? new Date().getFullYear() : val;
+        if (typeof val === 'string') {
+          const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+          return isNaN(num) ? new Date().getFullYear() : num;
+        }
+        return new Date().getFullYear();
+      } catch (e) {
+        return new Date().getFullYear();
       }
-      return new Date().getFullYear();
     })(),
     minFloor: fallback(m.minFloor),
     maxFloor: fallback(m.maxFloor),
