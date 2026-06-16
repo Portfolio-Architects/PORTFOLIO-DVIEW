@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { MapPin } from 'lucide-react';
 
 /**
@@ -36,7 +36,7 @@ interface AnchorItem {
   metaCoordinates?: string;
 }
 
-export default function AnchorTenantCard(props: AnchorTenantCardProps) {
+const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardProps) {
   const anchors: AnchorItem[] = [
     { 
       id: 'starbucks',
@@ -164,5 +164,8 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
       </div>
     </div>
   );
-}
+});
+
+AnchorTenantCard.displayName = 'AnchorTenantCard';
+export default AnchorTenantCard;
 
