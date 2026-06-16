@@ -180,6 +180,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                 setPostContent(MARKDOWN_TEMPLATE);
               }
             }}
+            aria-label="글쓰기 모달 열기"
             className="fixed right-4 sm:right-6 w-14 h-14 bg-[#008262] hover:bg-[#006b50] text-surface rounded-full shadow-lg shadow-[#008262]/20 flex items-center justify-center transition-all active:scale-95 z-40"
             style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
           >
@@ -188,6 +189,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
         ) : (
           <button
             onClick={() => onRequestLogin?.('라운지에 글을 작성하여 유용한 부동산 정보를 나눠보세요.')}
+            aria-label="로그인하고 글쓰기"
             className="fixed right-4 sm:right-6 w-14 h-14 bg-primary hover:bg-[#333d4b] text-surface rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-40"
             style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
           >
@@ -202,7 +204,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
           <div className="relative w-full sm:max-w-3xl bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[18px] font-extrabold text-primary">커뮤니티 글쓰기</h2>
-              <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+              <button onClick={() => setShowCompose(false)} aria-label="글쓰기 창 닫기" className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
                 <X size={16} className="text-secondary" />
               </button>
             </div>
@@ -250,17 +252,19 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                   value={customNickname} 
                   onChange={(e) => setCustomNickname(e.target.value)} 
                   placeholder="활동 가명을 입력해 주세요" 
+                  aria-label="활동 가명 입력"
                   className="w-full bg-surface border border-toss-gray rounded-lg px-3 py-2 text-[14px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] transition-colors"
                 />
               </div>
             )}
 
-            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors mb-2" autoFocus />
+            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" aria-label="게시글 제목 입력" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors mb-2" autoFocus />
             <textarea 
               ref={textareaRef}
               value={postContent} 
               onChange={(e) => setPostContent(e.target.value)} 
               placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 줄바꿈을 활용해 자유롭게 내용을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
+              aria-label="게시글 내용 입력"
               rows={12} 
               className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10 mb-4" 
             />
