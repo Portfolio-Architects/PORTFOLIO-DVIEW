@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import {
   MapPin, X, Camera,
   Building, Info, Shield, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
-  Crown, ChevronRight, GraduationCap, Calculator, MessageSquare
+  Crown, ChevronRight, GraduationCap, Calculator, MessageSquare, Bell
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -65,6 +65,7 @@ const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').ca
 }), { ssr: false });
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import PushSubscriptionModal from './pwa/PushSubscriptionModal';
 import LocalEducationAd from '@/components/LocalEducationAd';
 import ContextualB2BAdBanner from './apartment-modal/ContextualB2BAdBanner';
 
@@ -325,6 +326,7 @@ function FieldReportModal({
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
+  const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
@@ -1538,6 +1540,16 @@ function FieldReportModal({
               <span>이미지 저장</span>
             </button>
 
+            {/* 실거래 변동 알림 받기 버튼 */}
+            <button
+              onClick={() => setIsPushModalOpen(true)}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md"
+              title="실거래 변동 Web Push 알림 받기"
+            >
+              <Bell size={15} strokeWidth={2.5} className="animate-pulse" />
+              <span>실거래 알림 받기</span>
+            </button>
+
             {/* 통합 금융/분석 드롭다운 도구함 */}
             <div className="relative" ref={toolDropdownRef}>
               <button
@@ -2494,6 +2506,12 @@ function FieldReportModal({
       )}
 
       <FullscreenOverlay />
+
+      <PushSubscriptionModal 
+        isOpen={isPushModalOpen}
+        onClose={() => setIsPushModalOpen(false)}
+        aptName={displayAptName}
+      />
     </>,
     document.getElementById('modal-root') || document.body
   );
