@@ -300,7 +300,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   // Moduled Hooks Architecture
   const { user, userProfile, anonProfile, handleLogin, handleLogout } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
-  const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder } = useFavorites(user, initialDashboardData?.favoriteCounts);
+  const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder, isFavoritesLoading } = useFavorites(user, initialDashboardData?.favoriteCounts);
   
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -877,6 +877,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 updateFavoriteOrder={updateFavoriteOrder}
                 publicRentalSet={publicRentalSet}
                 userFavorites={userFavorites}
+                isFavoritesLoading={isFavoritesLoading}
                 fieldReportsMap={fieldReportsMap}
                 favoriteCounts={favoriteCounts}
                 recent7DaysVolume={recent7DaysVolume}

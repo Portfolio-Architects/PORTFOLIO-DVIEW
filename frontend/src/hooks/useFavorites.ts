@@ -14,6 +14,7 @@ const FavoriteListResponseSchema = z.object({
 export function useFavorites(user: User | null, initialFavoriteCounts: Record<string, number> = {}) {
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>(initialFavoriteCounts);
+  const [isFavoritesLoading, setIsFavoritesLoading] = useState<boolean>(false);
 
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
@@ -41,6 +42,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
   useEffect(() => {
     let unmounted = false;
     if (user) {
+      setIsFavoritesLoading(true);
       user.getIdToken().then(idToken => {
         fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } })
           .then(r => r.json())
@@ -58,10 +60,21 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
               setUserFavorites(new Set(validatedData.favorites));
             }
           })
-          .catch(err => logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err));
-      }).catch(err => logger.warn('useFavorites.authToken', 'Auth token fetch failed', {}, err));
+          .catch(err => logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err))
+          .finally(() => {
+            if (!unmounted) {
+              setIsFavoritesLoading(false);
+            }
+          });
+      }).catch(err => {
+        logger.warn('useFavorites.authToken', 'Auth token fetch failed', {}, err);
+        if (!unmounted) {
+          setIsFavoritesLoading(false);
+        }
+      });
     } else {
       setUserFavorites(new Set());
+      setIsFavoritesLoading(false);
     }
     return () => { unmounted = true; };
   }, [user]);
@@ -130,6 +143,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     userFavorites,
     favoriteCounts,
     handleToggleFavorite,
-    updateFavoriteOrder
+    updateFavoriteOrder,
+    isFavoritesLoading
   };
 }

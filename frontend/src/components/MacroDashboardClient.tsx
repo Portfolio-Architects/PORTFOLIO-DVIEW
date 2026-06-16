@@ -93,6 +93,7 @@ interface MacroDashboardProps {
   nameMapping?: Record<string, string>;
   publicRentalSet: Set<string>;
   userFavorites?: Set<string>;
+  isFavoritesLoading?: boolean;
   fieldReportsMap: Map<string, FieldReportData>;
   favoriteCounts: Record<string, number>;
   onSelectApt?: (name: string) => void;
@@ -338,6 +339,7 @@ export default function MacroDashboardClient({
   nameMapping,
   publicRentalSet,
   userFavorites,
+  isFavoritesLoading,
   fieldReportsMap,
   favoriteCounts,
   onSelectApt,
@@ -352,7 +354,7 @@ export default function MacroDashboardClient({
   updateFavoriteOrder,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
-  const { user, handleLogin } = useAuth();
+  const { user, isLoading: authLoading, handleLogin } = useAuth();
   const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
@@ -482,6 +484,16 @@ export default function MacroDashboardClient({
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
   const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
+  const [isNewHighOnly, setIsNewHighOnly] = useState<boolean>(true);
+
+  const isDefaultAptSettingUp = useMemo(() => {
+    if (!mounted) return true;
+    if (authLoading) return true;
+    if (user && isFavoritesLoading) return true;
+    // 유저가 로그인되어 있고 관심단지가 존재하는데, 아직 디폴트 단지 설정이 완료되지 않은 상태
+    if (user && userFavorites && userFavorites.size > 0 && !hasSetDefaultApt) return true;
+    return false;
+  }, [mounted, authLoading, user, isFavoritesLoading, userFavorites, hasSetDefaultApt]);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
 
@@ -543,7 +555,7 @@ export default function MacroDashboardClient({
 
   // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || isFavoritesLoading) return;
     
     // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 초기화 상태 유지
     if (!user || !userFavorites || userFavorites.size === 0) {
@@ -565,7 +577,7 @@ export default function MacroDashboardClient({
       setSelectedTimelineApt(firstFav);
       setHasSetDefaultApt(true);
     }
-  }, [user, userFavorites, selectedTimelineApt, mounted, hasSetDefaultApt]);
+  }, [user, userFavorites, selectedTimelineApt, mounted, hasSetDefaultApt, isFavoritesLoading]);
 
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
@@ -1455,8 +1467,8 @@ export default function MacroDashboardClient({
       const sum = txSummaryData[txKey];
       if (sum && sum.recent && sum.recent.length > 0) {
         sum.recent.forEach((tx) => {
-          // 빌드타임에 전체 거래를 바탕으로 사전 판정된 진짜 신고가만 대상화
-          if (!tx.isNewHigh) return;
+          // isNewHighOnly가 true일 때는 빌드타임에 사전 판정된 진짜 신고가만 대상화
+          if (isNewHighOnly && !tx.isNewHigh) return;
 
           const dt = parseDateHelper(tx.date, sum.latestDate);
           if (!dt) return;
@@ -1495,8 +1507,8 @@ export default function MacroDashboardClient({
               areaPyeong: tx.areaPyeong,
               area: tx.area,
               floor: tx.floor,
-              type: "high",
-              delta: tx.newHighDelta || tx.delta || 0,
+              type: tx.isNewHigh ? "high" : "normal",
+              delta: tx.isNewHigh ? (tx.newHighDelta || tx.delta || 0) : (tx.delta || 0),
               deltaPercent: tx.deltaPercent || 0,
               prevPriceVal: tx.prevPriceVal,
               areaLabelM2: labelM2,
@@ -1518,7 +1530,7 @@ export default function MacroDashboardClient({
           items: sortedItems,
         };
       });
-  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime, typeMap]);
+  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime, typeMap, isNewHighOnly]);
 
 
   const toggleGroup = (title: string) => {
@@ -1895,17 +1907,31 @@ interface GroupedCategory {
             <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 md:h-full min-h-[420px] min-w-0">
               <div className="flex justify-between items-center gap-2 mb-4">
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
-                  일자별 신고가 단지
+                  {isNewHighOnly ? "일자별 신고가 단지" : "일자별 최근 실거래"}
                 </h2>
-                <span className="text-[12px] text-tertiary font-bold bg-[#f2f4f6] px-2 py-1 rounded-md shrink-0">
-                  신고가 경신
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] font-bold text-secondary">
+                    {isNewHighOnly ? "신고가만 보기" : "전체 실거래"}
+                  </span>
+                  <button
+                    onClick={() => setIsNewHighOnly(!isNewHighOnly)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isNewHighOnly ? "bg-[#00d29d]" : "bg-[#cbd5e1] dark:bg-[#475569]"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        isNewHighOnly ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto md:max-h-none max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0">
                 {dailyTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
-                    등록된 신고가 거래가 없습니다.
+                    {isNewHighOnly ? "등록된 신고가 거래가 없습니다." : "최근 실거래 내역이 없습니다."}
                   </div>
                 ) : (
                   ((!isMobileViewport || isTimelineExpanded) ? dailyTimelineData : dailyTimelineData.slice(0, 3)).map((group) => (
@@ -1940,11 +1966,27 @@ interface GroupedCategory {
                               <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#00d29d] transition-colors leading-tight truncate max-w-[70%]" title={item.displayAptName || item.aptName}>
                                 {item.displayAptName || item.aptName}
                               </span>
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shrink-0 whitespace-nowrap">
-                                {item.delta && item.delta > 0 
-                                  ? `${formatDeltaPrice(item.delta)} (${item.deltaPercent && item.deltaPercent > 0 ? `+${item.deltaPercent.toFixed(1)}%` : '0%'})` 
-                                  : '신고가'}
-                              </span>
+                              {item.type === 'high' ? (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shrink-0 whitespace-nowrap">
+                                  {item.delta && item.delta > 0 
+                                    ? `${formatDeltaPrice(item.delta)} (${item.deltaPercent && item.deltaPercent > 0 ? `+${item.deltaPercent.toFixed(1)}%` : '0%'})` 
+                                    : '신고가'}
+                                </span>
+                              ) : (
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
+                                  item.delta > 0 
+                                    ? "bg-[#e0fbf4] text-[#00b386]" 
+                                    : item.delta < 0 
+                                      ? "bg-[#eef2ff] text-[#4f46e5] dark:bg-[#312e81] dark:text-[#a5b4fc]" 
+                                      : "bg-[#f2f4f6] text-[#8e94a5] dark:bg-[#1e293b] dark:text-[#94a3b8]"
+                                }`}>
+                                  {item.delta > 0 
+                                    ? `▲ ${formatDeltaPrice(item.delta)}` 
+                                    : item.delta < 0 
+                                      ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
+                                      : '보합'}
+                                </span>
+                              )}
                             </div>
 
                             {/* 2nd Row: Info & Price & Button */}
@@ -2026,65 +2068,69 @@ interface GroupedCategory {
                         동탄 아파트 시세 추이
                       </h3>
 
-                      {mounted && user && userFavorites && userFavorites.size > 0 && (
-                        <div className="relative flex items-center gap-1">
-                          <select
-                            value={selectedTimelineApt || ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setSelectedTimelineApt(val === "" ? null : val);
-                            }}
-                            className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
-                          >
-                            <option value="">전체 추이 보기</option>
-                            {favoritesArray.map((fav) => (
-                              <option key={fav} value={fav}>
-                                {fav}
-                              </option>
-                            ))}
-                          </select>
-
-                          {/* ⚙️ 관심 단지 순서 편집 버튼 */}
-                          <div className="relative flex items-center" ref={orderEditorRef}>
-                            <button
-                              onClick={() => setShowOrderEditor(!showOrderEditor)}
-                              title="관심 단지 정렬 순서 편집"
-                              className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+                      {isDefaultAptSettingUp ? (
+                        <div className="w-[150px] sm:w-[190px] h-[28px] bg-zinc-100 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
+                      ) : (
+                        mounted && user && userFavorites && userFavorites.size > 0 && (
+                          <div className="relative flex items-center gap-1">
+                            <select
+                              value={selectedTimelineApt || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSelectedTimelineApt(val === "" ? null : val);
+                              }}
+                              className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
                             >
-                              <Settings size={13} />
-                            </button>
+                              <option value="">전체 추이 보기</option>
+                              {favoritesArray.map((fav) => (
+                                <option key={fav} value={fav}>
+                                  {fav}
+                                </option>
+                              ))}
+                            </select>
 
-                            {/* 팝오버 UI */}
-                            {showOrderEditor && (
-                              <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
-                                  <span>⭐ 관심 단지 순서 편집</span>
-                                  <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
+                            {/* ⚙️ 관심 단지 순서 편집 버튼 */}
+                            <div className="relative flex items-center" ref={orderEditorRef}>
+                              <button
+                                onClick={() => setShowOrderEditor(!showOrderEditor)}
+                                title="관심 단지 정렬 순서 편집"
+                                className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+                              >
+                                <Settings size={13} />
+                              </button>
+
+                              {/* 팝오버 UI */}
+                              {showOrderEditor && (
+                                <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                  <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
+                                    <span>⭐ 관심 단지 순서 편집</span>
+                                    <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    {favoritesArray.map((fav, index) => (
+                                      <div
+                                        key={fav}
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, index)}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragEnd={handleDragEnd}
+                                        className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
+                                          draggedIndex === index ? "opacity-40 border-dashed border-[#00d29d]" : ""
+                                        }`}
+                                      >
+                                        <span className="truncate pr-2">{getDisplayAptName(fav)}</span>
+                                        <span className="text-tertiary text-[10px] shrink-0 font-normal">☰</span>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                                <div className="flex flex-col gap-1.5">
-                                  {favoritesArray.map((fav, index) => (
-                                    <div
-                                      key={fav}
-                                      draggable
-                                      onDragStart={(e) => handleDragStart(e, index)}
-                                      onDragOver={(e) => handleDragOver(e, index)}
-                                      onDragEnd={handleDragEnd}
-                                      className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
-                                        draggedIndex === index ? "opacity-40 border-dashed border-[#00d29d]" : ""
-                                      }`}
-                                    >
-                                      <span className="truncate pr-2">{getDisplayAptName(fav)}</span>
-                                      <span className="text-tertiary text-[10px] shrink-0 font-normal">☰</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )
                       )}
 
-                      {selectedTimelineApt && (
+                      {selectedTimelineApt && !isDefaultAptSettingUp && (
                         <button
                           onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
                           className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-sm"
@@ -2112,42 +2158,57 @@ interface GroupedCategory {
                 </div>
 
                 <div className="w-full flex-grow mt-2 sm:mt-0 md:h-[330px] md:min-h-[330px] h-[260px] min-h-[260px] relative">
-                  <MacroTrendChart
-                    lineData={mainLineData}
-                    xTicks={mainXTicks}
-                    yTicks={mainYTicks}
-                    timeframe={timeframe}
-                  />
+                  {isDefaultAptSettingUp ? (
+                    <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/50 dark:bg-zinc-900/10 border border-border/40 rounded-2xl animate-pulse">
+                      <span className="text-tertiary text-[12px] font-extrabold mb-1">관심 단지 정보를 불러오는 중입니다...</span>
+                      <span className="text-[10px] text-tertiary/60 font-medium">내 자산 가치 분석 보고서를 작성하고 있습니다.</span>
+                    </div>
+                  ) : (
+                    <MacroTrendChart
+                      lineData={mainLineData}
+                      xTicks={mainXTicks}
+                      yTicks={mainYTicks}
+                      timeframe={timeframe}
+                    />
+                  )}
                 </div>
 
-                 {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
-                <div className="flex items-center justify-center gap-3 mt-1.5 flex-none">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
-                    <span>평균 매매가</span>
+                {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
+                {isDefaultAptSettingUp ? (
+                  <div className="flex items-center justify-center gap-3 mt-1.5 flex-none animate-pulse">
+                    <div className="w-20 h-5 bg-zinc-100 dark:bg-zinc-800/60 rounded-full" />
+                    <div className="w-20 h-5 bg-zinc-100 dark:bg-zinc-800/60 rounded-full" />
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
-                    <span>평균 전세가</span>
+                ) : (
+                  <div className="flex items-center justify-center gap-3 mt-1.5 flex-none">
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                      <span>평균 매매가</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
+                      <span>평균 전세가</span>
+                    </div>
                   </div>
-                </div>
-
-
+                )}
 
                 {/* Bottom Card Area: either Favorites List or CTA Banner */}
-                {mounted && userFavorites && userFavorites.size > 0 ? null : (
-                  <div className="mt-2 pt-2.5 border-t border-border/60 flex-none">
-                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
-                      <div className="flex flex-col gap-1 min-w-0">
-                        <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
-                          <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
-                        </span>
-                        <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
-                          {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
+                {isDefaultAptSettingUp ? (
+                  <div className="mt-2 pt-2.5 border-t border-border/60 flex-none h-[72px] bg-zinc-50 dark:bg-zinc-900/10 rounded-2xl animate-pulse border border-border/40" />
+                ) : (
+                  mounted && userFavorites && userFavorites.size > 0 ? null : (
+                    <div className="mt-2 pt-2.5 border-t border-border/60 flex-none">
+                      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                        <div className="flex flex-col gap-1 min-w-0">
+                          <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
+                            <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
+                          </span>
+                          <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
+                            {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => {
                           if (!user) {
                             handleLogin();
                           } else {
@@ -2164,6 +2225,7 @@ interface GroupedCategory {
                       </button>
                     </div>
                   </div>
+                )
                 )}
               </div>
             </div>
