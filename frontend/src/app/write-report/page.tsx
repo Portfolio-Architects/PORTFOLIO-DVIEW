@@ -43,6 +43,14 @@ export default function WriteFieldReport() {
   const router = useRouter();
   const { dongtanApartments } = useDashboardData();
   const [user, setUser] = useState<User | null>(null);
+  
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Wizard State (1 to 6)
   const [step, setStep] = useState<number>(1);
@@ -161,7 +169,9 @@ export default function WriteFieldReport() {
       try {
         const draft = { step, selectedDong, reportAptName, sections, savedAt: Date.now() };
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        setLastSaved(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
+        if (mountedRef.current) {
+          setLastSaved(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
+        }
       } catch { /* noop */ }
     }, AUTO_SAVE_INTERVAL);
     return () => clearInterval(interval);
@@ -260,7 +270,11 @@ export default function WriteFieldReport() {
         null,
         user.uid,
         imageEntries,
-        (done, total) => setUploadProgress({ done, total })
+        (done, total) => {
+          if (mountedRef.current) {
+            setUploadProgress({ done, total });
+          }
+        }
       );
       localStorage.removeItem(DRAFT_KEY);
       alert(`🔥 프로 임장기가 성공적으로 등록되었습니다! (${totalImages}장 업로드)`);
@@ -269,8 +283,10 @@ export default function WriteFieldReport() {
        console.error("Submission failed", error);
        alert("등록 중 오류가 발생했습니다.");
     } finally {
-      setIsSubmitting(false);
-      setUploadProgress(null);
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+        setUploadProgress(null);
+      }
     }
   };
 
