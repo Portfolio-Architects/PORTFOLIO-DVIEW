@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 
 
@@ -66,6 +67,9 @@ function urlBase64ToUint8Array(base64String: string) {
 
 
 export function PWAProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [showCustomA2HSModal, setShowCustomA2HSModal] = useState(false);
@@ -79,6 +83,26 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   // Cache expiration fallback state
   const [showCacheExpiredModal, setShowCacheExpiredModal] = useState(false);
   const [expiredCacheUrl, setExpiredCacheUrl] = useState<string | null>(null);
+
+  // 🔧 Nextjs-Toploader 진행바 잔존 DOM 노드 강제 청소 (router.events 소거 가드 보강)
+  useEffect(() => {
+    const cleanNProgress = () => {
+      try {
+        const globalNProgress = (window as any).NProgress;
+        if (globalNProgress) {
+          globalNProgress.done();
+        }
+        const elements = document.querySelectorAll('#nprogress');
+        elements.forEach(el => el.remove());
+      } catch (err) {
+        // Ignored
+      }
+    };
+
+    cleanNProgress();
+    const timer = setTimeout(cleanNProgress, 150);
+    return () => clearTimeout(timer);
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     let isMounted = true;
