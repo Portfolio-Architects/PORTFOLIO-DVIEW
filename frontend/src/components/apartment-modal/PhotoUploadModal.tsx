@@ -43,6 +43,15 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
     setMounted(true);
   }, []);
 
+  // Revoke object URL to prevent memory leaks when preview URL changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   if (!isOpen || !mounted) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
