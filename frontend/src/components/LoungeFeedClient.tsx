@@ -133,9 +133,15 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const hotPosts = useMemo(() => {
     const now = Date.now();
     const postsWithScore = posts.map(post => {
-      const ageDays = (now - post.createdAt) / (1000 * 60 * 60 * 24);
-      const score = (post.views + post.likes * 5 + (post.commentCount || 0) * 10) / Math.pow(ageDays + 1, 1.2);
-      return { post, score };
+      const rawCreatedAt = post.createdAt;
+      const createdAt = typeof rawCreatedAt === 'number' && !isNaN(rawCreatedAt) 
+        ? rawCreatedAt 
+        : (typeof rawCreatedAt === 'string' ? new Date(rawCreatedAt).getTime() : now);
+      
+      const safeCreatedAt = isNaN(createdAt) ? now : createdAt;
+      const ageDays = Math.max(0, (now - safeCreatedAt) / (1000 * 60 * 60 * 24));
+      const score = (Number(post.views || 0) + Number(post.likes || 0) * 5 + Number(post.commentCount || 0) * 10) / Math.pow(ageDays + 1, 1.2);
+      return { post, score: isNaN(score) ? 0 : score };
     });
 
     return postsWithScore
