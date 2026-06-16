@@ -146,9 +146,10 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
 
   useEffect(() => {
     if (!postId) return;
+    let active = true;
     try {
       const liked = localStorage.getItem(`post_liked_${postId}`);
-      if (liked) setIsLiked(true);
+      if (active && liked) setIsLiked(true);
     } catch (e) {
       console.warn('localStorage is unavailable:', e);
     }
@@ -158,6 +159,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
 
     const fetchPost = async () => {
       const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
+      if (!active) return;
       if (snap.exists()) {
         const data = snap.data();
         const formatted = {
@@ -189,6 +191,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             if (!isAdminUser) {
               await dashboardFacade.incrementPostView(postId, data.title);
             }
+            if (!active) return;
             // Optionally update UI view count locally immediately
             setPost((p) => {
               const updated = p ? { ...p, views: (Number(p.views) || 0) + 1 } : p;
@@ -203,11 +206,15 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       setLoading(false);
     };
     fetchPost();
+    return () => {
+      active = false;
+    };
   }, [postId]);
 
   // Fetch recommended posts (Lounge Popular Talks)
   useEffect(() => {
     if (!postId) return;
+    let active = true;
     const fetchRecommended = async () => {
       try {
         const q = query(
@@ -216,6 +223,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           limit(30)
         );
         const snap = await getDocs(q);
+        if (!active) return;
         const list: any[] = [];
         snap.forEach((docSnap) => {
           const data = docSnap.data();
@@ -236,10 +244,15 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           .slice(0, 3);
         setRecommendedPosts(sorted);
       } catch (err) {
-        console.warn('Failed to fetch recommended posts:', err);
+        if (active) {
+          console.warn('Failed to fetch recommended posts:', err);
+        }
       }
     };
     fetchRecommended();
+    return () => {
+      active = false;
+    };
   }, [postId]);
 
   // Listen to comments
