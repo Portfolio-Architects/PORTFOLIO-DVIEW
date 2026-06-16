@@ -75,26 +75,32 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
     );
   }
 
+  // B2B Fallback or Local Sponsored Ad
   return (
     <div 
-      className={`w-full ${ad.themeColor} rounded-[20px] px-5 border border-dashed flex flex-row items-center justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer h-[78px] md:h-[86px]`}
+      className={`w-full ${ad.themeColor} rounded-[20px] px-5 border border-dashed flex items-center justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer ${
+        isCompact 
+          ? 'h-[78px] md:h-[86px] flex-row' 
+          : 'min-h-[250px] md:min-h-[280px] py-8 flex-col sm:flex-row justify-center sm:justify-between gap-6'
+      }`}
       onClick={handleAdClick}
     >
       <div className="absolute top-1.5 right-3 text-[8px] font-bold opacity-60 uppercase tracking-widest sm:hidden">
         Sponsored
       </div>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 flex-1 min-w-0 text-left">
-        <div className={`text-[14px] sm:text-[15px] md:text-[16px] font-extrabold ${ad.textColor} group-hover:opacity-80 transition-opacity leading-tight shrink-0`}>
+      <div className={`flex gap-1.5 flex-1 min-w-0 text-left ${isCompact ? 'flex-col sm:flex-row sm:items-center sm:gap-3' : 'flex-col items-center sm:items-start text-center sm:text-left'}`}>
+        <div className={`text-[14px] sm:text-[15px] md:text-[17px] font-extrabold ${ad.textColor} group-hover:opacity-80 transition-opacity leading-tight shrink-0`}>
           {ad.title}
         </div>
-        <span className="hidden sm:inline opacity-40">—</span>
-        <p className="text-[11px] sm:text-[12.5px] font-medium text-secondary truncate">
+        {!isCompact && <div className="h-1 w-12 bg-border/40 my-2 rounded sm:hidden" />}
+        {isCompact && <span className="hidden sm:inline opacity-40">—</span>}
+        <p className={`text-[11px] sm:text-[13px] font-medium text-secondary ${isCompact ? 'truncate' : 'line-clamp-3 sm:line-clamp-2 max-w-[620px]'}`}>
           {ad.description}
         </p>
       </div>
       
-      <div className="flex items-center gap-3 shrink-0 ml-4">
-        <button className="hidden sm:block text-[11px] font-bold px-3 py-1.5 bg-surface text-primary border border-border rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+      <div className={`flex items-center gap-3 shrink-0 ${isCompact ? 'ml-4' : 'mt-4 sm:mt-0 flex-col sm:flex-row'}`}>
+        <button className="text-[11px] sm:text-[12px] font-bold px-4 py-2 bg-white dark:bg-slate-900 text-primary border border-border rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
           {ad.buttonText}
         </button>
         <span className="text-[10px] font-bold opacity-85 uppercase tracking-widest">
