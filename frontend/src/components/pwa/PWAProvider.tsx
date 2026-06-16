@@ -76,6 +76,10 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Cache expiration fallback state
+  const [showCacheExpiredModal, setShowCacheExpiredModal] = useState(false);
+  const [expiredCacheUrl, setExpiredCacheUrl] = useState<string | null>(null);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -126,8 +130,26 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     const handleOnlineStatus = () => {
       console.log('[PWAProvider] Network restored. Triggering manual offline sync queue replay...');
       retryOfflineRequests();
+      // 온라인 복구 시 만료 캐시 경고창 자동 해제
+      setShowCacheExpiredModal(false);
     };
     window.addEventListener('online', handleOnlineStatus);
+
+    // 🔧 Service Worker message handler for cache expiration detection
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'CACHE_EXPIRED_WARNING') {
+        if (sessionStorage.getItem('dview_cache_expired_warned') === 'true') {
+          return;
+        }
+        if (typeof window !== 'undefined' && !navigator.onLine) {
+          setExpiredCacheUrl(event.data.url);
+          setShowCacheExpiredModal(true);
+        }
+      }
+    };
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
 
     // 1. A2HS Logic
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -178,6 +200,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('online', handleOnlineStatus);
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
       }
     };
   }, []);
@@ -302,6 +325,49 @@ export function PWAProvider({ children }: { children: ReactNode }) {
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {showCacheExpiredModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-[24px] shadow-2xl p-6 text-center animate-in zoom-in-95 duration-300 select-none">
+            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-rose-500 mb-4 animate-bounce">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wifi-off"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.5"/><path d="M5 12.5a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.5 8"/><path d="M1.5 8a15.89 15.89 0 0 1 5.9-2.27"/><path d="M8.58 16.58A5 5 0 0 1 12 15a5 5 0 0 1 2.24.54"/><path d="M12 21a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+            </div>
+            
+            <h3 className="text-[17px] font-black text-neutral-900 dark:text-neutral-50 mb-2">
+              오프라인 캐시 만료 안내
+            </h3>
+            
+            <p className="text-[13px] text-neutral-500 dark:text-neutral-400 leading-relaxed mb-6">
+              현재 네트워크와 연결되어 있지 않으며, 불러온 데이터는 24시간이 경과한 오래된 캐시 정보입니다. 최신 데이터를 보려면 인터넷 연결을 확인해 주세요.
+            </p>
+            
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined' && navigator.onLine) {
+                    window.location.reload();
+                  } else {
+                    alert('여전히 오프라인 상태입니다. 네트워크 연결을 다시 확인해 주세요.');
+                  }
+                }}
+                className="w-full bg-[#008262] hover:bg-[#00694f] text-white text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer shadow-md"
+              >
+                네트워크 재연결 시도
+              </button>
+              
+              <button
+                onClick={() => {
+                  sessionStorage.setItem('dview_cache_expired_warned', 'true');
+                  setShowCacheExpiredModal(false);
+                }}
+                className="w-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-[13px] font-bold py-2.5 px-4 rounded-[14px] transition-colors cursor-pointer"
+              >
+                오래된 데이터로 계속 보기
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </PWAContext.Provider>

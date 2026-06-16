@@ -32,6 +32,44 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Cache timestamp helper
+function addCacheTimestamp(res) {
+  if (!res) return res;
+  try {
+    const newHeaders = new Headers(res.headers);
+    newHeaders.set('x-sw-cached-at', Date.now().toString());
+    const clone = res.clone();
+    return new Response(clone.body, {
+      status: clone.status,
+      statusText: clone.statusText,
+      headers: newHeaders
+    });
+  } catch (err) {
+    return res;
+  }
+}
+
+// Expire warning notifier
+function checkCacheExpiration(cachedRes, req) {
+  if (!cachedRes) return;
+  const cachedAt = cachedRes.headers.get('x-sw-cached-at');
+  if (cachedAt) {
+    const age = Date.now() - parseInt(cachedAt, 10);
+    const EXPIRATION_LIMIT = 24 * 60 * 60 * 1000; // 24시간 만료 임계값
+    if (age > EXPIRATION_LIMIT) {
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'CACHE_EXPIRED_WARNING',
+            url: req.url,
+            ageMs: age
+          });
+        });
+      });
+    }
+  }
+}
+
 // 2. Fetch (Advanced Caching: Stale-While-Revalidate)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -47,13 +85,14 @@ self.addEventListener('fetch', (event) => {
         if (cachedRes) return cachedRes;
         return fetch(req).then((networkRes) => {
           const clone = networkRes.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, addCacheTimestamp(clone)));
           return networkRes;
         });
       })
     );
     return;
   }
+  
   // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Stale-While-Revalidate
   // 단, 용량이 크고 실시간 데이터와 정합이 중요한 tx-summary.json은 캐싱 레이턴시 배제를 위해 SWR 캐시에서 제외합니다.
   if ((url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) && !url.pathname.includes('tx-summary.json')) {
@@ -62,18 +101,21 @@ self.addEventListener('fetch', (event) => {
         return cache.match(req).then((cachedRes) => {
           const fetchPromise = fetch(req).then((networkRes) => {
             if (networkRes.status === 200) {
-              cache.put(req, networkRes.clone());
+              cache.put(req, addCacheTimestamp(networkRes.clone()));
             }
             return networkRes;
           }).catch(() => null);
-          return cachedRes || fetchPromise;
+
+          if (cachedRes) {
+            checkCacheExpiration(cachedRes, req);
+            return cachedRes;
+          }
+          return fetchPromise;
         });
       })
     );
     return;
   }
-
-
 
   // Default: Network First, Fallback to Cache (and save to Dynamic Cache on success)
   event.respondWith(
@@ -87,13 +129,16 @@ self.addEventListener('fetch', (event) => {
           !url.pathname.includes('/admin')
         ) {
           const clone = networkRes.clone();
-          caches.open(DYNAMIC_CACHE_NAME).then((cache) => cache.put(req, clone));
+          caches.open(DYNAMIC_CACHE_NAME).then((cache) => cache.put(req, addCacheTimestamp(clone)));
         }
         return networkRes;
       })
       .catch(() => {
         return caches.match(req).then((cachedRes) => {
-          if (cachedRes) return cachedRes;
+          if (cachedRes) {
+            checkCacheExpiration(cachedRes, req);
+            return cachedRes;
+          }
           // Fallback to offline.html if navigation fails
           if (req.mode === 'navigate' || (req.headers.get('accept') && req.headers.get('accept').includes('text/html'))) {
             return caches.match('/offline.html');
