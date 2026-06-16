@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useMemo } from 'react';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from '@/lib/DashboardFacade';
@@ -18,7 +18,7 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').cat
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
-export default function ZoneDetailPage() {
+const ZoneDetailPage = React.memo(function ZoneDetailPage() {
   const params = useParams();
   const router = useRouter();
   const zoneId = params.id as string;
@@ -218,4 +218,8 @@ export default function ZoneDetailPage() {
       )}
     </div>
   );
-}
+});
+
+ZoneDetailPage.displayName = 'ZoneDetailPage';
+
+export default ZoneDetailPage;
