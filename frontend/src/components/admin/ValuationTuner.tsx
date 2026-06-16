@@ -31,12 +31,21 @@ export function ValuationTuner() {
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState<string | null>(null);
 
+  const mountedRef = React.useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Load votes and overrides
   const loadData = async () => {
     setLoading(true);
     try {
       // 1. Fetch Votes
       const voteSnap = await getDocs(collection(db, 'apartmentVotes'));
+      if (!mountedRef.current) return;
       const fetchedVotes: VoteRecord[] = voteSnap.docs.map(doc => ({
         id: doc.id,
         aptName: doc.data().aptName || doc.id,
@@ -47,6 +56,7 @@ export function ValuationTuner() {
 
       // 2. Fetch Overrides
       const overrideDoc = await getDoc(doc(db, 'settings/valuation_overrides'));
+      if (!mountedRef.current) return;
       if (overrideDoc.exists()) {
         setOverrides(overrideDoc.data() as Record<string, number>);
       } else {
@@ -84,9 +94,13 @@ export function ValuationTuner() {
       });
       setSuggestions(computedSuggestions);
     } catch (error) {
-      console.error('Failed to fetch valuation tuner data:', error);
+      if (mountedRef.current) {
+        console.error('Failed to fetch valuation tuner data:', error);
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -99,12 +113,17 @@ export function ValuationTuner() {
     try {
       const newOverrides = { ...overrides, [s.normalizedId]: s.suggestedAdjustment };
       await setDoc(doc(db, 'settings/valuation_overrides'), newOverrides);
+      if (!mountedRef.current) return;
       alert(`"${s.aptName}" 아파트에 ${s.suggestedAdjustment > 0 ? '+' : ''}${s.suggestedAdjustment}점 가치 보정이 반영되었습니다.`);
       await loadData();
     } catch (e: any) {
-      alert('오류가 발생했습니다: ' + e.message);
+      if (mountedRef.current) {
+        alert('오류가 발생했습니다: ' + e.message);
+      }
     } finally {
-      setActioning(null);
+      if (mountedRef.current) {
+        setActioning(null);
+      }
     }
   };
 
@@ -115,12 +134,17 @@ export function ValuationTuner() {
       const newOverrides = { ...overrides };
       delete newOverrides[normalizedId];
       await setDoc(doc(db, 'settings/valuation_overrides'), newOverrides);
+      if (!mountedRef.current) return;
       alert('초기화가 완료되었습니다.');
       await loadData();
     } catch (e: any) {
-      alert('오류가 발생했습니다: ' + e.message);
+      if (mountedRef.current) {
+        alert('오류가 발생했습니다: ' + e.message);
+      }
     } finally {
-      setActioning(null);
+      if (mountedRef.current) {
+        setActioning(null);
+      }
     }
   };
 
