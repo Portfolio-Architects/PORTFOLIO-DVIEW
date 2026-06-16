@@ -9,6 +9,12 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: ['/api/', '/admin/'],
+      },
+      {
+        // Prioritize and welcome major AI/LLM Search scrapers for search citation indexing
+        userAgent: ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-Web', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended'],
+        allow: '/',
+        disallow: ['/api/', '/admin/'],
       }
     ],
     sitemap: [

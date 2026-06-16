@@ -45,7 +45,8 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
       const reportsMap = new Map<string, string[]>();
       if (adminDb) {
         try {
-          const reportsSnap = await adminDb.collection('scoutingReports').get();
+          // Use projection select() to only fetch required fields, saving firestore read costs
+          const reportsSnap = await adminDb.collection('scoutingReports').select('apartmentName', 'images').get();
           reportsSnap.forEach(doc => {
             const data = doc.data();
             if (data.apartmentName && data.images && Array.isArray(data.images) && data.images.length > 0) {
@@ -87,8 +88,10 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
 
     if (adminDb) {
       try {
+        // Use projection select() to only fetch createdAt field, optimizing query payload size
         const postsSnapshot = await adminDb
           .collection('posts')
+          .select('createdAt')
           .orderBy('createdAt', 'desc')
           .limit(1000) // limit for safety in sitemap
           .get();
