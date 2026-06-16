@@ -214,6 +214,7 @@
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: #d1d6db transparent;
     overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Hide scrollbar for clean horizontal scrolls */
