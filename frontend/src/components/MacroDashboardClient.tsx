@@ -2155,7 +2155,7 @@ interface GroupedCategory {
               </div>
 
               {/* 소식 리스트 */}
-              <div className="flex flex-col gap-3.5 flex-1 justify-start py-1.5">
+              <div className="flex flex-col gap-3.5 flex-1 justify-start py-1.5 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/80 [&::-webkit-scrollbar-thumb]:rounded-full scrollbar-thin">
                 {/* 1. 철도전략과 소식 */}
                 <div className="flex flex-col gap-1.5">
                   <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
