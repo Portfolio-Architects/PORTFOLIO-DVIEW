@@ -420,12 +420,16 @@ export default function ApartmentInfoPage() {
     setIsCalculating(true);
     try {
       const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(originalName)}&refresh=1&t=${Date.now()}`);
+      if (!mountedRef.current) return;
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        alert(`좌표 데이터를 찾을 수 없습니다.\n\n💡 ${errData.hint || ''}`);
+        if (mountedRef.current) {
+          alert(`좌표 데이터를 찾을 수 없습니다.\n\n💡 ${errData.hint || ''}`);
+        }
         return;
       }
       const loc = await res.json();
+      if (!mountedRef.current) return;
       const bld = loc.buildingInfo;
       // Compute parkingCount from ratio if available
       const pph = bld?.parkingPerHousehold;
@@ -477,10 +481,14 @@ export default function ApartmentInfoPage() {
       });
       alert('✅ 자동 출력 완료!');
     } catch (e) {
-      alert('자동 출력 중 오류가 발생했습니다.');
-      console.error(e);
+      if (mountedRef.current) {
+        alert('자동 출력 중 오류가 발생했습니다.');
+        console.error(e);
+      }
     } finally {
-      setIsCalculating(false);
+      if (mountedRef.current) {
+        setIsCalculating(false);
+      }
     }
   };
 
@@ -719,8 +727,10 @@ export default function ApartmentInfoPage() {
         }
       }
     } catch (e: unknown) {
-      console.error('Save failed:', e);
-      alert('저장에 실패했습니다: ' + (e as Error).message);
+      if (mountedRef.current) {
+        console.error('Save failed:', e);
+        alert('저장에 실패했습니다: ' + (e as Error).message);
+      }
     } finally {
       if (mountedRef.current) {
         setSaving(false);
@@ -762,8 +772,11 @@ export default function ApartmentInfoPage() {
         router.replace('/admin');
       }
     } catch (e: unknown) {
-      console.error('Delete failed:', e);
-      alert('삭제에 실패했습니다: ' + (e as Error).message);
+      if (mountedRef.current) {
+        console.error('Delete failed:', e);
+        alert('삭제에 실패했습니다: ' + (e as Error).message);
+      }
+    } finally {
       if (mountedRef.current) {
         setSaving(false);
       }
