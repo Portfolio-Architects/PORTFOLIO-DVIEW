@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Share2, X, ChevronRight, ExternalLink, Lightbulb } from 'lucide-react';
 import { shareLocalEventToKakao } from '@/lib/utils/kakaoShare';
 
@@ -22,6 +22,15 @@ interface LocalCalendarProps {
 export function LocalCalendar({ events }: LocalCalendarProps) {
   const [selectedEvent, setSelectedEvent] = useState<LocalEvent | null>(null);
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // 날짜 기반 행사 분류: 오늘 이후의 일정 우선 정렬
   const sortedEvents = React.useMemo(() => {
@@ -63,9 +72,12 @@ export function LocalCalendar({ events }: LocalCalendarProps) {
   const handleCopyLink = (e: React.MouseEvent, event: LocalEvent) => {
     e.stopPropagation();
     const shareUrl = `${window.location.origin}/#lounge?notice=${event.id}`;
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopiedEventId(event.id);
-      setTimeout(() => setCopiedEventId(null), 2000);
+      copyTimeoutRef.current = setTimeout(() => setCopiedEventId(null), 2000);
     }).catch((err) => {
       console.error('Clipboard copy failed:', err);
       alert('링크 복사에 실패했습니다.');
