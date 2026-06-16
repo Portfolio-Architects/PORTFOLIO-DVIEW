@@ -39,6 +39,71 @@ function computeAutoGrade(sections: ReportSections): { grade: string; score: num
   return { grade: 'D', score, label: '주의 필요', color: '#f04452' };
 }
 
+interface ReportContextType {
+  sections: ReportSections;
+  updateSectionState: (section: keyof ReportSections, field: string, value: string | number) => void;
+  imagePreviews: Record<string, string[]>;
+  handleMultiImageChange: (key: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleRemoveImage: (key: string, index: number) => void;
+  handleDropFiles: (key: string, e: React.DragEvent) => void;
+}
+
+const ReportContext = React.createContext<ReportContextType | null>(null);
+
+function useReportContext() {
+  const ctx = React.useContext(ReportContext);
+  if (!ctx) throw new Error('useReportContext must be used within a ReportContextProvider');
+  return ctx;
+}
+
+const EmojiRating = React.memo(({ section, field, label }: { section: keyof ReportSections, field: string, label: string }) => {
+  const { sections, updateSectionState } = useReportContext();
+  const value = Number((sections[section] as Record<string, string | number>)[field]) || 0;
+  return <BaseEmojiRating label={label} value={value} onChange={(v) => updateSectionState(section, field, v)} />;
+});
+EmojiRating.displayName = 'EmojiRating';
+
+const TextInput = React.memo(({ section, field, label, placeholder, isTextarea = false }: { section: keyof ReportSections, field: string, label: string, placeholder: string, isTextarea?: boolean }) => {
+  const { sections, updateSectionState } = useReportContext();
+  const value = String((sections[section] as Record<string, string | number>)[field] || "");
+  return <BaseTextInput label={label} placeholder={placeholder} value={value} onChange={(v) => updateSectionState(section, field, v)} isTextarea={isTextarea} />;
+});
+TextInput.displayName = 'TextInput';
+
+const SelectInput = React.memo(({ section, field, label, options }: { section: keyof ReportSections, field: string, label: string, options: {value: string, label: string}[] }) => {
+  const { sections, updateSectionState } = useReportContext();
+  const value = String((sections[section] as Record<string, string | number>)[field] || "");
+  return <BaseSelectInput label={label} options={options} value={value} onChange={(v) => updateSectionState(section, field, v)} />;
+});
+SelectInput.displayName = 'SelectInput';
+
+const MultiPhotoDropzone = React.memo(({ label, apiKey, placeholder }: { label: string, apiKey: string, placeholder: string }) => {
+  const { imagePreviews, handleMultiImageChange, handleRemoveImage, handleDropFiles } = useReportContext();
+  const previews = imagePreviews[apiKey] || [];
+
+  const handleFilesAdded = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    handleMultiImageChange(apiKey, e);
+  }, [handleMultiImageChange, apiKey]);
+
+  const handleRemove = useCallback((idx: number) => {
+    handleRemoveImage(apiKey, idx);
+  }, [handleRemoveImage, apiKey]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    handleDropFiles(apiKey, e);
+  }, [handleDropFiles, apiKey]);
+
+  return <BaseMultiPhotoDropzone 
+    label={label} 
+    placeholder={placeholder} 
+    previews={previews} 
+    onFilesAdded={handleFilesAdded}
+    onRemove={handleRemove}
+    onDrop={handleDrop}
+  />;
+});
+MultiPhotoDropzone.displayName = 'MultiPhotoDropzone';
+
 const WriteFieldReport = React.memo(function WriteFieldReport() {
   const router = useRouter();
   const { dongtanApartments } = useDashboardData();
@@ -177,12 +242,12 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
     return () => clearInterval(interval);
   }, [step, selectedDong, reportAptName, sections]);
 
-  const updateSectionState = (section: keyof ReportSections, field: string, value: string | number) => {
+  const updateSectionState = useCallback((section: keyof ReportSections, field: string, value: string | number) => {
     setSections(prev => ({
       ...prev,
       [section]: { ...prev[section], [field]: value }
     }));
-  };
+  }, []);
 
   const handleNextStep = () => {
     if (step === 1 && !reportAptName) {
@@ -198,7 +263,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
   };
 
   // -- Multi Image Handling --
-  const handleMultiImageChange = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMultiImageChange = useCallback((key: string, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const allNew = Array.from(e.target.files);
       // Dedup inside functional update to always use latest state
@@ -219,9 +284,9 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
       });
     }
     e.target.value = '';
-  };
+  }, []);
 
-  const handleRemoveImage = (key: string, index: number) => {
+  const handleRemoveImage = useCallback((key: string, index: number) => {
     setImageFiles(prev => {
       const arr = [...(prev[key] || [])];
       arr.splice(index, 1);
@@ -239,7 +304,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
       }
       return { ...prev, [key]: arr };
     });
-  };
+  }, []);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -293,7 +358,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
   // ── Reusable Components ────────────────────────────
 
   // ── Multi Photo Drag & Drop ──
-  const handleDropFiles = (key: string) => (e: React.DragEvent) => {
+  const handleDropFiles = useCallback((key: string, e: React.DragEvent) => {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const allNew = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
       if (allNew.length === 0) return;
@@ -312,43 +377,32 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
         return { ...prev, [key]: [...existing, ...unique] };
       });
     }
-  };
+  }, []);
 
-  // ── Reusable Component Wrappers ────────────────────────────
-
-  const EmojiRating = ({ section, field, label }: { section: keyof ReportSections, field: string, label: string }) => {
-    const value = Number((sections[section] as Record<string, string | number>)[field]) || 0;
-    return <BaseEmojiRating label={label} value={value} onChange={(v) => updateSectionState(section, field, v)} />;
-  };
-
-  const TextInput = ({ section, field, label, placeholder, isTextarea = false }: { section: keyof ReportSections, field: string, label: string, placeholder: string, isTextarea?: boolean }) => {
-    const value = String((sections[section] as Record<string, string | number>)[field] || "");
-    return <BaseTextInput label={label} placeholder={placeholder} value={value} onChange={(v) => updateSectionState(section, field, v)} isTextarea={isTextarea} />;
-  };
-
-  const SelectInput = ({ section, field, label, options }: { section: keyof ReportSections, field: string, label: string, options: {value: string, label: string}[] }) => {
-    const value = String((sections[section] as Record<string, string | number>)[field] || "");
-    return <BaseSelectInput label={label} options={options} value={value} onChange={(v) => updateSectionState(section, field, v)} />;
-  };
-
-  const MultiPhotoDropzone = ({ label, apiKey, placeholder }: { label: string, apiKey: string, placeholder: string }) => {
-    const previews = imagePreviews[apiKey] || [];
-    return <BaseMultiPhotoDropzone 
-      label={label} 
-      placeholder={placeholder} 
-      previews={previews} 
-      onFilesAdded={handleMultiImageChange(apiKey)}
-      onRemove={(idx) => handleRemoveImage(apiKey, idx)}
-      onDrop={handleDropFiles(apiKey)}
-    />;
-  };
+  // ── Context Value & Stable Callback Memoization ──
+  const contextValue = React.useMemo(() => ({
+    sections,
+    updateSectionState,
+    imagePreviews,
+    handleMultiImageChange,
+    handleRemoveImage,
+    handleDropFiles
+  }), [
+    sections,
+    updateSectionState,
+    imagePreviews,
+    handleMultiImageChange,
+    handleRemoveImage,
+    handleDropFiles
+  ]);
 
   if (!user) return null;
 
   const gradeInfo = computeAutoGrade(sections);
 
   return (
-    <div className="min-h-screen bg-body pb-24">
+    <ReportContext.Provider value={contextValue}>
+      <div className="min-h-screen bg-body pb-24">
       {/* Draft Recovery Modal */}
       {showDraftModal && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -624,6 +678,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
       </div>
 
     </div>
+    </ReportContext.Provider>
   );
 });
 
