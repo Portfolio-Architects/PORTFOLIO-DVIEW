@@ -283,11 +283,23 @@ export function useTxData(
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let idleId: number | null = null;
+    let timerId: NodeJS.Timeout | null = null;
+
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
+      idleId = (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
     } else {
-      setTimeout(() => setShouldFetch(true), 100);
+      timerId = setTimeout(() => setShouldFetch(true), 100);
     }
+
+    return () => {
+      if (idleId !== null) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
+    };
   }, []);
 
   // 1. 정적 요약본 페칭 (tx-summary.json)
@@ -408,11 +420,23 @@ export function useLocationScores() {
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let idleId: number | null = null;
+    let timerId: NodeJS.Timeout | null = null;
+
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
+      idleId = (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
     } else {
-      setTimeout(() => setShouldFetch(true), 100);
+      timerId = setTimeout(() => setShouldFetch(true), 100);
     }
+
+    return () => {
+      if (idleId !== null) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
+    };
   }, []);
 
   const { data, error, isLoading } = useSWR<Record<string, any>>(shouldFetch ? `/data/location-scores.json?v=${BUILD_VERSION}` : null, fetcher, {
