@@ -1911,7 +1911,7 @@ interface GroupedCategory {
                 </h2>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-[11px] font-bold text-secondary">
-                    {isNewHighOnly ? "신고가만 보기" : "전체 실거래"}
+                    신고가만 보기
                   </span>
                   <button
                     onClick={() => setIsNewHighOnly(!isNewHighOnly)}
