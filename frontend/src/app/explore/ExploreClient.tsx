@@ -255,6 +255,7 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
       }
     }
 
+    // Memory leak prevention: cancel active idle callbacks and timeouts on unmount
     return () => {
       isMounted = false;
       if (idleId !== null && 'cancelIdleCallback' in window) {
