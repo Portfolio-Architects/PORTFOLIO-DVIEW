@@ -37,6 +37,7 @@ export default function LocalEducationAd({ dong = '', educationGrade, apartmentN
     mountedRef.current = true;
     async function loadAds() {
       try {
+        // Memory leak prevention: only perform state updates if component remains mounted
         const res = await fetch('/data/local-ads.json');
         if (!res.ok) throw new Error('Failed to load ad pool');
         const data = await res.json();
