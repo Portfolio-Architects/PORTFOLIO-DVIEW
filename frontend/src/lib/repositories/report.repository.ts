@@ -118,8 +118,8 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
     return reports.sort((a, b) => (b as FieldReportData & { _rawTimestamp: number })._rawTimestamp - (a as FieldReportData & { _rawTimestamp: number })._rawTimestamp);
   };
 
-  let activeUnsubscribe: (() => void) | null = null;
-  let isUnsubscribed = false;
+  let primaryUnsubscribed = false;
+  let fallbackUnsubscribe: (() => void) | null = null;
 
   const unsubPrimary = onSnapshot(q, (snapshot) => {
     const mapped = mapSnapshot(snapshot);
@@ -127,7 +127,7 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
     callback(mapped);
   }, (error) => {
     logger.error('ReportRepository.listenToScoutingReports', 'onSnapshot error, falling back to unordered query', {}, error);
-    if (isUnsubscribed) return;
+    if (primaryUnsubscribed) return;
 
     // Fallback: query without orderBy (no index needed)
     const fallbackQ = query(collection(db, 'scoutingReports'), limit(30));
@@ -141,15 +141,14 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
       callback([]);
     });
 
-    activeUnsubscribe = unsubFallback;
+    fallbackUnsubscribe = unsubFallback;
   });
 
-  activeUnsubscribe = unsubPrimary;
-
   return () => {
-    isUnsubscribed = true;
-    if (activeUnsubscribe) {
-      activeUnsubscribe();
+    primaryUnsubscribed = true;
+    unsubPrimary();
+    if (fallbackUnsubscribe) {
+      fallbackUnsubscribe();
     }
   };
 }
