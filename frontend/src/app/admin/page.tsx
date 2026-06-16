@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue } from 'react';
+import { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useRef } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -65,6 +65,13 @@ export default function AdminDashboard() {
   const [initialMeta, setInitialMeta] = useState<MetaMap>({}); // To track changes for sync
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const savedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    };
+  }, []);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isNoticeSyncing, setIsNoticeSyncing] = useState(false);
   const [isSheetsSyncing, setIsSheetsSyncing] = useState(false);
@@ -476,7 +483,7 @@ export default function AdminDashboard() {
       setInitialMeta(JSON.parse(JSON.stringify(meta)));
       setDeletedApts(new Set());
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      savedTimeoutRef.current = setTimeout(() => setSaved(false), 2000);
     } catch (e: unknown) {
       console.error('Save failed:', e);
       alert('저장에 실패했습니다: ' + (e as Error).message);
