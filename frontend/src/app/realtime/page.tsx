@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { getInitialData } from '@/lib/services/dashboardData';
 import RealtimeClient from './RealtimeClient';
 
-export const revalidate = 600;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'D-VIEW 실거래 | 동탄 전역 아파트 실시간 최근 실거래가 및 신고가 내역',
