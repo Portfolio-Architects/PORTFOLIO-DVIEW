@@ -57,8 +57,15 @@ export default function AdminDashboard() {
   const router = useRouter();
   // ── State ──
   const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(true);
+
   useEffect(() => {
     setMounted(true);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    };
   }, []);
 
   const [meta, setMeta] = useState<MetaMap>({});
@@ -66,12 +73,6 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const savedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
-    };
-  }, []);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isNoticeSyncing, setIsNoticeSyncing] = useState(false);
   const [isSheetsSyncing, setIsSheetsSyncing] = useState(false);
@@ -482,13 +483,20 @@ export default function AdminDashboard() {
       // Re-sync initial state to current state
       setInitialMeta(JSON.parse(JSON.stringify(meta)));
       setDeletedApts(new Set());
-      setSaved(true);
-      savedTimeoutRef.current = setTimeout(() => setSaved(false), 2000);
+      if (mountedRef.current) {
+        setSaved(true);
+        savedTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setSaved(false);
+        }, 2000);
+      }
     } catch (e: unknown) {
       console.error('Save failed:', e);
       alert('저장에 실패했습니다: ' + (e as Error).message);
+    } finally {
+      if (mountedRef.current) {
+        setSaving(false);
+      }
     }
-    setSaving(false);
   };
 
   const updateMeta = useCallback((aptName: string, patch: Partial<AptMeta>) => {

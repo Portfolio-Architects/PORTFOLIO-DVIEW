@@ -117,16 +117,18 @@ export default function ApartmentInfoPage() {
   const [isCalculating, setIsCalculating] = useState(false);
   const savedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Photos state
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photosRef = useRef<PhotoItem[]>([]);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     photosRef.current = photos;
   }, [photos]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       // Clean up all blob preview URLs when the component unmounts
       photosRef.current.forEach(photo => {
         if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
@@ -704,18 +706,25 @@ export default function ApartmentInfoPage() {
         }
       }
 
-      setSaved(true);
-      savedTimeoutRef.current = setTimeout(() => setSaved(false), 2000);
-      if (newName !== originalName) {
-        router.replace(`/admin/apartments/${encodeURIComponent(newName)}`);
-      } else {
-        setInitialMeta(JSON.parse(JSON.stringify(meta)));
+      if (mountedRef.current) {
+        setSaved(true);
+        savedTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setSaved(false);
+        }, 2000);
+        if (newName !== originalName) {
+          router.replace(`/admin/apartments/${encodeURIComponent(newName)}`);
+        } else {
+          setInitialMeta(JSON.parse(JSON.stringify(meta)));
+        }
       }
     } catch (e: unknown) {
       console.error('Save failed:', e);
       alert('저장에 실패했습니다: ' + (e as Error).message);
+    } finally {
+      if (mountedRef.current) {
+        setSaving(false);
+      }
     }
-    setSaving(false);
   };
 
   const handleDelete = async () => {
@@ -747,12 +756,16 @@ export default function ApartmentInfoPage() {
         await setDoc(doc(db, FIRESTORE_DOC), allMeta);
       }
 
-      alert('성공적으로 삭제되었습니다.');
-      router.replace('/admin');
+      if (mountedRef.current) {
+        alert('성공적으로 삭제되었습니다.');
+        router.replace('/admin');
+      }
     } catch (e: unknown) {
       console.error('Delete failed:', e);
       alert('삭제에 실패했습니다: ' + (e as Error).message);
-      setSaving(false);
+      if (mountedRef.current) {
+        setSaving(false);
+      }
     }
   };
 

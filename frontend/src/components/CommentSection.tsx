@@ -30,9 +30,12 @@ export default function CommentSection({
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
     };
   }, []);
@@ -73,7 +76,7 @@ export default function CommentSection({
     }
     
     focusTimeoutRef.current = setTimeout(() => {
-      if (inputRef.current) {
+      if (mountedRef.current && inputRef.current) {
         inputRef.current.focus();
       }
     }, 50);
@@ -113,7 +116,7 @@ export default function CommentSection({
     setShowSuggestions(false);
 
     focusTimeoutRef.current = setTimeout(() => {
-      if (inputRef.current) {
+      if (mountedRef.current && inputRef.current) {
         inputRef.current.focus();
       }
     }, 50);
