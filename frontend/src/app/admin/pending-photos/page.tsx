@@ -229,7 +229,7 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
               {/* Image Preview Area - Large Left Panel */}
               <div 
                 className="relative w-full md:w-[400px] lg:w-[480px] shrink-0 bg-body cursor-pointer overflow-hidden aspect-[4/3] md:aspect-auto md:min-h-[320px]"
-                onClick={() => window.open(photo.url, '_blank')}
+                onClick={() => window.open(photo.url, '_blank', 'noopener,noreferrer')}
                 title="클릭하여 원본 보기"
               >
                 <Image 
