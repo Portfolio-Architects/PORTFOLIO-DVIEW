@@ -106,7 +106,10 @@ export default function WriteFieldReport() {
 
   // Ref to hold the latest imagePreviews for unmount cleanup
   const previewsRef = useRef<Record<string, string[]>>({});
-  previewsRef.current = imagePreviews;
+  
+  useEffect(() => {
+    previewsRef.current = imagePreviews;
+  }, [imagePreviews]);
 
   useEffect(() => {
     return () => {
