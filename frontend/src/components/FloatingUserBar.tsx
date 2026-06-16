@@ -29,6 +29,15 @@ export default function FloatingUserBar() {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
+  const closeProfileModal = () => {
+    setShowProfileModal(false);
+    if (profilePhotoPreview && profilePhotoPreview.startsWith('blob:')) {
+      try { URL.revokeObjectURL(profilePhotoPreview); } catch { /* ignore */ }
+    }
+    setProfilePhotoPreview(null);
+    setProfilePhotoFile(null);
+  };
+
   // Clean up object URL to prevent memory leaks
   useEffect(() => {
     return () => {
@@ -86,10 +95,10 @@ export default function FloatingUserBar() {
       {/* Profile Edit Modal */}
       {showProfileModal && user && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-primary/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
+          <div className="absolute inset-0 bg-primary/50 backdrop-blur-sm" onClick={() => closeProfileModal()} />
           <div className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[640px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col">
             <button 
-              onClick={() => setShowProfileModal(false)} 
+              onClick={() => closeProfileModal()} 
               className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 bg-surface/80 backdrop-blur-md border border-border text-secondary hover:text-primary hover:bg-body flex items-center justify-center rounded-full shadow-sm hover:shadow-md transition-all z-50"
               aria-label="닫기"
             >
@@ -257,7 +266,7 @@ export default function FloatingUserBar() {
 
                       await dashboardFacade.updateNickname(user.uid, editNickname);
                       updateLocalAnonProfile({ nickname: editNickname, photoURL });
-                      setShowProfileModal(false);
+                      closeProfileModal();
                     } catch (err) {
                       console.error('Profile update failed:', err);
                       alert('프로필 수정에 실패했습니다.');
@@ -276,14 +285,14 @@ export default function FloatingUserBar() {
                 </button>
                 {dashboardFacade.isAdmin(user.email) && (
                   <button 
-                    onClick={() => { setShowProfileModal(false); router.push('/admin'); }}
+                    onClick={() => { closeProfileModal(); router.push('/admin'); }}
                     className="flex-1 py-3 bg-primary hover:bg-black text-surface font-bold text-[14px] rounded-xl transition-colors"
                   >
                     관리자 설정
                   </button>
                 )}
                 <button 
-                  onClick={() => { setShowProfileModal(false); handleLogout(); }}
+                  onClick={() => { closeProfileModal(); handleLogout(); }}
                   className="flex-1 py-3 bg-[#ffebec] dark:bg-rose-950/20 hover:bg-rose-600 dark:hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-surface font-bold text-[14px] rounded-xl transition-colors"
                 >
                   로그아웃

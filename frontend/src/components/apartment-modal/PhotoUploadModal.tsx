@@ -43,11 +43,23 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
     setMounted(true);
   }, []);
 
+  // Reset file, caption, and revoke object URL when modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
+      }
+      setPreviewUrl(null);
+      setFile(null);
+      setCaption('');
+    }
+  }, [isOpen, previewUrl]);
+
   // Revoke object URL to prevent memory leaks when preview URL changes or component unmounts
   useEffect(() => {
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
       }
     };
   }, [previewUrl]);
