@@ -25,9 +25,12 @@ export default function EngineeringReportClient({ metadata, markdownContent, con
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
@@ -54,18 +57,26 @@ export default function EngineeringReportClient({ metadata, markdownContent, con
       console.error('PDF Export failed', err);
       alert('PDF 변환에 실패했습니다.');
     } finally {
-      setIsExporting(false);
+      if (mountedRef.current) {
+        setIsExporting(false);
+      }
     }
   };
 
   const handleCopyMD = async () => {
     try {
       await navigator.clipboard.writeText(markdownContent);
-      setCopied(true);
+      if (mountedRef.current) {
+        setCopied(true);
+      }
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
-      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setCopied(false);
+        }
+      }, 2000);
     } catch (err) {
       console.error('Copy failed', err);
       alert('복사에 실패했습니다.');
