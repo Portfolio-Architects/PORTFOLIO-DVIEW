@@ -119,7 +119,16 @@ export function getSafeMetrics(metrics: any): ScoringMetrics {
     bcr: fallback(m.bcr),
     parkingCount: fallback(m.parkingCount),
     parkingPerHousehold: fallback(m.parkingPerHousehold),
-    yearBuilt: m.yearBuilt || new Date().getFullYear(),
+    yearBuilt: (() => {
+      const val = m.yearBuilt;
+      if (val === null || val === undefined) return new Date().getFullYear();
+      if (typeof val === 'number') return isNaN(val) ? new Date().getFullYear() : val;
+      if (typeof val === 'string') {
+        const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+        return isNaN(num) ? new Date().getFullYear() : num;
+      }
+      return new Date().getFullYear();
+    })(),
     minFloor: fallback(m.minFloor),
     maxFloor: fallback(m.maxFloor),
     coordinates: m.coordinates || '',
@@ -181,6 +190,9 @@ export function getBrandMultiplier(brand: string | undefined): number {
 }
 
 function interpolateScore(val: number, points: { v: number, pct: number }[]): number {
+  if (!points || points.length === 0) return 0;
+  if (typeof val !== 'number' || isNaN(val)) return points[0].pct;
+
   if (points[0].v < points[points.length - 1].v) {
     // Ascending order (e.g. parking, household)
     if (val <= points[0].v) return points[0].pct;
@@ -189,7 +201,9 @@ function interpolateScore(val: number, points: { v: number, pct: number }[]): nu
       const p1 = points[i];
       const p2 = points[i + 1];
       if (val >= p1.v && val <= p2.v) {
-        const ratio = (val - p1.v) / (p2.v - p1.v);
+        const denominator = p2.v - p1.v;
+        if (denominator === 0) return p1.pct;
+        const ratio = (val - p1.v) / denominator;
         return p1.pct + ratio * (p2.pct - p1.pct);
       }
     }
@@ -201,7 +215,9 @@ function interpolateScore(val: number, points: { v: number, pct: number }[]): nu
       const p1 = points[i];
       const p2 = points[i + 1];
       if (val <= p1.v && val >= p2.v) {
-        const ratio = (p1.v - val) / (p1.v - p2.v);
+        const denominator = p1.v - p2.v;
+        if (denominator === 0) return p1.pct;
+        const ratio = (p1.v - val) / denominator;
         return p1.pct + ratio * (p2.pct - p1.pct);
       }
     }
@@ -325,12 +341,20 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
 
   const currentYear = new Date().getFullYear();
   const rawYear = validatedMetrics.yearBuilt || currentYear;
-  const yearNum = typeof rawYear === 'string' ? (parseInt(rawYear.replace(/[^0-9]/g, ''), 10) || currentYear) : rawYear;
+  let yearNum = currentYear;
+  if (typeof rawYear === 'string') {
+    yearNum = parseInt(rawYear.replace(/[^0-9]/g, ''), 10) || currentYear;
+  } else if (typeof rawYear === 'number' && !isNaN(rawYear)) {
+    yearNum = rawYear;
+  }
   let parsedYear = yearNum;
   if (parsedYear > 9999) {
     parsedYear = Math.floor(parsedYear / 100);
   }
-  const age = currentYear - parsedYear;
+  let age = currentYear - parsedYear;
+  if (isNaN(age) || age < 0) {
+    age = 0;
+  }
   // 연식 감가상각 U-Curve: 0년(1.0) -> 15년(0.3) -> 25년(0.1) -> 35년(0.4)
   let agePct = 0;
   if (age <= 3) agePct = 1.0;
