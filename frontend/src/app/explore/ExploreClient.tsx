@@ -114,6 +114,7 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
   const [mounted, setMounted] = useState(false);
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [isConsumerAdModalOpen, setIsConsumerAdModalOpen] = useState(false);
   const [consumerAdInfo, setConsumerAdInfo] = useState<{ adType: 'insurance' | 'interior' | 'academy' | 'cleaning'; adTitle: string } | null>(null);
@@ -247,9 +248,13 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
       } else {
-        setTimeout(preloadHeavyChunks, 2000);
+        preloadTimeoutRef.current = setTimeout(preloadHeavyChunks, 2000);
       }
     }
+
+    return () => {
+      if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
+    };
   }, []);
 
   // Handle #apt= hash to open modal automatically
