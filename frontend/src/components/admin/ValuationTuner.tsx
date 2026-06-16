@@ -24,7 +24,7 @@ interface Suggestion {
   reason: string;
 }
 
-export function ValuationTuner() {
+export const ValuationTuner = React.memo(function ValuationTuner() {
   const [votes, setVotes] = useState<VoteRecord[]>([]);
   const [overrides, setOverrides] = useState<Record<string, number>>({});
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -250,4 +250,6 @@ export function ValuationTuner() {
 
     </div>
   );
-}
+});
+
+ValuationTuner.displayName = 'ValuationTuner';

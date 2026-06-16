@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useState, useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
 import { uploadImage } from '@/lib/services/storage.service';
@@ -25,7 +25,7 @@ interface ReportEditorFormProps {
   onSuccess?: () => void;
 }
 
-export default function ReportEditorForm({ initialData = null, reportId, lockedMeta, onCancel, onSuccess }: ReportEditorFormProps) {
+const ReportEditorForm = React.memo(function ReportEditorForm({ initialData = null, reportId, lockedMeta, onCancel, onSuccess }: ReportEditorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [apiCategories, setApiCategories] = useState<ApiCategories>({});
@@ -330,4 +330,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       </form>
     </FormProvider>
   );
-}
+});
+
+ReportEditorForm.displayName = 'ReportEditorForm';
+export default ReportEditorForm;

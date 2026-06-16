@@ -19,7 +19,7 @@ import {
   Legend
 } from 'recharts';
 
-export default function AnalyticsDashboard() {
+const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -350,4 +350,7 @@ export default function AnalyticsDashboard() {
       </div>
     </div>
   );
-}
+});
+
+AnalyticsDashboard.displayName = 'AnalyticsDashboard';
+export default AnalyticsDashboard;

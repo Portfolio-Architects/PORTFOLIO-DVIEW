@@ -258,7 +258,7 @@ const calculateInfraScore = (metrics: any) => {
 
 // Removed inline ViralPaywallGate, imported from external file.
 
-function FieldReportModal({ 
+const FieldReportModal = React.memo(function FieldReportModal({ 
   report, 
   onClose,
   comments,
@@ -2632,6 +2632,7 @@ function FieldReportModal({
     </>,
     document.getElementById('modal-root') || document.body
   );
-}
+});
 
+FieldReportModal.displayName = 'FieldReportModal';
 export default FieldReportModal;
