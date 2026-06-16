@@ -2281,7 +2281,7 @@ function FieldReportModal({
         >
 
           <header className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
-            <button onClick={onClose} className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">
+            <button onClick={onClose} aria-label="닫기" className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </header>
@@ -2300,6 +2300,7 @@ function FieldReportModal({
               onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
               className="fixed bottom-[calc(104px+env(safe-area-inset-bottom))] md:bottom-8 right-6 z-[100] w-12 h-12 bg-surface hover:bg-[#e5e8eb] text-secondary border border-border rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer group"
               title="맨 위로 이동"
+              aria-label="맨 위로 이동"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
@@ -2314,6 +2315,7 @@ function FieldReportModal({
                 onClick={onClose}
                 className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm"
                 title="뒤로가기"
+                aria-label="뒤로가기"
               >
                 <ArrowLeft size={24} strokeWidth={2.5} />
               </button>
@@ -2327,6 +2329,7 @@ function FieldReportModal({
                     : 'bg-emerald-50/50 hover:bg-[#e5e8eb] dark:bg-emerald-950/10 text-emerald-700 dark:text-emerald-300 border-emerald-100/30'
                 }`}
                 title="단톡방용 텍스트 요약 복사"
+                aria-label="단톡방용 텍스트 요약 복사"
               >
                 {copiedStatus === 'summary' ? (
                   <Check size={24} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
@@ -2340,6 +2343,7 @@ function FieldReportModal({
                 onClick={handleDownloadShareCard}
                 className="w-[56px] h-[56px] bg-neutral-100 dark:bg-zinc-900 hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm border border-border/20 cursor-pointer active:scale-95 transform transition-all duration-200"
                 title="인포그래픽 요약 카드 이미지 다운로드"
+                aria-label="인포그래픽 요약 카드 이미지 다운로드"
               >
                 <Camera size={24} strokeWidth={2.5} className="text-secondary/80" />
               </button>
