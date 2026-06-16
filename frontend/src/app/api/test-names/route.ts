@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '@/lib/services/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     if (!adminDb) {
@@ -31,7 +33,7 @@ export async function GET() {
     return NextResponse.json(names);
   } catch (error: unknown) {
     logger.error('TestNamesAPI.GET', 'Failed to get test names', {}, error as Error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to get test names' }, { status: 500 });
   }
 }
 
