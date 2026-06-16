@@ -3,13 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Moon, Sun, Monitor, Scaling } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 export default function SettingsModal() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const { isSettingsModalOpen, setIsSettingsModalOpen, areaUnit, setAreaUnit } = useSettings();
+  const { isSettingsModalOpen, setIsSettingsModalOpen, areaUnit, setAreaUnit, theme, setTheme } = useSettings();
 
   useEffect(() => {
     setMounted(true);
@@ -46,9 +44,9 @@ export default function SettingsModal() {
             </h3>
             <div className="grid grid-cols-3 gap-2 bg-body p-1 rounded-xl">
               {[
-                { id: 'light', label: '라이트', icon: Sun },
-                { id: 'dark', label: '다크', icon: Moon },
-                { id: 'system', label: '시스템', icon: Monitor },
+                { id: 'light' as const, label: '라이트', icon: Sun },
+                { id: 'dark' as const, label: '다크', icon: Moon },
+                { id: 'system' as const, label: '시스템', icon: Monitor },
               ].map(opt => {
                 const isActive = theme === opt.id;
                 return (
