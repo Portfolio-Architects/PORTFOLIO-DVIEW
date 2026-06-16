@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
-  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw,
-  ShieldAlert
+  FileText, Plus, RefreshCw, ShieldAlert
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';

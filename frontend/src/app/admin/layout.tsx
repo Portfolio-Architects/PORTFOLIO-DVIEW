@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Settings, Menu, X, ExternalLink, BarChart2, Camera, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, FileText, Menu, X, ExternalLink, BarChart2, Camera, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 

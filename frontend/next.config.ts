@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     }
   }),
   productionBrowserSourceMaps: false,
+  transpilePackages: ["lucide-react"],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
