@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 
+export const dynamic = 'force-dynamic';
+
 const AdClickInputSchema = z.object({
   adId: z.string().min(1),
   apartmentName: z.string().min(1),
