@@ -87,9 +87,12 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const installRewardTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pushSupportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
       if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
       if (pushSupportTimeoutRef.current) clearTimeout(pushSupportTimeoutRef.current);
@@ -311,6 +314,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
         applicationServerKey: convertedVapidKey
       });
       
+      if (!mountedRef.current) return false;
       setPushSubscription(sub);
       
       // Save subscription to the backend
@@ -321,7 +325,9 @@ export function PWAProvider({ children }: { children: ReactNode }) {
             method: 'POST',
             body: { subscription: sub, uid: uid || null }
           });
-          showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다 💚');
+          if (mountedRef.current) {
+            showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다 💚');
+          }
         } catch (err) {
           console.error('Failed to enqueue push subscription', err);
         }
@@ -341,7 +347,9 @@ export function PWAProvider({ children }: { children: ReactNode }) {
               method: 'POST',
               body: { subscription: sub, uid: uid || null }
             });
-            showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다 💚');
+            if (mountedRef.current) {
+              showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다 💚');
+            }
           } catch (err) {
             console.error('Failed to enqueue push subscription after fetch failure', err);
           }
@@ -355,10 +363,13 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   };
 
   const showToast = (message: string) => {
+    if (!mountedRef.current) return;
     setToastMessage(message);
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     toastTimeoutRef.current = setTimeout(() => {
-      setToastMessage((prev) => (prev === message ? null : prev));
+      if (mountedRef.current) {
+        setToastMessage((prev) => (prev === message ? null : prev));
+      }
     }, 3000);
   };
 
