@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import dynamic from 'next/dynamic';
@@ -106,7 +106,7 @@ const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTim
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export default function ExploreClient({ initialDashboardData }: { initialDashboardData?: DashboardInitialDataLocal }) {
+const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }: { initialDashboardData?: DashboardInitialDataLocal }) {
   const fieldReports = initialDashboardData?.fieldReports || [];
 
   const { user, userProfile, handleLogin } = useAuth();
@@ -818,4 +818,8 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
       )}
     </>
   );
-}
+});
+
+ExploreClient.displayName = 'ExploreClient';
+
+export default ExploreClient;
