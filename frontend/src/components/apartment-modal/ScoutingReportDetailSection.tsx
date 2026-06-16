@@ -68,7 +68,7 @@ export default function ScoutingReportDetailSection({
             <div className="flex flex-col md:flex-row gap-6">
               {s.infra.gateImg && (
                 <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group">
-                  <Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" />
+                  <Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" priority />
                   {renderWatermark()}
                 </div>
               )}

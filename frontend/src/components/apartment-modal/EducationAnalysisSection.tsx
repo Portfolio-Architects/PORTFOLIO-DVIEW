@@ -247,7 +247,7 @@ export default function EducationAnalysisSection({
                 <div className="flex flex-col md:flex-row gap-6 items-start">
                   {report.sections.ecosystem.schoolImg && (
                     <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
-                      <Image src={report.sections.ecosystem.schoolImg} alt="학군 및 통학로 실사" fill sizes="280px" className="object-cover" />
+                      <Image src={report.sections.ecosystem.schoolImg} alt="학군 및 통학로 실사" fill sizes="280px" className="object-cover" priority />
                       <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 flex items-center gap-2 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity z-10">
                         <span className="font-extrabold text-white/70 text-[14px] md:text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none tracking-tighter">
                           D-VIEW
