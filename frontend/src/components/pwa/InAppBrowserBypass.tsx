@@ -26,15 +26,20 @@ export default function InAppBrowserBypass() {
   const visibilityListenerRef = useRef<(() => void) | null>(null);
   const mountedRef = useRef(true);
 
+  const removeVisibilityListener = () => {
+    if (visibilityListenerRef.current) {
+      window.removeEventListener('visibilitychange', visibilityListenerRef.current);
+      visibilityListenerRef.current = null;
+    }
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
-      if (visibilityListenerRef.current) {
-        window.removeEventListener('visibilitychange', visibilityListenerRef.current);
-      }
+      removeVisibilityListener();
     };
   }, []);
 
@@ -42,9 +47,7 @@ export default function InAppBrowserBypass() {
     const start = Date.now();
     let hasRedirected = false;
 
-    if (visibilityListenerRef.current) {
-      window.removeEventListener('visibilitychange', visibilityListenerRef.current);
-    }
+    removeVisibilityListener();
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -58,8 +61,7 @@ export default function InAppBrowserBypass() {
     if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
     redirectTimeoutRef.current = setTimeout(() => {
       if (visibilityListenerRef.current === handleVisibilityChange) {
-        window.removeEventListener('visibilitychange', handleVisibilityChange);
-        visibilityListenerRef.current = null;
+        removeVisibilityListener();
       }
       if (!hasRedirected && Date.now() - start < 2000) {
         console.warn('Deep link redirect failed or app not installed');
@@ -78,8 +80,7 @@ export default function InAppBrowserBypass() {
         redirectTimeoutRef.current = null;
       }
       if (visibilityListenerRef.current === handleVisibilityChange) {
-        window.removeEventListener('visibilitychange', handleVisibilityChange);
-        visibilityListenerRef.current = null;
+        removeVisibilityListener();
       }
       setRedirectFailed(true);
     }
