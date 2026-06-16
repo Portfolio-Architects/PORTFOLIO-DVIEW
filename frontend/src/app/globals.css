@@ -3,6 +3,11 @@
 @source "../app/**/*.{js,ts,jsx,tsx}";
 @plugin "@tailwindcss/typography";
 
+/* Note: Local fonts are loaded via Next.js next/font/local and next/font/google inside layout.tsx.
+   They are configured with display: 'swap' (font-display: swap) to optimize FCP/CLS performance.
+   If any custom @font-face is defined in this stylesheet, make sure to explicitly declare 'font-display: swap'.
+*/
+
 /* Define class-based dark mode variant for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
