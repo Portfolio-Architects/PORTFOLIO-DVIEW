@@ -233,17 +233,38 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   useEffect(() => {
     if ((currentTab === '동탄구 소식' || selectedNoticeId) && noticesData.length === 0) {
       setNoticesLoading(true);
-      fetch("/api/local-notices")
-        .then(res => res.json())
-        .then((json: { notices?: LocalNoticeItem[]; lastUpdated?: string }) => {
-          if (json.notices) {
-            setNoticesData(json.notices);
+      
+      Promise.all([
+        fetch("/api/local-notices").then(res => res.json()).catch(() => ({ notices: [] })),
+        fetch("/data/local-events.json").then(res => res.json()).catch(() => [])
+      ])
+        .then(([noticesJson, eventsJson]: [any, any[]]) => {
+          let mergedNotices: LocalNoticeItem[] = [];
+          if (noticesJson && noticesJson.notices) {
+            mergedNotices = [...noticesJson.notices];
           }
-          if (json.lastUpdated) {
-            setLastUpdatedTime(json.lastUpdated);
+
+          const mappedEvents: LocalNoticeItem[] = eventsJson.map((event: any) => ({
+            id: event.id,
+            title: `[${event.category}] ${event.title} (${event.time})`,
+            url: event.link || '#',
+            dept: event.location,
+            date: event.date,
+            isDongtan: true,
+            source: 'culture',
+            content: `### 📅 행사 시간\n${event.time}\n\n### 📍 개최 장소\n${event.location}\n\n### 💡 D-VIEW 추천 꿀팁\n${event.tip}`
+          }));
+
+          const combined = [...mappedEvents, ...mergedNotices].sort((a, b) => {
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          });
+
+          setNoticesData(combined);
+          if (noticesJson && noticesJson.lastUpdated) {
+            setLastUpdatedTime(noticesJson.lastUpdated);
           }
         })
-        .catch(err => console.warn('LoungeFeedClient - Failed to fetch notices:', err instanceof Error ? err.message : err))
+        .catch(err => console.warn('LoungeFeedClient - Failed to fetch notices or events:', err instanceof Error ? err.message : err))
         .finally(() => setNoticesLoading(false));
     }
   }, [currentTab, selectedNoticeId, noticesData.length]);
