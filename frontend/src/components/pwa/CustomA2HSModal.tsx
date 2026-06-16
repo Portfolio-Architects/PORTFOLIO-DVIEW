@@ -4,7 +4,7 @@ import React from 'react';
 import { usePWA } from './PWAProvider';
 import { X, ArrowDownToLine, Share, PlusSquare } from 'lucide-react';
 
-export default function CustomA2HSModal() {
+const CustomA2HSModal = React.memo(function CustomA2HSModal() {
   const { showCustomA2HSModal, setShowCustomA2HSModal, triggerA2HSPrompt, isIOS } = usePWA();
   const mountedRef = React.useRef(true);
 
@@ -130,4 +130,7 @@ export default function CustomA2HSModal() {
       </div>
     </>
   );
-}
+});
+
+CustomA2HSModal.displayName = 'CustomA2HSModal';
+export default CustomA2HSModal;

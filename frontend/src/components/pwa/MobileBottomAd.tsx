@@ -8,7 +8,7 @@ interface MobileBottomAdProps {
   adSlot: string;
 }
 
-export default function MobileBottomAd({ adSlot }: MobileBottomAdProps) {
+const MobileBottomAd = React.memo(function MobileBottomAd({ adSlot }: MobileBottomAdProps) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [hash, setHash] = useState('');
@@ -65,4 +65,7 @@ export default function MobileBottomAd({ adSlot }: MobileBottomAdProps) {
       <div className="w-full h-[50px] block md:hidden" aria-hidden="true" />
     </>
   );
-}
+});
+
+MobileBottomAd.displayName = 'MobileBottomAd';
+export default MobileBottomAd;

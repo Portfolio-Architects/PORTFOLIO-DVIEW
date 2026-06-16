@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import { useSettingsUi } from '@/lib/contexts/SettingsContext';
@@ -9,7 +10,7 @@ interface MobileDockProps {
   onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'news') => void;
 }
 
-export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
+const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
   const { setIsSettingsModalOpen } = useSettingsUi();
 
   return (
@@ -72,4 +73,7 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
       </div>
     </nav>
   );
-}
+});
+
+MobileDock.displayName = 'MobileDock';
+export default MobileDock;
