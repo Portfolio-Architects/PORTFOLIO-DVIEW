@@ -2,6 +2,7 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight, Share2 } from 'lucide-react';
@@ -770,14 +771,14 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                         
                         return (
                           <span className="block relative w-full rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px] group">
-                            <img 
+                            <Image 
                               src={props.src} 
                               alt={props.alt || '첨부 이미지'} 
+                              width={800}
+                              height={500}
                               sizes="(max-width: 768px) 100vw, 800px"
-                              decoding="async"
-                              fetchPriority="high"
                               className="w-full h-auto object-contain max-h-[70vh]"
-                              loading="eager"
+                              loading="lazy"
                             />
                             {/* 매니저 임장기 워터마크 & 촬영 날짜 */}
                             {isManagerReport && (

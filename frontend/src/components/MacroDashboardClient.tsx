@@ -534,6 +534,12 @@ export default function MacroDashboardClient({
 
   useEffect(() => {
     if (!mounted) return;
+
+    // txSummaryData가 아직 로드되지 않은 경우, 올바른 매핑 키를 알 수 없으므로 페칭을 대기합니다.
+    if (!txSummaryData || Object.keys(txSummaryData).length === 0) {
+      return;
+    }
+
     if (!selectedTimelineApt) {
       setAptRealTxData(null);
       return;
@@ -544,11 +550,14 @@ export default function MacroDashboardClient({
     
     fetch(`/tx-data/${encodeURIComponent(txKey)}.json`)
       .then(res => {
-        if (!res.ok) throw new Error("Failed to load tx data");
+        if (!res.ok) {
+          console.warn(`Failed to load tx data for ${txKey}: status ${res.status}`);
+          return null;
+        }
         return res.json();
       })
       .then(data => {
-        if (active) {
+        if (active && data) {
           setAptRealTxData(data);
         }
       })
