@@ -42,7 +42,7 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
     limit(30)
   );
 
-  return onSnapshot(q, (snapshot) => {
+  const unsubscribe = onSnapshot(q, (snapshot) => {
     const posts: NewsItemData[] = [];
 
     snapshot.forEach((docSnap) => {
@@ -78,6 +78,8 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
   }, (error) => {
     logger.error('PostRepository.listenToPosts', 'Real-time post listener failed', undefined, error);
   });
+
+  return unsubscribe;
 }
 
 /**

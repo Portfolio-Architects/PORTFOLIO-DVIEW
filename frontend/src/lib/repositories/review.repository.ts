@@ -33,7 +33,7 @@ const UserReviewSchema = z.object({
  */
 export function listenToReviews(callback: (reviews: UserReview[]) => void): () => void {
   const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(30));
-  return onSnapshot(q, (snapshot) => {
+  const unsubscribe = onSnapshot(q, (snapshot) => {
     const reviews: UserReview[] = snapshot.docs.map(d => {
       const data = d.data();
       const dongMatch = data.apartmentName?.match(/\[(.*?)\]/);
@@ -67,6 +67,8 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
   }, (error) => {
     logger.error('ReviewRepository.listenToReviews', 'Real-time review listener failed', undefined, error);
   });
+
+  return unsubscribe;
 }
 
 /**

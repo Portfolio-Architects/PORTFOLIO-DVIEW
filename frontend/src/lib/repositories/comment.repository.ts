@@ -66,7 +66,7 @@ export function listenToComments(
     orderBy('createdAt', 'asc')
   );
 
-  return onSnapshot(q, (snapshot) => {
+  const unsubscribe = onSnapshot(q, (snapshot) => {
     const comments: CommentData[] = [];
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -99,6 +99,8 @@ export function listenToComments(
   }, (error) => {
     logger.error('CommentRepository.listenToComments', 'Real-time listener failed', { reportId }, error);
   });
+
+  return unsubscribe;
 }
 
 /**

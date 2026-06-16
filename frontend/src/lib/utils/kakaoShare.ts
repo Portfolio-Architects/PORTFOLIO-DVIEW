@@ -56,12 +56,13 @@ export const loadKakaoSdk = (): Promise<void> => {
     script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
     script.onload = () => {
       // Defer resolution slightly to ensure SWC compiler / microtask namespace mapping is completed
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
           resolve();
         } else {
           reject(new Error("Kakao SDK는 로드되었으나 내부 Share API 파싱에 실패했습니다."));
         }
+        clearTimeout(timer);
       }, 50);
     };
     script.onerror = () => reject(new Error("Kakao SDK 로드 실패 (브라우저 광고 차단기, 혹은 네트워크 환경을 확인해주세요)"));
