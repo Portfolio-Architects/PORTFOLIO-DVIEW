@@ -23,11 +23,15 @@ export default function InAppBrowserBypass() {
   const [redirectFailed, setRedirectFailed] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const visibilityListenerRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+      if (visibilityListenerRef.current) {
+        window.removeEventListener('visibilitychange', visibilityListenerRef.current);
+      }
     };
   }, []);
 
@@ -35,17 +39,25 @@ export default function InAppBrowserBypass() {
     const start = Date.now();
     let hasRedirected = false;
 
+    if (visibilityListenerRef.current) {
+      window.removeEventListener('visibilitychange', visibilityListenerRef.current);
+    }
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         hasRedirected = true;
       }
     };
     
+    visibilityListenerRef.current = handleVisibilityChange;
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
     if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
     redirectTimeoutRef.current = setTimeout(() => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (visibilityListenerRef.current === handleVisibilityChange) {
+        window.removeEventListener('visibilitychange', handleVisibilityChange);
+        visibilityListenerRef.current = null;
+      }
       if (!hasRedirected && Date.now() - start < 2000) {
         console.warn('Deep link redirect failed or app not installed');
         setRedirectFailed(true);
@@ -58,8 +70,12 @@ export default function InAppBrowserBypass() {
       console.error('Deep link schema navigation exception caught:', err);
       if (redirectTimeoutRef.current) {
         clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
       }
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (visibilityListenerRef.current === handleVisibilityChange) {
+        window.removeEventListener('visibilitychange', handleVisibilityChange);
+        visibilityListenerRef.current = null;
+      }
       setRedirectFailed(true);
     }
   };
