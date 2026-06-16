@@ -14,6 +14,7 @@ export function BasicInfoSection({ lockedMeta }: BasicInfoSectionProps) {
   const [isLoadingApts, setIsLoadingApts] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const fetchApartments = async () => {
       setIsLoadingApts(true);
       try {
@@ -21,17 +22,24 @@ export function BasicInfoSection({ lockedMeta }: BasicInfoSectionProps) {
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          if (data && Object.keys(data).length > 0) {
+          if (active && data && Object.keys(data).length > 0) {
             setDongData({ ...FALLBACK_DONG_DATA, ...data });
           }
         }
       } catch (err) {
-        console.warn('아파트 목록 API 호출 실패, 기본 데이터 사용:', err);
+        if (active) {
+          console.warn('아파트 목록 API 호출 실패, 기본 데이터 사용:', err);
+        }
       } finally {
-        setIsLoadingApts(false);
+        if (active) {
+          setIsLoadingApts(false);
+        }
       }
     };
     fetchApartments();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const selectedDong = useWatch({ control, name: 'dong' }) || Object.keys(dongData)[0];

@@ -78,20 +78,24 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
   }, [reportId, initialData, reset]);
 
   useEffect(() => {
+    let active = true;
     if (initialData) {
       reset(initialData);
       const m = initialData.metrics as Record<string, unknown>;
       if (m) {
-        setApiCategories(prev => ({
-          ...prev,
-          ...(m.academyCategories ? { academyCategories: m.academyCategories as Record<string, number> } : {}),
-          ...(m.restaurantCategories ? { restaurantCategories: m.restaurantCategories as Record<string, number> } : {}),
-          ...(m.restaurantDensity ? { restaurantDensity: m.restaurantDensity as number } : {}),
-          ...(m.nearestSchoolNames ? { nearestSchoolNames: m.nearestSchoolNames as Record<string, string> } : {}),
-          ...(m.nearestStationName ? { nearestStationName: m.nearestStationName as string } : {}),
-          ...(m.nearestIndeokwonStationName ? { nearestIndeokwonStationName: m.nearestIndeokwonStationName as string } : {}),
-          ...(m.nearestTramStationName ? { nearestTramStationName: m.nearestTramStationName as string } : {}),
-        }));
+        setApiCategories(prev => {
+          if (!active) return prev;
+          return {
+            ...prev,
+            ...(m.academyCategories ? { academyCategories: m.academyCategories as Record<string, number> } : {}),
+            ...(m.restaurantCategories ? { restaurantCategories: m.restaurantCategories as Record<string, number> } : {}),
+            ...(m.restaurantDensity ? { restaurantDensity: m.restaurantDensity as number } : {}),
+            ...(m.nearestSchoolNames ? { nearestSchoolNames: m.nearestSchoolNames as Record<string, string> } : {}),
+            ...(m.nearestStationName ? { nearestStationName: m.nearestStationName as string } : {}),
+            ...(m.nearestIndeokwonStationName ? { nearestIndeokwonStationName: m.nearestIndeokwonStationName as string } : {}),
+            ...(m.nearestTramStationName ? { nearestTramStationName: m.nearestTramStationName as string } : {}),
+          };
+        });
       }
 
       const hasCategories = m?.academyCategories && Object.keys(m.academyCategories).length > 0;
@@ -99,8 +103,9 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         (async () => {
           try {
             const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(initialData.apartmentName)}`);
-            if (!res.ok) return;
+            if (!active || !res.ok) return;
             const loc = await res.json();
+            if (!active) return;
             if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
             if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
             if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
@@ -135,6 +140,9 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         })();
       }
     }
+    return () => {
+      active = false;
+    };
   }, [initialData, reset, setValue]);
 
   const onSubmit = async (data: FormValues) => {
