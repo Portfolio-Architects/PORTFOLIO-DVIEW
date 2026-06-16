@@ -17,10 +17,11 @@ import { FULL_DONG_DATA } from '@/lib/dong-apartments';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { useTxData } from '@/hooks/useStaticData';
+import { safeReload } from '@/lib/utils/safeReload';
 
 const ValuationTuner = dynamic(() => import('@/components/admin/ValuationTuner').then(m => m.ValuationTuner).catch(err => {
   console.warn('ValuationTuner Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('ValuationTuner');
   return { default: () => null };
 }), {
   ssr: false,

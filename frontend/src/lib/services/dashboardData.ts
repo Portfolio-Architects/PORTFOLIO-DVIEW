@@ -325,7 +325,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
     fetchTypeMap().catch(e => logger.warn('DashboardData', 'typeMap error', {}, e)),
     fetchApts().catch(e => logger.warn('DashboardData', 'apts error', {}, e)),
     fetchMacroTrend().catch(e => logger.warn('DashboardData', 'macroTrend error', {}, e)),
-    fetchTxSummary().catch(e => logger.warn('DashboardData', 'txSummary error', {}, e)),
+    // fetchTxSummary().catch(e => logger.warn('DashboardData', 'txSummary error', {}, e)), // Omitted to reduce initial HTML serialization size (1.15MB -> 0MB)
   ]);
 
   if (Object.keys(result.apartmentMeta).length === 0) {

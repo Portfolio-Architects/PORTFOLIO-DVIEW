@@ -26,10 +26,11 @@ import Footer from '@/components/Footer';
 import MobileBottomAd from '@/components/pwa/MobileBottomAd';
 import dynamic from 'next/dynamic';
 import WelcomeModal from '@/components/ui/WelcomeModal';
+import { safeReload } from '@/lib/utils/safeReload';
 
 const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
   console.warn('SettingsModal Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('SettingsModal');
   return { default: () => null };
 }));
 

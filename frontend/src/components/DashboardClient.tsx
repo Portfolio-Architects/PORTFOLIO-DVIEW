@@ -1245,10 +1245,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         name="아파트 비교 분석"
         fallback={(error, reset) => {
           if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-            if (typeof window !== 'undefined') {
-              console.warn('ChunkLoadError caught in AptCompareModal. Reloading page...');
-              window.location.reload();
-            }
+            safeReload('AptCompareModal_DashboardBoundary');
             return null;
           }
           return (
@@ -1299,10 +1296,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         name="전세 안전진단"
         fallback={(error, reset) => {
           if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-            if (typeof window !== 'undefined') {
-              console.warn('ChunkLoadError caught in JeonseSafetyCalculator. Reloading page...');
-              window.location.reload();
-            }
+            safeReload('JeonseSafetyCalculator_DashboardBoundary');
             return null;
           }
           return (
@@ -1351,10 +1345,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         name="대출 한도진단"
         fallback={(error, reset) => {
           if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-            if (typeof window !== 'undefined') {
-              console.warn('ChunkLoadError caught in MortgageCalculator. Reloading page...');
-              window.location.reload();
-            }
+            safeReload('MortgageCalculator_DashboardBoundary');
             return null;
           }
           return (
@@ -1403,10 +1394,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         name="취득세 및 중개보수 계산기"
         fallback={(error, reset) => {
           if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-            if (typeof window !== 'undefined') {
-              console.warn('ChunkLoadError caught in PropertyTaxCalculator. Reloading page...');
-              window.location.reload();
-            }
+            safeReload('PropertyTaxCalculator_DashboardBoundary');
             return null;
           }
           return (
@@ -1454,10 +1442,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         name="AI 매도 타이밍 및 세무 진단기"
         fallback={(error, reset) => {
           if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-            if (typeof window !== 'undefined') {
-              console.warn('ChunkLoadError caught in SellTimingCalculator. Reloading page...');
-              window.location.reload();
-            }
+            safeReload('SellTimingCalculator_DashboardBoundary');
             return null;
           }
           return (

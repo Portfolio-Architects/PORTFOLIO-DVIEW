@@ -2167,7 +2167,7 @@ interface GroupedCategory {
                       관련 공지사항이 없습니다.
                     </div>
                   ) : (
-                    railStrategyNotices.slice(0, 3).map((item: LocalNoticeItem) => (
+                    railStrategyNotices.slice(0, 2).map((item: LocalNoticeItem) => (
                       <div
                         key={item.id}
                         onClick={() => {
@@ -2209,7 +2209,7 @@ interface GroupedCategory {
                       관련 공지사항이 없습니다.
                     </div>
                   ) : (
-                    tramNotices.slice(0, 3).map((item: LocalNoticeItem) => (
+                    tramNotices.slice(0, 2).map((item: LocalNoticeItem) => (
                       <div
                         key={item.id}
                         onClick={() => {
