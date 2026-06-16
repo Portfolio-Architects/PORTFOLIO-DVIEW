@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>네트워크 연결이 끊겼습니다 - D-VIEW</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=10">
+  <style>
+    :root {
+      --bg-color: #f9fafb;
+      --text-primary: #191f28;
+      --text-secondary: #4e5968;
+      --text-tertiary: #8b95a1;
+      --primary-color: #008262;
+      --primary-hover: #006950;
+      --card-bg: #ffffff;
+      --border-color: #e5e8eb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #0f0f10;
+        --text-primary: #f9fafb;
+        --text-secondary: #b0b8c1;
+        --text-tertiary: #6b7684;
+        --primary-color: #00d29d;
+        --primary-hover: #00b386;
+        --card-bg: #1c1c1e;
+        --border-color: #2c2c2e;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 440px;
+      width: 100%;
+      background-color: var(--card-bg);
+      border-radius: 32px;
+      padding: 40px 32px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-color);
+      text-align: center;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .icon-wrapper {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      background-color: rgba(0, 210, 157, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+      color: var(--primary-color);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    p {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 32px;
+      word-break: keep-all;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 56px;
+      border-radius: 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: none;
+      outline: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      box-shadow: 0 8px 16px rgba(0, 210, 157, 0.15);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-color);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border-color);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 24px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--text-tertiary);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-wrapper">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1t22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.5M5 12.5a10.94 10.94 0 0 1 5.83-2.84M8.58 5.76a15.74 15.74 0 0 1 6.84 0M10.83 16a2.91 2.91 0 0 1 2.34 0"></path>
+      </svg>
+    </div>
+    <h1>네트워크 연결이 끊겼습니다</h1>
+    <p>오프라인 상태입니다. 인터넷 연결을 확인해 주세요. D-VIEW는 오프라인일 때 기존에 조회했던 거래 내역과 임장기를 최대한 캐시에서 제공합니다.</p>
+    
+    <div class="button-group">
+      <button onclick="retryConnection()" class="btn btn-primary">다시 연결 시도</button>
+      <a href="/" class="btn btn-secondary">홈으로 돌아가기</a>
+    </div>
+
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span id="status-text">네트워크 연결 대기 중...</span>
+    </div>
+  </div>
+
+  <script>
+    function retryConnection() {
+      const statusText = document.getElementById('status-text');
+      statusText.textContent = '연결 상태 확인 중...';
+      
+      if (navigator.onLine) {
+        window.location.href = '/';
+      } else {
+        setTimeout(() => {
+          statusText.textContent = '아직 연결되지 않았습니다. 인터넷 상태를 확인해 주세요.';
+        }, 800);
+      }
+    }
+
+    // Auto reconnect detector
+    window.addEventListener('online', () => {
+      window.location.href = '/';
+    });
+
+    // Periodically check if connection is online
+    setInterval(() => {
+      if (navigator.onLine) {
+        window.location.href = '/';
+      }
+    }, 2000);
+  </script>
+</body>
+</html>

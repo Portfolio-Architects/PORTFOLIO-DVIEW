@@ -11,7 +11,8 @@ self.addEventListener('install', (event) => {
         '/manifest.webmanifest?v=10',
         '/icon-192x192.png',
         '/icon-512x512.png',
-        '/d-view-icon.png'
+        '/d-view-icon.png',
+        '/offline.html'
       ]);
     })
   );
@@ -90,7 +91,15 @@ self.addEventListener('fetch', (event) => {
         }
         return networkRes;
       })
-      .catch(() => caches.match(req))
+      .catch(() => {
+        return caches.match(req).then((cachedRes) => {
+          if (cachedRes) return cachedRes;
+          // Fallback to offline.html if navigation fails
+          if (req.mode === 'navigate' || (req.headers.get('accept') && req.headers.get('accept').includes('text/html'))) {
+            return caches.match('/offline.html');
+          }
+        });
+      })
   );
 });
 
