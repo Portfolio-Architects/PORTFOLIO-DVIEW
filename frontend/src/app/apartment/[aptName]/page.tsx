@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
-import { getInitialData, readJsonFileCached } from '@/lib/services/dashboardData';
+import { getInitialData } from '@/lib/services/dashboardData';
+import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { headers } from 'next/headers';
 import { redis } from '@/lib/redis';
-import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
 import fs from 'fs';
 import path from 'path';
 import type { AptTxSummary } from '@/lib/types/transaction';
@@ -26,7 +26,10 @@ export interface LocationScore {
   distanceToSubway?: number;
 }
 
-const TX_SUMMARY = (txSummaryDataRaw as any).summary;
+async function getTxSummaryData(): Promise<Record<string, any>> {
+  const parsed = await readJsonFileCached<{ summary: Record<string, any> }>('public/data/tx-summary.json', { summary: {} });
+  return parsed?.summary || parsed || {};
+}
 
 interface Transaction {
   contractYm: string;
@@ -192,7 +195,8 @@ export async function generateMetadata(props: {
     logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
   }
   
-  const aptSummary = TX_SUMMARY[decodedName];
+  const txSummary = await getTxSummaryData();
+  const aptSummary = txSummary[decodedName];
   const txs = await getApartmentTransactions(decodedName);
   const pyeongSummaries = getPyeongSummaries(txs);
   
@@ -292,7 +296,8 @@ import { createInitialKPIs } from '@/lib/services/kpi.service';
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const aptNames = Object.keys(TX_SUMMARY || {});
+  const txSummary = await getTxSummaryData();
+  const aptNames = Object.keys(txSummary || {});
   // Pre-render the first 50 apartments to prevent long build times
   return aptNames.slice(0, 50).map((name) => ({
     aptName: encodeURIComponent(name),
@@ -358,7 +363,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   }
 
   // --- SSR SEO HTML Block ---
-  const aptSummary = TX_SUMMARY[decodedName];
+  const txSummary = await getTxSummaryData();
+  const aptSummary = txSummary[decodedName];
   const txs = await getApartmentTransactions(decodedName);
   const pyeongSummaries = getPyeongSummaries(txs);
   

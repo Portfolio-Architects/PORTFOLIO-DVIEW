@@ -105,9 +105,31 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     }
   };
 
+  const updateFavoriteOrder = async (newOrder: string[]) => {
+    if (!user) return;
+
+    setUserFavorites(new Set(newOrder));
+
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch('/api/favorite', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ favoriteOrder: newOrder }),
+      });
+      if (!res.ok) throw new Error('Failed to update favorite order');
+    } catch (err) {
+      logger.warn('useFavorites.updateFavoriteOrder', 'Failed to save order to Firestore', {}, err as Error);
+    }
+  };
+
   return {
     userFavorites,
     favoriteCounts,
-    handleToggleFavorite
+    handleToggleFavorite,
+    updateFavoriteOrder
   };
 }

@@ -300,10 +300,10 @@ export function useTxData(
       trendColor: string;
       badge: string;
     };
-  }>(shouldFetch ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, fetcher, {
-    fallbackData: initialTxSummary ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
+  }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
+    fallbackData: (initialTxSummary && Object.keys(initialTxSummary).length > 0) ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
     revalidateOnFocus: false,
-    revalidateIfStale: false,
+    revalidateIfStale: true,
     revalidateOnReconnect: false,
     dedupingInterval: 3600000 // 1 hour cache
   });
@@ -394,7 +394,7 @@ export function useTxData(
     console.error("useTxData SWR summary error:", summaryError);
   }
   if (summaryData) {
-    console.log("useTxData summaryData successfully loaded. keys:", Object.keys(summaryData.summary || {}).length);
+    console.log("useTxData summaryData keys:", Object.keys(summaryData), "summary exists:", !!(summaryData as any).summary, "keys of summary:", Object.keys((summaryData as any).summary || {}).length);
   }
 
   return {

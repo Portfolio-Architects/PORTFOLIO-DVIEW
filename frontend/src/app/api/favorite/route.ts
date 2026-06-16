@@ -111,6 +111,26 @@ export async function GET(request: NextRequest) {
 
     const snap = await withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), 5000);
     const favorites = snap.docs.map(d => d.data().aptName as string);
+
+    try {
+      const userDoc = await withTimeout(adminDb.collection('users').doc(userId).get(), 2000);
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        const favoriteOrder = userData?.favoriteOrder as string[];
+        if (favoriteOrder && Array.isArray(favoriteOrder)) {
+          favorites.sort((a, b) => {
+            const indexA = favoriteOrder.indexOf(a);
+            const indexB = favoriteOrder.indexOf(b);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          });
+        }
+      }
+    } catch (dbErr) {
+      logger.warn('FavoriteAPI.GET', 'Failed to read user favoriteOrder, skipping sort', { userId }, dbErr as Error);
+    }
+
     return NextResponse.json({ favorites });
   } catch (error: unknown) {
     logger.error('FavoriteAPI.GET', 'Failed to fetch favorites', {}, error as Error);
@@ -118,3 +138,42 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ favorites: [], error: 'Failed to fetch favorites' }, { status: 200 });
   }
 }
+
+const orderSchema = z.object({
+  favoriteOrder: z.array(z.string().min(1).max(100)).max(100),
+});
+
+/**
+ * PUT /api/favorite
+ * Body: { favoriteOrder: string[] }
+ * Updates the user's custom favorite order.
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
+
+    let decodedToken;
+    try {
+      decodedToken = await verifyAuthHeader(request);
+    } catch (authErr) {
+      return NextResponse.json({ error: 'Unauthorized Request' }, { status: 401 });
+    }
+    const userId = decodedToken.uid;
+
+    const rawBody = await request.json();
+    const parsed = orderSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
+    }
+    const { favoriteOrder } = parsed.data;
+
+    const userRef = adminDb.collection('users').doc(userId);
+    await userRef.set({ favoriteOrder }, { merge: true });
+
+    return NextResponse.json({ success: true, favoriteOrder });
+  } catch (error: unknown) {
+    logger.error('FavoriteAPI.PUT', 'Failed to update favorite order', {}, error as Error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+

@@ -47,6 +47,7 @@ import {
   TrendingDown,
   Train,
   ArrowRight,
+  Settings,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -109,6 +110,7 @@ interface MacroDashboardProps {
     badge: string;
   };
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -347,6 +349,7 @@ export default function MacroDashboardClient({
   onOpenSellTimingCalculator,
   recent7DaysVolume,
   typeMap = {},
+  updateFavoriteOrder,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettings();
   const { user, handleLogin } = useAuth();
@@ -481,6 +484,49 @@ export default function MacroDashboardClient({
   const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
+
+  // ⚙️ 관심단지 정렬 팝오버 상태 및 핸들러
+  const [showOrderEditor, setShowOrderEditor] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const orderEditorRef = React.useRef<HTMLDivElement>(null);
+
+  // 바깥 클릭 시 팝오버 닫기
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (orderEditorRef.current && !orderEditorRef.current.contains(event.target as Node)) {
+        setShowOrderEditor(false);
+      }
+    }
+    if (showOrderEditor) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showOrderEditor]);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const nextArray = [...favoritesArray];
+    const targetItem = nextArray.splice(draggedIndex, 1)[0];
+    nextArray.splice(index, 0, targetItem);
+
+    setDraggedIndex(index);
+    if (updateFavoriteOrder) {
+      updateFavoriteOrder(nextArray);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
   const favIndex = useMemo(() => favoritesArray.indexOf(selectedTimelineApt || ""), [favoritesArray, selectedTimelineApt]);
 
   const handlePrevFavorite = useCallback(() => {
@@ -1981,21 +2027,61 @@ interface GroupedCategory {
                       </h3>
 
                       {mounted && user && userFavorites && userFavorites.size > 0 && (
-                        <select
-                          value={selectedTimelineApt || ""}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setSelectedTimelineApt(val === "" ? null : val);
-                          }}
-                          className="px-2.5 py-1 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl text-[11px] font-extrabold cursor-pointer transition-all outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate"
-                        >
-                          <option value="">전체 추이 보기</option>
-                          {favoritesArray.map((fav) => (
-                            <option key={fav} value={fav}>
-                              {fav}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative flex items-center gap-1">
+                          <select
+                            value={selectedTimelineApt || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSelectedTimelineApt(val === "" ? null : val);
+                            }}
+                            className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
+                          >
+                            <option value="">전체 추이 보기</option>
+                            {favoritesArray.map((fav) => (
+                              <option key={fav} value={fav}>
+                                {fav}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* ⚙️ 관심 단지 순서 편집 버튼 */}
+                          <div className="relative flex items-center" ref={orderEditorRef}>
+                            <button
+                              onClick={() => setShowOrderEditor(!showOrderEditor)}
+                              title="관심 단지 정렬 순서 편집"
+                              className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+                            >
+                              <Settings size={13} />
+                            </button>
+
+                            {/* 팝오버 UI */}
+                            {showOrderEditor && (
+                              <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
+                                  <span>⭐ 관심 단지 순서 편집</span>
+                                  <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                  {favoritesArray.map((fav, index) => (
+                                    <div
+                                      key={fav}
+                                      draggable
+                                      onDragStart={(e) => handleDragStart(e, index)}
+                                      onDragOver={(e) => handleDragOver(e, index)}
+                                      onDragEnd={handleDragEnd}
+                                      className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
+                                        draggedIndex === index ? "opacity-40 border-dashed border-[#00d29d]" : ""
+                                      }`}
+                                    >
+                                      <span className="truncate pr-2">{getDisplayAptName(fav)}</span>
+                                      <span className="text-tertiary text-[10px] shrink-0 font-normal">☰</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
 
                       {selectedTimelineApt && (

@@ -29,20 +29,14 @@ export async function fetchApartmentNames(): Promise<string[]> {
     if (typeof window === 'undefined') {
       // Server-side: read directly from the static file to avoid relative URL fetch failures
       try {
-        const fs = await import('fs');
-        const path = await import('path');
-        const filePath = path.resolve(process.cwd(), 'public/data/apartments-by-dong.json');
-        if (fs.existsSync(filePath)) {
-          const content = fs.readFileSync(filePath, 'utf8');
-          const rawResult = JSON.parse(content);
-          
-          const parsed = ApartmentsByDongSchema.safeParse(rawResult);
-          if (parsed.success) {
-            byDong = parsed.data.byDong;
-          } else {
-            logger.warn('ApartmentRepository.fetch', 'Zod validation failed for apartments-by-dong.json. Falling back to raw.', undefined, parsed.error);
-            byDong = rawResult.byDong || {};
-          }
+        const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
+        const rawResult = await readJsonFileCached<any>('public/data/apartments-by-dong.json', {});
+        const parsed = ApartmentsByDongSchema.safeParse(rawResult);
+        if (parsed.success) {
+          byDong = parsed.data.byDong;
+        } else {
+          logger.warn('ApartmentRepository.fetch', 'Zod validation failed for apartments-by-dong.json. Falling back to raw.', undefined, parsed.error);
+          byDong = rawResult.byDong || {};
         }
       } catch (fsError) {
         logger.warn('ApartmentRepository.fetch', 'Failed to read apartments-by-dong.json from filesystem', undefined, fsError);

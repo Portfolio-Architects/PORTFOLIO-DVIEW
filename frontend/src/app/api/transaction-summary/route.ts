@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import txSummaryDataRaw from '../../../../public/data/tx-summary.json';
+import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 
-const TX_SUMMARY = (txSummaryDataRaw as any).summary;
 export const dynamic = 'force-dynamic';
+
+async function getTxSummary(): Promise<Record<string, any>> {
+  try {
+    const parsed = await readJsonFileCached<{ summary: Record<string, any> }>('public/data/tx-summary.json', { summary: {} });
+    return parsed?.summary || parsed || {};
+  } catch (err) {
+    logger.error('TransactionSummaryAPI.getTxSummary', 'Failed to read or parse tx-summary.json', {}, err as Error);
+    return {};
+  }
+}
 
 const transactionSummaryQuerySchema = z.object({
   apartment: z.string().optional(),
@@ -12,6 +21,7 @@ const transactionSummaryQuerySchema = z.object({
 
 export async function GET(request: Request) {
   try {
+    const TX_SUMMARY = await getTxSummary();
     const { searchParams } = new URL(request.url);
     const parsedQuery = transactionSummaryQuerySchema.safeParse({
       apartment: searchParams.get('apartment') || undefined,
@@ -43,3 +53,4 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
