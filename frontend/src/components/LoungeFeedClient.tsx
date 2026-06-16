@@ -175,6 +175,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   }, [activeSubCategory, activeDongFilter]);
 
   useEffect(() => {
+    let idleId: number | null = null;
     const checkParams = () => {
       // Check query parameter
       const params = new URLSearchParams(window.location.search);
@@ -213,13 +214,16 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     };
     if (typeof window !== 'undefined') {
       if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(preloadDetail, { timeout: 3000 });
+        idleId = (window as any).requestIdleCallback(preloadDetail, { timeout: 3000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadDetail, 2000);
       }
     }
 
     return () => {
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
       window.removeEventListener('hashchange', checkParams);
       if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
     };

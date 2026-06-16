@@ -233,6 +233,7 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
 
   useEffect(() => {
     setMounted(true);
+    let idleId: number | null = null;
 
     const preloadHeavyChunks = () => {
       import('@/components/TossApartmentExploreClient').catch(() => {});
@@ -246,13 +247,16 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
 
     if (typeof window !== 'undefined') {
       if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
+        idleId = (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadHeavyChunks, 2000);
       }
     }
 
     return () => {
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
       if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
     };
   }, []);

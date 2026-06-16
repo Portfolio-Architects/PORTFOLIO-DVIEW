@@ -50,6 +50,7 @@ export default function LoungeContainerClient({
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    let idleId: number | null = null;
     if (typeof window !== 'undefined') {
       const handleHashChange = () => {
         if (window.location.hash === '#lounge-news') {
@@ -67,13 +68,16 @@ export default function LoungeContainerClient({
         import('@/components/LoungeComposeClient').catch(() => {});
       };
       if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
+        idleId = (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadLoungeChunks, 2000);
       }
 
       window.addEventListener('hashchange', handleHashChange);
       return () => {
+        if (idleId !== null && 'cancelIdleCallback' in window) {
+          (window as any).cancelIdleCallback(idleId);
+        }
         window.removeEventListener('hashchange', handleHashChange);
         if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
       };

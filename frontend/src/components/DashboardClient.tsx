@@ -441,6 +441,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   useEffect(() => {
     setMounted(true);
+    let idleId: number | null = null;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
@@ -462,7 +463,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         import('@/components/MacroDashboardClient').catch(() => {});
       };
       if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
+        idleId = (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadHeavyComponents, 1000);
       }
@@ -502,6 +503,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       window.addEventListener('open-ad-inquiry', handleOpenAdInquiry);
 
       return () => {
+        if (idleId !== null && 'cancelIdleCallback' in window) {
+          (window as any).cancelIdleCallback(idleId);
+        }
         window.removeEventListener('hashchange', handleHashChange);
         window.removeEventListener('scroll', handleScroll);
         if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
