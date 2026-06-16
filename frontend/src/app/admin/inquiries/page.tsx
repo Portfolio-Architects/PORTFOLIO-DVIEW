@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition, useRef } from 'react';
+import React, { useState, useEffect, useTransition, useRef } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -24,7 +24,7 @@ export interface SubscriptionItem {
   updatedAt: any;
 }
 
-export default function InquiriesPage() {
+const InquiriesPage = React.memo(function InquiriesPage() {
   const [inquiries, setInquiries] = useState<AdInquiry[]>([]);
   const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([]);
   const [activeTab, setActiveTab] = useState<'inquiries' | 'subscriptions'>('inquiries');
@@ -271,4 +271,8 @@ export default function InquiriesPage() {
       </div>
     </div>
   );
-}
+});
+
+InquiriesPage.displayName = 'InquiriesPage';
+
+export default InquiriesPage;
