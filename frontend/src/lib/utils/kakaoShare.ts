@@ -13,18 +13,21 @@ export const initKakao = () => {
   }
 };
 
+let kakaoLoadPromise: Promise<void> | null = null;
+
 export const loadKakaoSdk = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") {
-      resolve();
-      return;
-    }
-    // Check if window.Kakao is completely loaded and holds the required APIs
-    if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
-      resolve();
-      return;
-    }
-    
+  if (typeof window === "undefined") {
+    return Promise.resolve();
+  }
+  // Check if window.Kakao is completely loaded and holds the required APIs
+  if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
+    return Promise.resolve();
+  }
+  if (kakaoLoadPromise) {
+    return kakaoLoadPromise;
+  }
+
+  kakaoLoadPromise = new Promise<void>((resolve, reject) => {
     // Check if the script is already appended to the DOM (e.g. from layout.tsx)
     const existingScript = document.querySelector('script[src*="kakao.min.js"]') as HTMLScriptElement | null;
     if (existingScript) {
@@ -37,6 +40,7 @@ export const loadKakaoSdk = (): Promise<void> => {
           resolve();
         } else if (attempts >= 50) { // 50 * 100ms = 5000ms (5s)
           clearInterval(interval);
+          kakaoLoadPromise = null;
           reject(new Error("Kakao SDK 스크립트는 존재하나 로드가 완료되지 않았습니다. 잠시 후 다시 시도해주세요."));
         }
       }, 100);
@@ -60,14 +64,20 @@ export const loadKakaoSdk = (): Promise<void> => {
         if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
           resolve();
         } else {
+          kakaoLoadPromise = null;
           reject(new Error("Kakao SDK는 로드되었으나 내부 Share API 파싱에 실패했습니다."));
         }
         clearTimeout(timer);
       }, 50);
     };
-    script.onerror = () => reject(new Error("Kakao SDK 로드 실패 (브라우저 광고 차단기, 혹은 네트워크 환경을 확인해주세요)"));
+    script.onerror = () => {
+      kakaoLoadPromise = null;
+      reject(new Error("Kakao SDK 로드 실패 (브라우저 광고 차단기, 혹은 네트워크 환경을 확인해주세요)"));
+    };
     document.head.appendChild(script);
   });
+
+  return kakaoLoadPromise;
 };
 
 // Zod custom schema for File check, safe for SSR (Node environments)
