@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useRef, useCallback } from 'react';
 import { SWRConfig, preload } from 'swr';
 import { useNetworkStatus } from '@/lib/hooks/useNetworkStatus';
 import { logger } from '@/lib/services/logger';
@@ -52,10 +52,16 @@ export default function SWRProvider({ children }: { children: ReactNode }) {
     }
   }, [isOnline]);
 
+  const cacheRef = useRef<Map<any, any>>(null);
+  if (cacheRef.current === null) {
+    cacheRef.current = new Map();
+  }
+  const getCache = useCallback(() => cacheRef.current!, []);
+
   return (
     <SWRConfig
       value={{
-        provider: () => new Map(),
+        provider: getCache,
         revalidateOnFocus: isOnline,
         revalidateOnReconnect: isOnline,
         shouldRetryOnError: isOnline,
