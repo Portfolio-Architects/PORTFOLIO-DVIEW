@@ -11,7 +11,7 @@ export interface EmojiRatingProps {
   onChange: (value: number) => void;
 }
 
-export const EmojiRating: React.FC<EmojiRatingProps> = ({ label, value, onChange }) => {
+export const EmojiRating: React.FC<EmojiRatingProps> = React.memo(({ label, value, onChange }) => {
   return (
     <div className="mb-4">
       <label className="block text-[13px] font-bold text-secondary mb-2">{label}</label>
@@ -58,7 +58,9 @@ export const EmojiRating: React.FC<EmojiRatingProps> = ({ label, value, onChange
       </div>
     </div>
   );
-};
+});
+
+EmojiRating.displayName = 'EmojiRating';
 
 export interface MultiPhotoDropzoneProps {
   label: string;
@@ -69,7 +71,7 @@ export interface MultiPhotoDropzoneProps {
   onDrop: (e: React.DragEvent) => void;
 }
 
-export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = ({ 
+export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = React.memo(({ 
   label, placeholder, previews, onFilesAdded, onRemove, onDrop 
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +141,9 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = ({
       </div>
     </div>
   );
-};
+});
+
+MultiPhotoDropzone.displayName = 'MultiPhotoDropzone';
 
 export interface TextInputProps {
   label: string;
@@ -149,7 +153,7 @@ export interface TextInputProps {
   isTextarea?: boolean;
 }
 
-export const TextInput: React.FC<TextInputProps> = ({ label, placeholder, value, onChange, isTextarea = false }) => {
+export const TextInput: React.FC<TextInputProps> = React.memo(({ label, placeholder, value, onChange, isTextarea = false }) => {
   return (
     <div className="mb-4">
       <label className="block text-[13px] font-bold text-primary mb-1.5">{label}</label>
@@ -172,7 +176,9 @@ export const TextInput: React.FC<TextInputProps> = ({ label, placeholder, value,
       )}
     </div>
   );
-};
+});
+
+TextInput.displayName = 'TextInput';
 
 export interface SelectInputProps {
   label: string;
@@ -181,7 +187,7 @@ export interface SelectInputProps {
   onChange: (value: string) => void;
 }
 
-export const SelectInput: React.FC<SelectInputProps> = ({ label, options, value, onChange }) => {
+export const SelectInput: React.FC<SelectInputProps> = React.memo(({ label, options, value, onChange }) => {
   return (
     <div className="mb-4">
       <label className="block text-[13px] font-bold text-primary mb-1.5">{label}</label>
@@ -197,4 +203,6 @@ export const SelectInput: React.FC<SelectInputProps> = ({ label, options, value,
       </select>
     </div>
   );
-};
+});
+
+SelectInput.displayName = 'SelectInput';
