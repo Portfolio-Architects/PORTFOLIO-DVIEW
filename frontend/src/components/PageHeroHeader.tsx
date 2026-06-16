@@ -14,7 +14,7 @@ export interface PageHeroHeaderProps {
   readonly isTitleDiv?: boolean;
 }
 
-export default function PageHeroHeader({
+const PageHeroHeader = React.memo(function PageHeroHeader({
   title,
   subtitleStrong,
   subtitleLight,
@@ -168,4 +168,7 @@ export default function PageHeroHeader({
       </div>
     </>
   );
-}
+});
+
+PageHeroHeader.displayName = 'PageHeroHeader';
+export default PageHeroHeader;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
@@ -36,7 +36,7 @@ interface Post {
   createdAt: number;
 }
 
-export default function LoungeContainerClient({ 
+const LoungeContainerClient = React.memo(function LoungeContainerClient({ 
   initialPosts,
   searchParams,
   onRequestLogin,
@@ -168,4 +168,7 @@ export default function LoungeContainerClient({
       </div>
     </div>
   );
-}
+});
+
+LoungeContainerClient.displayName = 'LoungeContainerClient';
+export default LoungeContainerClient;

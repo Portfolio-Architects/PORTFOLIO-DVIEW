@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useAuth } from '@/hooks/useAuth';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 
-export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
+const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
   const { user } = useAuth();
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -108,4 +108,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
       </header>
     </>
   );
-}
+});
+
+LoungeHeader.displayName = 'LoungeHeader';
+export default LoungeHeader;

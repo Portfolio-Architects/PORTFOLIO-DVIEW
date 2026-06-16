@@ -8,7 +8,7 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import { getEngineeringReport } from '@/app/actions/getEngineeringReport';
 import EngineeringReportClient from './EngineeringReportClient';
 
-export default function ReportClient() {
+const ReportClient = React.memo(function ReportClient() {
   const [mounted, setMounted] = useState(false);
   const [engReportData, setEngReportData] = useState<{metadata: any, markdownContent: string} | null>(null);
 
@@ -159,4 +159,7 @@ export default function ReportClient() {
       </div>
     </div>
   );
-}
+});
+
+ReportClient.displayName = 'ReportClient';
+export default ReportClient;
