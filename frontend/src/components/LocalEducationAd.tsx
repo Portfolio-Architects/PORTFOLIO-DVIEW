@@ -31,14 +31,18 @@ const isGradeEligible = (aptGrade: string, adMinGrade: string) => {
 export default function LocalEducationAd({ dong = '', educationGrade, apartmentName }: LocalEducationAdProps) {
   const [matchedAd, setMatchedAd] = useState<AdItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const mountedRef = React.useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     async function loadAds() {
       try {
         const res = await fetch('/data/local-ads.json');
         if (!res.ok) throw new Error('Failed to load ad pool');
         const data = await res.json();
         const adsList: AdItem[] = data.ads || [];
+
+        if (!mountedRef.current) return;
 
         // 1. Filter by Dong
         let filtered = adsList.filter(ad => 
@@ -62,11 +66,16 @@ export default function LocalEducationAd({ dong = '', educationGrade, apartmentN
       } catch (err) {
         console.error('[LoadAdsError]', err);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
     }
 
     loadAds();
+    return () => {
+      mountedRef.current = false;
+    };
   }, [dong, educationGrade]);
 
   const handleAdClick = async () => {
