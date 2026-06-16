@@ -211,13 +211,12 @@ export default function SellTimingCalculator({
 
   // Lock body scroll
   useEffect(() => {
-    if (isOpen) {
-      const original = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = original;
-      };
-    }
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
   }, [isOpen]);
 
   // Click outside to close autocomplete dropdown

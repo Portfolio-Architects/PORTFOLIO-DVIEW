@@ -23,13 +23,12 @@ export default function PushSubscriptionModal({ isOpen, onClose, aptName }: Push
   }, []);
 
   React.useEffect(() => {
-    if (isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
-      };
-    }
+    if (!isOpen) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
