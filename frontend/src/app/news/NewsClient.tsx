@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -50,7 +50,7 @@ interface NoticeItem {
   content?: string;
 }
 
-export default function NewsClient() {
+const NewsClient = React.memo(function NewsClient() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'news' | 'notices'>('news');
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
@@ -424,4 +424,8 @@ export default function NewsClient() {
       <MobileDock activeTab="news" />
     </PullToRefresh>
   );
-}
+});
+
+NewsClient.displayName = 'NewsClient';
+
+export default NewsClient;
