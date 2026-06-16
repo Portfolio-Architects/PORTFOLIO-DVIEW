@@ -11,6 +11,7 @@ import {
 import { logger } from '@/lib/services/logger';
 import type { UserReview } from '@/lib/types/review.types';
 import { z } from 'zod';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 const COLLECTION = 'user_reviews';
 
@@ -78,10 +79,10 @@ export async function getRecentReviews(limitCount: number = 30): Promise<UserRev
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await adminDb.collection(COLLECTION)
+        const snap = await throttle(() => adminDb.collection(COLLECTION)
           .orderBy('createdAt', 'desc')
           .limit(limitCount)
-          .get();
+          .get());
         rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
@@ -92,7 +93,7 @@ export async function getRecentReviews(limitCount: number = 30): Promise<UserRev
   if (rawDocs.length === 0) {
     try {
       const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(limitCount));
-      const snap = await getDocs(q);
+      const snap = await throttle(() => getDocs(q));
       rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
     } catch (e) {
       logger.error('ReviewRepository.getRecentReviews', 'Client SDK fetch failed', undefined, e);
@@ -153,7 +154,7 @@ export async function addReview(
       photoURL = await uploadImage(imageFile, 'user_reviews');
     }
 
-    await addDoc(collection(db, COLLECTION), {
+    await throttle(() => addDoc(collection(db, COLLECTION), {
       apartmentName,
       rating,
       content,
@@ -164,7 +165,7 @@ export async function addReview(
       verificationLevel: verificationLevel || '',
       likes: 0,
       createdAt: serverTimestamp(),
-    });
+    }));
 
     logger.info('ReviewRepository.addReview', 'User review created', { apartmentName, rating });
   } catch (error) {
@@ -179,7 +180,7 @@ export async function addReview(
 export async function incrementReviewLike(reviewId: string): Promise<void> {
   try {
     const reviewRef = doc(db, COLLECTION, reviewId);
-    await updateDoc(reviewRef, { likes: increment(1) });
+    await throttle(() => updateDoc(reviewRef, { likes: increment(1) }));
   } catch (error) {
     logger.error('ReviewRepository.incrementReviewLike', 'Failed to increment review like', { reviewId }, error);
     throw error;
@@ -194,7 +195,7 @@ export async function incrementReviewLike(reviewId: string): Promise<void> {
 export async function deleteReview(reviewId: string): Promise<void> {
   try {
     const reviewRef = doc(db, COLLECTION, reviewId);
-    await deleteDoc(reviewRef);
+    await throttle(() => deleteDoc(reviewRef));
     logger.info('ReviewRepository.deleteReview', 'Review deleted', { reviewId });
   } catch (error) {
     logger.error('ReviewRepository.deleteReview', 'Failed to delete review', { reviewId }, error);

@@ -15,6 +15,7 @@ const ReportSpecsSchema = z.object({
   farBuild: z.string().default(''),
   parkingRatio: z.string().default(''),
 }).passthrough();
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 const ReportInfraSchema = z.object({
   gateText: z.string().default(''),
@@ -146,7 +147,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
         const docRef = adminDb.collection('scoutingReports').doc(reportId);
-        const docSnap = await docRef.get();
+        const docSnap = await throttle(() => docRef.get());
         if (!docSnap.exists) return null;
 
         const data = docSnap.data();
@@ -178,7 +179,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
 
   if (!rawReport) {
     const docRef = doc(db, 'scoutingReports', reportId);
-    const docSnap = await getDoc(docRef);
+    const docSnap = await throttle(() => getDoc(docRef));
     if (!docSnap.exists()) return null;
 
     const data = docSnap.data();
@@ -223,10 +224,10 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const querySnapshot = await adminDb.collection('scoutingReports')
+        const querySnapshot = await throttle(() => adminDb.collection('scoutingReports')
           .where('apartmentName', '==', apartmentName)
           .limit(1)
-          .get();
+          .get());
         if (querySnapshot.empty) return null;
 
         const docSnap = querySnapshot.docs[0];
@@ -258,7 +259,7 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
 
   if (!rawReport) {
     const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', apartmentName), limit(1));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await throttle(() => getDocs(q));
     if (querySnapshot.empty) return null;
     
     const docSnap = querySnapshot.docs[0];
@@ -303,7 +304,7 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
 export async function incrementReportLike(reportId: string): Promise<void> {
   try {
     const reportRef = doc(db, 'field_reports', reportId);
-    await updateDoc(reportRef, { likes: increment(1) });
+    await throttle(() => updateDoc(reportRef, { likes: increment(1) }));
   } catch (error) {
     logger.error('ReportRepository.incrementReportLike', 'Failed to increment report like', { reportId }, error);
     throw error;
@@ -320,10 +321,10 @@ export async function incrementReportView(reportId: string, title: string = '알
   try {
     // Update global counter in scoutingReports (or field_reports depending on which collection is used)
     const reportRef = doc(db, 'scoutingReports', reportId);
-    await updateDoc(reportRef, { viewCount: increment(1) }).catch((error) => {
+    await throttle(() => updateDoc(reportRef, { viewCount: increment(1) })).catch((error) => {
       // some are in field_reports
       const fbRef = doc(db, 'field_reports', reportId);
-      return updateDoc(fbRef, { viewCount: increment(1) }).catch((fbError) => {
+      return throttle(() => updateDoc(fbRef, { viewCount: increment(1) })).catch((fbError) => {
         logger.error('ReportRepository.incrementReportView', 'Failed to increment report view in both collections', { reportId }, fbError);
       });
     });

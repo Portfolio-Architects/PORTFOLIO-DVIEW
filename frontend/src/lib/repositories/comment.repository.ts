@@ -9,6 +9,7 @@ import { logger } from '@/lib/services/logger';
 import type { CommentData } from '@/lib/types/report.types';
 import { commentConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 const CommentDataSchema = z.object({
   text: z.string().default(''),
@@ -31,17 +32,17 @@ export async function addComment(
 ): Promise<void> {
   try {
     const commentsRef = collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter);
-    await addDoc(commentsRef, {
+    await throttle(() => addDoc(commentsRef, {
       text,
       authorName,
       authorUid,
       createdAt: serverTimestamp(),
-    });
+    }));
 
     // Increment parent report's comment counter
-    await updateDoc(doc(db, 'field_reports', reportId), {
+    await throttle(() => updateDoc(doc(db, 'field_reports', reportId), {
       commentCount: increment(1),
-    });
+    }));
 
     logger.info('CommentRepository.addComment', 'Comment added', { reportId });
   } catch (error) {
@@ -110,9 +111,9 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await adminDb.collection(`field_reports/${reportId}/comments`)
+        const snap = await throttle(() => adminDb.collection(`field_reports/${reportId}/comments`)
           .orderBy('createdAt', 'asc')
-          .get();
+          .get());
         rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
@@ -126,7 +127,7 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
         collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter),
         orderBy('createdAt', 'asc')
       );
-      const snap = await getDocs(q);
+      const snap = await throttle(() => getDocs(q));
       rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
     } catch (e) {
       logger.error('CommentRepository.getComments', 'Client SDK fetch failed', { reportId }, e);

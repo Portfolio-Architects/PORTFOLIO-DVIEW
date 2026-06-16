@@ -13,6 +13,7 @@ import type { NewsItemData } from '@/lib/types/dashboard.types';
 import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
 import { postConverter, PostDocument } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 export const PostDataSchema = z.object({
   title: z.string().default(''),
@@ -96,12 +97,12 @@ export async function createPost(data: {
   verificationLevel?: string;
 }): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, 'posts').withConverter(postConverter), {
+    const docRef = await throttle(() => addDoc(collection(db, 'posts').withConverter(postConverter), {
       ...data,
       likes: 0,
       views: 0,
       createdAt: serverTimestamp(),
-    } as PostDocument);
+    } as PostDocument));
     logger.info('PostRepository.createPost', 'Post created', { id: docRef.id });
     return docRef.id;
   } catch (error) {
@@ -129,7 +130,7 @@ async function invalidatePostCache(postId: string): Promise<void> {
 export async function incrementPostLike(postId: string): Promise<void> {
   try {
     const postRef = doc(db, 'posts', postId).withConverter(postConverter);
-    await updateDoc(postRef, { likes: increment(1) });
+    await throttle(() => updateDoc(postRef, { likes: increment(1) }));
     await invalidatePostCache(postId);
   } catch (error) {
     logger.error('PostRepository.incrementPostLike', 'Failed to increment post like', { postId }, error);
@@ -148,7 +149,7 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
 export async function incrementPostView(postId: string, title: string = '알 수 없는 글'): Promise<void> {
   try {
     const postRef = doc(db, 'posts', postId).withConverter(postConverter);
-    await updateDoc(postRef, { views: increment(1) });
+    await throttle(() => updateDoc(postRef, { views: increment(1) }));
     await TrafficRepo.incrementContentView(postId, title, 'lounge');
     await invalidatePostCache(postId);
   } catch (error) {
@@ -165,7 +166,7 @@ export async function incrementPostView(postId: string, title: string = '알 수
 export async function deletePost(postId: string): Promise<void> {
   try {
     const postRef = doc(db, 'posts', postId).withConverter(postConverter);
-    await deleteDoc(postRef);
+    await throttle(() => deleteDoc(postRef));
     logger.info('PostRepository.deletePost', 'Post deleted', { postId });
     await invalidatePostCache(postId);
   } catch (error) {
@@ -202,7 +203,7 @@ export async function getPost(postId: string): Promise<any | null> {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await adminDb.collection('posts').doc(postId).get();
+        const snap = await throttle(() => adminDb.collection('posts').doc(postId).get());
         if (snap.exists) {
           docData = { id: snap.id, ...snap.data() };
         }
@@ -215,7 +216,7 @@ export async function getPost(postId: string): Promise<any | null> {
   if (!docData) {
     try {
       const docRef = doc(db, 'posts', postId).withConverter(postConverter);
-      const snap = await getDoc(docRef);
+      const snap = await throttle(() => getDoc(docRef));
       if (snap.exists()) {
         docData = { id: snap.id, ...snap.data() };
       }
@@ -322,10 +323,10 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await adminDb.collection('posts')
+        const snap = await throttle(() => adminDb.collection('posts')
           .orderBy('createdAt', 'desc')
           .limit(limitCount)
-          .get();
+          .get());
         rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
     } catch (adminError) {
@@ -340,7 +341,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
         orderBy('createdAt', 'desc'),
         limit(limitCount)
       );
-      const snap = await getDocs(q);
+      const snap = await throttle(() => getDocs(q));
       rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (e) {
       logger.error('PostRepository.getRecentPosts', 'Client SDK fetch failed', undefined, e);
