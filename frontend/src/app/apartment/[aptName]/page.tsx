@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
+import { logger } from '@/lib/services/logger';
 
 export interface LocationScore {
   distanceToElementary?: number;
@@ -74,7 +75,7 @@ function getApartmentTransactions(aptName: string): Transaction[] {
       return JSON.parse(fileContent);
     }
   } catch (error) {
-    console.warn(`[SEO] Failed to read transaction file for ${aptName}:`, error);
+    logger.warn('ApartmentPage.getApartmentTransactions', `[SEO] Failed to read transaction file for ${aptName}`, {}, error as Error);
   }
   return [];
 }
@@ -199,7 +200,7 @@ export async function generateMetadata(props: {
         }
       }
     } catch (e) {
-      console.warn('[SEO] Failed to fetch report image for metadata:', e);
+      logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
     }
   }
   
@@ -340,7 +341,7 @@ async function getInitialData() {
           return;
         }
       } catch (e) {
-        console.warn('[Server] Redis favCounts read error:', e);
+        logger.warn('ApartmentPage.getInitialData.fetchFavCounts', 'Redis favCounts read error', {}, e as Error);
       }
     }
     if (adminDb) {
@@ -350,7 +351,7 @@ async function getInitialData() {
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
       if (redis && Object.keys(result.favoriteCounts).length > 0) {
-        redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => console.warn('Redis HSET error:', err));
+        redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => logger.warn('ApartmentPage.getInitialData.fetchFavCounts', 'Redis HSET error', {}, err as Error));
       }
     }
   };
@@ -364,7 +365,7 @@ async function getInitialData() {
           return;
         }
       } catch (e) {
-        console.warn('[Server] Redis meta read error:', e);
+        logger.warn('ApartmentPage.getInitialData.fetchMeta', 'Redis meta read error', {}, e as Error);
       }
     }
     if (adminDb) {
@@ -373,7 +374,7 @@ async function getInitialData() {
         const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
         result.apartmentMeta = metaData;
         if (redis && Object.keys(metaData).length > 0) {
-          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => console.warn('[Server] Redis meta write error:', e));
+          redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => logger.warn('ApartmentPage.getInitialData.fetchMeta', 'Redis meta write error', {}, e as Error));
         }
       }
     }
@@ -388,7 +389,7 @@ async function getInitialData() {
           return;
         }
       } catch (e) {
-        console.warn('[Server] Redis reports read error:', e);
+        logger.warn('ApartmentPage.getInitialData.fetchReports', 'Redis reports read error', {}, e as Error);
       }
     }
     if (adminDb) {
@@ -432,7 +433,7 @@ async function getInitialData() {
       });
       result.fieldReports = reports;
       if (redis && reports.length > 0) {
-        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => console.warn('[Server] Redis reports write error:', e));
+        redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => logger.warn('ApartmentPage.getInitialData.fetchReports', 'Redis reports write error', {}, e as Error));
       }
     }
   };
@@ -443,10 +444,10 @@ async function getInitialData() {
   };
 
   await Promise.allSettled([
-    fetchFavCounts().catch(e => console.warn('[Server] favCounts error:', e)),
-    fetchMeta().catch(e => console.warn('[Server] meta error:', e)),
-    fetchReports().catch(e => console.warn('[Server] reports error:', e)),
-    fetchTypeMap().catch(e => console.warn('[Server] typeMap error:', e))
+    fetchFavCounts().catch(e => logger.warn('ApartmentPage.getInitialData', 'favCounts error', {}, e as Error)),
+    fetchMeta().catch(e => logger.warn('ApartmentPage.getInitialData', 'meta error', {}, e as Error)),
+    fetchReports().catch(e => logger.warn('ApartmentPage.getInitialData', 'reports error', {}, e as Error)),
+    fetchTypeMap().catch(e => logger.warn('ApartmentPage.getInitialData', 'typeMap error', {}, e as Error))
   ]);
 
   return result;
@@ -472,7 +473,9 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           structuredImages = data.images.map((img: { url?: string }) => img.url).filter((url): url is string => !!url);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      logger.warn('ApartmentPage', 'Failed to fetch matched report data', { apartmentName: decodedName }, e as Error);
+    }
   }
 
   // --- SSR SEO HTML Block ---
@@ -502,7 +505,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       locationScore = allScores[decodedName];
     }
   } catch (err) {
-    console.warn(`[SEO] Failed to read location-scores for ${decodedName}:`, err);
+    logger.warn('ApartmentPage', `[SEO] Failed to read location-scores for ${decodedName}`, {}, err as Error);
   }
 
   // Dynamic Geo Coordinates Resolution
