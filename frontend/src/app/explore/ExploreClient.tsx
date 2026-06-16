@@ -23,6 +23,7 @@ import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { safeReload } from '@/lib/utils/safeReload';
 
 const ExploreListSkeleton = () => (
   <div className="w-full flex flex-col gap-3 animate-pulse">
@@ -49,55 +50,55 @@ const ModalSkeleton = () => (
 // Heavy components dynamic load
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient').catch(err => {
   console.warn('TossApartmentExploreClient Chunk Load failure, page reload initiated', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('TossApartmentExploreClient');
   return { default: () => null };
 }), { ssr: false, loading: () => <ExploreListSkeleton /> });
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   console.warn('FieldReportModal Chunk Load failure, page reload initiated', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('FieldReportModal');
   return { default: () => null };
 }), { ssr: false, loading: () => <ModalSkeleton /> });
 
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
   console.warn('AdInquiryModal Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AdInquiryModal');
   return { default: () => null };
 }), { ssr: false });
 
 const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
   console.warn('B2BConsumerAdModal Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('B2BConsumerAdModal');
   return { default: () => null };
 }), { ssr: false });
 
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   console.warn('AptCompareModal Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AptCompareModal');
   return { default: () => null };
 }), { ssr: false });
 
 const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
   console.warn('JeonseSafetyCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('JeonseSafetyCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
   console.warn('MortgageCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('MortgageCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
   console.warn('PropertyTaxCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('PropertyTaxCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
   console.warn('SellTimingCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('SellTimingCalculator');
   return { default: () => null };
 }), { ssr: false });
 
