@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -30,12 +30,21 @@ export default function InquiriesPage() {
   const [activeTab, setActiveTab] = useState<'inquiries' | 'subscriptions'>('inquiries');
   const [isPending, startTransition] = useTransition();
 
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     // 1. 광고 제휴 문의 바인딩
     const qInq = query(collection(db, 'adInquiries'));
     const unsubInq = onSnapshot(qInq, snap => {
       const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() } as AdInquiry));
       fetched.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+      if (!mountedRef.current) return;
       startTransition(() => {
         setInquiries(fetched);
       });
@@ -46,6 +55,7 @@ export default function InquiriesPage() {
     const unsubSub = onSnapshot(qSub, snap => {
       const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() } as SubscriptionItem));
       fetched.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
+      if (!mountedRef.current) return;
       startTransition(() => {
         setSubscriptions(fetched);
       });
@@ -61,7 +71,9 @@ export default function InquiriesPage() {
   const toggleInquiryStatus = async (id: string, currentStatus: string) => {
     try {
       await updateDoc(doc(db, 'adInquiries', id), { status: currentStatus === 'pending' ? 'reviewed' : 'pending' });
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (mountedRef.current) console.error(e);
+    }
   };
 
   // 제휴 문의 삭제
@@ -69,7 +81,9 @@ export default function InquiriesPage() {
     if (!confirm('해당 문의를 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.')) return;
     try {
       await deleteDoc(doc(db, 'adInquiries', id));
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (mountedRef.current) console.error(e);
+    }
   };
 
   // 구독자 알림 활성 상태 토글
@@ -79,7 +93,9 @@ export default function InquiriesPage() {
         status: currentStatus === 'active' ? 'unsubscribed' : 'active',
         updatedAt: new Date()
       });
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (mountedRef.current) console.error(e);
+    }
   };
 
   // 구독 정보 강제 삭제
@@ -87,7 +103,9 @@ export default function InquiriesPage() {
     if (!confirm('해당 구독 정보를 정말로 삭제하시겠습니까? 데이터가 영구 삭제됩니다.')) return;
     try {
       await deleteDoc(doc(db, 'subscriptions', id));
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (mountedRef.current) console.error(e);
+    }
   };
 
   return (
