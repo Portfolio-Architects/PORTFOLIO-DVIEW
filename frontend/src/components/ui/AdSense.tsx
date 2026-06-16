@@ -35,9 +35,16 @@ export default function AdSense({
     const pushAd = () => {
       if (initialized.current) return;
       try {
-        (window as any).adsbygoogle = (window as any).adsbygoogle || [];
-        (window as any).adsbygoogle.push({});
-        initialized.current = true;
+        if (!(window as any).adsbygoogle) {
+          (window as any).adsbygoogle = [];
+        }
+        const ads = (window as any).adsbygoogle;
+        if (ads && typeof ads.push === 'function') {
+          ads.push({});
+          initialized.current = true;
+        } else {
+          console.warn('[AdSense] adsbygoogle is not an array or push method is missing. The script might be blocked or crippled.');
+        }
       } catch (err) {
         console.warn('[AdSense] Failed to initialize ad slot:', adSlot, err);
       }
