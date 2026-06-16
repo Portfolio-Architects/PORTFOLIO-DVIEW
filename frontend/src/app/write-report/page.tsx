@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, MapPin, Building, Info, Map as MapIcon, ShieldAlert, Zap, RotateCcw, Save } from 'lucide-react';
 import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/DashboardFacade';
@@ -104,6 +104,21 @@ export default function WriteFieldReport() {
     } catch { /* noop */ }
   }, []);
 
+  // Ref to hold the latest imagePreviews for unmount cleanup
+  const previewsRef = useRef<Record<string, string[]>>({});
+  previewsRef.current = imagePreviews;
+
+  useEffect(() => {
+    return () => {
+      // Clean up all object URLs on unmount to prevent leaks
+      Object.values(previewsRef.current).forEach(urls => {
+        urls.forEach(url => {
+          try { URL.revokeObjectURL(url); } catch { /* noop */ }
+        });
+      });
+    };
+  }, []);
+
   const restoreDraft = useCallback(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
@@ -185,7 +200,14 @@ export default function WriteFieldReport() {
     });
     setImagePreviews(prev => {
       const arr = [...(prev[key] || [])];
-      arr.splice(index, 1);
+      const removed = arr.splice(index, 1)[0];
+      if (removed) {
+        try {
+          URL.revokeObjectURL(removed);
+        } catch (e) {
+          console.warn('Failed to revoke object URL', e);
+        }
+      }
       return { ...prev, [key]: arr };
     });
   };
