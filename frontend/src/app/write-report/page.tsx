@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, MapPin, Building, Info, Map as MapIcon, ShieldAlert, Zap, RotateCcw, Save } from 'lucide-react';
 import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/DashboardFacade';
@@ -39,7 +39,7 @@ function computeAutoGrade(sections: ReportSections): { grade: string; score: num
   return { grade: 'D', score, label: '주의 필요', color: '#f04452' };
 }
 
-export default function WriteFieldReport() {
+const WriteFieldReport = React.memo(function WriteFieldReport() {
   const router = useRouter();
   const { dongtanApartments } = useDashboardData();
   const [user, setUser] = useState<User | null>(null);
@@ -625,4 +625,8 @@ export default function WriteFieldReport() {
 
     </div>
   );
-}
+});
+
+WriteFieldReport.displayName = 'WriteFieldReport';
+
+export default WriteFieldReport;
