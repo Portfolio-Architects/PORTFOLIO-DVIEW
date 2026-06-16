@@ -49,7 +49,7 @@ const ModalSkeleton = () => (
   </div>
 );
 
-// Heavy components dynamic load
+// Heavy components dynamic load - TossApartmentExploreClient is loaded with SSR enabled to optimize Largest Contentful Paint (LCP) and SEO.
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient').catch(err => {
   console.warn('TossApartmentExploreClient Chunk Load failure, page reload initiated', err);
   safeReload('TossApartmentExploreClient');
