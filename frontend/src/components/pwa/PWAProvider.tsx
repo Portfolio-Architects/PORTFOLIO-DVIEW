@@ -104,6 +104,30 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [pathname, searchParams]);
 
+  // 🔧 모바일 웹 뷰 내 차트 툴팁 호버 잔존 방지 전역 터치 가드
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleGlobalTouch = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && !target.closest('.recharts-wrapper')) {
+        const tooltips = document.querySelectorAll('.recharts-tooltip-wrapper') as NodeListOf<HTMLElement>;
+        tooltips.forEach((tooltip) => {
+          tooltip.style.opacity = '0';
+          tooltip.style.transition = 'opacity 0.12s ease';
+        });
+      }
+    };
+
+    window.addEventListener('touchend', handleGlobalTouch, { passive: true });
+    window.addEventListener('touchstart', handleGlobalTouch, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchend', handleGlobalTouch);
+      window.removeEventListener('touchstart', handleGlobalTouch);
+    };
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
