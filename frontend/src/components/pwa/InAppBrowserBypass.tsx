@@ -20,6 +20,37 @@ export default function InAppBrowserBypass() {
 
   const [showOverlay, setShowOverlay] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [redirectFailed, setRedirectFailed] = useState(false);
+
+  const safeBypassRedirect = (url: string) => {
+    const start = Date.now();
+    let hasRedirected = false;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        hasRedirected = true;
+      }
+    };
+    
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const timer = setTimeout(() => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (!hasRedirected && Date.now() - start < 2000) {
+        console.warn('Deep link redirect failed or app not installed');
+        setRedirectFailed(true);
+      }
+    }, 1500);
+
+    try {
+      window.location.href = url;
+    } catch (err) {
+      console.error('Deep link schema navigation exception caught:', err);
+      clearTimeout(timer);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      setRedirectFailed(true);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -62,21 +93,17 @@ export default function InAppBrowserBypass() {
 
       setShowOverlay(true);
 
-      // Attempt automatic redirect immediately for better UX
-      try {
-        if (isAndroid) {
-          const rawUrl = currentUrl.replace(/^https?:\/\//i, '');
-          const intentUrl = `intent://${rawUrl}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end`;
-          window.location.href = intentUrl;
-        } else if (isIOS) {
-          if (isKakao) {
-            window.location.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(currentUrl)}`;
-          } else if (isNaver) {
-            window.location.href = `naversearchapp://default?version=1&command=showURL&url=${encodeURIComponent(currentUrl)}`;
-          }
+      // Attempt automatic redirect immediately with fail safe guard
+      if (isAndroid) {
+        const rawUrl = currentUrl.replace(/^https?:\/\//i, '');
+        const intentUrl = `intent://${rawUrl}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end`;
+        safeBypassRedirect(intentUrl);
+      } else if (isIOS) {
+        if (isKakao) {
+          safeBypassRedirect(`kakaotalk://web/openExternal?url=${encodeURIComponent(currentUrl)}`);
+        } else if (isNaver) {
+          safeBypassRedirect(`naversearchapp://default?version=1&command=showURL&url=${encodeURIComponent(currentUrl)}`);
         }
-      } catch (err) {
-        console.error('Automatic redirect failed:', err);
       }
     }
   }, []);
@@ -92,20 +119,18 @@ export default function InAppBrowserBypass() {
 
   const handleRedirectClick = () => {
     const currentUrl = window.location.href;
-    try {
-      if (inAppInfo.isAndroid) {
-        const rawUrl = currentUrl.replace(/^https?:\/\//i, '');
-        const intentUrl = `intent://${rawUrl}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end`;
-        window.location.href = intentUrl;
-      } else if (inAppInfo.isIOS) {
-        if (inAppInfo.appName === 'kakaotalk') {
-          window.location.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(currentUrl)}`;
-        } else if (inAppInfo.appName === 'naver') {
-          window.location.href = `naversearchapp://default?version=1&command=showURL&url=${encodeURIComponent(currentUrl)}`;
-        }
+    setRedirectFailed(false); // Reset failure state on manual retry
+    
+    if (inAppInfo.isAndroid) {
+      const rawUrl = currentUrl.replace(/^https?:\/\//i, '');
+      const intentUrl = `intent://${rawUrl}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end`;
+      safeBypassRedirect(intentUrl);
+    } else if (inAppInfo.isIOS) {
+      if (inAppInfo.appName === 'kakaotalk') {
+        safeBypassRedirect(`kakaotalk://web/openExternal?url=${encodeURIComponent(currentUrl)}`);
+      } else if (inAppInfo.appName === 'naver') {
+        safeBypassRedirect(`naversearchapp://default?version=1&command=showURL&url=${encodeURIComponent(currentUrl)}`);
       }
-    } catch (err) {
-      console.error('Manual redirect click failed:', err);
     }
   };
 
@@ -222,10 +247,14 @@ export default function InAppBrowserBypass() {
 
         {/* Action Guide Card */}
         <div className="w-full bg-body rounded-2xl p-4 border border-border text-left flex flex-col gap-2.5">
-          <span className="text-[11.5px] font-black text-teal-600 dark:text-teal-400 flex items-center gap-1">
-            <AlertTriangle size={12} /> 안내 및 간단 접속 방법
+          <span className={`text-[11.5px] font-black flex items-center gap-1 ${redirectFailed ? 'text-rose-500' : 'text-teal-600 dark:text-teal-400'}`}>
+            <AlertTriangle size={12} /> {redirectFailed ? '자동 이동 실패 안내' : '안내 및 간단 접속 방법'}
           </span>
-          {inAppInfo.canAutoRedirect ? (
+          {redirectFailed ? (
+            <p className="text-[12px] text-secondary leading-normal">
+              자동 이동을 시도했으나 실패했습니다. <strong>외부 앱이 설치되어 있지 않거나</strong> OS에 의해 차단되었을 수 있습니다. 아래 버튼을 눌러 <strong>주소를 복사한 뒤 기본 브라우저에 붙여넣기</strong> 해주세요.
+            </p>
+          ) : inAppInfo.canAutoRedirect ? (
             <p className="text-[12px] text-secondary leading-normal">
               아래 <strong>{appConfig.btnText}</strong> 버튼을 눌러 안전하고 빠른 시스템 브라우저로 이동해 주세요. 자동으로 이동되지 않을 때도 버튼을 누르시면 됩니다.
             </p>
