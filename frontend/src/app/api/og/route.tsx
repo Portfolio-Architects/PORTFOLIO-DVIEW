@@ -43,6 +43,7 @@ class ImageResponse extends NextImageResponse {
 }
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const ogParamsSchema = z.object({
   title: z.preprocess((val) => val || undefined, z.string().default('동탄 아파트 가치분석')).catch('동탄 아파트 가치분석'),
