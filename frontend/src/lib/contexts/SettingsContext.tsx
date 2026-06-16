@@ -31,7 +31,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Helper to safely access localStorage (handles SecurityError when cookies/localStorage are disabled)
+  // Helper to safely access localStorage (handles SecurityError when cookies/localStorage are disabled or restricted by the browser security sandbox)
   const safeGetItem = (key: string): string | null => {
     try {
       if (typeof window === 'undefined') return null;
