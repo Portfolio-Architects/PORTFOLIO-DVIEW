@@ -118,6 +118,23 @@ export default function ApartmentInfoPage() {
 
   // Photos state
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const photosRef = useRef<PhotoItem[]>([]);
+
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
+
+  useEffect(() => {
+    return () => {
+      // Clean up all blob preview URLs when the component unmounts
+      photosRef.current.forEach(photo => {
+        if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
+          try { URL.revokeObjectURL(photo.previewUrl); } catch { /* ignore */ }
+        }
+      });
+    };
+  }, []);
+
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{done: number; total: number} | null>(null);
   const uploadedFileKeys = useRef<Set<string>>(new Set());
@@ -999,6 +1016,11 @@ export default function ApartmentInfoPage() {
             handleBatchFiles={handleBatchFiles}
             sortByCategory={sortByCategory}
             clearPhotos={() => {
+              photos.forEach(photo => {
+                if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
+                  try { URL.revokeObjectURL(photo.previewUrl); } catch { /* ignore */ }
+                }
+              });
               setPhotos([]);
               uploadedFileKeys.current.clear();
             }}

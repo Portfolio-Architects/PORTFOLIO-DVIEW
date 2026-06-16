@@ -202,7 +202,13 @@ export function ImageUploader({
             </div>
 
             {/* Delete */}
-            <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== index))}
+            <button type="button" onClick={() => {
+              const photo = photos[index];
+              if (photo && photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
+                try { URL.revokeObjectURL(photo.previewUrl); } catch { /* ignore */ }
+              }
+              setPhotos(prev => prev.filter((_, i) => i !== index));
+            }}
               className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-body text-tertiary hover:bg-toss-red hover:text-surface flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100">
               <Trash2 size={13} />
             </button>
