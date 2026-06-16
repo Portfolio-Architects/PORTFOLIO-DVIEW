@@ -84,7 +84,7 @@ interface AptMeta {
 }
 
 // ── Helper: Number input with unit ──
-function NumField({ label, value, unit, placeholder, onChange }: {
+const NumField = React.memo(function NumField({ label, value, unit, placeholder, onChange }: {
   label: string; value: number | undefined; unit: string; placeholder: string;
   onChange: (v: number | undefined) => void;
 }) {
@@ -99,7 +99,14 @@ function NumField({ label, value, unit, placeholder, onChange }: {
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  return prevProps.label === nextProps.label &&
+         prevProps.value === nextProps.value &&
+         prevProps.unit === nextProps.unit &&
+         prevProps.placeholder === nextProps.placeholder;
+});
+
+NumField.displayName = 'NumField';
 
 const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
   const router = useRouter();
