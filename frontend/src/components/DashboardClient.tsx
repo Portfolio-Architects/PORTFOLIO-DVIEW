@@ -485,10 +485,15 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       };
       window.addEventListener('hashchange', handleHashChange);
 
+      let scrollTimeout: number | null = null;
       const handleScroll = () => {
-        setIsScrolled(window.scrollY > 200);
+        if (scrollTimeout) return;
+        scrollTimeout = window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 200);
+          scrollTimeout = null;
+        });
       };
-      window.addEventListener('scroll', handleScroll);
+      window.addEventListener('scroll', handleScroll, { passive: true });
 
       const handleOpenAdInquiry = () => {
         setIsAdModalOpen(true);
@@ -498,6 +503,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       return () => {
         window.removeEventListener('hashchange', handleHashChange);
         window.removeEventListener('scroll', handleScroll);
+        if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
         window.removeEventListener('open-ad-inquiry', handleOpenAdInquiry);
       };
     }

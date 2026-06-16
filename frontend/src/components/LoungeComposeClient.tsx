@@ -31,28 +31,34 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    let activeFrame: number | null = null;
     const handleScroll = () => {
-      const footer = document.querySelector('footer');
-      if (footer) {
-        const footerRect = footer.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        const offset = windowHeight - footerRect.top;
-        if (offset > 0) {
-          setFooterOffset(offset);
-        } else {
-          setFooterOffset(0);
+      if (activeFrame) return;
+      activeFrame = window.requestAnimationFrame(() => {
+        const footer = document.querySelector('footer');
+        if (footer) {
+          const footerRect = footer.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+          const offset = windowHeight - footerRect.top;
+          if (offset > 0) {
+            setFooterOffset(offset);
+          } else {
+            setFooterOffset(0);
+          }
         }
-      }
-      setIsMobile(window.innerWidth < 640);
+        setIsMobile(window.innerWidth < 640);
+        activeFrame = null;
+      });
     };
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
     handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
+      if (activeFrame) window.cancelAnimationFrame(activeFrame);
     };
   }, []);
   const isUserAdmin = isAdmin(user?.email);

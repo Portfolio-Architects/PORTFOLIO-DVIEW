@@ -520,11 +520,19 @@ export default function TossApartmentExploreClient({
   }, [currentCategory]);
 
   useEffect(() => {
+    let scrollFrame: number | null = null;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
+      if (scrollFrame) return;
+      scrollFrame = window.requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 80);
+        scrollFrame = null;
+      });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+    };
   }, []);
   
   const allApts = useMemo(() => {
