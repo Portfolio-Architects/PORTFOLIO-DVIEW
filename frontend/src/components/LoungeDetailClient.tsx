@@ -68,9 +68,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   const lastCommentTimeRef = useRef<number>(0);
   const commentLockRef = useRef<boolean>(false);
   const uploadFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
     };
   }, []);
@@ -502,7 +505,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploadingImage(true);
+    if (mountedRef.current) {
+      setIsUploadingImage(true);
+    }
     try {
       const compressedFile = await compressImage(file);
       const fileExt = compressedFile.name.split('.').pop() || 'jpg';
@@ -517,20 +522,28 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         const end = textarea.selectionEnd;
         const mdImage = `\n![이미지](${url})\n`;
         const newText = editContent.substring(0, start) + mdImage + editContent.substring(end);
-        setEditContent(newText);
+        if (mountedRef.current) {
+          setEditContent(newText);
+        }
         uploadFocusTimeoutRef.current = setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
+          if (mountedRef.current && textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
+          }
         }, 10);
       } else {
-        setEditContent(prev => prev + `\n![이미지](${url})\n`);
+        if (mountedRef.current) {
+          setEditContent(prev => prev + `\n![이미지](${url})\n`);
+        }
       }
     } catch (error) {
       console.error('Image upload failed', error);
       alert('이미지 업로드에 실패했습니다.');
     } finally {
-      setIsUploadingImage(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (mountedRef.current) {
+        setIsUploadingImage(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
     }
   }, [editContent]);
 

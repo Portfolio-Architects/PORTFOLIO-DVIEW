@@ -89,9 +89,12 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const uploadFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const rewardToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
       if (rewardToastTimeoutRef.current) clearTimeout(rewardToastTimeoutRef.current);
     };
@@ -108,7 +111,9 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploadingImage(true);
+    if (mountedRef.current) {
+      setIsUploadingImage(true);
+    }
     try {
       const compressedFile = await compressImage(file);
       // 1. Storage Reference with unique name
@@ -129,15 +134,21 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
         const end = textarea.selectionEnd;
         const mdImage = `\n![이미지](${url})\n`;
         const newText = postContent.substring(0, start) + mdImage + postContent.substring(end);
-        setPostContent(newText);
+        if (mountedRef.current) {
+          setPostContent(newText);
+        }
         
         // Timeout to set focus back to textarea
         uploadFocusTimeoutRef.current = setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
+          if (mountedRef.current && textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
+          }
         }, 10);
       } else {
-        setPostContent(prev => prev + `\n![이미지](${url})\n`);
+        if (mountedRef.current) {
+          setPostContent(prev => prev + `\n![이미지](${url})\n`);
+        }
       }
     } catch (error) {
       console.error('Image upload failed', error);
@@ -371,8 +382,10 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                       user.email,
                       isUserAdmin ? undefined : customNickname.trim()
                     );
-                    setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
-                    showToast('글이 성공적으로 등록되었습니다! 이웃 주민의 피드백을 기대해 보세요 💚');
+                    if (mountedRef.current) {
+                      setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+                      showToast('글이 성공적으로 등록되었습니다! 이웃 주민의 피드백을 기대해 보세요 💚');
+                    }
                     
                     // Reward global unlocked privilege for 24h as a leverage for UGC creation
                     try {
@@ -383,7 +396,9 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                           localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
                         });
                         rewardToastTimeoutRef.current = setTimeout(() => {
-                          showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
+                          if (mountedRef.current) {
+                            showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
+                          }
                         }, 1000);
                       }
                     } catch (unlockErr) {
