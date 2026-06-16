@@ -360,6 +360,21 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
     }
   }, [handleToggleFavorite, handleRequestLogin, user, userFavorites, triggerCustomA2HSModal]);
 
+  const handleOpenCompare = useCallback(() => {
+    setCompareInitialApt(undefined);
+    setIsCompareOpen(true);
+  }, []);
+
+  const handleOpenJeonseSafety = useCallback((aptName?: string) => {
+    setJeonseSafetyInitialApt(aptName);
+    setIsJeonseSafetyOpen(true);
+  }, []);
+
+  const handleOpenMortgage = useCallback((aptName?: string) => {
+    setMortgageInitialApt(aptName);
+    setIsMortgageOpen(true);
+  }, []);
+
   return (
     <>
       <PullToRefresh
@@ -380,18 +395,9 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
                 typeMap={typeMap}
                 handleSelectApt={handleAptClickByName}
                 onToggleFavorite={handleAptToggleFavorite}
-                onOpenCompare={() => {
-                  setCompareInitialApt(undefined);
-                  setIsCompareOpen(true);
-                }}
-                onOpenJeonseSafety={(aptName) => {
-                  setJeonseSafetyInitialApt(aptName);
-                  setIsJeonseSafetyOpen(true);
-                }}
-                onOpenMortgage={(aptName) => {
-                  setMortgageInitialApt(aptName);
-                  setIsMortgageOpen(true);
-                }}
+                onOpenCompare={handleOpenCompare}
+                onOpenJeonseSafety={handleOpenJeonseSafety}
+                onOpenMortgage={handleOpenMortgage}
               />
             </section>
 
