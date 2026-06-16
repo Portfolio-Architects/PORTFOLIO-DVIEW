@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -54,6 +54,16 @@ export default function NewsClient() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'news' | 'notices'>('news');
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (!selectedNotice) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [selectedNotice]);
 
   // Fetch macro news
   const { data: newsRes, error: newsError, mutate: mutateNews } = useSWR(
