@@ -231,13 +231,16 @@ export function useApartmentDetails(
       }
 
       const trackView = () => {
+        if (unmounted) return;
         fetch('/api/report-view', { method: 'POST', body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }) }).catch(() => {});
       };
 
       if (user) {
         user.getIdTokenResult().then(idTokenResult => {
-          if (!idTokenResult.claims.admin) trackView();
-        }).catch(() => trackView());
+          if (!unmounted && !idTokenResult.claims.admin) trackView();
+        }).catch(() => {
+          if (!unmounted) trackView();
+        });
       } else {
         trackView();
       }
