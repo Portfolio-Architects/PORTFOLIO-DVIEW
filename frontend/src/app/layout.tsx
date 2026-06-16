@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search, Bell } from 'lucide-react';
 import localFont from 'next/font/local';
+import { Inter } from 'next/font/google';
 import './globals.css';
 
 const pretendard = localFont({
@@ -8,6 +9,12 @@ const pretendard = localFont({
   display: 'swap',
   weight: '45 920',
   variable: '--font-sans',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
 });
 import OfflineBanner from '@/components/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
@@ -115,7 +122,7 @@ export default async function RootLayout({
   const nonce = headersList.get('x-nonce') || '';
 
   return (
-    <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
+    <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable}`}>
       <head>
         <meta name="referrer" content="no-referrer" />
       </head>

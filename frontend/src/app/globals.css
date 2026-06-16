@@ -20,7 +20,7 @@
   --color-toss-red: var(--toss-red);
   --color-toss-green: var(--toss-green);
   --color-toss-gray: var(--toss-gray);
-  --font-sans: var(--font-sans), "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-sans), "Pretendard Variable", Pretendard, system-ui, sans-serif;
   
   --font-size-title-xl: var(--fs-title-xl);
   --font-size-title-lg: var(--fs-title-lg);
