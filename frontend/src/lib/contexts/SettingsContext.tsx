@@ -34,6 +34,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   // Helper to safely access localStorage (handles SecurityError when cookies/localStorage are disabled or restricted by the browser security sandbox)
   const safeGetItem = (key: string): string | null => {
     try {
+      // Safely access localStorage using try-catch to prevent security sandbox exceptions
       if (typeof window === 'undefined') return null;
       return window.localStorage.getItem(key);
     } catch (e) {
