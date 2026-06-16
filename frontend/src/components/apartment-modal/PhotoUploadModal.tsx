@@ -38,6 +38,13 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
   const [isSuccess, setIsSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -104,7 +111,7 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
       });
       
       setIsSuccess(true);
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
         onClose();
         setIsSuccess(false);
         setFile(null);
