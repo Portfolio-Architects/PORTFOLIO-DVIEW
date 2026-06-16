@@ -410,4 +410,6 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   );
 });
 
+EducationAnalysisSection.displayName = 'EducationAnalysisSection';
+
 export default EducationAnalysisSection;
