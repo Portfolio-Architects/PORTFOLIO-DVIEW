@@ -1599,12 +1599,13 @@ function FieldReportModal({
             {/* 실거래 변동 알림 받기 버튼 */}
             <button
               onClick={() => setIsPushModalOpen(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md"
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md"
               title="실거래 변동 Web Push 알림 받기"
             >
               <Bell size={15} strokeWidth={2.5} className="animate-pulse" />
               <span>실거래 알림 받기</span>
             </button>
+
 
             {/* 통합 금융/분석 드롭다운 도구함 */}
             <div className="relative" ref={toolDropdownRef}>
