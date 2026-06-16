@@ -67,11 +67,15 @@ export default function PropertyTaxCalculator({
   const [showResult, setShowResult] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const calculateTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
+      }
+      if (calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
       }
     };
   }, []);
@@ -289,7 +293,7 @@ export default function PropertyTaxCalculator({
   const handleStartSimulate = () => {
     if (!selectedApt || acquisitionPrice <= 0) return;
     setIsCalculating(true);
-    setTimeout(() => {
+    calculateTimeoutRef.current = setTimeout(() => {
       setIsCalculating(false);
       setShowResult(true);
     }, 1200);
