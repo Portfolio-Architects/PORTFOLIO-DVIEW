@@ -14,6 +14,16 @@ export default function PushSubscriptionModal({ isOpen, onClose, aptName }: Push
   const { subscribeToPush, showToast, isPushSupported } = usePWA();
   const [submitting, setSubmitting] = React.useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubscribe = async () => {
