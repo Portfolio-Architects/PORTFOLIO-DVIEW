@@ -25,7 +25,7 @@ interface SettingsUiContextType {
 const SettingsValueContext = React.createContext<SettingsValueContextType | undefined>(undefined);
 const SettingsUiContext = React.createContext<SettingsUiContextType | undefined>(undefined);
 
-export function SettingsProvider({ children }: { children: React.ReactNode }) {
+export const SettingsProvider = React.memo(function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [areaUnit, setAreaUnitState] = useState<AreaUnit>('m2');
   const [theme, setThemeState] = useState<Theme>('light');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -146,7 +146,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       </SettingsUiContext.Provider>
     </SettingsValueContext.Provider>
   );
-}
+});
+
+SettingsProvider.displayName = 'SettingsProvider';
 
 export function useSettingsValues() {
   const context = React.useContext(SettingsValueContext);
