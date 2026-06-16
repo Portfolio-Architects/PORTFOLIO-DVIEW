@@ -152,6 +152,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({ success: true, updatedCount, results });
   } catch (err: any) {
+    logger.error('SyncReportsAPI.GET', 'Failed to execute reports sync', {}, err as Error);
     return NextResponse.json({ error: 'Failed to sync reports' }, { status: 500 });
   }
 }
