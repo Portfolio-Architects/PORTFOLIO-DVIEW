@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
@@ -8,6 +9,13 @@ import { dashboardFacade } from '@/lib/DashboardFacade';
 
 export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
   const { user } = useAuth();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <>
@@ -27,7 +35,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
                 href="/#overview"
                 onClick={() => {
                   if (onTabChange) onTabChange('overview');
-                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+                  scrollTimeoutRef.current = setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                 }}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'overview'
