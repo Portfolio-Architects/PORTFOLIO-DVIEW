@@ -244,7 +244,7 @@ import { DONGS, getAllDongNames } from '@/lib/dongs';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import { isSameApartment, normalizeAptName, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
-import { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { getDisplayName } from '@/lib/types/user.types';
@@ -300,7 +300,7 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
+const DashboardClient = React.memo(function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
   const fieldReports = initialDashboardData?.fieldReports || [];
@@ -1449,4 +1449,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     )}
     </>
   );
-}
+});
+
+DashboardClient.displayName = 'DashboardClient';
+export default DashboardClient;

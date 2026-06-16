@@ -332,7 +332,7 @@ const parsePriceEokHelper = (priceStr: string): number => {
   return total;
 };
 
-export default function MacroDashboardClient({
+const MacroDashboardClient = React.memo(function MacroDashboardClient({
   sheetApartments,
   txSummaryData,
   macroTrendData,
@@ -2405,4 +2405,7 @@ export default function MacroDashboardClient({
       )}
     </div>
   );
-}
+});
+
+MacroDashboardClient.displayName = 'MacroDashboardClient';
+export default MacroDashboardClient;
