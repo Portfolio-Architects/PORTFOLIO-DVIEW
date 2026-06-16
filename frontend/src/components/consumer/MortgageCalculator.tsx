@@ -100,6 +100,15 @@ export default function MortgageCalculator({
   // Diagnosis states
   const [isCalculating, setIsCalculating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Load and map quiz answers on modal open
   useEffect(() => {
@@ -483,9 +492,12 @@ export default function MortgageCalculator({
 
 💡 대출 적합 자격 판정 및 상환 시뮬레이션 상세 내역은 D-VIEW에서 바로 진단해 보세요!`;
 
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
