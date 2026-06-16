@@ -87,6 +87,15 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const uploadFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rewardToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
+      if (rewardToastTimeoutRef.current) clearTimeout(rewardToastTimeoutRef.current);
+    };
+  }, []);
 
   // Generate initial mom-cafe nickname for non-admin users
   useEffect(() => {
@@ -123,7 +132,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
         setPostContent(newText);
         
         // Timeout to set focus back to textarea
-        setTimeout(() => {
+        uploadFocusTimeoutRef.current = setTimeout(() => {
           textarea.focus();
           textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
         }, 10);
@@ -366,7 +375,7 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
                         apartments.forEach((aptName) => {
                           localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
                         });
-                        setTimeout(() => {
+                        rewardToastTimeoutRef.current = setTimeout(() => {
                           showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
                         }, 1000);
                       }
