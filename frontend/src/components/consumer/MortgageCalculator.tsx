@@ -101,11 +101,15 @@ export default function MortgageCalculator({
   const [isCalculating, setIsCalculating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const calculateTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
+      }
+      if (calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
       }
     };
   }, []);
@@ -469,7 +473,7 @@ export default function MortgageCalculator({
 
   const handleStartSimulate = () => {
     setIsCalculating(true);
-    setTimeout(() => {
+    calculateTimeoutRef.current = setTimeout(() => {
       setIsCalculating(false);
       setStep(4);
     }, 1200); // Premium calculation speed feel
