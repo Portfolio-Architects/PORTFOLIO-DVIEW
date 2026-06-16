@@ -686,11 +686,13 @@ export async function GET(request: Request) {
       }
     }
 
+    const errorCount = syncLog.filter(line => line.toLowerCase().includes('error') || line.toLowerCase().includes('failed')).length;
     return NextResponse.json({
       success: true,
       synced: totalNew,
       months: Array.from(monthsToSync),
-      log: syncLog,
+      logCount: syncLog.length,
+      errorCount,
     });
   } catch (error: unknown) {
     logger.error('SyncTransactionsAPI.GET', 'Sync error', {}, error as Error);
