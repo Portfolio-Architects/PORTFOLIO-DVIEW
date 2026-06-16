@@ -6,12 +6,20 @@ import { X, ArrowDownToLine, Share, PlusSquare } from 'lucide-react';
 
 export default function CustomA2HSModal() {
   const { showCustomA2HSModal, setShowCustomA2HSModal, triggerA2HSPrompt, isIOS } = usePWA();
+  const mountedRef = React.useRef(true);
+
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   if (!showCustomA2HSModal) return null;
 
   const handleInstall = async () => {
     const installed = await triggerA2HSPrompt();
-    if (installed) {
+    if (installed && mountedRef.current) {
       setShowCustomA2HSModal(false);
     }
   };
