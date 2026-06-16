@@ -29,6 +29,13 @@ export default function CommentSection({
   const { triggerCustomA2HSModal } = usePWA();
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+    };
+  }, []);
   
   // Suggestion states for autocomplete mentions
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -65,7 +72,7 @@ export default function CommentSection({
       onCommentChange(commentInput + mentionText);
     }
     
-    setTimeout(() => {
+    focusTimeoutRef.current = setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
       }
@@ -105,7 +112,7 @@ export default function CommentSection({
     onCommentChange(words.join(' '));
     setShowSuggestions(false);
 
-    setTimeout(() => {
+    focusTimeoutRef.current = setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
       }
