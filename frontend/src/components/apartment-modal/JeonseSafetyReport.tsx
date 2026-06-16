@@ -135,21 +135,21 @@ export default function JeonseSafetyReport({
     safe: {
       themeColor: '#0d9488', // Teal-600
       bgClass: 'bg-teal-50 dark:bg-teal-950/20 border-teal-100 dark:border-teal-900/30',
-      textClass: 'text-teal-600 dark:text-teal-400',
+      textClass: 'text-teal-700 dark:text-teal-400 font-extrabold',
       gaugeClass: 'stroke-teal-500',
       icon: <Shield className="text-teal-500 fill-teal-500/10" size={26} />
     },
     caution: {
       themeColor: '#ea580c', // Orange-600
       bgClass: 'bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/30',
-      textClass: 'text-orange-600 dark:text-orange-400',
+      textClass: 'text-orange-800 dark:text-orange-400 font-extrabold',
       gaugeClass: 'stroke-orange-500',
       icon: <AlertTriangle className="text-orange-500 fill-orange-500/10" size={26} />
     },
     danger: {
       themeColor: '#ef4444', // Red-500
       bgClass: 'bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30',
-      textClass: 'text-rose-600 dark:text-rose-400',
+      textClass: 'text-rose-800 dark:text-rose-400 font-extrabold',
       gaugeClass: 'stroke-rose-500',
       icon: <ShieldAlert className="text-rose-500 fill-rose-500/10" size={26} />
     }
@@ -184,7 +184,12 @@ export default function JeonseSafetyReport({
 
         <div className="bg-body border border-border rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center gap-6">
           {/* SVG Progress Ring */}
-          <div className="relative flex items-center justify-center shrink-0 w-32 h-32">
+          <div 
+            className="relative flex items-center justify-center shrink-0 w-32 h-32"
+            role="img"
+            aria-label={`전세 안심지수 ${totalScore}점`}
+            aria-describedby="jeonse-safety-description"
+          >
             <svg className="w-full h-full transform -rotate-90">
               <circle
                 className="text-slate-100 dark:text-slate-800/80 stroke-current"
@@ -223,7 +228,7 @@ export default function JeonseSafetyReport({
                 {gradeLabel} ({totalScore}점)
               </span>
             </div>
-            <p className="text-[14px] font-extrabold text-primary mb-2 leading-tight">
+            <p id="jeonse-safety-description" className="text-[14px] font-extrabold text-primary mb-2 leading-tight">
               {gradeDesc}
             </p>
             <div className={`p-4 rounded-xl border leading-relaxed text-left ${styles.bgClass}`}>
