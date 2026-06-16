@@ -93,6 +93,15 @@ export default function SellTimingCalculator({
   const [isCalculating, setIsCalculating] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -322,9 +331,12 @@ export default function SellTimingCalculator({
 
 💡 동탄 전문 B2B 중개사 매물접수 및 양도세 1:1 세무사 상담은 D-VIEW에서 바로 확인해 보세요!`;
 
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
