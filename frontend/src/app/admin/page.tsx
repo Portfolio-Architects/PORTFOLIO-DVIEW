@@ -123,6 +123,23 @@ export default function AdminDashboard() {
     return () => { active = false; };
   }, []);
 
+  // 🔧 Admin 동기화 중 탭 닫힘 방지 beforeunload 가드
+  useEffect(() => {
+    const isAnySyncing = isSyncing || isNoticeSyncing || isSheetsSyncing || isReportsSyncing || saving;
+    if (!isAnySyncing) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "데이터 동기화가 진행 중입니다. 페이지를 벗어나면 데이터 유실 또는 정합성 문제가 발생할 수 있습니다.";
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isSyncing, isNoticeSyncing, isSheetsSyncing, isReportsSyncing, saving]);
+
 
 
   const [isPending, startTransition] = useTransition();
