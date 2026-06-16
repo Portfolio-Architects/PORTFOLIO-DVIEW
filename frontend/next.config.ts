@@ -127,6 +127,25 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/apartment/[aptName]': ['./public/tx-data/**/*.json'],
   },
+  webpack: (config, { dev, isServer }) => {
+    // Enable filesystem caching for Webpack compilations to speed up incremental builds
+    if (config.cache && typeof config.cache === 'object') {
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
+    // Block redundant plugins that degrade compilation performance
+    if (!dev) {
+      config.plugins = config.plugins.filter((plugin: any) => {
+        const name = plugin?.constructor?.name;
+        return name !== 'BundleAnalyzerPlugin' && name !== 'CircularDependencyPlugin';
+      });
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
