@@ -1,20 +1,19 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { headers } from 'next/headers';
-import { getInitialData } from '@/lib/services/dashboardData';
-import RealtimeClient from './RealtimeClient';
+import NewsClient from './NewsClient';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'D-VIEW 실거래 | 동탄 전역 아파트 실시간 최근 실거래가 및 신고가 내역',
-  description: '동탄 179개 아파트 단지의 실시간 최근 실거래가 및 일자별 신고가 경신 내역 대시보드를 제공합니다.',
+  title: 'D-VIEW 동탄 소식 | 실시간 부동산 뉴스 & 구정 행정 공지',
+  description: '동탄 지역의 실시간 부동산 뉴스 및 화성시/동탄구청의 최신 구정 소식, 고시공고, 행사 축제 일정을 한데 모아 제공합니다.',
   alternates: {
-    canonical: '/realtime',
+    canonical: '/news',
   },
 };
 
-function RealtimeSkeleton() {
+function NewsSkeleton() {
   return (
     <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
       {/* Page Title Skeleton */}
@@ -22,22 +21,19 @@ function RealtimeSkeleton() {
         <div className="w-48 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
         <div className="w-72 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
       </div>
-      {/* Cards grid */}
+      {/* Segment Tab Skeleton */}
+      <div className="w-64 h-12 bg-black/5 dark:bg-surface/5 rounded-2xl mb-8" />
+      {/* Cards grid skeleton */}
       <div className="flex flex-col gap-3">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="w-full h-[88px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
+          <div key={i} className="w-full h-[110px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
         ))}
       </div>
     </div>
   );
 }
 
-async function RealtimeDataLoader() {
-  const initialData = await getInitialData();
-  return <RealtimeClient initialDashboardData={initialData} />;
-}
-
-export default async function RealtimePage() {
+export default async function NewsPage() {
   const headersList = await headers();
   const nonce = headersList.get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
@@ -45,10 +41,10 @@ export default async function RealtimePage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": `${baseUrl}/realtime#webpage`,
-    "url": `${baseUrl}/realtime`,
-    "name": "D-VIEW 실거래 | 동탄 전역 아파트 실시간 최근 실거래가 및 신고가 내역",
-    "description": "동탄 179개 아파트 단지의 실시간 최근 실거래가 및 일자별 신고가 경신 내역 대시보드를 제공합니다.",
+    "@id": `${baseUrl}/news#webpage`,
+    "url": `${baseUrl}/news`,
+    "name": "D-VIEW 동탄 소식 | 실시간 부동산 뉴스 & 구정 행정 공지",
+    "description": "동탄 지역의 실시간 부동산 뉴스 및 화성시/동탄구청의 최신 구정 소식, 고시공고, 행사 축제 일정을 한데 모아 제공합니다.",
     "breadcrumb": {
       "@type": "BreadcrumbList",
       "itemListElement": [
@@ -61,8 +57,8 @@ export default async function RealtimePage() {
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "실거래",
-          "item": `${baseUrl}/realtime`
+          "name": "동탄 소식",
+          "item": `${baseUrl}/news`
         }
       ]
     }
@@ -75,8 +71,8 @@ export default async function RealtimePage() {
         nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Suspense fallback={<RealtimeSkeleton />}>
-        <RealtimeDataLoader />
+      <Suspense fallback={<NewsSkeleton />}>
+        <NewsClient />
       </Suspense>
     </>
   );

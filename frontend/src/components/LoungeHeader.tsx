@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins } from 'lucide-react';
+import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,15 +52,15 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               </Link>
 
               <Link
-                href="/realtime"
+                href="/news"
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'realtime'
+                  activeTab === 'news'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <TrendingUp size={18} className={activeTab === 'realtime' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>실거래</span>
+                <Newspaper size={18} className={activeTab === 'news' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>동탄 소식</span>
               </Link>
 
               <Link

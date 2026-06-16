@@ -25,10 +25,10 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: '실거래가 분석',
-        short_name: '실거래',
-        description: '동탄 아파트 실거래 시세 및 거래량 통계',
-        url: '/realtime',
+        name: '동탄 소식',
+        short_name: '동탄 소식',
+        description: '동탄 부동산 뉴스 및 행정 공지',
+        url: '/news',
         icons: [{ src: '/icon-192x192.png?v=9', sizes: '192x192' }]
       },
       {

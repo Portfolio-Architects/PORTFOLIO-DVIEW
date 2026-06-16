@@ -142,22 +142,25 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
     let priceEokNum = rawPrice / 10000;
     if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-    const ym = tx.contractYm;
-    const year = parseInt(ym.slice(0, 4));
-    const month = parseInt(ym.slice(4));
+    const ym = String(tx.contractYm || '');
+    const year = parseInt(ym.slice(0, 4)) || 2026;
+    const month = parseInt(ym.slice(4)) || 6;
     const day = parseInt(tx.contractDay) || 15;
+    const tsVal = new Date(year, month - 1, day).getTime();
+    const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
     return {
-      ts: new Date(year, month - 1, day).getTime(),
-      yearMonth: parseInt(ym), contractDay: day,
-      price: Math.round(priceEokNum * 1000) / 1000,
+      ts,
+      yearMonth: parseInt(ym) || 202606, contractDay: day,
+      price: isNaN(priceEokNum) ? 0 : Math.round(priceEokNum * 1000) / 1000,
       area: tx.areaPyeong, rawArea: tx.area,
-      floor: tx.floor, priceEok: tx.priceEok || `${priceEokNum >= 1 ? Math.floor(priceEokNum)+'억' : ''}${Math.round((priceEokNum%1)*10000)||''}`,
+      floor: tx.floor, priceEok: tx.priceEok || (isNaN(priceEokNum) ? '-' : `${priceEokNum >= 1 ? Math.floor(priceEokNum)+'억' : ''}${Math.round((priceEokNum%1)*10000)||''}`),
       dealType: tx.dealType,
       fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
       areaLabelM2: tx.areaLabelM2,
       areaLabelPyeong: tx.areaLabelPyeong,
     };
-  }).filter(d => d.yearMonth <= 202606);
+  }).filter(d => d.yearMonth <= 202606 && !isNaN(d.ts));
+
 
   const now = new Date();
   const getRecentAvgByMonths = (months: number) => {
@@ -247,9 +250,11 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const monthlyData = allYms
     .map(ym => {
       const buckets = byMonthTier.get(ym);
+      const tsVal = new Date(Math.floor(ym / 100) || 2026, ((ym % 100) || 6) - 1, 15).getTime();
+      const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
 
       return {
-        ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
+        ts,
         monthAvg: buckets ? avg(buckets.all) : undefined,
         secondaryAvg: secondaryMonthly.get(ym),
         saleAvg: chartType === 'sale' ? (buckets ? avg(buckets.all) : undefined) : secondaryMonthly.get(ym),
@@ -259,7 +264,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         bandHigh, bandLow,
       };
     })
+    .filter(d => !isNaN(d.ts))
     .sort((a, b) => a.ts - b.ts);
+
 
   const minTs = monthlyData.length > 0 ? monthlyData[0].ts : new Date(2021, 2, 15).getTime();
   const maxTs = Math.max(
@@ -273,45 +280,54 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     if (isJeonse) rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
     let priceEokNum = rawPrice / 10000;
     if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-    return Math.round(priceEokNum * 1000) / 1000;
+    const val = Math.round(priceEokNum * 1000) / 1000;
+    return isNaN(val) ? 0 : val;
   };
   const sPrices = transactions.filter(tx => {
-    if (parseInt(tx.contractYm) < cutoffYm) return false;
+    const ym = String(tx.contractYm || '');
+    if ((parseInt(ym) || 0) < cutoffYm) return false;
     if (tx.dealType === '전세' || tx.dealType === '월세') return false;
     
-    const ts = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15).getTime();
+    const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
+    const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
     if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
     if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
     return true;
-  }).map(tx => getEokPrice(tx, false)).sort((a,b)=>a-b);
+  }).map(tx => getEokPrice(tx, false)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
 
   const jPrices = transactions.filter(tx => {
-    if (parseInt(tx.contractYm) < cutoffYm) return false;
+    const ym = String(tx.contractYm || '');
+    if ((parseInt(ym) || 0) < cutoffYm) return false;
     if (tx.dealType !== '전세' && tx.dealType !== '월세') return false;
     
-    const ts = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15).getTime();
+    const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
+    const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
     if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
     if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
     return true;
-  }).map(tx => getEokPrice(tx, true)).sort((a,b)=>a-b);
+  }).map(tx => getEokPrice(tx, true)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
   
   const getValid = (arr: number[]) => {
     if (!arr.length) return [];
-    const q1 = arr[Math.floor(arr.length * 0.05)] || 0;
-    const q3 = arr[Math.floor(arr.length * 0.95)] || 10;
+    const validArr = arr.filter(p => !isNaN(p));
+    if (!validArr.length) return [];
+    const q1 = validArr[Math.floor(validArr.length * 0.05)] || 0;
+    const q3 = validArr[Math.floor(validArr.length * 0.95)] || 10;
     const iqr = q3 - q1;
-    return arr.filter(p => p >= q1 - iqr * 3 && p <= q3 + iqr * 3);
+    return validArr.filter(p => p >= q1 - iqr * 3 && p <= q3 + iqr * 3);
   };
   
-  const allValidPrices = [...getValid(sPrices), ...getValid(jPrices)];
+  const allValidPrices = [...getValid(sPrices), ...getValid(jPrices)].filter(p => !isNaN(p) && p !== Infinity && p !== -Infinity);
   let minP = Infinity, maxP = -Infinity;
   for (const p of allValidPrices) { if (p < minP) minP = p; if (p > maxP) maxP = p; }
   
   const prices = scatterData.map(d => d.price);
 
-  let domainMin = minP !== Infinity ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
-  let domainMax = maxP !== -Infinity ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
-  if (minP !== Infinity && maxP !== -Infinity && (domainMax - domainMin < 1.0)) {
+  let domainMin = minP !== Infinity && !isNaN(minP) ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
+  let domainMax = maxP !== -Infinity && !isNaN(maxP) ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
+  if (isNaN(domainMin)) domainMin = 0;
+  if (isNaN(domainMax)) domainMax = 10;
+  if (minP !== Infinity && maxP !== -Infinity && !isNaN(minP) && !isNaN(maxP) && (domainMax - domainMin < 1.0)) {
     domainMin = Math.max(0, domainMin - 0.5);
     domainMax = domainMax + 0.5;
   }

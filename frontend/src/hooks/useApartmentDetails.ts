@@ -84,6 +84,21 @@ export function useApartmentDetails(
     setIsLoadingDetail(!!selectedReport && !selectedReport.id.startsWith('stub-'));
   }
 
+  const flatApartments = useMemo(() => {
+    if (!sheetApartments) return [];
+    return Object.values(sheetApartments).flat();
+  }, [sheetApartments]);
+
+  const apartmentsMap = useMemo(() => {
+    const map = new Map<string, DongApartment>();
+    if (!sheetApartments) return map;
+    Object.values(sheetApartments).flat().forEach(apt => {
+      map.set(normalizeAptName(apt.name), apt);
+    });
+    return map;
+  }, [sheetApartments]);
+
+
   const formatPriceEok = (priceMan: number) => {
     const eok = Math.floor(priceMan / 10000);
     const remainder = priceMan % 10000;
@@ -94,12 +109,17 @@ export function useApartmentDetails(
 
   const fileKey = useMemo(() => {
     if (!selectedReport) return null;
-    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
-    const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
+    const normalizedName = normalizeAptName(selectedReport.apartmentName);
+    let rawApt = apartmentsMap.get(normalizedName) || null;
+    if (!rawApt) {
+      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping)) || null;
+    }
+    const overrideKey = HARDCODED_MAPPING[normalizedName];
     const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    return txKey || normalizeAptName(selectedReport.apartmentName);
-  }, [selectedReport, sheetApartments, txSummaryData, nameMapping]);
+    return txKey || normalizedName;
+  }, [selectedReport, flatApartments, apartmentsMap, txSummaryData, nameMapping]);
+
 
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
 
@@ -238,7 +258,11 @@ export function useApartmentDetails(
   const resolvedReport = useMemo(() => {
     if (!selectedReport) return null;
     const raw = fullReportData || selectedReport;
-    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
+    const normalizedName = normalizeAptName(raw.apartmentName);
+    let fallback = apartmentsMap.get(normalizedName) || null;
+    if (!fallback) {
+      fallback = flatApartments.find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
+    }
     
     // Find location scores dynamically from public/data/location-scores.json
     const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping);
@@ -266,17 +290,22 @@ export function useApartmentDetails(
     }
     
     return { ...raw, metrics: mergedMetrics as unknown as ObjectiveMetrics };
-  }, [selectedReport, fullReportData, sheetApartments, nameMapping, locationScores]);
+  }, [selectedReport, fullReportData, flatApartments, apartmentsMap, nameMapping, locationScores]);
 
   const aptTxSummary = useMemo(() => {
     if (!selectedReport) return undefined;
-    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
-    const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
+    const normalizedName = normalizeAptName(selectedReport.apartmentName);
+    let rawApt = apartmentsMap.get(normalizedName) || null;
+    if (!rawApt) {
+      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping)) || null;
+    }
+    const overrideKey = HARDCODED_MAPPING[normalizedName];
     const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
+    const fileKey = txKey || normalizedName;
     return txSummaryData[fileKey];
-  }, [selectedReport, sheetApartments, nameMapping, txSummaryData]);
+  }, [selectedReport, flatApartments, apartmentsMap, nameMapping, txSummaryData]);
+
 
   return {
     txSummaryData,

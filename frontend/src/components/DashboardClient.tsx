@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, X, LayoutDashboard, Home, Search, Coins, TrendingUp } from 'lucide-react';
+import { MessageSquare, X, LayoutDashboard, Home, Search, Coins, TrendingUp, Newspaper } from 'lucide-react';
 
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import FloatingUserBar from '@/components/FloatingUserBar';
@@ -134,6 +134,12 @@ const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainer
   ssr: false,
   loading: () => <LoungeSkeleton />
 });
+
+const RegionAccordion = dynamic(() => import('@/components/curation/RegionAccordion').catch(err => {
+  console.warn('RegionAccordion Chunk Load failure, initiating fallback reload', err);
+  safeReload('RegionAccordion');
+  return { default: () => null };
+}), { ssr: false });
 
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer').catch(err => {
   console.warn('GapInvestmentExplorer Chunk Load failure, initiating fallback reload', err);
@@ -816,11 +822,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               </button>
               
               <button
-                onClick={() => router.push('/realtime')}
+                onClick={() => router.push('/news')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
               >
-                <TrendingUp size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>실거래</span>
+                <Newspaper size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                <span>동탄 소식</span>
               </button>
               
               <button
@@ -943,6 +949,17 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
               />
               <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
+                <RegionAccordion
+                  sheetApartments={sheetApartments}
+                  txSummaryData={txSummary}
+                  nameMapping={nameMapping}
+                  publicRentalSet={publicRentalSet}
+                  fieldReportsMap={fieldReportsMap}
+                  favoriteCounts={favoriteCounts}
+                  onSelectApt={handleAptClickByName}
+                  onOpenAdModal={() => setIsAdModalOpen(true)}
+                />
+
                 <AIRecommendations
                   sheetApartments={sheetApartments}
                   txSummaryData={txSummary}
@@ -1159,7 +1176,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       <MobileDock 
         activeTab={activeTab} 
         onTabClick={(tab) => {
-          if (tab !== 'realtime') {
+          if (tab !== 'news' && tab !== 'imjang') {
             setActiveTab(tab);
           }
         }}

@@ -1,12 +1,12 @@
 'use client';
 
-import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp } from 'lucide-react';
+import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'realtime';
-  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'realtime') => void;
+  activeTab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'news';
+  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'news') => void;
 }
 
 export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
@@ -19,19 +19,19 @@ export default function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
           { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/explore' },
-          { id: 'realtime' as const, label: '실거래', icon: TrendingUp, href: '/realtime' },
+          { id: 'news' as const, label: '동탄 소식', icon: Newspaper, href: '/news' },
           { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/#lounge' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
           
-          if (onTabClick && tab.id !== 'imjang' && tab.id !== 'realtime') {
-             // Dashboard usage (except for separated explore/realtime tabs)
+          if (onTabClick && tab.id !== 'imjang' && tab.id !== 'news') {
+             // Dashboard usage (except for separated explore/news tabs)
              return (
                <button
                  key={tab.id}
                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                    e.preventDefault();
-                   onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'gap' | 'realtime');
+                   onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'gap' | 'news');
                    if (tab.id === 'overview') {
                      window.history.replaceState(null, '', window.location.pathname + window.location.search);
                    } else {
