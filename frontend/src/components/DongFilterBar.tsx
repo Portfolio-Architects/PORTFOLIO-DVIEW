@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DONGS, getDongByName } from '@/lib/dongs';
 
@@ -14,7 +14,7 @@ interface DongFilterBarProps {
   onSortChange: (sort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price') => void;
 }
 
-export default function DongFilterBar({
+const DongFilterBar = memo(function DongFilterBar({
   selectedDong,
   onSelectDong,
   totalAptCount,
@@ -113,4 +113,6 @@ export default function DongFilterBar({
       </div>
     </div>
   );
-}
+});
+
+export default DongFilterBar;
