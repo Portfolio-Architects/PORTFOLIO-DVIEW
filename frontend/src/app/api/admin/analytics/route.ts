@@ -17,6 +17,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data });
   } catch (error: unknown) {
     logger.error('AdminAnalyticsAPI.GET', 'GA4 API Fetch Error', {}, error as Error);
-    return NextResponse.json({ error: 'Internal Server Error', details: (error as Error)?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch analytics data' }, { status: 500 });
   }
 }

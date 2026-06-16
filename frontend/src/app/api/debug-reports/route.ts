@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ count: reports.length, reports });
   } catch (error: unknown) {
     logger.error('DebugReportsAPI.GET', 'Error fetching debug reports', {}, error as Error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch debug reports' }, { status: 500 });
   }
 }
 
