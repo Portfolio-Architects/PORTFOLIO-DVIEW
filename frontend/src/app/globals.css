@@ -300,5 +300,6 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
+  will-change: background-position;
 }
 
