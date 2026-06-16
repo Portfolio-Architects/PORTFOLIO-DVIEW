@@ -41,6 +41,7 @@ export default function AdSense({
         const ads = (window as any).adsbygoogle;
         if (ads && typeof ads.push === 'function') {
           try {
+            // Enhanced try-catch guard to prevent crashes when ad blocker freezes the adsbygoogle array
             ads.push({});
             initialized.current = true;
           } catch (pushErr) {
