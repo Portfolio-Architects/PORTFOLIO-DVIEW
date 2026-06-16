@@ -18,6 +18,8 @@ import { ADMIN_EMAILS } from '@/lib/config/admin.config';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
+export const dynamic = 'force-dynamic';
+
 // 보안: NoSQL Injection 및 오버플로우 방어용 스키마 검증
 const reportViewSchema = z.object({
   reportId: z.string().min(1).max(100).trim(),
@@ -77,6 +79,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ counted: false, reason: 'duplicate' });
     }
 
+    // ── Pre-check: Verify report existence ──
+    const reportRef = await adminDb.collection('scoutingReports').doc(reportId).get();
+    if (!reportRef.exists) {
+      logger.warn('ReportViewAPI.POST', 'Scouting report not found', { reportId });
+      return NextResponse.json({ error: 'Report not found' }, { status: 404 });
+    }
+
+    const title = reportRef.data()?.apartmentName || '알 수 없는 단지';
+
     // ── Record view + increment counter atomically ──
     const batch = adminDb.batch();
     batch.set(viewRef, {
@@ -87,9 +98,6 @@ export async function POST(request: NextRequest) {
     batch.update(adminDb.collection('scoutingReports').doc(reportId), {
       viewCount: FieldValue.increment(1),
     });
-
-    const reportRef = await adminDb.collection('scoutingReports').doc(reportId).get();
-    const title = reportRef.exists ? (reportRef.data()?.apartmentName || '알 수 없는 단지') : '알 수 없는 리포트';
 
     batch.set(
       adminDb.doc(`daily_stats/${today}/content_views/${reportId}`),
