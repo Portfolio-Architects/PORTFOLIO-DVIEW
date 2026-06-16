@@ -16,9 +16,11 @@ import { doc, updateDoc, collection, query, where, getDocs, limit } from 'fireba
 import { db } from '@/lib/firebaseConfig';
 import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
+import { safeReload } from '@/lib/utils/safeReload';
+
 const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
   console.warn('CommentSection Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('CommentSection');
   return { default: () => null };
 }), { ssr: false });
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -27,17 +29,17 @@ import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
 const ViralPaywallGate = dynamic(() => import('./apartment-modal/ViralPaywallGate').catch(err => {
   console.warn('ViralPaywallGate Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('ViralPaywallGate');
   return { default: () => null };
 }), { ssr: false });
 const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyReport').catch(err => {
   console.warn('JeonseSafetyReport Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('JeonseSafetyReport');
   return { default: () => null };
 }), { ssr: false });
 const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection).catch(err => {
   console.warn('TransactionChartSection Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('TransactionChartSection');
   return () => null;
 }), {
   ssr: false,
@@ -51,14 +53,14 @@ import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryM
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
   console.warn('PhotoUploadModal Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('PhotoUploadModal');
   return () => null;
 }), { ssr: false });
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao } from '@/lib/utils/kakaoShare';
 const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
   console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('BuyOrWaitVote');
   return { default: () => null };
 }), { ssr: false });
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
@@ -72,28 +74,28 @@ import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
 const EducationAnalysisSection = dynamic(() => import('./apartment-modal/EducationAnalysisSection').catch(err => {
   console.warn('EducationAnalysisSection Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('EducationAnalysisSection');
   return { default: () => null };
 }), { ssr: false });
 const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalysisSection').catch(err => {
   console.warn('InfraAnalysisSection Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('InfraAnalysisSection');
   return { default: () => null };
 }), { ssr: false });
 const ScoutingReportDetailSection = dynamic(() => import('./apartment-modal/ScoutingReportDetailSection').catch(err => {
   console.warn('ScoutingReportDetailSection Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('ScoutingReportDetailSection');
   return { default: () => null };
 }), { ssr: false });
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics').catch(err => {
   console.warn('AdvancedValuationMetrics Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AdvancedValuationMetrics');
   return { default: () => null };
 }), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard').catch(err => {
   console.warn('AnchorTenantCard Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AnchorTenantCard');
   return { default: () => null };
 }), { ssr: false });
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
