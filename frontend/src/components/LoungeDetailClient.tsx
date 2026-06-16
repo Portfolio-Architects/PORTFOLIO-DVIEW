@@ -3,7 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight, Share2 } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
@@ -40,6 +40,25 @@ interface PostComment {
 // Memory caches to eliminate blank screen flickers on modal transition
 const postLocalCache: Record<string, Record<string, unknown>> = {};
 const commentsLocalCache: Record<string, PostComment[]> = {};
+
+/** Verification badge */
+const VerificationBadge = memo(({ apartment, level }: { apartment?: string; level?: string }) => {
+  if (!apartment || !level) return null;
+  const shortName = apartment.replace(/\[.*?\]\s*/, '').trim();
+  if (level === 'registry_verified') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-toss-blue-light text-toss-blue px-2 py-0.5 rounded-md">
+        <ShieldCheck size={11} /> {shortName}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-body text-tertiary px-2 py-0.5 rounded-md">
+      <Shield size={11} /> {shortName}
+    </span>
+  );
+});
+VerificationBadge.displayName = 'VerificationBadge';
 
 export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
   const router = useRouter();
@@ -501,15 +520,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     }
   }, [editContent]);
 
-  /** Verification badge */
-  const VerificationBadge = ({ apartment, level }: { apartment?: string; level?: string }) => {
-    if (!apartment || !level) return null;
-    const shortName = apartment.replace(/\[.*?\]\s*/, '');
-    if (level === 'registry_verified') {
-      return <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-toss-blue-light text-toss-blue px-2 py-0.5 rounded-md"><ShieldCheck size={11} /> {shortName}</span>;
-    }
-    return <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-body text-tertiary px-2 py-0.5 rounded-md"><Shield size={11} /> {shortName}</span>;
-  };
+
 
   if (loading) {
     return (
