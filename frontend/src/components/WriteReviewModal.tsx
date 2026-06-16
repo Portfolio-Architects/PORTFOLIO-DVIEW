@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, Star, Camera, Send } from 'lucide-react';
 import { useDashboardData, dashboardFacade } from '@/lib/DashboardFacade';
 
@@ -20,6 +20,14 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const availableDongs = Array.from(
     new Set(dongtanApartments.map(apt => apt.match(/\[(.*?)\]/)?.[1]).filter(Boolean))
@@ -40,11 +48,15 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
     setIsSubmitting(true);
     try {
       await dashboardFacade.addUserReview(selectedApt, rating, content, userUid, imageFile || undefined);
-      onClose();
+      if (mountedRef.current) {
+        onClose();
+      }
     } catch {
       // error handled in facade
     } finally {
-      setIsSubmitting(false);
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 
