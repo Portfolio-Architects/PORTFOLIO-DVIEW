@@ -286,10 +286,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         console.warn('localStorage is unavailable:', err);
       }
       await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { likes: increment(1) });
+      if (!mountedRef.current) return;
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
       showToast("이 글에 공감(좋아요)을 보냈습니다. ❤️");
       triggerCustomA2HSModal();
     } catch(e) {
+      if (!mountedRef.current) return;
       setIsLiked(false);
       try {
         localStorage.removeItem(`post_liked_${postId}`);
@@ -416,16 +418,21 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             postId: postId
           }
         });
+        if (!mountedRef.current) return;
         setCommentText('');
         showToast('네트워크가 연결되지 않아 댓글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
         lastCommentTimeRef.current = Date.now();
         triggerCustomA2HSModal();
       } catch (err) {
-        console.error('Failed to enqueue comment request', err);
-        alert('댓글 작성에 실패했습니다.');
+        if (mountedRef.current) {
+          console.error('Failed to enqueue comment request', err);
+          alert('댓글 작성에 실패했습니다.');
+        }
       } finally {
-        setIsSending(false);
-        commentLockRef.current = false;
+        if (mountedRef.current) {
+          setIsSending(false);
+          commentLockRef.current = false;
+        }
       }
       return;
     }
@@ -449,10 +456,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         createdAt: serverTimestamp(),
       });
       await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { commentCount: increment(1) });
+      if (!mountedRef.current) return;
       setCommentText('');
       lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
     } catch (error) {
+      if (!mountedRef.current) return;
       console.warn('Comment creation failed online, attempting offline fallback', error);
       try {
         let displayName = '익명이웃';
@@ -475,17 +484,22 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             postId: postId
           }
         });
+        if (!mountedRef.current) return;
         setCommentText('');
         showToast('네트워크 오류로 댓글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
         lastCommentTimeRef.current = Date.now();
         triggerCustomA2HSModal();
       } catch (queueErr) {
-        console.error('Failed to enqueue comment request', queueErr);
-        alert('댓글 작성에 실패했습니다.');
+        if (mountedRef.current) {
+          console.error('Failed to enqueue comment request', queueErr);
+          alert('댓글 작성에 실패했습니다.');
+        }
       }
     } finally {
-      setIsSending(false);
-      commentLockRef.current = false;
+      if (mountedRef.current) {
+        setIsSending(false);
+        commentLockRef.current = false;
+      }
     }
   }, [commentText, user, userProfile, postId, triggerCustomA2HSModal, showToast]);
 
@@ -502,6 +516,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       // Sync edited manager report to scoutingReports.premiumContent using the shared service helper
       await syncManagerPostToScoutingReport(editTitle, editContent, editCategory, user?.email, dongtanApartments);
 
+      if (!mountedRef.current) return;
       setPost((prev) => {
         const updated = prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev;
         if (updated) postLocalCache[postId] = updated;
@@ -509,8 +524,10 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       });
       setIsEditing(false);
     } catch (e) {
-      console.error(e);
-      alert('수정에 실패했습니다.');
+      if (mountedRef.current) {
+        console.error(e);
+        alert('수정에 실패했습니다.');
+      }
     }
   }, [postId, editTitle, editContent, editCategory, user?.email, dongtanApartments]);
 

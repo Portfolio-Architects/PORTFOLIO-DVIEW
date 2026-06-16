@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from 'firebase/auth';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
@@ -15,6 +15,12 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>(initialFavoriteCounts);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState<boolean>(false);
+
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
@@ -106,6 +112,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       });
       if (!res.ok) throw new Error();
     } catch {
+      if (!isMountedRef.current) return;
       setUserFavorites(prev => {
         const next = new Set(prev);
         if (wasFavorited) {

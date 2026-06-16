@@ -28,6 +28,12 @@ export function useComments(
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
+  const isMountedRef = React.useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
   useEffect(() => {
     // Determine the actual ID to use for fetching comments.
     const actualReportId = fullReportData ? fullReportData.id : selectedReport?.id;
@@ -84,7 +90,9 @@ export function useComments(
       logger.warn('useComments.handleSubmitComment', 'Failed to send push notification trigger', {}, pushErr as Error);
     }
 
-    setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+    if (isMountedRef.current) {
+      setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+    }
   };
 
   return {
