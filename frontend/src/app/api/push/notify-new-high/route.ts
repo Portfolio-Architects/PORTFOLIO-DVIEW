@@ -165,7 +165,7 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     logger.error('NotifyNewHighAPI.POST', 'Notify New High Error', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to process new high notification' }, { status: 500 });
   }
 }
 

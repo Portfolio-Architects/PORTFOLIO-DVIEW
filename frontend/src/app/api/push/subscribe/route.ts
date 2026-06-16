@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     logger.error('PushSubscribeAPI.POST', 'Push Subscribe Error', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 });
   }
 }
 
