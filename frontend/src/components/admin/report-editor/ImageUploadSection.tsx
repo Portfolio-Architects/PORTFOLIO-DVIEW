@@ -35,6 +35,23 @@ export function ImageUploadSection() {
     }
   }, [getValues, imageFields.length]); // Re-evaluate when field length changes (e.g., initialData load)
 
+  const fieldsRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    fieldsRef.current = imageFields;
+  }, [imageFields]);
+
+  useEffect(() => {
+    return () => {
+      // Clean up all blob preview URLs when the component unmounts
+      fieldsRef.current.forEach(field => {
+        if (field.previewUrl && field.previewUrl.startsWith('blob:')) {
+          try { URL.revokeObjectURL(field.previewUrl); } catch { /* ignore */ }
+        }
+      });
+    };
+  }, []);
+
   const sortByCategory = () => {
     const currentImages = getValues('images');
     const categoryOrder = IMAGE_CATEGORY_GROUPS.flatMap(g => g.items);
@@ -55,6 +72,13 @@ export function ImageUploadSection() {
         return;
       }
       uploadedFileKeys.current.add(file.name);
+
+      // Revoke the old preview URL if it was a blob URL
+      const oldField = imageFields[index];
+      if (oldField && oldField.previewUrl && oldField.previewUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(oldField.previewUrl); } catch { /* ignore */ }
+      }
+
       const previewUrl = URL.createObjectURL(file);
       const capturedAt = await extractCapturedDate(file) || undefined;
       const currentVal = imageFields[index];
@@ -107,6 +131,11 @@ export function ImageUploadSection() {
             type="button"
             onClick={() => {
               if (confirm(`사진 ${imageFields.length}장을 전부 삭제합니다. 계속할까요?`)) {
+                imageFields.forEach(field => {
+                  if (field.previewUrl && field.previewUrl.startsWith('blob:')) {
+                    try { URL.revokeObjectURL(field.previewUrl); } catch { /* ignore */ }
+                  }
+                });
                 replaceImages([]);
                 uploadedFileKeys.current.clear();
               }
@@ -309,7 +338,13 @@ export function ImageUploadSection() {
                 
                 <button 
                   type="button" 
-                  onClick={() => removeImage(index)}
+                  onClick={() => {
+                    const field = imageFields[index];
+                    if (field && field.previewUrl && field.previewUrl.startsWith('blob:')) {
+                      try { URL.revokeObjectURL(field.previewUrl); } catch { /* ignore */ }
+                    }
+                    removeImage(index);
+                  }}
                   className="ml-auto text-tertiary hover:text-toss-red p-2 rounded-lg transition-colors"
                 >
                   <Trash2 size={16} />
