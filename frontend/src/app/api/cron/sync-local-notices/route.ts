@@ -842,7 +842,7 @@ export async function GET(request: Request) {
       scrapedCount: notices.length,
       writtenCount: written,
       notices: notices.slice(0, 5),
-      errors: scrapeErrors.length > 0 ? scrapeErrors : undefined
+      errorCount: scrapeErrors.length
     });
 
   } catch (error: unknown) {
