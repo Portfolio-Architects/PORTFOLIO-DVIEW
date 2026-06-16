@@ -74,6 +74,15 @@ export default function JeonseSafetyCalculator({
   const [isCalculating, setIsCalculating] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Checklist states
   const [checklist, setChecklist] = useState({
@@ -298,9 +307,12 @@ export default function JeonseSafetyCalculator({
 
 🔍 실거래가 및 상세 분석 조회는 D-VIEW에서 바로 확인하세요!`;
 
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
