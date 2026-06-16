@@ -15,7 +15,7 @@ interface JeonseSafetyReportProps {
   onOpenAdModal?: () => void;
 }
 
-export default function JeonseSafetyReport({
+const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
   aptName,
   dong = '동탄',
   ratio,
@@ -348,4 +348,7 @@ export default function JeonseSafetyReport({
       </div>
     </div>
   );
-}
+});
+
+JeonseSafetyReport.displayName = 'JeonseSafetyReport';
+export default JeonseSafetyReport;
