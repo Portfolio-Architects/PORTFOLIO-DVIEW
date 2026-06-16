@@ -19,25 +19,51 @@ export const loadKakaoSdk = (): Promise<void> => {
       resolve();
       return;
     }
-    if (window.Kakao) {
+    // Check if window.Kakao is completely loaded and holds the required APIs
+    if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
       resolve();
       return;
     }
     
-    // 만약 이미 DOM에 카카오 스크립트가 존재하는지 확인 (layout.tsx에서 주입한 경우)
-    const existingScript = document.querySelector('script[src*="kakao.min.js"]');
+    // Check if the script is already appended to the DOM (e.g. from layout.tsx)
+    const existingScript = document.querySelector('script[src*="kakao.min.js"]') as HTMLScriptElement | null;
     if (existingScript) {
-      // 스크립트가 로드되는 중일 수 있으므로 약간 대기
-      setTimeout(() => {
-        if (window.Kakao) resolve();
-        else reject(new Error("Kakao SDK 스크립트는 존재하나 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요."));
-      }, 1000);
+      // Poll dynamically up to 5 seconds to prevent race conditions in slower network environments
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
+          clearInterval(interval);
+          resolve();
+        } else if (attempts >= 50) { // 50 * 100ms = 5000ms (5s)
+          clearInterval(interval);
+          reject(new Error("Kakao SDK 스크립트는 존재하나 로드가 완료되지 않았습니다. 잠시 후 다시 시도해주세요."));
+        }
+      }, 100);
+
+      const originalOnload = existingScript.onload;
+      existingScript.onload = (e) => {
+        if (typeof originalOnload === 'function') originalOnload.call(existingScript, e);
+        if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
+          clearInterval(interval);
+          resolve();
+        }
+      };
       return;
     }
 
     const script = document.createElement("script");
     script.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
-    script.onload = () => resolve();
+    script.onload = () => {
+      // Defer resolution slightly to ensure SWC compiler / microtask namespace mapping is completed
+      setTimeout(() => {
+        if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
+          resolve();
+        } else {
+          reject(new Error("Kakao SDK는 로드되었으나 내부 Share API 파싱에 실패했습니다."));
+        }
+      }, 50);
+    };
     script.onerror = () => reject(new Error("Kakao SDK 로드 실패 (브라우저 광고 차단기, 혹은 네트워크 환경을 확인해주세요)"));
     document.head.appendChild(script);
   });
@@ -182,7 +208,7 @@ export const shareAptToKakao = async (params: ShareAptParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareAptToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -290,7 +316,7 @@ export const sharePostToKakao = async (params: SharePostParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.sharePostToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -369,7 +395,7 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams) 
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareJeonseSafetyToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -462,7 +488,7 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareMortgageToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -556,7 +582,7 @@ export const shareTaxToKakao = async (params: ShareTaxParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareTaxToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -650,7 +676,7 @@ export const shareLocalEventToKakao = async (params: ShareLocalEventParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareLocalEventToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -724,7 +750,7 @@ export const shareCompareToKakao = async (params: ShareCompareParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareCompareToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -799,7 +825,7 @@ export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams) =>
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareLocalNoticeToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -908,7 +934,7 @@ export const shareRecommendationsToKakao = async (params: ShareRecommendationsPa
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareRecommendationsToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
@@ -991,7 +1017,7 @@ export const shareSellTimingToKakao = async (params: ShareSellTimingParams) => {
   try {
     await loadKakaoSdk();
 
-    if (typeof window === "undefined" || !window.Kakao) {
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
       logger.warn('kakaoShare.shareSellTimingToKakao', 'Kakao SDK not loaded');
       alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
       return;
