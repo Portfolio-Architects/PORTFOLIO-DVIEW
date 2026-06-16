@@ -246,7 +246,7 @@ const APARTMENT_CHILDCARE_OVERRIDES: Record<string, { daycares: ChildcareInfo[];
   }
 };
 
-export default function ChildcareDetailSection({ dong, distanceToElementary: _distanceToElementary, aptName, coordinates }: ChildcareDetailSectionProps) {
+const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong, distanceToElementary: _distanceToElementary, aptName, coordinates }: ChildcareDetailSectionProps) {
   const hash = getHash(aptName);
 
   // 1. Resolve childcare datasets based on Dong and fallback logic
@@ -485,4 +485,7 @@ export default function ChildcareDetailSection({ dong, distanceToElementary: _di
       </div>
     </div>
   );
-}
+});
+
+ChildcareDetailSection.displayName = 'ChildcareDetailSection';
+export default ChildcareDetailSection;

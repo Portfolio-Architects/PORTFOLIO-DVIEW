@@ -17,7 +17,7 @@ interface InfraAnalysisSectionProps {
   handleShareSection: (section: 'childcare' | 'infra') => void;
 }
 
-export default function InfraAnalysisSection({
+const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
   report,
   inline = false,
   copiedStatus,
@@ -330,4 +330,7 @@ export default function InfraAnalysisSection({
       )}
     </section>
   );
-}
+});
+
+InfraAnalysisSection.displayName = 'InfraAnalysisSection';
+export default InfraAnalysisSection;
