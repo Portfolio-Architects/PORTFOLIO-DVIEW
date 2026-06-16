@@ -26,6 +26,7 @@ import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { safeReload } from '@/lib/utils/safeReload';
 
 const ModalSkeleton = () => (
   <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-pulse p-4">
@@ -43,49 +44,49 @@ const ModalSkeleton = () => (
 // Heavy components dynamic load
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   console.warn('FieldReportModal Chunk Load failure, page reload initiated', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('FieldReportModal');
   return { default: () => null };
 }), { ssr: false, loading: () => <ModalSkeleton /> });
 
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
   console.warn('AdInquiryModal Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AdInquiryModal');
   return { default: () => null };
 }), { ssr: false });
 
 const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
   console.warn('B2BConsumerAdModal Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('B2BConsumerAdModal');
   return { default: () => null };
 }), { ssr: false });
 
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   console.warn('AptCompareModal Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('AptCompareModal');
   return { default: () => null };
 }), { ssr: false });
 
 const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
   console.warn('JeonseSafetyCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('JeonseSafetyCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
   console.warn('MortgageCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('MortgageCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
   console.warn('PropertyTaxCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('PropertyTaxCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
   console.warn('SellTimingCalculator Chunk Load failure', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('SellTimingCalculator');
   return { default: () => null };
 }), { ssr: false });
 
@@ -1164,9 +1165,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
           name="아파트 비교 분석"
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-              if (typeof window !== 'undefined') {
-                window.location.reload();
-              }
+              safeReload('AptCompareModal_Boundary');
               return null;
             }
             return (
@@ -1204,7 +1203,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
           name="전세 안전진단"
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-              if (typeof window !== 'undefined') window.location.reload();
+              safeReload('JeonseSafetyCalculator_Boundary');
               return null;
             }
             return (
@@ -1240,7 +1239,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
           name="대출 한도진단"
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-              if (typeof window !== 'undefined') window.location.reload();
+              safeReload('MortgageCalculator_Boundary');
               return null;
             }
             return (
@@ -1276,7 +1275,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
           name="취득세 계산기"
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-              if (typeof window !== 'undefined') window.location.reload();
+              safeReload('PropertyTaxCalculator_Boundary');
               return null;
             }
             return (
@@ -1311,7 +1310,7 @@ export default function RealtimeClient({ initialDashboardData }: { initialDashbo
           name="AI 매도 타이밍 진단기"
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
-              if (typeof window !== 'undefined') window.location.reload();
+              safeReload('SellTimingCalculator_Boundary');
               return null;
             }
             return (
