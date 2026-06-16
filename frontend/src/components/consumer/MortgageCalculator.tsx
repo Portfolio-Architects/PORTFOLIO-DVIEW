@@ -632,11 +632,10 @@ export default function MortgageCalculator({
                         type="button"
                         onClick={() => {
                           setIsCalculating(true);
-                          const timer = setTimeout(() => {
+                          calculateTimeoutRef.current = setTimeout(() => {
                             setIsCalculating(false);
                             setStep(4);
                           }, 1200);
-                          return () => clearTimeout(timer);
                         }}
                         disabled={isCalculating}
                         className="w-full bg-zinc-900/95 dark:bg-emerald-950/20 hover:bg-zinc-800 dark:hover:bg-emerald-950/45 text-[#00d29d] border border-[#00d29d]/40 py-3.5 rounded-xl text-[14px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
