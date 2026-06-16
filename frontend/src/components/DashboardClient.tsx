@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { safeReload } from '@/lib/utils/safeReload';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -91,19 +92,7 @@ const ModalSkeleton = () => (
   </div>
 );
 
-const safeReload = (componentName: string) => {
-  if (typeof window !== 'undefined') {
-    const key = `chunk_retry_${componentName}`;
-    const retried = sessionStorage.getItem(key);
-    if (!retried) {
-      sessionStorage.setItem(key, 'true');
-      window.location.reload();
-    } else {
-      console.error(`[Chunk Load] Reload failed repeatedly for ${componentName}. Stopping reload to prevent infinite loop.`);
-      setTimeout(() => sessionStorage.removeItem(key), 15000);
-    }
-  }
-};
+
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {

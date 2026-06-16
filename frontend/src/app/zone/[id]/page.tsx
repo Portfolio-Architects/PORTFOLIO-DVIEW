@@ -7,10 +7,11 @@ import Image from 'next/image';
 import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from '@/lib/DashboardFacade';
 import dynamic from 'next/dynamic';
 import { ZONES, dongToZoneId, getZoneById } from '@/lib/zones';
+import { safeReload } from '@/lib/utils/safeReload';
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   console.warn('FieldReportModal Chunk Load failure, initiating fallback reload', err);
-  if (typeof window !== 'undefined') window.location.reload();
+  safeReload('FieldReportModal');
   return { default: () => null };
 }), { ssr: false });
 
