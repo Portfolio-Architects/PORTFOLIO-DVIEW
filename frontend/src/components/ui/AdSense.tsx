@@ -28,6 +28,11 @@ export default function AdSense({
   const initialized = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const client = adClient || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const onAdStatusChangeRef = useRef(onAdStatusChange);
+
+  useEffect(() => {
+    onAdStatusChangeRef.current = onAdStatusChange;
+  }, [onAdStatusChange]);
 
   useEffect(() => {
     if (initialized.current || !client || typeof window === 'undefined') return;
@@ -98,7 +103,7 @@ export default function AdSense({
 
   // MutationObserver to watch data-ad-status attribute on the <ins> tag
   useEffect(() => {
-    if (typeof window === 'undefined' || !onAdStatusChange) return;
+    if (typeof window === 'undefined') return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -106,7 +111,9 @@ export default function AdSense({
     const checkAndNotify = (el: Element) => {
       const status = el.getAttribute('data-ad-status');
       if (status === 'filled' || status === 'unfilled') {
-        onAdStatusChange(status as 'filled' | 'unfilled');
+        if (onAdStatusChangeRef.current) {
+          onAdStatusChangeRef.current(status as 'filled' | 'unfilled');
+        }
       }
     };
 
@@ -138,7 +145,7 @@ export default function AdSense({
     return () => {
       observer.disconnect();
     };
-  }, [onAdStatusChange]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined' || process.env.NODE_ENV === 'development') return;
