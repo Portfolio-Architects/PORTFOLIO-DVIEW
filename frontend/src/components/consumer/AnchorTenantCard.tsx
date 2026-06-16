@@ -98,7 +98,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
           const percent = Math.min((anchor.distance / 1000) * 100, 100);
           
           return (
-            <div key={anchor.id} className="bg-body rounded-2xl p-4 flex flex-col justify-between hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10 min-h-[190px] relative overflow-hidden">
+            <div key={anchor.id} className="bg-body rounded-2xl p-4 flex flex-col justify-between hover:bg-surface hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 transition-all duration-300 group ring-1 ring-black/5 dark:ring-white/10 min-h-[190px] relative overflow-hidden will-change-transform">
               
               {/* Top Info: Category Badge & Distance */}
               <div className="flex items-center justify-between mb-2">
