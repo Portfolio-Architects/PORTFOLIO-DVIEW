@@ -311,6 +311,7 @@ function FieldReportModal({
   const { showToast } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(true);
   const [isAnimationFinished, setIsAnimationFinished] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
 
@@ -942,7 +943,11 @@ function FieldReportModal({
 
   // Hydration-safe portal mount
   useEffect(() => {
+    mountedRef.current = true;
     setMounted(true);
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   // Prevent body scroll when modal is open (with native mobile support)
@@ -1108,6 +1113,7 @@ function FieldReportModal({
     try {
       // Allow React to mount the off-screen share card DOM before capture
       await new Promise(resolve => setTimeout(resolve, 150));
+      if (!mountedRef.current) return;
 
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -1137,9 +1143,13 @@ function FieldReportModal({
           logging: false
         });
 
+        if (!mountedRef.current) return;
+
         const blob = await new Promise<Blob | null>((resolve) => {
           canvas.toBlob((b) => resolve(b), 'image/png');
         });
+
+        if (!mountedRef.current) return;
 
         if (blob) {
           imageFile = new File([blob], `dview_share_${normalizeAptName(report.apartmentName)}.png`, { type: 'image/png' });
@@ -1185,10 +1195,14 @@ function FieldReportModal({
         valStatus: valuation.status,
         valAmount: valuation.amount
       });
-      incrementViralShareCount();
+      if (mountedRef.current) {
+        incrementViralShareCount();
+      }
     } catch (error) {
       console.error("Kakao share card generation failed:", error);
-      showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
+      if (mountedRef.current) {
+        showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
+      }
       
       // Fallback
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
@@ -1239,9 +1253,13 @@ function FieldReportModal({
         valStatus: valuation.status,
         valAmount: valuation.amount
       });
-      incrementViralShareCount();
+      if (mountedRef.current) {
+        incrementViralShareCount();
+      }
     } finally {
-      setIsSharing(false);
+      if (mountedRef.current) {
+        setIsSharing(false);
+      }
     }
   };
 
@@ -1253,6 +1271,7 @@ function FieldReportModal({
     try {
       // Allow React to mount the off-screen share card DOM before capture
       await new Promise(resolve => setTimeout(resolve, 200));
+      if (!mountedRef.current) return;
 
       if (shareCardRef.current) {
         const html2canvasProInstance = (await import('html2canvas-pro')).default;
@@ -1265,6 +1284,8 @@ function FieldReportModal({
           backgroundColor: '#0f172a',
           logging: false
         });
+
+        if (!mountedRef.current) return;
 
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -1279,9 +1300,13 @@ function FieldReportModal({
       }
     } catch (error) {
       console.error("Image card download failed:", error);
-      showToast("이미지 저장 중 오류가 발생했습니다. 상단의 '단톡방 요약 복사'를 통해 텍스트로 공유해 보세요!");
+      if (mountedRef.current) {
+        showToast("이미지 저장 중 오류가 발생했습니다. 상단의 '단톡방 요약 복사'를 통해 텍스트로 공유해 보세요!");
+      }
     } finally {
-      setIsSharing(false);
+      if (mountedRef.current) {
+        setIsSharing(false);
+      }
     }
   };
 
@@ -1323,9 +1348,14 @@ function FieldReportModal({
     }
 
     const executeSuccess = () => {
+      if (!mountedRef.current) return;
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
       setCopiedStatus('all-link');
-      copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
+      copiedTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setCopiedStatus(null);
+        }
+      }, 1500);
     };
 
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
