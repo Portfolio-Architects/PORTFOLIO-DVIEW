@@ -14,7 +14,7 @@ interface SegmentedControlProps<T> {
   className?: string;
 }
 
-export default function SegmentedControl<T extends string | number>({
+function SegmentedControlInner<T extends string | number>({
   options,
   value,
   onChange,
@@ -89,3 +89,11 @@ export default function SegmentedControl<T extends string | number>({
     </div>
   );
 }
+
+const SegmentedControl = React.memo(SegmentedControlInner) as <T extends string | number>(
+  props: SegmentedControlProps<T>
+) => React.ReactElement;
+
+(SegmentedControl as any).displayName = 'SegmentedControl';
+
+export default SegmentedControl;
