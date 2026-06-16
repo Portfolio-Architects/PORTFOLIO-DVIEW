@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1781614110241';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1781614110241';
+const CACHE_NAME = 'dview-cache-v-1781614655466';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1781614655466';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -54,7 +54,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Stale-While-Revalidate
-  if (url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) {
+  // 단, 용량이 크고 실시간 데이터와 정합이 중요한 tx-summary.json은 캐싱 레이턴시 배제를 위해 SWR 캐시에서 제외합니다.
+  if ((url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) && !url.pathname.includes('tx-summary.json')) {
     event.respondWith(
       caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
         return cache.match(req).then((cachedRes) => {
