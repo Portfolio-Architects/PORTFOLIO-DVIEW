@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Calendar, Eye, Share, Building2, ExternalLink } from 'lucide-react';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
@@ -23,6 +23,20 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
   const [shareStatus, setShareStatus] = useState<'copied' | 'shared' | null>(null);
   const [noticeCopiedId, setNoticeCopiedId] = useState<string | null>(null);
 
+  const noticeCopyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shareTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (noticeCopyTimeoutRef.current) {
+        clearTimeout(noticeCopyTimeoutRef.current);
+      }
+      if (shareTimeoutRef.current) {
+        clearTimeout(shareTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices');
   const allNotices = (noticesData?.notices || []) as LocalNoticeItem[];
   // Filter for Dongtan-related ones or fallback to latest general if none found
@@ -34,7 +48,10 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
     try {
       await navigator.clipboard.writeText((notice.url || '').trim());
       setNoticeCopiedId(notice.id);
-      setTimeout(() => setNoticeCopiedId(null), 2000);
+      if (noticeCopyTimeoutRef.current) {
+        clearTimeout(noticeCopyTimeoutRef.current);
+      }
+      noticeCopyTimeoutRef.current = setTimeout(() => setNoticeCopiedId(null), 2000);
     } catch (err) {
       console.error('Failed to copy notice link:', err);
     }
@@ -46,6 +63,10 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
     const shareTitle = "동탄 하이퍼로컬 라이프 큐레이션 - D-VIEW";
     const shareText = "동탄 3040 실수요자가 주목하는 호수공원 루나쇼 일정 및 조망 아파트 정보 확인하기!";
 
+    if (shareTimeoutRef.current) {
+      clearTimeout(shareTimeoutRef.current);
+    }
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -54,7 +75,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
           url: shareUrl,
         });
         setShareStatus('shared');
-        setTimeout(() => setShareStatus(null), 2000);
+        shareTimeoutRef.current = setTimeout(() => setShareStatus(null), 2000);
       } catch (err) {
         console.error("Curation share failed:", err);
       }
@@ -62,7 +83,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
       try {
         await navigator.clipboard.writeText(shareUrl);
         setShareStatus('copied');
-        setTimeout(() => setShareStatus(null), 2000);
+        shareTimeoutRef.current = setTimeout(() => setShareStatus(null), 2000);
       } catch (err) {
         console.error("Failed to copy link:", err);
       }
