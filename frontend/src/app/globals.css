@@ -104,6 +104,7 @@
 
   button, a, [role="button"], summary, select {
     cursor: pointer;
+    touch-action: manipulation;
   }
 
   /* a11y: Focus Ring */
