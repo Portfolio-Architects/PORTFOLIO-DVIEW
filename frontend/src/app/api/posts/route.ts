@@ -152,7 +152,7 @@ export async function GET(req: Request) {
     return NextResponse.json(responseData);
   } catch (error: any) {
     logger.error('PostsAPI.GET', 'Fetch posts api error', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
   }
 }
 
@@ -201,6 +201,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: 'success', id: docRef.id });
   } catch (error: any) {
     logger.error('PostsAPI.POST', 'Create post api error', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
 }

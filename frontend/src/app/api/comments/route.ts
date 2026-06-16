@@ -86,6 +86,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   } catch (error: any) {
     logger.error('CommentsAPI.POST', 'Create comment api error', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 });
   }
 }

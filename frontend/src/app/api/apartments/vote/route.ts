@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     logger.error('ApartmentVoteAPI.GET', 'Error fetching votes', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch votes' }, { status: 500 });
   }
 }
 
@@ -117,6 +117,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     logger.error('ApartmentVoteAPI.POST', 'Error recording vote', {}, error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to record vote' }, { status: 500 });
   }
 }
