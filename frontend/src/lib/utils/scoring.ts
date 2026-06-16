@@ -62,37 +62,86 @@ export const SubScoreResultSchema = z.object({
 
 export type SubScoreResult = z.infer<typeof SubScoreResultSchema>;
 
+const nullableNumSchema = z.union([z.string(), z.number(), z.null(), z.undefined()])
+  .transform(val => {
+    if (val === null || val === undefined) return 0;
+    const num = Number(val);
+    return isNaN(num) ? 0 : num;
+  });
+
 export const ScoringMetricsSchema = z.object({
-  brand: z.string().optional(),
-  householdCount: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  far: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  bcr: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  parkingCount: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  parkingPerHousehold: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  yearBuilt: z.union([z.string(), z.number()]).optional(),
-  minFloor: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  maxFloor: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  coordinates: z.string().optional(),
-  distanceToElementary: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToMiddle: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToHigh: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToSubway: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  academyDensity: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  academyCategories: z.record(z.string(), z.number()).optional(),
-  restaurantDensity: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  restaurantCategories: z.record(z.string(), z.number()).optional(),
-  distanceToIndeokwon: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToTram: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToStarbucks: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToSupermarket: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToPark: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToOliveYoung: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToDaiso: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  distanceToMcDonalds: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional(),
-  name: z.string().optional(),
+  brand: z.string().nullable().optional().transform(val => val || ''),
+  householdCount: nullableNumSchema,
+  far: nullableNumSchema,
+  bcr: nullableNumSchema,
+  parkingCount: nullableNumSchema,
+  parkingPerHousehold: nullableNumSchema,
+  yearBuilt: z.union([z.string(), z.number(), z.null(), z.undefined()]).transform(val => {
+    if (val === null || val === undefined) return new Date().getFullYear();
+    return val;
+  }),
+  minFloor: nullableNumSchema,
+  maxFloor: nullableNumSchema,
+  coordinates: z.string().nullable().optional().transform(val => val || ''),
+  distanceToElementary: nullableNumSchema,
+  distanceToMiddle: nullableNumSchema,
+  distanceToHigh: nullableNumSchema,
+  distanceToSubway: nullableNumSchema,
+  academyDensity: nullableNumSchema,
+  academyCategories: z.record(z.string(), z.number()).nullable().optional().transform(val => val || {}),
+  restaurantDensity: nullableNumSchema,
+  restaurantCategories: z.record(z.string(), z.number()).nullable().optional().transform(val => val || {}),
+  distanceToIndeokwon: nullableNumSchema,
+  distanceToTram: nullableNumSchema,
+  distanceToStarbucks: nullableNumSchema,
+  distanceToSupermarket: nullableNumSchema,
+  distanceToPark: nullableNumSchema,
+  distanceToOliveYoung: nullableNumSchema,
+  distanceToDaiso: nullableNumSchema,
+  distanceToMcDonalds: nullableNumSchema,
+  name: z.string().nullable().optional().transform(val => val || ''),
 }).passthrough();
 
 export type ScoringMetrics = z.infer<typeof ScoringMetricsSchema>;
+
+export function getSafeMetrics(metrics: any): ScoringMetrics {
+  const fallback = (val: any, def: number = 0): number => {
+    if (val === null || val === undefined) return def;
+    const num = Number(val);
+    return isNaN(num) ? def : num;
+  };
+  
+  const m = metrics || {};
+  return {
+    brand: m.brand || '',
+    householdCount: fallback(m.householdCount),
+    far: fallback(m.far),
+    bcr: fallback(m.bcr),
+    parkingCount: fallback(m.parkingCount),
+    parkingPerHousehold: fallback(m.parkingPerHousehold),
+    yearBuilt: m.yearBuilt || new Date().getFullYear(),
+    minFloor: fallback(m.minFloor),
+    maxFloor: fallback(m.maxFloor),
+    coordinates: m.coordinates || '',
+    distanceToElementary: fallback(m.distanceToElementary),
+    distanceToMiddle: fallback(m.distanceToMiddle),
+    distanceToHigh: fallback(m.distanceToHigh),
+    distanceToSubway: fallback(m.distanceToSubway),
+    academyDensity: fallback(m.academyDensity),
+    academyCategories: m.academyCategories || {},
+    restaurantDensity: fallback(m.restaurantDensity),
+    restaurantCategories: m.restaurantCategories || {},
+    distanceToIndeokwon: fallback(m.distanceToIndeokwon),
+    distanceToTram: fallback(m.distanceToTram),
+    distanceToStarbucks: fallback(m.distanceToStarbucks),
+    distanceToSupermarket: fallback(m.distanceToSupermarket),
+    distanceToPark: fallback(m.distanceToPark),
+    distanceToOliveYoung: fallback(m.distanceToOliveYoung),
+    distanceToDaiso: fallback(m.distanceToDaiso),
+    distanceToMcDonalds: fallback(m.distanceToMcDonalds),
+    name: m.name || '',
+  };
+}
 
 interface BrandTier {
   tier: number;
@@ -185,7 +234,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   if (!parsed.success) {
     logger.warn('ScoringEngine', 'Failed to validate metrics in calculatePremiumScores', { metrics }, parsed.error);
   }
-  const validatedMetrics = parsed.success ? parsed.data : metrics;
+  const validatedMetrics = parsed.success ? parsed.data : getSafeMetrics(metrics);
 
   const getDistLabel = (dist: number | undefined, name: string) => {
     if (!dist || dist >= 9999) return `${name} 거리 1.2km 초과 (환승 필요)`;
@@ -346,7 +395,7 @@ export const calculateEducationScore = (metrics: any): SubScoreResult => {
   if (!parsed.success) {
     logger.warn('ScoringEngine', 'Failed to validate metrics in calculateEducationScore', { metrics }, parsed.error);
   }
-  const validatedMetrics = parsed.success ? parsed.data : metrics;
+  const validatedMetrics = parsed.success ? parsed.data : getSafeMetrics(metrics);
   
   let score = 0;
   
@@ -429,7 +478,7 @@ export const calculateInfraScore = (metrics: any): SubScoreResult => {
   if (!parsed.success) {
     logger.warn('ScoringEngine', 'Failed to validate metrics in calculateInfraScore', { metrics }, parsed.error);
   }
-  const validatedMetrics = parsed.success ? parsed.data : metrics;
+  const validatedMetrics = parsed.success ? parsed.data : getSafeMetrics(metrics);
   
   let score = 0;
   
