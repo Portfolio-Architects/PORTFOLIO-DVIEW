@@ -120,9 +120,16 @@ export async function GET(request: NextRequest) {
     const nearestSupermarket = findAnchor(['이마트', '홈플러스', '롯데마트', '노브랜드']);
 
     // Parking per household
-    const parkingPerHousehold = (apt.householdCount && apt.parkingCount)
-      ? Math.round((apt.parkingCount / apt.householdCount) * 100) / 100
+    const parkingPerHousehold = (
+      apt.householdCount !== undefined &&
+      apt.householdCount !== null &&
+      apt.parkingCount !== undefined &&
+      apt.parkingCount !== null &&
+      Number(apt.householdCount) > 0
+    )
+      ? Math.round((Number(apt.parkingCount) / Number(apt.householdCount)) * 100) / 100
       : null;
+
 
     const result = {
       apartmentName: apartment,
