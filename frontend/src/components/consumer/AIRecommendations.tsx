@@ -237,7 +237,7 @@ function calculateQuizScore(
   return score;
 }
 
-export default function AIRecommendations({
+const AIRecommendations = React.memo(function AIRecommendations({
   sheetApartments,
   txSummaryData,
   nameMapping = {},
@@ -828,4 +828,7 @@ export default function AIRecommendations({
       </div>
     </div>
   );
-}
+});
+
+AIRecommendations.displayName = 'AIRecommendations';
+export default AIRecommendations;

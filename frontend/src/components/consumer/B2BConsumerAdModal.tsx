@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, GraduationCap, Brush, Sparkles, Phone, MessageSquare, Calendar, Home, CheckCircle2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -14,7 +14,7 @@ interface B2BConsumerAdModalProps {
   yearBuilt?: string | number;
 }
 
-export default function B2BConsumerAdModal({
+const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
   onClose,
   adType,
   adTitle,
@@ -399,4 +399,7 @@ export default function B2BConsumerAdModal({
       </div>
     </div>
   );
-}
+});
+
+B2BConsumerAdModal.displayName = 'B2BConsumerAdModal';
+export default B2BConsumerAdModal;

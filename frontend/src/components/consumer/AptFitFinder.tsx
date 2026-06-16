@@ -125,7 +125,7 @@ function getEffectiveMetrics(
   };
 }
 
-export default function AptFitFinder({
+const AptFitFinder = React.memo(function AptFitFinder({
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -1120,4 +1120,7 @@ export default function AptFitFinder({
       </div>
     </div>
   );
-}
+});
+
+AptFitFinder.displayName = 'AptFitFinder';
+export default AptFitFinder;
