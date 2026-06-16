@@ -41,7 +41,7 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider = React.memo(function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<AnonProfile | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -178,7 +178,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
+});
+
+AuthProvider.displayName = 'AuthProvider';
 
 export function useAuth() {
   const context = useContext(AuthContext);
