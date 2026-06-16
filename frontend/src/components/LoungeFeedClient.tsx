@@ -116,6 +116,7 @@ const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
 
 export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const { showToast } = usePWA();
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { data, error, size, setSize, isValidating } = useSWRInfinite<Post[]>(
     getPostsKey,
     postsFetcher,
@@ -214,11 +215,14 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(preloadDetail, { timeout: 3000 });
       } else {
-        setTimeout(preloadDetail, 2000);
+        preloadTimeoutRef.current = setTimeout(preloadDetail, 2000);
       }
     }
 
-    return () => window.removeEventListener('hashchange', checkParams);
+    return () => {
+      window.removeEventListener('hashchange', checkParams);
+      if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
+    };
   }, []);
 
   useEffect(() => {
