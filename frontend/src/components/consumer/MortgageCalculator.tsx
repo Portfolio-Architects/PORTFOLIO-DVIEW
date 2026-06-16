@@ -8,6 +8,8 @@ import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareMortgageToKakao } from '@/lib/utils/kakaoShare';
+import { localCache } from '@/lib/utils/localCache';
+import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 
 interface MortgageCalculatorProps {
   isOpen: boolean;
@@ -103,44 +105,41 @@ export default function MortgageCalculator({
   useEffect(() => {
     if (isOpen) {
       try {
-        const answersStr = localStorage.getItem('dview_quiz_answers');
-        if (answersStr) {
-          const answers = JSON.parse(answersStr);
-          if (answers) {
-            setHasQuizAnswers(true);
-            
-            // 1. Map householdType & childrenCount
-            if (answers.family === 'baby') {
-              setHouseholdType('newborn');
-              setChildrenCount(1);
-            } else if (answers.family === 'none') {
-              setHouseholdType('single');
-              setChildrenCount(0);
-            } else if (answers.family === 'elementary') {
-              setHouseholdType('normal');
-              setChildrenCount(1);
-            } else if (answers.family === 'middleHigh') {
-              setHouseholdType('normal');
-              setChildrenCount(2);
-            }
+        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        if (answers) {
+          setHasQuizAnswers(true);
+          
+          // 1. Map householdType & childrenCount
+          if (answers.family === 'baby') {
+            setHouseholdType('newborn');
+            setChildrenCount(1);
+          } else if (answers.family === 'none') {
+            setHouseholdType('single');
+            setChildrenCount(0);
+          } else if (answers.family === 'elementary') {
+            setHouseholdType('normal');
+            setChildrenCount(1);
+          } else if (answers.family === 'middleHigh') {
+            setHouseholdType('normal');
+            setChildrenCount(2);
+          }
 
-            // 2. Map annualIncome & netAssets based on budget
-            if (answers.budget === '3eok') {
-              setAnnualIncome('4500');
-              setNetAssets('1.5');
-            } else if (answers.budget === '5eok') {
-              setAnnualIncome('6500');
-              setNetAssets('2.2');
-            } else if (answers.budget === '8eok') {
-              setAnnualIncome('8500');
-              setNetAssets('3.5');
-            } else if (answers.budget === '12eok') {
-              setAnnualIncome('11000');
-              setNetAssets('5.5');
-            } else if (answers.budget === 'unlimited') {
-              setAnnualIncome('15000');
-              setNetAssets('8.0');
-            }
+          // 2. Map annualIncome & netAssets based on budget
+          if (answers.budget === '3eok') {
+            setAnnualIncome('4500');
+            setNetAssets('1.5');
+          } else if (answers.budget === '5eok') {
+            setAnnualIncome('6500');
+            setNetAssets('2.2');
+          } else if (answers.budget === '8eok') {
+            setAnnualIncome('8500');
+            setNetAssets('3.5');
+          } else if (answers.budget === '12eok') {
+            setAnnualIncome('11000');
+            setNetAssets('5.5');
+          } else if (answers.budget === 'unlimited') {
+            setAnnualIncome('15000');
+            setNetAssets('8.0');
           }
         }
       } catch (e) {

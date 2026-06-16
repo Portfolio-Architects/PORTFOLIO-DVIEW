@@ -1,8 +1,10 @@
-import { useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore, useCallback, useState, useEffect } from 'react';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import type { KPIData, NewsItemData } from '@/lib/types/dashboard.types';
 import type { FieldReportData } from '@/lib/types/report.types';
 import type { UserReview } from '@/lib/types/review.types';
+import { localCache } from '@/lib/utils/localCache';
+import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -41,6 +43,30 @@ export function useDashboardData() {
     () => EMPTY_ARRAY as string[]
   );
 
+  // Load viewed apartments history and lifestyle quiz answers from local cache
+  const [viewedApts, setViewedApts] = useState<string[]>([]);
+  const [quizAnswers, setQuizAnswers] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const loadCachedData = () => {
+      const apts = localCache.get('dview_viewed_apts', ViewedAptsSchema, []);
+      const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+      setViewedApts(apts);
+      setQuizAnswers(answers);
+    };
+
+    loadCachedData();
+
+    window.addEventListener('dview_viewed_apts_changed', loadCachedData);
+    window.addEventListener('dview_quiz_answers_changed', loadCachedData);
+    return () => {
+      window.removeEventListener('dview_viewed_apts_changed', loadCachedData);
+      window.removeEventListener('dview_quiz_answers_changed', loadCachedData);
+    };
+  }, []);
+
   return {
     kpis,
     newsFeed,
@@ -48,5 +74,7 @@ export function useDashboardData() {
     userReviews,
     dongtanApartments,
     adBanner: dashboardFacade.getAdBanner(),
+    viewedApts,
+    quizAnswers,
   };
 }

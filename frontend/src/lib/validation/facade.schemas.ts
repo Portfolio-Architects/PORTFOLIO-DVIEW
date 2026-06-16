@@ -92,3 +92,15 @@ export const TransactionRecordSchema = z.object({
 });
 
 export const TransactionListSchema = z.array(TransactionRecordSchema);
+
+export const QuizAnswerSchema = z.object({
+  budget: z.string().default(''),
+  family: z.string().default(''),
+  transit: z.string().default(''),
+  lifestyle: z.string().default(''),
+  scaleBrand: z.string().default(''),
+  yearBuilt: z.string().default(''),
+  investmentStyle: z.string().default(''),
+});
+
+export const ViewedAptsSchema = z.array(z.string());

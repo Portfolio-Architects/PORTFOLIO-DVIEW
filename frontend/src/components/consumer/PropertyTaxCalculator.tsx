@@ -7,6 +7,8 @@ import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareTaxToKakao } from '@/lib/utils/kakaoShare';
+import { localCache } from '@/lib/utils/localCache';
+import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 
 interface PropertyTaxCalculatorProps {
   isOpen: boolean;
@@ -82,37 +84,34 @@ export default function PropertyTaxCalculator({
   useEffect(() => {
     if (isOpen) {
       try {
-        const answersStr = localStorage.getItem('dview_quiz_answers');
-        if (answersStr) {
-          const answers = JSON.parse(answersStr);
-          if (answers) {
-            setHasQuizAnswers(true);
-            
-            // 1. Map ownedHouses: if investmentStyle is 'gap', set to 2, else 1
-            if (answers.investmentStyle === 'gap') {
-              setOwnedHouses(2);
-            } else {
-              setOwnedHouses(1);
-            }
+        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        if (answers) {
+          setHasQuizAnswers(true);
+          
+          // 1. Map ownedHouses: if investmentStyle is 'gap', set to 2, else 1
+          if (answers.investmentStyle === 'gap') {
+            setOwnedHouses(2);
+          } else {
+            setOwnedHouses(1);
+          }
 
-            // 2. Map exclusiveArea: if large family and high budget, set to 85over
-            const isLargeFamily = answers.family === 'middleHigh' || answers.family === 'elementary';
-            const isHighBudget = answers.budget === '12eok' || answers.budget === 'unlimited';
-            if (isLargeFamily && isHighBudget) {
-              setExclusiveArea('85over');
-            } else {
-              setExclusiveArea('85under');
-            }
+          // 2. Map exclusiveArea: if large family and high budget, set to 85over
+          const isLargeFamily = answers.family === 'middleHigh' || answers.family === 'elementary';
+          const isHighBudget = answers.budget === '12eok' || answers.budget === 'unlimited';
+          if (isLargeFamily && isHighBudget) {
+            setExclusiveArea('85over');
+          } else {
+            setExclusiveArea('85under');
+          }
 
-            // 3. Zero-click simulation if initialAptName is present
-            if (initialAptName) {
-              setIsCalculating(true);
-              const timer = setTimeout(() => {
-                setIsCalculating(false);
-                setShowResult(true);
-              }, 1200);
-              return () => clearTimeout(timer);
-            }
+          // 3. Zero-click simulation if initialAptName is present
+          if (initialAptName) {
+            setIsCalculating(true);
+            const timer = setTimeout(() => {
+              setIsCalculating(false);
+              setShowResult(true);
+            }, 1200);
+            return () => clearTimeout(timer);
           }
         }
       } catch (e) {

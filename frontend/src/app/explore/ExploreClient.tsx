@@ -24,6 +24,8 @@ import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
+import { localCache } from '@/lib/utils/localCache';
+import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 
 const ExploreListSkeleton = () => (
   <div className="w-full flex flex-col gap-3 animate-pulse">
@@ -319,9 +321,9 @@ export default function ExploreClient({ initialDashboardData }: { initialDashboa
 
     if (typeof window !== 'undefined') {
       try {
-        const history = JSON.parse(localStorage.getItem('dview_viewed_apts') || '[]');
+        const history = localCache.get('dview_viewed_apts', ViewedAptsSchema, []);
         const updated = [apt.name, ...history.filter((h: string) => h !== apt.name)].slice(0, 10);
-        localStorage.setItem('dview_viewed_apts', JSON.stringify(updated));
+        localCache.set('dview_viewed_apts', updated, 604800); // 7 days TTL
         window.dispatchEvent(new Event('dview_viewed_apts_changed'));
       } catch (e) {
         console.warn('LocalStorage write error:', e);

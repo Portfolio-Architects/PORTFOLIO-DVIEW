@@ -8,6 +8,8 @@ import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareCompareToKakao } from '@/lib/utils/kakaoShare';
+import { localCache } from '@/lib/utils/localCache';
+import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 
 interface AptCompareModalProps {
   isOpen: boolean;
@@ -246,14 +248,11 @@ export default function AptCompareModal({
   useEffect(() => {
     if (isOpen) {
       try {
-        const stored = localStorage.getItem('dview_compare_recent');
-        if (stored) {
-          const parsedNames = JSON.parse(stored) as string[];
-          const matched = parsedNames
-            .map(name => allApartments.find(a => a.name === name))
-            .filter((a): a is DongApartment => !!a);
-          setRecentApts(matched);
-        }
+        const parsedNames = localCache.get('dview_compare_recent', ViewedAptsSchema, []);
+        const matched = parsedNames
+          .map(name => allApartments.find(a => a.name === name))
+          .filter((a): a is DongApartment => !!a);
+        setRecentApts(matched);
       } catch (e) {
         console.error('Error loading recent apartments', e);
       }
@@ -264,12 +263,8 @@ export default function AptCompareModal({
   useEffect(() => {
     const loadQuizAnswers = () => {
       try {
-        const answersStr = localStorage.getItem('dview_quiz_answers');
-        if (answersStr) {
-          setQuizAnswers(JSON.parse(answersStr));
-        } else {
-          setQuizAnswers(null);
-        }
+        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        setQuizAnswers(answers);
       } catch (e) {
         console.warn('Failed to parse quiz answers in AptCompareModal:', e);
       }
@@ -289,7 +284,7 @@ export default function AptCompareModal({
       const filtered = prev.filter(a => a.name !== apt.name);
       const updated = [apt, ...filtered].slice(0, 5); // Keep last 5
       try {
-        localStorage.setItem('dview_compare_recent', JSON.stringify(updated.map(a => a.name)));
+        localCache.set('dview_compare_recent', updated.map(a => a.name), 604800); // 7 days TTL
       } catch (e) {
         console.error('Error saving recent apartment', e);
       }

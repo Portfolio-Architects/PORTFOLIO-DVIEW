@@ -8,6 +8,7 @@ import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
+import { localCache } from '@/lib/utils/localCache';
 
 interface AptFitFinderProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -162,7 +163,7 @@ export default function AptFitFinder({
   useEffect(() => {
     if (step === 9) {
       try {
-        localStorage.setItem('dview_quiz_answers', JSON.stringify(answers));
+        localCache.set('dview_quiz_answers', answers, 604800); // 7 days TTL
         window.dispatchEvent(new Event('dview_quiz_answers_changed'));
       } catch (e) {
         console.warn('LocalStorage save error (quiz answers):', e);
@@ -183,7 +184,7 @@ export default function AptFitFinder({
 
   const handleReset = () => {
     try {
-      localStorage.removeItem('dview_quiz_answers');
+      localCache.remove('dview_quiz_answers');
       window.dispatchEvent(new Event('dview_quiz_answers_changed'));
     } catch (e) {
       console.warn('LocalStorage remove error (quiz answers):', e);

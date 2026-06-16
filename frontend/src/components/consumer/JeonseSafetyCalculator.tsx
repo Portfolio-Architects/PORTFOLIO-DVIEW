@@ -7,6 +7,8 @@ import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
+import { localCache } from '@/lib/utils/localCache';
+import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 
 interface JeonseSafetyCalculatorProps {
   isOpen: boolean;
@@ -120,41 +122,38 @@ export default function JeonseSafetyCalculator({
   useEffect(() => {
     if (isOpen) {
       try {
-        const answersStr = localStorage.getItem('dview_quiz_answers');
-        if (answersStr) {
-          const answers = JSON.parse(answersStr);
-          if (answers) {
-            setHasQuizAnswers(true);
-            let limitVal = 0;
-            let label = '';
-            if (answers.budget === '3eok') {
-              limitVal = 33000;
-              label = '3.3억';
-            } else if (answers.budget === '5eok') {
-              limitVal = 63000;
-              label = '6.3억';
-            } else if (answers.budget === '8eok') {
-              limitVal = 93000;
-              label = '9.3억';
-            } else if (answers.budget === '12eok') {
-              limitVal = 145000;
-              label = '14.5억';
-            } else if (answers.budget === 'unlimited') {
-              limitVal = 9999999;
-              label = '무제한';
-            }
-            setQuizBudgetLimit(limitVal);
-            setQuizBudgetLabel(label);
+        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        if (answers) {
+          setHasQuizAnswers(true);
+          let limitVal = 0;
+          let label = '';
+          if (answers.budget === '3eok') {
+            limitVal = 33000;
+            label = '3.3억';
+          } else if (answers.budget === '5eok') {
+            limitVal = 63000;
+            label = '6.3억';
+          } else if (answers.budget === '8eok') {
+            limitVal = 93000;
+            label = '9.3억';
+          } else if (answers.budget === '12eok') {
+            limitVal = 145000;
+            label = '14.5억';
+          } else if (answers.budget === 'unlimited') {
+            limitVal = 9999999;
+            label = '무제한';
+          }
+          setQuizBudgetLimit(limitVal);
+          setQuizBudgetLabel(label);
 
-            // Zero-click simulation if initialAptName is present
-            if (initialAptName) {
-              setIsCalculating(true);
-              const timer = setTimeout(() => {
-                setIsCalculating(false);
-                setShowResult(true);
-              }, 1200);
-              return () => clearTimeout(timer);
-            }
+          // Zero-click simulation if initialAptName is present
+          if (initialAptName) {
+            setIsCalculating(true);
+            const timer = setTimeout(() => {
+              setIsCalculating(false);
+              setShowResult(true);
+            }, 1200);
+            return () => clearTimeout(timer);
           }
         }
       } catch (e) {

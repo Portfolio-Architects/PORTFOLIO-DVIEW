@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { Sparkles, Share2, Check, ChevronRight, TrendingUp } from 'lucide-react';
 import type { DongApartment } from '@/lib/dong-apartments';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
@@ -248,41 +249,12 @@ export default function AIRecommendations({
   onOpenMortgage,
   onOpenSellTimingCalculator,
 }: AIRecommendationsProps) {
-  const [viewedApts, setViewedApts] = useState<string[]>([]);
-  const [quizAnswers, setQuizAnswers] = useState<QuizAnswer | null>(null);
+  const { viewedApts, quizAnswers } = useDashboardData();
   const [isCopied, setIsCopied] = useState(false);
 
   // Defer updates of viewed history and quiz answers to maintain 60fps interaction speed
   const deferredViewedApts = useDeferredValue(viewedApts);
-  const deferredQuizAnswers = useDeferredValue(quizAnswers);
-
-  useEffect(() => {
-    const loadViewed = () => {
-      try {
-        const history = JSON.parse(localStorage.getItem('dview_viewed_apts') || '[]');
-        setViewedApts(history);
-      } catch (e) {
-        console.warn('LocalStorage load error:', e);
-      }
-    };
-    loadViewed();
-    window.addEventListener('dview_viewed_apts_changed', loadViewed);
-    return () => window.removeEventListener('dview_viewed_apts_changed', loadViewed);
-  }, []);
-
-  useEffect(() => {
-    const loadQuizAnswers = () => {
-      try {
-        const answers = JSON.parse(localStorage.getItem('dview_quiz_answers') || 'null');
-        setQuizAnswers(answers);
-      } catch (e) {
-        console.warn('LocalStorage load error (quiz answers):', e);
-      }
-    };
-    loadQuizAnswers();
-    window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
-    return () => window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
-  }, []);
+  const deferredQuizAnswers = useDeferredValue(quizAnswers as QuizAnswer | null);
 
   const recommendationResult = useMemo(() => {
     const refsSet = new Set<string>();

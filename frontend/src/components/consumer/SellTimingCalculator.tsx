@@ -9,6 +9,8 @@ import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { calculateVerdictScore, calculateCapitalGainsTax, VerdictResult, TaxResult } from '@/lib/utils/sellTimingEngine';
 import { shareSellTimingToKakao } from '@/lib/utils/kakaoShare';
+import { localCache } from '@/lib/utils/localCache';
+import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 
 interface SellTimingCalculatorProps {
   isOpen: boolean;
@@ -110,31 +112,28 @@ export default function SellTimingCalculator({
   useEffect(() => {
     if (isOpen) {
       try {
-        const answersStr = localStorage.getItem('dview_quiz_answers');
-        if (answersStr) {
-          const answers = JSON.parse(answersStr);
-          if (answers) {
-            setHasQuizAnswers(true);
-            
-            // Map investment style to holding years and house count
-            if (answers.investmentStyle === 'gap') {
-              setIsOneHouse(false);
-              setHoldingYears(1);
-            } else {
-              setIsOneHouse(true);
-              setHoldingYears(3);
-              setResideYears(2);
-            }
+        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        if (answers) {
+          setHasQuizAnswers(true);
+          
+          // Map investment style to holding years and house count
+          if (answers.investmentStyle === 'gap') {
+            setIsOneHouse(false);
+            setHoldingYears(1);
+          } else {
+            setIsOneHouse(true);
+            setHoldingYears(3);
+            setResideYears(2);
+          }
 
-            // Zero-click simulation if initialAptName is present
-            if (initialAptName) {
-              setIsCalculating(true);
-              const timer = setTimeout(() => {
-                setIsCalculating(false);
-                setShowResult(true);
-              }, 1200);
-              return () => clearTimeout(timer);
-            }
+          // Zero-click simulation if initialAptName is present
+          if (initialAptName) {
+            setIsCalculating(true);
+            const timer = setTimeout(() => {
+              setIsCalculating(false);
+              setShowResult(true);
+            }, 1200);
+            return () => clearTimeout(timer);
           }
         }
       } catch (e) {

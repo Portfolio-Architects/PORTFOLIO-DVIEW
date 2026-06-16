@@ -12,6 +12,8 @@ import PullToRefresh from '@/components/pwa/PullToRefresh';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
+import { localCache } from '@/lib/utils/localCache';
+import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -646,9 +648,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     // Record viewed history for AI recommendation engine
     if (typeof window !== 'undefined') {
       try {
-        const history = JSON.parse(localStorage.getItem('dview_viewed_apts') || '[]');
+        const history = localCache.get('dview_viewed_apts', ViewedAptsSchema, []);
         const updated = [apt.name, ...history.filter((h: string) => h !== apt.name)].slice(0, 10);
-        localStorage.setItem('dview_viewed_apts', JSON.stringify(updated));
+        localCache.set('dview_viewed_apts', updated, 604800); // 7 days TTL
         window.dispatchEvent(new Event('dview_viewed_apts_changed'));
       } catch (e) {
         console.warn('LocalStorage write error:', e);
