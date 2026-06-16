@@ -684,6 +684,61 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
+  const handleOpenAdModal = useCallback(() => {
+    setIsAdModalOpen(true);
+  }, []);
+
+  const handleOpenCompare = useCallback((aptName?: string) => {
+    setCompareInitialApt(aptName);
+    setIsCompareOpen(true);
+  }, []);
+
+  const handleOpenJeonseSafety = useCallback((aptName?: string) => {
+    setJeonseSafetyInitialApt(aptName);
+    setIsJeonseSafetyOpen(true);
+  }, []);
+
+  const handleOpenMortgage = useCallback((aptName?: string) => {
+    setMortgageInitialApt(aptName);
+    setIsMortgageOpen(true);
+  }, []);
+
+  const handleOpenTaxCalculator = useCallback((aptName?: string) => {
+    setTaxCalcInitialApt(aptName);
+    setIsTaxCalcOpen(true);
+  }, []);
+
+  const handleOpenSellTimingCalculator = useCallback((aptName?: string) => {
+    setSellTimingInitialApt(aptName);
+    setIsSellTimingOpen(true);
+  }, []);
+
+  const handleCloseMobileModal = useCallback(() => {
+    setSelectedReport(null);
+    setMobileModalOpen(false);
+    
+    const currentHash = window.location.hash;
+    if (currentHash.includes('post=')) {
+      const postMatch = currentHash.match(/#post=([^&]+)/);
+      if (postMatch) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + `#post=${postMatch[1]}`);
+        return;
+      }
+    }
+    
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }, [setSelectedReport]);
+
+  const handleCommentChange = useCallback((text: string) => {
+    if (!resolvedReport) return;
+    setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }));
+  }, [resolvedReport?.id, setCommentInput]);
+
+  const handleSubmitCommentCallback = useCallback(() => {
+    if (!resolvedReport) return;
+    handleSubmitComment(resolvedReport.id);
+  }, [resolvedReport?.id, handleSubmitComment]);
+
   const handleAptToggleFavorite = useCallback((aptName: string) => {
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
     if (user && !userFavorites.has(aptName)) {
@@ -902,49 +957,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 favoriteCounts={favoriteCounts}
                 recent7DaysVolume={recent7DaysVolume}
                 typeMap={typeMap}
-                onOpenAdModal={() => setIsAdModalOpen(true)}
-                onOpenCompare={() => {
-                  setCompareInitialApt(undefined);
-                  setIsCompareOpen(true);
-                }}
-                onOpenJeonseSafety={(aptName) => {
-                  setJeonseSafetyInitialApt(aptName);
-                  setIsJeonseSafetyOpen(true);
-                }}
-                onOpenMortgage={(aptName) => {
-                  setMortgageInitialApt(aptName);
-                  setIsMortgageOpen(true);
-                }}
-                onOpenTaxCalculator={(aptName) => {
-                  setTaxCalcInitialApt(aptName);
-                  setIsTaxCalcOpen(true);
-                }}
-                onOpenSellTimingCalculator={(aptName) => {
-                  setSellTimingInitialApt(aptName);
-                  setIsSellTimingOpen(true);
-                }}
-                onSelectApt={(name: string) => {
-                  userHasSelected.current = true;
-                  const report = fieldReportsMap.get(name);
-                  if (report) {
-                    setSelectedReport(report);
-                  } else {
-                    const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                    setSelectedReport({
-                      id: `stub-${name.replace(/\s+/g, '')}`,
-                      apartmentName: name,
-                      dong: targetApt.dong,
-                      author: '',
-                      likes: 0,
-                      commentCount: 0,
-                      createdAt: null,
-                      metrics: { ...targetApt } as any,
-                    });
-                  }
-                  // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
-                  History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                  setMobileModalOpen(true);
-                }}
+                onOpenAdModal={handleOpenAdModal}
+                onOpenCompare={handleOpenCompare}
+                onOpenJeonseSafety={handleOpenJeonseSafety}
+                onOpenMortgage={handleOpenMortgage}
+                onOpenTaxCalculator={handleOpenTaxCalculator}
+                onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+                onSelectApt={handleAptClickByName}
               />
             )}
           </ErrorBoundary>
@@ -981,39 +1000,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   publicRentalSet={publicRentalSet}
                   fieldReportsMap={fieldReportsMap}
                   userFavorites={userFavorites || new Set()}
-                  onSelectApt={(name: string) => {
-                    userHasSelected.current = true;
-                    const report = fieldReportsMap.get(name);
-                    if (report) {
-                      setSelectedReport(report);
-                    } else {
-                      const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                      setSelectedReport({
-                        id: `stub-${name.replace(/\s+/g, '')}`,
-                        apartmentName: name,
-                        dong: targetApt.dong,
-                        author: '',
-                        likes: 0,
-                        commentCount: 0,
-                        createdAt: null,
-                        metrics: { ...targetApt } as any,
-                      });
-                    }
-                    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                    setMobileModalOpen(true);
-                  }}
-                  onOpenTaxCalculator={(aptName) => {
-                    setTaxCalcInitialApt(aptName);
-                    setIsTaxCalcOpen(true);
-                  }}
-                  onOpenMortgage={(aptName) => {
-                    setMortgageInitialApt(aptName);
-                    setIsMortgageOpen(true);
-                  }}
-                  onOpenSellTimingCalculator={(aptName: string) => {
-                    setSellTimingInitialApt(aptName);
-                    setIsSellTimingOpen(true);
-                  }}
+                  onSelectApt={handleAptClickByName}
+                  onOpenTaxCalculator={handleOpenTaxCalculator}
+                  onOpenMortgage={handleOpenMortgage}
+                  onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
                 />
 
                 <ChopoomaCuration
@@ -1022,27 +1012,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   nameMapping={nameMapping || {}}
                   publicRentalSet={publicRentalSet}
                   locationScores={locationScores}
-                  onSelectApt={(name: string) => {
-                    userHasSelected.current = true;
-                    const report = fieldReportsMap.get(name);
-                    if (report) {
-                      setSelectedReport(report);
-                    } else {
-                      const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                      setSelectedReport({
-                        id: `stub-${name.replace(/\s+/g, '')}`,
-                        apartmentName: name,
-                        dong: targetApt.dong,
-                        author: '',
-                        likes: 0,
-                        commentCount: 0,
-                        createdAt: null,
-                        metrics: { ...targetApt } as any,
-                      });
-                    }
-                    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                    setMobileModalOpen(true);
-                  }}
+                  onSelectApt={handleAptClickByName}
                 />
 
                 <GapInvestmentExplorer
@@ -1050,28 +1020,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   txSummaryData={txSummary}
                   nameMapping={nameMapping || {}}
                   publicRentalSet={publicRentalSet}
-                  onSelectApt={(name: string) => {
-                    userHasSelected.current = true;
-                    const report = fieldReportsMap.get(name);
-                    if (report) {
-                      setSelectedReport(report);
-                    } else {
-                      const targetApt = Object.values(sheetApartments).flat().find(a => a.name === name) || { name, dong: '' } as any;
-                      setSelectedReport({
-                        id: `stub-${name.replace(/\s+/g, '')}`,
-                        apartmentName: name,
-                        dong: targetApt.dong,
-                        author: '',
-                        likes: 0,
-                        commentCount: 0,
-                        createdAt: null,
-                        metrics: { ...targetApt } as any,
-                      });
-                    }
-                    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(name)}`);
-                    setMobileModalOpen(true);
-                  }}
-                  onOpenAdModal={() => setIsAdModalOpen(true)}
+                  onSelectApt={handleAptClickByName}
+                  onOpenAdModal={handleOpenAdModal}
                 />
 
                 <LocalEventCuration 
@@ -1098,25 +1048,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         {resolvedReport && mobileModalOpen && (
           <FieldReportModal
             report={resolvedReport}
-            onClose={() => {
-              setSelectedReport(null);
-              setMobileModalOpen(false);
-              
-              const currentHash = window.location.hash;
-              if (currentHash.includes('post=')) {
-                const postMatch = currentHash.match(/#post=([^&]+)/);
-                if (postMatch) {
-                  window.history.replaceState(null, '', window.location.pathname + window.location.search + `#post=${postMatch[1]}`);
-                  return;
-                }
-              }
-              
-              window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            }}
+            onClose={handleCloseMobileModal}
             comments={commentsData[resolvedReport.id] || []}
             commentInput={commentInput[resolvedReport.id] || ''}
-            onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
-            onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
+            onCommentChange={handleCommentChange}
+            onSubmitComment={handleSubmitCommentCallback}
             user={user}
             transactions={modalTransactions}
             isTxLoading={isTxLoading}
@@ -1126,29 +1062,14 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             loadAllTransactions={loadAllTransactions}
             isAdmin={dashboardFacade.isAdmin(user?.email)}
             txSummary={aptTxSummary}
-            onOpenAdModal={() => setIsAdModalOpen(true)}
+            onOpenAdModal={handleOpenAdModal}
             onOpenConsumerAdModal={handleOpenConsumerAdModal}
             onRequestLogin={handleRequestLogin}
-            onOpenCompare={(aptName) => {
-              setCompareInitialApt(aptName);
-              setIsCompareOpen(true);
-            }}
-            onOpenJeonseSafety={(aptName) => {
-              setJeonseSafetyInitialApt(aptName);
-              setIsJeonseSafetyOpen(true);
-            }}
-            onOpenMortgage={(aptName) => {
-              setMortgageInitialApt(aptName);
-              setIsMortgageOpen(true);
-            }}
-            onOpenTaxCalculator={(aptName) => {
-              setTaxCalcInitialApt(aptName);
-              setIsTaxCalcOpen(true);
-            }}
-            onOpenSellTimingCalculator={(aptName) => {
-              setSellTimingInitialApt(aptName);
-              setIsSellTimingOpen(true);
-            }}
+            onOpenCompare={handleOpenCompare}
+            onOpenJeonseSafety={handleOpenJeonseSafety}
+            onOpenMortgage={handleOpenMortgage}
+            onOpenTaxCalculator={handleOpenTaxCalculator}
+            onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
           />
         )}
 
