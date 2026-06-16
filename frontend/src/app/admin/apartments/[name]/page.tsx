@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import useSWR from 'swr';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
@@ -101,7 +101,7 @@ function NumField({ label, value, unit, placeholder, onChange }: {
   );
 }
 
-export default function ApartmentInfoPage() {
+const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
   const router = useRouter();
   const params = useParams();
   const originalName = decodeURIComponent(params.name as string);
@@ -1078,4 +1078,8 @@ export default function ApartmentInfoPage() {
       )}
     </div>
   );
-}
+});
+
+ApartmentInfoPage.displayName = 'ApartmentInfoPage';
+
+export default ApartmentInfoPage;
