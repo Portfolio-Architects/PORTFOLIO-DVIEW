@@ -35,6 +35,15 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
   const [thumbnailPreview, setThumbnailPreview] = useState<string>(initialData?.thumbnailUrl || '');
   const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
 
+  // Clean up thumbnailPreview object URL to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(thumbnailPreview);
+      }
+    };
+  }, [thumbnailPreview]);
+
   const methods = useForm<FormValues>({
     defaultValues: initialData || {
       dong: lockedMeta?.dong || '',
