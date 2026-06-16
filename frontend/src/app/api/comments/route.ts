@@ -6,6 +6,15 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const CommentCreateSchema = z.object({
   text: z.string().min(1).max(500),
   authorUid: z.string().min(1),
@@ -38,6 +47,8 @@ export async function POST(req: Request) {
     }
 
     const { text, authorUid, authorName, postId, reportId } = parsed.data;
+    const sanitizedText = escapeHtml(text);
+    const sanitizedAuthorName = escapeHtml(authorName || '익명');
 
     // Determine target collection and doc ref
     if (postId) {
@@ -48,8 +59,8 @@ export async function POST(req: Request) {
       }
 
       const commentRef = await postRef.collection('comments').add({
-        text,
-        authorName: authorName || '익명',
+        text: sanitizedText,
+        authorName: sanitizedAuthorName,
         authorUid,
         createdAt: Timestamp.now()
       });
@@ -69,8 +80,8 @@ export async function POST(req: Request) {
       }
 
       const commentRef = await reportRef.collection('comments').add({
-        text,
-        authorName: authorName || '익명',
+        text: sanitizedText,
+        authorName: sanitizedAuthorName,
         authorUid,
         createdAt: Timestamp.now()
       });
