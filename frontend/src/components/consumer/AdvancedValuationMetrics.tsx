@@ -118,6 +118,20 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const [commuteDest, setCommuteDest] = useState<'gangnam' | 'pangyo' | 'samseong'>('gangnam');
   const [isCopiedCommute, setIsCopiedCommute] = useState(false);
 
+  const copiedScenarioTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const copiedCommuteTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedScenarioTimeoutRef.current) {
+        clearTimeout(copiedScenarioTimeoutRef.current);
+      }
+      if (copiedCommuteTimeoutRef.current) {
+        clearTimeout(copiedCommuteTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // 1. 단지별 출퇴근 시간 및 교통 프리미엄 계산
   const commuteAnalysis = useMemo(() => {
     if (!report || !report.metrics) {
@@ -386,9 +400,12 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
 본 리포트는 D-VIEW 밸류에이션 엔진으로 작성되었습니다.`;
 
+    if (copiedScenarioTimeoutRef.current) {
+      clearTimeout(copiedScenarioTimeoutRef.current);
+    }
     navigator.clipboard.writeText(reportText).then(() => {
       setIsCopiedScenario(true);
-      setTimeout(() => setIsCopiedScenario(false), 2000);
+      copiedScenarioTimeoutRef.current = setTimeout(() => setIsCopiedScenario(false), 2000);
     }).catch(err => {
       console.error('시나리오 복사 실패:', err);
     });
@@ -632,9 +649,12 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 가치 반영: ${premiumText} (60분선 대비 ${commuteAnalysis.savedTime}분 단축)
 
 D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과입니다.`;
+                        if (copiedCommuteTimeoutRef.current) {
+                          clearTimeout(copiedCommuteTimeoutRef.current);
+                        }
                         navigator.clipboard.writeText(reportText).then(() => {
                           setIsCopiedCommute(true);
-                          setTimeout(() => setIsCopiedCommute(false), 2000);
+                          copiedCommuteTimeoutRef.current = setTimeout(() => setIsCopiedCommute(false), 2000);
                         });
                       }}
                       className={`w-full py-2.5 rounded-xl font-bold text-[12.5px] transition-all text-center cursor-pointer border ${
