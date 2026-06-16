@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Building2, User, MessageSquare } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -9,7 +9,7 @@ interface AdInquiryModalProps {
   onClose: () => void;
 }
 
-export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
+const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiryModalProps) {
   const [companyName, setCompanyName] = useState('');
   const [contactInfo, setContactInfo] = useState('');
   const [message, setMessage] = useState('');
@@ -162,4 +162,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
       </div>
     </div>
   );
-}
+});
+
+AdInquiryModal.displayName = 'AdInquiryModal';
+export default AdInquiryModal;

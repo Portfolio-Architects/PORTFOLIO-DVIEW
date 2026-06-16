@@ -430,7 +430,7 @@ const TossApartmentExploreClientPropsSchema = z.object({
   typeMap: z.record(z.string(), z.any()),
 });
 
-export default function TossApartmentExploreClient({
+const TossApartmentExploreClient = React.memo(function TossApartmentExploreClient({
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -1297,7 +1297,7 @@ export default function TossApartmentExploreClient({
 
     </div>
   );
-}
+});
 
 function SidebarItem({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) {
   return (
@@ -1329,3 +1329,6 @@ function MobileSidebarItem({ label, active, onClick }: { label: string, active: 
     </button>
   );
 }
+
+TossApartmentExploreClient.displayName = 'TossApartmentExploreClient';
+export default TossApartmentExploreClient;

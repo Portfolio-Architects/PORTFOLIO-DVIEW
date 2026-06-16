@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Calendar, Eye, Share, Building2, ExternalLink } from 'lucide-react';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
@@ -19,7 +19,7 @@ interface LocalEventCurationProps {
   onSelectApt: (name: string) => void;
 }
 
-export default function LocalEventCuration({ txSummaryData, onSelectApt }: LocalEventCurationProps) {
+const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryData, onSelectApt }: LocalEventCurationProps) {
   const [shareStatus, setShareStatus] = useState<'copied' | 'shared' | null>(null);
   const [noticeCopiedId, setNoticeCopiedId] = useState<string | null>(null);
 
@@ -479,4 +479,7 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
       </div>
     </div>
   );
-}
+});
+
+LocalEventCuration.displayName = 'LocalEventCuration';
+export default LocalEventCuration;
