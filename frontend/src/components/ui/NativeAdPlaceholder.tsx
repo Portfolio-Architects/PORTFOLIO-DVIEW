@@ -41,8 +41,8 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 px-4">
               <div className="w-full flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full animate-shimmer" />
-                  <div className="h-3 w-28 rounded animate-shimmer" />
+                  <div className="w-5 h-5 rounded-full animate-shimmer" style={{ willChange: 'background-position' }} />
+                  <div className="h-3 w-28 rounded animate-shimmer" style={{ willChange: 'background-position' }} />
                 </div>
                 <span className="text-[9px] font-bold text-tertiary">DVIEW 추천 광고주 매칭 중...</span>
               </div>
@@ -61,9 +61,9 @@ export function NativeAdPlaceholder({ location, onClick, metrics, adSlot, isComp
         {adStatus === 'loading' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0 p-4">
             <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-              <div className="w-10 h-10 rounded-full animate-shimmer" />
-              <div className="h-3.5 w-40 rounded animate-shimmer" />
-              <div className="h-3 w-56 rounded animate-shimmer" />
+              <div className="w-10 h-10 rounded-full animate-shimmer" style={{ willChange: 'background-position' }} />
+              <div className="h-3.5 w-40 rounded animate-shimmer" style={{ willChange: 'background-position' }} />
+              <div className="h-3 w-56 rounded animate-shimmer" style={{ willChange: 'background-position' }} />
               <span className="text-[10px] font-bold text-tertiary mt-1">DVIEW 안전 추천 광고주 매칭 중...</span>
             </div>
           </div>
