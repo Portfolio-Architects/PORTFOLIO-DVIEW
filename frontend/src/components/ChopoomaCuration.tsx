@@ -27,6 +27,7 @@ export default function ChopoomaCuration({
   const [selectedStepIndex, setSelectedStepIndex] = useState<number>(3); // Default to '전체 (300m)'
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const shareTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -40,10 +41,12 @@ export default function ChopoomaCuration({
     }
 
     navigator.clipboard.writeText(shareUrl).then(() => {
-      setIsCopied(true);
-      shareTimeoutRef.current = setTimeout(() => {
-        setIsCopied(false);
-      }, 2000);
+      if (mountedRef.current) {
+        setIsCopied(true);
+        shareTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setIsCopied(false);
+        }, 2000);
+      }
     }).catch(err => {
       console.error('Failed to copy URL:', err);
     });
@@ -51,7 +54,9 @@ export default function ChopoomaCuration({
 
   // Clean up timer on unmount to prevent memory leaks
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (shareTimeoutRef.current) {
         clearTimeout(shareTimeoutRef.current);
       }

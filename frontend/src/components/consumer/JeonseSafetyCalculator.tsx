@@ -76,9 +76,12 @@ export default function JeonseSafetyCalculator({
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const calculateTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
@@ -315,8 +318,12 @@ export default function JeonseSafetyCalculator({
       clearTimeout(copyTimeoutRef.current);
     }
     navigator.clipboard.writeText(text).then(() => {
-      setIsCopied(true);
-      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
+      if (mountedRef.current) {
+        setIsCopied(true);
+        copyTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setIsCopied(false);
+        }, 2000);
+      }
     });
   };
 

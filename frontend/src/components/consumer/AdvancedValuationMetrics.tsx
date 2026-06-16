@@ -121,9 +121,12 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
   const copiedScenarioTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const copiedCommuteTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copiedScenarioTimeoutRef.current) {
         clearTimeout(copiedScenarioTimeoutRef.current);
       }
@@ -408,8 +411,12 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
       clearTimeout(copiedScenarioTimeoutRef.current);
     }
     navigator.clipboard.writeText(reportText).then(() => {
-      setIsCopiedScenario(true);
-      copiedScenarioTimeoutRef.current = setTimeout(() => setIsCopiedScenario(false), 2000);
+      if (mountedRef.current) {
+        setIsCopiedScenario(true);
+        copiedScenarioTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setIsCopiedScenario(false);
+        }, 2000);
+      }
     }).catch(err => {
       console.error('시나리오 복사 실패:', err);
     });
@@ -657,8 +664,12 @@ D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과�
                           clearTimeout(copiedCommuteTimeoutRef.current);
                         }
                         navigator.clipboard.writeText(reportText).then(() => {
-                          setIsCopiedCommute(true);
-                          copiedCommuteTimeoutRef.current = setTimeout(() => setIsCopiedCommute(false), 2000);
+                          if (mountedRef.current) {
+                            setIsCopiedCommute(true);
+                            copiedCommuteTimeoutRef.current = setTimeout(() => {
+                              if (mountedRef.current) setIsCopiedCommute(false);
+                            }, 2000);
+                          }
                         });
                       }}
                       className={`w-full py-2.5 rounded-xl font-bold text-[12.5px] transition-all text-center cursor-pointer border ${

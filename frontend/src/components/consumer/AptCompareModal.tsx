@@ -236,9 +236,12 @@ export default function AptCompareModal({
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
@@ -950,8 +953,12 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
       clearTimeout(copyTimeoutRef.current);
     }
     navigator.clipboard.writeText(text).then(() => {
-      setIsCopied(true);
-      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
+      if (mountedRef.current) {
+        setIsCopied(true);
+        copyTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setIsCopied(false);
+        }, 2000);
+      }
     });
   };
 

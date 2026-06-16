@@ -42,9 +42,12 @@ export default function B2BConsumerAdModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
   }, []);
@@ -94,15 +97,19 @@ export default function B2BConsumerAdModal({
           createdAt: serverTimestamp()
         });
       }
-      setIsSuccess(true);
-      successTimeoutRef.current = setTimeout(() => {
-        onClose();
-      }, 2500);
+      if (mountedRef.current) {
+        setIsSuccess(true);
+        successTimeoutRef.current = setTimeout(() => {
+          onClose();
+        }, 2500);
+      }
     } catch (error) {
       console.error('Error submitting B2B Lead:', error);
       alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
-      setIsSubmitting(false);
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 

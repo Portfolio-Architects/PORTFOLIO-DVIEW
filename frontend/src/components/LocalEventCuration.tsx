@@ -25,9 +25,12 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
 
   const noticeCopyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const shareTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (noticeCopyTimeoutRef.current) {
         clearTimeout(noticeCopyTimeoutRef.current);
       }
@@ -47,11 +50,15 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText((notice.url || '').trim());
-      setNoticeCopiedId(notice.id);
-      if (noticeCopyTimeoutRef.current) {
-        clearTimeout(noticeCopyTimeoutRef.current);
+      if (mountedRef.current) {
+        setNoticeCopiedId(notice.id);
+        if (noticeCopyTimeoutRef.current) {
+          clearTimeout(noticeCopyTimeoutRef.current);
+        }
+        noticeCopyTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setNoticeCopiedId(null);
+        }, 2000);
       }
-      noticeCopyTimeoutRef.current = setTimeout(() => setNoticeCopiedId(null), 2000);
     } catch (err) {
       console.error('Failed to copy notice link:', err);
     }
@@ -74,16 +81,24 @@ export default function LocalEventCuration({ txSummaryData, onSelectApt }: Local
           text: shareText,
           url: shareUrl,
         });
-        setShareStatus('shared');
-        shareTimeoutRef.current = setTimeout(() => setShareStatus(null), 2000);
+        if (mountedRef.current) {
+          setShareStatus('shared');
+          shareTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) setShareStatus(null);
+          }, 2000);
+        }
       } catch (err) {
         console.error("Curation share failed:", err);
       }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        setShareStatus('copied');
-        shareTimeoutRef.current = setTimeout(() => setShareStatus(null), 2000);
+        if (mountedRef.current) {
+          setShareStatus('copied');
+          shareTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) setShareStatus(null);
+          }, 2000);
+        }
       } catch (err) {
         console.error("Failed to copy link:", err);
       }

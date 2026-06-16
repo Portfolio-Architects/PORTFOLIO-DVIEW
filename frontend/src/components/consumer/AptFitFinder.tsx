@@ -149,9 +149,12 @@ export default function AptFitFinder({
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const shareTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = React.useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (shareTimeoutRef.current) {
         clearTimeout(shareTimeoutRef.current);
       }
@@ -217,8 +220,12 @@ export default function AptFitFinder({
       clearTimeout(shareTimeoutRef.current);
     }
     navigator.clipboard.writeText(shareUrl).then(() => {
-      setIsCopied(true);
-      shareTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
+      if (mountedRef.current) {
+        setIsCopied(true);
+        shareTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) setIsCopied(false);
+        }, 2000);
+      }
     }).catch(err => {
       console.error('Failed to copy share link:', err);
     });
