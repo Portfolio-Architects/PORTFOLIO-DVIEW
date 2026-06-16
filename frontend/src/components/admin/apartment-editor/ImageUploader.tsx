@@ -24,7 +24,7 @@ interface ImageUploaderProps {
   clearPhotos: () => void;
 }
 
-export function ImageUploader({
+export const ImageUploader = React.memo(function ImageUploader({
   photos,
   setPhotos,
   isDragging,
@@ -217,4 +217,6 @@ export function ImageUploader({
       </div>
     </div>
   );
-}
+});
+
+ImageUploader.displayName = 'ImageUploader';

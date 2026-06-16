@@ -107,7 +107,7 @@ function calculateUtilityScoreV2(report: FieldReportData, overrideScore: number 
   return { total: adjustedTotal, breakDown, logs, rawScore: adjustedTotal, isCapped: false, maxTotal };
 }
 
-export default function AdvancedValuationMetrics({ report, transactions, txSummaryData = {} }: Props) {
+const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ report, transactions, txSummaryData = {} }: Props) {
   const [isValuationModalOpen, setIsValuationModalOpen] = useState(false);
   const [isScoreAccordionOpen, setIsScoreAccordionOpen] = useState(false);
   const [macroConfig, setMacroConfig] = useState(MACRO_CONFIG.macroEnvironment);
@@ -1439,4 +1439,7 @@ D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과�
       )}
     </div>
   );
-}
+});
+
+AdvancedValuationMetrics.displayName = 'AdvancedValuationMetrics';
+export default AdvancedValuationMetrics;

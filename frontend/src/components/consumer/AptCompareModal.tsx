@@ -190,7 +190,7 @@ function getEffectiveMetrics(
   };
 }
 
-export default function AptCompareModal({
+const AptCompareModal = React.memo(function AptCompareModal({
   isOpen,
   onClose,
   initialAptName,
@@ -1724,4 +1724,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
       </div>
     </div>
   );
-}
+});
+
+AptCompareModal.displayName = 'AptCompareModal';
+export default AptCompareModal;

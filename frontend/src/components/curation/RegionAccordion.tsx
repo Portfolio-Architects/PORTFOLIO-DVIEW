@@ -90,7 +90,7 @@ interface GroupedCategory {
   avgPyeongPrice?: number;
 }
 
-export function RegionAccordion({
+export const RegionAccordion = React.memo(function RegionAccordion({
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -488,6 +488,7 @@ export function RegionAccordion({
       </div>
     </div>
   );
-}
+});
 
+RegionAccordion.displayName = 'RegionAccordion';
 export default RegionAccordion;
