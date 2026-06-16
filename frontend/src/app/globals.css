@@ -81,7 +81,6 @@
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;
     --text-tertiary: #9ca3af;
-    --toss-blue: #00d29d;
     --toss-blue-light: #003829;
     --toss-red: #ef4444;
     --toss-green: #10b981;
@@ -142,14 +141,6 @@
 }
 
 @layer utilities {
-  .toss-card {
-    background: var(--bg-surface);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-card);
-    padding: 24px;
-    transition: box-shadow var(--transition-speed);
-  }
-
   .btn-primary {
     background: var(--toss-blue);
     color: white;
@@ -163,10 +154,10 @@
     background: #00b386;
   }
 
-  .tag-traffic, .tag-teal { background: #e0fbf4; color: var(--toss-blue); }
-  .tag-realestate, .tag-red { background: #fce4e4; color: var(--toss-red); }
-  .tag-edu, .tag-green { background: #e8f5e9; color: var(--toss-green); }
-  .tag-culture, .tag-orange { background: #fff3e0; color: #ff9800; }
+  .tag-traffic { background: #e0fbf4; color: var(--toss-blue); }
+  .tag-realestate { background: #fce4e4; color: var(--toss-red); }
+  .tag-edu { background: #e8f5e9; color: var(--toss-green); }
+  .tag-culture { background: #fff3e0; color: #ff9800; }
 
   @keyframes tooltip-spring {
     0% {
