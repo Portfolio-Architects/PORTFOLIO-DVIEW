@@ -7,7 +7,7 @@ interface ScoutingReportDetailSectionProps {
   inline?: boolean;
 }
 
-export default function ScoutingReportDetailSection({
+const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSection({
   report,
   inline = false,
 }: ScoutingReportDetailSectionProps) {
@@ -169,4 +169,7 @@ export default function ScoutingReportDetailSection({
       </section>
     </div>
   );
-}
+});
+
+ScoutingReportDetailSection.displayName = 'ScoutingReportDetailSection';
+export default ScoutingReportDetailSection;

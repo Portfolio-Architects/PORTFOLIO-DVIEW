@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import React, { useTransition } from 'react';
 import { Sparkles, Shield, GraduationCap, Brush, ExternalLink } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -17,7 +17,7 @@ interface ContextualB2BAdBannerProps {
   onOpenConsumerAdModal?: (adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => void;
 }
 
-export default function ContextualB2BAdBanner({
+const ContextualB2BAdBanner = React.memo(function ContextualB2BAdBanner({
   apartmentName,
   dong,
   yearBuilt,
@@ -140,4 +140,7 @@ export default function ContextualB2BAdBanner({
       </button>
     </div>
   );
-}
+});
+
+ContextualB2BAdBanner.displayName = 'ContextualB2BAdBanner';
+export default ContextualB2BAdBanner;

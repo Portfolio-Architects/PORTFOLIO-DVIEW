@@ -10,7 +10,7 @@ interface ApartmentSpecsSectionProps {
   onClose: () => void;
 }
 
-export default function ApartmentSpecsSection({
+const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
   report,
   inline = false,
   managerPost,
@@ -125,4 +125,7 @@ export default function ApartmentSpecsSection({
       )}
     </section>
   );
-}
+});
+
+ApartmentSpecsSection.displayName = 'ApartmentSpecsSection';
+export default ApartmentSpecsSection;

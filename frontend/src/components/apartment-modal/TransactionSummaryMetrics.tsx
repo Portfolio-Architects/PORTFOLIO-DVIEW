@@ -30,7 +30,7 @@ interface TransactionSummaryMetricsProps {
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
 }
 
-export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap }: TransactionSummaryMetricsProps) {
+export const TransactionSummaryMetrics = React.memo(function TransactionSummaryMetrics({ transactions, apartmentName, typeMap }: TransactionSummaryMetricsProps) {
   const { areaUnit } = useSettingsValues();
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
   const [showPriceHelp, setShowPriceHelp] = useState(false);
@@ -324,4 +324,6 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
       </div>
     </div>
   );
-}
+});
+
+TransactionSummaryMetrics.displayName = 'TransactionSummaryMetrics';

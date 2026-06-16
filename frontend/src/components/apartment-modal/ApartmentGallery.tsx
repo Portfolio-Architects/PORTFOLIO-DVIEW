@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 
-export function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptName }: {
+export const ApartmentGallery = React.memo(function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptName }: {
   images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string; uploaderName?: string}[];
   tags: string[];
   tagLabels: Record<string, string>;
@@ -92,4 +92,6 @@ export function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptNam
       )}
     </div>
   );
-}
+});
+
+ApartmentGallery.displayName = 'ApartmentGallery';

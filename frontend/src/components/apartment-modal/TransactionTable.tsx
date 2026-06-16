@@ -33,7 +33,7 @@ interface TransactionTableProps {
   normalizeAptName: (name: string) => string;
 }
 
-export function TransactionTable({
+export const TransactionTable = React.memo(function TransactionTable({
   transactions,
   typeMap,
   chartType,
@@ -206,7 +206,9 @@ export function TransactionTable({
       )}
     </div>
   );
-}
+});
+
+TransactionTable.displayName = 'TransactionTable';
 
 interface TransactionRowProps {
   tx: TransactionRecord;

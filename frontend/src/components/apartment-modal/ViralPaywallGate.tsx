@@ -7,7 +7,7 @@ interface ViralPaywallGateProps {
   onAlternativeUnlock?: () => void;
 }
 
-export default function ViralPaywallGate({ shareCount, onShare, onAlternativeUnlock }: ViralPaywallGateProps) {
+const ViralPaywallGate = React.memo(function ViralPaywallGate({ shareCount, onShare, onAlternativeUnlock }: ViralPaywallGateProps) {
   const percent = Math.min(100, (shareCount / 3) * 100);
 
   // 공유 횟수에 따른 동적 응원 메시지
@@ -94,4 +94,7 @@ export default function ViralPaywallGate({ shareCount, onShare, onAlternativeUnl
       </div>
     </div>
   );
-}
+});
+
+ViralPaywallGate.displayName = 'ViralPaywallGate';
+export default ViralPaywallGate;
