@@ -1075,5 +1075,7 @@ const autoLinkApartments = (content: string, apartments: string[]): string => {
   return finalContent;
 };
 
+LoungeDetailClient.displayName = 'LoungeDetailClient';
+
 export default LoungeDetailClient;
 
