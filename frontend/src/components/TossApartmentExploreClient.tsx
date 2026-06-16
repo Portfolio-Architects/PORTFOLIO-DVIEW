@@ -75,6 +75,13 @@ const InteractiveHeart = memo(({
 }) => {
   const [localFavorited, setLocalFavorited] = useState(isFavorited);
   const [animate, setAnimate] = useState(false);
+  const animateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (animateTimeoutRef.current) clearTimeout(animateTimeoutRef.current);
+    };
+  }, []);
 
   // 상위 상태와 동기화
   useEffect(() => {
@@ -86,7 +93,7 @@ const InteractiveHeart = memo(({
     setLocalFavorited(prev => !prev);
     setAnimate(true);
     onToggle(name);
-    setTimeout(() => setAnimate(false), 300);
+    animateTimeoutRef.current = setTimeout(() => setAnimate(false), 300);
   };
 
   return (
@@ -441,6 +448,13 @@ export default function TossApartmentExploreClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [visibleCount, setVisibleCount] = useState(15);
+  const searchFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchFocusTimeoutRef.current) clearTimeout(searchFocusTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const parsedProps = TossApartmentExploreClientPropsSchema.safeParse({
@@ -858,7 +872,9 @@ export default function TossApartmentExploreClient({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+              onBlur={() => {
+                searchFocusTimeoutRef.current = setTimeout(() => setIsSearchFocused(false), 200);
+              }}
               role="searchbox"
               aria-label="단지명 검색"
               className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
