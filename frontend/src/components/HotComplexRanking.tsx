@@ -6,7 +6,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import { FieldReportData } from '@/lib/types/report.types';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 
 
 interface HotComplexRankingProps {
@@ -26,7 +26,7 @@ export default function HotComplexRanking({
   txSummaryData,
   nameMapping,
 }: HotComplexRankingProps) {
-  const { areaUnit } = useSettings();
+  const { areaUnit } = useSettingsValues();
   const [visibleCount, setVisibleCount] = useState(5);
 
   // Compute recent transaction complexes (Sorted by Date desc, then Price desc)

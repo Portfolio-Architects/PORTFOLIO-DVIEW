@@ -10,16 +10,20 @@ type Theme = 'light' | 'dark' | 'system';
 const AreaUnitSchema = z.enum(['m2', 'pyeong']);
 const ThemeSchema = z.enum(['light', 'dark', 'system']);
 
-interface SettingsContextType {
+interface SettingsValueContextType {
   areaUnit: AreaUnit;
   setAreaUnit: (unit: AreaUnit) => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+}
+
+interface SettingsUiContextType {
   isSettingsModalOpen: boolean;
   setIsSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+const SettingsValueContext = React.createContext<SettingsValueContextType | undefined>(undefined);
+const SettingsUiContext = React.createContext<SettingsUiContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [areaUnit, setAreaUnitState] = useState<AreaUnit>('m2');
@@ -121,16 +125,38 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <SettingsContext.Provider value={{ areaUnit, setAreaUnit, theme, setTheme, isSettingsModalOpen, setIsSettingsModalOpen }}>
-      {children}
-    </SettingsContext.Provider>
+    <SettingsValueContext.Provider value={{ areaUnit, setAreaUnit, theme, setTheme }}>
+      <SettingsUiContext.Provider value={{ isSettingsModalOpen, setIsSettingsModalOpen }}>
+        {children}
+      </SettingsUiContext.Provider>
+    </SettingsValueContext.Provider>
   );
 }
 
-export function useSettings() {
-  const context = useContext(SettingsContext);
+export function useSettingsValues() {
+  const context = React.useContext(SettingsValueContext);
   if (context === undefined) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    throw new Error('useSettingsValues must be used within a SettingsProvider');
   }
   return context;
+}
+
+export function useSettingsUi() {
+  const context = React.useContext(SettingsUiContext);
+  if (context === undefined) {
+    throw new Error('useSettingsUi must be used within a SettingsProvider');
+  }
+  return context;
+}
+
+export function useSettings() {
+  const valueContext = React.useContext(SettingsValueContext);
+  const uiContext = React.useContext(SettingsUiContext);
+  if (valueContext === undefined || uiContext === undefined) {
+    throw new Error('useSettings must be used within a SettingsProvider');
+  }
+  return {
+    ...valueContext,
+    ...uiContext,
+  };
 }

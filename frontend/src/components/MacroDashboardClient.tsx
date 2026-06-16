@@ -28,7 +28,7 @@ import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transacti
 import type { FieldReportData } from "@/lib/types/report.types";
 import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from "@/lib/utils/apartmentMapping";
 import { haversineDistance } from "@/lib/utils/haversine";
-import { useSettings } from "@/lib/contexts/SettingsContext";
+import { useSettingsValues } from "@/lib/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
@@ -353,7 +353,7 @@ export default function MacroDashboardClient({
   typeMap = {},
   updateFavoriteOrder,
 }: MacroDashboardProps) {
-  const { areaUnit } = useSettings();
+  const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
   const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);

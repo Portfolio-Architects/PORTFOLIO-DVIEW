@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 
 interface TransactionRecord {
   dong: string;
@@ -31,7 +31,7 @@ interface TransactionSummaryMetricsProps {
 }
 
 export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap }: TransactionSummaryMetricsProps) {
-  const { areaUnit } = useSettings();
+  const { areaUnit } = useSettingsValues();
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');

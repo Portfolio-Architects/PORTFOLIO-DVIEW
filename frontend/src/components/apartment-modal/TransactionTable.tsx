@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -39,7 +39,7 @@ export function TransactionTable({
   chartType,
   normalizeAptName
 }: TransactionTableProps) {
-  const { areaUnit } = useSettings();
+  const { areaUnit } = useSettingsValues();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
   // 화면 너비 감지 (반응형 상태)

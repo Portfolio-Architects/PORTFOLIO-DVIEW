@@ -57,7 +57,7 @@ const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModa
   safeReload('PhotoUploadModal');
   return () => null;
 }), { ssr: false });
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
 const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
   console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
@@ -307,7 +307,7 @@ function FieldReportModal({
   isTxLoading?: boolean;
 }) {
   useSwipeNavigation({ onBack: onClose });
-  const { areaUnit, setAreaUnit } = useSettings();
+  const { areaUnit, setAreaUnit } = useSettingsValues();
   const { showToast } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);

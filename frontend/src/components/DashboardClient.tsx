@@ -9,7 +9,7 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 
 import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
@@ -704,7 +704,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     return [...fieldReports];
   }, [fieldReports, selectedDong]);
 
-  const { areaUnit } = useSettings();
+  const { areaUnit } = useSettingsValues();
 
   const rawApts = useMemo(() => {
     return selectedDong 

@@ -14,7 +14,7 @@ import {
   ReferenceArea
 } from 'recharts';
 import { TransactionRecord } from './TransactionTable';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import SegmentedControl from '../ui/SegmentedControl';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
@@ -41,7 +41,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   normalizeAptName,
   txSummary
 }: TransactionChartSectionProps) {
-  const { areaUnit, setAreaUnit } = useSettings();
+  const { areaUnit, setAreaUnit } = useSettingsValues();
 
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
