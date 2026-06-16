@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Copy, ExternalLink, Compass, AlertTriangle } from 'lucide-react';
 
 export default function InAppBrowserBypass() {
@@ -21,6 +21,15 @@ export default function InAppBrowserBypass() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [redirectFailed, setRedirectFailed] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+    };
+  }, []);
 
   const safeBypassRedirect = (url: string) => {
     const start = Date.now();
@@ -34,7 +43,8 @@ export default function InAppBrowserBypass() {
     
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
-    const timer = setTimeout(() => {
+    if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+    redirectTimeoutRef.current = setTimeout(() => {
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       if (!hasRedirected && Date.now() - start < 2000) {
         console.warn('Deep link redirect failed or app not installed');
@@ -46,7 +56,9 @@ export default function InAppBrowserBypass() {
       window.location.href = url;
     } catch (err) {
       console.error('Deep link schema navigation exception caught:', err);
-      clearTimeout(timer);
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       setRedirectFailed(true);
     }
@@ -140,7 +152,8 @@ export default function InAppBrowserBypass() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
         setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
         return;
       }
     } catch (e) {
@@ -160,7 +173,8 @@ export default function InAppBrowserBypass() {
       document.body.removeChild(textArea);
       if (successful) {
         setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
       } else {
         alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
       }
