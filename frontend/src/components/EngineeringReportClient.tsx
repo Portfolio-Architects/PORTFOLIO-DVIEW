@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
@@ -24,6 +24,15 @@ interface Props {
 export default function EngineeringReportClient({ metadata, markdownContent, contentRef }: Props) {
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleExportPDF = async () => {
     if (!contentRef?.current) return;
@@ -53,7 +62,10 @@ export default function EngineeringReportClient({ metadata, markdownContent, con
     try {
       await navigator.clipboard.writeText(markdownContent);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Copy failed', err);
       alert('복사에 실패했습니다.');
