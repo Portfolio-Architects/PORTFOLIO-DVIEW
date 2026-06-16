@@ -149,16 +149,23 @@ export default function LoungeComposeClient({ currentTab, onRequestLogin }: Prop
   };
 
   useEffect(() => {
+    let active = true;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!active) return;
       setUser(currentUser);
       if (currentUser) {
         const profile = await UserRepo.getOrCreateProfile(currentUser.uid);
-        setUserProfile(profile);
+        if (active) {
+          setUserProfile(profile);
+        }
       } else {
         setUserProfile(null);
       }
     });
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const handleLogin = async () => {

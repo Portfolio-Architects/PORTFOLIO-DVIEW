@@ -35,10 +35,16 @@ export default function ZoneDetailPage() {
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    let active = true;
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      if (active) {
+        setUser(currentUser);
+      }
     });
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const handleSelectReport = (report: FieldReportData) => {

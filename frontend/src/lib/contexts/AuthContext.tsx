@@ -48,18 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let mounted = true;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!mounted) return;
       setUser(currentUser);
       if (currentUser) {
         // Parallelize session cookie synchronization and Firestore data loading to eliminate network waterfall
         const cookiePromise = currentUser.getIdToken()
-          .then((idToken) =>
-            fetch('/api/auth/session', {
+          .then((idToken) => {
+            if (!mounted) return;
+            return fetch('/api/auth/session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ idToken })
-            })
-          )
+            });
+          })
           .catch((cookieErr) => {
             logger.warn('AuthProvider.onAuthStateChanged', 'Failed to set session cookie', {}, cookieErr);
           });
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           dashboardFacade.getUserProfile(currentUser.uid),
           UserRepo.getOrCreateProfile(currentUser.uid)
         ]).then(([profile, up]) => {
+          if (!mounted) return;
           const normalizedProfile = profile;
           if (normalizedProfile) {
             const parsedAnon = AnonProfileSchema.safeParse(normalizedProfile);
@@ -107,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         await Promise.all([cookiePromise, dataPromise]);
       } else {
+        if (!mounted) return;
         setAnonProfile(null);
         setUserProfile(null);
         try { localStorage.removeItem('dview_is_admin'); } catch (e) { /* noop */ }
@@ -118,10 +123,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           logger.warn('AuthProvider.onAuthStateChanged', 'Failed to clear session cookie', {}, cookieErr);
         }
       }
-      setIsLoading(false);
+      if (mounted) {
+        setIsLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const handleLogin = async () => {

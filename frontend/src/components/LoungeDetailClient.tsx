@@ -124,14 +124,21 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
 
   // Auth
   useEffect(() => {
+    let active = true;
     const unsub = onAuthStateChanged(auth, async (u) => {
+      if (!active) return;
       setUser(u);
       if (u) {
         const profile = await UserRepo.getOrCreateProfile(u.uid);
-        setUserProfile(profile);
+        if (active) {
+          setUserProfile(profile);
+        }
       }
     });
-    return () => unsub();
+    return () => {
+      active = false;
+      unsub();
+    };
   }, []);
 
   useEffect(() => {

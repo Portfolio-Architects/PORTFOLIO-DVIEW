@@ -81,6 +81,8 @@ export default function WriteFieldReport() {
 
   // -- Auth guard --
   useEffect(() => {
+    let active = true;
+
     // Dev mode: skip auth entirely
     if (process.env.NODE_ENV === 'development') {
       setUser({ uid: 'dev-user', email: 'dev@localhost' } as User);
@@ -88,6 +90,7 @@ export default function WriteFieldReport() {
     }
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!active) return;
       if (!currentUser) {
         alert("로그인이 필요한 페이지입니다.");
         router.push('/');
@@ -98,7 +101,10 @@ export default function WriteFieldReport() {
         setUser(currentUser);
       }
     });
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, [router]);
 
   // -- Draft Recovery Check --

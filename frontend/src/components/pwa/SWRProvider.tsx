@@ -55,6 +55,7 @@ export default function SWRProvider({ children }: { children: ReactNode }) {
   return (
     <SWRConfig
       value={{
+        provider: () => new Map(),
         revalidateOnFocus: isOnline,
         revalidateOnReconnect: isOnline,
         shouldRetryOnError: isOnline,

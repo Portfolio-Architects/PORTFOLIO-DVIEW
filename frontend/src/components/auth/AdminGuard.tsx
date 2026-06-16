@@ -14,6 +14,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   );
 
   useEffect(() => {
+    let mounted = true;
+
     // Dev mode: skip auth entirely
     if (process.env.NODE_ENV === 'development') {
       localStorage.setItem('dview_is_admin', 'true');
@@ -21,6 +23,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!mounted) return;
       if (!user) {
         setIsAuthorized(false);
         localStorage.removeItem('dview_is_admin');
@@ -31,6 +34,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       try {
         // Force refresh the token to get the latest custom claims
         const idTokenResult = await user.getIdTokenResult(true);
+        if (!mounted) return;
         if (idTokenResult.claims.admin === true) {
           setIsAuthorized(true);
           localStorage.setItem('dview_is_admin', 'true');
@@ -41,6 +45,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
           router.push('/');
         }
       } catch (error) {
+        if (!mounted) return;
         console.error("Error fetching token claims:", error);
         setIsAuthorized(false);
         localStorage.removeItem('dview_is_admin');
@@ -48,7 +53,10 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, [router, pathname]);
 
   if (isAuthorized === null) {
