@@ -235,6 +235,15 @@ export default function AptCompareModal({
   // Chart type: 'sale' (매매) vs 'jeonse' (전세)
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
   const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Quiz integration states
   const [quizAnswers, setQuizAnswers] = useState<any>(null);
@@ -917,9 +926,12 @@ ${apt2Label} 우세 항목: ${score.apt2}개
 
 D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보세요.`;
 
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
