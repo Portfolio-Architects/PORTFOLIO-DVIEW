@@ -16,9 +16,12 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
   }, []);
@@ -36,15 +39,21 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
         status: 'pending',
         createdAt: serverTimestamp(),
       });
-      setIsSuccess(true);
+      if (mountedRef.current) {
+        setIsSuccess(true);
+      }
       successTimeoutRef.current = setTimeout(() => {
-        onClose();
+        if (mountedRef.current) {
+          onClose();
+        }
       }, 2000);
     } catch (error) {
       console.error('Error submitting inquiry:', error);
       alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
-      setIsSubmitting(false);
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   };  return (
     <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>

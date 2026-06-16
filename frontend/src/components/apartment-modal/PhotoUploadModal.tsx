@@ -39,9 +39,12 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
   const [mounted, setMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
   }, []);
@@ -110,20 +113,27 @@ export function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, 
         uploaderName,
       });
       
-      setIsSuccess(true);
+      if (mountedRef.current) {
+        setIsSuccess(true);
+      }
+      
       successTimeoutRef.current = setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-        setFile(null);
-        setPreviewUrl(null);
-        setCaption('');
+        if (mountedRef.current) {
+          onClose();
+          setIsSuccess(false);
+          setFile(null);
+          setPreviewUrl(null);
+          setCaption('');
+        }
       }, 2000);
       
     } catch (error) {
       console.error('Upload failed:', error);
       alert('업로드 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
-      setIsUploading(false);
+      if (mountedRef.current) {
+        setIsUploading(false);
+      }
     }
   };
 
