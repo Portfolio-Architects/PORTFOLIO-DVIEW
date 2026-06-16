@@ -13,6 +13,15 @@ interface LoginGateModalProps {
 export default function LoginGateModal({ isOpen, onClose, message, onLogin }: LoginGateModalProps) {
   const [isInApp, setIsInApp] = React.useState(false);
   const [copySuccess, setCopySuccess] = React.useState(false);
+  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || !isOpen) return;
@@ -32,7 +41,8 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
         setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
         return;
       }
     } catch (e) {
@@ -52,7 +62,8 @@ export default function LoginGateModal({ isOpen, onClose, message, onLogin }: Lo
       document.body.removeChild(textArea);
       if (successful) {
         setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
       }
     } catch (err) {
       alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
