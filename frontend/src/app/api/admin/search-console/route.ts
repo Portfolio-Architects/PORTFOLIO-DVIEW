@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     logger.error('SearchConsoleAPI.GET', 'Failed to fetch Search Console status', {}, error as Error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal Server Error' },
+      { success: false, error: 'Failed to fetch search console status' },
       { status: 500 }
     );
   }

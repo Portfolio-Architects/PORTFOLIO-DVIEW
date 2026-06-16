@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     logger.error('IndexingAPI.POST', 'Error during Google Indexing request', {}, error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal Server Error' },
+      { success: false, error: 'Failed to request indexing' },
       { status: 500 }
     );
   }
