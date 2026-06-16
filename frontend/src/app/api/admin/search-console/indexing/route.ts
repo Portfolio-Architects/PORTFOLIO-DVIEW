@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
 
+export const dynamic = 'force-dynamic';
+
 const IndexingInputSchema = z.object({
   url: z.string().url(),
   action: z.enum(['URL_UPDATED', 'URL_DELETED']).optional().default('URL_UPDATED'),
