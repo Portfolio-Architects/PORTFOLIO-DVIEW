@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { usePathname, useSearchParams } from 'next/navigation';
 
@@ -83,6 +83,18 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   // Cache expiration fallback state
   const [showCacheExpiredModal, setShowCacheExpiredModal] = useState(false);
   const [expiredCacheUrl, setExpiredCacheUrl] = useState<string | null>(null);
+
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const installRewardTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pushSupportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
+      if (pushSupportTimeoutRef.current) clearTimeout(pushSupportTimeoutRef.current);
+    };
+  }, []);
 
   // 🔧 Nextjs-Toploader 진행바 잔존 DOM 노드 강제 청소 (router.events 소거 가드 보강)
   useEffect(() => {
@@ -216,7 +228,8 @@ export function PWAProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
 
       setToastMessage('🎉 홈화면 앱 설치 감사 혜택! 무료 리포트 조회권 3회가 지급되었습니다.');
-      setTimeout(() => {
+      if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
+      installRewardTimeoutRef.current = setTimeout(() => {
         if (isMounted) {
           setToastMessage(null);
         }
@@ -228,7 +241,8 @@ export function PWAProvider({ children }: { children: ReactNode }) {
 
     // 2. Web Push Support Check
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
-      setTimeout(() => {
+      if (pushSupportTimeoutRef.current) clearTimeout(pushSupportTimeoutRef.current);
+      pushSupportTimeoutRef.current = setTimeout(() => {
         if (isMounted) setIsPushSupported(true);
       }, 0);
       // Check existing subscription
@@ -342,7 +356,8 @@ export function PWAProvider({ children }: { children: ReactNode }) {
 
   const showToast = (message: string) => {
     setToastMessage(message);
-    setTimeout(() => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
       setToastMessage((prev) => (prev === message ? null : prev));
     }, 3000);
   };
