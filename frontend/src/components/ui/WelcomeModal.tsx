@@ -4,14 +4,32 @@
 import React, { useState, useEffect } from 'react';
 import { Compass, ShieldCheck, Map, ArrowRight, X } from 'lucide-react';
 
+function getCookie(name: string): string {
+  if (typeof document === 'undefined') return '';
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || '';
+  return '';
+}
+
+function setCookie(name: string, value: string, days: number): void {
+  if (typeof document === 'undefined') return;
+  const date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  const expires = `; expires=${date.toUTCString()}`;
+  document.cookie = `${name}=${value || ''}${expires}; path=/; SameSite=Lax; Secure`;
+}
+
 export default function WelcomeModal() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const seen = localStorage.getItem('dview-welcome-seen');
-        if (seen !== 'true') {
+        const seenLocal = localStorage.getItem('dview-welcome-seen');
+        const seenCookie = getCookie('dview-welcome-seen');
+        
+        if (seenLocal !== 'true' && seenCookie !== 'true') {
           // Trigger the modal after 1.5 seconds to ensure smooth hydration and layout loading
           const timer = setTimeout(() => {
             setIsOpen(true);
@@ -19,7 +37,14 @@ export default function WelcomeModal() {
           return () => clearTimeout(timer);
         }
       } catch (e) {
-        console.warn('localStorage is unavailable:', e);
+        console.warn('localStorage is unavailable, checking cookie fallback:', e);
+        const seenCookie = getCookie('dview-welcome-seen');
+        if (seenCookie !== 'true') {
+          const timer = setTimeout(() => {
+            setIsOpen(true);
+          }, 1500);
+          return () => clearTimeout(timer);
+        }
       }
     }
   }, []);
@@ -29,7 +54,12 @@ export default function WelcomeModal() {
     try {
       localStorage.setItem('dview-welcome-seen', 'true');
     } catch (err) {
-      console.warn('Failed to save welcome popup state:', err);
+      console.warn('Failed to save welcome popup state to localStorage:', err);
+    }
+    try {
+      setCookie('dview-welcome-seen', 'true', 365);
+    } catch (err) {
+      console.warn('Failed to save welcome popup state to cookie:', err);
     }
     setIsOpen(false);
   };
