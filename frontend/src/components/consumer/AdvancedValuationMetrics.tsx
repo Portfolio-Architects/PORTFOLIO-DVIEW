@@ -120,6 +120,7 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
 
   const copiedScenarioTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const copiedCommuteTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
@@ -128,6 +129,9 @@ export default function AdvancedValuationMetrics({ report, transactions, txSumma
       }
       if (copiedCommuteTimeoutRef.current) {
         clearTimeout(copiedCommuteTimeoutRef.current);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
     };
   }, []);
@@ -725,7 +729,7 @@ D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과�
                           <button 
                             onClick={() => {
                               setIsScoreAccordionOpen(true);
-                              setTimeout(() => {
+                              scrollTimeoutRef.current = setTimeout(() => {
                                 document.getElementById('utility-score-section')?.scrollIntoView({ behavior: 'smooth' });
                               }, 50);
                             }}
