@@ -238,16 +238,21 @@ export default function AdminDashboard() {
       const res = await fetch('/api/cron/sync-transactions');
       const data = await res.json();
       
+      if (!mountedRef.current) return;
       if (res.ok) {
         alert(`동기화 완료!\n- 추가된 데이터: ${data.synced}건`);
       } else {
         throw new Error(data.error || 'Unknown error');
       }
     } catch (e: any) {
-      console.error('Sync error:', e);
-      alert('동기화 중 오류가 발생했습니다: ' + e.message);
+      if (mountedRef.current) {
+        console.error('Sync error:', e);
+        alert('동기화 중 오류가 발생했습니다: ' + e.message);
+      }
     } finally {
-      setIsSyncing(false);
+      if (mountedRef.current) {
+        setIsSyncing(false);
+      }
     }
   };
 
@@ -259,16 +264,21 @@ export default function AdminDashboard() {
       const res = await fetch('/api/cron/sync-local-notices');
       const data = await res.json();
       
+      if (!mountedRef.current) return;
       if (res.ok) {
         alert(`동기화 완료!\n- 수집된 소식: ${data.scrapedCount || 0}건\n- 저장된 소식: ${data.writtenCount || 0}건`);
       } else {
         throw new Error(data.error || 'Unknown error');
       }
     } catch (e: any) {
-      console.error('Notice sync error:', e);
-      alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
+      if (mountedRef.current) {
+        console.error('Notice sync error:', e);
+        alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
+      }
     } finally {
-      setIsNoticeSyncing(false);
+      if (mountedRef.current) {
+        setIsNoticeSyncing(false);
+      }
     }
   };
 
@@ -286,6 +296,7 @@ export default function AdminDashboard() {
     try {
       while (hasMore) {
         const res = await fetch(`/api/admin/sync-reports?offset=${offset}&limit=${limit}`);
+        if (!mountedRef.current) return;
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || `HTTP error ${res.status}`);
@@ -304,11 +315,15 @@ export default function AdminDashboard() {
       
       alert(`리포트 동기화 완료!\n- 동기화된 리포트: ${totalUpdated}건`);
     } catch (e: any) {
-      console.error('Reports sync error:', e);
-      alert('리포트 동기화 중 오류가 발생했습니다: ' + e.message);
+      if (mountedRef.current) {
+        console.error('Reports sync error:', e);
+        alert('리포트 동기화 중 오류가 발생했습니다: ' + e.message);
+      }
     } finally {
-      setIsReportsSyncing(false);
-      setReportsSyncProgress({ current: 0, total: 0 });
+      if (mountedRef.current) {
+        setIsReportsSyncing(false);
+        setReportsSyncProgress({ current: 0, total: 0 });
+      }
     }
   };
 
@@ -322,6 +337,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       const sheetMap: MetaMap = {};
       
+      if (!mountedRef.current) return;
       if (data.byDong) {
         for (const [dong, apts] of Object.entries(data.byDong)) {
           (apts as Record<string, unknown>[]).forEach(apt => {
@@ -351,10 +367,14 @@ export default function AdminDashboard() {
       });
       alert('Google Sheets 데이터를 성공적으로 가져왔습니다!\n변경 사항을 저장하려면 하단의 "저장하기" 버튼을 눌러주세요.');
     } catch (e: any) {
-      console.error('Sheets sync error:', e);
-      alert('동기화 중 오류가 발생했습니다: ' + e.message);
+      if (mountedRef.current) {
+        console.error('Sheets sync error:', e);
+        alert('동기화 중 오류가 발생했습니다: ' + e.message);
+      }
     } finally {
-      setIsSheetsSyncing(false);
+      if (mountedRef.current) {
+        setIsSheetsSyncing(false);
+      }
     }
   };
 
@@ -480,6 +500,7 @@ export default function AdminDashboard() {
       }
       await setDoc(doc(db, FIRESTORE_DOC), clean);
 
+      if (!mountedRef.current) return;
       // Re-sync initial state to current state
       setInitialMeta(JSON.parse(JSON.stringify(meta)));
       setDeletedApts(new Set());
@@ -491,8 +512,10 @@ export default function AdminDashboard() {
         }, 2000);
       }
     } catch (e: unknown) {
-      console.error('Save failed:', e);
-      alert('저장에 실패했습니다: ' + (e as Error).message);
+      if (mountedRef.current) {
+        console.error('Save failed:', e);
+        alert('저장에 실패했습니다: ' + (e as Error).message);
+      }
     } finally {
       if (mountedRef.current) {
         setSaving(false);
