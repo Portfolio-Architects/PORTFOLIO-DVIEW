@@ -10,7 +10,9 @@ import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { DONGS } from '@/lib/dongs';
 import { Building, Save, Home, Link2, ChevronLeft, MapPin, Trash2 } from 'lucide-react';
 import { ScoutingReport, ImageMeta, PhotoItem } from '@/lib/types/scoutingReport';
-import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
+import { createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
+import { uploadImage } from '@/lib/services/storage.service';
+
 import { extractCapturedDate } from '@/lib/utils/exif';
 import { getPremiumScoresAction } from '@/app/actions/scoring';
 import { ImageUploader } from '@/components/admin/apartment-editor/ImageUploader';

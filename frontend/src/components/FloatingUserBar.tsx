@@ -7,7 +7,8 @@ import { User } from 'firebase/auth';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
 import { Settings, UserCircle, Edit3, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
-import { uploadImage } from '@/lib/services/reportService';
+import { uploadImage } from '@/lib/services/storage.service';
+
 import { DEFAULT_AVATARS } from '@/lib/types/user.types';
 import { useSettings } from '@/lib/contexts/SettingsContext';
 import Image from 'next/image';
@@ -236,7 +237,7 @@ export default function FloatingUserBar() {
                     }
                     setIsSavingProfile(true);
                     try {
-                      let photoURL = anonProfile?.photoURL;
+                      let photoURL: string = anonProfile?.photoURL || '';
                       if (profilePhotoFile) {
                         photoURL = await uploadImage(profilePhotoFile, `profiles/${user.uid}`);
                         await dashboardFacade.updatePhotoURL(user.uid, photoURL);
@@ -244,6 +245,7 @@ export default function FloatingUserBar() {
                         photoURL = profilePhotoPreview;
                         await dashboardFacade.updatePhotoURL(user.uid, photoURL);
                       }
+
                       await dashboardFacade.updateNickname(user.uid, editNickname);
                       updateLocalAnonProfile({ nickname: editNickname, photoURL });
                       setShowProfileModal(false);

@@ -1,12 +1,12 @@
-import { db, storage } from '@/lib/firebaseConfig';
+import { db } from '@/lib/firebaseConfig';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
-import { compressImage } from '@/lib/utils/imageCompression';
+import { uploadImage } from '@/lib/services/storage.service';
 import type { ReportSections } from '@/lib/types/report.types';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
+
 
 // ── Zod Schemas ─────────────────────────────────────
 
@@ -107,19 +107,7 @@ export const CreateFieldReportInputSchema = z.object({
   })),
 });
 
-/**
- * Uploads an image file to Firebase Storage and returns its download URL.
- */
-export async function uploadImage(file: File, folderPath: string): Promise<string> {
-  const ext = file.name.split('.').pop();
-  const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
-  const storageRef = ref(storage, `${folderPath}/${uniqueName}`);
 
-  const compressed = await compressImage(file);
-  const snapshot = await uploadBytes(storageRef, compressed);
-  const downloadURL = await getDownloadURL(snapshot.ref);
-  return downloadURL;
-}
 
 /**
  * Saves the fully constructed Scouting Report to Firestore.
@@ -206,14 +194,10 @@ export async function createFieldReport(
     const batch = validated.data.imageEntries.slice(i, i + BATCH_SIZE);
     const results = await Promise.all(batch.map(async ({ file, category }) => {
       try {
-        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const { storage } = await import('@/lib/firebaseConfig');
-        
-        const compressed = await compressImage(file);
-        const storageRef = ref(storage, `field_reports/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, compressed);
-        const downloadUrl = await getDownloadURL(snapshot.ref);
+        const { uploadImage } = await import('@/lib/services/storage.service');
+        const downloadUrl = await uploadImage(file, 'field_reports');
         done++;
+
         onProgress?.(done, total);
         return { url: downloadUrl, category };
       } catch (storageError) {

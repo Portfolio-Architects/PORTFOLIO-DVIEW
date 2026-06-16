@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, Upload, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from 'lucide-react';
 import { db } from '@/lib/firebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { uploadImage } from '@/lib/services/reportService';
+import { uploadImage } from '@/lib/services/storage.service';
+
 import Image from 'next/image';
 import type { User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';

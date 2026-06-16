@@ -3,7 +3,9 @@
 import { FormProvider, useForm } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
+import { createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
+import { uploadImage } from '@/lib/services/storage.service';
+
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'next/navigation';
 import { getPremiumScoresAction } from '@/app/actions/scoring';

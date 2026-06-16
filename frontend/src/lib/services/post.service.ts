@@ -3,15 +3,14 @@
  * @description Business logic for creating posts (orchestrates profile, upload, persistence).
  * Architecture Layer: Service (orchestration of repositories)
  */
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage, db } from '@/lib/firebaseConfig';
+import { db } from '@/lib/firebaseConfig';
 import { collection, query, where, getDocs, updateDoc, doc, limit, serverTimestamp } from 'firebase/firestore';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import { logger } from '@/lib/services/logger';
-import { compressImage } from '@/lib/utils/imageCompression';
 import { z } from 'zod';
+
 
 // ── Zod Schemas ─────────────────────────────────────
 
@@ -74,12 +73,10 @@ export async function createPost(
     // 2. Upload image if provided
     let imageUrl: string | null = null;
     if (imageFile) {
-      const compressed = await compressImage(imageFile);
-      const storageRef = ref(storage, `posts/${Date.now()}_${imageFile.name}`);
-      const snapshot = await uploadBytes(storageRef, compressed);
-      imageUrl = await getDownloadURL(snapshot.ref);
-      logger.info('PostService.createPost', 'Image uploaded', { imageUrl });
+      const { uploadImage } = await import('@/lib/services/storage.service');
+      imageUrl = await uploadImage(imageFile, 'posts');
     }
+
 
     // 3. Persist to Firestore (include apartment verification if present)
     const isUserAdmin = isAdmin(authorEmail);
