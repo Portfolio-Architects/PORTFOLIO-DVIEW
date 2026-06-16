@@ -51,7 +51,7 @@ function getEstimatedMaxPrice3Y(apt: DongApartment, txSummaryData: Record<string
   return Math.round(current * 1.18); // Default fallback estimate
 }
 
-export default function SellTimingCalculator({
+const SellTimingCalculator = React.memo(function SellTimingCalculator({
   isOpen,
   onClose,
   initialAptName,
@@ -829,4 +829,7 @@ export default function SellTimingCalculator({
       </div>
     </div>
   );
-}
+});
+
+SellTimingCalculator.displayName = 'SellTimingCalculator';
+export default SellTimingCalculator;

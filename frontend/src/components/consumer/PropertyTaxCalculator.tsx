@@ -36,7 +36,7 @@ function getEstimatedMarketPrice(apt: DongApartment, txSummaryData: Record<strin
   return 55000;
 }
 
-export default function PropertyTaxCalculator({
+const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   isOpen,
   onClose,
   initialAptName,
@@ -765,4 +765,7 @@ export default function PropertyTaxCalculator({
       </div>
     </div>
   );
-}
+});
+
+PropertyTaxCalculator.displayName = 'PropertyTaxCalculator';
+export default PropertyTaxCalculator;

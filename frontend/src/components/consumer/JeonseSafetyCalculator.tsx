@@ -38,7 +38,7 @@ function getEstimatedMarketPrice(apt: DongApartment, txSummaryData: Record<strin
   return 55000; // 일반
 }
 
-export default function JeonseSafetyCalculator({
+const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   isOpen,
   onClose,
   initialAptName,
@@ -750,4 +750,7 @@ export default function JeonseSafetyCalculator({
       </div>
     </div>
   );
-}
+});
+
+JeonseSafetyCalculator.displayName = 'JeonseSafetyCalculator';
+export default JeonseSafetyCalculator;

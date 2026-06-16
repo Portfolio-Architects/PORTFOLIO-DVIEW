@@ -62,7 +62,7 @@ function calculateAcquisitionCost(price: number) {
   };
 }
 
-export default function MortgageCalculator({
+const MortgageCalculator = React.memo(function MortgageCalculator({
   isOpen,
   onClose,
   initialAptName,
@@ -1030,4 +1030,7 @@ export default function MortgageCalculator({
       </div>
     </div>
   );
-}
+});
+
+MortgageCalculator.displayName = 'MortgageCalculator';
+export default MortgageCalculator;
