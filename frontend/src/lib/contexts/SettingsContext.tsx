@@ -31,6 +31,28 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // Helper to safely access localStorage (handles SecurityError when cookies/localStorage are disabled)
+  const safeGetItem = (key: string): string | null => {
+    try {
+      if (typeof window === 'undefined') return null;
+      return window.localStorage.getItem(key);
+    } catch (e) {
+      logger.warn('SettingsProvider.safeGetItem', 'localStorage getItem failed due to security or sandbox restriction', { key }, e as Error);
+      return null;
+    }
+  };
+
+  const safeSetItem = (key: string, value: string): boolean => {
+    try {
+      if (typeof window === 'undefined') return false;
+      window.localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      logger.warn('SettingsProvider.safeSetItem', 'localStorage setItem failed due to security or sandbox restriction', { key, value }, e as Error);
+      return false;
+    }
+  };
+
   // 1. Safely apply theme to HTML element class (with SSR/SSG safety guards)
   const applyTheme = (targetTheme: Theme) => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -60,7 +82,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     
     // Restore area unit
     try {
-      const storedArea = localStorage.getItem('dtdls-area-unit');
+      const storedArea = safeGetItem('dtdls-area-unit');
       const parsedArea = AreaUnitSchema.safeParse(storedArea);
       if (parsedArea.success) {
         setAreaUnitState(parsedArea.data);
@@ -71,7 +93,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
     // Restore theme preference
     try {
-      const storedTheme = localStorage.getItem('dtdls-theme') || 'system';
+      const storedTheme = safeGetItem('dtdls-theme') || 'system';
       const parsedTheme = ThemeSchema.safeParse(storedTheme);
       const activeTheme = parsedTheme.success ? parsedTheme.data : 'system';
       setThemeState(activeTheme);
@@ -108,20 +130,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     applyTheme(newTheme);
-    try {
-      localStorage.setItem('dtdls-theme', newTheme);
-    } catch (e) {
-      logger.warn('SettingsProvider.setTheme', 'Failed to save theme to localStorage', { newTheme }, e as Error);
-    }
+    safeSetItem('dtdls-theme', newTheme);
   };
 
   const setAreaUnit = (unit: AreaUnit) => {
     setAreaUnitState(unit);
-    try {
-      localStorage.setItem('dtdls-area-unit', unit);
-    } catch (e) {
-      logger.warn('SettingsProvider.setAreaUnit', 'Failed to save areaUnit to localStorage', { unit }, e as Error);
-    }
+    safeSetItem('dtdls-area-unit', unit);
   };
 
   return (
