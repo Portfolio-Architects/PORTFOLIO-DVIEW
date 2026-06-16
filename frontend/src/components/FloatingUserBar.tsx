@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'firebase/auth';
@@ -28,6 +28,7 @@ export default function FloatingUserBar() {
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const mountedRef = useRef(true);
 
   const closeProfileModal = () => {
     setShowProfileModal(false);
@@ -40,7 +41,9 @@ export default function FloatingUserBar() {
 
   // Clean up object URL to prevent memory leaks
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (profilePhotoPreview && profilePhotoPreview.startsWith('blob:')) {
         URL.revokeObjectURL(profilePhotoPreview);
       }
@@ -271,7 +274,9 @@ export default function FloatingUserBar() {
                       console.error('Profile update failed:', err);
                       alert('프로필 수정에 실패했습니다.');
                     } finally {
-                      setIsSavingProfile(false);
+                      if (mountedRef.current) {
+                        setIsSavingProfile(false);
+                      }
                     }
                   }}
                   disabled={isSavingProfile || editNickname.length < 2 || editNickname.length > 10}

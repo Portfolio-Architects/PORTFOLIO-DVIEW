@@ -24,9 +24,12 @@ export default function InAppBrowserBypass() {
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const visibilityListenerRef = useRef<(() => void) | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
       if (visibilityListenerRef.current) {
@@ -60,7 +63,9 @@ export default function InAppBrowserBypass() {
       }
       if (!hasRedirected && Date.now() - start < 2000) {
         console.warn('Deep link redirect failed or app not installed');
-        setRedirectFailed(true);
+        if (mountedRef.current) {
+          setRedirectFailed(true);
+        }
       }
     }, 1500);
 
@@ -167,9 +172,13 @@ export default function InAppBrowserBypass() {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
-        setCopySuccess(true);
-        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
+        if (mountedRef.current) {
+          setCopySuccess(true);
+          if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+          copyTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) setCopySuccess(false);
+          }, 2000);
+        }
         return;
       }
     } catch (e) {
@@ -188,9 +197,13 @@ export default function InAppBrowserBypass() {
       const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
       if (successful) {
-        setCopySuccess(true);
-        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2000);
+        if (mountedRef.current) {
+          setCopySuccess(true);
+          if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+          copyTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) setCopySuccess(false);
+          }, 2000);
+        }
       } else {
         alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
       }

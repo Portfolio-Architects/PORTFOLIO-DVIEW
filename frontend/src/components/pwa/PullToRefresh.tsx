@@ -28,6 +28,7 @@ export default function PullToRefresh({
   const contentRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<number>(0);
   const isRefreshingRef = useRef<boolean>(false);
+  const mountedRef = useRef(true);
 
   // Sync state with refs for event listener stability
   useEffect(() => {
@@ -37,6 +38,13 @@ export default function PullToRefresh({
   useEffect(() => {
     isRefreshingRef.current = isRefreshing;
   }, [isRefreshing]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const getScrollTop = () => {
@@ -75,8 +83,10 @@ export default function PullToRefresh({
       if (startY.current === null) return;
       
       if (progressRef.current >= 100 && !isRefreshingRef.current) {
-        setIsRefreshing(true);
-        setPullProgress(100); // Lock it at 100% while refreshing
+        if (mountedRef.current) {
+          setIsRefreshing(true);
+          setPullProgress(100); // Lock it at 100% while refreshing
+        }
         
         try {
           if (onRefresh) {
@@ -90,14 +100,18 @@ export default function PullToRefresh({
         } catch (error) {
           console.error("Refresh failed:", error);
         } finally {
-          setIsRefreshing(false);
-          setIsPulling(false);
-          setPullProgress(0);
+          if (mountedRef.current) {
+            setIsRefreshing(false);
+            setIsPulling(false);
+            setPullProgress(0);
+          }
           startY.current = null;
         }
       } else {
-        setIsPulling(false);
-        setPullProgress(0);
+        if (mountedRef.current) {
+          setIsPulling(false);
+          setPullProgress(0);
+        }
         startY.current = null;
       }
     };
