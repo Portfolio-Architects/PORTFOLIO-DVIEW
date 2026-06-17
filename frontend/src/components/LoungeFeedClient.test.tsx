@@ -96,18 +96,26 @@ describe('LoungeFeedClient Notice & Event Curation', () => {
     jest.clearAllMocks();
     
     // Mock fetch for notices
-    window.fetch = jest.fn().mockImplementation((url) => {
+    const mockFetchImpl = (url: string) => {
       if (url === '/api/local-notices') {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ notices: mockNotices, lastUpdated: '2026-06-07T15:00:00.000Z' }),
         });
       }
+      if (url === '/data/local-events.json') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+        });
+      }
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ posts: [] }),
       });
-    });
+    };
+    window.fetch = jest.fn().mockImplementation(mockFetchImpl);
+    global.fetch = window.fetch;
   });
 
   it('renders "동탄구 소식" tab correctly and switches sub-categories', async () => {
