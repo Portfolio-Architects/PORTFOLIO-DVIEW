@@ -1661,7 +1661,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   {item.displayAptName || item.aptName}
                                 </span>
                                 {item.type === 'high' && (
-                                  <span className="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-[#ffebed] text-[#ff4b5c] shrink-0 whitespace-nowrap animate-pulse">
+                                  <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-gradient-to-r from-[#ff4b5c] to-[#ff7b8b] text-white shadow-[0_0_8px_rgba(255,75,92,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                                     신고가
                                   </span>
                                 )}
@@ -1949,12 +1949,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               <div className="flex flex-col gap-3.5 flex-1 justify-start py-1.5 overflow-hidden">
                 {/* 1. 철도전략과 소식 */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
+                  <div className="text-[11.5px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d] shadow-[0_0_4px_rgba(0,210,157,0.4)]"></span>
                     철도전략과 소식
                   </div>
                   {railStrategyNotices.length === 0 ? (
-                    <div className="text-center py-4 text-tertiary text-[11px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
+                    <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
                       관련 공지사항이 없습니다.
                     </div>
                   ) : (
@@ -1971,13 +1971,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                           <div className="w-6 h-6 rounded-lg bg-[#00d29d]/10 text-[#00b386] flex items-center justify-center shrink-0">
                             <Train size={12} />
                           </div>
-                          <span className="text-[12.5px] font-bold text-primary group-hover/item:text-[#00d29d] transition-colors truncate" title={item.title}>
+                          <span className="text-[13px] font-bold text-primary group-hover/item:text-[#00d29d] transition-colors truncate" title={item.title}>
                             {item.title}
                           </span>
                         </div>
                         {/* Right: Date */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                          <span className="text-[11px] text-tertiary font-semibold w-[42px] text-right shrink-0">
                             {item.date.substring(5, 10).replace("-", "/")}
                           </span>
                         </div>
@@ -1991,12 +1991,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                 {/* 2. 트램건설추진단 소식 */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="text-[11px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
+                  <div className="text-[11.5px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]"></span>
                     트램건설추진단 소식
                   </div>
                   {tramNotices.length === 0 ? (
-                    <div className="text-center py-4 text-tertiary text-[11px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
+                    <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
                       관련 공지사항이 없습니다.
                     </div>
                   ) : (
@@ -2013,13 +2013,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                           <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                             <Train size={12} />
                           </div>
-                          <span className="text-[12.5px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
+                          <span className="text-[13px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
                             {item.title}
                           </span>
                         </div>
                         {/* Right: Date */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                          <span className="text-[11px] text-tertiary font-semibold w-[42px] text-right shrink-0">
                             {item.date.substring(5, 10).replace("-", "/")}
                           </span>
                         </div>

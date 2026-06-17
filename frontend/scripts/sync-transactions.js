@@ -410,6 +410,56 @@ async function main() {
       });
   });
 
+  // 아파트별로 수집된 로우 데이터의 중복을 먼저 제거하여 통계 및 신고가 판정 로직의 정합성을 확보합니다.
+  console.log('🧹 raw 거래 데이터 중복 제거 수행 중...');
+  const getRichnessScore = (item, isRent) => {
+    let score = 0;
+    const dt = item.dealType ? item.dealType.trim() : '';
+    if (dt && dt !== '' && dt !== '매매' && dt !== '전세' && dt !== '월세') {
+      score += 2;
+    }
+    if (item.reqGb && item.reqGb.trim() && item.reqGb.trim() !== '-') {
+      score += 1;
+    }
+    if (item.rnuYn && item.rnuYn.trim() && item.rnuYn.trim() !== '-') {
+      score += 1;
+    }
+    if (isRent && Number(item.price) > 0) {
+      score += 1;
+    }
+    return score;
+  };
+
+  for (const aptName of Object.keys(byApt)) {
+    const seen = new Map();
+    for (const t of byApt[aptName]) {
+      let normalizedDealType = t.dealType ? t.dealType.trim() : '';
+      if (normalizedDealType !== '전세' && normalizedDealType !== '월세') {
+        normalizedDealType = '매매';
+      }
+      const isRent = normalizedDealType === '전세' || normalizedDealType === '월세';
+      const cleanPrice = isRent ? 0 : (Number(t.price) || 0);
+      const cleanDeposit = isRent ? (Number(t.deposit) || 0) : 0;
+      const cleanRent = isRent ? (Number(t.monthlyRent) || 0) : 0;
+      const cleanDay = String(t.contractDay || '').trim().padStart(2, '0');
+      const cleanFloor = Number(t.floor) || 0;
+
+      const key = `${t.contractYm}_${cleanDay}_${cleanPrice}_${cleanDeposit}_${cleanRent}_${Math.round(t.area * 100) / 100}_${cleanFloor}_${normalizedDealType}`;
+
+      if (!seen.has(key)) {
+        seen.set(key, t);
+      } else {
+        const existing = seen.get(key);
+        const existingScore = getRichnessScore(existing, isRent);
+        const newScore = getRichnessScore(t, isRent);
+        if (newScore > existingScore) {
+          seen.set(key, t);
+        }
+      }
+    }
+    byApt[aptName] = Array.from(seen.values());
+  }
+
   // 아파트별 요약 계산
   const summaries = {};
   let aptCount = 0;
