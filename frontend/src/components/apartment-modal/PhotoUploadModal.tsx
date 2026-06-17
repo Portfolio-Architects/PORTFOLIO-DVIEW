@@ -99,6 +99,10 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
       
       // 2. Save to Firestore pending queue
       const uploaderName = user?.displayName || user?.email?.split('@')[0] || '익명';
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+        successTimeoutRef.current = null;
+      }
       await addDoc(collection(db, 'pending_photos'), {
         apartmentId,
         apartmentName,
@@ -113,11 +117,12 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         uploaderName,
       });
       
-      if (mountedRef.current) {
-        setIsSuccess(true);
+      if (!mountedRef.current) return;
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
       }
+      setIsSuccess(true);
       
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
       successTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           onClose();
@@ -125,6 +130,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
           setFile(null);
           setPreviewUrl(null);
           setCaption('');
+          successTimeoutRef.current = null;
         }
       }, 2000);
       

@@ -64,17 +64,21 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
   };
 
   const handleCopyMD = async () => {
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
+    }
     try {
       await navigator.clipboard.writeText(markdownContent);
-      if (mountedRef.current) {
-        setCopied(true);
-      }
+      if (!mountedRef.current) return;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
+      setCopied(true);
       copyTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           setCopied(false);
+          copyTimeoutRef.current = null;
         }
       }, 2000);
     } catch (err) {

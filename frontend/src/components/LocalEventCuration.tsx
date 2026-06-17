@@ -51,6 +51,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
 
     if (shareTimeoutRef.current) {
       clearTimeout(shareTimeoutRef.current);
+      shareTimeoutRef.current = null;
     }
 
     if (navigator.share) {
@@ -60,24 +61,34 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
           text: shareText,
           url: shareUrl,
         });
-        if (mountedRef.current) {
-          setShareStatus('shared');
-          shareTimeoutRef.current = setTimeout(() => {
-            if (mountedRef.current) setShareStatus(null);
-          }, 2000);
+        if (!mountedRef.current) return;
+        if (shareTimeoutRef.current) {
+          clearTimeout(shareTimeoutRef.current);
         }
+        setShareStatus('shared');
+        shareTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setShareStatus(null);
+            shareTimeoutRef.current = null;
+          }
+        }, 2000);
       } catch (err) {
         console.error("Curation share failed:", err);
       }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        if (mountedRef.current) {
-          setShareStatus('copied');
-          shareTimeoutRef.current = setTimeout(() => {
-            if (mountedRef.current) setShareStatus(null);
-          }, 2000);
+        if (!mountedRef.current) return;
+        if (shareTimeoutRef.current) {
+          clearTimeout(shareTimeoutRef.current);
         }
+        setShareStatus('copied');
+        shareTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setShareStatus(null);
+            shareTimeoutRef.current = null;
+          }
+        }, 2000);
       } catch (err) {
         console.error("Failed to copy link:", err);
       }

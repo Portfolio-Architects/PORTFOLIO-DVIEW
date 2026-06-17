@@ -30,6 +30,10 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
     e.preventDefault();
     if (!companyName.trim() || !contactInfo.trim() || !message.trim()) return;
     
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = null;
+    }
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, 'adInquiries'), {
@@ -39,13 +43,15 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
         status: 'pending',
         createdAt: serverTimestamp(),
       });
-      if (mountedRef.current) {
-        setIsSuccess(true);
+      if (!mountedRef.current) return;
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
       }
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      setIsSuccess(true);
       successTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           onClose();
+          successTimeoutRef.current = null;
         }
       }, 2000);
     } catch (error) {
