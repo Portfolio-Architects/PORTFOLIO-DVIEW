@@ -23,7 +23,7 @@ function log(color, message) {
 }
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
-const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\1431383b-b23f-43d1-92c1-0fc73cd58cf5';
+const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\a69b813e-9a02-44e6-b1f4-245a5f67bf3f';
 const TASK_MD_PATH = path.join(BRAIN_DIR, 'task.md');
 const HISTORY_JSON_PATH = path.join(BRAIN_DIR, 'scratch/loop-history.json');
 
@@ -114,12 +114,20 @@ function getHistory() {
         });
       }
 
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (!rawData.startTime || !rawData.startTime.startsWith(todayStr)) {
+        rawData.startTime = new Date().toISOString();
+        rawData.todayRunCount = 0;
+      }
+      if (rawData.todayRunCount === undefined) {
+        rawData.todayRunCount = 0;
+      }
       return rawData;
     }
   } catch (err) {
     log(colors.red, `⚠️ Failed to read loop history: ${err.message}`);
   }
-  return { phase: 0, failures: {}, currentTaskIndex: 0, completedTasks: [], history: [] };
+  return { phase: 0, failures: {}, currentTaskIndex: 0, completedTasks: [], history: [], startTime: new Date().toISOString(), todayRunCount: 0 };
 }
 
 // 3. Save Loop History
@@ -152,6 +160,9 @@ async function main() {
   performPreRunCleanups();
 
   const history = getHistory();
+  history.todayRunCount++;
+  log(colors.cyan, `🔥 Today Run Count: ${history.todayRunCount}`);
+
   history.phase++;
   log(colors.cyan, `📊 Current Phase: ${history.phase}`);
 

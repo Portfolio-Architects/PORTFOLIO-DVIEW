@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\1431383b-b23f-43d1-92c1-0fc73cd58cf5';
+const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\a69b813e-9a02-44e6-b1f4-245a5f67bf3f';
 const TASK_MD_PATH = path.join(BRAIN_DIR, 'task.md');
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 const FRONTEND_SRC = path.join(PROJECT_ROOT, 'frontend/src');
