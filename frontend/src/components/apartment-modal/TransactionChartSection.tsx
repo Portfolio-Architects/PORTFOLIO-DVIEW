@@ -162,7 +162,13 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   }).filter(d => d.yearMonth <= 202606 && !isNaN(d.ts));
 
 
-  const now = new Date();
+  // Use the latest transaction date as the baseline to prevent computation failure when sync lags or system clock shifts
+  const now = React.useMemo(() => {
+    if (rawData.length === 0) return new Date();
+    const maxTs = Math.max(...rawData.map(d => d.ts));
+    return new Date(maxTs);
+  }, [rawData]);
+
   const getRecentAvgByMonths = (months: number) => {
     const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
     const cutoffMs = cutoffDate.getTime();
@@ -190,10 +196,11 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const iqr = q3 - q1;
   const bandLow = q1;
   const bandHigh = q3;
+  // Keep outlier marking but stop deleting transaction dots to preserve original dataset integrity
   const scatterData = timeFiltered.map(d => ({
     ...d,
     isOutlier: d.price < q1 - iqr * 2,
-  })).filter(d => d.price >= q1 - iqr * 3);
+  }));
   
   const getFloorColor = (dealType: string | undefined) => {
     if (dealType === '전세' || dealType === '월세') return '#f9a825'; // Orange/amber for Rent/Jeonse

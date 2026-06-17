@@ -934,12 +934,12 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {
-    if (deferredAreaFilter === '전체') return safeTransactions;
-    return safeTransactions.filter(tx => {
+    if (deferredAreaFilter === '전체') return transactions;
+    return transactions.filter(tx => {
       const label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
       return label === deferredAreaFilter;
     });
-  }, [safeTransactions, deferredAreaFilter, areaUnit]);
+  }, [transactions, deferredAreaFilter, areaUnit]);
 
   // Hydration-safe portal mount
   useEffect(() => {
