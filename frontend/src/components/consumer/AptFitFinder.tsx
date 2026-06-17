@@ -218,14 +218,20 @@ const AptFitFinder = React.memo(function AptFitFinder({
     const shareUrl = window.location.origin + window.location.pathname + '?tab=overview#fit-quiz';
     if (shareTimeoutRef.current) {
       clearTimeout(shareTimeoutRef.current);
+      shareTimeoutRef.current = null;
     }
     navigator.clipboard.writeText(shareUrl).then(() => {
-      if (mountedRef.current) {
-        setIsCopied(true);
-        shareTimeoutRef.current = setTimeout(() => {
-          if (mountedRef.current) setIsCopied(false);
-        }, 2000);
+      if (!mountedRef.current) return;
+      if (shareTimeoutRef.current) {
+        clearTimeout(shareTimeoutRef.current);
       }
+      setIsCopied(true);
+      shareTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setIsCopied(false);
+          shareTimeoutRef.current = null;
+        }
+      }, 2000);
     }).catch(err => {
       console.error('Failed to copy share link:', err);
     });
