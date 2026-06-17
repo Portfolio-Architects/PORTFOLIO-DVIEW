@@ -81,6 +81,11 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
       customData.serviceDate = serviceDate;
     }
 
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = null;
+    }
+
     try {
       if (db) {
         await addDoc(collection(db, 'ad_inquiries'), {
@@ -97,12 +102,17 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
           createdAt: serverTimestamp()
         });
       }
-      if (mountedRef.current) {
-        setIsSuccess(true);
-        successTimeoutRef.current = setTimeout(() => {
-          onClose();
-        }, 2500);
+      if (!mountedRef.current) return;
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
       }
+      setIsSuccess(true);
+      successTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          onClose();
+          successTimeoutRef.current = null;
+        }
+      }, 2500);
     } catch (error) {
       console.error('Error submitting B2B Lead:', error);
       alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
