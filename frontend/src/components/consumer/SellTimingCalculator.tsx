@@ -339,14 +339,20 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
     }
     navigator.clipboard.writeText(text).then(() => {
-      if (mountedRef.current) {
-        setIsCopied(true);
-        copyTimeoutRef.current = setTimeout(() => {
-          if (mountedRef.current) setIsCopied(false);
-        }, 2000);
+      if (!mountedRef.current) return;
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
       }
+      setIsCopied(true);
+      copyTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setIsCopied(false);
+          copyTimeoutRef.current = null;
+        }
+      }, 2000);
     });
   };
 

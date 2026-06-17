@@ -646,14 +646,20 @@ const AIRecommendations = React.memo(function AIRecommendations({
     const shareUrl = window.location.origin + '/?from=ai_recommend';
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
     }
     navigator.clipboard.writeText(shareUrl).then(() => {
-      if (mountedRef.current) {
-        setIsCopied(true);
-        copyTimeoutRef.current = setTimeout(() => {
-          if (mountedRef.current) setIsCopied(false);
-        }, 2000);
+      if (!mountedRef.current) return;
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
       }
+      setIsCopied(true);
+      copyTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setIsCopied(false);
+          copyTimeoutRef.current = null;
+        }
+      }, 2000);
     }).catch(err => console.error('Link copy failed:', err));
   };
 

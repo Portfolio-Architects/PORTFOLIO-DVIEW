@@ -65,15 +65,19 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
     if (shareTimeoutRef.current) {
       clearTimeout(shareTimeoutRef.current);
+      shareTimeoutRef.current = null;
     }
 
     navigator.clipboard.writeText(shareUrl).then(() => {
-      if (mountedRef.current) {
-        setIsCopied(true);
+      if (!mountedRef.current) return;
+      if (shareTimeoutRef.current) {
+        clearTimeout(shareTimeoutRef.current);
       }
+      setIsCopied(true);
       shareTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           setIsCopied(false);
+          shareTimeoutRef.current = null;
         }
       }, 2000);
       showToast('갭투자 큐레이션 필터 링크가 클립보드에 복사되었습니다! 💚');
