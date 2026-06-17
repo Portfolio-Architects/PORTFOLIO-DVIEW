@@ -1350,13 +1350,21 @@ const FieldReportModal = React.memo(function FieldReportModal({
       if (!mountedRef.current) return;
       showToast("🎉 단지 분석 링크가 복사되었습니다. 원하는 곳에 붙여넣으세요!");
       setCopiedStatus('all-link');
-      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
       copiedTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           setCopiedStatus(null);
+          copiedTimeoutRef.current = null;
         }
       }, 1500);
     };
+
+    if (copiedTimeoutRef.current) {
+      clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = null;
+    }
 
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
       navigator.clipboard.writeText(shareUrl).then(executeSuccess).catch((err) => {
@@ -1398,6 +1406,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
       customDesc += `🚇 교통/생활 입지: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n`;
     }
 
+    if (copiedTimeoutRef.current) {
+      clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = null;
+    }
+
     const success = await copyAptSummaryToClipboard({
       aptName: displayAptName,
       priceEok,
@@ -1409,10 +1422,18 @@ const FieldReportModal = React.memo(function FieldReportModal({
     });
 
     if (success) {
+      if (!mountedRef.current) return;
       showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");
       setCopiedStatus('summary');
-      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-      copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+      copiedTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setCopiedStatus(null);
+          copiedTimeoutRef.current = null;
+        }
+      }, 1500);
     } else {
       showToast("요약본 복사에 실패했습니다.");
     }
