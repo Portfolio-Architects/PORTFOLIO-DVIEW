@@ -557,7 +557,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const enrichedApts = useMemo(() => {
     return allApts.map((apt: DongApartment) => {
       const rawKey = apt.txKey || apt.name;
-      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
+      const txKey = findTxKey(rawKey, txSummaryData, nameMapping, false, apt.dong) || rawKey;
 
       const sum = txSummaryData[txKey];
       

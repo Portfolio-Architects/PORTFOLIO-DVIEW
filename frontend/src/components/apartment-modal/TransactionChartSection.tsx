@@ -116,11 +116,52 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     setZoomDomain({ left: 'dataMin', right: 'dataMax' });
   };
 
-  const relevantTxs = transactions.filter(tx => 
-    chartType === 'sale' 
-      ? (tx.dealType !== '전세' && tx.dealType !== '월세') 
-      : (tx.dealType === '전세' || tx.dealType === '월세')
-  );
+  const relevantTxs = React.useMemo(() => {
+    return transactions.filter(tx => 
+      chartType === 'sale' 
+        ? (tx.dealType !== '전세' && tx.dealType !== '월세') 
+        : (tx.dealType === '전세' || tx.dealType === '월세')
+    );
+  }, [transactions, chartType]);
+
+  const rawData = React.useMemo(() => {
+    return relevantTxs.map((tx) => {
+      let rawPrice = tx.price;
+      if (chartType === 'jeonse') {
+        rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+      }
+
+      let priceEokNum = rawPrice / 10000;
+      if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
+      const ym = String(tx.contractYm || '');
+      const year = parseInt(ym.slice(0, 4)) || 2026;
+      const month = parseInt(ym.slice(4)) || 6;
+      const day = parseInt(tx.contractDay) || 1;
+      const tsVal = new Date(year, month - 1, day).getTime();
+      const ts = isNaN(tsVal) ? new Date(2026, 5, 1).getTime() : tsVal;
+      return {
+        ts,
+        yearMonth: parseInt(ym) || 202606, contractDay: day,
+        price: isNaN(priceEokNum) ? 0 : Math.round(priceEokNum * 1000) / 1000,
+        area: tx.areaPyeong, rawArea: tx.area,
+        floor: tx.floor, priceEok: tx.priceEok || (isNaN(priceEokNum) ? '-' : `${priceEokNum >= 1 ? Math.floor(priceEokNum)+'억' : ''}${Math.round((priceEokNum%1)*10000)||''}`),
+        dealType: tx.dealType,
+        fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
+        areaLabelM2: tx.areaLabelM2,
+        areaLabelPyeong: tx.areaLabelPyeong,
+      };
+    }).filter(d => {
+      const maxAllowedYm = new Date().getFullYear() * 100 + (new Date().getMonth() + 1);
+      return d.yearMonth <= maxAllowedYm && !isNaN(d.ts);
+    });
+  }, [relevantTxs, chartType]);
+
+  // Use the latest transaction date as the baseline to prevent computation failure when sync lags or system clock shifts
+  const now = React.useMemo(() => {
+    if (rawData.length === 0) return new Date();
+    const maxTs = Math.max(...rawData.map(d => d.ts));
+    return new Date(maxTs);
+  }, [rawData]);
 
   if (relevantTxs.length === 0) {
     return (
@@ -134,46 +175,18 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     );
   }
 
-  const rawData = relevantTxs.map((tx) => {
-    let rawPrice = tx.price;
-    if (chartType === 'jeonse') {
-      rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
-    }
-
-    let priceEokNum = rawPrice / 10000;
-    if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-    const ym = String(tx.contractYm || '');
-    const year = parseInt(ym.slice(0, 4)) || 2026;
-    const month = parseInt(ym.slice(4)) || 6;
-    const day = parseInt(tx.contractDay) || 15;
-    const tsVal = new Date(year, month - 1, day).getTime();
-    const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
-    return {
-      ts,
-      yearMonth: parseInt(ym) || 202606, contractDay: day,
-      price: isNaN(priceEokNum) ? 0 : Math.round(priceEokNum * 1000) / 1000,
-      area: tx.areaPyeong, rawArea: tx.area,
-      floor: tx.floor, priceEok: tx.priceEok || (isNaN(priceEokNum) ? '-' : `${priceEokNum >= 1 ? Math.floor(priceEokNum)+'억' : ''}${Math.round((priceEokNum%1)*10000)||''}`),
-      dealType: tx.dealType,
-      fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
-      areaLabelM2: tx.areaLabelM2,
-      areaLabelPyeong: tx.areaLabelPyeong,
-    };
-  }).filter(d => d.yearMonth <= 202606 && !isNaN(d.ts));
-
-
-  // Use the latest transaction date as the baseline to prevent computation failure when sync lags or system clock shifts
-  const now = React.useMemo(() => {
-    if (rawData.length === 0) return new Date();
-    const maxTs = Math.max(...rawData.map(d => d.ts));
-    return new Date(maxTs);
-  }, [rawData]);
-
   const getRecentAvgByMonths = (months: number) => {
     const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
     const cutoffMs = cutoffDate.getTime();
     const filtered = rawData.filter(d => d.ts >= cutoffMs);
-    if (filtered.length === 0) return 0;
+    if (filtered.length === 0) {
+      if (rawData.length > 0) {
+        // Fallback to the latest transaction if available
+        const sorted = [...rawData].sort((a, b) => b.ts - a.ts);
+        return sorted[0].price;
+      }
+      return 0;
+    }
     return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
   };
 

@@ -695,10 +695,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김 - 토글 활성화 시에만 적용)
   const transactions = useMemo(() => {
-    if (!rawTransactions || rawTransactions.length === 0) return [];
+    if (!safeTransactions || safeTransactions.length === 0) return [];
     
     // 1. 사전 연산: 각 거래 건의 실제 가격/전세전환가 및 타입맵 정보를 미리 연산하여 캐싱
-    const mappedTransactions = rawTransactions.map(tx => {
+    const mappedTransactions = safeTransactions.map(tx => {
       const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
       const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
       const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
@@ -728,7 +728,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       // 2. 면적별 그룹화
       const byArea: Record<number, typeof mappedTransactions> = {};
       sortedTxs.forEach(t => {
-        const a = Math.round(t.area);
+        const a = Math.round(Number(t.area || 0));
         if (!byArea[a]) byArea[a] = [];
         byArea[a].push(t);
       });
@@ -779,7 +779,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       if (a.contractDateNum !== b.contractDateNum) return b.contractDateNum - a.contractDateNum;
       return b.price - a.price;
     });
-  }, [rawTransactions, filterOutliers, typeMap]);
+  }, [safeTransactions, filterOutliers, typeMap]);
 
   const valuation = useMemo(() => {
     if (!transactions || transactions.length === 0) {

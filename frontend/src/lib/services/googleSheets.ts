@@ -337,7 +337,7 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
   // 1-1. FULL_DONG_DATA와 비교하여 구글 시트에 누락된 아파트를 기본값으로 채워 넣음 (Defensive Data Integration)
   for (const [dongName, aptNames] of Object.entries(FULL_DONG_DATA)) {
     for (const aptName of aptNames) {
-      const alreadyExists = apartments.some(a => isSameApartment(a.name, aptName));
+      const alreadyExists = apartments.some(a => isSameApartment(a.name, aptName, undefined, a.dong, dongName));
       if (!alreadyExists) {
         const fallbackApt: SheetApartment = {
           name: aptName,

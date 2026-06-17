@@ -37,7 +37,17 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
 
   const metrics = useMemo(() => {
-    const now = new Date();
+    // 실거래가의 가장 최근 계약일을 기준일(now)로 삼아 싱크 지연이나 시스템 시각 불일치 시의 계산 정합성 확보
+    const now = (() => {
+      if (!transactions || transactions.length === 0) return new Date();
+      const dates = transactions.map(tx => {
+        const y = parseInt(tx.contractYm.slice(0, 4)) || 2026;
+        const m = parseInt(tx.contractYm.slice(4, 6)) || 6;
+        const d = parseInt(tx.contractDay) || 15;
+        return new Date(y, m - 1, d).getTime();
+      });
+      return new Date(Math.max(...dates));
+    })();
     
     // 1) 타입 필터 칩 목록 구성
     const byArea = new Map<string, { label: string; area: number }>();

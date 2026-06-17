@@ -30,6 +30,7 @@ interface Post {
   likes: number;
   commentCount: number;
   createdAt: number;
+  apartmentName?: string;
 }
 
 interface LocalNoticeItem {
@@ -375,6 +376,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
   };
 
   const filteredPosts = useMemo(() => {
+    if (currentTab === '모든 이야기') return posts;
     if (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식') return [];
     const targetCategories = CATEGORY_MAP[currentTab] || [currentTab];
     return posts.filter((p) => targetCategories.includes(p.category || '기타'));
@@ -849,7 +851,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
         return (
           <Fragment key={news.id}>
             {renderAd && (
-              <div onClick={(e) => e.stopPropagation()} className="w-full">
+              <div onClick={(e) => e.stopPropagation()} className="w-full py-2">
                 <NativeAdPlaceholder 
                   location={`라운지 피드 중간 광고 ${Math.floor(index / 4)}`} 
                   adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_FEED || "test-lounge-feed-slot"} 
@@ -858,89 +860,112 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
               </div>
             )}
             <div 
-              onClick={() => { window.location.hash = `post=${news.id}`; }} 
-            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-[#008262]/30 dark:hover:border-[#00d29d]/30 transition-all cursor-pointer group w-full"
-          >
-            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-0 shrink-0">
-              <div className="flex items-center gap-3 sm:gap-0">
-                <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-tertiary font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#008262] dark:group-hover:bg-[#00d29d] group-hover:text-white dark:group-hover:text-primary transition-colors">
-                  <MessageSquare size={16} />
-                </div>
-                
-                {/* Mobile Meta */}
-                <div className="flex sm:hidden items-center gap-2 flex-wrap">
-                  <span className={`text-[11px] font-extrabold tracking-wide ${
-                      (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'text-[#00a06c]' :
-                      (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
-                      (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-[#008262] dark:text-[#00d29d]' :
-                      (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
-                      (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
-                      (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
-                      (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'text-emerald-500' :
-                      'text-secondary'
-                    }`}>
-                      {news.category === '임장기' ? '동탄 임장/분석' : 
-                       news.category === '부동산 기초' ? '부동산 고민상담' :
-                       news.category === '정책자금 대출' ? '동탄 청약/대출' :
-                       news.category === '인프라' ? '동탄 교통/상권' : 
-                       (news.category || '기타')}
-                  </span>
-                  <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-tertiary truncate max-w-[80px]">{news.author || '매니저'}</span>
-                  <span className="text-[11px] text-gray-300">|</span>
-                  <span className="text-[11px] font-semibold text-tertiary shrink-0">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
-                </div>
-              </div>
-              
-              {/* Mobile Top Right Meta: Views, Likes, Comments */}
-              <div className="flex sm:hidden items-center gap-2.5 text-[11px] font-semibold text-tertiary">
-                <span className="flex items-center gap-1"><Eye size={12}/> {news.views || 0}</span>
-                <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={12} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><MessageSquare size={12}/> {news.commentCount || 0}</span>
-              </div>
-            </div>
+              onClick={() => {
+                if (news.category === '아파트 이야기' && news.apartmentName) {
+                  window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
+                } else {
+                  window.location.hash = `post=${news.id}`;
+                }
+              }} 
+              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3.5 px-2 border-b border-border/60 hover:bg-[#008262]/5 dark:hover:bg-[#00d29d]/5 transition-all cursor-pointer group w-full"
+            >
+              {/* Desktop view layout */}
+              <div className="hidden sm:flex items-center gap-4 flex-1 min-w-0">
+                {/* Category Chip (Border-free text style) */}
+                <span className={`w-[110px] shrink-0 text-[12.5px] font-black text-center truncate ${
+                  news.category === '아파트 이야기' ? 'text-teal-600 dark:text-teal-400' :
+                  (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'text-[#00a06c]' :
+                  (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
+                  (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-[#008262] dark:text-[#00d29d]' :
+                  (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
+                  (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
+                  (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
+                  (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'text-emerald-500' :
+                  'text-secondary'
+                }`}>
+                  {news.category === '임장기' ? '동탄 임장/분석' : 
+                   news.category === '부동산 기초' ? '부동산 고민상담' :
+                   news.category === '정책자금 대출' ? '동탄 청약/대출' :
+                   news.category === '인프라' ? '동탄 교통/상권' : 
+                   (news.category || '기타')}
+                </span>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
-              {/* Desktop Meta */}
-              <div className="hidden sm:flex items-center gap-4 shrink-0">
-                <span className={`w-[115px] text-[13px] font-extrabold tracking-wide text-center px-2 py-1.5 rounded-lg truncate border ${
-                    (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c] border-[#e8f8f0]' :
-                    (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red border-[#ffe8e8]' :
-                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-[#e6f3f0] dark:bg-[#042820] text-[#008262] dark:text-[#00d29d] border-[#e6f3f0] dark:border-[#042820]' :
-                    (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'bg-[#f4e8ff] text-[#9b51e0] border-[#f4e8ff]' :
-                    (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                    (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'bg-rose-50 text-rose-500 border-rose-100' :
-                    (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                    'bg-body text-secondary border-body'
+                {/* Title & Comment Count */}
+                <div className="flex-1 min-w-0 flex items-center gap-2">
+                  <p className="text-[15.5px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] group-hover:underline transition-all truncate">
+                    {news.title}
+                  </p>
+                  {news.commentCount > 0 && (
+                    <span className="text-[13.5px] font-extrabold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-md shrink-0">
+                      {news.commentCount}
+                    </span>
+                  )}
+                </div>
+
+                {/* Author */}
+                <span className="w-[85px] text-[13.5px] font-semibold text-secondary truncate text-center shrink-0 font-sans">
+                  {news.author || '익명'}
+                </span>
+
+                {/* Date */}
+                <span className="w-[85px] text-[13px] font-medium text-tertiary text-center shrink-0 whitespace-nowrap">
+                  {news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}
+                </span>
+
+                {/* Views & Likes */}
+                <div className="flex items-center justify-end gap-3 text-[13px] font-semibold text-tertiary w-[100px] shrink-0 pl-1">
+                  <span className="flex items-center gap-0.5"><Eye size={13}/> {news.views || 0}</span>
+                  <span className={`flex items-center gap-0.5 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={13} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
+                </div>
+              </div>
+
+              {/* Mobile view layout */}
+              <div className="flex sm:hidden flex-col gap-1.5 w-full">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* Mobile Category Tag */}
+                  <span className={`text-[11px] font-extrabold tracking-wide ${
+                    news.category === '아파트 이야기' ? 'text-teal-600 dark:text-teal-400' :
+                    (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'text-[#00a06c]' :
+                    (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
+                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-[#008262] dark:text-[#00d29d]' :
+                    (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
+                    (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
+                    (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
+                    (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'text-emerald-500' :
+                    'text-secondary'
                   }`}>
                     {news.category === '임장기' ? '동탄 임장/분석' : 
                      news.category === '부동산 기초' ? '부동산 고민상담' :
                      news.category === '정책자금 대출' ? '동탄 청약/대출' :
                      news.category === '인프라' ? '동탄 교통/상권' : 
                      (news.category || '기타')}
-                </span>
-                <span className="w-[80px] text-[14px] font-semibold text-tertiary truncate text-center">{news.author || '매니저'}</span>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors truncate">
-                  {news.title}
-                </p>
-              </div>
+                  </span>
+                  <span className="text-[10px] text-gray-300">·</span>
+                  <span className="text-[11px] font-semibold text-secondary truncate max-w-[90px] font-sans">{news.author || '익명'}</span>
+                  <span className="text-[10px] text-gray-300">·</span>
+                  <span className="text-[11px] text-tertiary">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
+                </div>
 
-              {/* Desktop Right Meta: Date, Views, Likes */}
-              <div className="hidden sm:flex items-center gap-4 shrink-0 pl-2">
-                <span className="text-[13px] font-medium text-tertiary w-[90px] text-right whitespace-nowrap">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
-                <div className="flex items-center gap-3 text-[13px] font-semibold text-tertiary w-[120px] justify-end">
-                  <span className="flex items-center gap-1"><Eye size={14}/> {news.views || 0}</span>
-                  <span className={`flex items-center gap-1 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={14} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><MessageSquare size={14}/> {news.commentCount || 0}</span>
+                {/* Mobile Title & Comments */}
+                <div className="flex items-center gap-2">
+                  <p className="text-[14.5px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] leading-[1.45] transition-all truncate flex-1">
+                    {news.title}
+                  </p>
+                  {news.commentCount > 0 && (
+                    <span className="text-[12px] font-extrabold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-md shrink-0">
+                      {news.commentCount}
+                    </span>
+                  )}
+                </div>
+
+                {/* Mobile Views & Likes */}
+                <div className="flex items-center gap-3 text-[11px] font-semibold text-tertiary">
+                  <span className="flex items-center gap-0.5"><Eye size={12}/> {news.views || 0}</span>
+                  <span className={`flex items-center gap-0.5 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={12} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
                 </div>
               </div>
             </div>
-
-          </div>
-        </Fragment>
+            </Fragment>
         );
       })}
 

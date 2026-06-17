@@ -112,10 +112,10 @@ export function useApartmentDetails(
     const normalizedName = normalizeAptName(selectedReport.apartmentName);
     let rawApt = apartmentsMap.get(normalizedName) || null;
     if (!rawApt) {
-      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping)) || null;
+      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping, a.dong, selectedReport.dong)) || null;
     }
     const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping, false, selectedReport.dong);
     const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
     return txKey || normalizedName;
   }, [selectedReport, flatApartments, apartmentsMap, txSummaryData, nameMapping]);
@@ -264,11 +264,11 @@ export function useApartmentDetails(
     const normalizedName = normalizeAptName(raw.apartmentName);
     let fallback = apartmentsMap.get(normalizedName) || null;
     if (!fallback) {
-      fallback = flatApartments.find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
+      fallback = flatApartments.find(a => isSameApartment(a.name, raw.apartmentName, nameMapping, a.dong, raw.dong)) as any;
     }
     
     // Find location scores dynamically from public/data/location-scores.json
-    const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping);
+    const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping, false, raw.dong);
     const locScore = matchKey ? locationScores[matchKey] : {};
 
     const mergedMetrics = { ...fallback, ...locScore };
@@ -300,10 +300,10 @@ export function useApartmentDetails(
     const normalizedName = normalizeAptName(selectedReport.apartmentName);
     let rawApt = apartmentsMap.get(normalizedName) || null;
     if (!rawApt) {
-      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping)) || null;
+      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping, a.dong, selectedReport.dong)) || null;
     }
     const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping, false, selectedReport.dong);
     const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
     const fileKey = txKey || normalizedName;
     return txSummaryData[fileKey];

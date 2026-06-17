@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
 import { safeReload } from '@/lib/utils/safeReload';
 
@@ -17,9 +16,6 @@ const LoungeComposeClient = dynamic(() => import('@/components/LoungeComposeClie
   safeReload('LoungeComposeClient');
   return { default: () => null };
 }), { ssr: false });
-import { LocalCalendar } from './lounge/LocalCalendar';
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 // Same Post interface needed for initial posts typing
 interface Post {
@@ -45,57 +41,35 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   searchParams?: { notice?: string };
   onRequestLogin?: (message: string) => void;
 }) {
-  const [currentTab, setCurrentTab] = useState(searchParams?.notice ? '동탄구 소식' : '동탄 부동산 뉴스');
-  const { data: events } = useSWR('/data/local-events.json', fetcher);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     let idleId: number | null = null;
+
+    // Preload heavy lounge components on idle
+    const preloadLoungeChunks = () => {
+      if (!isMounted) return;
+      import('@/components/LoungeFeedClient').catch(() => {});
+      import('@/components/LoungeComposeClient').catch(() => {});
+    };
     if (typeof window !== 'undefined') {
-      const handleHashChange = () => {
-        if (!isMounted) return;
-        if (window.location.hash === '#lounge-news') {
-          setCurrentTab('동탄 부동산 뉴스');
-        } else if (window.location.hash.startsWith('#lounge-notices') || window.location.hash.includes('notice=')) {
-          setCurrentTab('동탄구 소식');
-        }
-      };
-      
-      handleHashChange(); // Run once on mount
-      
-      // Preload heavy lounge components on idle
-      const preloadLoungeChunks = () => {
-        if (!isMounted) return;
-        import('@/components/LoungeFeedClient').catch(() => {});
-        import('@/components/LoungeComposeClient').catch(() => {});
-      };
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadLoungeChunks, 2000);
       }
-
-      window.addEventListener('hashchange', handleHashChange);
-      return () => {
-        isMounted = false;
-        if (idleId !== null && 'cancelIdleCallback' in window) {
-          (window as any).cancelIdleCallback(idleId);
-        }
-        window.removeEventListener('hashchange', handleHashChange);
-        if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
-      };
     }
+
+    return () => {
+      isMounted = false;
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
+    };
   }, []);
-  const categories = [
-    '동탄 부동산 뉴스',
-    '동탄구 소식',
-    '매니저 임장기',
-    '동탄 육아/교육',
-    '실시간 오픈런/정보',
-    '우리동네 이야기',
-    '동탄 벼룩/나눔'
-  ];
+
   return (
     <div className="flex flex-col w-full bg-transparent">
       {/* Standardized Hero Header */}
@@ -105,66 +79,9 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
         subtitleLight="현장 임장기, 부동산 뉴스, 우리 동네 이야기"
       />
 
-      <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-      {/* LEFT SIDEBAR: Categories */}
-      <aside className="md:col-span-3 lg:col-span-3 hidden md:block">
-        <div className="sticky top-[100px]">
-          <h2 className="text-[14px] font-extrabold text-primary mb-4 px-2">게시판 카테고리</h2>
-          <div className="flex flex-col gap-1">
-            {categories.map((cat) => (
-              <button 
-                key={cat} 
-                onClick={() => setCurrentTab(cat)}
-                className={`text-left px-4 py-3 rounded-xl text-[15px] font-bold transition-all ${
-                  currentTab === cat ? 'bg-body text-primary' : 'text-secondary hover:bg-body'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* CENTER COLUMN: Main Feed */}
-      <section className="md:col-span-9 lg:col-span-9 w-full">
-        
-        {/* Universal Top Header */}
-        <div className="flex flex-col mb-6 md:mb-8 px-1 md:px-2">
-          <div className="flex items-center gap-3 mb-4 md:mb-0">
-            <h2 className="text-[24px] md:text-[32px] font-extrabold text-primary tracking-tight leading-none">
-              {currentTab}
-            </h2>
-          </div>
-
-          {/* Mobile Horizontal Tabs */}
-          <div className="flex md:hidden gap-2 overflow-x-auto pb-2 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {categories.map((cat) => (
-              <button 
-                key={cat} 
-                onClick={() => setCurrentTab(cat)}
-                className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${
-                  currentTab === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-      {/* Local Event Calendar Widget */}
-      <div className="mb-6 md:mb-8 px-1 md:px-2">
-        <LocalCalendar events={events || []} />
-      </div>
-
-      <LoungeFeedClient initialPosts={initialPosts} currentTab={currentTab} />
-
-        <LoungeComposeClient currentTab={currentTab} onRequestLogin={onRequestLogin} />
-      </section>
-
-      </div>
+      <div className="max-w-[1000px] mx-auto w-full px-4 sm:px-6 pt-6 pb-16">
+        <LoungeFeedClient initialPosts={initialPosts} currentTab="모든 이야기" />
+        <LoungeComposeClient currentTab="모든 이야기" onRequestLogin={onRequestLogin} />
       </div>
     </div>
   );

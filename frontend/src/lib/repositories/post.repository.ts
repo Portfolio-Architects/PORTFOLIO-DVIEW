@@ -319,44 +319,84 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
     }
   }
 
-  let rawDocs: any[] = [];
+  let rawPosts: any[] = [];
+  let rawComments: any[] = [];
 
   if (typeof window === 'undefined') {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await throttle(() => adminDb.collection('posts')
-          .orderBy('createdAt', 'desc')
-          .limit(limitCount)
-          .get());
-        rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const [postsSnap, commentsSnap] = await Promise.all([
+          throttle(() => adminDb.collection('posts')
+            .orderBy('createdAt', 'desc')
+            .limit(limitCount)
+            .get()),
+          throttle(() => adminDb.collectionGroup('comments')
+            .limit(100)
+            .get())
+        ]);
+        rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
       }
     } catch (adminError) {
       logger.warn('PostRepository.getRecentPosts', 'Admin SDK fetch failed, falling back', undefined, adminError);
     }
   }
 
-  if (rawDocs.length === 0) {
+  if (rawPosts.length === 0) {
     try {
-      const q = query(
-        collection(db, 'posts').withConverter(postConverter),
-        orderBy('createdAt', 'desc'),
-        limit(limitCount)
-      );
-      const snap = await throttle(() => getDocs(q));
-      rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const { collectionGroup } = await import('firebase/firestore');
+      const [postsSnap, commentsSnap] = await Promise.all([
+        throttle(() => getDocs(query(
+          collection(db, 'posts').withConverter(postConverter),
+          orderBy('createdAt', 'desc'),
+          limit(limitCount)
+        ))),
+        throttle(() => getDocs(query(
+          collectionGroup(db, 'comments'),
+          limit(100)
+        )))
+      ]);
+      rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
     } catch (e) {
       logger.error('PostRepository.getRecentPosts', 'Client SDK fetch failed', undefined, e);
       return [];
     }
   }
 
-  const posts = rawDocs.map(docData => {
-    const parsed = PostDataSchema.safeParse(docData);
-    if (!parsed.success) {
-      logger.warn('PostRepository.getRecentPosts', 'Zod validation failed, using fallback/raw', { id: docData.id }, parsed.error);
-    }
+  // Filter comments to only include those under field_reports
+  const filteredComments = rawComments.filter(c => {
+    const parentRef = c.ref?.parent?.parent;
+    return parentRef && parentRef.parent?.id === 'field_reports';
+  });
 
+  // Resolve parent report names
+  const parentIds = Array.from(new Set(filteredComments.map(c => c.ref.parent.parent.id)));
+  const parentMap = new Map<string, string>();
+  if (parentIds.length > 0) {
+    if (typeof window === 'undefined') {
+      try {
+        const { adminDb } = await import('@/lib/firebaseAdmin');
+        if (adminDb) {
+          const snaps = await Promise.all(parentIds.map(id => adminDb.collection('field_reports').doc(id).get()));
+          snaps.forEach(s => {
+            if (s.exists) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+          });
+        }
+      } catch (_) {}
+    } else {
+      try {
+        const snaps = await Promise.all(parentIds.map(id => getDoc(doc(db, 'field_reports', id))));
+        snaps.forEach(s => {
+          if (s.exists()) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+        });
+      } catch (_) {}
+    }
+  }
+
+  const postsList = rawPosts.map(docData => {
+    const parsed = PostDataSchema.safeParse(docData);
     const data = parsed.success ? parsed.data : docData;
     const createdAtVal = docData.createdAt;
     let createdAtMillis = null;
@@ -405,11 +445,54 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
     };
   });
 
-  if (typeof window === 'undefined' && posts.length > 0) {
+  const commentsList = filteredComments.map(c => {
+    const parentId = c.ref.parent.parent.id;
+    const apartmentName = parentMap.get(parentId) || '알 수 없는 단지';
+    const createdAtVal = c.createdAt;
+    let createdAtMillis = null;
+
+    if (createdAtVal) {
+      if (typeof createdAtVal.toMillis === 'function') {
+        createdAtMillis = createdAtVal.toMillis();
+      } else if (createdAtVal instanceof Date) {
+        createdAtMillis = createdAtVal.getTime();
+      } else if (typeof createdAtVal.toDate === 'function') {
+        createdAtMillis = createdAtVal.toDate().getTime();
+      } else if (typeof createdAtVal === 'number') {
+        createdAtMillis = createdAtVal;
+      } else if (typeof createdAtVal === 'object' && createdAtVal._seconds) {
+        createdAtMillis = createdAtVal._seconds * 1000;
+      }
+    }
+
+    const dateStr = createdAtMillis ? new Date(createdAtMillis).toLocaleDateString('ko-KR') : '방금 전';
+
+    return {
+      id: `comment-${c.id}`,
+      title: `[${apartmentName}] ${c.text || ''}`,
+      summary: c.text || '',
+      imageUrl: null,
+      category: '아파트 이야기',
+      author: c.authorName || '익명',
+      meta: `${dateStr} · 아파트 이야기`,
+      views: 0,
+      likes: 0,
+      commentCount: 0,
+      createdAt: createdAtMillis,
+      authorUid: c.authorUid || null,
+      apartmentName
+    };
+  });
+
+  const combined = [...postsList, ...commentsList]
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .slice(0, limitCount);
+
+  if (typeof window === 'undefined' && combined.length > 0) {
     try {
       const { redis } = await import('@/lib/redis');
       if (redis) {
-        await redis.set(cacheKey, posts, { ex: 30 }).catch(err =>
+        await redis.set(cacheKey, combined, { ex: 30 }).catch(err =>
           logger.warn('PostRepository.getRecentPosts', 'Redis write error', { limitCount }, err as Error)
         );
       }
@@ -418,7 +501,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
     }
   }
 
-  return posts;
+  return combined;
 }
 
 

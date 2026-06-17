@@ -17,7 +17,8 @@ const postItemSchema = z.object({
   commentCount: z.number().default(0),
   createdAt: z.number(),
   meta: z.string(),
-  summary: z.string().default('')
+  summary: z.string().default(''),
+  apartmentName: z.string().optional()
 });
 
 const postsResponseSchema = z.object({
@@ -79,6 +80,11 @@ export async function GET(req: Request) {
       .orderBy('createdAt', 'desc')
       .limit(limitVal);
 
+    // Bypass Firestore COLLECTION_GROUP_DESC index error by removing orderBy/startAfter.
+    // Query a fixed limit, then filter and sort in-memory.
+    const commentQ = db.collectionGroup('comments')
+      .limit(200);
+
     if (lastCreatedAtStr) {
       const lastCreatedAtMs = parseInt(lastCreatedAtStr, 10);
       if (!isNaN(lastCreatedAtMs)) {
@@ -88,22 +94,21 @@ export async function GET(req: Request) {
       }
     }
 
-    const snapshot = await q.get();
+    const [postSnapshot, commentSnapshot] = await Promise.all([
+      q.get(),
+      commentQ.get()
+    ]);
     
-    const posts: z.infer<typeof postItemSchema>[] = [];
-    snapshot.docs.forEach(doc => {
+    const postsList: any[] = [];
+    postSnapshot.docs.forEach(doc => {
       try {
         const data = doc.data();
         const rawContent = data.content || '';
-        
-        // Extract first markdown image
         const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
-        
-        // Format metadata
         const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
         const dateStr = new Date(createdAtMs).toLocaleDateString('ko-KR');
 
-        const rawItem = {
+        postsList.push({
           id: doc.id,
           title: data.title || '',
           category: data.category || '기타',
@@ -121,16 +126,85 @@ export async function GET(req: Request) {
             .replace(/\s+/g, ' ')
             .replace(/https?:\/\/[^\s]+/g, '')
             .trim()
-        };
+        });
+      } catch (itemErr) {
+        logger.error('PostsAPI.GET', `Error processing post doc ${doc.id}`, {}, itemErr as Error);
+      }
+    });
 
-        const parsedItem = postItemSchema.safeParse(rawItem);
-        if (parsedItem.success) {
-          posts.push(parsedItem.data);
-        } else {
-          logger.warn('PostsAPI.GET', `Skipping invalid post item (ID: ${doc.id})`, { errors: parsedItem.error.format() });
+    const commentsList: any[] = [];
+    const parentIdsToResolve = new Set<string>();
+    commentSnapshot.docs.forEach(doc => {
+      const parentRef = doc.ref.parent.parent;
+      if (parentRef && parentRef.parent.id === 'field_reports') {
+        parentIdsToResolve.add(parentRef.id);
+      }
+    });
+
+    const parentMap = new Map<string, string>();
+    if (parentIdsToResolve.size > 0) {
+      try {
+        const parentSnaps = await Promise.all(
+          Array.from(parentIdsToResolve).map(id => db!.collection('field_reports').doc(id).get())
+        );
+        parentSnaps.forEach(snap => {
+          if (snap.exists) {
+            parentMap.set(snap.id, snap.data()?.apartmentName || '알 수 없는 단지');
+          }
+        });
+      } catch (err) {
+        logger.error('PostsAPI.GET', 'Error resolving parent field reports', {}, err as Error);
+      }
+    }
+
+    const lastCreatedAtMs = lastCreatedAtStr ? parseInt(lastCreatedAtStr, 10) : NaN;
+
+    commentSnapshot.docs.forEach(doc => {
+      try {
+        const parentRef = doc.ref.parent.parent;
+        if (parentRef && parentRef.parent.id === 'field_reports') {
+          const data = doc.data();
+          const apartmentName = parentMap.get(parentRef.id) || '알 수 없는 단지';
+          const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
+          
+          // In-memory pagination filtering
+          if (!isNaN(lastCreatedAtMs) && createdAtMs >= lastCreatedAtMs) {
+            return;
+          }
+
+          const dateStr = new Date(createdAtMs).toLocaleDateString('ko-KR');
+
+          commentsList.push({
+            id: `comment-${doc.id}`,
+            title: `[${apartmentName}] ${data.text || ''}`,
+            category: '아파트 이야기',
+            author: data.authorName || '익명',
+            imageUrl: null,
+            likes: 0,
+            views: 0,
+            commentCount: 0,
+            createdAt: createdAtMs,
+            meta: `${dateStr} · 아파트 이야기`,
+            summary: data.text || '',
+            apartmentName
+          });
         }
       } catch (itemErr) {
-        logger.error('PostsAPI.GET', `Error processing doc ${doc.id}`, {}, itemErr as Error);
+        logger.error('PostsAPI.GET', `Error processing comment doc ${doc.id}`, {}, itemErr as Error);
+      }
+    });
+
+    const combined = [...postsList, ...commentsList]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, limitVal);
+
+    const posts: z.infer<typeof postItemSchema>[] = [];
+    combined.forEach(item => {
+      const parsedItem = postItemSchema.safeParse(item);
+      if (parsedItem.success) {
+        posts.push(parsedItem.data);
+      } else {
+        logger.warn('PostsAPI.GET', `Skipping invalid merged item (ID: ${item.id})`, { errors: parsedItem.error.format() });
       }
     });
 

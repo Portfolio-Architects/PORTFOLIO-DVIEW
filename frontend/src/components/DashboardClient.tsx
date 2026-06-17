@@ -878,57 +878,57 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
-              <button
-                onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
-                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'overview'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                }`}
-              >
-                <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>데이터 랩</span>
-              </button>
-              
-              <button
-                onClick={() => router.push('/explore')}
-                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
-              >
-                <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>아파트 탐색</span>
-              </button>
-              
-              <button
-                onClick={() => router.push('/news')}
-                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
-              >
-                <Newspaper size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>동탄 소식</span>
-              </button>
-              
-              <button
-                onClick={() => startTransition(() => { setActiveTab('gap'); window.location.hash = 'gap'; })}
-                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'gap'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                }`}
-              >
-                <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>큐레이션</span>
-              </button>
+               <button
+                 onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                   activeTab === 'overview'
+                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                 }`}
+               >
+                 <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                 <span>데이터 랩</span>
+               </button>
+ 
+               <button
+                 onClick={() => router.push('/explore')}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+               >
+                 <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                 <span>아파트 탐색</span>
+               </button>
 
-              <button
-                onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
-                className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'lounge'
-                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                }`}
-              >
-                <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>커뮤니티</span>
-              </button>
+               <button
+                 onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                   activeTab === 'lounge'
+                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                 }`}
+               >
+                 <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                 <span>커뮤니티</span>
+               </button>
+               
+               <button
+                 onClick={() => router.push('/news')}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+               >
+                 <Newspaper size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                 <span>동탄 소식</span>
+               </button>
+               
+               <button
+                 onClick={() => startTransition(() => { setActiveTab('gap'); window.location.hash = 'gap'; })}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                   activeTab === 'gap'
+                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                 }`}
+               >
+                 <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                 <span>큐레이션</span>
+               </button>
               
             </nav>
 

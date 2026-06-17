@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Calendar, Eye, Share, Building2, ExternalLink } from 'lucide-react';
+import { Sparkles, Calendar, Eye, Share, ExternalLink } from 'lucide-react';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import useSWR from 'swr';
@@ -21,9 +21,7 @@ interface LocalEventCurationProps {
 
 const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryData, onSelectApt }: LocalEventCurationProps) {
   const [shareStatus, setShareStatus] = useState<'copied' | 'shared' | null>(null);
-  const [noticeCopiedId, setNoticeCopiedId] = useState<string | null>(null);
 
-  const noticeCopyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const shareTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
@@ -31,9 +29,6 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (noticeCopyTimeoutRef.current) {
-        clearTimeout(noticeCopyTimeoutRef.current);
-      }
       if (shareTimeoutRef.current) {
         clearTimeout(shareTimeoutRef.current);
       }
@@ -46,23 +41,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
   const localNotices = allNotices.filter((n: LocalNoticeItem) => n.isDongtan).slice(0, 5);
   const displayNotices = localNotices.length > 0 ? localNotices : allNotices.slice(0, 5);
 
-  const handleCopyNoticeLink = async (e: React.MouseEvent, notice: LocalNoticeItem) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText((notice.url || '').trim());
-      if (mountedRef.current) {
-        setNoticeCopiedId(notice.id);
-        if (noticeCopyTimeoutRef.current) {
-          clearTimeout(noticeCopyTimeoutRef.current);
-        }
-        noticeCopyTimeoutRef.current = setTimeout(() => {
-          if (mountedRef.current) setNoticeCopiedId(null);
-        }, 2000);
-      }
-    } catch (err) {
-      console.error('Failed to copy notice link:', err);
-    }
-  };
+
 
   const handleShareCuration = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -396,88 +375,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
             ))}
           </div>
         </div>
-      )}
-
-      {/* 실시간 동탄구정 소식통 */}
-      <div className="mt-6 pt-8 border-t border-border/60 flex flex-col gap-6">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <div className="bg-emerald-100 dark:bg-emerald-950/30 p-1.5 rounded-lg">
-              <Building2 size={18} className="text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h4 className="text-[17px] md:text-[18px] font-black text-primary tracking-tight">실시간 동탄구정 소식통</h4>
-            <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 animate-pulse">
-              Live
-            </span>
-          </div>
-          <p className="text-[12px] md:text-[13px] text-tertiary font-bold pl-8">
-            화성시청 및 동탄구청에서 발표한 실시간 행정 소식과 주민 혜택 정보를 확인하세요.
-          </p>
-        </div>
-
-        {/* 공지사항 목록 */}
-        <div className="flex flex-col gap-3.5 pl-0 md:pl-8">
-          {!noticesData && !noticesError ? (
-            // Shimmer Loading Skeleton
-            <div className="flex flex-col gap-3">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="h-14 bg-border/20 animate-pulse rounded-2xl" />
-              ))}
-            </div>
-          ) : noticesError ? (
-            <div className="text-center py-6 px-4 bg-body rounded-2xl border border-border flex flex-col items-center justify-center">
-              <p className="text-[13px] font-bold text-tertiary mb-2.5">
-                동탄구정 소식을 불러오는데 실패했습니다.
-              </p>
-              <button
-                onClick={() => mutateNotices()}
-                className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100/40 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
-              >
-                다시 시도
-              </button>
-            </div>
-          ) : displayNotices.length === 0 ? (
-            <div className="text-center py-6 text-[13px] font-medium text-tertiary bg-body rounded-2xl border border-border">
-              현재 등록된 실시간 구청 소식이 없습니다.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {displayNotices.map((notice: LocalNoticeItem) => (
-                <a
-                  key={notice.id}
-                  href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex items-center justify-between gap-4 transition-all duration-300 group w-full"
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-[10.5px] md:text-[11px] font-black shrink-0">
-                      {notice.dept}
-                    </div>
-                    <span className="text-[13.5px] md:text-[14px] font-bold text-primary truncate group-hover:text-emerald-600 transition-colors">
-                      {notice.title}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[11px] md:text-[12px] text-tertiary font-extrabold">{notice.date}</span>
-                    <button
-                      onClick={(e) => handleCopyNoticeLink(e, notice)}
-                      className="p-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400 border border-emerald-100/40 dark:border-emerald-900/30 transition-all active:scale-90"
-                      title="공지 링크 복사"
-                    >
-                      <span className="text-[11.5px] font-black flex items-center justify-center">
-                        {noticeCopiedId === notice.id ? '복사됨!' : <ExternalLink size={13} />}
-                      </span>
-                    </button>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      )}    </div>
   );
 });
 

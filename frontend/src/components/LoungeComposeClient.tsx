@@ -195,35 +195,24 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     <>
 
       {isWritableCategory && (
-        user ? (
-          <button
-            onClick={() => {
-              const defaultCategory = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
-                ? '우리동네 이야기'
-                : currentTab;
-              setPostCategory(defaultCategory);
-              setCustomNickname(''); // Reset to trigger auto-generation
-              setShowCompose(true);
-              if (isUserAdmin && !postContent) {
-                setPostContent(MARKDOWN_TEMPLATE);
-              }
-            }}
-            aria-label="글쓰기 모달 열기"
-            className="fixed right-4 sm:right-6 w-14 h-14 bg-[#008262] hover:bg-[#006b50] text-surface rounded-full shadow-lg shadow-[#008262]/20 flex items-center justify-center transition-all active:scale-95 z-40"
-            style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
-          >
-            <PenLine size={22} />
-          </button>
-        ) : (
-          <button
-            onClick={() => onRequestLogin?.('라운지에 글을 작성하여 유용한 부동산 정보를 나눠보세요.')}
-            aria-label="로그인하고 글쓰기"
-            className="fixed right-4 sm:right-6 w-14 h-14 bg-primary hover:bg-[#333d4b] text-surface rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-40"
-            style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
-          >
-            <PenLine size={22} />
-          </button>
-        )
+        <button
+          onClick={() => {
+            const defaultCategory = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
+              ? '우리동네 이야기'
+              : currentTab;
+            setPostCategory(defaultCategory);
+            setCustomNickname(''); // Reset to trigger auto-generation
+            setShowCompose(true);
+            if (isUserAdmin && !postContent) {
+              setPostContent(MARKDOWN_TEMPLATE);
+            }
+          }}
+          aria-label="글쓰기 모달 열기"
+          className="fixed right-4 sm:right-6 w-14 h-14 bg-[#008262] hover:bg-[#006b50] text-surface rounded-full shadow-lg shadow-[#008262]/20 flex items-center justify-center transition-all active:scale-95 z-40"
+          style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
+        >
+          <PenLine size={22} />
+        </button>
       )}
 
       {showCompose && (
@@ -319,7 +308,6 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               <button
                 onClick={async () => {
                   if (submitLockRef.current) return;
-                  if (!user) return;
                   
                   const trimmedTitle = postTitle.trim();
                   const trimmedContent = postContent.trim();
@@ -341,6 +329,35 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                     return;
                   }
 
+                  let activeUid = user?.uid;
+                  const activeEmail = user?.email || null;
+                  let activeAuthorName = displayAuthorName;
+                  let activeApartment = displayApartment;
+                  let activeVerificationLevel = isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || '');
+
+                  if (!activeUid) {
+                    if (typeof window !== 'undefined') {
+                      let anonUid = localStorage.getItem('dview-anon-uid');
+                      if (!anonUid) {
+                        anonUid = `anon-${Math.random().toString(36).substring(2, 12)}`;
+                        localStorage.setItem('dview-anon-uid', anonUid);
+                      }
+                      activeUid = anonUid;
+                      
+                      let anonNickname = customNickname.trim();
+                      if (!anonNickname) {
+                        anonNickname = generateMamacafeNickname();
+                        setCustomNickname(anonNickname);
+                      }
+                      activeAuthorName = anonNickname;
+                    } else {
+                      activeUid = 'anon-guest';
+                      activeAuthorName = '익명';
+                    }
+                    activeApartment = '';
+                    activeVerificationLevel = '';
+                  }
+
                   submitLockRef.current = true;
                   setIsSubmitting(true);
 
@@ -353,10 +370,10 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                           title: trimmedTitle,
                           content: trimmedContent,
                           category: postCategory,
-                          authorUid: user.uid,
-                          authorName: displayAuthorName,
-                          verifiedApartment: displayApartment,
-                          verificationLevel: isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || ''),
+                          authorUid: activeUid,
+                          authorName: activeAuthorName,
+                          verifiedApartment: activeApartment,
+                          verificationLevel: activeVerificationLevel,
                           imageUrl: null
                         }
                       });
@@ -378,10 +395,10 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                       trimmedTitle, 
                       trimmedContent, 
                       postCategory, 
-                      user.uid, 
+                      activeUid, 
                       undefined, 
-                      user.email,
-                      isUserAdmin ? undefined : customNickname.trim()
+                      activeEmail,
+                      isUserAdmin ? undefined : activeAuthorName
                     );
                     if (mountedRef.current) {
                       setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
@@ -419,10 +436,10 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                           title: trimmedTitle,
                           content: trimmedContent,
                           category: postCategory,
-                          authorUid: user.uid,
-                          authorName: displayAuthorName,
-                          verifiedApartment: displayApartment,
-                          verificationLevel: isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || ''),
+                          authorUid: activeUid,
+                          authorName: activeAuthorName,
+                          verifiedApartment: activeApartment,
+                          verificationLevel: activeVerificationLevel,
                           imageUrl: null
                         }
                       });

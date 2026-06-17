@@ -15,13 +15,14 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
 
   return (
     <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.04)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40">
-      {/* 4개 탭 */}
+      {/* 5개 탭 */}
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
           { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/explore' },
-          { id: 'news' as const, label: '동탄 소식', icon: Newspaper, href: '/news' },
           { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/#lounge' },
+          { id: 'news' as const, label: '동탄 소식', icon: Newspaper, href: '/news' },
+          { id: 'gap' as const, label: '큐레이션', icon: Coins, href: '/#gap' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
           

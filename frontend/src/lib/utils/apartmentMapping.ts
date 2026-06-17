@@ -20,6 +20,8 @@ export const IsSameApartmentParamsSchema = z.object({
   reportName: z.string().nullable().optional(),
   txName: z.string().nullable().optional(),
   manualMapping: ManualMappingSchema.optional(),
+  reportDong: z.string().nullable().optional(),
+  txDong: z.string().nullable().optional(),
 });
 
 export const FindTxKeyParamsSchema = z.object({
@@ -27,6 +29,7 @@ export const FindTxKeyParamsSchema = z.object({
   txMap: z.record(z.string(), z.unknown()),
   manualMapping: ManualMappingSchema.optional(),
   isRetry: z.boolean().optional(),
+  aptDongInput: z.string().nullable().optional(),
 });
 
 export const GetAreaTypeParamsSchema = z.object({
@@ -85,6 +88,12 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '금강펜테리움센트럴파크4차': '목동금강펜테리움센트럴파크4차',
   '장지동제일풍경채에듀앤파크': '제일풍경채에듀앤파크',
   '능동숲속마을모아미래도1단지': '숲속마을동탄모아미래도1단지',
+  '동탄린스트라우스더레이크': '송동린스트라우스더레이크',
+  '송동린스트라우스더레이크': '동탄린스트라우스더레이크',
+  '동탄2신도시하우스디더레이크': '송동하우스디더레이크',
+  '송동하우스디더레이크': '동탄2신도시하우스디더레이크',
+  '동탄더샵레이크에듀타운': '산척동더샵레이크에듀타운',
+  '산척동더샵레이크에듀타운': '동탄더샵레이크에듀타운',
 };
 
 const DISPLAY_NAME_MAPPING: Record<string, string> = {
@@ -124,18 +133,24 @@ export function getDisplayAptName(name: string | undefined | null): string {
 export function isSameApartment(
   reportName: string | undefined | null,
   txName: string | undefined | null,
-  manualMapping?: Record<string, string>
+  manualMapping?: Record<string, string>,
+  reportDong?: string | null,
+  txDong?: string | null
 ): boolean {
   let rName = reportName;
   let tName = txName;
   let mMapping = manualMapping;
+  let rDongInput = reportDong;
+  let tDongInput = txDong;
 
   const isFastPath = (reportName === undefined || reportName === null || typeof reportName === 'string') &&
                      (txName === undefined || txName === null || typeof txName === 'string') &&
-                     (!manualMapping || typeof manualMapping === 'object');
+                     (!manualMapping || typeof manualMapping === 'object') &&
+                     (reportDong === undefined || reportDong === null || typeof reportDong === 'string') &&
+                     (txDong === undefined || txDong === null || typeof txDong === 'string');
 
   if (!isFastPath) {
-    const validation = IsSameApartmentParamsSchema.safeParse({ reportName, txName, manualMapping });
+    const validation = IsSameApartmentParamsSchema.safeParse({ reportName, txName, manualMapping, reportDong, txDong });
     if (!validation.success) {
       logger.warn('apartmentMapping.isSameApartment', 'Parameter validation failed', { error: String(validation.error) });
       return false;
@@ -143,8 +158,14 @@ export function isSameApartment(
     rName = validation.data.reportName;
     tName = validation.data.txName;
     mMapping = validation.data.manualMapping;
+    rDongInput = validation.data.reportDong;
+    tDongInput = validation.data.txDong;
   }
   if (!rName || !tName) return false;
+
+  const rDong = rDongInput || extractDong(rName);
+  const tDong = tDongInput || extractDong(tName);
+  if (rDong && tDong && rDong !== tDong) return false;
 
   const a = normalizeAptName(rName);
   const b = normalizeAptName(tName);
@@ -157,6 +178,25 @@ export function isSameApartment(
   const da = deepNormalize(a);
   const db = deepNormalize(b);
   if (da === db) return true;
+
+  // 위치 접두사 및 접미사 제거 후 비교
+  const sa = stripLocationSuffix(stripLocationPrefix(a));
+  const sb = stripLocationSuffix(stripLocationPrefix(b));
+  if (sa && sb && sa === sb) {
+    const isGenericBrand = BRAND_NAMES.has(sa) || BRAND_NAMES.has(sb) || sa.length <= 3 || sb.length <= 3;
+    if (!isGenericBrand || (rDong && tDong && rDong === tDong)) {
+      return true;
+    }
+  }
+
+  const dsa = deepNormalize(sa);
+  const dsb = deepNormalize(sb);
+  if (dsa && dsb && dsa === dsb) {
+    const isGenericBrand = BRAND_NAMES.has(dsa) || BRAND_NAMES.has(dsb) || dsa.length <= 3 || dsb.length <= 3;
+    if (!isGenericBrand || (rDong && tDong && rDong === tDong)) {
+      return true;
+    }
+  }
   
   // 수동 매핑 체크
   if (mMapping) {
@@ -169,6 +209,16 @@ export function isSameApartment(
   
   return false;
 }
+
+const BRAND_NAMES = new Set([
+  '롯데캐슬', '푸르지오', '자이', '아이파크', 'e편한세상', '이편한세상', '힐스테이트',
+  '금강펜테리움', '반도유보라', '호반베르디움', '더샵', '래미안', '호반', '금강', '반도', '한화',
+  '포레나', '자이파밀리에', '레이크자이', '우남퍼스트빌', '하우스디', '신미주', '상록', '경남아너스빌',
+  '이지더원', '센트럴힐즈', '서해그랑블', '에일린의뜰', '제일풍경채', '디에트르', 'KCC스위첸', '스위첸',
+  '자연앤푸르지오', '자연앤', '대원칸타빌', '대원', '풍성신미주', '풍성', '모아미래도', '모아',
+  '광명메이루즈', '광명', '동원로얄듀크', '동원', '호반써밋', '써밋', '꿈에그린', '부영', '사랑으로부영',
+  '사랑으로', '예미지', '행복주택'
+]);
 
 /**
  * 위치 접두사 제거: 국토교통부 실거래 DB와 앱 이름 간의 접두사 차이 해소
@@ -316,6 +366,18 @@ function extractDong(name: string): string | null {
       return dong;
     }
   }
+
+  // 마을 이름 기준 법정동 유추 (Heuristic Mapping)
+  if (name.includes('한빛마을') || name.includes('다은마을') || name.includes('나루마을') || name.includes('솔빛마을')) {
+    return '반송동';
+  }
+  if (name.includes('예당마을')) {
+    return '석우동';
+  }
+  if (name.includes('새강마을') || name.includes('숲속마을') || name.includes('푸른마을')) {
+    return '능동';
+  }
+
   return null;
 }
 
@@ -323,16 +385,18 @@ export function findTxKey<T>(
   aptName: string, 
   txMap: Record<string, T>, 
   manualMapping?: Record<string, string>,
-  isRetry = false
+  isRetry = false,
+  aptDongInput?: string | null
 ): string | null {
   let vAptName = aptName;
   let vManualMapping = manualMapping;
   let vIsRetry = isRetry;
+  let vAptDongInput = aptDongInput;
 
-  const isFastPath = typeof aptName === 'string' && txMap && typeof txMap === 'object' && (!manualMapping || typeof manualMapping === 'object');
+  const isFastPath = typeof aptName === 'string' && txMap && typeof txMap === 'object' && (!manualMapping || typeof manualMapping === 'object') && (aptDongInput === undefined || aptDongInput === null || typeof aptDongInput === 'string');
 
   if (!isFastPath) {
-    const validation = FindTxKeyParamsSchema.safeParse({ aptName, txMap, manualMapping, isRetry });
+    const validation = FindTxKeyParamsSchema.safeParse({ aptName, txMap, manualMapping, isRetry, aptDongInput });
     if (!validation.success) {
       logger.warn('apartmentMapping.findTxKey', 'Parameter validation failed', { error: String(validation.error) });
       return null;
@@ -340,6 +404,7 @@ export function findTxKey<T>(
     vAptName = validation.data.aptName;
     vManualMapping = validation.data.manualMapping;
     vIsRetry = validation.data.isRetry || false;
+    vAptDongInput = validation.data.aptDongInput;
   }
 
   if (!vAptName || !txMap || typeof txMap !== 'object') return null;
@@ -362,7 +427,7 @@ export function findTxKey<T>(
   }
 
   const manualMappingKey = getManualMappingKey(vManualMapping);
-  const cacheKey = `${vAptName}\x1E${manualMappingKey}\x1E${vIsRetry}`;
+  const cacheKey = `${vAptName}\x1E${manualMappingKey}\x1E${vIsRetry}\x1E${vAptDongInput || ''}`;
   if (resolvedMap.has(cacheKey)) {
     return resolvedMap.get(cacheKey) ?? null;
   }
@@ -378,7 +443,7 @@ export function findTxKey<T>(
       return res;
     }
     if (!vIsRetry) {
-      const resolved = findTxKey(hardcoded, txMap, vManualMapping, true);
+      const resolved = findTxKey(hardcoded, txMap, vManualMapping, true, vAptDongInput);
       if (resolved) {
         resolvedMap.set(cacheKey, resolved);
         return resolved;
@@ -391,7 +456,14 @@ export function findTxKey<T>(
     let mapped = vManualMapping[vAptName] || vManualMapping[norm];
     if (!mapped) {
       // isSameApartment를 활용한 역방향 매핑 키 탐색 시도
-      const matchedKey = Object.keys(vManualMapping).find(k => isSameApartment(k, vAptName, vManualMapping));
+      const matchedKey = Object.keys(vManualMapping).find(k => {
+        const mappedTarget = vManualMapping![k];
+        const targetObj = txMap[mappedTarget] as any;
+        const targetDong = (targetObj && typeof targetObj === 'object' && 'dong' in targetObj && targetObj.dong)
+          ? targetObj.dong
+          : undefined;
+        return isSameApartment(k, vAptName, vManualMapping, targetDong, vAptDongInput);
+      });
       if (matchedKey) {
         mapped = vManualMapping[matchedKey];
       }
@@ -412,11 +484,14 @@ export function findTxKey<T>(
 
   // 2단계: 접두사 및 접미사 제거 후 매칭
   const stripped = stripLocationSuffix(stripLocationPrefix(norm));
-  const aptDong = extractDong(vAptName);
+  const aptDong = vAptDongInput || extractDong(vAptName);
 
   if (stripped !== norm && stripped in normalizedTxMap) {
     const res = normalizedTxMap[stripped];
-    const keyDong = extractDong(res);
+    const resObj = txMap[res] as any;
+    const keyDong = (resObj && typeof resObj === 'object' && 'dong' in resObj && resObj.dong)
+      ? resObj.dong
+      : extractDong(res);
     if (!aptDong || !keyDong || aptDong === keyDong) {
       resolvedMap.set(cacheKey, res);
       return res;
@@ -424,7 +499,10 @@ export function findTxKey<T>(
   }
 
   for (const key of Object.keys(txMap)) {
-    const keyDong = extractDong(key);
+    const keyObj = txMap[key] as any;
+    const keyDong = (keyObj && typeof keyObj === 'object' && 'dong' in keyObj && keyObj.dong)
+      ? keyObj.dong
+      : extractDong(key);
     if (aptDong && keyDong && aptDong !== keyDong) continue;
 
     const normKey = normalizeAptName(key);
@@ -438,7 +516,10 @@ export function findTxKey<T>(
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
   for (const key of Object.keys(txMap)) {
-    const keyDong = extractDong(key);
+    const keyObj = txMap[key] as any;
+    const keyDong = (keyObj && typeof keyObj === 'object' && 'dong' in keyObj && keyObj.dong)
+      ? keyObj.dong
+      : extractDong(key);
     if (aptDong && keyDong && aptDong !== keyDong) continue;
 
     const normKey = normalizeAptName(key);
