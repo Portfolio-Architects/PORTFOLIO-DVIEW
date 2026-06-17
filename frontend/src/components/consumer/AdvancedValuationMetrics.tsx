@@ -422,14 +422,20 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
 
     if (copiedScenarioTimeoutRef.current) {
       clearTimeout(copiedScenarioTimeoutRef.current);
+      copiedScenarioTimeoutRef.current = null;
     }
     navigator.clipboard.writeText(reportText).then(() => {
-      if (mountedRef.current) {
-        setIsCopiedScenario(true);
-        copiedScenarioTimeoutRef.current = setTimeout(() => {
-          if (mountedRef.current) setIsCopiedScenario(false);
-        }, 2000);
+      if (!mountedRef.current) return;
+      if (copiedScenarioTimeoutRef.current) {
+        clearTimeout(copiedScenarioTimeoutRef.current);
       }
+      setIsCopiedScenario(true);
+      copiedScenarioTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setIsCopiedScenario(false);
+          copiedScenarioTimeoutRef.current = null;
+        }
+      }, 2000);
     }).catch(err => {
       console.error('시나리오 복사 실패:', err);
     });
@@ -675,14 +681,20 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
 D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과입니다.`;
                         if (copiedCommuteTimeoutRef.current) {
                           clearTimeout(copiedCommuteTimeoutRef.current);
+                          copiedCommuteTimeoutRef.current = null;
                         }
                         navigator.clipboard.writeText(reportText).then(() => {
-                          if (mountedRef.current) {
-                            setIsCopiedCommute(true);
-                            copiedCommuteTimeoutRef.current = setTimeout(() => {
-                              if (mountedRef.current) setIsCopiedCommute(false);
-                            }, 2000);
+                          if (!mountedRef.current) return;
+                          if (copiedCommuteTimeoutRef.current) {
+                            clearTimeout(copiedCommuteTimeoutRef.current);
                           }
+                          setIsCopiedCommute(true);
+                          copiedCommuteTimeoutRef.current = setTimeout(() => {
+                            if (mountedRef.current) {
+                              setIsCopiedCommute(false);
+                              copiedCommuteTimeoutRef.current = null;
+                            }
+                          }, 2000);
                         });
                       }}
                       className={`w-full py-2.5 rounded-xl font-bold text-[12.5px] transition-all text-center cursor-pointer border ${
@@ -753,8 +765,12 @@ D-VIEW 밸류에이션 엔진으로 계산된 직주근접 정량 평가 결과�
                           <button 
                             onClick={() => {
                               setIsScoreAccordionOpen(true);
+                              if (scrollTimeoutRef.current) {
+                                clearTimeout(scrollTimeoutRef.current);
+                              }
                               scrollTimeoutRef.current = setTimeout(() => {
                                 document.getElementById('utility-score-section')?.scrollIntoView({ behavior: 'smooth' });
+                                scrollTimeoutRef.current = null;
                               }, 50);
                             }}
                             className="flex items-center gap-1.5 text-[11.5px] md:text-[12px] text-secondary bg-body px-3 py-1.5 rounded-xl mt-1 border border-border/30 hover:underline hover:text-toss-blue transition-colors cursor-pointer text-left font-bold w-full"
