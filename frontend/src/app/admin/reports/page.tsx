@@ -1,3 +1,5 @@
+'use client';
+
 import nextDynamic from 'next/dynamic';
 
 const AnalyticsDashboard = nextDynamic(() => import('@/components/admin/AnalyticsDashboard').catch(err => {
@@ -14,7 +16,7 @@ const AnalyticsDashboard = nextDynamic(() => import('@/components/admin/Analytic
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminReportsPage() {
+export default function AdminReportsPage() {
   return (
     <div className="w-full h-full pb-20">
       <div className="mb-6">

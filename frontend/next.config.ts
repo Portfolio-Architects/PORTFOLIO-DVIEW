@@ -3,11 +3,9 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  ...(process.env.VERCEL ? {} : {
-    turbopack: {
-      root: path.resolve(import.meta.dirname, '..'),
-    }
-  }),
+  turbopack: process.env.VERCEL ? {} : {
+    root: path.resolve(import.meta.dirname, '..'),
+  },
   productionBrowserSourceMaps: false,
   compress: true,
   transpilePackages: ["lucide-react"],
