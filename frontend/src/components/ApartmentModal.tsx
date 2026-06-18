@@ -349,6 +349,46 @@ const FieldReportModal = React.memo(function FieldReportModal({
       if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
     };
   }, []);
+
+  // Preload heavy sub-components of ApartmentModal to prevent ChunkLoadErrors on scroll
+  useEffect(() => {
+    let active = true;
+    let idleId: number | null = null;
+    let timerId: NodeJS.Timeout | null = null;
+
+    const preloadAptModalChunks = () => {
+      if (!active) return;
+      import('@/components/CommentSection').catch(() => {});
+      import('./apartment-modal/ViralPaywallGate').catch(() => {});
+      import('./apartment-modal/JeonseSafetyReport').catch(() => {});
+      import('./apartment-modal/TransactionChartSection').catch(() => {});
+      import('./apartment-modal/PhotoUploadModal').catch(() => {});
+      import('./apartment-modal/BuyOrWaitVote').catch(() => {});
+      import('./apartment-modal/EducationAnalysisSection').catch(() => {});
+      import('./apartment-modal/InfraAnalysisSection').catch(() => {});
+      import('./apartment-modal/ScoutingReportDetailSection').catch(() => {});
+      import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
+      import('@/components/consumer/AnchorTenantCard').catch(() => {});
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        idleId = (window as any).requestIdleCallback(preloadAptModalChunks, { timeout: 4000 });
+      } else {
+        timerId = setTimeout(preloadAptModalChunks, 2500);
+      }
+    }
+
+    return () => {
+      active = false;
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
+    };
+  }, []);
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
   const deferredAreaFilter = useDeferredValue(selectedAreaFilter);
