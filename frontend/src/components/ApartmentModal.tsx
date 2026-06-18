@@ -1118,7 +1118,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }
   };
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!modalRef.current) return;
 
     // Top 버튼 상태 감지
@@ -1142,7 +1142,28 @@ const FieldReportModal = React.memo(function FieldReportModal({
       }
     }
     setActiveTab(current);
-  };
+  }, []);
+
+  useEffect(() => {
+    const el = modalRef.current;
+    if (!el) return;
+
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+    };
+  }, [handleScroll, mounted, inline]);
 
   // Unused variables (coverImage, rating, badge color utils, type filter constants) removed to optimize code hygiene.
   const s = report.sections;
@@ -2443,7 +2464,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
-      <div ref={modalRef} onScroll={handleScroll} className="bg-surface h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <div ref={modalRef} className="bg-surface h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar">
         {content}
         <FullscreenOverlay />
         
@@ -2481,7 +2502,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             </button>
           </header>
           
-          <div ref={modalRef} onScroll={handleScroll} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
+          <div ref={modalRef} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
             <div id="pdf-report-content" className={`flex flex-col ${inline ? 'bg-body' : 'bg-transparent'} w-full`}>
               {content}
             </div>
