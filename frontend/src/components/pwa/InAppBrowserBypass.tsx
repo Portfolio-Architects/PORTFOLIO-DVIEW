@@ -28,7 +28,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
 
   const removeVisibilityListener = () => {
     if (visibilityListenerRef.current) {
-      window.removeEventListener('visibilitychange', visibilityListenerRef.current);
+      document.removeEventListener('visibilitychange', visibilityListenerRef.current);
       visibilityListenerRef.current = null;
     }
   };
@@ -56,7 +56,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
     };
     
     visibilityListenerRef.current = handleVisibilityChange;
-    window.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
     redirectTimeoutRef.current = setTimeout(() => {
