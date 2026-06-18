@@ -401,13 +401,17 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   useEffect(() => {
     if (!isToolDropdownOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: Event) => {
       if (toolDropdownRef.current && !toolDropdownRef.current.contains(e.target as Node)) {
         setIsToolDropdownOpen(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [isToolDropdownOpen]);
 
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
