@@ -79,7 +79,13 @@ const PullToRefresh = React.memo(function PullToRefresh({
         setPullProgress(progress);
         
         // Prevent default browser scroll/refresh behavior
-        if (e.cancelable) e.preventDefault();
+        if (e.cancelable) {
+          try {
+            e.preventDefault();
+          } catch (err) {
+            console.warn("Failed to preventDefault on touchmove:", err);
+          }
+        }
       }
     };
 
@@ -139,8 +145,8 @@ const PullToRefresh = React.memo(function PullToRefresh({
 
     return () => {
       if (element) {
-        element.removeEventListener('touchstart', handleTouchStart);
-        element.removeEventListener('touchmove', handleTouchMove);
+        element.removeEventListener('touchstart', handleTouchStart, { passive: true } as any);
+        element.removeEventListener('touchmove', handleTouchMove, { passive: false } as any);
         element.removeEventListener('touchend', handleTouchEnd);
         element.removeEventListener('touchcancel', handleTouchCancel);
       }
