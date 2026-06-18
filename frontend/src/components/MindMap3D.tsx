@@ -45,12 +45,17 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
   const zoom = useRef(1.0);
   const [showZoomHint, setShowZoomHint] = useState(false);
   const zoomHintTimeout = useRef<any>(null);
+  const mountedRef = useRef(true);
 
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
+    mountedRef.current = true;
     setMounted(true);
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const isDark = !mounted || resolvedTheme === 'dark';
@@ -366,9 +371,15 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         zoom.current = Math.max(0.4, Math.min(2.5, zoom.current - e.deltaY * zoomSpeed));
       } else {
         setShowZoomHint(true);
-        if (zoomHintTimeout.current) clearTimeout(zoomHintTimeout.current);
+        if (zoomHintTimeout.current) {
+          clearTimeout(zoomHintTimeout.current);
+          zoomHintTimeout.current = null;
+        }
         zoomHintTimeout.current = setTimeout(() => {
-          setShowZoomHint(false);
+          if (mountedRef.current) {
+            setShowZoomHint(false);
+            zoomHintTimeout.current = null;
+          }
         }, 1500);
       }
     };
@@ -378,7 +389,10 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     return () => {
       cancelAnimationFrame(animationFrameId);
       canvas.removeEventListener('wheel', handleWheel);
-      if (zoomHintTimeout.current) clearTimeout(zoomHintTimeout.current);
+      if (zoomHintTimeout.current) {
+        clearTimeout(zoomHintTimeout.current);
+        zoomHintTimeout.current = null;
+      }
     };
   }, [nodes, links, rotationActive, hoveredNode, temperatureMode, isDark]);
 
