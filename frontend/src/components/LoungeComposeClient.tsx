@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-react';
-import { auth, googleProvider, storage } from '@/lib/firebaseConfig';
-import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
+import { auth, storage } from '@/lib/firebaseConfig';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
@@ -15,6 +15,7 @@ import { compressImage } from '@/lib/utils/imageCompression';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
+  const { handleLogin } = useAuth();
   const router = useRouter();
   const { showToast } = usePWA();
   const submitLockRef = useRef(false);
@@ -180,13 +182,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     };
   }, []);
 
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login failed", error);
-    }
-  };
+
 
   const displayAuthorName = isUserAdmin ? '매니저' : (userProfile ? getDisplayName(userProfile) : '익명');
   const displayApartment = isUserAdmin ? '마스터' : (userProfile?.verifiedApartment?.replace(/\[.*?\]\s*/, '') || '');

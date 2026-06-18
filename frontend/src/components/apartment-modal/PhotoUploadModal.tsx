@@ -7,8 +7,8 @@ import { uploadImage } from '@/lib/services/storage.service';
 
 import Image from 'next/image';
 import type { User } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebaseConfig';
-import { signInWithPopup } from 'firebase/auth';
+import { auth } from '@/lib/firebaseConfig';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 interface PhotoUploadModalProps {
   isOpen: boolean;
@@ -30,6 +30,7 @@ const CATEGORIES = [
 ];
 
 export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, user }: PhotoUploadModalProps) {
+  const { handleLogin } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [category, setCategory] = useState<string>('gateImg');
@@ -185,7 +186,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                 단지 사진을 등록하려면<br />구글 로그인을 먼저 진행해 주세요.
               </p>
               <button
-                onClick={() => signInWithPopup(auth, googleProvider)}
+                onClick={handleLogin}
                 className="flex items-center gap-2 bg-surface border border-border shadow-sm text-primary font-bold px-6 py-3 rounded-xl hover:bg-body transition-colors"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="구글 로그인 로고" className="w-5 h-5" />

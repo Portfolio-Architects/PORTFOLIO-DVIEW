@@ -43,13 +43,16 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
     return [
       {
         source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev 
+              ? 'no-store, no-cache, must-revalidate, max-age=0'
+              : 'public, max-age=31536000, immutable',
           },
         ],
       },

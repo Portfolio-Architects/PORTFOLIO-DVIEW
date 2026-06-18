@@ -48,6 +48,9 @@ import {
   Train,
   ArrowRight,
   Settings,
+  Bell,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -355,6 +358,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
@@ -441,6 +448,30 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   >("ALL");
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [showBriefingPopup, setShowBriefingPopup] = useState(false);
+
+  useEffect(() => {
+    if (!mounted || authLoading || isFavoritesLoading) return;
+    
+    // Only show if user has no favorites
+    const hasFavorites = userFavorites && userFavorites.size > 0;
+    if (hasFavorites) {
+      setShowBriefingPopup(false);
+      return;
+    }
+    
+    // Check if user has already dismissed the popup in the last 24 hours
+    const lastDismissed = localStorage.getItem("dview_briefing_popup_dismissed");
+    const oneDay = 24 * 60 * 60 * 1000;
+    const isDismissedRecently = lastDismissed && (Date.now() - parseInt(lastDismissed, 10) < oneDay);
+    
+    if (!isDismissedRecently) {
+      const timer = setTimeout(() => {
+        setShowBriefingPopup(true);
+      }, 1500); // 1.5 seconds delay
+      return () => clearTimeout(timer);
+    }
+  }, [mounted, authLoading, isFavoritesLoading, userFavorites]);
 
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
@@ -467,10 +498,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
   const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
@@ -1884,40 +1912,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 )}
 
-                {/* Bottom Card Area: either Favorites List or CTA Banner */}
-                {isDefaultAptSettingUp ? (
+                {/* Bottom Card Area: either Favorites List or empty space */}
+                {isDefaultAptSettingUp && (
                   <div className="mt-2 pt-2.5 border-t border-border/60 flex-none h-[72px] bg-zinc-50 dark:bg-zinc-900/10 rounded-2xl animate-pulse border border-border/40" />
-                ) : (
-                  mounted && userFavorites && userFavorites.size > 0 ? null : (
-                    <div className="mt-2 pt-2.5 border-t border-border/60 flex-none">
-                      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-zinc-900/40 dark:to-teal-950/20 border border-emerald-500/10 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <span className="text-[13px] font-bold text-primary flex items-center gap-1.5">
-                            <span className="text-[#00d29d] font-black">내 아파트 시세 브리핑</span>을 받아보세요
-                          </span>
-                          <span className="text-[11.5px] text-tertiary font-semibold leading-relaxed">
-                            {user ? "관심 단지를 등록하면 매일 첫 화면에서 실거래 시세 변동과 매매/전세 갭을 자동으로 분석해 드려요." : "로그인 후 내 아파트를 등록하면 매일 첫 화면에서 간편하게 자산 가치 브리핑을 받을 수 있어요."}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => {
-                          if (!user) {
-                            handleLogin();
-                          } else {
-                            const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
-                            if (searchEl) {
-                              (searchEl as HTMLElement).focus();
-                              searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                          }
-                        }}
-                        className="px-3.5 py-2 bg-[#00d29d] hover:bg-[#00d29d]/90 text-white border-none rounded-xl text-[12px] font-extrabold cursor-pointer transition-colors shadow-sm shrink-0 self-stretch sm:self-auto text-center"
-                      >
-                        {user ? "단지 등록하기" : "3초 간편 로그인"}
-                      </button>
-                    </div>
-                  </div>
-                )
                 )}
               </div>
             </div>
@@ -1949,7 +1946,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               <div className="flex flex-col gap-3.5 flex-1 justify-start py-1.5 overflow-hidden">
                 {/* 1. 철도전략과 소식 */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="text-[11.5px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
+                  <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d] shadow-[0_0_4px_rgba(0,210,157,0.4)]"></span>
                     철도전략과 소식
                   </div>
@@ -1971,13 +1968,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                           <div className="w-6 h-6 rounded-lg bg-[#00d29d]/10 text-[#00b386] flex items-center justify-center shrink-0">
                             <Train size={12} />
                           </div>
-                          <span className="text-[13px] font-bold text-primary group-hover/item:text-[#00d29d] transition-colors truncate" title={item.title}>
+                          <span className="text-[14px] font-bold text-primary group-hover/item:text-[#00d29d] transition-colors truncate" title={item.title}>
                             {item.title}
                           </span>
                         </div>
                         {/* Right: Date */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[11px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                          <span className="text-[11.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
                             {item.date.substring(5, 10).replace("-", "/")}
                           </span>
                         </div>
@@ -1991,7 +1988,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                 {/* 2. 트램건설추진단 소식 */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="text-[11.5px] font-black text-secondary/70 flex items-center gap-1.5 px-2 mb-0.5">
+                  <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]"></span>
                     트램건설추진단 소식
                   </div>
@@ -2013,13 +2010,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                           <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                             <Train size={12} />
                           </div>
-                          <span className="text-[13px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
+                          <span className="text-[14px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
                             {item.title}
                           </span>
                         </div>
                         {/* Right: Date */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[11px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                          <span className="text-[11.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
                             {item.date.substring(5, 10).replace("-", "/")}
                           </span>
                         </div>
@@ -2274,6 +2271,100 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           onClose={() => setIsQuizOpen(false)}
           locationScores={locationScores || {}}
         />
+      )}
+
+      {/* 🔔 내 아파트 시세 브리핑 안내 팝업/모달 */}
+      {showBriefingPopup && mounted && typeof window !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[4px] animate-in fade-in duration-200">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-[400px] bg-surface border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col relative animate-in slide-in-from-bottom-6 zoom-in-95 duration-300"
+          >
+            {/* 닫기 버튼 */}
+            <button
+              onClick={() => setShowBriefingPopup(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-body text-tertiary hover:text-primary transition-colors cursor-pointer border-none bg-transparent outline-none"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Content */}
+            <div className="p-6 sm:p-7 pt-9 flex flex-col items-center text-center">
+
+              {/* Title & Badge */}
+              <div className="flex items-center gap-1.5 justify-center mb-2.5">
+                <span className="bg-[#00d29d]/10 text-[#00b386] font-black text-[9.5px] px-2 py-0.5 rounded-[6px]">
+                  리텐션 케어
+                </span>
+                <h3 className="text-[17px] font-black text-primary tracking-tight">
+                  내 아파트 시세 브리핑
+                </h3>
+              </div>
+
+              <p className="text-[12.5px] text-secondary font-bold leading-relaxed mb-5 break-keep">
+                관심 단지를 등록해 두시면, 매일 오전 국토부 실거래가 신고건을 기반으로 시세 변동과 매매/전세 갭을 자동으로 분석해 드립니다.
+              </p>
+
+              {/* Features List */}
+              <div className="w-full bg-body rounded-2xl p-5 flex flex-col gap-4 text-left border border-border/40 mb-6">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[12.5px] font-bold text-primary">실거래가 변동 실시간 수집</span>
+                  <span className="text-[11px] text-tertiary font-medium leading-normal">매일 아침 시세 변동 내역 자동 비교</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[12.5px] font-bold text-primary">매매/전세 갭(Gap) 정밀 분석</span>
+                  <span className="text-[11px] text-tertiary font-medium leading-normal">전세가율 및 단지별 최신 갭 비율 계산</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[12.5px] font-bold text-primary">나만의 대시보드 맞춤형 차트</span>
+                  <span className="text-[11px] text-tertiary font-medium leading-normal">불필요한 정보 없이 내 관심 단지만 요약</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 w-full">
+                <button
+                  onClick={() => {
+                    setShowBriefingPopup(false);
+                    if (!user) {
+                      handleLogin();
+                    } else {
+                      const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
+                      if (searchEl) {
+                        (searchEl as HTMLElement).focus();
+                        searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }
+                  }}
+                  className="w-full py-3 bg-[#00d29d] hover:bg-[#00d29d]/90 text-white border-none rounded-2xl text-[13.5px] font-extrabold cursor-pointer transition-colors shadow-sm text-center active:scale-[0.985] outline-none"
+                >
+                  {user ? "지금 관심 단지 등록하기 ➔" : "3초 간편 로그인하고 시작하기 ➔"}
+                </button>
+                
+                <div className="flex items-center justify-between w-full mt-2 px-1">
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("dview_briefing_popup_dismissed", Date.now().toString());
+                      setShowBriefingPopup(false);
+                    }}
+                    className="text-[11px] text-tertiary hover:text-secondary font-bold bg-transparent border-none cursor-pointer transition-colors outline-none"
+                  >
+                    오늘 하루 보지 않기
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBriefingPopup(false);
+                    }}
+                    className="text-[11px] text-tertiary hover:text-secondary font-bold bg-transparent border-none cursor-pointer transition-colors outline-none"
+                  >
+                    다음에 할게요
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Mobile Bottom Sheet Modal */}
