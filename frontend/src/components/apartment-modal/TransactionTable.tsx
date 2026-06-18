@@ -46,12 +46,19 @@ export const TransactionTable = React.memo(function TransactionTable({
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout | null = null;
     const checkIsDesktop = () => {
-      setIsDesktop(window.innerWidth >= 768);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setIsDesktop(window.innerWidth >= 768);
+      }, 100);
     };
     checkIsDesktop();
-    window.addEventListener('resize', checkIsDesktop);
-    return () => window.removeEventListener('resize', checkIsDesktop);
+    window.addEventListener('resize', checkIsDesktop, { passive: true });
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener('resize', checkIsDesktop);
+    };
   }, []);
 
   const defaultCount = isDesktop ? 8 : 6;
@@ -169,7 +176,7 @@ export const TransactionTable = React.memo(function TransactionTable({
       >
         {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => (
           <TransactionRow 
-            key={i} 
+            key={`tx-row-${tx.contractYm}-${tx.contractDay}-${tx.price}-${tx.floor}-${i}`} 
             tx={tx} 
             areaUnit={areaUnit} 
             typeMap={typeMap} 
@@ -230,41 +237,49 @@ const TransactionRow = React.memo(function TransactionRow({
   const eok = Math.floor(displayPrice / 10000);
   const rem = displayPrice % 10000;
   
-  let typeLabel = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
-  if (!typeLabel) {
-    const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-    if (typeData) {
-      typeLabel = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);
+  // typeLabel 룩업 연산 메모이제이션
+  const typeLabel = useMemo(() => {
+    let label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
+    if (!label) {
+      const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+      if (typeData) {
+        label = areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2);
+      }
+      if (!label) {
+        label = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
+      }
     }
-    if (!typeLabel) {
-       typeLabel = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
-    }
-  }
+    return label;
+  }, [tx.areaLabelM2, tx.areaLabelPyeong, tx.aptName, tx.area, areaUnit, typeMap]);
 
   const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
-  let priceText = '';
-  if (tx.dealType === '월세') {
-    const depEok = Math.floor((tx.deposit || 0) / 10000);
-    const depRem = (tx.deposit || 0) % 10000;
-    let depStr = '';
-    if (depEok > 0) {
-      depStr += `${depEok}억`;
-      if (depRem > 0) depStr += `${depRem.toLocaleString()}`;
-    } else {
-      depStr += `${depRem.toLocaleString()}`;
-    }
-    priceText = `${depStr}/${displayMonthly.toLocaleString()}`;
-  } else {
-    if (eok > 0) {
-      priceText += `${eok}억`;
-      if (rem > 0) {
-        priceText += `${rem.toLocaleString()}`;
+  // 가격 포맷 연산 메모이제이션
+  const priceText = useMemo(() => {
+    let text = '';
+    if (tx.dealType === '월세') {
+      const depEok = Math.floor((tx.deposit || 0) / 10000);
+      const depRem = (tx.deposit || 0) % 10000;
+      let depStr = '';
+      if (depEok > 0) {
+        depStr += `${depEok}억`;
+        if (depRem > 0) depStr += `${depRem.toLocaleString()}`;
+      } else {
+        depStr += `${depRem.toLocaleString()}`;
       }
+      text = `${depStr}/${displayMonthly.toLocaleString()}`;
     } else {
-      priceText += `${rem.toLocaleString()}만`;
+      if (eok > 0) {
+        text += `${eok}억`;
+        if (rem > 0) {
+          text += `${rem.toLocaleString()}`;
+        }
+      } else {
+        text += `${rem.toLocaleString()}만`;
+      }
     }
-  }
+    return text;
+  }, [tx.dealType, tx.deposit, displayMonthly, eok, rem]);
 
   return (
     <div className={`flex items-center justify-between p-3 md:p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
