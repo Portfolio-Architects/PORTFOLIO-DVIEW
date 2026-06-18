@@ -382,10 +382,18 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     return posts.filter((p) => targetCategories.includes(p.category || '기타'));
   }, [posts, currentTab]);
 
-  // Auto-fetch if the current category has no posts but there are more posts in the DB
+  const autoFetchCountRef = useRef(0);
+
+  // Reset auto-fetch limit when current tab changes to prevent infinite database fetch loops
   useEffect(() => {
-    if (filteredPosts.length === 0 && hasMore && !isLoadingMore) {
+    autoFetchCountRef.current = 0;
+  }, [currentTab]);
+
+  // Auto-fetch if the current category has no posts but there are more posts in the DB (limit to 3 runs to prevent infinite loops)
+  useEffect(() => {
+    if (filteredPosts.length === 0 && hasMore && !isLoadingMore && autoFetchCountRef.current < 3) {
       const timer = setTimeout(() => {
+        autoFetchCountRef.current += 1;
         loadMorePosts();
       }, 100);
       return () => clearTimeout(timer);
