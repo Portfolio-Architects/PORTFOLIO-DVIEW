@@ -44,7 +44,12 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   txSummaryData,
   nameMapping,
 }: PropertyTaxCalculatorProps) {
-  const allApartments = useMemo(() => Object.values(sheetApartments).flat(), [sheetApartments]);
+  const allApartments = useMemo(() => {
+    return Object.values(sheetApartments).flat().map(a => ({
+      ...a,
+      normalizedName: normalizeAptName(a.name)
+    }));
+  }, [sheetApartments]);
 
   // Selected apartment state
   const [selectedApt, setSelectedApt] = useState<DongApartment | null>(null);
@@ -209,7 +214,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   const filteredApts = useMemo(() => {
     if (!searchQuery.trim()) return allApartments;
     const query = normalizeAptName(searchQuery);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery));
+    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(searchQuery));
   }, [searchQuery, allApartments]);
 
   // Tax calculations
