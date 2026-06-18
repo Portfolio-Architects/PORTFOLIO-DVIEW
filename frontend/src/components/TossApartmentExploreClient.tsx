@@ -478,19 +478,21 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, []);
 
   useEffect(() => {
-    const parsedProps = TossApartmentExploreClientPropsSchema.safeParse({
-      sheetApartments,
-      txSummaryData,
-      nameMapping,
-      favoriteCounts,
-      typeMap,
-    });
-    if (!parsedProps.success) {
-      logger.warn(
-        'TossApartmentExploreClient.props',
-        'Props validation failed',
-        { errors: parsedProps.error.format() }
-      );
+    if (process.env.NODE_ENV === 'development') {
+      const parsedProps = TossApartmentExploreClientPropsSchema.safeParse({
+        sheetApartments,
+        txSummaryData,
+        nameMapping,
+        favoriteCounts,
+        typeMap,
+      });
+      if (!parsedProps.success) {
+        logger.warn(
+          'TossApartmentExploreClient.props',
+          'Props validation failed',
+          { errors: parsedProps.error.format() }
+        );
+      }
     }
   }, [sheetApartments, txSummaryData, nameMapping, favoriteCounts, typeMap]);
 
@@ -697,7 +699,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection, userFavorites, favoriteCounts, fieldReportsMap]);
 
   const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
-    const q = searchQuery.toLowerCase().replace(/\s+/g, '');
+    const q = debouncedSearchQuery.toLowerCase().replace(/\s+/g, '');
     if (!q) {
       return { suggestionsApts: [], suggestionsDongs: [], suggestionsBrands: [] };
     }
@@ -720,7 +722,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       suggestionsDongs: matchingDongs,
       suggestionsBrands: matchingBrands
     };
-  }, [enrichedApts, searchQuery]);
+  }, [enrichedApts, debouncedSearchQuery]);
 
   const recommendedKeywords = ['동탄역', '시범단지', '롯데캐슬', '반도유보라', '자이', '더샵'];
 
