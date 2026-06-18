@@ -23,7 +23,7 @@ function log(color, message) {
 }
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
-const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\a69b813e-9a02-44e6-b1f4-245a5f67bf3f';
+const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\c7f1b96b-16e3-4138-bd75-a55adb6b6ae2';
 const TASK_MD_PATH = path.join(BRAIN_DIR, 'task.md');
 const HISTORY_JSON_PATH = path.join(BRAIN_DIR, 'scratch/loop-history.json');
 
@@ -155,6 +155,10 @@ async function main() {
   log(colors.magenta, '\n==================================================');
   log(colors.magenta, '🤖 DVIEW Auto Self-Improvement Runner Starting');
   log(colors.magenta, '==================================================\n');
+
+  // Cool-down delay to allow Next.js dev server HMR/Fast Refresh to settle after code changes
+  log(colors.cyan, '⏳ Waiting 6 seconds for HMR compilation to settle...');
+  await new Promise(resolve => setTimeout(resolve, 6000));
 
   const phaseStartTime = Date.now();
   performPreRunCleanups();
