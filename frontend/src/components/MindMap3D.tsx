@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Sparkles, Orbit, RotateCcw, Flame, CheckCircle, Info } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import useSWR from 'swr';
@@ -59,6 +59,28 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
   }, []);
 
   const isDark = !mounted || resolvedTheme === 'dark';
+
+  // Refs to store the latest values for the render loop to prevent canvas re-initialization
+  const hoveredNodeRef = useRef<Node3D | null>(null);
+  const rotationActiveRef = useRef(rotationActive);
+  const temperatureModeRef = useRef(temperatureMode);
+  const isDarkRef = useRef(isDark);
+
+  useEffect(() => {
+    hoveredNodeRef.current = hoveredNode;
+  }, [hoveredNode]);
+
+  useEffect(() => {
+    rotationActiveRef.current = rotationActive;
+  }, [rotationActive]);
+
+  useEffect(() => {
+    temperatureModeRef.current = temperatureMode;
+  }, [temperatureMode]);
+
+  useEffect(() => {
+    isDarkRef.current = isDark;
+  }, [isDark]);
 
   // 3D Engine configuration
   const cameraAngle = useRef(0);
@@ -239,7 +261,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
       runSimulationStep();
 
       // Set camera rotation angle
-      if (rotationActive && !isDragging.current) {
+      if (rotationActiveRef.current && !isDragging.current) {
         cameraAngle.current += 0.003;
       }
 
@@ -288,7 +310,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         const alpha = Math.max(0.05, Math.min(0.3, 1 - (avgDepth + 150) / 300));
 
         // Dynamically adjust link stroke colors based on theme resolved state
-        ctx.strokeStyle = isDark 
+        ctx.strokeStyle = isDarkRef.current 
           ? `rgba(148, 163, 184, ${alpha})` 
           : `rgba(100, 116, 139, ${alpha * 1.5})`;
 
@@ -309,7 +331,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         // Temperature heat map color mapping
         let nodeColor = '#38bdf8'; // Sky blue fallback
         
-        if (temperatureMode === 'vote') {
+        if (temperatureModeRef.current === 'vote') {
           const buyRatio = node.buyPercent / 100;
           const hue = 210 - (buyRatio * 210);
           nodeColor = `hsl(${hue}, 85%, 50%)`;
@@ -335,7 +357,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         );
         gradient.addColorStop(0, '#ffffff');
         gradient.addColorStop(0.3, nodeColor);
-        gradient.addColorStop(1, isDark ? '#0b0f19' : '#e2e8f0');
+        gradient.addColorStop(1, isDarkRef.current ? '#0b0f19' : '#e2e8f0');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -343,16 +365,16 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         ctx.fill();
 
         // Node glow stroke (if hovered or very hot)
-        const isHovered = hoveredNode?.id === node.id;
+        const isHovered = hoveredNodeRef.current?.id === node.id;
         if (isHovered) {
-          ctx.strokeStyle = isDark ? '#ffffff' : '#0f172a';
+          ctx.strokeStyle = isDarkRef.current ? '#ffffff' : '#0f172a';
           ctx.lineWidth = 2;
           ctx.stroke();
         }
 
         // Render node labels for closer nodes
         if (node.projectedScale > 0.8 || isHovered) {
-          ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.9)';
+          ctx.fillStyle = isDarkRef.current ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.9)';
           ctx.font = isHovered ? 'bold 11px Inter, sans-serif' : '500 9px Inter, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(node.name, node.projectedX, node.projectedY + radius + 11);
@@ -394,10 +416,10 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         zoomHintTimeout.current = null;
       }
     };
-  }, [nodes, links, rotationActive, hoveredNode, temperatureMode, isDark]);
+  }, [nodes, links]);
 
   // Handle interaction & mouse events
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isDragging.current && dragStart.current) {
       const dx = e.clientX - dragStart.current.x;
       const dy = e.clientY - dragStart.current.y;
@@ -424,23 +446,23 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     });
 
     setHoveredNode(foundNode);
-  };
+  }, [nodes]);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     isDragging.current = true;
     dragStart.current = { x: e.clientX - dragAngle.current.x / 0.007, y: e.clientY - dragAngle.current.y / 0.007 };
-  };
+  }, []);
 
-  const handleMouseUpOrLeave = () => {
+  const handleMouseUpOrLeave = useCallback(() => {
     isDragging.current = false;
     dragStart.current = null;
-  };
+  }, []);
 
-  const handleCanvasClick = () => {
+  const handleCanvasClick = useCallback(() => {
     if (hoveredNode) {
       onSelectApt(hoveredNode.name);
     }
-  };
+  }, [hoveredNode, onSelectApt]);
 
   return (
     <div className={`w-full rounded-3xl p-5 md:p-6 shadow-xl border transition-all flex flex-col relative overflow-hidden ${
