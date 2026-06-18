@@ -13,6 +13,16 @@ const SettingsModal = React.memo(function SettingsModal() {
     setMounted(true);
   }, []);
 
+  // Prevent background scroll when settings modal is open
+  useEffect(() => {
+    if (!isSettingsModalOpen) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [isSettingsModalOpen]);
+
   if (!mounted || !isSettingsModalOpen) return null;
 
   return createPortal(
