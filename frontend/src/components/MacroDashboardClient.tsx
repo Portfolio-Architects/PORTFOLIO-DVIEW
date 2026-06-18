@@ -476,12 +476,19 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout | null = null;
     const handleResize = () => {
-      setIsMobileViewport(window.innerWidth < 1024);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setIsMobileViewport(window.innerWidth < 1024);
+      }, 100);
     };
-    handleResize();
+    setIsMobileViewport(window.innerWidth < 1024);
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
   }, []);
 
   // 바텀 시트 오픈 시 body 스크롤 방지
