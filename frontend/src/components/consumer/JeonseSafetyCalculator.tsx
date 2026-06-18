@@ -293,9 +293,16 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   const handleStartDiagnosis = () => {
     if (!selectedApt || !jeonseEok) return;
     setIsCalculating(true);
+    if (calculateTimeoutRef.current) {
+      clearTimeout(calculateTimeoutRef.current);
+      calculateTimeoutRef.current = null;
+    }
     calculateTimeoutRef.current = setTimeout(() => {
-      setIsCalculating(false);
-      setShowResult(true);
+      if (mountedRef.current) {
+        setIsCalculating(false);
+        setShowResult(true);
+      }
+      calculateTimeoutRef.current = null;
     }, 1200); // 1.2s premium calculation feel
   };
 
@@ -321,13 +328,14 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
       if (!mountedRef.current) return;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = null;
       }
       setIsCopied(true);
       copyTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           setIsCopied(false);
-          copyTimeoutRef.current = null;
         }
+        copyTimeoutRef.current = null;
       }, 2000);
     });
   };

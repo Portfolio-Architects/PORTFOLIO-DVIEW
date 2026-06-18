@@ -475,9 +475,16 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
 
   const handleStartSimulate = () => {
     setIsCalculating(true);
+    if (calculateTimeoutRef.current) {
+      clearTimeout(calculateTimeoutRef.current);
+      calculateTimeoutRef.current = null;
+    }
     calculateTimeoutRef.current = setTimeout(() => {
-      setIsCalculating(false);
-      setStep(4);
+      if (mountedRef.current) {
+        setIsCalculating(false);
+        setStep(4);
+      }
+      calculateTimeoutRef.current = null;
     }, 1200); // Premium calculation speed feel
   };
 
@@ -506,13 +513,14 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
       if (!mountedRef.current) return;
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = null;
       }
       setIsCopied(true);
       copyTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
           setIsCopied(false);
-          copyTimeoutRef.current = null;
         }
+        copyTimeoutRef.current = null;
       }, 2000);
     });
   };
