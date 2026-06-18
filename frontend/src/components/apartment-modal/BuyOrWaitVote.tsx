@@ -20,6 +20,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   const [hasVoted, setHasVoted] = useState(false);
   const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -55,7 +56,10 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
 
   const handleVote = async (e: React.MouseEvent<HTMLButtonElement>, type: 'buy' | 'wait') => {
     e.preventDefault();
-    if (hasVoted || isSubmitting) return;
+    if (hasVoted || isSubmitting || isSubmittingRef.current) return;
+    
+    // 즉각적인 동기식 락 적용으로 React state batching 딜레이 동안의 중복 입력 방지
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -90,9 +94,13 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     } catch (err) {
       console.error('Failed to submit vote:', err);
     } finally {
-      if (mountedRef.current) {
-        setIsSubmitting(false);
-      }
+      // 800ms 쓰로틀링 쿨다운을 두어 연속적인 연타 공격 차단 및 Firestore 비용 방어
+      setTimeout(() => {
+        isSubmittingRef.current = false;
+        if (mountedRef.current) {
+          setIsSubmitting(false);
+        }
+      }, 800);
     }
   };
 
