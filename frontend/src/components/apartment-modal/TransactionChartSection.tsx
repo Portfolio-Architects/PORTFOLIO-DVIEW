@@ -74,13 +74,23 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   useEffect(() => {
     if (!containerRef.current) return;
+    let debounceTimer: NodeJS.Timeout | null = null;
+    
     const resizeObserver = new ResizeObserver((entries) => {
       if (!entries || entries.length === 0) return;
       const { width, height } = entries[0].contentRect;
-      setDimensions({ width, height });
+      
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (mountedRef.current) {
+          setDimensions({ width, height });
+        }
+      }, 100);
     });
+    
     resizeObserver.observe(containerRef.current);
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       resizeObserver.disconnect();
     };
   }, []);
