@@ -25,35 +25,44 @@ function SegmentedControlInner<T extends string | number>({
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
+  const rafRef = useRef<number | null>(null);
+
   useEffect(() => {
     setIsMounted(true);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   useEffect(() => {
     if (!isMounted) return;
 
     const updateSlider = () => {
-      if (activeTabRef.current && containerRef.current) {
-        const activeRect = activeTabRef.current.getBoundingClientRect();
-        const containerRect = containerRef.current.getBoundingClientRect();
-        
-        const left = activeRect.left - containerRect.left;
-        const width = activeRect.width;
-        
-        setSliderStyle({
-          transform: `translateX(${left}px)`,
-          width: `${width}px`,
-        });
-      }
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (activeTabRef.current && containerRef.current) {
+          const activeRect = activeTabRef.current.getBoundingClientRect();
+          const containerRect = containerRef.current.getBoundingClientRect();
+          
+          const left = activeRect.left - containerRect.left;
+          const width = activeRect.width;
+          
+          setSliderStyle({
+            transform: `translateX(${left}px)`,
+            width: `${width}px`,
+          });
+        }
+      });
     };
 
     // Run update on frame to avoid layout thrashing
     const timer = setTimeout(updateSlider, 20);
-    window.addEventListener('resize', updateSlider);
+    window.addEventListener('resize', updateSlider, { passive: true });
     
     return () => {
       clearTimeout(timer);
       window.removeEventListener('resize', updateSlider);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [value, options, isMounted]);
 

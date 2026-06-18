@@ -16,45 +16,49 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   const triggerRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   const updatePosition = () => {
-    if (!triggerRef.current || !tooltipRef.current) return;
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    
-    const tooltipHeight = tooltipRect.height || 36;
-    const tooltipWidth = tooltipRect.width || 180;
-    
-    // Default: centered at the top of target
-    let left = triggerRect.left + triggerRect.width / 2 - tooltipWidth / 2;
-    let top = triggerRect.top - tooltipHeight - 8; // 8px margin
-    let placement = 'top';
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      if (!triggerRef.current || !tooltipRef.current) return;
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const tooltipRect = tooltipRef.current.getBoundingClientRect();
+      
+      const tooltipHeight = tooltipRect.height || 36;
+      const tooltipWidth = tooltipRect.width || 180;
+      
+      // Default: centered at the top of target
+      let left = triggerRect.left + triggerRect.width / 2 - tooltipWidth / 2;
+      let top = triggerRect.top - tooltipHeight - 8; // 8px margin
+      let placement = 'top';
 
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
 
-    const viewportWidth = window.innerWidth;
-    const padding = 12; // viewport safety padding
+      const viewportWidth = window.innerWidth;
+      const padding = 12; // viewport safety padding
 
-    // Prevent spilling left edge
-    if (left < padding) {
-      left = padding;
-    }
-    // Prevent spilling right edge
-    else if (left + tooltipWidth > viewportWidth - padding) {
-      left = viewportWidth - tooltipWidth - padding;
-    }
+      // Prevent spilling left edge
+      if (left < padding) {
+        left = padding;
+      }
+      // Prevent spilling right edge
+      else if (left + tooltipWidth > viewportWidth - padding) {
+        left = viewportWidth - tooltipWidth - padding;
+      }
 
-    // Prevent spilling top edge
-    if (triggerRect.top - tooltipHeight - padding < 0) {
-      top = triggerRect.bottom + 8; // flip to bottom
-      placement = 'bottom';
-    }
+      // Prevent spilling top edge
+      if (triggerRect.top - tooltipHeight - padding < 0) {
+        top = triggerRect.bottom + 8; // flip to bottom
+        placement = 'bottom';
+      }
 
-    setCoords({
-      top: top + scrollY,
-      left: left + scrollX,
-      placement
+      setCoords({
+        top: top + scrollY,
+        left: left + scrollX,
+        placement
+      });
     });
   };
 
@@ -65,13 +69,14 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
         updatePosition();
       }, 0);
 
-      window.addEventListener('resize', updatePosition);
-      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition, { passive: true });
+      window.addEventListener('scroll', updatePosition, { capture: true, passive: true });
       
       return () => {
         clearTimeout(renderTimer);
         window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('scroll', updatePosition, { capture: true } as any);
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
       };
     }
   }, [isOpen]);
@@ -91,6 +96,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
