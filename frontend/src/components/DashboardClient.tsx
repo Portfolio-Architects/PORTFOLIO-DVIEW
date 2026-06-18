@@ -576,16 +576,25 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   useEffect(() => {
     if (typeof window !== 'undefined' && leftPanelRef.current) {
+      let debounceTimer: NodeJS.Timeout | null = null;
       const resizeObserver = new ResizeObserver(entries => {
         for (const entry of entries) {
           // Adjust for header elements inside the left panel (Trending + FilterBar = ~110px)
           const availableHeight = entry.contentRect.height;
-          setListHeight(Math.max(400, availableHeight - 110));
-          setIsDesktop(window.innerWidth >= 768);
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            if (mounted) {
+              setListHeight(Math.max(400, availableHeight - 110));
+              setIsDesktop(window.innerWidth >= 768);
+            }
+          }, 100);
         }
       });
       resizeObserver.observe(leftPanelRef.current);
-      return () => resizeObserver.disconnect();
+      return () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        resizeObserver.disconnect();
+      };
     }
   }, [mounted, activeTab]);
 
