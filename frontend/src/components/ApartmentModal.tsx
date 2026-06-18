@@ -1521,8 +1521,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
               setCopiedStatus('edu-link');
-              if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-              copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
+              if (copiedTimeoutRef.current) {
+                clearTimeout(copiedTimeoutRef.current);
+                copiedTimeoutRef.current = null;
+              }
+              copiedTimeoutRef.current = setTimeout(() => {
+                if (mountedRef.current) {
+                  setCopiedStatus(null);
+                  copiedTimeoutRef.current = null;
+                }
+              }, 1500);
             });
           }
         }
@@ -1530,8 +1538,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
           setCopiedStatus('edu-link');
-          if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-          copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
+          if (copiedTimeoutRef.current) {
+            clearTimeout(copiedTimeoutRef.current);
+            copiedTimeoutRef.current = null;
+          }
+          copiedTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              setCopiedStatus(null);
+              copiedTimeoutRef.current = null;
+            }
+          }, 1500);
         });
       }
       
@@ -1571,8 +1587,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
               setCopiedStatus('infra-link');
-              if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-              copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
+              if (copiedTimeoutRef.current) {
+                clearTimeout(copiedTimeoutRef.current);
+                copiedTimeoutRef.current = null;
+              }
+              copiedTimeoutRef.current = setTimeout(() => {
+                if (mountedRef.current) {
+                  setCopiedStatus(null);
+                  copiedTimeoutRef.current = null;
+                }
+              }, 1500);
             });
           }
         }
@@ -1580,8 +1604,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
           setCopiedStatus('infra-link');
-          if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-          copiedTimeoutRef.current = setTimeout(() => setCopiedStatus(null), 1500);
+          if (copiedTimeoutRef.current) {
+            clearTimeout(copiedTimeoutRef.current);
+            copiedTimeoutRef.current = null;
+          }
+          copiedTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              setCopiedStatus(null);
+              copiedTimeoutRef.current = null;
+            }
+          }, 1500);
         });
       }
       
