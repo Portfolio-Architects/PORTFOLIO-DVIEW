@@ -34,6 +34,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
 
   useEffect(() => {
     let activeFrame: number | null = null;
+    
     const handleScroll = () => {
       if (activeFrame) return;
       activeFrame = window.requestAnimationFrame(() => {
@@ -42,25 +43,47 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
           const footerRect = footer.getBoundingClientRect();
           const windowHeight = window.innerHeight;
           const offset = windowHeight - footerRect.top;
-          if (offset > 0) {
-            setFooterOffset(offset);
-          } else {
-            setFooterOffset(0);
-          }
+          setFooterOffset(offset > 0 ? offset : 0);
         }
-        setIsMobile(window.innerWidth < 640);
         activeFrame = null;
       });
     };
 
+    let resizeTimeout: NodeJS.Timeout | null = null;
+    const handleResize = () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        setIsMobile(window.innerWidth < 640);
+        
+        // Also sync footer offset after resize settles
+        const footer = document.querySelector('footer');
+        if (footer) {
+          const footerRect = footer.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+          const offset = windowHeight - footerRect.top;
+          setFooterOffset(offset > 0 ? offset : 0);
+        }
+      }, 100);
+    };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
-    handleScroll();
+    window.addEventListener('resize', handleResize);
+    
+    // Initial sync
+    setIsMobile(window.innerWidth < 640);
+    const footer = document.querySelector('footer');
+    if (footer) {
+      const footerRect = footer.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const offset = windowHeight - footerRect.top;
+      setFooterOffset(offset > 0 ? offset : 0);
+    }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', handleResize);
       if (activeFrame) window.cancelAnimationFrame(activeFrame);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
     };
   }, []);
   const isUserAdmin = isAdmin(user?.email);
