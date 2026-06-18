@@ -24,6 +24,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
     if (typeof window !== 'undefined') {
       try {
         const seenLocal = localStorage.getItem('dview-welcome-seen');
@@ -31,22 +32,23 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         
         if (seenLocal !== 'true' && seenCookie !== 'true') {
           // Trigger the modal after 1.5 seconds to ensure smooth hydration and layout loading
-          const timer = setTimeout(() => {
+          timer = setTimeout(() => {
             setIsOpen(true);
           }, 1500);
-          return () => clearTimeout(timer);
         }
       } catch (e) {
         console.warn('localStorage is unavailable, checking cookie fallback:', e);
         const seenCookie = getCookie('dview-welcome-seen');
         if (seenCookie !== 'true') {
-          const timer = setTimeout(() => {
+          timer = setTimeout(() => {
             setIsOpen(true);
           }, 1500);
-          return () => clearTimeout(timer);
         }
       }
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
