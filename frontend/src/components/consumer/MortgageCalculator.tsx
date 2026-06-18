@@ -71,7 +71,12 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   nameMapping,
   fieldReportsMap,
 }: MortgageCalculatorProps) {
-  const allApartments = useMemo(() => Object.values(sheetApartments).flat(), [sheetApartments]);
+  const allApartments = useMemo(() => {
+    return Object.values(sheetApartments).flat().map(a => ({
+      ...a,
+      normalizedName: normalizeAptName(a.name)
+    }));
+  }, [sheetApartments]);
 
   // Selected apartment state
   const [selectedApt, setSelectedApt] = useState<DongApartment | null>(null);
@@ -276,7 +281,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   const filteredApts = useMemo(() => {
     if (!searchQuery.trim()) return allApartments;
     const query = normalizeAptName(searchQuery);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery));
+    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(searchQuery));
   }, [searchQuery, allApartments]);
 
   // Retrieve market price

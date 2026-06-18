@@ -49,7 +49,10 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
 }: JeonseSafetyCalculatorProps) {
   // Flatten list of all apartments
   const allApartments = useMemo(() => {
-    return Object.values(sheetApartments).flat();
+    return Object.values(sheetApartments).flat().map(a => ({
+      ...a,
+      normalizedName: normalizeAptName(a.name)
+    }));
   }, [sheetApartments]);
 
   // Selected apartment state
@@ -221,7 +224,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   const filteredApts = useMemo(() => {
     if (!searchQuery.trim()) return allApartments;
     const query = normalizeAptName(searchQuery);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery));
+    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(searchQuery));
   }, [searchQuery, allApartments]);
 
   // Retrieve market price and calculate debt ratio
