@@ -46,18 +46,22 @@ const CommentSection = React.memo(function CommentSection({
   const [suggestionIndex, setSuggestionIndex] = useState(0);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (
         popoverRef.current && 
-        !popoverRef.current.contains(event.target as Node) &&
+        popoverRef.current.contains(event.target as Node) === false &&
         inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
+        inputRef.current.contains(event.target as Node) === false
       ) {
         setShowSuggestions(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const handleAction = () => {
