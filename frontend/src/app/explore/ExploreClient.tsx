@@ -113,8 +113,28 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
+  const fieldReportsMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (!fieldReports || !sheetApartments) return map;
+    const allApts = Object.values(sheetApartments).flat() as any[];
+    allApts.forEach(apt => {
+      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
+      if (report) map.set(apt.name, report);
+    });
+    return map;
+  }, [fieldReports, sheetApartments, nameMapping]);
+
   const [mounted, setMounted] = useState(false);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hashStateRef = useRef<{ mounted: boolean; sheetApartments: any; fieldReportsMap: any; nameMapping: any }>({
+    mounted: false,
+    sheetApartments: null,
+    fieldReportsMap: null,
+    nameMapping: null
+  });
+  useEffect(() => {
+    hashStateRef.current = { mounted, sheetApartments, fieldReportsMap, nameMapping };
+  }, [mounted, sheetApartments, fieldReportsMap, nameMapping]);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [isConsumerAdModalOpen, setIsConsumerAdModalOpen] = useState(false);
   const [consumerAdInfo, setConsumerAdInfo] = useState<{ adType: 'insurance' | 'interior' | 'academy' | 'cleaning'; adTitle: string } | null>(null);
@@ -220,17 +240,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const fieldReportsMap = useMemo(() => {
-    const map = new Map<string, any>();
-    if (!fieldReports || !sheetApartments) return map;
-    const allApts = Object.values(sheetApartments).flat();
-    allApts.forEach(apt => {
-      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
-      if (report) map.set(apt.name, report);
-    });
-    return map;
-  }, [fieldReports, sheetApartments, nameMapping]);
-
   useEffect(() => {
     let isMounted = true;
     setMounted(true);
@@ -267,17 +276,18 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   // Handle #apt= hash to open modal automatically
   useEffect(() => {
-    if (!mounted || !sheetApartments) return;
-
     const checkHashForApt = () => {
+      const { mounted: m, sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
+      if (!m || !apartments) return;
+
       const match = window.location.hash.match(/[#&]apt=([^&]+)/);
       if (match) {
         const aptName = decodeURIComponent(match[1]);
-        const allApts = Object.values(sheetApartments).flat();
-        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, nameMapping));
+        const allApts = Object.values(apartments).flat() as any[];
+        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, mapping));
 
         if (targetApt) {
-          const report = fieldReportsMap.get(targetApt.name);
+          const report = reportsMap.get(targetApt.name);
           if (report) {
             setSelectedReport(report);
           } else {
@@ -297,10 +307,13 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       }
     };
 
-    checkHashForApt();
+    if (mounted && sheetApartments) {
+      checkHashForApt();
+    }
+    
     window.addEventListener('hashchange', checkHashForApt);
     return () => window.removeEventListener('hashchange', checkHashForApt);
-  }, [mounted, sheetApartments, fieldReportsMap, nameMapping]);
+  }, [mounted, !!sheetApartments]);
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
 
