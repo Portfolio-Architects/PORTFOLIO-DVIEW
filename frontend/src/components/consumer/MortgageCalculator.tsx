@@ -412,17 +412,32 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
 
     const principal = loanResults.maxLoanAmount * 10000; // convert to Won
     const annualInterestRate = loanResults.finalRate / 100;
-    const monthlyInterestRate = annualInterestRate / 12;
-    const totalMonths = maturityYears * 12;
+    const monthlyInterestRate = isNaN(annualInterestRate) ? 0 : annualInterestRate / 12;
+    const totalMonths = isNaN(maturityYears) || maturityYears <= 0 ? 360 : maturityYears * 12;
+
+    // Ensure totalMonths is valid to avoid division by zero
+    if (totalMonths <= 0) {
+      return { monthlyPayment: 0, chartData: [] };
+    }
 
     // Monthly Payment (Principal + Interest Equal Repayment - 원리금균등상환)
     // Formula: P * r * (1 + r)^n / ((1 + r)^n - 1)
     let monthlyPayment = 0;
     if (monthlyInterestRate > 0) {
-      monthlyPayment = (principal * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, totalMonths)) / 
-                       (Math.pow(1 + monthlyInterestRate, totalMonths) - 1);
+      const powVal = Math.pow(1 + monthlyInterestRate, totalMonths);
+      const denominator = powVal - 1;
+      
+      if (Math.abs(denominator) > 1e-10) {
+        monthlyPayment = (principal * monthlyInterestRate * powVal) / denominator;
+      } else {
+        monthlyPayment = principal / totalMonths;
+      }
     } else {
       monthlyPayment = principal / totalMonths;
+    }
+
+    if (isNaN(monthlyPayment) || !isFinite(monthlyPayment) || monthlyPayment < 0) {
+      monthlyPayment = 0;
     }
 
     // Generate chart data (12 points representing annual intervals)
