@@ -329,6 +329,41 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }
   }, [rawTransactions]);
 
+  // 1. 사전 연산: 각 거래 건의 실제 가격/전세전환가 및 타입맵 정보를 미리 연산하여 캐싱 (의존성 최소화로 filterOutliers 토글 시 재연산 방지)
+  const enrichedTransactions = useMemo(() => {
+    if (!safeTransactions || safeTransactions.length === 0) return [];
+    return safeTransactions.map(tx => {
+      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+      const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
+      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
+      
+      // 전세/월세 보증금 전환가 미리 계산
+      const calcPrice = (tx.dealType === '전세' || tx.dealType === '월세')
+        ? (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)
+         : tx.price;
+      
+      // 날짜를 YYYYMMDD 형태의 숫자로 캐싱
+      const dateNum = parseInt(tx.contractYm + String(tx.contractDay || '01').padStart(2, '0'));
+
+      return {
+        ...tx,
+        calculatedPrice: calcPrice,
+        contractDateNum: dateNum,
+        areaLabelM2: labelM2,
+        areaLabelPyeong: labelPyeong
+      };
+    });
+  }, [safeTransactions, typeMap]);
+
+  // 2. 3대 입지 및 교육 스코어 연산 결과 useMemo로 캐싱하여 불필요한 재계산 오버헤드 차단
+  const eduScoreInfo = useMemo(() => {
+    return report.metrics ? calculateEducationScore(report.metrics) : null;
+  }, [report.metrics]);
+
+  const infraScoreInfo = useMemo(() => {
+    return report.metrics ? calculateInfraScore(report.metrics) : null;
+  }, [report.metrics]);
+
   useEffect(() => {
     if (mounted) {
       const timer = setTimeout(() => {
@@ -739,75 +774,79 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김 - 토글 활성화 시에만 적용)
   const transactions = useMemo(() => {
-    if (!safeTransactions || safeTransactions.length === 0) return [];
-    
-    // 1. 사전 연산: 각 거래 건의 실제 가격/전세전환가 및 타입맵 정보를 미리 연산하여 캐싱
-    const mappedTransactions = safeTransactions.map(tx => {
-      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-      const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
-      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
-      
-      // 전세/월세 보증금 전환가 미리 계산
-      const calcPrice = (tx.dealType === '전세' || tx.dealType === '월세')
-        ? (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)
-        : tx.price;
-      
-      // 날짜를 YYYYMMDD 형태의 숫자로 캐싱
-      const dateNum = parseInt(tx.contractYm + String(tx.contractDay || '01').padStart(2, '0'));
+    if (!enrichedTransactions || enrichedTransactions.length === 0) return [];
 
-      return {
-        ...tx,
-        calculatedPrice: calcPrice,
-        contractDateNum: dateNum,
-        areaLabelM2: labelM2,
-        areaLabelPyeong: labelPyeong
-      };
-    });
-
-    // 롤링 윈도우 기반 시계열 이상치 필터링
-    const filterOutliersRolling = (txs: typeof mappedTransactions) => {
+    // 롤링 윈도우 기반 시계열 이상치 필터링 (동적 메모리 할당 제거하여 성능 최적화)
+    const filterOutliersRolling = (txs: typeof enrichedTransactions) => {
       // 1. 시간순(오름차순) 정렬 (캐시된 contractDateNum 활용)
       const sortedTxs = [...txs].sort((a, b) => a.contractDateNum - b.contractDateNum);
 
       // 2. 면적별 그룹화
-      const byArea: Record<number, typeof mappedTransactions> = {};
-      sortedTxs.forEach(t => {
+      const byArea: Record<number, typeof enrichedTransactions> = {};
+      const sortedLen = sortedTxs.length;
+      for (let i = 0; i < sortedLen; i++) {
+        const t = sortedTxs[i];
         const a = Math.round(Number(t.area || 0));
         if (!byArea[a]) byArea[a] = [];
         byArea[a].push(t);
-      });
+      }
 
-      const validTxs: typeof mappedTransactions = [];
-      Object.values(byArea).forEach(group => {
-        const filtered = group.filter((t, idx) => {
-          // 앞뒤 5건씩 총 11건의 국소 윈도우 생성
-          const windowTxs = group.slice(Math.max(0, idx - 5), Math.min(group.length, idx + 6));
-          const p = t.calculatedPrice;
+      const validTxs: typeof enrichedTransactions = [];
+      const areas = Object.keys(byArea);
+      const areasLen = areas.length;
+
+      for (let aIdx = 0; aIdx < areasLen; aIdx++) {
+        const group = byArea[Number(areas[aIdx])];
+        const groupLen = group.length;
+
+        for (let idx = 0; idx < groupLen; idx++) {
+          const t = group[idx];
+          const start = Math.max(0, idx - 5);
+          const end = Math.min(groupLen, idx + 6); // exclusive limit
           
-          // 현재 분석하려는 항목을 제외한 윈도우의 통계를 활용하여 이상치 탐지의 자가 오염 방지
-          const localIdx = idx - Math.max(0, idx - 5);
-          const otherPrices = windowTxs.filter((_, wIdx) => wIdx !== localIdx).map(wt => wt.calculatedPrice);
+          let sum = 0;
+          let count = 0;
+          for (let w = start; w < end; w++) {
+            if (w !== idx) {
+              sum += group[w].calculatedPrice;
+              count++;
+            }
+          }
           
-          if (otherPrices.length < 3) return true; // 비교 표본이 부족하면 패스
+          if (count < 3) {
+            validTxs.push(t);
+            continue; // 비교 표본이 부족하면 패스
+          }
           
-          const mean = otherPrices.reduce((sum, val) => sum + val, 0) / otherPrices.length;
-          const variance = otherPrices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / otherPrices.length;
+          const mean = sum / count;
+          let sumSqDiff = 0;
+          for (let w = start; w < end; w++) {
+            if (w !== idx) {
+              sumSqDiff += Math.pow(group[w].calculatedPrice - mean, 2);
+            }
+          }
+          const variance = sumSqDiff / count;
           const stdDev = Math.sqrt(variance);
+          const p = t.calculatedPrice;
           
           // 1. 하위 가격(급매 등) 필터링: 최소 5% 편차 여유 기준 2 표준편차 이하인 거래 제외
           if (p < mean) {
-            return (mean - p) <= 2 * Math.max(stdDev, mean * 0.05);
+            if ((mean - p) <= 2 * Math.max(stdDev, mean * 0.05)) {
+              validTxs.push(t);
+            }
+          } else {
+            // 2. 상위 가격(기입 오류 또는 기형 월세 거래) 필터링: 3 표준편차 초과 시 제외
+            if ((p - mean) <= 3 * Math.max(stdDev, mean * 0.05)) {
+              validTxs.push(t);
+            }
           }
-          // 2. 상위 가격(기입 오류 또는 10억/110 등 기형 월세 거래) 필터링: 3 표준편차 초과 시 제외
-          return (p - mean) <= 3 * Math.max(stdDev, mean * 0.05);
-        });
-        validTxs.push(...filtered);
-      });
+        }
+      }
       return validTxs;
     };
 
-    const saleTxs = mappedTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = mappedTransactions.filter(t => {
+    const saleTxs = enrichedTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = enrichedTransactions.filter(t => {
       if (t.dealType === '전세') return true;
       if (t.dealType === '월세' && t.monthlyRent && t.monthlyRent > 0) return true;
       return false;
@@ -823,7 +862,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       if (a.contractDateNum !== b.contractDateNum) return b.contractDateNum - a.contractDateNum;
       return b.price - a.price;
     });
-  }, [safeTransactions, filterOutliers, typeMap]);
+  }, [enrichedTransactions, filterOutliers]);
 
   const valuation = useMemo(() => {
     if (!transactions || transactions.length === 0) {
@@ -1225,15 +1264,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
       let customTitle = '';
       let customDesc = '';
 
-      if (activeTab === 'sec-education' && report.metrics) {
-        const eduScoreInfo = calculateEducationScore(report.metrics);
+      if (activeTab === 'sec-education' && eduScoreInfo) {
         const grade = eduScoreInfo.grade;
         const score = eduScoreInfo.score;
         imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
         customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
         customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
-      } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
-        const infraScoreInfo = calculateInfraScore(report.metrics);
+      } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
         const grade = infraScoreInfo.grade;
         const score = infraScoreInfo.score;
         imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
@@ -1284,15 +1321,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
       let customTitle = '';
       let customDesc = '';
 
-      if (activeTab === 'sec-education' && report.metrics) {
-        const eduScoreInfo = calculateEducationScore(report.metrics);
+      if (activeTab === 'sec-education' && eduScoreInfo) {
         const grade = eduScoreInfo.grade;
         const score = eduScoreInfo.score;
         imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
         customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
         customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
-      } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
-        const infraScoreInfo = calculateInfraScore(report.metrics);
+      } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
         const grade = infraScoreInfo.grade;
         const score = infraScoreInfo.score;
         imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
@@ -1403,11 +1438,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const handleCopyLink = () => {
     const baseUrl = window.location.origin;
     let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
-    if (activeTab === 'sec-education' && report.metrics) {
-      const eduScoreInfo = calculateEducationScore(report.metrics);
+    if (activeTab === 'sec-education' && eduScoreInfo) {
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${eduScoreInfo.grade}&score=${eduScoreInfo.score}`;
-    } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
-      const infraScoreInfo = calculateInfraScore(report.metrics);
+    } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${infraScoreInfo.grade}&score=${infraScoreInfo.score}`;
     }
 
@@ -1459,10 +1492,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
     const priceEok = Math.floor(price / 10000);
     const priceMan = price % 10000;
     const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
-
-    const eduScoreInfo = report.metrics ? calculateEducationScore(report.metrics) : null;
-    const infraScoreInfo = report.metrics ? calculateInfraScore(report.metrics) : null;
-
     let customDesc = '';
     if (eduScoreInfo) {
       customDesc += `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n`;
@@ -1510,15 +1539,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
     let title = `${displayAptName} 가치분석 리포트`;
     let desc = '';
 
-    if (activeTab === 'sec-education' && report.metrics) {
-      const eduScoreInfo = calculateEducationScore(report.metrics);
+    if (activeTab === 'sec-education' && eduScoreInfo) {
       const grade = eduScoreInfo.grade;
       const score = eduScoreInfo.score;
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
       title = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
       desc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
-    } else if (activeTab === 'sec-infra-metrics' && report.metrics) {
-      const infraScoreInfo = calculateInfraScore(report.metrics);
+    } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
       const grade = infraScoreInfo.grade;
       const score = infraScoreInfo.score;
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
@@ -1564,8 +1591,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     
     const baseUrl = window.location.origin;
     
-    if (type === 'childcare') {
-      const eduScoreInfo = calculateEducationScore(report.metrics);
+    if (type === 'childcare' && eduScoreInfo) {
       const grade = eduScoreInfo.grade;
       const score = eduScoreInfo.score;
       const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
@@ -1630,8 +1656,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       } catch (e) {
         console.error(e);
       }
-    } else {
-      const infraScoreInfo = calculateInfraScore(report.metrics);
+    } else if (infraScoreInfo) {
       const grade = infraScoreInfo.grade;
       const score = infraScoreInfo.score;
       const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
