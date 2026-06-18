@@ -183,6 +183,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     // 🔧 Multi-tab Service Worker lifecycle update synchronization
     const handleControllerChange = () => {
       console.log('[PWAProvider] Service Worker controller changed. Reloading page to apply updates...');
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        try {
+          navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+        } catch (err) {
+          console.warn('[PWAProvider] Failed to remove controllerchange listener during reload:', err);
+        }
+      }
       window.location.reload();
     };
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -196,7 +203,11 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       // 온라인 복구 시 만료 캐시 경고창 자동 해제
       setShowCacheExpiredModal(false);
     };
+    const handleOfflineStatus = () => {
+      console.log('[PWAProvider] Network connection lost.');
+    };
     window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOfflineStatus);
 
     // 🔧 Service Worker message handler for cache expiration detection
     const handleServiceWorkerMessage = (event: MessageEvent) => {
@@ -263,9 +274,14 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOfflineStatus);
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+        try {
+          navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+          navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+        } catch (err) {
+          console.warn('[PWAProvider] Cleanup failed for serviceWorker listeners:', err);
+        }
       }
     };
   }, []);
