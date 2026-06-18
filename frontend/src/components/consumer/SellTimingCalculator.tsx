@@ -221,14 +221,22 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
   // Click outside to close autocomplete dropdown
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    if (!isFocused) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsFocused(false);
       }
-    }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isFocused]);
 
   // Filter list
   const filteredApts = useMemo(() => {
