@@ -1246,6 +1246,42 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     };
   }, [globalVotesData]);
 
+  // Pre-enriched apartment transaction parameters for gap investment and rates calculations to prevent duplicate loops
+  const enrichedAptList = useMemo(() => {
+    if (!sheetApartments || !txSummaryData) return [];
+    const nameMappingVal = nameMapping || {};
+    const allApts = Object.values(sheetApartments).flat();
+    
+    return allApts
+      .map((apt) => {
+        if (publicRentalSet.has(apt.name)) return null;
+
+        const txKey = findTxKey(apt.name, txSummaryData, nameMappingVal);
+        if (!txKey || !txSummaryData[txKey]) return null;
+
+        const sum = txSummaryData[txKey];
+        const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
+        const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+
+        if (avgSale <= 0 || avgRent <= 0) return null;
+
+        const rate = (avgRent / avgSale) * 100;
+        const gapVal = avgSale - avgRent;
+
+        return {
+          name: apt.name,
+          dong: apt.dong,
+          avgSale,
+          avgRent,
+          rate,
+          gapVal,
+          householdCount: apt.householdCount || 0,
+          txCount3M: sum.avg3MTxCount || 0,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
+
   // 동탄 갭투자 1위 (최고 전세가율 단지) 계산
   const gapInvestment1st = useMemo(() => {
     let bestAptName = "-";
@@ -1253,31 +1289,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     let bestGapText = "-";
     let bestJeonseRateText = "-";
 
-    if (sheetApartments && txSummaryData) {
-      const allApts = Object.values(sheetApartments).flat();
-      allApts.forEach((apt) => {
-        if (publicRentalSet.has(apt.name)) return;
-        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-        if (txKey && txSummaryData[txKey]) {
-          const sum = txSummaryData[txKey];
-          const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
-          const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
-
-          if (avgSale > 0 && avgRent > 0) {
-            const rate = (avgRent / avgSale) * 100;
-            if (rate > maxJeonseRate && rate < 98) {
-              maxJeonseRate = rate;
-              bestAptName = apt.name;
-              const gapVal = avgSale - avgRent;
-              const fmtGap = formatEokWithUnit(gapVal);
-              const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
-              bestGapText = `갭 ${fmtGap.value}${gapUnitStr}`;
-              bestJeonseRateText = `전세율 ${rate.toFixed(1)}%`;
-            }
-          }
-        }
-      });
-    }
+    enrichedAptList.forEach((apt) => {
+      if (apt.rate > maxJeonseRate && apt.rate < 98) {
+        maxJeonseRate = apt.rate;
+        bestAptName = apt.name;
+        const fmtGap = formatEokWithUnit(apt.gapVal);
+        const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
+        bestGapText = `갭 ${fmtGap.value}${gapUnitStr}`;
+        bestJeonseRateText = `전세율 ${apt.rate.toFixed(1)}%`;
+      }
+    });
 
     if (bestAptName === "-" || maxJeonseRate === 0) {
       return {
@@ -1292,13 +1313,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       jeonseRateText: bestJeonseRateText,
       gapText: bestGapText,
     };
-  }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping]);
+  }, [enrichedAptList]);
 
   // 동탄 갭투자 Top 5 계산 (필터링 및 리스크 포함)
   const gapInvestmentTop5 = useMemo(() => {
-    if (!sheetApartments || !txSummaryData) return [];
-
-    const allApts = Object.values(sheetApartments).flat();
     const result: Array<{
       name: string;
       dong: string;
@@ -1315,58 +1333,44 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       }
     }> = [];
 
-    allApts.forEach((apt) => {
-      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
+    enrichedAptList.forEach((apt) => {
       if (gapRankingDong !== "전체" && apt.dong !== gapRankingDong) return;
 
-      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-      if (txKey && txSummaryData[txKey]) {
-        const sum = txSummaryData[txKey];
-        const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
-        const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
+      if (apt.rate > 50 && apt.rate < 98) {
+        const fmtGap = formatEokWithUnit(apt.gapVal);
+        const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
 
-        if (avgSale > 0 && avgRent > 0) {
-          const rate = (avgRent / avgSale) * 100;
-          if (rate > 50 && rate < 98) {
-            const gapVal = avgSale - avgRent;
-            const fmtGap = formatEokWithUnit(gapVal);
-            const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
+        // 3대 리스크 판정
+        // 1) 역전세 리스크
+        let reverseJeonse: 'safe' | 'warning' | 'danger' = 'safe';
+        if (apt.rate >= 80) reverseJeonse = 'danger';
+        else if (apt.rate >= 70) reverseJeonse = 'warning';
 
-            // 3대 리스크 판정
-            // 1) 역전세 리스크
-            let reverseJeonse: 'safe' | 'warning' | 'danger' = 'safe';
-            if (rate >= 80) reverseJeonse = 'danger';
-            else if (rate >= 70) reverseJeonse = 'warning';
+        // 2) 유동성 리스크 (3개월 거래수 기준)
+        let liquidity: 'safe' | 'warning' | 'danger' = 'safe';
+        if (apt.txCount3M <= 2) liquidity = 'danger';
+        else if (apt.txCount3M <= 5) liquidity = 'warning';
 
-            // 2) 유동성 리스크 (3개월 거래수 기준)
-            const vol3M = sum.avg3MTxCount || 0;
-            let liquidity: 'safe' | 'warning' | 'danger' = 'safe';
-            if (vol3M <= 2) liquidity = 'danger';
-            else if (vol3M <= 5) liquidity = 'warning';
+        // 3) 가격 변동성 리스크 (세대수 기준)
+        let volatility: 'safe' | 'warning' | 'danger' = 'safe';
+        if (apt.householdCount < 500) volatility = 'danger';
+        else if (apt.householdCount < 1000) volatility = 'warning';
 
-            // 3) 가격 변동성 리스크 (세대수 기준)
-            const household = apt.householdCount || 0;
-            let volatility: 'safe' | 'warning' | 'danger' = 'safe';
-            if (household < 500) volatility = 'danger';
-            else if (household < 1000) volatility = 'warning';
-
-            result.push({
-              name: apt.name,
-              dong: apt.dong,
-              gap: gapVal,
-              gapText: `${fmtGap.value}${gapUnitStr}`,
-              jeonseRate: rate,
-              jeonseRateText: `${rate.toFixed(1)}%`,
-              avgSale,
-              avgRent,
-              risks: {
-                reverseJeonse,
-                liquidity,
-                volatility
-              }
-            });
+        result.push({
+          name: apt.name,
+          dong: apt.dong,
+          gap: apt.gapVal,
+          gapText: `${fmtGap.value}${gapUnitStr}`,
+          jeonseRate: apt.rate,
+          jeonseRateText: `${apt.rate.toFixed(1)}%`,
+          avgSale: apt.avgSale,
+          avgRent: apt.avgRent,
+          risks: {
+            reverseJeonse,
+            liquidity,
+            volatility
           }
-        }
+        });
       }
     });
 
@@ -1379,35 +1383,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         return a.gap - b.gap;
       })
       .slice(0, 5);
-  }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping, gapRankingDong]);
+  }, [enrichedAptList, gapRankingDong]);
 
   // 동탄 전역(혹은 gapRankingDong 필터 기준) 평균 전세가율 연산
   const averageJeonseRateText = useMemo(() => {
-    if (!sheetApartments || !txSummaryData) return "71.2%";
-    const allApts = Object.values(sheetApartments).flat();
     let totalRate = 0;
     let count = 0;
-    allApts.forEach((apt) => {
-      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
+
+    enrichedAptList.forEach((apt) => {
       if (gapRankingDong !== "전체" && apt.dong !== gapRankingDong) return;
 
-      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-      if (txKey && txSummaryData[txKey]) {
-        const sum = txSummaryData[txKey];
-        const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
-        const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
-        if (avgSale > 0 && avgRent > 0) {
-          const rate = (avgRent / avgSale) * 100;
-          if (rate > 20 && rate < 100) {
-            totalRate += rate;
-            count++;
-          }
-        }
+      if (apt.rate > 20 && apt.rate < 100) {
+        totalRate += apt.rate;
+        count++;
       }
     });
+
     if (count === 0) return "71.2%";
     return `${(totalRate / count).toFixed(1)}%`;
-  }, [sheetApartments, txSummaryData, publicRentalSet, nameMapping, gapRankingDong]);
+  }, [enrichedAptList, gapRankingDong]);
 
   // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
   const dailyTimelineData = useMemo(() => {
