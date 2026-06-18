@@ -227,12 +227,18 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   }, [selectedApt, txSummaryData, nameMapping]);
 
   const calculationResult = useMemo(() => {
-    if (!selectedApt || marketPrice === 0) return null;
+    if (!selectedApt || !marketPrice || isNaN(marketPrice) || marketPrice <= 0) return null;
 
-    const jEok = parseInt(jeonseEok) || 0;
-    const jMan = parseInt(jeonseMan) || 0;
-    const lEok = parseInt(lienEok) || 0;
-    const lMan = parseInt(lienMan) || 0;
+    const parseAmount = (val: string) => {
+      const clean = val.replace(/[^0-9]/g, '');
+      const parsed = parseInt(clean, 10);
+      return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    };
+
+    const jEok = parseAmount(jeonseEok);
+    const jMan = parseAmount(jeonseMan);
+    const lEok = parseAmount(lienEok);
+    const lMan = parseAmount(lienMan);
 
     const totalJeonse = jEok * 10000 + jMan;
     const totalLien = lEok * 10000 + lMan;
