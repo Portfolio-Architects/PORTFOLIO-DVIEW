@@ -76,10 +76,16 @@ const InteractiveHeart = memo(({
   const [localFavorited, setLocalFavorited] = useState(isFavorited);
   const [animate, setAnimate] = useState(false);
   const animateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      if (animateTimeoutRef.current) clearTimeout(animateTimeoutRef.current);
+      mountedRef.current = false;
+      if (animateTimeoutRef.current) {
+        clearTimeout(animateTimeoutRef.current);
+        animateTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -93,8 +99,16 @@ const InteractiveHeart = memo(({
     setLocalFavorited(prev => !prev);
     setAnimate(true);
     onToggle(name);
-    if (animateTimeoutRef.current) clearTimeout(animateTimeoutRef.current);
-    animateTimeoutRef.current = setTimeout(() => setAnimate(false), 300);
+    if (animateTimeoutRef.current) {
+      clearTimeout(animateTimeoutRef.current);
+      animateTimeoutRef.current = null;
+    }
+    animateTimeoutRef.current = setTimeout(() => {
+      if (mountedRef.current) {
+        setAnimate(false);
+        animateTimeoutRef.current = null;
+      }
+    }, 300);
   };
 
   return (
@@ -450,10 +464,16 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [visibleCount, setVisibleCount] = useState(15);
   const searchFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      if (searchFocusTimeoutRef.current) clearTimeout(searchFocusTimeoutRef.current);
+      mountedRef.current = false;
+      if (searchFocusTimeoutRef.current) {
+        clearTimeout(searchFocusTimeoutRef.current);
+        searchFocusTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -874,8 +894,16 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => {
-                if (searchFocusTimeoutRef.current) clearTimeout(searchFocusTimeoutRef.current);
-                searchFocusTimeoutRef.current = setTimeout(() => setIsSearchFocused(false), 200);
+                if (searchFocusTimeoutRef.current) {
+                  clearTimeout(searchFocusTimeoutRef.current);
+                  searchFocusTimeoutRef.current = null;
+                }
+                searchFocusTimeoutRef.current = setTimeout(() => {
+                  if (mountedRef.current) {
+                    setIsSearchFocused(false);
+                    searchFocusTimeoutRef.current = null;
+                  }
+                }, 200);
               }}
               role="searchbox"
               aria-label="단지명 검색"
