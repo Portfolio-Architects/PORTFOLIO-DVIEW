@@ -57,11 +57,17 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [isChartReady, setIsChartReady] = useState(false);
 
+  const mountedRef = useRef(true);
+
   useEffect(() => {
+    mountedRef.current = true;
     const timer = setTimeout(() => {
-      setIsChartReady(true);
+      if (mountedRef.current) {
+        setIsChartReady(true);
+      }
     }, 350);
     return () => {
+      mountedRef.current = false;
       clearTimeout(timer);
     };
   }, []);
