@@ -29,16 +29,21 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
         <Building size={18} className="text-toss-blue"/> 단지 기본정보
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-        <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-          <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">단지명 / 시공사</p>
-          <p className="text-body-normal text-primary font-bold apt-spec-value break-keep">
-            {displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({report.metrics.brand})</span>}
-          </p>
-        </div>
-        <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-          <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">사용승인일 (연차)</p>
-          <p className="text-body-normal text-primary font-bold apt-spec-value">
-            {report.metrics.yearBuilt ? (() => {
+        {[
+          {
+            key: 'name-brand',
+            label: '단지명 / 시공사',
+            value: (
+              <span className="break-keep">
+                {displayAptName} {report.metrics.brand && <span className="block text-body-sm text-secondary font-medium mt-0.5 apt-spec-label">({report.metrics.brand})</span>}
+              </span>
+            ),
+            className: ''
+          },
+          {
+            key: 'year-built',
+            label: '사용승인일 (연차)',
+            value: report.metrics.yearBuilt ? (() => {
               const ybStr = String(report.metrics.yearBuilt);
               const now = new Date();
               const currentYear = now.getFullYear();
@@ -67,27 +72,50 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
               const year = parseInt(ybStr);
               const age = currentYear - year + 1;
               return <>{year}년 <span className="block text-body-sm text-toss-blue font-medium mt-0.5 apt-spec-label">({age}년차)</span></>;
-            })() : '-'}
-          </p>
-        </div>
-        <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-          <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">규모 (세대/층)</p>
-          <p className="text-body-normal text-primary font-bold apt-spec-value">
-            {report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span>
-          </p>
-        </div>
-        <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border">
-          <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">용적률 / 건폐율</p>
-          <p className="text-body-normal text-primary font-bold apt-spec-value">
-            {report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span>
-          </p>
-        </div>
-        <div className="bg-body p-3.5 sm:p-4 rounded-xl border border-border col-span-2 sm:col-span-1">
-          <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">주차대수 (세대당)</p>
-          <p className="text-body-normal text-primary font-bold apt-spec-value">
-            {report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span>
-          </p>
-        </div>
+            })() : '-',
+            className: ''
+          },
+          {
+            key: 'household-scale',
+            label: '규모 (세대/층)',
+            value: (
+              <>
+                {report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span>
+              </>
+            ),
+            className: ''
+          },
+          {
+            key: 'far-bcr',
+            label: '용적률 / 건폐율',
+            value: (
+              <>
+                {report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span>
+              </>
+            ),
+            className: ''
+          },
+          {
+            key: 'parking-info',
+            label: '주차대수 (세대당)',
+            value: (
+              <>
+                {report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-body-sm font-medium mt-0.5 apt-spec-label">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span>
+              </>
+            ),
+            className: 'col-span-2 sm:col-span-1'
+          }
+        ].map((spec) => (
+          <div 
+            key={`apt-spec-card-${spec.key}`} 
+            className={`bg-body p-3.5 sm:p-4 rounded-xl border border-border ${spec.className}`}
+          >
+            <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">{spec.label}</p>
+            <div className="text-body-normal text-primary font-bold apt-spec-value">
+              {spec.value}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Premium Scouting Report Banner for high visibility */}
