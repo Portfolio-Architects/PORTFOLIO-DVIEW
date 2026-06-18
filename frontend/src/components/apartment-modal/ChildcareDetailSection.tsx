@@ -268,20 +268,21 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
     const matched = DONG_CHILDCARE_DB[dong] || null;
     if (!matched) return null;
 
-    const aptCoord = coordinates ? parseCoordString(coordinates) : null;
+    const safeCoords = (coordinates && typeof coordinates === 'string' && coordinates.trim().length > 0) ? coordinates : null;
+    const aptCoord = safeCoords ? parseCoordString(safeCoords) : null;
 
     const daycares: ChildcareInfo[] = matched.daycares.map((d, idx) => {
       let distance = (hash % 150) + 120 + idx * 70; // fallback: 120m ~ 340m
-      if (aptCoord && d.coordinates) {
+      if (aptCoord && d.coordinates && typeof d.coordinates === 'string') {
         const poiCoord = parseCoordString(d.coordinates);
-        if (poiCoord) {
+        if (poiCoord && typeof poiCoord.lat === 'number' && typeof poiCoord.lng === 'number') {
           const rawDist = haversineDistance(aptCoord, poiCoord);
-          if (rawDist > 0) {
+          if (!isNaN(rawDist) && rawDist > 0) {
             distance = Math.round(rawDist * 1.3);
           }
         }
       }
-      if (isNaN(distance) || distance <= 0) {
+      if (isNaN(distance) || typeof distance !== 'number' || distance <= 0) {
         distance = (hash % 150) + 120 + idx * 70;
       }
       const grade = distance <= 200 ? 'excellent' : distance <= 350 ? 'good' : 'average';
@@ -290,16 +291,16 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
 
     const kindergartens: ChildcareInfo[] = matched.kindergartens.map((k, idx) => {
       let distance = (hash % 200) + 210 + idx * 90; // fallback: 210m ~ 500m
-      if (aptCoord && k.coordinates) {
+      if (aptCoord && k.coordinates && typeof k.coordinates === 'string') {
         const poiCoord = parseCoordString(k.coordinates);
-        if (poiCoord) {
+        if (poiCoord && typeof poiCoord.lat === 'number' && typeof poiCoord.lng === 'number') {
           const rawDist = haversineDistance(aptCoord, poiCoord);
-          if (rawDist > 0) {
+          if (!isNaN(rawDist) && rawDist > 0) {
             distance = Math.round(rawDist * 1.3);
           }
         }
       }
-      if (isNaN(distance) || distance <= 0) {
+      if (isNaN(distance) || typeof distance !== 'number' || distance <= 0) {
         distance = (hash % 200) + 210 + idx * 90;
       }
       const grade = distance <= 300 ? 'excellent' : distance <= 450 ? 'good' : 'average';

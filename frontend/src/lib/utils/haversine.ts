@@ -11,6 +11,8 @@ import { logger } from '@/lib/services/logger';
 /** Earth's mean radius in meters */
 const EARTH_RADIUS_M = 6_371_000;
 
+const TO_RAD = Math.PI / 180;
+
 /** Zod schema for geographic coordinates */
 export const CoordSchema = z.object({
   lat: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => !isNaN(val) && val >= -90 && val <= 90),
@@ -26,6 +28,8 @@ export type Coord = z.infer<typeof CoordSchema>;
  * @returns Distance in meters (rounded to nearest integer)
  */
 export function haversineDistance(a: any, b: any): number {
+  if (!a || !b) return 0;
+
   let latA: number, lngA: number;
   let latB: number, lngB: number;
 
@@ -49,22 +53,28 @@ export function haversineDistance(a: any, b: any): number {
     lngB = parsedB.data.lng;
   }
 
+  // Fast path for identical coordinates
+  if (latA === latB && lngA === lngB) return 0;
+
   // Check bounds
   if (latA < -90 || latA > 90 || lngA < -180 || lngA > 180) return 0;
   if (latB < -90 || latB > 90 || lngB < -180 || lngB > 180) return 0;
 
-  const dLat = toRad(latB - latA);
-  const dLng = toRad(lngB - lngA);
+  const dLat = (latB - latA) * TO_RAD;
+  const dLng = (lngB - lngA) * TO_RAD;
 
-  const sinLat = Math.sin(dLat / 2);
-  const sinLng = Math.sin(dLng / 2);
+  const sinLat = Math.sin(dLat * 0.5);
+  const sinLng = Math.sin(dLng * 0.5);
 
   const h = sinLat * sinLat +
-    Math.cos(toRad(latA)) * Math.cos(toRad(latB)) * sinLng * sinLng;
+    Math.cos(latA * TO_RAD) * Math.cos(latB * TO_RAD) * sinLng * sinLng;
 
   // Prevent Math.asin(Math.sqrt(h)) from returning NaN if h is slightly out of [0, 1] bounds due to precision errors
   const clampedH = Math.max(0, Math.min(1, h));
-  return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(clampedH)));
+  if (isNaN(clampedH)) return 0;
+
+  const result = Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(clampedH)));
+  return isNaN(result) ? 0 : result;
 }
 
 /**
