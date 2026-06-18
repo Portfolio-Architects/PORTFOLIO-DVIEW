@@ -49,6 +49,54 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
 
   useEffect(() => {
     let mounted = true;
+
+    // 🚀 Playwright E2E Integration / Mock Auth Bridge
+    if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
+      const mockAuth = (window as any).__E2E_MOCK_AUTH__;
+      const unsubscribeMock = mockAuth.onAuthStateChanged(async (currentUser: any) => {
+        if (!mounted) return;
+        setUser(currentUser);
+        if (currentUser) {
+          // Playwright E2E Mocking: Bypass actual network session cookie fetch to avoid server-side Firebase SDK validation crash
+          const cookiePromise = Promise.resolve();
+
+          const dataPromise = Promise.resolve().then(() => {
+            if (!mounted) return;
+            const mockProfile = {
+              nickname: currentUser.displayName || '테스터',
+              photoURL: currentUser.photoURL || null
+            };
+            setAnonProfile(mockProfile);
+            // TypeScript Audit Fix: Set only allowed properties for UserProfile to prevent compilation failure
+            setUserProfile({
+              nickname: currentUser.displayName || '테스터',
+              photoURL: currentUser.photoURL || undefined
+            });
+            if (currentUser.email === 'manager@dview.kr') {
+              try { localStorage.setItem('dview_is_admin', 'true'); } catch (e) {}
+            } else {
+              try { localStorage.removeItem('dview_is_admin'); } catch (e) {}
+            }
+          });
+
+          await Promise.all([cookiePromise, dataPromise]);
+        } else {
+          setAnonProfile(null);
+          setUserProfile(null);
+          try { localStorage.removeItem('dview_is_admin'); } catch (e) {}
+          // Bypass session cookie delete in mock mode
+        }
+        if (mounted) {
+          setIsLoading(false);
+        }
+      });
+
+      return () => {
+        mounted = false;
+        unsubscribeMock();
+      };
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!mounted) return;
       setUser(currentUser);
@@ -136,6 +184,12 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
 
   const handleLogin = async () => {
     try {
+      // 🚀 Playwright E2E Integration / Mock Auth Bridge
+      if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
+        await (window as any).__E2E_MOCK_AUTH__.signIn();
+        return;
+      }
+
       if (!auth) return;
       
       const isMobile = typeof window !== 'undefined' && 
@@ -153,6 +207,12 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
 
   const handleLogout = async () => {
     try {
+      // 🚀 Playwright E2E Integration / Mock Auth Bridge
+      if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
+        await (window as any).__E2E_MOCK_AUTH__.signOut();
+        return;
+      }
+
       await signOut(auth);
     } catch (error) {
       logger.error('AuthProvider.handleLogout', 'Logout failed', {}, error);
