@@ -29,12 +29,14 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidMount() {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', this.handleOnline);
+      window.addEventListener('offline', this.handleOffline);
     }
   }
 
   public componentWillUnmount() {
     if (typeof window !== 'undefined') {
       window.removeEventListener('online', this.handleOnline);
+      window.removeEventListener('offline', this.handleOffline);
     }
   }
 
@@ -45,12 +47,27 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   };
 
+  private handleOffline = () => {
+    console.log(`[ErrorBoundary:${this.props.name || 'Global'}] Network offline.`);
+  };
+
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(`[ErrorBoundary:${this.props.name || 'Global'}] Caught error:`, error, errorInfo);
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, error: null, showDetails: false });
+    // Explicit nullification for GC and State Reset
+    this.setState({ hasError: false, error: null, showDetails: false }, () => {
+      try {
+        // Force GC references if any custom variables exist
+        const anyWindow = window as any;
+        if (anyWindow.gc) {
+          anyWindow.gc();
+        }
+      } catch (e) {
+        // Ignored
+      }
+    });
   };
 
   private toggleDetails = () => {
