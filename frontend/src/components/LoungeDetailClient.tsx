@@ -3,7 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X, Building2, ChevronRight, Share2 } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
@@ -114,6 +114,11 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     });
     return unsub;
   }, []);
+
+  const processedContent = useMemo(() => {
+    if (!post?.content) return '';
+    return autoLinkApartments(String(post.content).replace(/\n{3,}/g, '\n\n'), dongtanApartments);
+  }, [post?.content, dongtanApartments]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -816,7 +821,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                 );
               })()}
               
-              {post?.content && (
+              {processedContent && (
                 <article className="text-secondary text-[15px] leading-[1.65] break-keep [&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-primary [&>h2]:mt-7 [&>h2]:mb-2.5 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-primary [&>h3]:mt-5 [&>h3]:mb-1.5 [&>p]:mb-1 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-2 [&_li]:pl-1 [&_li]:mb-0.5 [&_li>p]:inline [&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap marker:text-tertiary [&_img]:rounded-xl [&_img]:border [&_img]:border-border [&_img]:my-3 [&_hr]:my-10 [&_hr]:border-0 [&_hr]:h-[1px] [&_hr]:bg-border">
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm]}
@@ -862,7 +867,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                       }
                     }}
                   >
-                    {autoLinkApartments(String(post.content).replace(/\n{3,}/g, '\n\n'), dongtanApartments)}
+                    {processedContent}
                   </ReactMarkdown>
                 </article>
               )}
