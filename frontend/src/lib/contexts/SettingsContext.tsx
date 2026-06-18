@@ -128,6 +128,35 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
     };
   }, [mounted, theme]);
 
+  // 4. Listen to multi-tab localStorage change to synchronize settings across tabs
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      try {
+        if (e.key === 'dtdls-theme') {
+          const parsedTheme = ThemeSchema.safeParse(e.newValue);
+          if (parsedTheme.success) {
+            setThemeState(parsedTheme.data);
+            applyTheme(parsedTheme.data);
+          }
+        } else if (e.key === 'dtdls-area-unit') {
+          const parsedArea = AreaUnitSchema.safeParse(e.newValue);
+          if (parsedArea.success) {
+            setAreaUnitState(parsedArea.data);
+          }
+        }
+      } catch (err) {
+        logger.warn('SettingsProvider.storageListener', 'Failed to sync localStorage change across tabs', {}, err as Error);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [mounted]);
+
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     applyTheme(newTheme);
