@@ -427,17 +427,26 @@ const AptCompareModal = React.memo(function AptCompareModal({
 
   // Handle clicking outside of dropdowns to close them
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef1.current && !dropdownRef1.current.contains(event.target as Node)) {
+    if (!isFocused1 && !isFocused2) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      if (isFocused1 && dropdownRef1.current && !dropdownRef1.current.contains(target)) {
         setIsFocused1(false);
       }
-      if (dropdownRef2.current && !dropdownRef2.current.contains(event.target as Node)) {
+      if (isFocused2 && dropdownRef2.current && !dropdownRef2.current.contains(target)) {
         setIsFocused2(false);
       }
-    }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isFocused1, isFocused2]);
 
   // Fetch transactions for Apartment 1
   useEffect(() => {
