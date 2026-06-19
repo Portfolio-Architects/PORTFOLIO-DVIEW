@@ -30,6 +30,33 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const mountedRef = useRef(true);
 
+  // Scroll optimization state
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollTimeoutRef = useRef<number | null>(null);
+
+  // Scroll Listener with requestAnimationFrame for performance optimization
+  useEffect(() => {
+    let active = true;
+    const handleScroll = () => {
+      if (scrollTimeoutRef.current) return;
+      scrollTimeoutRef.current = window.requestAnimationFrame(() => {
+        if (active) {
+          setIsScrolled(window.scrollY > 80);
+        }
+        scrollTimeoutRef.current = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      active = false;
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        window.cancelAnimationFrame(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const closeProfileModal = () => {
     setShowProfileModal(false);
     if (profilePhotoPreview && profilePhotoPreview.startsWith('blob:')) {
@@ -77,7 +104,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
               className="flex items-center hover:opacity-85 transition-opacity"
               aria-label="프로필 수정"
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#e6f3f0] dark:bg-[#042820] flex items-center justify-center text-[#008262] dark:text-[#00d29d] overflow-hidden border border-[#008262]/20 shadow-sm relative">
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#e6f3f0] dark:bg-[#042820] flex items-center justify-center text-[#008262] dark:text-[#00d29d] overflow-hidden border border-[#008262]/20 shadow-sm relative transition-all duration-300 ${isScrolled ? 'ring-2 ring-[#008262]/30 scale-95 shadow-md' : ''}`}>
                 {(anonProfile?.photoURL || user.photoURL) ? (
                   <Image src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" fill sizes="40px" className="object-cover" priority={true} />
                 ) : (
