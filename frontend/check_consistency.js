@@ -21,8 +21,17 @@ function parseCSVLine(line) {
 
 async function check() {
   const url = 'https://docs.google.com/spreadsheets/d/1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE/gviz/tq?tqx=out:csv&sheet=apartments';
-  const res = await fetch(url);
-  const text = await res.text();
+  let text = '';
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    text = await res.text();
+  } catch (error) {
+    console.error('Failed to fetch apartments sheet:', error);
+    return;
+  }
   const lines = text.split('\n').filter(l => l.trim());
   const headers = parseCSVLine(lines[0]);
   
