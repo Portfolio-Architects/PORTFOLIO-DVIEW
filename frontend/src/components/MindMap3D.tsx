@@ -46,6 +46,8 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
   const [showZoomHint, setShowZoomHint] = useState(false);
   const zoomHintTimeout = useRef<any>(null);
   const mountedRef = useRef(true);
+  const isVisible = useRef(true);
+  const isLoopRunning = useRef(true);
 
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
@@ -257,6 +259,12 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     };
 
     const render = () => {
+      if (!isVisible.current) {
+        isLoopRunning.current = false;
+        return;
+      }
+      isLoopRunning.current = true;
+
       // Run physics simulation
       runSimulationStep();
 
@@ -384,7 +392,22 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
       animationFrameId = requestAnimationFrame(render);
     };
 
+    // Start loop
+    isLoopRunning.current = true;
     render();
+
+    const handleVisibilityChange = () => {
+      if (typeof document === 'undefined') return;
+      isVisible.current = document.visibilityState === 'visible';
+      if (isVisible.current && !isLoopRunning.current) {
+        isLoopRunning.current = true;
+        animationFrameId = requestAnimationFrame(render);
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
@@ -411,6 +434,9 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     return () => {
       cancelAnimationFrame(animationFrameId);
       canvas.removeEventListener('wheel', handleWheel);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
       if (zoomHintTimeout.current) {
         clearTimeout(zoomHintTimeout.current);
         zoomHintTimeout.current = null;
