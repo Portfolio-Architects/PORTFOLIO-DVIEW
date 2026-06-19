@@ -51,7 +51,12 @@ interface NoticeItem {
   content?: string;
 }
 
-const NewsClient = React.memo(function NewsClient() {
+interface NewsClientProps {
+  initialNews?: any[];
+  initialNotices?: any[];
+}
+
+const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices }: NewsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const noticeId = searchParams.get('notice');
@@ -74,14 +79,22 @@ const NewsClient = React.memo(function NewsClient() {
   const { data: newsRes, error: newsError, mutate: mutateNews } = useSWR(
     '/api/macro/news?limit=40',
     fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { 
+      revalidateOnFocus: false, 
+      dedupingInterval: 60000,
+      fallbackData: initialNews ? { data: initialNews } : undefined
+    }
   );
 
   // Fetch local notices
   const { data: noticesRes, error: noticesError, mutate: mutateNotices } = useSWR(
     '/api/local-notices?dongtan=true',
     fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { 
+      revalidateOnFocus: false, 
+      dedupingInterval: 60000,
+      fallbackData: initialNotices ? { notices: initialNotices } : undefined
+    }
   );
 
   const handleRefresh = async () => {

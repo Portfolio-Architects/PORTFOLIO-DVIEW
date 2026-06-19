@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { headers } from 'next/headers';
 import NewsClient from './NewsClient';
 import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';
+import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,20 @@ function NewsSkeleton() {
   );
 }
 
+async function NewsDataLoader() {
+  const [initialNews, initialNoticesData] = await Promise.all([
+    getMacroNews(40).catch(() => []),
+    getLocalNotices(true).catch(() => ({ notices: [], lastUpdated: null }))
+  ]);
+
+  return (
+    <NewsClient 
+      initialNews={initialNews} 
+      initialNotices={initialNoticesData.notices}
+    />
+  );
+}
+
 export default async function NewsPage() {
   const headersList = await headers();
   const nonce = headersList.get('x-nonce') || undefined;
@@ -49,8 +64,9 @@ export default async function NewsPage() {
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       <Suspense fallback={<NewsSkeleton />}>
-        <NewsClient />
+        <NewsDataLoader />
       </Suspense>
     </>
   );
 }
+

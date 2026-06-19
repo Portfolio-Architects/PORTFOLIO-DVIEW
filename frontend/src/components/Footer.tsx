@@ -59,6 +59,12 @@ const Footer = React.memo(function Footer() {
             </div>
             
             <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+              <Link href="/about" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+                D-VIEW 소개
+              </Link>
+              <Link href="/contact" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+                문의하기
+              </Link>
               <Link href="/terms" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 서비스 이용약관
               </Link>
