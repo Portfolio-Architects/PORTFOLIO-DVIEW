@@ -74,7 +74,7 @@ async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
   const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=TYPE_MAP`;
-    const res = await fetch(csvUrl);
+    const res = await fetch(csvUrl, { signal: AbortSignal.timeout(5000) });
     if (res.ok) {
       const csvText = await res.text();
       const lines = csvText.split('\n').filter(l => l.trim());
@@ -231,7 +231,7 @@ export async function GET(request: Request) {
 
         do {
           const url = `${API_BASE_TRADE}?serviceKey=${API_KEY}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
-          const res = await fetch(url);
+          const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
           if (!res.ok) { 
             syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${res.status}`); 
             logger.error('SyncTransactionsAPI.GET', `Failed to fetch trade data page ${page}`, { ym, currentLawd, status: res.status });
@@ -382,7 +382,7 @@ export async function GET(request: Request) {
         let rentTotalCount = 0;
         do {
           const url = `${API_BASE_RENT}?serviceKey=${API_KEY}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
-          const res = await fetch(url);
+          const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
           if (!res.ok) { 
             syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: HTTP ${res.status}`); 
             logger.error('SyncTransactionsAPI.GET', `Failed to fetch rent data page ${rentPage}`, { ym, currentLawd, status: res.status });
@@ -649,7 +649,7 @@ export async function GET(request: Request) {
     // 5. Trigger Vercel Deploy Hook if there are new transactions
     if (totalNew > 0 && process.env.VERCEL_DEPLOY_HOOK_URL) {
       try {
-        const deployRes = await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST' });
+        const deployRes = await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST', signal: AbortSignal.timeout(5000) });
         if (deployRes.ok) {
           syncLog.push('Vercel Deploy Hook Triggered Successfully');
           logger.info('SyncTransactionsAPI.GET', 'Vercel Deploy Hook Triggered Successfully', {});
@@ -670,7 +670,8 @@ export async function GET(request: Request) {
         const pushRes = await fetch(`${appUrl}/api/push/notify-new-high`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({}),
+          signal: AbortSignal.timeout(5000)
         });
         if (pushRes.ok) {
           const pushResult = await pushRes.json();
