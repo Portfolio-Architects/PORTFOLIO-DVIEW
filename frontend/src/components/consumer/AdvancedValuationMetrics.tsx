@@ -224,9 +224,10 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     const fetchMacroRates = async () => {
       try {
-        const res = await fetch('/api/macro/rates');
+        const res = await fetch('/api/macro/rates', { signal: controller.signal });
         if (res.ok) {
           const json = await res.json();
           if (active && json.success && json.data) {
@@ -238,6 +239,9 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
           }
         }
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         if (active) {
           console.error('Failed to fetch real-time macro rates:', err);
         }
@@ -246,6 +250,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
     fetchMacroRates();
     return () => {
       active = false;
+      controller.abort();
     };
   }, []);
 
