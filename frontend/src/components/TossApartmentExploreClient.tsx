@@ -459,6 +459,55 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onOpenJeonseSafety,
   onOpenMortgage,
 }: TossApartmentExploreClientProps) {
+  const [sidebarWidth, setSidebarWidth] = useState(240);
+  const isResizingRef = useRef(false);
+  const animationFrameIdRef = useRef<number | null>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      if (animationFrameIdRef.current) {
+        window.cancelAnimationFrame(animationFrameIdRef.current);
+      }
+      animationFrameIdRef.current = window.requestAnimationFrame(() => {
+        const deltaX = moveEvent.clientX - startX;
+        const newWidth = Math.max(180, Math.min(380, startWidth + deltaX));
+        setSidebarWidth(newWidth);
+      });
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (animationFrameIdRef.current) {
+        window.cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (animationFrameIdRef.current) {
+        window.cancelAnimationFrame(animationFrameIdRef.current);
+      }
+    };
+  }, []);
+
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -743,8 +792,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       {/* Main Content Area */}
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
-          <aside className="hidden md:flex flex-col w-[240px] shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl">
-
+          <aside 
+            style={{ width: `${sidebarWidth}px` }}
+            className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
+          >
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1" role="tablist" aria-label="단지 랭킹 필터">
@@ -795,6 +846,13 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
           </div>
         </div>
       </aside>
+
+      {/* Drag Splitter Resizer (Desktop Only) */}
+      <div 
+        onMouseDown={handleMouseDown}
+        className="hidden md:block w-1 hover:w-1.5 bg-border/80 hover:bg-emerald-500/30 active:bg-emerald-500/50 cursor-col-resize select-none shrink-0 transition-all z-20"
+        title="드래그하여 크기 조절"
+      />
 
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
       <div 
