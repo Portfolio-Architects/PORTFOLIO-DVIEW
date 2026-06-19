@@ -102,14 +102,19 @@ export function filterByBBox<T extends Coord>(origin: Coord, pois: T[]): T[] {
 async function fetchSheetCSV(tabName: string, forceRefresh = false): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_t=${Date.now()}`;
   const fetchOptions: RequestInit = forceRefresh 
-    ? { cache: 'no-store' } 
-    : { next: { revalidate: 86400 } };
+    ? { cache: 'no-store', signal: AbortSignal.timeout(5000) } 
+    : { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) };
   
-  const res = await fetch(csvUrl, fetchOptions);
-  if (!res.ok) return [];
-  const csvText = await res.text();
-  const lines = csvText.split('\n').filter(l => l.trim());
-  return lines.map(l => parseCsvLine(l));
+  try {
+    const res = await fetch(csvUrl, fetchOptions);
+    if (!res.ok) return [];
+    const csvText = await res.text();
+    const lines = csvText.split('\n').filter(l => l.trim());
+    return lines.map(l => parseCsvLine(l));
+  } catch (err) {
+    logger.error('locationService.fetchSheetCSV', 'Google Sheets CSV fetch failed or timed out', { tabName }, err as Error);
+    return [];
+  }
 }
 
 async function loadApartments(forceRefresh = false): Promise<ApartmentPOI[]> {
