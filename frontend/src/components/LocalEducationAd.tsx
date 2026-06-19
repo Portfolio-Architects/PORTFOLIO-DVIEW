@@ -35,10 +35,12 @@ const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educa
 
   useEffect(() => {
     mountedRef.current = true;
+    const controller = new AbortController();
+
     async function loadAds() {
       try {
         // Memory leak prevention: only perform state updates if component remains mounted
-        const res = await fetch('/data/local-ads.json');
+        const res = await fetch('/data/local-ads.json', { signal: controller.signal });
         if (!res.ok) throw new Error('Failed to load ad pool');
         const data = await res.json();
         const adsList: AdItem[] = data.ads || [];
@@ -65,6 +67,9 @@ const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educa
           setMatchedAd(defaultAd || null);
         }
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         console.error('[LoadAdsError]', err);
       } finally {
         if (mountedRef.current) {
@@ -76,6 +81,7 @@ const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educa
     loadAds();
     return () => {
       mountedRef.current = false;
+      controller.abort();
     };
   }, [dong, educationGrade]);
 
