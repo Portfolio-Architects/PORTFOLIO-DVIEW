@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { FieldReportData } from '@/lib/types/report.types';
@@ -28,6 +28,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
 }: HotComplexRankingProps) {
   const { areaUnit } = useSettingsValues();
   const [visibleCount, setVisibleCount] = useState(5);
+  const [rollingIndex, setRollingIndex] = useState(0);
 
   // Compute recent transaction complexes (Sorted by Date desc, then Price desc)
   const recentList = useMemo(() => {
@@ -131,6 +132,17 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
       });
   }, [sheetApartments, txSummaryData, nameMapping, areaUnit]);
 
+  // 랭킹 배너 자동 롤링 setInterval 타이머 unmount 시점 clearTimeout/clearInterval 안전 클린업 검증 탑재
+  useEffect(() => {
+    if (recentList.length === 0) return;
+    const intervalId = setInterval(() => {
+      setRollingIndex((prev) => (prev + 1) % Math.min(recentList.length, 5));
+    }, 3000);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [recentList.length]);
+
   const displayList = recentList.slice(0, visibleCount);
   const hasMore = recentList.length > visibleCount;
  
@@ -138,9 +150,27 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
     <div className="w-full bg-surface border border-border rounded-3xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
       
       {/* Premium Underline Title */}
-      <div className="flex border-b border-border/60 bg-body/25 px-5 py-3.5 shrink-0 items-center gap-2">
-        <Clock className="w-4 h-4 text-[#008060] animate-pulse" />
-        <span className="text-[14.5px] font-black text-primary">최근 실거래 단지</span>
+      <div className="flex border-b border-border/60 bg-body/25 px-5 py-3.5 shrink-0 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#008060] animate-pulse" />
+          <span className="text-[14.5px] font-black text-primary">최근 실거래 단지</span>
+        </div>
+        {recentList.length > 0 && (
+          <div className="hidden sm:flex items-center gap-1.5 text-[12px] text-[#008060] dark:text-[#00d29d] font-bold h-5 overflow-hidden relative">
+            <span className="text-[10px] bg-[#e0fbf4] dark:bg-[#00d29d]/10 px-1 py-0.5 rounded mr-1">HOT</span>
+            <div 
+              className="flex flex-col transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateY(-${rollingIndex * 20}px)` }}
+            >
+              {recentList.slice(0, 5).map((item, idx) => (
+                <div key={idx} className="h-5 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => onSelectApt(item.apt.name)}>
+                  <span>{item.apt.name}</span>
+                  <span className="text-secondary font-extrabold">{item.latestPriceEok}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
  
       {/* Lists Layout */}
