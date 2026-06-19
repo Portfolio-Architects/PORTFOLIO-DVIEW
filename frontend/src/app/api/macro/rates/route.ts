@@ -87,8 +87,8 @@ export async function GET(request: Request) {
 
     // 병렬로 API 호출 (24시간 동안 Next.js 자체 Data Cache 유지)
     const [riskFreeRes, fundingCostRes] = await Promise.all([
-      fetch(riskFreeUrl, { cache: 'no-store' }),
-      fetch(fundingCostUrl, { cache: 'no-store' })
+      fetch(riskFreeUrl, { cache: 'no-store', signal: AbortSignal.timeout(5000) }),
+      fetch(fundingCostUrl, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
     ]);
 
     let riskFreeRate = FALLBACK_RISK_FREE_RATE;
