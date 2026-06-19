@@ -10,9 +10,9 @@ interface AdInquiryModalProps {
 }
 
 const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiryModalProps) {
-  const [companyName, setCompanyName] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
-  const [message, setMessage] = useState('');
+  const companyNameRef = useRef<HTMLInputElement>(null);
+  const contactInfoRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -28,6 +28,10 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const companyName = companyNameRef.current?.value || '';
+    const contactInfo = contactInfoRef.current?.value || '';
+    const message = messageRef.current?.value || '';
+
     if (!companyName.trim() || !contactInfo.trim() || !message.trim()) return;
     
     if (successTimeoutRef.current) {
@@ -110,8 +114,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
                   type="text"
                   required
                   placeholder="예) 디뷰 공인중개사 / 김디뷰"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  ref={companyNameRef}
                   className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all"
                 />
               </div>
@@ -125,8 +128,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
                   type="text"
                   required
                   placeholder="회신 받으실 연락처를 남겨주세요."
-                  value={contactInfo}
-                  onChange={(e) => setContactInfo(e.target.value)}
+                  ref={contactInfoRef}
                   className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all"
                 />
               </div>
@@ -139,8 +141,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
                 <textarea
                   required
                   placeholder="간단한 제안 내용이나 목적을 적어주세요."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  ref={messageRef}
                   rows={4}
                   className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all resize-none"
                 />
@@ -149,7 +150,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={isSubmitting || !companyName.trim() || !contactInfo.trim() || !message.trim()}
+                  disabled={isSubmitting}
                   className="w-full bg-[#0d9488] hover:bg-[#0f766e] disabled:bg-secondary/20 disabled:text-tertiary text-white text-[15px] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   {isSubmitting ? (
