@@ -45,6 +45,58 @@ interface PostComment {
 const postLocalCache: Record<string, Record<string, unknown>> = {};
 const commentsLocalCache: Record<string, PostComment[]> = {};
 
+interface CommentInputProps {
+  user: User | null;
+  isSending: boolean;
+  onSubmit: (text: string) => Promise<void> | void;
+}
+
+const CommentInput = memo(({ user, isSending, onSubmit }: CommentInputProps) => {
+  const [text, setText] = useState('');
+
+  const handleSubmit = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || isSending) return;
+    if (trimmed.length > 300) {
+      alert('댓글은 최대 300자까지 작성할 수 있습니다.');
+      return;
+    }
+    await onSubmit(trimmed);
+    setText('');
+  };
+
+  return (
+    <div className="px-5 py-4 bg-body border-b border-border flex flex-col gap-1.5">
+      <div className="flex items-center gap-3">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          maxLength={300}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+          placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
+          className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] transition-all duration-300"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={isSending || !text.trim()}
+          className="w-[46px] h-[46px] bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] dark:text-[#191f28] disabled:bg-toss-gray disabled:dark:text-tertiary rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#008262]/10"
+        >
+          <Send size={18} className="ml-1" />
+        </button>
+      </div>
+      <div className="flex justify-end px-1">
+        <span className="text-[11.5px] font-medium text-tertiary">{text.length}/300자</span>
+      </div>
+    </div>
+  );
+});
+CommentInput.displayName = 'CommentInput';
+
 /** Verification badge */
 const VerificationBadge = memo(({ apartment, level }: { apartment?: string; level?: string }) => {
   if (!apartment || !level) return null;
@@ -102,7 +154,6 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     return postId ? (commentsLocalCache[postId] || []) : [];
   });
   const [recommendedPosts, setRecommendedPosts] = useState<any[]>([]);
-  const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(() => {
     if (postId && postLocalCache[postId]) return false;
@@ -387,15 +438,9 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     }
   };
 
-  const handleComment = useCallback(async () => {
+  const handleComment = useCallback(async (text: string) => {
     if (commentLockRef.current) return;
-    if (!commentText.trim()) return;
-    
-    // 글자수 제한 방어
-    if (commentText.trim().length > 300) {
-      alert('댓글은 최대 300자까지 작성할 수 있습니다.');
-      return;
-    }
+    if (!text.trim()) return;
     
     // 도배 방지 (3초 락)
     const now = Date.now();
@@ -423,14 +468,13 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           url: '/api/comments',
           method: 'POST',
           body: {
-            text: commentText.trim(),
+            text: text.trim(),
             authorName: displayName,
             authorUid: authorUid || '',
             postId: postId
           }
         });
         if (!mountedRef.current) return;
-        setCommentText('');
         showToast('네트워크가 연결되지 않아 댓글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
         lastCommentTimeRef.current = Date.now();
         triggerCustomA2HSModal();
@@ -461,14 +505,13 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       }
 
       await addDoc(collection(db, `posts/${postId}/comments`).withConverter(commentConverter), {
-        text: commentText.trim(),
+        text: text.trim(),
         authorName: displayName,
         authorUid: authorUid || '',
         createdAt: serverTimestamp(),
       });
       await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { commentCount: increment(1) });
       if (!mountedRef.current) return;
-      setCommentText('');
       lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
     } catch (error) {
@@ -489,14 +532,13 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           url: '/api/comments',
           method: 'POST',
           body: {
-            text: commentText.trim(),
+            text: text.trim(),
             authorName: displayName,
             authorUid: authorUid || '',
             postId: postId
           }
         });
         if (!mountedRef.current) return;
-        setCommentText('');
         showToast('네트워크 오류로 댓글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
         lastCommentTimeRef.current = Date.now();
         triggerCustomA2HSModal();
@@ -512,7 +554,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         commentLockRef.current = false;
       }
     }
-  }, [commentText, user, userProfile, postId, triggerCustomA2HSModal, showToast]);
+  }, [user, userProfile, postId, triggerCustomA2HSModal, showToast]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!postId || !editTitle.trim()) return;
@@ -927,29 +969,12 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
             <span className="text-[16px] font-bold text-primary">댓글 {comments.length}</span>
           </div>
 
-          {/* Integrated Comment Input */}
-          <div className="px-5 py-4 bg-body border-b border-border flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <input
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                maxLength={300}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
-                placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
-                className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] transition-all duration-300"
-              />
-              <button
-                onClick={handleComment}
-                disabled={isSending || !commentText.trim()}
-                className="w-[46px] h-[46px] bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] dark:text-[#191f28] disabled:bg-toss-gray disabled:dark:text-tertiary rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#008262]/10"
-              >
-                <Send size={18} className="ml-1" />
-              </button>
-            </div>
-            <div className="flex justify-end px-1">
-              <span className="text-[11.5px] font-medium text-tertiary">{commentText.length}/300자</span>
-            </div>
-          </div>
+          {/* Integrated Comment Input (Isolated render state for optimization) */}
+          <CommentInput
+            user={user}
+            isSending={isSending}
+            onSubmit={handleComment}
+          />
 
           {comments.length === 0 ? (
             <div className="px-5 py-12 text-center bg-surface">
