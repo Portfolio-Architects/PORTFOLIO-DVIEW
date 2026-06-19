@@ -26,7 +26,10 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
       const targets = [
         '/data/location-scores.json',
         '/api/local-notices',
-        '/api/apartments-by-dong'
+        '/api/apartments-by-dong',
+        '/api/dashboard-init',
+        '/api/macro/rates',
+        '/api/macro/news'
       ];
 
       targets.forEach(url => {
@@ -52,11 +55,48 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
     }
   }, [isOnline]);
 
-  const cacheRef = useRef<Map<any, any>>(null);
-  if (cacheRef.current === null) {
-    cacheRef.current = new Map();
-  }
-  const getCache = useCallback(() => cacheRef.current!, []);
+  const getCache = useCallback(() => {
+    if (typeof window === 'undefined') return new Map();
+    
+    let initialEntries: [any, any][] = [];
+    try {
+      const rawCache = localStorage.getItem('app-swr-cache');
+      if (rawCache) {
+        initialEntries = JSON.parse(rawCache);
+      }
+    } catch (err) {
+      console.warn('Failed to parse SWR localStorage cache:', err);
+    }
+
+    const map = new Map<any, any>(initialEntries);
+
+    const syncToLocalStorage = () => {
+      try {
+        const appCache = Array.from(map.entries())
+          .filter(([key, value]) => {
+            // Only serialize static JSON assets/APIs and check serializability
+            if (typeof key !== 'string') return false;
+            const isTarget = key.startsWith('/data/') || 
+                             key.startsWith('/api/apartments-by-dong') || 
+                             key.startsWith('/api/location-scores') ||
+                             key.startsWith('/api/dashboard-init') ||
+                             key.startsWith('/api/macro/');
+            if (!isTarget) return false;
+            
+            // Avoid serializing error objects or non-serializable entities
+            if (value instanceof Error) return false;
+            return true;
+          });
+        localStorage.setItem('app-swr-cache', JSON.stringify(appCache));
+      } catch (err) {
+        console.warn('Failed to sync SWR cache to localStorage:', err);
+      }
+    };
+
+    // Use pagehide or beforeunload event to write map contents back to localStorage
+    window.addEventListener('pagehide', syncToLocalStorage);
+    return map;
+  }, []);
 
   return (
     <SWRConfig
