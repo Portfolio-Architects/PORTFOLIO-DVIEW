@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const { url } = parsed.data;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
     
     if (!response.ok) {
       logger.warn('ProxyImageAPI.GET', 'Failed to fetch remote image', { url, statusText: response.statusText, status: response.status });

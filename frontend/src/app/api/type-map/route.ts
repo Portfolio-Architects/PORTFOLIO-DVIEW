@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     }
 
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}&_t=${Date.now()}`;
-    const res = await fetch(csvUrl, { cache: 'no-store' });
+    const res = await fetch(csvUrl, { cache: 'no-store', signal: AbortSignal.timeout(6000) });
 
     if (!res.ok) {
       logger.warn('TypeMapAPI.GET', 'Sheet fetch failed, using fallback', {});
