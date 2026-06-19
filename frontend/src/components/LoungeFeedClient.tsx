@@ -374,7 +374,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           loadMorePosts();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.01, rootMargin: '200px' }
     );
 
     if (observerTarget.current) {
