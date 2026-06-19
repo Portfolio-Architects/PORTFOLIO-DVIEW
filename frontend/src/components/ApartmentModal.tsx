@@ -437,10 +437,12 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const [isSharing, setIsSharing] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
   const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activeTabTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
       if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+      if (activeTabTimeoutRef.current) clearTimeout(activeTabTimeoutRef.current);
     };
   }, []);
 
@@ -1123,17 +1125,26 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
-    setActiveTab(id);
+    if (activeTabTimeoutRef.current) {
+      clearTimeout(activeTabTimeoutRef.current);
+    }
+
     if (id === 'sec-summary' && modalRef.current) {
       // Summary = first section, just scroll modal to top
       modalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+    } else {
+      const el = modalRef.current?.querySelector(`#${id}`);
+      if (el && modalRef.current) {
+        const topPos = el.getBoundingClientRect().top + modalRef.current.scrollTop - modalRef.current.getBoundingClientRect().top - 70;
+        modalRef.current.scrollTo({ top: topPos, behavior: 'smooth' });
+      }
     }
-    const el = modalRef.current?.querySelector(`#${id}`);
-    if (el && modalRef.current) {
-      const topPos = el.getBoundingClientRect().top + modalRef.current.scrollTop - modalRef.current.getBoundingClientRect().top - 70;
-      modalRef.current.scrollTo({ top: topPos, behavior: 'smooth' });
-    }
+
+    // Delay activeTab state update to prevent rendering workload from blocking the initial scroll animation
+    activeTabTimeoutRef.current = setTimeout(() => {
+      setActiveTab(id);
+      activeTabTimeoutRef.current = null;
+    }, 150);
   };
 
   const handleDownloadWatermarkedImage = async (imageUrl: string) => {
