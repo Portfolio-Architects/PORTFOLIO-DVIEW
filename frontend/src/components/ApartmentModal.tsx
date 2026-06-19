@@ -2527,6 +2527,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               src={fullscreenImage} 
               alt="임장 사진 전체 화면 확대 보기"
               fetchPriority="high"
+              decoding="async"
               className="max-w-[95vw] max-h-[85vh] object-contain select-none shadow-2xl pointer-events-none transition-opacity duration-300"
             />
             {/* Subtle Corner Watermark */}
