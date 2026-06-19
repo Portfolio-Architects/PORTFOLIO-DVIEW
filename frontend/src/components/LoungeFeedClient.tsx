@@ -219,12 +219,16 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       // Check query parameter
       const params = new URLSearchParams(window.location.search);
       const noticeParam = params.get('notice');
+      const postParam = params.get('post');
       
       const postMatch = window.location.hash.match(/#post=([^&]+)/);
       const noticeMatch = window.location.hash.match(/#notice=([^&]+)/);
       
       if (postMatch) {
         setSelectedPostId(decodeURIComponent(postMatch[1]));
+        setSelectedNoticeId(null);
+      } else if (postParam) {
+        setSelectedPostId(postParam);
         setSelectedNoticeId(null);
       } else if (noticeMatch) {
         setSelectedNoticeId(decodeURIComponent(noticeMatch[1]));

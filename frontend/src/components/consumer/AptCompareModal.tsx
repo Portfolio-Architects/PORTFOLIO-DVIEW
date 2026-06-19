@@ -460,8 +460,9 @@ const AptCompareModal = React.memo(function AptCompareModal({
       return;
     }
     setIsTxLoading1(true);
+    const controller = new AbortController();
     const txKey = findTxKey(apt1.name, txSummaryData, nameMapping) || apt1.name;
-    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`)
+    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
         return res.json();
@@ -469,7 +470,10 @@ const AptCompareModal = React.memo(function AptCompareModal({
       .then(data => {
         if (active) setTxData1(data);
       })
-      .catch(() => {
+      .catch(err => {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         if (active) setTxData1([]);
       })
       .finally(() => {
@@ -477,6 +481,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
       });
     return () => {
       active = false;
+      controller.abort();
     };
   }, [apt1, txSummaryData, nameMapping]);
 
@@ -488,8 +493,9 @@ const AptCompareModal = React.memo(function AptCompareModal({
       return;
     }
     setIsTxLoading2(true);
+    const controller = new AbortController();
     const txKey = findTxKey(apt2.name, txSummaryData, nameMapping) || apt2.name;
-    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`)
+    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
         return res.json();
@@ -497,7 +503,10 @@ const AptCompareModal = React.memo(function AptCompareModal({
       .then(data => {
         if (active) setTxData2(data);
       })
-      .catch(() => {
+      .catch(err => {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         if (active) setTxData2([]);
       })
       .finally(() => {
@@ -505,6 +514,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
       });
     return () => {
       active = false;
+      controller.abort();
     };
   }, [apt2, txSummaryData, nameMapping]);
 
