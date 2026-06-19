@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import { X, Search, Building2, TrendingUp, Sparkles, Award, Star, School, TreePine, MapPin, Check, Share2 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
@@ -213,6 +213,8 @@ const AptCompareModal = React.memo(function AptCompareModal({
   // Search input & focus states
   const [searchQuery1, setSearchQuery1] = useState('');
   const [searchQuery2, setSearchQuery2] = useState('');
+  const deferredQuery1 = useDeferredValue(searchQuery1);
+  const deferredQuery2 = useDeferredValue(searchQuery2);
   const [isFocused1, setIsFocused1] = useState(false);
   const [isFocused2, setIsFocused2] = useState(false);
 
@@ -308,25 +310,25 @@ const AptCompareModal = React.memo(function AptCompareModal({
 
   // Options to render in dropdown 1 (prepends recent apartments when search query is empty)
   const dropdownOptions1 = useMemo(() => {
-    if (searchQuery1.trim() === '') {
+    if (deferredQuery1.trim() === '') {
       const recentNames = new Set(recentApts.map(a => a.name));
       const remaining = allApartments.filter(a => !recentNames.has(a.name));
       return [...recentApts, ...remaining];
     }
-    const query = normalizeAptName(searchQuery1);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery1));
-  }, [searchQuery1, allApartments, recentApts]);
+    const query = normalizeAptName(deferredQuery1);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(deferredQuery1));
+  }, [deferredQuery1, allApartments, recentApts]);
 
   // Options to render in dropdown 2 (prepends recent apartments when search query is empty)
   const dropdownOptions2 = useMemo(() => {
-    if (searchQuery2.trim() === '') {
+    if (deferredQuery2.trim() === '') {
       const recentNames = new Set(recentApts.map(a => a.name));
       const remaining = allApartments.filter(a => !recentNames.has(a.name));
       return [...recentApts, ...remaining];
     }
-    const query = normalizeAptName(searchQuery2);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery2));
-  }, [searchQuery2, allApartments, recentApts]);
+    const query = normalizeAptName(deferredQuery2);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(deferredQuery2));
+  }, [deferredQuery2, allApartments, recentApts]);
 
   // Reset active index when dropdown states change
   useEffect(() => {
@@ -508,16 +510,16 @@ const AptCompareModal = React.memo(function AptCompareModal({
 
   // Filter lists for Autocomplete
   const filteredApts1 = useMemo(() => {
-    if (!searchQuery1.trim()) return allApartments;
-    const query = normalizeAptName(searchQuery1);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery1));
-  }, [searchQuery1, allApartments]);
+    if (!deferredQuery1.trim()) return allApartments;
+    const query = normalizeAptName(deferredQuery1);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(deferredQuery1));
+  }, [deferredQuery1, allApartments]);
 
   const filteredApts2 = useMemo(() => {
-    if (!searchQuery2.trim()) return allApartments;
-    const query = normalizeAptName(searchQuery2);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(searchQuery2));
-  }, [searchQuery2, allApartments]);
+    if (!deferredQuery2.trim()) return allApartments;
+    const query = normalizeAptName(deferredQuery2);
+    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(deferredQuery2));
+  }, [deferredQuery2, allApartments]);
 
   // Retrieve metrics & summary stats for compared apartments
   const metrics1 = useMemo(() => {
