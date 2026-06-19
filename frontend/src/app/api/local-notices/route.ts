@@ -80,26 +80,21 @@ export async function GET(request: Request) {
     railQuery = railQuery.limit(150);
     cultureQuery = cultureQuery.limit(150);
 
-    // 3. 동네행정 (동탄 1동~9동의 9개 행정복지센터 부서별 병렬 쿼리로 특정 동 누락을 완전히 방지)
-    const dongs = ['동탄1동', '동탄2동', '동탄3동', '동탄4동', '동탄5동', '동탄6동', '동탄7동', '동탄8동', '동탄9동'];
-    const dongQueries = dongs.map(dong => {
-      let q = localDb.collection('local_notices')
-        .where('source', '==', 'dong')
-        .where('dept', '==', dong);
-      if (filterDongtan) {
-        q = q.where('isDongtan', '==', true);
-      }
-      return q.limit(100);
-    });
+    // 3. 동네행정 (동탄 1동~9동 9개 부서를 단일 쿼리로 통합하여 Firestore 커넥션 풀을 대폭 절약)
+    let dongQuery = localDb.collection('local_notices').where('source', '==', 'dong');
+    if (filterDongtan) {
+      dongQuery = dongQuery.where('isDongtan', '==', true);
+    }
+    dongQuery = dongQuery.limit(400);
 
-    const [citySnapshot, railSnapshot, cultureSnapshot, ...dongSnapshots] = await Promise.all([
+    const [citySnapshot, railSnapshot, cultureSnapshot, dongSnapshot] = await Promise.all([
       cityQuery.get(),
       railQuery.get(),
       cultureQuery.get(),
-      ...dongQueries.map(q => q.get())
+      dongQuery.get()
     ]);
 
-    const getTop100 = (snapshot: any) => {
+    const getTopN = (snapshot: any, limitVal = 100) => {
       const validItems: NoticeData[] = [];
       snapshot.docs.forEach((doc: any) => {
         try {
@@ -126,13 +121,13 @@ export async function GET(request: Request) {
           if (dateCompare !== 0) return dateCompare;
           return b.id.localeCompare(a.id);
         })
-        .slice(0, 100);
+        .slice(0, limitVal);
     };
 
-    const cityItems = getTop100(citySnapshot);
-    const railItems = getTop100(railSnapshot);
-    const cultureItems = getTop100(cultureSnapshot);
-    const dongItems = dongSnapshots.flatMap(snap => getTop100(snap));
+    const cityItems = getTopN(citySnapshot, 100);
+    const railItems = getTopN(railSnapshot, 100);
+    const cultureItems = getTopN(cultureSnapshot, 100);
+    const dongItems = getTopN(dongSnapshot, 300);
 
     const allItems = [...cityItems, ...railItems, ...cultureItems, ...dongItems];
 

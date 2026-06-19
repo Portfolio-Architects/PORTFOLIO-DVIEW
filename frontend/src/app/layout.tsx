@@ -34,6 +34,7 @@ import MobileBottomAd from '@/components/pwa/MobileBottomAd';
 import dynamic from 'next/dynamic';
 import WelcomeModal from '@/components/ui/WelcomeModal';
 import { safeReload } from '@/lib/utils/safeReload';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
   console.warn('SettingsModal Chunk Load failure, initiating fallback reload', err);
@@ -163,6 +164,7 @@ export default async function RootLayout({
                   <Footer />
                   <CustomA2HSModal />
                   <WelcomeModal />
+                  <ScrollToTop />
                 </PWAProvider>
                 <div id="modal-root" />
                 <SettingsModal />

@@ -298,19 +298,12 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
   useEffect(() => {
     let active = true;
     if ((currentTab === '동탄구 소식' || selectedNoticeId) && noticesData.length === 0) {
-      setNoticesLoading(true);
-      
-      Promise.all([
-        fetch("/api/local-notices").then(res => res.json()).catch(() => ({ notices: [] })),
-        fetch("/data/local-events.json").then(res => res.json()).catch(() => [])
-      ])
-        .then(([noticesJson, eventsJson]: [any, any[]]) => {
+      // 1. Fetch Local Events (Static JSON, extremely fast)
+      fetch("/data/local-events.json")
+        .then(res => res.json())
+        .catch(() => [])
+        .then((eventsJson: any[]) => {
           if (!active) return;
-          let mergedNotices: LocalNoticeItem[] = [];
-          if (noticesJson && noticesJson.notices) {
-            mergedNotices = [...noticesJson.notices];
-          }
-
           const mappedEvents: LocalNoticeItem[] = eventsJson.map((event: any) => ({
             id: event.id,
             title: `[${event.category}] ${event.title} (${event.time})`,
@@ -322,18 +315,38 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             content: `### 📅 행사 시간\n${event.time}\n\n### 📍 개최 장소\n${event.location}\n\n### 💡 D-VIEW 추천 꿀팁\n${event.tip}`
           }));
 
-          const combined = [...mappedEvents, ...mergedNotices].sort((a, b) => {
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          setNoticesData(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const filteredNew = mappedEvents.filter(e => !existingIds.has(e.id));
+            return [...prev, ...filteredNew].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          });
+        });
+
+      // 2. Fetch Local Notices (Heavier DB API)
+      setNoticesLoading(true);
+      fetch("/api/local-notices")
+        .then(res => res.json())
+        .catch(() => ({ notices: [] }))
+        .then((noticesJson: any) => {
+          if (!active) return;
+          let mergedNotices: LocalNoticeItem[] = [];
+          if (noticesJson && noticesJson.notices) {
+            mergedNotices = [...noticesJson.notices];
+          }
+
+          setNoticesData(prev => {
+            const noticeIds = new Set(mergedNotices.map(n => n.id));
+            const nonNoticeItems = prev.filter(p => !noticeIds.has(p.id));
+            return [...nonNoticeItems, ...mergedNotices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           });
 
-          setNoticesData(combined);
           if (noticesJson && noticesJson.lastUpdated) {
             setLastUpdatedTime(noticesJson.lastUpdated);
           }
         })
         .catch(err => {
           if (active) {
-            console.warn('LoungeFeedClient - Failed to fetch notices or events:', err instanceof Error ? err.message : err);
+            console.warn('LoungeFeedClient - Failed to fetch notices:', err instanceof Error ? err.message : err);
           }
         })
         .finally(() => {
