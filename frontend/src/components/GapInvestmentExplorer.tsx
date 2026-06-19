@@ -23,6 +23,221 @@ import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 import { usePWA } from '@/components/pwa/PWAProvider';
 
+interface GapComplexCardProps {
+  item: {
+    apt: DongApartment;
+    sales: number;
+    jeonse: number;
+    gap: number;
+    ratio: number;
+    gapScore: number;
+    txCount: number;
+    pyeongPrice: number;
+  };
+  isExpanded: boolean;
+  onToggleExpand: (name: string, e: React.MouseEvent) => void;
+  onSelect: (name: string) => void;
+  formatPrice: (priceMan: number) => string;
+}
+
+const GapComplexCard = React.memo(function GapComplexCard({
+  item,
+  isExpanded,
+  onToggleExpand,
+  onSelect,
+  formatPrice,
+}: GapComplexCardProps) {
+  const jeonseRatePercent = Math.round(item.ratio * 100);
+  const hh = item.apt.householdCount || 0;
+
+  return (
+    <div
+      onClick={() => onSelect(item.apt.name)}
+      data-testid="complex-card"
+      className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:-translate-y-1 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
+    >
+      <div className="flex justify-between items-start gap-2 mb-4">
+        <div className="flex flex-col min-w-0 pr-1">
+          <span 
+            data-testid="complex-name"
+            className="text-[16px] md:text-[18px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors"
+          >
+            {item.apt.name}
+          </span>
+          <span className="text-[12px] md:text-[13px] font-semibold text-tertiary mt-0.5">
+            {item.apt.dong} · {hh}세대
+          </span>
+        </div>
+        <div className="flex flex-col gap-1 items-end shrink-0">
+          <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border transition-all ${
+            item.gapScore >= 80 ? 'bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] border-[#00b386]/20 animate-emerald-pulse' :
+            item.gapScore >= 60 ? 'bg-[#e6f3f0] dark:bg-[#008262]/10 text-[#008262] dark:text-[#00d29d] border-[#008262]/20 dark:border-[#00d29d]/20' :
+            'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
+          }`}>
+            {item.gapScore >= 80 ? '🔥 S등급 (우수)' : item.gapScore >= 60 ? '✅ A등급 (보통)' : '⚠️ B등급 (관망)'}
+          </span>
+          <span className="text-[10px] font-bold text-tertiary">
+            지수 {item.gapScore}점
+          </span>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center bg-[#e8f8f5] dark:bg-[#042820]/30 rounded-xl p-3.5 border border-[#008262]/10 mb-4">
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold text-[#008262]/80 dark:text-[#00d29d]">필요 투자금 (갭)</span>
+          <span className="text-[18px] md:text-[20px] font-black text-[#008262] dark:text-[#00d29d] tracking-tight">
+            {formatPrice(item.gap)}
+          </span>
+        </div>
+        
+        <div className="flex flex-col items-end">
+          <span className="text-[11px] md:text-[12px] font-bold text-[#008262]/80 dark:text-[#00d29d]">전세율 {jeonseRatePercent}%</span>
+          <div className="w-16 h-1.5 bg-border/50 dark:bg-[#008262]/10 rounded-full mt-1.5 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-400 to-[#008262]" 
+              style={{ width: `${Math.min(jeonseRatePercent, 100)}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary font-medium mt-auto border-t border-border/20 pt-3 px-0.5">
+        <span className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
+          매매 평균 <strong className="text-primary font-bold">{formatPrice(item.sales)}</strong>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
+          전세 평균 <strong className="text-primary font-bold">{formatPrice(item.jeonse)}</strong>
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-border/20 pt-3 mt-3 mb-1">
+        <button
+          onClick={(e) => onToggleExpand(item.apt.name, e)}
+          data-testid="risk-btn"
+          className="flex items-center gap-1 text-[11px] font-black text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] transition-colors focus:outline-none"
+        >
+          <ShieldAlert className="w-3.5 h-3.5 text-tertiary" />
+          <span>3대 리스크 진단</span>
+          {isExpanded ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+        
+        <div className="flex gap-1 shrink-0">
+          <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+            jeonseRatePercent >= 80 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/20' :
+            jeonseRatePercent >= 70 ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/20' :
+            'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/20'
+          }`}>
+            역전세
+          </span>
+          <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+            item.txCount <= 2 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/20' :
+            item.txCount <= 5 ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/20' :
+            'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/20'
+          }`}>
+            유동성
+          </span>
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="bg-body/50 dark:bg-[#121824]/20 border border-border/30 rounded-xl p-3 mt-2.5 space-y-2.5 animate-in slide-in-from-top-1 duration-200 text-left"
+        >
+          <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
+              jeonseRatePercent >= 80 ? 'bg-rose-500 animate-pulse' :
+              jeonseRatePercent >= 70 ? 'bg-amber-500' :
+              'bg-emerald-500'
+            }`} />
+            <div className="flex-1">
+              <p className="font-extrabold text-primary">
+                역전세 리스크: {' '}
+                <span className={
+                  jeonseRatePercent >= 80 ? 'text-rose-500 font-black' :
+                  jeonseRatePercent >= 70 ? 'text-amber-600 dark:text-amber-400 font-black' :
+                  'text-emerald-600 dark:text-emerald-400 font-black'
+                }>
+                  {jeonseRatePercent >= 80 ? '위험' : jeonseRatePercent >= 70 ? '주의' : '안전'}
+                </span>
+              </p>
+              <p className="text-tertiary font-semibold mt-0.5 leading-normal">
+                {jeonseRatePercent >= 80 
+                  ? '전세가율이 80% 이상으로 매매가 하락 시 보증금 미반환 위험(깡통전세)이 매우 높습니다.'
+                  : jeonseRatePercent >= 70 
+                  ? '전세가율이 70% 이상으로 전세 시세 하락 시 역전세 노출 가능성이 있습니다.'
+                  : '매매가 대비 보증금 완충 마진이 30% 이상 확보되어 전세금 반환 리스크가 낮습니다.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
+              item.txCount <= 2 ? 'bg-rose-500' :
+              item.txCount <= 5 ? 'bg-amber-500' :
+              'bg-emerald-500'
+            }`} />
+            <div className="flex-1">
+              <p className="font-extrabold text-primary">
+                유동성 리스크: {' '}
+                <span className={
+                  item.txCount <= 2 ? 'text-rose-500 font-black' :
+                  item.txCount <= 5 ? 'text-amber-600 dark:text-amber-400 font-black' :
+                  'text-emerald-600 dark:text-emerald-400 font-black'
+                }>
+                  {item.txCount <= 2 ? '높음' : item.txCount <= 5 ? '보통' : '낮음'}
+                </span>
+              </p>
+              <p className="text-tertiary font-semibold mt-0.5 leading-normal">
+                {item.txCount <= 2 
+                  ? '최근 30일(혹은 3개월) 실거래가 2건 이하로, 매도 시 자금 회수 및 엑시트가 지연될 수 있습니다.'
+                  : item.txCount <= 5 
+                  ? '최근 30일(혹은 3개월) 3~5건 거래가 발생하여, 표준적인 시장 환금성을 보입니다.'
+                  : '최근 30일(혹은 3개월) 6건 이상으로 거래가 활발하여 언제든 자금 회수(Exit)가 용이합니다.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
+              hh < 300 ? 'bg-rose-500' :
+              hh < 700 ? 'bg-amber-500' :
+              'bg-emerald-500'
+            }`} />
+            <div className="flex-1">
+              <p className="font-extrabold text-primary">
+                가격 변동성 (방어력): {' '}
+                <span className={
+                  hh < 300 ? 'text-rose-500 font-black' :
+                  hh < 700 ? 'text-amber-600 dark:text-amber-400 font-black' :
+                  'text-emerald-600 dark:text-emerald-400 font-black'
+                }>
+                  {hh < 300 ? '높음' : hh < 700 ? '보통' : '낮음'}
+                </span>
+              </p>
+              <p className="text-tertiary font-semibold mt-0.5 leading-normal">
+                {hh < 300 
+                  ? '300세대 미만 소단지로, 시세 왜곡 및 불황기 가격 하락 방어력이 취약할 수 있습니다.'
+                  : hh < 700 
+                  ? '300~700세대 중형 단지로, 시세 안정성이 보통 수준입니다.'
+                  : '700세대 이상 대단지 브랜드 타운으로, 불황기에도 가격 방어 및 수요 확보가 우수합니다.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+GapComplexCard.displayName = 'GapComplexCard';
+
 interface GapInvestmentExplorerProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
@@ -50,6 +265,12 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
   const [minJeonseRate, setMinJeonseRate] = useState<number>(0);
   const [sortBy, setSortBy] = useState<string>('gapScore');
   const [expandedApt, setExpandedApt] = useState<string | null>(null);
+
+  const handleToggleExpand = React.useCallback((name: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpandedApt(prev => prev === name ? null : name);
+  }, []);
 
   const [showAll, setShowAll] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -702,211 +923,16 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleList.map((item, idx) => {
-              const jeonseRatePercent = Math.round(item.ratio * 100);
-              return (
-                <div
-                  key={item.apt.name}
-                  onClick={() => onSelectApt(item.apt.name)}
-                  data-testid="complex-card"
-                  className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:-translate-y-1 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
-                >
-                  <div className="flex justify-between items-start gap-2 mb-4">
-                    <div className="flex flex-col min-w-0 pr-1">
-                      <span 
-                        data-testid="complex-name"
-                        className="text-[16px] md:text-[18px] font-extrabold text-primary break-keep whitespace-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors"
-                      >
-                        {item.apt.name}
-                      </span>
-                      <span className="text-[12px] md:text-[13px] font-semibold text-tertiary mt-0.5">
-                        {item.apt.dong} · {item.apt.householdCount || '-'}세대
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-1 items-end shrink-0">
-                      <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border transition-all ${
-                        item.gapScore >= 80 ? 'bg-[#e0fbf4] dark:bg-[#00b386]/10 text-[#00b386] border-[#00b386]/20 animate-emerald-pulse' :
-                        item.gapScore >= 60 ? 'bg-[#e6f3f0] dark:bg-[#008262]/10 text-[#008262] dark:text-[#00d29d] border-[#008262]/20 dark:border-[#00d29d]/20' :
-                        'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
-                      }`}>
-                        {item.gapScore >= 80 ? '🔥 S등급 (우수)' : item.gapScore >= 60 ? '✅ A등급 (보통)' : '⚠️ B등급 (관망)'}
-                      </span>
-                      <span className="text-[10px] font-bold text-tertiary">
-                        지수 {item.gapScore}점
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Highlight box for Required Budget & Jeonse Rate */}
-                  <div className="flex justify-between items-center bg-[#e8f8f5] dark:bg-[#042820]/30 rounded-xl p-3.5 border border-[#008262]/10 mb-4">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-[#008262]/80 dark:text-[#00d29d]">필요 투자금 (갭)</span>
-                      <span className="text-[18px] md:text-[20px] font-black text-[#008262] dark:text-[#00d29d] tracking-tight">
-                        {formatPrice(item.gap)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-col items-end">
-                      <span className="text-[11px] md:text-[12px] font-bold text-[#008262]/80 dark:text-[#00d29d]">전세율 {jeonseRatePercent}%</span>
-                      <div className="w-16 h-1.5 bg-border/50 dark:bg-[#008262]/10 rounded-full mt-1.5 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-emerald-400 to-[#008262]" 
-                          style={{ width: `${Math.min(jeonseRatePercent, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Horizontal compare list for sales & rent averages */}
-                  <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary font-medium mt-auto border-t border-border/20 pt-3 px-0.5">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
-                      매매 평균 <strong className="text-primary font-bold">{formatPrice(item.sales)}</strong>
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
-                      전세 평균 <strong className="text-primary font-bold">{formatPrice(item.jeonse)}</strong>
-                    </span>
-                  </div>
-
-                  {/* 3대 리스크 진단 헤더 */}
-                  <div className="flex items-center justify-between border-t border-border/20 pt-3 mt-3 mb-1">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setExpandedApt(expandedApt === item.apt.name ? null : item.apt.name);
-                      }}
-                      data-testid="risk-btn"
-                      className="flex items-center gap-1 text-[11px] font-black text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] transition-colors focus:outline-none"
-                    >
-                      <ShieldAlert className="w-3.5 h-3.5 text-tertiary" />
-                      <span>3대 리스크 진단</span>
-                      {expandedApt === item.apt.name ? (
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      ) : (
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                    
-                    {/* Compact pills */}
-                    <div className="flex gap-1 shrink-0">
-                      <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
-                        jeonseRatePercent >= 80 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/20' :
-                        jeonseRatePercent >= 70 ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/20' :
-                        'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/20'
-                      }`}>
-                        역전세
-                      </span>
-                      <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
-                        item.txCount <= 2 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/20' :
-                        item.txCount <= 5 ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/20' :
-                        'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/20'
-                      }`}>
-                        유동성
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 상세 3대 리스크 진단 리포트 */}
-                  {expandedApt === item.apt.name && (
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="bg-body/50 dark:bg-[#121824]/20 border border-border/30 rounded-xl p-3 mt-2.5 space-y-2.5 animate-in slide-in-from-top-1 duration-200 text-left"
-                    >
-                      {/* 역전세 리스크 */}
-                      <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
-                          jeonseRatePercent >= 80 ? 'bg-rose-500 animate-pulse' :
-                          jeonseRatePercent >= 70 ? 'bg-amber-500' :
-                          'bg-emerald-500'
-                        }`} />
-                        <div className="flex-1">
-                          <p className="font-extrabold text-primary">
-                            역전세 리스크: {' '}
-                            <span className={
-                              jeonseRatePercent >= 80 ? 'text-rose-500 font-black' :
-                              jeonseRatePercent >= 70 ? 'text-amber-600 dark:text-amber-400 font-black' :
-                              'text-emerald-600 dark:text-emerald-400 font-black'
-                            }>
-                              {jeonseRatePercent >= 80 ? '위험' : jeonseRatePercent >= 70 ? '주의' : '안전'}
-                            </span>
-                          </p>
-                          <p className="text-tertiary font-semibold mt-0.5 leading-normal">
-                            {jeonseRatePercent >= 80 
-                              ? '전세가율이 80% 이상으로 매매가 하락 시 보증금 미반환 위험(깡통전세)이 매우 높습니다.'
-                              : jeonseRatePercent >= 70 
-                              ? '전세가율이 70% 이상으로 전세 시세 하락 시 역전세 노출 가능성이 있습니다.'
-                              : '매매가 대비 보증금 완충 마진이 30% 이상 확보되어 전세금 반환 리스크가 낮습니다.'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 유동성 리스크 */}
-                      <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
-                          item.txCount <= 2 ? 'bg-rose-500' :
-                          item.txCount <= 5 ? 'bg-amber-500' :
-                          'bg-emerald-500'
-                        }`} />
-                        <div className="flex-1">
-                          <p className="font-extrabold text-primary">
-                            유동성 리스크: {' '}
-                            <span className={
-                              item.txCount <= 2 ? 'text-rose-500 font-black' :
-                              item.txCount <= 5 ? 'text-amber-600 dark:text-amber-400 font-black' :
-                              'text-emerald-600 dark:text-emerald-400 font-black'
-                            }>
-                              {item.txCount <= 2 ? '높음' : item.txCount <= 5 ? '보통' : '낮음'}
-                            </span>
-                          </p>
-                          <p className="text-tertiary font-semibold mt-0.5 leading-normal">
-                            {item.txCount <= 2 
-                              ? '최근 30일(혹은 3개월) 실거래가 2건 이하로, 매도 시 자금 회수 및 엑시트가 지연될 수 있습니다.'
-                              : item.txCount <= 5 
-                              ? '최근 30일(혹은 3개월) 3~5건 거래가 발생하여, 표준적인 시장 환금성을 보입니다.'
-                              : '최근 30일(혹은 3개월) 6건 이상으로 거래가 활발하여 언제든 자금 회수(Exit)가 용이합니다.'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 가격 변동성 리스크 */}
-                      {(() => {
-                        const hh = item.apt.householdCount || 0;
-                        return (
-                          <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
-                              hh < 300 ? 'bg-rose-500' :
-                              hh < 700 ? 'bg-amber-500' :
-                              'bg-emerald-500'
-                            }`} />
-                            <div className="flex-1">
-                              <p className="font-extrabold text-primary">
-                                가격 변동성 (방어력): {' '}
-                                <span className={
-                                  hh < 300 ? 'text-rose-500 font-black' :
-                                  hh < 700 ? 'text-amber-600 dark:text-amber-400 font-black' :
-                                  'text-emerald-600 dark:text-emerald-400 font-black'
-                                }>
-                                  {hh < 300 ? '높음' : hh < 700 ? '보통' : '낮음'}
-                                </span>
-                              </p>
-                              <p className="text-tertiary font-semibold mt-0.5 leading-normal">
-                                {hh < 300 
-                                  ? '300세대 미만 소단지로, 시세 왜곡 및 불황기 가격 하락 방어력이 취약할 수 있습니다.'
-                                  : hh < 700 
-                                  ? '300~700세대 중형 단지로, 시세 안정성이 보통 수준입니다.'
-                                  : '700세대 이상 대단지 브랜드 타운으로, 불황기에도 가격 방어 및 수요 확보가 우수합니다.'}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {visibleList.map((item) => (
+              <GapComplexCard
+                key={item.apt.name}
+                item={item}
+                isExpanded={expandedApt === item.apt.name}
+                onToggleExpand={handleToggleExpand}
+                onSelect={onSelectApt}
+                formatPrice={formatPrice}
+              />
+            ))}
           </div>
 
           <div className="my-2">
