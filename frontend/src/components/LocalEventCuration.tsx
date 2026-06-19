@@ -288,7 +288,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                     <div 
                       key={apt.name}
                       onClick={() => onSelectApt(apt.name)}
-                      className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 group"
+                      className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 group will-change-transform transform-gpu"
                     >
                       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -320,7 +320,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto text-[12px] md:text-[13px] font-extrabold text-emerald-600 group-hover:translate-x-1 transition-transform">
+                      <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto text-[12px] md:text-[13px] font-extrabold text-emerald-600 group-hover:translate-x-1 transition-transform will-change-transform transform-gpu">
                         <span>단지 가치분석</span>
                         <span>&rarr;</span>
                       </div>
@@ -358,7 +358,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                 href={`/api/bypass-notice?url=${encodeURIComponent((lecture.url || '').trim())}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-body hover:bg-surface rounded-2xl p-4.5 border border-border hover:border-emerald-300 hover:shadow-[0_8px_20px_rgba(16,185,129,0.04)] cursor-pointer flex flex-col justify-between gap-3 transition-all duration-300 group text-left"
+                className="bg-body hover:bg-surface rounded-2xl p-4.5 border border-border hover:border-emerald-300 hover:shadow-[0_8px_20px_rgba(16,185,129,0.04)] cursor-pointer flex flex-col justify-between gap-3 transition-all duration-300 group text-left will-change-transform transform-gpu"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -378,7 +378,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                 </div>
                 <div className="border-t border-border/20 pt-3 flex items-center justify-between mt-1">
                   <span className="text-[11px] text-emerald-600 font-extrabold">선착순 접수 중</span>
-                  <div className="text-[11.5px] font-black text-emerald-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                  <div className="text-[11.5px] font-black text-emerald-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 will-change-transform transform-gpu">
                     신청 사이트 이동 <ExternalLink size={11} />
                   </div>
                 </div>
