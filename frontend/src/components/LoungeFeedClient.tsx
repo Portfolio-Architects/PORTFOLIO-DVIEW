@@ -117,8 +117,44 @@ const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
 
 const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const { showToast } = usePWA();
+
+  const getCategoryChipStyles = (category: string) => {
+    switch (category) {
+      case '아파트 이야기':
+        return 'bg-teal-50 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30';
+      case '동탄 임장/분석':
+      case '임장기':
+        return 'bg-[#e8f8f0] text-[#00a06c] dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30';
+      case '부동산 고민상담':
+      case '부동산 기초':
+      case '부동산':
+        return 'bg-red-50 text-rose-500 dark:bg-rose-950/20 dark:text-rose-400 border border-red-100/50 dark:border-rose-900/20';
+      case '동탄 청약/대출':
+      case '정책자금 대출':
+        return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/20';
+      case '동탄 교통/상권':
+      case '인프라':
+      case '교통':
+        return 'bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-100/50 dark:border-purple-900/20';
+      case '동탄 육아/교육':
+      case '어린이집/유치원':
+      case '학원/교육':
+      case '교육':
+        return 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100/50 dark:border-amber-900/20';
+      case '실시간 오픈런/정보':
+      case '소아과/병원':
+      case '실시간 제보':
+        return 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/20';
+      case '동탄 벼룩/나눔':
+      case '나눔/벼룩':
+      case '공동구매':
+        return 'bg-cyan-50 text-cyan-600 dark:bg-cyan-950/20 dark:text-cyan-400 border border-cyan-100/50 dark:border-cyan-900/20';
+      default:
+        return 'bg-gray-50 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400 border border-gray-100/50';
+    }
+  };
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { data, error, size, setSize, isValidating } = useSWRInfinite<Post[]>(
+  const { data, error, size, setSize, isValidating, mutate } = useSWRInfinite<Post[]>(
     getPostsKey,
     postsFetcher,
     {
@@ -875,103 +911,60 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   window.location.hash = `post=${news.id}`;
                 }
               }} 
-              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3.5 px-2 border-b border-border/60 hover:bg-[#008262]/5 dark:hover:bg-[#00d29d]/5 transition-all cursor-pointer group w-full"
+              className="flex gap-4 p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left"
             >
-              {/* Desktop view layout */}
-              <div className="hidden sm:flex items-center gap-4 flex-1 min-w-0">
-                {/* Category Chip (Border-free text style) */}
-                <span className={`w-[110px] shrink-0 text-[12.5px] font-black text-center truncate ${
-                  news.category === '아파트 이야기' ? 'text-teal-600 dark:text-teal-400' :
-                  (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'text-[#00a06c]' :
-                  (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
-                  (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-[#008262] dark:text-[#00d29d]' :
-                  (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
-                  (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
-                  (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
-                  (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'text-emerald-500' :
-                  'text-secondary'
-                }`}>
-                  {news.category === '임장기' ? '동탄 임장/분석' : 
-                   news.category === '부동산 기초' ? '부동산 고민상담' :
-                   news.category === '정책자금 대출' ? '동탄 청약/대출' :
-                   news.category === '인프라' ? '동탄 교통/상권' : 
-                   (news.category || '기타')}
-                </span>
-
-                {/* Title & Comment Count */}
-                <div className="flex-1 min-w-0 flex items-center gap-2">
-                  <p className="text-[15.5px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] group-hover:underline transition-all truncate">
-                    {news.title}
-                  </p>
-                  {news.commentCount > 0 && (
-                    <span className="text-[13.5px] font-extrabold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-md shrink-0">
-                      {news.commentCount}
-                    </span>
-                  )}
-                </div>
-
-                {/* Author */}
-                <span className="w-[85px] text-[13.5px] font-semibold text-secondary truncate text-center shrink-0 font-sans">
-                  {news.author || '익명'}
-                </span>
-
-                {/* Date */}
-                <span className="w-[85px] text-[13px] font-medium text-tertiary text-center shrink-0 whitespace-nowrap">
-                  {news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}
-                </span>
-
-                {/* Views & Likes */}
-                <div className="flex items-center justify-end gap-3 text-[13px] font-semibold text-tertiary w-[100px] shrink-0 pl-1">
-                  <span className="flex items-center gap-0.5"><Eye size={13}/> {news.views || 0}</span>
-                  <span className={`flex items-center gap-0.5 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={13} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
-                </div>
-              </div>
-
-              {/* Mobile view layout */}
-              <div className="flex sm:hidden flex-col gap-1.5 w-full">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {/* Mobile Category Tag */}
-                  <span className={`text-[11px] font-extrabold tracking-wide ${
-                    news.category === '아파트 이야기' ? 'text-teal-600 dark:text-teal-400' :
-                    (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'text-[#00a06c]' :
-                    (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'text-toss-red' :
-                    (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'text-[#008262] dark:text-[#00d29d]' :
-                    (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'text-[#9b51e0]' :
-                    (news.category === '동탄 육아/교육' || news.category === '어린이집/유치원' || news.category === '학원/교육') ? 'text-amber-500' :
-                    (news.category === '실시간 오픈런/정보' || news.category === '소아과/병원' || news.category === '실시간 제보') ? 'text-rose-500' :
-                    (news.category === '동탄 벼룩/나눔' || news.category === '나눔/벼룩' || news.category === '공동구매') ? 'text-emerald-500' :
-                    'text-secondary'
-                  }`}>
+              {/* Left Content Area */}
+              <div className="flex-1 min-w-0 flex flex-col gap-2">
+                {/* Meta info row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide ${getCategoryChipStyles(news.category)}`}>
                     {news.category === '임장기' ? '동탄 임장/분석' : 
                      news.category === '부동산 기초' ? '부동산 고민상담' :
                      news.category === '정책자금 대출' ? '동탄 청약/대출' :
                      news.category === '인프라' ? '동탄 교통/상권' : 
                      (news.category || '기타')}
                   </span>
-                  <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[11px] font-semibold text-secondary truncate max-w-[90px] font-sans">{news.author || '익명'}</span>
-                  <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[11px] text-tertiary">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
+                  <span className="text-[12px] font-bold text-secondary font-sans">{news.author || '익명'}</span>
+                  <span className="text-[11px] text-tertiary font-medium">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
                 </div>
 
-                {/* Mobile Title & Comments */}
-                <div className="flex items-center gap-2">
-                  <p className="text-[14.5px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] leading-[1.45] transition-all truncate flex-1">
+                {/* Title & Comment Count */}
+                <div className="flex items-start gap-2">
+                  <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors line-clamp-1 flex-1">
                     {news.title}
-                  </p>
+                  </h3>
                   {news.commentCount > 0 && (
-                    <span className="text-[12px] font-extrabold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-md shrink-0">
+                    <span className="text-[11px] sm:text-[11.5px] font-black text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-md shrink-0 border border-emerald-100/40">
                       {news.commentCount}
                     </span>
                   )}
                 </div>
 
-                {/* Mobile Views & Likes */}
-                <div className="flex items-center gap-3 text-[11px] font-semibold text-tertiary">
-                  <span className="flex items-center gap-0.5"><Eye size={12}/> {news.views || 0}</span>
-                  <span className={`flex items-center gap-0.5 ${news.likes > 0 ? 'text-toss-red' : ''}`}><Heart size={12} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
+                {/* Summary (1~2 lines) */}
+                {news.summary && (
+                  <p className="text-[13px] sm:text-[13.5px] text-secondary font-medium leading-relaxed line-clamp-2">
+                    {news.summary}
+                  </p>
+                )}
+
+                {/* Views & Likes */}
+                <div className="flex items-center gap-3 mt-1 text-[12px] font-bold text-tertiary">
+                  <span className="flex items-center gap-0.5"><Eye size={12.5}/> {news.views || 0}</span>
+                  <span className={`flex items-center gap-0.5 ${news.likes > 0 ? 'text-rose-500' : ''}`}><Heart size={12.5} className={news.likes > 0 ? 'fill-current' : ''}/> {news.likes || 0}</span>
                 </div>
               </div>
+
+              {/* Right Thumbnail Area (Optional) */}
+              {news.imageUrl && (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 relative rounded-xl overflow-hidden border border-border/50 bg-body/20">
+                  <img 
+                    src={news.imageUrl} 
+                    alt={news.title} 
+                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" 
+                    loading="lazy"
+                  />
+                </div>
+              )}
             </div>
             </Fragment>
         );
@@ -985,7 +978,10 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
       {/* Post Detail Modal */}
       {selectedPostId && (
-        <LoungeModalBackdrop onClose={() => { window.location.hash = ''; }}>
+        <LoungeModalBackdrop onClose={() => { 
+          window.location.hash = ''; 
+          mutate();
+        }}>
           <LoungeDetailClient postId={selectedPostId} isModal={true} />
         </LoungeModalBackdrop>
       )}

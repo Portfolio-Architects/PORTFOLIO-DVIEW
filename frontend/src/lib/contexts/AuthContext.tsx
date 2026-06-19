@@ -23,11 +23,15 @@ export const AnonProfileSchema = z.object({
 });
 
 export const UserProfileSchema = z.object({
-  uid: z.string(),
-  email: z.string().email().nullable().optional(),
-  displayName: z.string().nullable().optional(),
+  nickname: z.string().min(1, 'Nickname cannot be empty'),
+  hasSetNickname: z.boolean().optional(),
   photoURL: z.string().nullable().optional(),
-});
+  verifiedApartment: z.string().optional(),
+  verificationLevel: z.enum(['none', 'self_declared', 'registry_verified']).optional(),
+  uploaderPoints: z.number().int().optional(),
+  uploaderTier: z.string().optional(),
+}).passthrough();
+
 
 export interface AuthContextType {
   user: User | null;

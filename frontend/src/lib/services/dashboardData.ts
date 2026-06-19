@@ -183,7 +183,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       return;
     }
     if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 1500);
+      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 1000);
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
@@ -206,7 +206,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       return;
     }
     if (adminDb) {
-      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 1500);
+      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 1000);
       if (metaDoc.exists) {
         const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
         result.apartmentMeta = metaData;
@@ -227,7 +227,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       return;
     }
     if (adminDb) {
-      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 1500);
+      const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 1000);
       const reports = snap.docs.map(doc => {
         const data = doc.data();
         let createdAtStr = '방금 전';

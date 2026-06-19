@@ -51,6 +51,7 @@ import {
   Bell,
   Sparkles,
   X,
+  Calendar,
 } from "lucide-react";
 import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
 
@@ -1085,45 +1086,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return ticks;
   }, [lineData, timeframe]);
 
-  const mainLineData = useMemo(() => {
-    if (isMobileViewport) {
-      const sourceData = deferredMacroTrendData;
-      if (!sourceData) return [];
-      let count = sourceData.length;
-      switch (timeframe) {
-        case "3M": count = 3; break;
-        case "6M": count = 6; break;
-        case "1Y": count = 12; break;
-        case "3Y": count = 36; break;
-        case "5Y": count = 60; break;
-        case "ALL": count = sourceData.length; break;
-      }
-      return sourceData.slice(-Math.min(count, sourceData.length));
-    }
-    return lineData;
-  }, [isMobileViewport, lineData, deferredMacroTrendData, timeframe]);
+  const mainLineData = lineData;
 
-  const mainXTicks = useMemo(() => {
-    if (isMobileViewport) {
-      if (mainLineData.length === 0) return [];
-      if (timeframe === "3M" || timeframe === "6M") {
-        return mainLineData.map((d) => d.name);
-      }
-      let step = 1;
-      if (timeframe === "1Y") step = 2;
-      else if (timeframe === "3Y") step = 6;
-      else if (timeframe === "5Y") step = 12;
-      else if (timeframe === "ALL") step = 24;
-
-      const ticks = [];
-      const total = mainLineData.length;
-      for (let i = total - 1; i >= 0; i -= step) {
-        ticks.unshift(mainLineData[i].name);
-      }
-      return ticks;
-    }
-    return xTicks;
-  }, [isMobileViewport, xTicks, mainLineData, timeframe]);
+  const mainXTicks = xTicks;
 
   const latestMacroPoint = useMemo(() => {
     if (!deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
@@ -1559,34 +1524,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return ticks;
   }, [lineData]);
 
-  const mainYTicks = useMemo(() => {
-    if (isMobileViewport) {
-      if (!mainLineData || mainLineData.length === 0) return [0, 2, 4, 6, 8];
-      let maxVal = 0;
-      mainLineData.forEach((d) => {
-        const sale = d["동탄 아파트 전체"] || 0;
-        const rent = d["동탄 아파트 전세 평균"] || 0;
-        if (sale > maxVal) maxVal = sale;
-        if (rent > maxVal) maxVal = rent;
-      });
-
-      let step = 2;
-      if (maxVal <= 5) step = 1;
-      else if (maxVal <= 12) step = 2;
-      else if (maxVal <= 24) step = 4;
-      else step = 5;
-
-      const roundedMax = Math.ceil(maxVal / step) * step;
-      const finalMax = (roundedMax - maxVal < step * 0.1) ? roundedMax + step : roundedMax;
-
-      const ticks = [];
-      for (let i = 0; i <= finalMax; i += step) {
-        ticks.push(i);
-      }
-      return ticks;
-    }
-    return yTicks;
-  }, [isMobileViewport, yTicks, mainLineData]);
+  const mainYTicks = yTicks;
 
   return (
     <div className="w-full flex flex-col bg-surface relative">
@@ -1656,103 +1594,131 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     최근 실거래 내역이 없습니다.
                   </div>
                 ) : (
-                  ((!isMobileViewport || isTimelineExpanded) ? dailyTimelineData : dailyTimelineData.slice(0, 3)).map((group) => (
-                    <div key={group.dateStr} className="flex flex-col gap-2 relative pl-4 border-l-2 border-[#f2f4f6]">
-                      {/* Timeline Dot */}
-                      <div className="absolute left-[-6px] top-1.5 w-[10px] h-[10px] rounded-full bg-[#cbd5e1] border-2 border-surface" />
-                      
-                      {/* Date Heading */}
-                      <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 mb-1.5">
-                        {group.dateStr}
-                      </h3>
+                  ((!isMobileViewport || isTimelineExpanded) ? dailyTimelineData : dailyTimelineData.slice(0, 3)).map((group) => {
+                    const isGroupSelected = group.items.some(item => selectedTimelineApt === item.aptName);
+                    return (
+                      <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 border-l-2 border-slate-100 dark:border-slate-800/80">
+                        {/* Timeline Dot */}
+                        <div className={`absolute left-[-6.5px] top-1.5 w-3 h-3 rounded-full border-2 border-surface transition-all duration-300 ${
+                          isGroupSelected
+                            ? "bg-emerald-500 dark:bg-emerald-400 ring-4 ring-emerald-500/15 scale-110"
+                            : "bg-[#cbd5e1] dark:bg-slate-600"
+                        }`} />
+                        
+                        {/* Date Heading */}
+                        <h3 className="text-[13.5px] font-extrabold text-primary flex items-center gap-1.5 mb-0.5">
+                          <Calendar size={13.5} className="text-tertiary" />
+                          {group.dateStr}
+                        </h3>
 
-                      {/* Items */}
-                      <div className="flex flex-col gap-2">
-                        {group.items.map((item, idx) => (
-                          <div
-                            key={`${item.aptName}-${idx}`}
-                            onClick={() => {
-                              setSelectedTimelineApt(item.aptName);
-                              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                                setIsBottomSheetOpen(true);
-                              }
-                            }}
-                            className={`flex flex-col p-3 rounded-xl cursor-pointer transition-all border ${
-                              selectedTimelineApt === item.aptName
-                                ? "border-[#00d29d] bg-[#e0fbf4]/20 ring-1 ring-[#00d29d]/30"
-                                : "bg-body hover:bg-body/80 border-transparent hover:border-border"
-                            } group gap-1.5`}
-                          >
-                            {/* 1st Row: Apt Name & High Price Badge */}
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-1.5 min-w-0 max-w-[75%]">
-                                <span className="text-[13.5px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#00d29d] transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
-                                  {item.displayAptName || item.aptName}
-                                </span>
-                                {item.type === 'high' && (
-                                  <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-gradient-to-r from-[#ff4b5c] to-[#ff7b8b] text-white shadow-[0_0_8px_rgba(255,75,92,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-                                    신고가
-                                  </span>
-                                )}
-                              </div>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
-                                item.delta > 0 
-                                  ? (item.type === 'high' ? "bg-[#ffebed] text-[#ff4b5c]" : "bg-[#e0fbf4] text-[#00b386]")
-                                  : item.delta < 0 
-                                    ? "bg-[#eef2ff] text-[#4f46e5] dark:bg-[#312e81] dark:text-[#a5b4fc]" 
-                                    : "bg-[#f2f4f6] text-[#8e94a5] dark:bg-[#1e293b] dark:text-[#94a3b8]"
-                              }`}>
-                                {item.delta > 0 
-                                  ? `▲ ${formatDeltaPrice(item.delta)}` 
-                                  : item.delta < 0 
-                                    ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
-                                    : '보합'}
-                              </span>
-                            </div>
+                        {/* Items */}
+                        <div className="flex flex-col gap-2.5">
+                          {group.items.map((item, idx) => {
+                            const isRising = item.delta > 0;
+                            const isFalling = item.delta < 0;
+                            const isSelected = selectedTimelineApt === item.aptName;
 
-                            {/* 2nd Row: Info & Price & Button */}
-                            <div className="flex items-center justify-between text-[11px] text-tertiary">
-                              <div className="flex items-center gap-1 min-w-0 font-medium mr-2">
-                                <span className="truncate">
-                                  {item.dong} · {
-                                    areaUnit === 'm2'
-                                      ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-                                      : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)
-                                  } · {item.floor}층
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <div className="flex items-center gap-1.5">
-                                  {item.delta && item.delta > 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
-                                    <>
-                                      <span className="text-[11px] text-tertiary font-bold line-through opacity-75">
-                                        {formatEokWithUnit(item.prevPriceVal * 10000).value}
+                            return (
+                              <div
+                                key={`${item.aptName}-${idx}`}
+                                onClick={() => {
+                                  setSelectedTimelineApt(item.aptName);
+                                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                                    setIsBottomSheetOpen(true);
+                                  }
+                                }}
+                                className={`flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all border ${
+                                  isSelected
+                                    ? "border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-[0_2px_12px_rgba(16,185,129,0.08)]"
+                                    : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
+                                } group gap-4`}
+                              >
+                                {/* Left Column: Apt Name & Info */}
+                                <div className="flex flex-col gap-1 min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="text-[13px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
+                                      {item.displayAptName || item.aptName}
+                                    </span>
+                                    {item.type === 'high' && (
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+                                        신고가
                                       </span>
-                                      <span className="text-[10px] text-tertiary font-bold opacity-60">➔</span>
-                                    </>
-                                  )}
-                                  <span className="text-[14.5px] font-black text-[#ff4b5c] tracking-tight">
-                                    {item.priceEok}
-                                  </span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden">
+                                    <span>{item.dong}</span>
+                                    <span className="opacity-30 font-normal">•</span>
+                                    <span>
+                                      {areaUnit === 'm2'
+                                        ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+                                        : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+                                    </span>
+                                    <span className="opacity-30 font-normal">•</span>
+                                    <span>{item.floor}층</span>
+                                  </div>
                                 </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (onSelectApt) {
-                                      onSelectApt(item.aptName);
-                                    }
-                                  }}
-                                  className="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-border text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm hover:border-[#cbd5e1]"
-                                >
-                                  상세
-                                </button>
+
+                                {/* Right Column: Price & Change Badges & Details Action */}
+                                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-1 sm:ml-2">
+                                  <div className="flex flex-col items-end gap-1">
+                                    {/* Price and flow */}
+                                    <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
+                                      {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
+                                        <>
+                                          <span className="text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
+                                            {formatEokWithUnit(item.prevPriceVal * 10000).value}
+                                          </span>
+                                          <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
+                                        </>
+                                      )}
+                                      <span className={`text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
+                                        isRising
+                                          ? "text-rose-500 dark:text-rose-400"
+                                          : isFalling
+                                            ? "text-blue-600 dark:text-blue-400"
+                                            : "text-primary"
+                                      }`}>
+                                        {item.priceEok}
+                                      </span>
+                                    </div>
+
+                                    {/* Delta Badge */}
+                                    <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
+                                      isRising
+                                        ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
+                                        : isFalling
+                                          ? "bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400"
+                                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                    }`}>
+                                      {isRising 
+                                        ? `▲ ${formatDeltaPrice(item.delta)}` 
+                                        : isFalling 
+                                          ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
+                                          : '보합'}
+                                    </span>
+                                  </div>
+
+                                  {/* Details Button */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onSelectApt) {
+                                        onSelectApt(item.aptName);
+                                      }
+                                    }}
+                                    className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
+                                  >
+                                    상세
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        ))}
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
@@ -1960,7 +1926,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       <div
                         key={item.id}
                         onClick={() => {
-                          window.location.href = `/lounge?notice=${item.id}`;
+                          window.location.href = `/news?notice=${item.id}`;
                         }}
                         className="flex items-center justify-between py-2 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
                       >
@@ -2002,7 +1968,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       <div
                         key={item.id}
                         onClick={() => {
-                          window.location.href = `/lounge?notice=${item.id}`;
+                          window.location.href = `/news?notice=${item.id}`;
                         }}
                         className="flex items-center justify-between py-2 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
                       >
@@ -2032,9 +1998,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         </div>
 
-        {/* 💬 실시간 웅성웅성 라운지 토크 위젯 */}
+        {/* 💬 동탄 커뮤니티 인기 대화 위젯 */}
         <div className="flex flex-col gap-6 mt-6 w-full">
-          {/* Left: 실시간 웅성웅성 라운지 토크 위젯 (Full-width) */}
+          {/* Left: 동탄 커뮤니티 인기 대화 위젯 (Full-width) */}
           <div className="w-full bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 shadow-sm min-h-[300px]">
             <div className="flex justify-between items-center border-b border-border/50 pb-3.5">
               <div className="flex items-center gap-2">
@@ -2042,7 +2008,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   실시간 라운지
                 </span>
                 <h4 className="text-[15px] font-black text-primary tracking-tight">
-                  동탄 웅성웅성 인기 대화
+                  동탄 커뮤니티
                 </h4>
               </div>
               <button 

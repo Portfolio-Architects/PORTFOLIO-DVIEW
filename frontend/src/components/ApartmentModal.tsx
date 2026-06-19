@@ -318,6 +318,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
   // Zod-based safe transaction parsing guard to prevent null/undefined runtime exceptions
   const safeTransactions = useMemo(() => {
     if (!rawTransactions) return [];
+    // Zod safeParse is extremely heavy on large arrays. 
+    // We skip safeParse for items > 50 to avoid browser freeze and perform lightweight verification instead.
+    if (rawTransactions.length > 50) {
+      return Array.isArray(rawTransactions)
+        ? rawTransactions.filter(tx => tx && typeof tx === 'object' && tx.aptName && tx.price !== undefined) as any[]
+        : [];
+    }
     const parsed = TransactionListSchema.safeParse(rawTransactions);
     if (parsed.success) {
       return parsed.data;
@@ -1005,15 +1012,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // 특정 평형 필터 칩 목록 (사전 계산된 필드 활용)
   const areaFilterChips = useMemo(() => {
-    const rawAreas = Array.from(new Set(safeTransactions.map(tx => {
-      return areaUnit === 'm2' ? tx.areaLabelM2! : tx.areaLabelPyeong!;
+    const rawAreas = Array.from(new Set(enrichedTransactions.map(tx => {
+      return areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
     })));
-    return ['전체', ...rawAreas.sort((a, b) => {
+    const validAreas = rawAreas.filter((a): a is string => !!a);
+    return ['전체', ...validAreas.sort((a, b) => {
       const numA = parseInt(a.match(/\d+/)?.[0] || '0');
       const numB = parseInt(b.match(/\d+/)?.[0] || '0');
       return numA - numB;
     })];
-  }, [safeTransactions, areaUnit]);
+  }, [enrichedTransactions, areaUnit]);
 
   // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {

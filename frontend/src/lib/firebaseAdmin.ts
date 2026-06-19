@@ -122,10 +122,10 @@ if (!admin.apps.length) {
 export const adminAuth = admin.apps.length ? admin.auth() : null;
 export const adminDb = admin.apps.length ? admin.firestore() : null;
 
-// Fix for Vercel Serverless Function 500 timeouts (gRPC connection hangs)
+// Fix for Serverless & Local Function 500 timeouts / gRPC latency (gRPC connection hangs)
 const globalContext = globalThis as unknown as { __FIREBASE_REST_CONFIGURED?: boolean };
 
-if (adminDb && process.env.VERCEL === '1' && !globalContext.__FIREBASE_REST_CONFIGURED) {
+if (adminDb && !globalContext.__FIREBASE_REST_CONFIGURED) {
   try {
     globalContext.__FIREBASE_REST_CONFIGURED = true;
     const accountInfo = getAdminCredentials();
@@ -142,6 +142,7 @@ if (adminDb && process.env.VERCEL === '1' && !globalContext.__FIREBASE_REST_CONF
     } else {
       adminDb.settings({ preferRest: true });
     }
+    logger.info('FirebaseAdmin', 'Configured Firestore to use REST API protocol (preferRest: true)');
   } catch (e) {
     logger.error('FirebaseAdmin', 'Failed to configure Firestore Rest settings', {}, e);
   }

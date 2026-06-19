@@ -40,13 +40,15 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
     // 실거래가의 가장 최근 계약일을 기준일(now)로 삼아 싱크 지연이나 시스템 시각 불일치 시의 계산 정합성 확보
     const now = (() => {
       if (!transactions || transactions.length === 0) return new Date();
+      const todayMs = Date.now();
       const dates = transactions.map(tx => {
         const y = parseInt(tx.contractYm.slice(0, 4)) || 2026;
         const m = parseInt(tx.contractYm.slice(4, 6)) || 6;
         const d = parseInt(tx.contractDay) || 15;
         return new Date(y, m - 1, d).getTime();
-      });
-      return new Date(Math.max(...dates));
+      }).filter(ts => ts <= todayMs);
+      const maxTs = dates.length > 0 ? Math.max(...dates) : todayMs;
+      return new Date(maxTs);
     })();
     
     // 1) 타입 필터 칩 목록 구성
@@ -97,6 +99,14 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
     const periodTransactions = transactions.filter(tx => {
       if (periodDealType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
       if (periodDealType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
+      
+      // 방어적 미래 일자 필터링
+      const y = parseInt(tx.contractYm.slice(0, 4)) || 2026;
+      const m = parseInt(tx.contractYm.slice(4, 6)) || 6;
+      const d = parseInt(tx.contractDay) || 15;
+      const ts = new Date(y, m - 1, d).getTime();
+      if (ts > Date.now()) return false;
+      
       return true;
     });
 

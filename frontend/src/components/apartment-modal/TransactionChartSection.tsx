@@ -167,15 +167,19 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         areaLabelPyeong: tx.areaLabelPyeong,
       };
     }).filter(d => {
-      const maxAllowedYm = new Date().getFullYear() * 100 + (new Date().getMonth() + 1);
-      return d.yearMonth <= maxAllowedYm && !isNaN(d.ts);
+      const today = new Date();
+      const maxAllowedYm = today.getFullYear() * 100 + (today.getMonth() + 1);
+      const isFuture = d.yearMonth > maxAllowedYm || (d.yearMonth === maxAllowedYm && d.ts > today.getTime());
+      return !isFuture && !isNaN(d.ts);
     });
   }, [relevantTxs, chartType]);
 
   // Use the latest transaction date as the baseline to prevent computation failure when sync lags or system clock shifts
   const now = React.useMemo(() => {
     if (rawData.length === 0) return new Date();
-    const maxTs = Math.max(...rawData.map(d => d.ts));
+    const todayMs = Date.now();
+    const validTss = rawData.map(d => d.ts).filter(ts => ts <= todayMs);
+    const maxTs = validTss.length > 0 ? Math.max(...validTss) : todayMs;
     return new Date(maxTs);
   }, [rawData]);
 
@@ -206,13 +210,15 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
   };
 
-  const momentum = {
-    m1: getRecentAvgByMonths(1),
-    m3: getRecentAvgByMonths(3),
-    m6: getRecentAvgByMonths(6),
-    y1: getRecentAvgByMonths(12),
-    y3: getRecentAvgByMonths(36)
-  };
+  const momentum = React.useMemo(() => {
+    return {
+      m1: getRecentAvgByMonths(1),
+      m3: getRecentAvgByMonths(3),
+      m6: getRecentAvgByMonths(6),
+      y1: getRecentAvgByMonths(12),
+      y3: getRecentAvgByMonths(36)
+    };
+  }, [rawData, now]);
   const cutoffMap: Record<string, number> = { '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999 };
   const monthsCut = cutoffMap[chartTimeframe];
   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsCut, 1);
@@ -230,6 +236,16 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     ...d,
     isOutlier: d.price < q1 - iqr * 2,
   }));
+
+  const displayScatterData = React.useMemo(() => {
+    if (scatterData.length <= 250) return scatterData;
+    const step = Math.ceil(scatterData.length / 200);
+    return scatterData.filter((d, idx) => {
+      if (idx === 0 || idx === scatterData.length - 1) return true;
+      if (d.isOutlier) return true;
+      return idx % step === 0;
+    });
+  }, [scatterData]);
   
   const getFloorColor = (dealType: string | undefined) => {
     if (dealType === '전세' || dealType === '월세') return '#f9a825'; // Orange/amber for Rent/Jeonse
@@ -243,65 +259,67 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     bucket.all.push(d.price);
   });
   
-  // Calculate secondary line data (Jeonse if chart is Sale, Sale if chart is Jeonse)
-  const secondaryTxs = transactions.filter(tx => 
-    chartType === 'sale' 
-      ? (tx.dealType === '전세' || tx.dealType === '월세') 
-      : (tx.dealType !== '전세' && tx.dealType !== '월세')
-  );
-  
-  const secondaryByMonth = new Map<number, number[]>();
-  secondaryTxs.forEach(tx => {
-    let rawPrice = tx.price;
-    if (chartType === 'sale') { // secondary is jeonse
-      rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
-    }
-    let priceEokNum = rawPrice / 10000;
-    if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-    const price = Math.round(priceEokNum * 1000) / 1000;
+  // Calculate secondary line data and monthly average stats (Jeonse/Sale averages) - Cached to avoid mousemove lag
+  const monthlyData = React.useMemo(() => {
+    const secondaryTxs = transactions.filter(tx => 
+      chartType === 'sale' 
+        ? (tx.dealType === '전세' || tx.dealType === '월세') 
+        : (tx.dealType !== '전세' && tx.dealType !== '월세')
+    );
     
-    const ym = parseInt(tx.contractYm);
-    if (ym >= cutoffYm) {
-      if (!secondaryByMonth.has(ym)) secondaryByMonth.set(ym, []);
-      secondaryByMonth.get(ym)!.push(price);
-    }
-  });
+    const secondaryByMonth = new Map<number, number[]>();
+    secondaryTxs.forEach(tx => {
+      let rawPrice = tx.price;
+      if (chartType === 'sale') { // secondary is jeonse
+        rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+      }
+      let priceEokNum = rawPrice / 10000;
+      if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
+      const price = Math.round(priceEokNum * 1000) / 1000;
+      
+      const ym = parseInt(tx.contractYm);
+      if (ym >= cutoffYm) {
+        if (!secondaryByMonth.has(ym)) secondaryByMonth.set(ym, []);
+        secondaryByMonth.get(ym)!.push(price);
+      }
+    });
 
-  const secondaryMonthly = new Map<number, number>();
-  secondaryByMonth.forEach((prices, ym) => {
-    if (prices.length > 0) {
-      const sorted = [...prices].sort((a,b)=>a-b);
-      const q1 = sorted[Math.floor(sorted.length * 0.1)] || 0;
-      const q3 = sorted[Math.floor(sorted.length * 0.9)] || 10;
-      const filtered = prices.filter(p => p >= q1 * 0.8 && p <= q3 * 1.2);
-      const valid = filtered.length > 0 ? filtered : prices;
-      secondaryMonthly.set(ym, Math.round((valid.reduce((a, b) => a + b, 0) / valid.length) * 1000) / 1000);
-    }
-  });
+    const secondaryMonthly = new Map<number, number>();
+    secondaryByMonth.forEach((prices, ym) => {
+      if (prices.length > 0) {
+        const sorted = [...prices].sort((a,b)=>a-b);
+        const q1 = sorted[Math.floor(sorted.length * 0.1)] || 0;
+        const q3 = sorted[Math.floor(sorted.length * 0.9)] || 10;
+        const filtered = prices.filter(p => p >= q1 * 0.8 && p <= q3 * 1.2);
+        const valid = filtered.length > 0 ? filtered : prices;
+        secondaryMonthly.set(ym, Math.round((valid.reduce((a, b) => a + b, 0) / valid.length) * 1000) / 1000);
+      }
+    });
 
-  const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
-  
-  const allYms = Array.from(new Set([...byMonthTier.keys(), ...secondaryMonthly.keys()]));
-  
-  const monthlyData = allYms
-    .map(ym => {
-      const buckets = byMonthTier.get(ym);
-      const tsVal = new Date(Math.floor(ym / 100) || 2026, ((ym % 100) || 6) - 1, 15).getTime();
-      const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
+    const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
+    
+    const allYms = Array.from(new Set([...byMonthTier.keys(), ...secondaryMonthly.keys()]));
+    
+    return allYms
+      .map(ym => {
+        const buckets = byMonthTier.get(ym);
+        const tsVal = new Date(Math.floor(ym / 100) || 2026, ((ym % 100) || 6) - 1, 15).getTime();
+        const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
 
-      return {
-        ts,
-        monthAvg: buckets ? avg(buckets.all) : undefined,
-        secondaryAvg: secondaryMonthly.get(ym),
-        saleAvg: chartType === 'sale' ? (buckets ? avg(buckets.all) : undefined) : secondaryMonthly.get(ym),
-        jeonseAvg: chartType === 'sale' ? secondaryMonthly.get(ym) : (buckets ? avg(buckets.all) : undefined),
-        volume: buckets ? buckets.all.length : 0, 
-        ym,
-        bandHigh, bandLow,
-      };
-    })
-    .filter(d => !isNaN(d.ts))
-    .sort((a, b) => a.ts - b.ts);
+        return {
+          ts,
+          monthAvg: buckets ? avg(buckets.all) : undefined,
+          secondaryAvg: secondaryMonthly.get(ym),
+          saleAvg: chartType === 'sale' ? (buckets ? avg(buckets.all) : undefined) : secondaryMonthly.get(ym),
+          jeonseAvg: chartType === 'sale' ? secondaryMonthly.get(ym) : (buckets ? avg(buckets.all) : undefined),
+          volume: buckets ? buckets.all.length : 0, 
+          ym,
+          bandHigh, bandLow,
+        };
+      })
+      .filter(d => !isNaN(d.ts))
+      .sort((a, b) => a.ts - b.ts);
+  }, [transactions, chartType, cutoffYm, byMonthTier, bandHigh, bandLow]);
 
 
   const minTs = monthlyData.length > 0 ? monthlyData[0].ts : new Date(2021, 2, 15).getTime();
@@ -310,63 +328,67 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     new Date(2026, 5, 15).getTime()
   );
 
-  // Compute global stable minP/maxP across BOTH sale and jeonse to keep Y-axis identical
-  const getEokPrice = (tx: any, isJeonse: boolean) => {
-    let rawPrice = tx.price;
-    if (isJeonse) rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
-    let priceEokNum = rawPrice / 10000;
-    if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-    const val = Math.round(priceEokNum * 1000) / 1000;
-    return isNaN(val) ? 0 : val;
-  };
-  const sPrices = transactions.filter(tx => {
-    const ym = String(tx.contractYm || '');
-    if ((parseInt(ym) || 0) < cutoffYm) return false;
-    if (tx.dealType === '전세' || tx.dealType === '월세') return false;
-    
-    const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
-    const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
-    if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
-    if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
-    return true;
-  }).map(tx => getEokPrice(tx, false)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
+  // Compute global stable minP/maxP across BOTH sale and jeonse to keep Y-axis identical - Cached to prevent freeze on mousemove
+  const { domainMin, domainMax, prices } = React.useMemo(() => {
+    const getEokPrice = (tx: any, isJeonse: boolean) => {
+      let rawPrice = tx.price;
+      if (isJeonse) rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+      let priceEokNum = rawPrice / 10000;
+      if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
+      const val = Math.round(priceEokNum * 1000) / 1000;
+      return isNaN(val) ? 0 : val;
+    };
+    const sPrices = transactions.filter(tx => {
+      const ym = String(tx.contractYm || '');
+      if ((parseInt(ym) || 0) < cutoffYm) return false;
+      if (tx.dealType === '전세' || tx.dealType === '월세') return false;
+      
+      const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
+      const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
+      if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
+      if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
+      return true;
+    }).map(tx => getEokPrice(tx, false)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
 
-  const jPrices = transactions.filter(tx => {
-    const ym = String(tx.contractYm || '');
-    if ((parseInt(ym) || 0) < cutoffYm) return false;
-    if (tx.dealType !== '전세' && tx.dealType !== '월세') return false;
+    const jPrices = transactions.filter(tx => {
+      const ym = String(tx.contractYm || '');
+      if ((parseInt(ym) || 0) < cutoffYm) return false;
+      if (tx.dealType !== '전세' && tx.dealType !== '월세') return false;
+      
+      const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
+      const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
+      if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
+      if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
+      return true;
+    }).map(tx => getEokPrice(tx, true)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
     
-    const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
-    const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
-    if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
-    if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
-    return true;
-  }).map(tx => getEokPrice(tx, true)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
-  
-  const getValid = (arr: number[]) => {
-    if (!arr.length) return [];
-    const validArr = arr.filter(p => !isNaN(p));
-    if (!validArr.length) return [];
-    const q1 = validArr[Math.floor(validArr.length * 0.05)] || 0;
-    const q3 = validArr[Math.floor(validArr.length * 0.95)] || 10;
-    const iqr = q3 - q1;
-    return validArr.filter(p => p >= q1 - iqr * 3 && p <= q3 + iqr * 3);
-  };
-  
-  const allValidPrices = [...getValid(sPrices), ...getValid(jPrices)].filter(p => !isNaN(p) && p !== Infinity && p !== -Infinity);
-  let minP = Infinity, maxP = -Infinity;
-  for (const p of allValidPrices) { if (p < minP) minP = p; if (p > maxP) maxP = p; }
-  
-  const prices = scatterData.map(d => d.price);
+    const getValid = (arr: number[]) => {
+      if (!arr.length) return [];
+      const validArr = arr.filter(p => !isNaN(p));
+      if (!validArr.length) return [];
+      const q1 = validArr[Math.floor(validArr.length * 0.05)] || 0;
+      const q3 = validArr[Math.floor(validArr.length * 0.95)] || 10;
+      const iqr = q3 - q1;
+      return validArr.filter(p => p >= q1 - iqr * 3 && p <= q3 + iqr * 3);
+    };
+    
+    const allValidPrices = [...getValid(sPrices), ...getValid(jPrices)].filter(p => !isNaN(p) && p !== Infinity && p !== -Infinity);
+    let minP = Infinity, maxP = -Infinity;
+    for (const p of allValidPrices) { if (p < minP) minP = p; if (p > maxP) maxP = p; }
+    
+    const pricesList = scatterData.map(d => d.price);
 
-  let domainMin = minP !== Infinity && !isNaN(minP) ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
-  let domainMax = maxP !== -Infinity && !isNaN(maxP) ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
-  if (isNaN(domainMin)) domainMin = 0;
-  if (isNaN(domainMax)) domainMax = 10;
-  if (minP !== Infinity && maxP !== -Infinity && !isNaN(minP) && !isNaN(maxP) && (domainMax - domainMin < 1.0)) {
-    domainMin = Math.max(0, domainMin - 0.5);
-    domainMax = domainMax + 0.5;
-  }
+    let dMin = minP !== Infinity && !isNaN(minP) ? Math.max(0, Math.floor(minP * 10) / 10 - 0.3) : 0;
+    let dMax = maxP !== -Infinity && !isNaN(maxP) ? Math.ceil(maxP * 10) / 10 + 0.5 : 10;
+    if (isNaN(dMin)) dMin = 0;
+    if (isNaN(dMax)) dMax = 10;
+    if (minP !== Infinity && maxP !== -Infinity && !isNaN(minP) && !isNaN(maxP) && (dMax - dMin < 1.0)) {
+      dMin = Math.max(0, dMin - 0.5);
+      dMax = dMax + 0.5;
+    }
+    return { domainMin: dMin, domainMax: dMax, prices: pricesList };
+  }, [transactions, cutoffYm, zoomDomain, scatterData]);
+
   const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
 
 
@@ -621,7 +643,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     if (!xAx?.scale || !yAx?.scale) return null;
                     return (
                       <g>
-                        {scatterData.map((d, i) => {
+                        {displayScatterData.map((d, i) => {
                           const cx = xAx.scale ? xAx.scale(d.ts) : 0;
                           const cy = yAx.scale ? yAx.scale(d.price) : 0;
                           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;

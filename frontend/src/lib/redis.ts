@@ -60,6 +60,25 @@ class MemoryCacheFallback {
   }
 }
 
+const REDIS_TIMEOUT_MS = 1500;
+
+function withTimeout<T>(promise: Promise<T>, ms: number = REDIS_TIMEOUT_MS): Promise<T> {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`Upstash Redis operation timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([
+    promise.then((val) => {
+      clearTimeout(timeoutId);
+      return val;
+    }).catch((err) => {
+      clearTimeout(timeoutId);
+      throw err;
+    }),
+    timeoutPromise
+  ]);
+}
+
 /**
  * Resilient Redis Wrapper that catches exceptions and fallbacks to localized in-memory cache.
  */
@@ -75,9 +94,9 @@ export class ResilientRedisWrapper {
   async get<T>(key: string): Promise<T | null> {
     if (!this.client) return this.fallback.get<T>(key);
     try {
-      return await this.client.get<T>(key);
-    } catch (e) {
-      logger.warn("ResilientRedis.get", "Upstash Redis get failed, falling back to Memory Cache", { key }, e);
+      return await withTimeout(this.client.get<T>(key));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.get", "Upstash Redis get failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.get<T>(key);
     }
   }
@@ -85,9 +104,9 @@ export class ResilientRedisWrapper {
   async set(key: string, value: any, options?: any): Promise<any> {
     if (!this.client) return this.fallback.set(key, value, options);
     try {
-      return await this.client.set(key, value, options);
-    } catch (e) {
-      logger.warn("ResilientRedis.set", "Upstash Redis set failed, falling back to Memory Cache", { key }, e);
+      return await withTimeout(this.client.set(key, value, options));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.set", "Upstash Redis set failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.set(key, value, options);
     }
   }
@@ -95,9 +114,9 @@ export class ResilientRedisWrapper {
   async incr(key: string): Promise<number> {
     if (!this.client) return this.fallback.incr(key);
     try {
-      return await this.client.incr(key);
-    } catch (e) {
-      logger.warn("ResilientRedis.incr", "Upstash Redis incr failed, falling back to Memory Cache", { key }, e);
+      return await withTimeout(this.client.incr(key));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.incr", "Upstash Redis incr failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.incr(key);
     }
   }
@@ -105,9 +124,9 @@ export class ResilientRedisWrapper {
   async del(...keys: string[]): Promise<number> {
     if (!this.client) return this.fallback.del(...keys);
     try {
-      return await this.client.del(...keys);
-    } catch (e) {
-      logger.warn("ResilientRedis.del", "Upstash Redis del failed, falling back to Memory Cache", { keys }, e);
+      return await withTimeout(this.client.del(...keys));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.del", "Upstash Redis del failed or timed out, falling back to Memory Cache", { keys, error: e.message });
       return this.fallback.del(...keys);
     }
   }
@@ -115,9 +134,9 @@ export class ResilientRedisWrapper {
   async hgetall<T extends Record<string, any>>(key: string): Promise<T | null> {
     if (!this.client) return this.fallback.hgetall<T>(key);
     try {
-      return await this.client.hgetall<T>(key);
-    } catch (e) {
-      logger.warn("ResilientRedis.hgetall", "Upstash Redis hgetall failed, falling back to Memory Cache", { key }, e);
+      return await withTimeout(this.client.hgetall<T>(key));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.hgetall", "Upstash Redis hgetall failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.hgetall<T>(key);
     }
   }
@@ -125,9 +144,9 @@ export class ResilientRedisWrapper {
   async hset(key: string, value: Record<string, any>): Promise<any> {
     if (!this.client) return this.fallback.hset(key, value);
     try {
-      return await this.client.hset(key, value);
-    } catch (e) {
-      logger.warn("ResilientRedis.hset", "Upstash Redis hset failed, falling back to Memory Cache", { key }, e);
+      return await withTimeout(this.client.hset(key, value));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.hset", "Upstash Redis hset failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.hset(key, value);
     }
   }
@@ -139,7 +158,22 @@ export class ResilientRedisWrapper {
   pipeline(): any {
     if (this.client) {
       try {
-        return this.client.pipeline();
+        const rawPipeline = this.client.pipeline();
+        const originalExec = rawPipeline.exec.bind(rawPipeline);
+        
+        (rawPipeline as any).exec = async () => {
+          try {
+            return await withTimeout(originalExec(), REDIS_TIMEOUT_MS);
+          } catch (e: any) {
+            logger.warn(
+              "ResilientRedis.pipeline.exec",
+              "Upstash Redis pipeline execution failed or timed out, returning null fallbacks",
+              { error: e.message }
+            );
+            return [null, null, null, null, null, null, null, null, null, null] as any;
+          }
+        };
+        return rawPipeline;
       } catch (e) {
         logger.warn("ResilientRedis.pipeline", "Upstash Redis pipeline creation failed, falling back to mock", {}, e);
       }

@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
       const countRef = adminDb.collection('favoriteCounts').doc(aptName);
       await countRef.set({ count: FieldValue.increment(-1), aptName }, { merge: true });
       if (redis) {
-        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, -1).catch(err => logger.warn('FavoriteAPI.POST', 'Redis HINCRBY error', { aptName }, err as Error));
+        await Promise.all([
+          redis.hincrby('DTDLS:cache:favoriteCounts', aptName, -1),
+          redis.del(`DTDLS:user:${userId}:favorites`)
+        ]).catch(err => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
       }
       return NextResponse.json({ favorited: false });
     } else {
@@ -65,7 +68,10 @@ export async function POST(request: NextRequest) {
       const countRef = adminDb.collection('favoriteCounts').doc(aptName);
       await countRef.set({ count: FieldValue.increment(1), aptName }, { merge: true });
       if (redis) {
-        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, 1).catch(err => logger.warn('FavoriteAPI.POST', 'Redis HINCRBY error', { aptName }, err as Error));
+        await Promise.all([
+          redis.hincrby('DTDLS:cache:favoriteCounts', aptName, 1),
+          redis.del(`DTDLS:user:${userId}:favorites`)
+        ]).catch(err => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
       }
       return NextResponse.json({ favorited: true });
     }
@@ -103,6 +109,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ favorites: [], warning: 'Forbidden' }, { status: 403 });
     }
 
+    const cacheKey = `DTDLS:user:${userId}:favorites`;
+    if (redis) {
+      try {
+        const cached = await redis.get<string[]>(cacheKey);
+        if (cached && Array.isArray(cached)) {
+          return NextResponse.json({ favorites: cached });
+        }
+      } catch (err) {
+        logger.warn('FavoriteAPI.GET', 'Redis read failed, falling back to Firestore', { userId }, err as Error);
+      }
+    }
+
     const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
       let timeoutId: any;
       const timeoutPromise = new Promise<T>((_, reject) => {
@@ -120,26 +138,37 @@ export async function GET(request: NextRequest) {
       ]);
     };
 
-    const snap = await withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), 5000);
+    // Execute queries in parallel using Promise.all
+    const [snap, userDoc] = await Promise.all([
+      withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), 5000),
+      withTimeout(adminDb.collection('users').doc(userId).get(), 2000).catch(dbErr => {
+        logger.warn('FavoriteAPI.GET', 'Failed to read user doc', { userId }, dbErr as Error);
+        return null;
+      })
+    ]);
+
     const favorites = snap.docs.map(d => d.data().aptName as string);
 
-    try {
-      const userDoc = await withTimeout(adminDb.collection('users').doc(userId).get(), 2000);
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        const favoriteOrder = userData?.favoriteOrder as string[];
-        if (favoriteOrder && Array.isArray(favoriteOrder)) {
-          favorites.sort((a, b) => {
-            const indexA = favoriteOrder.indexOf(a);
-            const indexB = favoriteOrder.indexOf(b);
-            if (indexA === -1) return 1;
-            if (indexB === -1) return -1;
-            return indexA - indexB;
-          });
-        }
+    if (userDoc && userDoc.exists) {
+      const userData = userDoc.data();
+      const favoriteOrder = userData?.favoriteOrder as string[];
+      if (favoriteOrder && Array.isArray(favoriteOrder)) {
+        favorites.sort((a, b) => {
+          const indexA = favoriteOrder.indexOf(a);
+          const indexB = favoriteOrder.indexOf(b);
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
       }
-    } catch (dbErr) {
-      logger.warn('FavoriteAPI.GET', 'Failed to read user favoriteOrder, skipping sort', { userId }, dbErr as Error);
+    }
+
+    if (redis) {
+      try {
+        await redis.set(cacheKey, favorites, { ex: 86400 }); // Cache for 24 hours
+      } catch (err) {
+        logger.warn('FavoriteAPI.GET', 'Redis write failed', { userId }, err as Error);
+      }
     }
 
     return NextResponse.json({ favorites });
@@ -180,6 +209,10 @@ export async function PUT(request: NextRequest) {
 
     const userRef = adminDb.collection('users').doc(userId);
     await userRef.set({ favoriteOrder }, { merge: true });
+
+    if (redis) {
+      await redis.del(`DTDLS:user:${userId}:favorites`).catch(err => logger.warn('FavoriteAPI.PUT', 'Redis cache invalidation error', { userId }, err as Error));
+    }
 
     return NextResponse.json({ success: true, favoriteOrder });
   } catch (error: unknown) {

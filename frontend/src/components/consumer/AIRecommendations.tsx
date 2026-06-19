@@ -764,20 +764,24 @@ const AIRecommendations = React.memo(function AIRecommendations({
               </div>
             </div>
 
-            <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-border/30 pt-2 sm:pt-0 gap-1 pl-10 sm:pl-0">
-              <span className="text-[11px] font-bold text-tertiary whitespace-nowrap shrink-0">
-                <span className="text-[10px] mr-1 sm:hidden">매칭률</span>
-                <span className="text-[19px] font-black text-[#00d29d] tracking-tighter mr-0.5">{item.score}%</span>
-                매칭
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-secondary font-bold">
-                  {priceFormatter(item.price)}
-                </span>
+            <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-border/30 pt-2 sm:pt-0 gap-1.5 pl-9 sm:pl-0">
+              <div className="flex items-center gap-x-1.5 gap-y-1 flex-wrap sm:flex-col sm:items-end sm:gap-y-0.5">
+                <div className="flex items-baseline gap-0.5 text-[11px] font-bold text-tertiary whitespace-nowrap shrink-0">
+                  <span className="text-[10px] mr-1 sm:hidden">매칭률</span>
+                  <span className="text-[17px] sm:text-[19px] font-black text-[#00d29d] tracking-tighter leading-none">{item.score}%</span>
+                  <span className="leading-none">매칭</span>
+                </div>
+                
+                <div className="flex items-center gap-1.5">
+                  <span className="text-secondary opacity-35 sm:hidden font-normal text-[10px]">•</span>
+                  <span className="text-[12px] sm:text-[11px] text-secondary font-bold whitespace-nowrap leading-none">
+                    {priceFormatter(item.price)}
+                  </span>
+                </div>
               </div>
               
               {/* Risks Mini Traffic Lights */}
-              <div className="flex gap-1 mt-1 shrink-0">
+              <div className="flex gap-1 mt-0 sm:mt-1 shrink-0">
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[4px] border ${
                   item.risks.jeonse === 'danger' ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border-rose-200/20' :
                   item.risks.jeonse === 'warning' ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200/20' :
