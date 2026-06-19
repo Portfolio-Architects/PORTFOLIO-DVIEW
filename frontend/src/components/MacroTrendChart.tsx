@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -132,12 +132,17 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isChartActive, setIsChartActive] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     if (typeof window !== "undefined") {
       setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
     }
+    const timer = setTimeout(() => {
+      setIsChartActive(true);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const fontSize = isBottomSheet ? 11 : 12;
@@ -154,17 +159,8 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     }));
   }, [lineData]);
 
-  const desktopEventHandlers = isBottomSheet
-    ? {}
-    : {
-        onMouseMove: (e: any) => {
-          if (e && e.activePayload) {
-            setIsTooltipActive(true);
-          } else {
-            setIsTooltipActive(false);
-          }
-        },
-        onMouseLeave: () => setIsTooltipActive(false),
+  const desktopEventHandlers = (isTouchDevice && !isBottomSheet)
+    ? {
         onTouchStart: () => setIsTooltipActive(true),
         onTouchMove: (e: any) => {
           if (e && e.activePayload) {
@@ -172,124 +168,118 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           }
         },
         onTouchEnd: () => setIsTooltipActive(false),
-      };
+      }
+    : {};
 
   if (!mounted) {
     return <div className="w-full h-full bg-transparent" />;
   }
 
   return (
-    <div className="w-full h-full touch-pan-y">
-      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} debounce={100}>
-        <AreaChart
-          data={processedData}
-          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-          {...desktopEventHandlers}
-        >
-          <defs>
-            <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00d29d" stopOpacity={0.22} />
-              <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
-            </linearGradient>
-            <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f9a825" stopOpacity={0.18} />
-              <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
-            </linearGradient>
-            <filter id="glowSale" x="-5%" y="-5%" width="110%" height="110%">
-              <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" floodColor="#00d29d" floodOpacity="0.12" />
-            </filter>
-            <filter id="glowRent" x="-5%" y="-5%" width="110%" height="110%">
-              <feDropShadow dx="0" dy="1" stdDeviation="0.8" floodColor="#f9a825" floodOpacity="0.08" />
-            </filter>
-          </defs>
-          <CartesianGrid
-            strokeWidth={0.7}
-            vertical={false}
-            horizontal={true}
-            stroke="rgba(148, 163, 184, 0.12)"
-            strokeDasharray="3 3"
-          />
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "var(--text-tertiary)", fontSize, fontFamily: "inherit", fontWeight: 700 }}
-            dy={10}
-            ticks={xTicks}
-            tickFormatter={formatXAxisTick}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "var(--text-tertiary)", fontSize, fontFamily: "inherit", fontWeight: 700 }}
-            tickFormatter={(value: number) =>
-              value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-            }
-            domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
-            ticks={yTicks}
-            width={yWidth}
-          />
-          <RechartsTooltip
-            active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
-            content={<CustomTooltip />}
-            cursor={{
-              stroke: "var(--border-color)",
-              strokeWidth: 1.5,
-              strokeDasharray: "3 3",
-            }}
-            isAnimationActive={!isBottomSheet}
-            animationDuration={isBottomSheet ? undefined : 150}
-          />
-          <Area
-            key="동탄 아파트 전체"
-            type="monotone"
-            name="평균 매매가"
-            dataKey="동탄 아파트 전체"
-            stroke="#00d29d"
-            strokeWidth={isBottomSheet ? 1.5 : 1.8}
-            fill="url(#colorSale)"
-            style={{ filter: "url(#glowSale)" }}
-            animationDuration={isBottomSheet ? undefined : 300}
-            dot={
-              isBottomSheet
-                ? false
-                : timeframe === "ALL" || timeframe === "5Y"
-                ? false
-                : { r: 3.5, strokeWidth: 1.5, fill: "var(--bg-surface)" }
-            }
-            activeDot={{
-              r: isBottomSheet ? 4.5 : 5,
-              strokeWidth: isBottomSheet ? 1.5 : 2,
-              stroke: "var(--bg-surface)",
-              fill: "#00d29d"
-            }}
-          />
-          <Area
-            key="동탄 아파트 전세 평균"
-            type="monotone"
-            name="평균 전세가"
-            dataKey="동탄 아파트 전세 평균"
-            stroke="#f9a825"
-            strokeWidth={isBottomSheet ? 1.0 : 1.2}
-            fill="url(#colorRent)"
-            style={{ filter: "url(#glowRent)" }}
-            animationDuration={isBottomSheet ? undefined : 300}
-            dot={
-              isBottomSheet
-                ? false
-                : timeframe === "ALL" || timeframe === "5Y"
-                ? false
-                : { r: 2.5, strokeWidth: 1.5, fill: "var(--bg-surface)" }
-            }
-            activeDot={{
-              r: isBottomSheet ? 3.5 : 4,
-              strokeWidth: isBottomSheet ? 1.5 : 2,
-              stroke: "var(--bg-surface)",
-              fill: "#f9a825"
-            }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="w-full h-full touch-pan-y relative">
+      {isChartActive && (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={processedData}
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            {...desktopEventHandlers}
+          >
+            <defs>
+              <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#00d29d" stopOpacity={0.22} />
+                <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
+              </linearGradient>
+              <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f9a825" stopOpacity={0.18} />
+                <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeWidth={0.7}
+              vertical={false}
+              horizontal={true}
+              stroke="rgba(148, 163, 184, 0.12)"
+              strokeDasharray="3 3"
+            />
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "var(--text-tertiary)", fontSize, fontFamily: "inherit", fontWeight: 700 }}
+              dy={10}
+              ticks={xTicks}
+              tickFormatter={formatXAxisTick}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "var(--text-tertiary)", fontSize, fontFamily: "inherit", fontWeight: 700 }}
+              tickFormatter={(value: number) =>
+                value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+              }
+              domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
+              ticks={yTicks}
+              width={yWidth}
+            />
+            <RechartsTooltip
+              active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
+              content={<CustomTooltip />}
+              cursor={{
+                stroke: "var(--border-color)",
+                strokeWidth: 1.5,
+                strokeDasharray: "3 3",
+              }}
+              isAnimationActive={false}
+            />
+            <Area
+              key="동탄 아파트 전체"
+              type="monotone"
+              name="평균 매매가"
+              dataKey="동탄 아파트 전체"
+              stroke="#00d29d"
+              strokeWidth={isBottomSheet ? 1.5 : 1.8}
+              fill="url(#colorSale)"
+              isAnimationActive={false}
+              dot={
+                isBottomSheet
+                  ? false
+                  : timeframe === "ALL" || timeframe === "5Y"
+                  ? false
+                  : { r: 3.5, strokeWidth: 1.5, fill: "var(--bg-surface)" }
+              }
+              activeDot={{
+                r: isBottomSheet ? 4.5 : 5,
+                strokeWidth: isBottomSheet ? 1.5 : 2,
+                stroke: "var(--bg-surface)",
+                fill: "#00d29d"
+              }}
+            />
+            <Area
+              key="동탄 아파트 전세 평균"
+              type="monotone"
+              name="평균 전세가"
+              dataKey="동탄 아파트 전세 평균"
+              stroke="#f9a825"
+              strokeWidth={isBottomSheet ? 1.0 : 1.2}
+              fill="url(#colorRent)"
+              isAnimationActive={false}
+              dot={
+                isBottomSheet
+                  ? false
+                  : timeframe === "ALL" || timeframe === "5Y"
+                  ? false
+                  : { r: 2.5, strokeWidth: 1.5, fill: "var(--bg-surface)" }
+              }
+              activeDot={{
+                r: isBottomSheet ? 3.5 : 4,
+                strokeWidth: isBottomSheet ? 1.5 : 2,
+                stroke: "var(--bg-surface)",
+                fill: "#f9a825"
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 });

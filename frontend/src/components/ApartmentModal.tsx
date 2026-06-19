@@ -124,6 +124,58 @@ interface TransactionRecord {
   areaLabelPyeong?: string;
 }
 
+// ── LAZY RENDER WRAPPER FOR PERFORMANCE OPTIMIZATION ──
+// Defers rendering of heavy components below the fold until they are close to the viewport.
+// Prevents thread-blocking (page freeze) when mounting the large ApartmentModal.
+const LazyRender = React.memo(function LazyRender({ 
+  children, 
+  estimatedHeight = 250 
+}: { 
+  children: React.ReactNode; 
+  estimatedHeight?: number; 
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '250px' } // 250px before entering viewport
+    );
+
+    const el = containerRef.current;
+    if (el) {
+      observer.observe(el);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ minHeight: isVisible ? 'auto' : `${estimatedHeight}px` }}>
+      {isVisible ? children : (
+        <div 
+          className="w-full bg-surface/40 dark:bg-zinc-900/5 border border-border/40 rounded-2xl animate-pulse flex items-center justify-center" 
+          style={{ height: `${estimatedHeight}px` }}
+        >
+          <span className="text-tertiary text-[12px] font-bold">콘텐츠 구성 중...</span>
+        </div>
+      )}
+    </div>
+  );
+});
 
 const calculateEducationScore = (metrics: any) => {
   if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
@@ -2101,24 +2153,28 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {isAnimationFinished ? (
             <>
               {/* 단지 입지정보 컨테이너 (교통 + 생활 인프라 + 앵커 테넌트 묶음) */}
-              <InfraAnalysisSection
-                report={report}
-                inline={inline}
-                copiedStatus={copiedStatus}
-                handleShareSection={handleShareSection}
-              />
+              <LazyRender estimatedHeight={350}>
+                <InfraAnalysisSection
+                  report={report}
+                  inline={inline}
+                  copiedStatus={copiedStatus}
+                  handleShareSection={handleShareSection}
+                />
+              </LazyRender>
 
               {/* 🎓 학군 및 육아 분석 컨테이너 */}
-              <EducationAnalysisSection
-                report={report}
-                isUnlocked={isUnlocked}
-                inline={inline}
-                viralShareCount={viralShareCount}
-                copiedStatus={copiedStatus}
-                handleShareSection={handleShareSection}
-                handleKakaoShare={handleKakaoShare}
-                displayAptName={displayAptName}
-              />
+              <LazyRender estimatedHeight={350}>
+                <EducationAnalysisSection
+                  report={report}
+                  isUnlocked={isUnlocked}
+                  inline={inline}
+                  viralShareCount={viralShareCount}
+                  copiedStatus={copiedStatus}
+                  handleShareSection={handleShareSection}
+                  handleKakaoShare={handleKakaoShare}
+                  displayAptName={displayAptName}
+                />
+              </LazyRender>
 
               {/* 모달 중간 네이티브/AdSense 광고 삽입 (수익화 채널 2배 강화) */}
               <div className="px-3 md:px-4 py-1.5 md:py-1 w-full my-2">
@@ -2136,7 +2192,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 <div className="relative w-full">
                   <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
                     <ErrorBoundary name="밸류에이션 분석">
-                      <AdvancedValuationMetrics report={report} transactions={transactions} />
+                      <LazyRender estimatedHeight={400}>
+                        <AdvancedValuationMetrics report={report} transactions={transactions} />
+                      </LazyRender>
                     </ErrorBoundary>
                     <BuyOrWaitVote aptName={report.apartmentName} valuationStatus={valuation.status} valuationAmount={valuation.amount} />
                   </div>
@@ -2187,16 +2245,18 @@ const FieldReportModal = React.memo(function FieldReportModal({
                     </h2>
                     <div className="relative w-full">
                       <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
-                        <JeonseSafetyReport
-                          aptName={report.apartmentName}
-                          dong={report.dong || '동탄'}
-                          ratio={jeonseSafetyData.ratio}
-                          latestPrice={jeonseSafetyData.latestPrice}
-                          latestDeposit={jeonseSafetyData.latestDeposit}
-                          volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
-                          householdCount={report.metrics?.householdCount || 0}
-                          onOpenAdModal={onOpenAdModal}
-                        />
+                        <LazyRender estimatedHeight={300}>
+                          <JeonseSafetyReport
+                            aptName={report.apartmentName}
+                            dong={report.dong || '동탄'}
+                            ratio={jeonseSafetyData.ratio}
+                            latestPrice={jeonseSafetyData.latestPrice}
+                            latestDeposit={jeonseSafetyData.latestDeposit}
+                            volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
+                            householdCount={report.metrics?.householdCount || 0}
+                            onOpenAdModal={onOpenAdModal}
+                          />
+                        </LazyRender>
                       </div>
                       {!isUnlocked && (
                         <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
@@ -2319,16 +2379,18 @@ const FieldReportModal = React.memo(function FieldReportModal({
               {/* Comments Section */}
               <section id="sec-comments">
                 <ErrorBoundary name="임장기 댓글">
-                  <CommentSection
-                    comments={comments}
-                    commentInput={commentInput}
-                    onCommentChange={onCommentChange}
-                    onSubmitComment={handleCommentSubmitWithUnlock}
-                    user={user}
-                    isUnlocked={isUnlocked}
-                    selectedCommentId={selectedCommentId}
-                    onRequestLogin={onRequestLogin}
-                  />
+                  <LazyRender estimatedHeight={250}>
+                    <CommentSection
+                      comments={comments}
+                      commentInput={commentInput}
+                      onCommentChange={onCommentChange}
+                      onSubmitComment={handleCommentSubmitWithUnlock}
+                      user={user}
+                      isUnlocked={isUnlocked}
+                      selectedCommentId={selectedCommentId}
+                      onRequestLogin={onRequestLogin}
+                    />
+                  </LazyRender>
                 </ErrorBoundary>
               </section>
             </>

@@ -5,7 +5,11 @@ import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import useSWRInfinite from 'swr/infinite';
-import ReactMarkdown from 'react-markdown';
+
+const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
+  ssr: true,
+  loading: () => <div className="w-full h-24 bg-body/20 rounded-2xl animate-pulse" />
+});
 import { safeReload } from '@/lib/utils/safeReload';
 
 const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient').catch(err => {
@@ -1043,7 +1047,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
               {selectedNotice.content ? (
                 <div className="flex flex-col gap-5">
                   <div className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary">
-                    <ReactMarkdown>{selectedNotice.content}</ReactMarkdown>
+                    <MarkdownViewer content={selectedNotice.content} className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary" />
                   </div>
                   
                   {/* AI 리포트 액션 유도 버튼 */}

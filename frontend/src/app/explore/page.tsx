@@ -5,7 +5,7 @@ import { getInitialData } from '@/lib/services/dashboardData';
 import ExploreClient from './ExploreClient';
 import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 600; // Revalidate every 10 minutes (ISR)
 
 export const metadata: Metadata = {
   title: 'D-VIEW 아파트 탐색 | 동탄 전역 아파트 실거래가 및 입지 가치 비교',

@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       <div className="bg-surface border-b border-border sticky top-0 z-50">
         <div className="max-w-[800px] mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className="font-extrabold text-primary text-lg">개인정보처리방침</h1>
-          <Link href="/" className="text-toss-blue font-bold text-sm hover:underline">
+          <Link href="/" className="text-emerald-600 dark:text-emerald-400 font-bold text-sm hover:underline">
             메인으로 돌아가기
           </Link>
         </div>

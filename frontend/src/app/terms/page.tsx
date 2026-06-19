@@ -15,7 +15,7 @@ export default function TermsPage() {
       <div className="bg-surface border-b border-border sticky top-0 z-50">
         <div className="max-w-[800px] mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className="font-extrabold text-primary text-lg">서비스 이용약관</h1>
-          <Link href="/" className="text-toss-blue font-bold text-sm hover:underline">
+          <Link href="/" className="text-emerald-600 dark:text-emerald-400 font-bold text-sm hover:underline">
             메인으로 돌아가기
           </Link>
         </div>
@@ -36,7 +36,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제3조 (서비스의 내용 및 면책 조항)</h2>
           <div className="bg-[#f8f9fa] p-4 rounded-lg border border-border my-4">
-            <h3 className="text-base font-bold text-toss-red mb-2">⚠ 투자에 대한 면책</h3>
+            <h3 className="text-base font-bold text-rose-600 dark:text-rose-400 mb-2">⚠ 투자에 대한 면책</h3>
             <p className="text-sm">
               D-VIEW에서 제공하는 실거래가, 입지 분석, 시세 등의 데이터는 공공 데이터 및 자체 수집 데이터를 가공한 것으로서 정보 제공만을 목적으로 합니다. 
               <strong>회사는 제공된 정보의 정확성, 완전성, 신뢰성을 보증하지 않으며, 해당 정보를 바탕으로 한 회원의 투자 등 어떠한 결정이나 결과에 대해서도 법적 책임을 지지 않습니다.</strong>

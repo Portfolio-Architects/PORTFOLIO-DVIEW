@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import dynamic from 'next/dynamic';
+
+const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
+  ssr: true,
+  loading: () => <div className="w-full h-24 bg-body/20 rounded-2xl animate-pulse" />
+});
 import { 
   Newspaper, 
   FileText, 
@@ -466,9 +470,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {selectedNotice.content ? (
               <div className="prose prose-sm dark:prose-invert max-w-none text-[13.5px] text-secondary leading-relaxed font-medium space-y-4">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {selectedNotice.content}
-                </ReactMarkdown>
+                <MarkdownViewer content={selectedNotice.content} className="prose prose-sm dark:prose-invert max-w-none text-[13.5px] text-secondary leading-relaxed font-medium space-y-4" />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
