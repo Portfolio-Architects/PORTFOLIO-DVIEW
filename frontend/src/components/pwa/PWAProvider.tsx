@@ -262,9 +262,15 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       // Check existing subscription
       navigator.serviceWorker.ready.then((reg) => {
         if (!isMounted) return;
-        reg.pushManager.getSubscription().then((sub) => {
-          if (isMounted && sub) setPushSubscription(sub);
-        });
+        if (reg && reg.pushManager) {
+          reg.pushManager.getSubscription().then((sub) => {
+            if (isMounted && sub) setPushSubscription(sub);
+          }).catch((err) => {
+            console.warn('[PWAProvider] getSubscription failed:', err);
+          });
+        }
+      }).catch((err) => {
+        console.warn('[PWAProvider] serviceWorker.ready failed:', err);
       });
     }
 
@@ -308,18 +314,33 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   };
 
   const subscribeToPush = async (uid?: string | null) => {
-    if (!isPushSupported) {
+    if (typeof window === 'undefined') return false;
+
+    if (!isPushSupported || typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
       alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
       return false;
     }
     try {
-      const permission = await Notification.requestPermission();
+      let permission: NotificationPermission;
+      try {
+        permission = await Notification.requestPermission();
+      } catch (permErr) {
+        console.warn('[PWAProvider] Notification.requestPermission standard promise call failed, trying callback fallback:', permErr);
+        permission = await new Promise<NotificationPermission>((resolve) => {
+          Notification.requestPermission(resolve);
+        });
+      }
+
       if (permission !== 'granted') {
         alert('푸시 알림 권한이 거부되었습니다.');
         return false;
       }
       
       const reg = await navigator.serviceWorker.ready;
+      if (!reg || !reg.pushManager) {
+        alert('푸시 서비스 등록을 준비하지 못했습니다. 브라우저 설정 또는 오프라인 상태인지 확인해주세요.');
+        return false;
+      }
       
       // Replace with your VAPID public key
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BJfvp3-MGu6cXDWL2GGKO019MjQhLFSwk1zvAIo8QgX31bfCwfjOHHr34iJcGYnhxpJBCsPoXeG6CAXql9KR9Xg';
