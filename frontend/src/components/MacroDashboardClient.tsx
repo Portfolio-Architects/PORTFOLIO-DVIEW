@@ -2031,7 +2031,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <div 
                     key={post.id}
                     onClick={() => {
-                      window.location.href = `/lounge?post=${post.id}`;
+                      if (window.location.pathname === '/' || window.location.pathname === '') {
+                        window.location.hash = `post=${post.id}`;
+                      } else {
+                        window.location.href = `/lounge#post=${post.id}`;
+                      }
                     }}
                     className="flex justify-between items-center p-3 hover:bg-body/50 dark:hover:bg-zinc-950/20 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995]"
                   >

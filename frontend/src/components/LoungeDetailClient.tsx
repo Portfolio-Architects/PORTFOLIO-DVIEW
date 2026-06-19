@@ -194,7 +194,9 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
               console.warn('localStorage is unavailable:', err);
             }
             if (!isAdminUser) {
-              await dashboardFacade.incrementPostView(postId, data.title);
+              dashboardFacade.incrementPostView(postId, data.title).catch((e) => {
+                console.error('View tracking failed in background', e);
+              });
             }
             if (!active) return;
             // Optionally update UI view count locally immediately
@@ -604,7 +606,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
 
   return (
     <>
-      <div className={`w-full ${isModal ? 'h-full bg-surface relative' : 'min-h-screen bg-body pb-[100px]'} font-sans`}>
+      <div className={`w-full ${isModal ? 'h-full bg-surface relative' : 'min-h-screen bg-body pb-[100px]'} font-sans text-left`}>
         {/* Modal Controls */}
         {isModal && (
           <button 
@@ -671,8 +673,12 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       </header>
         )}
 
-      <main className={`max-w-4xl mx-auto w-full ${isModal ? 'pb-12 pt-14 px-4 sm:px-6' : 'pb-12 sm:pb-16 pt-4 sm:pt-6'} flex flex-col gap-4 px-4 animate-in fade-in duration-500`}>
-        <div className="bg-surface rounded-2xl border border-border p-6 mb-6 shadow-sm">
+      <main className={`max-w-4xl mx-auto w-full flex flex-col gap-4 animate-in fade-in duration-500 ${
+        isModal 
+          ? 'pb-12 pt-14 px-2 sm:px-6' 
+          : 'pb-12 sm:pb-16 pt-4 sm:pt-6 px-4'
+      }`}>
+        <div className="bg-surface rounded-2xl border border-border p-4 sm:p-6 mb-6 shadow-sm">
           {isEditing ? (
             <div className="mt-4 flex flex-col gap-3">
               <div className="flex gap-2 mb-2 overflow-x-auto">
@@ -776,7 +782,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                   )}
                 </div>
               </div>
-              <h1 className="text-[20px] font-extrabold text-primary leading-snug mt-2 mb-4">{String(post?.title || "")}</h1>
+              <h1 className="text-[20px] font-extrabold text-primary leading-snug mt-2 mb-4 text-left">{String(post?.title || "")}</h1>
 
               {(() => {
                 const cleanTitle = String(post?.title || '');
@@ -822,7 +828,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
               })()}
               
               {processedContent && (
-                <article className="text-secondary text-[15px] leading-[1.65] break-keep [&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-primary [&>h2]:mt-7 [&>h2]:mb-2.5 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-primary [&>h3]:mt-5 [&>h3]:mb-1.5 [&>p]:mb-1 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-2 [&_li]:pl-1 [&_li]:mb-0.5 [&_li>p]:inline [&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap marker:text-tertiary [&_img]:rounded-xl [&_img]:border [&_img]:border-border [&_img]:my-3 [&_hr]:my-10 [&_hr]:border-0 [&_hr]:h-[1px] [&_hr]:bg-border">
+                <article className="text-secondary text-[15px] leading-[1.65] break-keep text-left [&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-primary [&>h2]:mt-7 [&>h2]:mb-2.5 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-primary [&>h3]:mt-5 [&>h3]:mb-1.5 [&>p]:mb-1 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-2 [&_li]:pl-1 [&_li]:mb-0.5 [&_li>p]:inline [&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap marker:text-tertiary [&_img]:rounded-xl [&_img]:border [&_img]:border-border [&_img]:my-3 [&_hr]:my-10 [&_hr]:border-0 [&_hr]:h-[1px] [&_hr]:bg-border">
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm]}
                     components={{

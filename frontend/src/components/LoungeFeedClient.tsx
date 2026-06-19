@@ -415,6 +415,16 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     setSelectedNoticeId(null);
   };
 
+  const handleClosePostModal = () => {
+    if (window.location.search.includes('post=')) {
+      const newUrl = window.location.pathname + (window.location.hash || '');
+      window.history.replaceState({}, '', newUrl);
+    }
+    window.location.hash = '';
+    setSelectedPostId(null);
+    mutate();
+  };
+
   const filteredPosts = useMemo(() => {
     if (currentTab === '모든 이야기') return posts;
     if (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식') return [];
@@ -982,10 +992,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
       {/* Post Detail Modal */}
       {selectedPostId && (
-        <LoungeModalBackdrop onClose={() => { 
-          window.location.hash = ''; 
-          mutate();
-        }}>
+        <LoungeModalBackdrop onClose={handleClosePostModal}>
           <LoungeDetailClient postId={selectedPostId} isModal={true} />
         </LoungeModalBackdrop>
       )}

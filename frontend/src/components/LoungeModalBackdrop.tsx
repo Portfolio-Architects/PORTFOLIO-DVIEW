@@ -25,7 +25,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto w-full pt-16 pb-16 px-4"
+      className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
       onClick={handleClose}
     >
       <div 

@@ -43,9 +43,19 @@ class FirestoreThrottle {
 
   private async execute<T>(task: Task<T>): Promise<T> {
     this.activeRequests++;
+    let timeoutId: NodeJS.Timeout | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('Firestore operation timeout (10s)'));
+      }, 10000);
+    });
+
     try {
-      return await task();
+      const result = await Promise.race([task(), timeoutPromise]);
+      if (timeoutId) clearTimeout(timeoutId);
+      return result;
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       this.activeRequests--;
       this.next();
     }
