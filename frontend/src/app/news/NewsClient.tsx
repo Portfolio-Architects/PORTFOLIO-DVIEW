@@ -470,7 +470,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {selectedNotice.content ? (
               <div className="prose prose-sm dark:prose-invert max-w-none text-[13.5px] text-secondary leading-relaxed font-medium space-y-4">
-                <MarkdownViewer content={selectedNotice.content} className="prose prose-sm dark:prose-invert max-w-none text-[13.5px] text-secondary leading-relaxed font-medium space-y-4" />
+                <MarkdownViewer content={selectedNotice.content} />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">

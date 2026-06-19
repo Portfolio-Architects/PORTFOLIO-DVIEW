@@ -4,17 +4,15 @@ import remarkGfm from 'remark-gfm';
 
 interface MarkdownViewerProps {
   content: string;
-  className?: string;
   components?: Components;
 }
 
 const MarkdownViewer = React.memo(function MarkdownViewer({
   content,
-  className = "prose prose-sm dark:prose-invert max-w-none text-[14px] leading-relaxed text-secondary",
   components
 }: MarkdownViewerProps) {
   return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} className={className} components={components}>
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
       {content}
     </ReactMarkdown>
   );

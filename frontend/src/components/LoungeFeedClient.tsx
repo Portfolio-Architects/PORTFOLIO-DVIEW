@@ -1047,7 +1047,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
               {selectedNotice.content ? (
                 <div className="flex flex-col gap-5">
                   <div className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary">
-                    <MarkdownViewer content={selectedNotice.content} className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary" />
+                    <MarkdownViewer content={selectedNotice.content} />
                   </div>
                   
                   {/* AI 리포트 액션 유도 버튼 */}
