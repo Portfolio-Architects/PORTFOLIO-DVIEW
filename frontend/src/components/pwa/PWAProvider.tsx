@@ -192,7 +192,17 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       }
       window.location.reload();
     };
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+
+    const isDevEnv = typeof window !== 'undefined' && (
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' || 
+      window.location.hostname.indexOf('192.168.') === 0 ||
+      window.location.port === '3000' ||
+      window.location.port === '5000' ||
+      process.env.NODE_ENV === 'development'
+    );
+
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
     }
 
