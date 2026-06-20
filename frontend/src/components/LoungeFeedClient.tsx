@@ -285,30 +285,36 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     if (currentTab === '동탄 부동산 뉴스' && newsData.length === 0) {
       setNewsLoading(true);
-      fetch("/api/macro/news")
+      fetch("/api/macro/news", { signal: controller.signal })
         .then(res => res.json())
         .then((json: { status: string; data?: NewsItem[] }) => {
           if (active && json.status === "success" && json.data) {
             setNewsData(json.data);
           }
         })
-        .catch(err => console.warn('LoungeFeedClient - Failed to fetch news:', err instanceof Error ? err.message : err))
+        .catch(err => {
+          if (err.name === 'AbortError') return;
+          console.warn('LoungeFeedClient - Failed to fetch news:', err instanceof Error ? err.message : err);
+        })
         .finally(() => {
           if (active) setNewsLoading(false);
         });
     }
     return () => {
       active = false;
+      controller.abort();
     };
   }, [currentTab, newsData.length]);
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     if ((currentTab === '동탄구 소식' || selectedNoticeId) && noticesData.length === 0) {
       // 1. Fetch Local Events (Static JSON, extremely fast)
-      fetch("/data/local-events.json")
+      fetch("/data/local-events.json", { signal: controller.signal })
         .then(res => res.json())
         .catch(() => [])
         .then((eventsJson: any[]) => {
@@ -329,11 +335,14 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             const filteredNew = mappedEvents.filter(e => !existingIds.has(e.id));
             return [...prev, ...filteredNew].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           });
+        })
+        .catch(err => {
+          if (err.name !== 'AbortError') console.warn(err);
         });
 
       // 2. Fetch Local Notices (Heavier DB API)
       setNoticesLoading(true);
-      fetch("/api/local-notices")
+      fetch("/api/local-notices", { signal: controller.signal })
         .then(res => res.json())
         .catch(() => ({ notices: [] }))
         .then((noticesJson: any) => {
@@ -354,7 +363,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           }
         })
         .catch(err => {
-          if (active) {
+          if (active && err.name !== 'AbortError') {
             console.warn('LoungeFeedClient - Failed to fetch notices:', err instanceof Error ? err.message : err);
           }
         })
@@ -364,6 +373,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     }
     return () => {
       active = false;
+      controller.abort();
     };
   }, [currentTab, selectedNoticeId, noticesData.length]);
 
