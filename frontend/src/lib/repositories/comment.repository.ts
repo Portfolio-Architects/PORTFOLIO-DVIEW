@@ -28,7 +28,8 @@ export async function addComment(
   reportId: string,
   text: string,
   authorName: string,
-  authorUid: string
+  authorUid: string,
+  apartmentName?: string
 ): Promise<void> {
   try {
     const commentsRef = collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter);
@@ -39,12 +40,25 @@ export async function addComment(
       createdAt: serverTimestamp(),
     }));
 
+    // Double-write to lounge_apt_stories collection
+    if (apartmentName) {
+      const aptStoriesRef = collection(db, 'lounge_apt_stories');
+      await throttle(() => addDoc(aptStoriesRef, {
+        text,
+        authorName,
+        authorUid,
+        apartmentName,
+        reportId,
+        createdAt: serverTimestamp(),
+      }));
+    }
+
     // Increment parent report's comment counter
     await throttle(() => updateDoc(doc(db, 'field_reports', reportId), {
       commentCount: increment(1),
     }));
 
-    logger.info('CommentRepository.addComment', 'Comment added', { reportId });
+    logger.info('CommentRepository.addComment', 'Comment added with double-write option', { reportId, apartmentName });
   } catch (error) {
     logger.error('CommentRepository.addComment', 'Failed to add comment', { reportId, authorUid }, error);
     throw error;

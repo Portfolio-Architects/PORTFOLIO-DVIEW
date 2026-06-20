@@ -76,7 +76,8 @@ const ZoneDetailPage = React.memo(function ZoneDetailPage() {
     if (!user) return;
     const text = commentInput[reportId];
     if (!text?.trim()) return;
-    await dashboardFacade.addFieldReportComment(reportId, text, user.uid);
+    const apartmentName = fullReportData?.apartmentName || selectedReport?.apartmentName || '';
+    await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
     setCommentInput(prev => ({ ...prev, [reportId]: '' }));
   };
 

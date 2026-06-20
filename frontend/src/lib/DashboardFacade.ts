@@ -71,7 +71,7 @@ export interface DashboardDataStrategy {
   incrementPostView?(postId: string, title?: string): Promise<void>;
   addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   incrementFieldReportView?(reportId: string, title?: string): Promise<void>;
-  addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
+  addFieldReportComment?(reportId: string, text: string, authorUid: string, apartmentName?: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
   incrementReviewLike?(reviewId: string): Promise<void>;
@@ -203,10 +203,10 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  async addFieldReportComment(reportId: string, text: string, authorUid: string) {
+  async addFieldReportComment(reportId: string, text: string, authorUid: string, apartmentName?: string) {
     try {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
-      await CommentRepo.addComment(reportId, text, profile.nickname, authorUid);
+      await CommentRepo.addComment(reportId, text, profile.nickname, authorUid, apartmentName);
     } catch (e: unknown) {
       const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addFieldReportComment', 'Comment failed', { reportId }, e);
@@ -346,8 +346,8 @@ export class DashboardFacade {
     if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
   }
   
-  public async addFieldReportComment(reportId: string, text: string, authorUid: string) {
-    const validation = AddFieldReportCommentInputSchema.safeParse({ reportId, text, authorUid });
+  public async addFieldReportComment(reportId: string, text: string, authorUid: string, apartmentName?: string) {
+    const validation = AddFieldReportCommentInputSchema.safeParse({ reportId, text, authorUid, apartmentName });
     if (!validation.success) {
       const errorMsg = validation.error.issues.map(err => err.message).join(', ');
       logger.warn('DashboardFacade.addFieldReportComment', 'Validation failed', { error: validation.error.format() });
@@ -356,7 +356,7 @@ export class DashboardFacade {
       }
       return;
     }
-    if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid);
+    if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid, apartmentName);
   }
   
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {

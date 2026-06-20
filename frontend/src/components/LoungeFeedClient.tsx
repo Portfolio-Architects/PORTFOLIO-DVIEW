@@ -17,6 +17,11 @@ const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient
   safeReload('LoungeDetailClient');
   return { default: () => null };
 }), { ssr: false });
+const AptStoriesWidget = dynamic(() => import('@/components/AptStoriesWidget').catch(err => {
+  console.warn('AptStoriesWidget Chunk Load failure, initiating fallback reload', err);
+  safeReload('AptStoriesWidget');
+  return { default: () => null };
+}), { ssr: false });
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 import { usePWA } from '@/components/pwa/PWAProvider';
@@ -868,6 +873,11 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      {/* 실시간 아파트 이야기 한줄평 Widget */}
+      {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && (
+        <AptStoriesWidget />
+      )}
+
       {/* 실시간 인기 토크 Widget */}
       {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && hotPosts.length > 0 && (
         <div className="bg-gradient-to-br from-[#e8f8f5] to-emerald-500/5 dark:from-[#082f27] dark:to-emerald-500/10 border border-emerald-500/15 rounded-3xl p-5 mb-2 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">

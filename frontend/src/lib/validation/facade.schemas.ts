@@ -33,6 +33,7 @@ export const AddFieldReportCommentInputSchema = z.object({
   reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
   text: z.string().min(1, '댓글 내용은 필수 입력 사항입니다.'),
   authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
+  apartmentName: z.string().optional(),
 });
 
 export const AddUserReviewInputSchema = z.object({

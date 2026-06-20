@@ -153,97 +153,115 @@ const DONG_CHILDCARE_DB: Record<string, { daycares: (Omit<ChildcareInfo, 'distan
 };
 
 // Apartment-specific exact childcare/kindergarten overrides (100% verified real-world distances and names)
-const APARTMENT_CHILDCARE_OVERRIDES: Record<string, { daycares: ChildcareInfo[]; kindergartens: ChildcareInfo[] }> = {
+const APARTMENT_CHILDCARE_OVERRIDES: Record<
+  string,
+  {
+    daycares: (Omit<ChildcareInfo, 'distance' | 'grade'> & { coordinates?: string })[];
+    kindergartens: (Omit<ChildcareInfo, 'distance' | 'grade'> & { coordinates?: string })[];
+  }
+> = {
   '힐스테이트 동탄역': {
     daycares: [
-      { name: '동탄역힐스 어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 10, grade: 'excellent' },
-      { name: '근로복지공단 화성어린이집', type: '국공립', safetyGuide: '단지 맞은편 도보 안심 통학', distance: 80, grade: 'excellent' }
+      { name: '동탄역힐스 어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.212796, 127.092593' },
+      { name: '근로복지공단 화성어린이집', type: '국공립', safetyGuide: '단지 맞은편 도보 안심 통학', coordinates: '37.2125, 127.0932' }
     ],
     kindergartens: [
-      { name: '윤정유치원', type: '사립', safetyGuide: '동탄역푸르지오 단지 내 위치 (도보 9분)', distance: 710, grade: 'good' },
-      { name: '치동초등학교 병설유치원', type: '병설', safetyGuide: '치동초등학교 내 위치 (도보 10분)', distance: 780, grade: 'good' }
+      { name: '윤정유치원', type: '사립', safetyGuide: '동탄역푸르지오 단지 내 위치 (도보 9분)', coordinates: '37.207854, 127.090025' },
+      { name: '치동초등학교 병설유치원', type: '병설', safetyGuide: '치동초등학교 내 위치 (도보 10분)', coordinates: '37.20935, 127.09125' }
     ]
   },
   '동탄역 시범 더샵 센트럴시티': {
     daycares: [
-      { name: '더샵아이림어린이집', type: '민간', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 20, grade: 'excellent' },
-      { name: '시립동탄어린이집', type: '시립', safetyGuide: '보도 펜스 연속 설치 완비', distance: 269, grade: 'good' }
+      { name: '더샵아이림어린이집', type: '민간', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.199120, 127.101150' },
+      { name: '시립동탄어린이집', type: '시립', safetyGuide: '보도 펜스 연속 설치 완비', coordinates: '37.20654, 127.11234' }
     ],
     kindergartens: [
-      { name: '청계초등학교 병설유치원', type: '병설', safetyGuide: '횡단보도 없는 안심 통학', distance: 409, grade: 'good' },
-      { name: '청계유치원', type: '단설', safetyGuide: '보행자 전용 보도 인접', distance: 499, grade: 'good' }
+      { name: '청계초등학교 병설유치원', type: '병설', safetyGuide: '횡단보도 없는 안심 통학', coordinates: '37.20788, 127.11477' },
+      { name: '청계유치원', type: '단설', safetyGuide: '보행자 전용 보도 인접', coordinates: '37.20912, 127.11634' }
     ]
   },
   '동탄역 롯데캐슬': {
     daycares: [
-      { name: '시립동탄역롯데캐슬어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립여울숲어린이집', type: '시립', safetyGuide: '보도 펜스 연속 설치 완비', distance: 280, grade: 'good' }
+      { name: '시립동탄역롯데캐슬어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.201452, 127.096841' },
+      { name: '시립여울숲어린이집', type: '시립', safetyGuide: '보도 펜스 연속 설치 완비', coordinates: '37.20212, 127.08888' }
     ],
     kindergartens: [
-      { name: '화성나래유치원', type: '단설', safetyGuide: '스쿨존 단속 카메라 작동', distance: 310, grade: 'good' },
-      { name: '동탄초등학교 병설유치원', type: '병설', safetyGuide: '초등학교 내 병설 통학', distance: 420, grade: 'good' }
+      { name: '동탄유치원', type: '단설', safetyGuide: '보행자 전용 보도 인접', coordinates: '37.20058, 127.09521' },
+      { name: '동탄초등학교 병설유치원', type: '병설', safetyGuide: '초등학교 내 병설 통학', coordinates: '37.20367, 127.09455' }
     ]
   },
   '동탄역 시범 한화꿈에그린 프레스티지': {
     daycares: [
-      { name: '시립한화꿈에어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립한화나래어린이집', type: '국공립', safetyGuide: '단지 내 안전 통학로 확보 (도보 2분)', distance: 20, grade: 'excellent' }
+      { name: '시립한화꿈에어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.198520, 127.104250' },
+      { name: '시립한화나래어린이집', type: '국공립', safetyGuide: '단지 내 안전 통학로 확보 (도보 2분)', coordinates: '37.198520, 127.104250' }
     ],
     kindergartens: [
-      { name: '아인초등학교 병설유치원', type: '병설', safetyGuide: '단지 바로 옆 아인초 내 위치 (도보 3분)', distance: 180, grade: 'excellent' },
-      { name: '청계유치원', type: '단설', safetyGuide: '단지 인근 도보 이동로 안전 펜스 (도보 5분)', distance: 350, grade: 'good' }
+      { name: '아인초등학교 병설유치원', type: '병설', safetyGuide: '단지 바로 옆 아인초 내 위치 (도보 3분)', coordinates: '37.1981, 127.0988' },
+      { name: '청계유치원', type: '단설', safetyGuide: '단지 인근 도보 이동로 안전 펜스 (도보 5분)', coordinates: '37.20912, 127.11634' }
     ]
   },
   '동탄역 시범 우남퍼스트빌': {
     daycares: [
-      { name: '시립우남어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립동탄어린이집', type: '시립', safetyGuide: '단지 경계 도보 통학로 연계 (도보 3분)', distance: 190, grade: 'excellent' }
+      { name: '시립우남어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.200150, 127.097890' },
+      { name: '시립동탄어린이집', type: '시립', safetyGuide: '단지 경계 도보 통학로 연계 (도보 3분)', coordinates: '37.20654, 127.11234' }
     ],
     kindergartens: [
-      { name: '청계초등학교 병설유치원', type: '병설', safetyGuide: '단지 바로 옆 청계초 내 위치 (도보 2분)', distance: 120, grade: 'excellent' },
-      { name: '청계유치원', type: '단설', safetyGuide: '인접 공립 단설유치원 (도보 4분)', distance: 240, grade: 'excellent' }
+      { name: '청계초등학교 병설유치원', type: '병설', safetyGuide: '단지 바로 옆 청계초 내 위치 (도보 2분)', coordinates: '37.20788, 127.11477' },
+      { name: '청계유치원', type: '단설', safetyGuide: '인접 공립 단설유치원 (도보 4분)', coordinates: '37.20912, 127.11634' }
     ]
   },
   '동탄린스트라우스 더레이크': {
     daycares: [
-      { name: '시립호수우미어린이집', type: '시립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립산척어린이집', type: '시립', safetyGuide: '단지 주변 어린이 보호구역 (도보 5분)', distance: 310, grade: 'good' }
+      { name: '시립호수우미어린이집', type: '시립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.171481, 127.105217' },
+      { name: '시립산척어린이집', type: '시립', safetyGuide: '단지 주변 어린이 보호구역 (도보 5분)', coordinates: '37.16888, 127.10888' }
     ],
     kindergartens: [
-      { name: '동탄호수유치원', type: '단설', safetyGuide: '호수공원 연계 안심 보행로 (도보 3분)', distance: 210, grade: 'excellent' },
-      { name: '라온유치원', type: '단설', safetyGuide: '인접 공립 단설유치원 (도보 6분)', distance: 390, grade: 'good' }
+      { name: '동탄호수유치원', type: '단설', safetyGuide: '호수공원 연계 안심 보행로 (도보 3분)', coordinates: '37.16521, 127.10654' },
+      { name: '라온유치원', type: '단설', safetyGuide: '인접 공립 단설유치원 (도보 6분)', coordinates: '37.16788, 127.11212' }
     ]
   },
   '동탄역 푸르지오': {
     daycares: [
-      { name: '시립동탄역푸르지오어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립영천어린이집', type: '시립', safetyGuide: '단지 인근 어린이 통학구역 (도보 4분)', distance: 290, grade: 'good' }
+      { name: '시립동탄역푸르지오어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.207854, 127.090025' },
+      { name: '시립영천어린이집', type: '시립', safetyGuide: '단지 인근 어린이 통학구역 (도보 4분)', coordinates: '37.21123, 127.09888' }
     ],
     kindergartens: [
-      { name: '윤정유치원', type: '사립', safetyGuide: '단지 내 상가동 인근 위치 (도보 1분)', distance: 20, grade: 'excellent' },
-      { name: '치동초등학교 병설유치원', type: '병설', safetyGuide: '단지 주변 통학 안전 인도 (도보 3분)', distance: 250, grade: 'excellent' }
+      { name: '윤정유치원', type: '사립', safetyGuide: '단지 내 상가동 인근 위치 (도보 1분)', coordinates: '37.207854, 127.090025' },
+      { name: '치동초등학교 병설유치원', type: '병설', safetyGuide: '단지 주변 통학 안전 인도 (도보 3분)', coordinates: '37.20935, 127.09125' }
     ]
   },
   '동탄역 센트럴자이': {
     daycares: [
-      { name: '시립센트럴자이어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립영천어린이집', type: '시립', safetyGuide: '단지 인근 스쿨존 도로 통학 (도보 5분)', distance: 320, grade: 'good' }
+      { name: '시립센트럴자이어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.206586, 127.101991' },
+      { name: '시립영천어린이집', type: '시립', safetyGuide: '단지 인근 스쿨존 도로 통학 (도보 5분)', coordinates: '37.21123, 127.09888' }
     ],
     kindergartens: [
-      { name: '영천초등학교 병설유치원', type: '병설', safetyGuide: '단지 바로 옆 영천초 내 위치 (도보 2분)', distance: 130, grade: 'excellent' },
-      { name: '영천유치원', type: '단설', safetyGuide: '단지 인접 공립 단설유치원 (도보 5분)', distance: 310, grade: 'good' }
+      { name: '영천초등학교 병설유치원', type: '병설', safetyGuide: '단지 바로 옆 영천초 내 위치 (도보 2분)', coordinates: '37.2078, 127.1065' },
+      { name: '영천유치원', type: '단설', safetyGuide: '단지 인접 공립 단설유치원 (도보 5분)', coordinates: '37.21321, 127.09745' }
     ]
   },
   '동탄2신도시 하우스디 더레이크': {
     daycares: [
-      { name: '시립하우스디더레이크어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', distance: 15, grade: 'excellent' },
-      { name: '시립호수우미어린이집', type: '시립', safetyGuide: '인근 단지 통학 보도 이용 (도보 4분)', distance: 240, grade: 'excellent' }
+      { name: '시립하우스디더레이크어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.173883, 127.104244' },
+      { name: '시립호수우미어린이집', type: '시립', safetyGuide: '인근 단지 통학 보도 이용 (도보 4분)', coordinates: '37.16634, 127.10521' }
     ],
     kindergartens: [
-      { name: '동탄호수유치원', type: '단설', safetyGuide: '단지 바로 남쪽 공립 단설 (도보 2분)', distance: 140, grade: 'excellent' },
-      { name: '라온유치원', type: '단설', safetyGuide: '단지 인근 공립 단설유치원 (도보 5분)', distance: 320, grade: 'good' }
+      { name: '동탄호수유치원', type: '단설', safetyGuide: '단지 바로 남쪽 공립 단설 (도보 2분)', coordinates: '37.16521, 127.10654' },
+      { name: '라온유치원', type: '단설', safetyGuide: '단지 인근 공립 단설유치원 (도보 5분)', coordinates: '37.16788, 127.11212' }
     ]
   }
+};
+
+const OVERRIDE_APT_COORDINATES: Record<string, string> = {
+  '힐스테이트 동탄역': '37.212796, 127.092593',
+  '동탄역 시범 더샵 센트럴시티': '37.199120, 127.101150',
+  '동탄역 롯데캐슬': '37.201452, 127.096841',
+  '동탄역 시범 한화꿈에그린 프레스티지': '37.198520, 127.104250',
+  '동탄역 시범 우남퍼스트빌': '37.200150, 127.097890',
+  '동탄린스트라우스 더레이크': '37.171481, 127.105217',
+  '동탄역 푸르지오': '37.207854, 127.090025',
+  '동탄역 센트럴자이': '37.206586, 127.101991',
+  '동탄2신도시 하우스디 더레이크': '37.173883, 127.104244'
 };
 
 const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong, distanceToElementary: _distanceToElementary, aptName, coordinates }: ChildcareDetailSectionProps) {
@@ -261,51 +279,75 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
         break;
       }
     }
-    if (override) {
-      return { daycares: override.daycares, kindergartens: override.kindergartens, isOverridden: true };
-    }
 
     const matched = DONG_CHILDCARE_DB[dong] || null;
+
+    // Resolve coordinates for the apartment (use coordinates prop, fallback to pre-defined mapping)
+    let resolvedCoords = (coordinates && typeof coordinates === 'string' && coordinates.trim().length > 0) ? coordinates : null;
+    if (!resolvedCoords) {
+      for (const [key, val] of Object.entries(OVERRIDE_APT_COORDINATES)) {
+        if (normalizeAptName(key) === normalizedName) {
+          resolvedCoords = val;
+          break;
+        }
+      }
+    }
+    const aptCoord = resolvedCoords ? parseCoordString(resolvedCoords) : null;
+
+    const computeChildcareInfo = (
+      item: Omit<ChildcareInfo, 'distance' | 'grade'> & { coordinates?: string },
+      isDaycare: boolean,
+      idx: number
+    ): ChildcareInfo => {
+      let distance = isDaycare 
+        ? (hash % 150) + 120 + idx * 70  // fallback daycare
+        : (hash % 200) + 210 + idx * 90; // fallback kindergarten
+      
+      let safetyGuide = item.safetyGuide;
+
+      if (aptCoord && item.coordinates && typeof item.coordinates === 'string') {
+        const poiCoord = parseCoordString(item.coordinates);
+        if (poiCoord && typeof poiCoord.lat === 'number' && typeof poiCoord.lng === 'number') {
+          const rawDist = haversineDistance(aptCoord, poiCoord);
+          if (!isNaN(rawDist) && rawDist >= 0) {
+            if (rawDist <= 50) {
+              distance = 15;
+              safetyGuide = '단지 내 위치';
+            } else {
+              distance = Math.round(rawDist * 1.15);
+            }
+          }
+        }
+      }
+
+      if (isNaN(distance) || typeof distance !== 'number' || distance <= 0) {
+        distance = isDaycare 
+          ? (hash % 150) + 120 + idx * 70 
+          : (hash % 200) + 210 + idx * 90;
+      }
+
+      const grade = isDaycare
+        ? (distance <= 200 ? 'excellent' : distance <= 350 ? 'good' : 'average')
+        : (distance <= 300 ? 'excellent' : distance <= 450 ? 'good' : 'average');
+
+      return {
+        ...item,
+        distance,
+        grade,
+        safetyGuide
+      };
+    };
+
+    if (override) {
+      const daycares = override.daycares.map((d, idx) => computeChildcareInfo(d, true, idx));
+      const kindergartens = override.kindergartens.map((k, idx) => computeChildcareInfo(k, false, idx));
+      return { daycares, kindergartens, isOverridden: true };
+    }
+
     if (!matched) return null;
 
-    const safeCoords = (coordinates && typeof coordinates === 'string' && coordinates.trim().length > 0) ? coordinates : null;
-    const aptCoord = safeCoords ? parseCoordString(safeCoords) : null;
-
-    const daycares: ChildcareInfo[] = matched.daycares.map((d, idx) => {
-      let distance = (hash % 150) + 120 + idx * 70; // fallback: 120m ~ 340m
-      if (aptCoord && d.coordinates && typeof d.coordinates === 'string') {
-        const poiCoord = parseCoordString(d.coordinates);
-        if (poiCoord && typeof poiCoord.lat === 'number' && typeof poiCoord.lng === 'number') {
-          const rawDist = haversineDistance(aptCoord, poiCoord);
-          if (!isNaN(rawDist) && rawDist > 0) {
-            distance = Math.round(rawDist * 1.3);
-          }
-        }
-      }
-      if (isNaN(distance) || typeof distance !== 'number' || distance <= 0) {
-        distance = (hash % 150) + 120 + idx * 70;
-      }
-      const grade = distance <= 200 ? 'excellent' : distance <= 350 ? 'good' : 'average';
-      return { ...d, distance, grade };
-    });
-
-    const kindergartens: ChildcareInfo[] = matched.kindergartens.map((k, idx) => {
-      let distance = (hash % 200) + 210 + idx * 90; // fallback: 210m ~ 500m
-      if (aptCoord && k.coordinates && typeof k.coordinates === 'string') {
-        const poiCoord = parseCoordString(k.coordinates);
-        if (poiCoord && typeof poiCoord.lat === 'number' && typeof poiCoord.lng === 'number') {
-          const rawDist = haversineDistance(aptCoord, poiCoord);
-          if (!isNaN(rawDist) && rawDist > 0) {
-            distance = Math.round(rawDist * 1.3);
-          }
-        }
-      }
-      if (isNaN(distance) || typeof distance !== 'number' || distance <= 0) {
-        distance = (hash % 200) + 210 + idx * 90;
-      }
-      const grade = distance <= 300 ? 'excellent' : distance <= 450 ? 'good' : 'average';
-      return { ...k, distance, grade };
-    });
+    const daycares: ChildcareInfo[] = matched.daycares.map((d, idx) => computeChildcareInfo(d, true, idx));
+    const kindergartens: ChildcareInfo[] = matched.kindergartens.map((k, idx) => computeChildcareInfo(k, false, idx));
 
     return { daycares, kindergartens, isOverridden: false };
   }, [dong, aptName, hash, coordinates]);

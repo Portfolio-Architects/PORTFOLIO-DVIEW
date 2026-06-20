@@ -576,7 +576,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
                 console.warn('ChunkLoadError caught in AptCompareModal. Reloading page...');
-                window.location.reload();
+                safeReload('AptCompareModal_ExploreBoundary');
               }
               return null;
             }
@@ -630,7 +630,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
                 console.warn('ChunkLoadError caught in JeonseSafetyCalculator. Reloading page...');
-                window.location.reload();
+                safeReload('JeonseSafetyCalculator_ExploreBoundary');
               }
               return null;
             }
@@ -682,7 +682,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
                 console.warn('ChunkLoadError caught in MortgageCalculator. Reloading page...');
-                window.location.reload();
+                safeReload('MortgageCalculator_ExploreBoundary');
               }
               return null;
             }
@@ -734,7 +734,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
                 console.warn('ChunkLoadError caught in PropertyTaxCalculator. Reloading page...');
-                window.location.reload();
+                safeReload('PropertyTaxCalculator_ExploreBoundary');
               }
               return null;
             }
@@ -785,7 +785,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
                 console.warn('ChunkLoadError caught in SellTimingCalculator. Reloading page...');
-                window.location.reload();
+                safeReload('SellTimingCalculator_ExploreBoundary');
               }
               return null;
             }

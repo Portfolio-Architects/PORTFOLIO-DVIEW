@@ -12,6 +12,7 @@ interface SegmentedControlProps<T> {
   value: T;
   onChange: (value: T) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 function SegmentedControlInner<T extends string | number>({
@@ -19,6 +20,7 @@ function SegmentedControlInner<T extends string | number>({
   value,
   onChange,
   className = '',
+  disabled = false,
 }: SegmentedControlProps<T>) {
   const [sliderStyle, setSliderStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +71,9 @@ function SegmentedControlInner<T extends string | number>({
   return (
     <div
       ref={containerRef}
-      className={`relative flex bg-[#f2f4f6] dark:bg-[#151b26]/50 p-0.5 rounded-xl shrink-0 overflow-hidden shadow-inner select-none ${className}`}
+      className={`relative flex bg-[#f2f4f6] dark:bg-[#151b26]/50 p-0.5 rounded-xl shrink-0 overflow-hidden shadow-inner select-none ${
+        disabled ? 'opacity-60 pointer-events-none' : ''
+      } ${className}`}
     >
       {/* Sliding Background */}
       {isMounted && (
@@ -86,8 +90,11 @@ function SegmentedControlInner<T extends string | number>({
           <button
             key={opt.value}
             ref={isActive ? activeTabRef : null}
-            onClick={() => onChange(opt.value)}
-            className={`relative flex-1 z-10 px-4 py-1.5 rounded-lg text-[13.5px] font-extrabold text-center whitespace-nowrap border-none outline-none transition-colors duration-200 cursor-pointer bg-transparent ${
+            onClick={() => !disabled && onChange(opt.value)}
+            disabled={disabled}
+            className={`relative flex-1 z-10 px-4 py-1.5 rounded-lg text-[13.5px] font-extrabold text-center whitespace-nowrap border-none outline-none transition-colors duration-200 bg-transparent ${
+              disabled ? 'cursor-not-allowed text-tertiary' : 'cursor-pointer'
+            } ${
               isActive ? 'text-primary' : 'text-tertiary hover:text-secondary'
             }`}
           >

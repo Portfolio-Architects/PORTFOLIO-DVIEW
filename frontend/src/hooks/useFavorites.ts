@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from 'firebase/auth';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
@@ -86,7 +86,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     return () => { unmounted = true; };
   }, [user]);
 
-  const handleToggleFavorite = async (aptName: string, requestLogin: () => void) => {
+  const handleToggleFavorite = useCallback(async (aptName: string, requestLogin: () => void) => {
     if (!user) {
       requestLogin();
       return;
@@ -124,9 +124,9 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       });
       setFavoriteCounts(prev => ({ ...prev, [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1)) }));
     }
-  };
+  }, [user, userFavorites]);
 
-  const updateFavoriteOrder = async (newOrder: string[]) => {
+  const updateFavoriteOrder = useCallback(async (newOrder: string[]) => {
     if (!user) return;
     if (!isMountedRef.current) return;
 
@@ -147,7 +147,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       if (!isMountedRef.current) return;
       logger.warn('useFavorites.updateFavoriteOrder', 'Failed to save order to Firestore', {}, err as Error);
     }
-  };
+  }, [user]);
 
   return {
     userFavorites,

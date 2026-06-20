@@ -513,7 +513,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [chartMode, setChartMode] = useState<string>("30");
   const [timeframe, setTimeframe] = useState<
     "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL"
-  >("ALL");
+  >("3Y");
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
   const [showBriefingPopup, setShowBriefingPopup] = useState(false);
@@ -680,10 +680,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
   }, [user, prevUser, mounted]);
 
-  const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
-  const [isAptTxLoading, setIsAptTxLoading] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
-
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
@@ -691,51 +688,35 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
+  const txKey = useMemo(() => {
+    if (!selectedTimelineApt || !txSummaryData || Object.keys(txSummaryData).length === 0) return null;
+    return findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
+  }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
-    // txSummaryData가 아직 로드되지 않은 경우, 올바른 매핑 키를 알 수 없으므로 페칭을 대기합니다.
-    if (!txSummaryData || Object.keys(txSummaryData).length === 0) {
-      return;
+  // 모든 타임프레임에서 데이터 정합성 보장을 위해 전체 데이터(.json)를 페치합니다 (초경량 130KB 이내)
+  const fetchUrl = useMemo(() => {
+    if (!mounted || !txKey) return null;
+    return `/tx-data/${encodeURIComponent(txKey)}.json`;
+  }, [mounted, txKey]);
+
+  const { data: aptRealTxDataData, isValidating: isAptTxLoading } = useSWR<any[]>(
+    fetchUrl,
+    async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn(`Failed to load tx data: status ${res.status}`);
+        return null;
+      }
+      return res.json();
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 300000, // 5분
     }
+  );
 
-    if (!selectedTimelineApt) {
-      setAptRealTxData(null);
-      return;
-    }
-    let active = true;
-    setIsAptTxLoading(true);
-    const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
-    
-    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`)
-      .then(res => {
-        if (!res.ok) {
-          console.warn(`Failed to load tx data for ${txKey}: status ${res.status}`);
-          return null;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (active && data) {
-          setAptRealTxData(data);
-        }
-      })
-      .catch(err => {
-        console.error("Error fetching apt real tx data:", err);
-        if (active) {
-          setAptRealTxData(null);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setIsAptTxLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [selectedTimelineApt, txSummaryData, nameMapping, mounted]);
+  const aptRealTxData = aptRealTxDataData || null;
 
 
 
@@ -1016,6 +997,31 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const saleAnchorValue = monthlyAverages[saleAnchorKey].sale ?? 0;
     const rentAnchorValue = monthlyAverages[rentAnchorKey].rent ?? 0;
 
+    // 첫 실거래 기준 매크로 가격 비율 계산 (과거 데이터 백필용)
+    let saleFactor = 1;
+    if (realFirstSaleIndex !== -1) {
+      const anchorPoint = deferredMacroTrendData[realFirstSaleIndex];
+      const anchorMacroSale = anchorPoint ? anchorPoint['동탄 아파트 전체'] || 8.1 : 8.1;
+      const firstAptSale = monthlyAverages[anchorPoint.name].sale || fallbackSalePrice;
+      saleFactor = firstAptSale / anchorMacroSale;
+    } else {
+      const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
+      const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
+      saleFactor = fallbackSalePrice / macroSaleVal;
+    }
+
+    let rentFactor = 1;
+    if (realFirstRentIndex !== -1) {
+      const anchorPoint = deferredMacroTrendData[realFirstRentIndex];
+      const anchorMacroRent = anchorPoint ? anchorPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
+      const firstAptRent = monthlyAverages[anchorPoint.name].rent || fallbackRentPrice;
+      rentFactor = firstAptRent / anchorMacroRent;
+    } else {
+      const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
+      const macroRentVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
+      rentFactor = fallbackRentPrice / macroRentVal;
+    }
+
     const macroTrendList = deferredMacroTrendData;
     const runningLastSaleRef = { current: saleAnchorValue };
     const runningLastRentRef = { current: rentAnchorValue };
@@ -1034,13 +1040,34 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
     const finalChartData = macroTrendList.map((point, idx) => {
       const key = point.name;
-      let finalSale = monthlyAverages[key].sale ?? interpolatedSale[idx];
-      let finalRent = monthlyAverages[key].rent ?? interpolatedRent[idx];
+      
+      // 실제 데이터가 없으면,
+      // 첫 거래 이후 기간에는 기존 보간법(interpolated)을 쓰고,
+      // 첫 거래 이전(과거) 기간에는 null을 대입해 그래프 선이 노출되지 않도록 가드 (실거래 0건인 경우에만 기존 백필 유지)
+      let finalSale = monthlyAverages[key].sale;
+      if (finalSale === null) {
+        if (realFirstSaleIndex !== -1 && idx > realFirstSaleIndex) {
+          finalSale = interpolatedSale[idx];
+        } else {
+          if (realFirstSaleIndex === -1) {
+            finalSale = point['동탄 아파트 전체'] * saleFactor;
+          } else {
+            finalSale = null;
+          }
+        }
+      }
 
-      // 전세 거래내역 그래프는 첫 매매 그래프가 생긴시점부터 시작되도록
-      if (realFirstSaleIndex !== -1 && idx < realFirstSaleIndex) {
-        finalRent = null;
-        finalSale = null;
+      let finalRent = monthlyAverages[key].rent;
+      if (finalRent === null) {
+        if (realFirstRentIndex !== -1 && idx > realFirstRentIndex) {
+          finalRent = interpolatedRent[idx];
+        } else {
+          if (realFirstRentIndex === -1) {
+            finalRent = point['동탄 아파트 전세 평균'] * rentFactor;
+          } else {
+            finalRent = null;
+          }
+        }
       }
 
       return {
@@ -1049,17 +1076,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         '동탄 아파트 전세 평균': finalRent !== null ? Math.round(finalRent * 100) / 100 : null,
       };
     });
-
-    let sliceIndex = -1;
-    if (realFirstSaleIndex !== -1) {
-      sliceIndex = realFirstSaleIndex;
-    } else if (realFirstRentIndex !== -1) {
-      sliceIndex = realFirstRentIndex;
-    }
-
-    if (sliceIndex !== -1) {
-      return finalChartData.slice(sliceIndex);
-    }
 
     return finalChartData;
   }, [selectedAptSummary, deferredMacroTrendData, aptRealTxData]);
@@ -1092,6 +1108,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const lineData = useMemo(() => {
     const sourceData = selectedAptChartData || deferredMacroTrendData;
     if (!sourceData) return [];
+
+    // 만약 개별 아파트이고 timeframe이 "ALL"인 경우, 최초 거래월 기준으로 시작 연월을 동적 슬라이싱
+    if (selectedAptChartData && timeframe === "ALL") {
+      let firstValidIdx = -1;
+      for (let i = 0; i < selectedAptChartData.length; i++) {
+        const item = selectedAptChartData[i];
+        if (item['동탄 아파트 전체'] !== null || item['동탄 아파트 전세 평균'] !== null) {
+          firstValidIdx = i;
+          break;
+        }
+      }
+      
+      if (firstValidIdx !== -1) {
+        // 최초 거래 발생 월의 직전 3개월 마진을 주어 조금 더 자연스럽게 그래프가 시작되게 함
+        const startIndex = Math.max(0, firstValidIdx - 3);
+        return selectedAptChartData.slice(startIndex);
+      }
+    }
+
     let count = sourceData.length;
     switch (timeframe) {
       case "3M":
@@ -1134,7 +1169,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       step = 6; // 6개월 간격
     else if (timeframe === "5Y")
       step = 12; // 1년 간격
-    else if (timeframe === "ALL") step = 24; // 2년 간격
+    else if (timeframe === "ALL") {
+      // 유동적으로 좁혀진 lineData 길이에 맞추어 x축 틱 단계 조절
+      if (total <= 12) step = 2;
+      else if (total <= 36) step = 6;
+      else if (total <= 60) step = 12;
+      else step = 24; // 2년 간격
+    }
 
     // 항상 최신 달(가장 오른쪽)부터 역순으로 균등하게 범례를 추출
     for (let i = total - 1; i >= 0; i -= step) {
@@ -1858,7 +1899,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       </h3>
 
                       {isDefaultAptSettingUp ? (
-                        <div className="w-[150px] sm:w-[190px] h-[28px] bg-zinc-100 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
+                        <div className="w-[150px] sm:w-[190px] h-[28px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
                       ) : (
                         mounted && (
                           user && userFavorites && userFavorites.size > 0 ? (
@@ -1971,9 +2012,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                 <div className="w-full flex-grow mt-2 sm:mt-0 md:h-[330px] md:min-h-[330px] h-[260px] min-h-[260px] relative">
                   {isDefaultAptSettingUp ? (
-                    <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/50 dark:bg-zinc-900/10 border border-border/40 rounded-2xl animate-pulse">
-                      <span className="text-tertiary text-[12px] font-extrabold mb-1">관심 단지 정보를 불러오는 중입니다...</span>
-                      <span className="text-[10px] text-tertiary/60 font-medium">내 자산 가치 분석 보고서를 작성하고 있습니다.</span>
+                    <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
+                      {/* 백그라운드 블러 글로우 효과 */}
+                      <div className="absolute w-[180px] h-[180px] rounded-full bg-[#00d29d]/4 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
+                      <div className="absolute w-[180px] h-[180px] rounded-full bg-[#f9a825]/4 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
+                      
+                      {/* 고급스러운 로딩 스피너 및 차트 실루엣 플레이스홀더 */}
+                      <div className="flex items-center gap-1.5 mb-3.5 flex-none">
+                        <div className="w-1.5 h-6 bg-[#00d29d]/30 rounded-full animate-bounce duration-500 delay-100" />
+                        <div className="w-1.5 h-10 bg-[#00d29d]/40 rounded-full animate-bounce duration-500 delay-200" />
+                        <div className="w-1.5 h-14 bg-[#00d29d]/60 rounded-full animate-bounce duration-500 delay-300" />
+                        <div className="w-1.5 h-10 bg-[#f9a825]/50 rounded-full animate-bounce duration-500 delay-400" />
+                        <div className="w-1.5 h-12 bg-[#f9a825]/60 rounded-full animate-bounce duration-500 delay-500" />
+                        <div className="w-1.5 h-8 bg-[#f9a825]/40 rounded-full animate-bounce duration-500 delay-600" />
+                      </div>
+
+                      <span className="text-secondary text-[12.5px] font-extrabold mb-1.5 tracking-tight">관심 단지 정보를 분석하고 있습니다...</span>
+                      <span className="text-[10px] text-tertiary font-bold opacity-75">내 자산 가치에 맞춘 전용 리포트를 생성하는 중입니다.</span>
                     </div>
                   ) : (
                     <MacroTrendChart
@@ -1987,9 +2042,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                 {/* 세련된 캡슐 뱃지 형태의 커스텀 범례 */}
                 {isDefaultAptSettingUp ? (
-                  <div className="flex items-center justify-center gap-3 mt-1.5 flex-none animate-pulse">
-                    <div className="w-20 h-5 bg-zinc-100 dark:bg-zinc-800/60 rounded-full" />
-                    <div className="w-20 h-5 bg-zinc-100 dark:bg-zinc-800/60 rounded-full" />
+                  <div className="flex items-center justify-center gap-3 mt-1.5 flex-none">
+                    <div className="w-20 h-5 bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-full animate-pulse border border-border/20" />
+                    <div className="w-20 h-5 bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-full animate-pulse border border-border/20" />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-3 mt-1.5 flex-none">
@@ -2004,10 +2059,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 )}
 
-                {/* Bottom Card Area: either Favorites List or empty space */}
-                {isDefaultAptSettingUp && (
-                  <div className="mt-2 pt-2.5 border-t border-border/60 flex-none h-[72px] bg-zinc-50 dark:bg-zinc-900/10 rounded-2xl animate-pulse border border-border/40" />
-                )}
+
               </div>
             </div>
 

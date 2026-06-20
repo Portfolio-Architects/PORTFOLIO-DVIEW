@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import useSWR from 'swr';
 import { User } from 'firebase/auth';
 import type { AptTxSummary } from '@/lib/types/transaction';
@@ -76,13 +76,6 @@ export function useApartmentDetails(
 ): UseApartmentDetailsReturn {
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [prevReportId, setPrevReportId] = useState<string | null>(null);
-  const currentReportId = selectedReport?.id || null;
-  if (currentReportId !== prevReportId) {
-    setPrevReportId(currentReportId);
-    setFullReportData(null);
-    setIsLoadingDetail(!!selectedReport && !selectedReport.id.startsWith('stub-'));
-  }
 
   const flatApartments = useMemo(() => {
     if (!sheetApartments) return [];
@@ -137,9 +130,9 @@ export function useApartmentDetails(
     return () => clearTimeout(timer);
   }, [selectedReport]);
 
-  const loadAllTransactions = () => {
+  const loadAllTransactions = useCallback(() => {
     setShouldFetchFull(true);
-  };
+  }, []);
 
   const buildId = BUILD_VERSION;
 
@@ -212,7 +205,14 @@ export function useApartmentDetails(
   }, [records, fileKey]);
 
   useEffect(() => {
-    if (!selectedReport) { return; }
+    if (!selectedReport) { 
+      setFullReportData(null);
+      setIsLoadingDetail(false);
+      return; 
+    }
+    
+    setFullReportData(null);
+    setIsLoadingDetail(!selectedReport.id.startsWith('stub-'));
     
     let unmounted = false;
 

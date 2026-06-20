@@ -144,16 +144,16 @@ describe('ChildcareDetailSection', () => {
     expect(screen.getByText('동탄초등학교 병설유치원')).toBeInTheDocument();
 
     // Check calculated distances and times
-    expect(screen.getByText('333')).toBeInTheDocument();
-    expect(screen.getByText('도보 5분')).toBeInTheDocument();
+    expect(screen.getByText('294')).toBeInTheDocument();
+    expect(screen.getByText('도보 4분')).toBeInTheDocument();
 
-    expect(screen.getByText('207')).toBeInTheDocument();
+    expect(screen.getByText('183')).toBeInTheDocument();
     expect(screen.getByText('도보 3분')).toBeInTheDocument();
 
-    expect(screen.getByText('606')).toBeInTheDocument();
-    expect(screen.getByText('도보 8분')).toBeInTheDocument();
+    expect(screen.getByText('536')).toBeInTheDocument();
+    expect(screen.getByText('도보 7분')).toBeInTheDocument();
 
-    expect(screen.getByText('746')).toBeInTheDocument();
-    expect(screen.getByText('도보 10분')).toBeInTheDocument();
+    expect(screen.getByText('660')).toBeInTheDocument();
+    expect(screen.getByText('도보 9분')).toBeInTheDocument();
   });
 });

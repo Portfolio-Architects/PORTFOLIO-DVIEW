@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { User } from 'firebase/auth';
 import { dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import { z } from 'zod';
@@ -28,7 +28,7 @@ export function useComments(
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
-  const isMountedRef = React.useRef(true);
+  const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
     return () => { isMountedRef.current = false; };
@@ -56,17 +56,25 @@ export function useComments(
     }
   }, [selectedReport?.id, fullReportData?.id]);
 
-  const handleSubmitComment = async (reportId: string) => {
+  // Keep commentInput in a ref to prevent handleSubmitComment from changing reference on every keystroke
+  const commentInputRef = useRef(commentInput);
+  useEffect(() => {
+    commentInputRef.current = commentInput;
+  }, [commentInput]);
+
+  const handleSubmitComment = useCallback(async (reportId: string) => {
     if (!user) { 
       alert("로그인 후 댓글을 남길 수 있습니다."); 
       requestLogin(); 
       return; 
     }
-    const text = commentInput[reportId];
+    const text = commentInputRef.current[reportId];
     if (!text?.trim()) return;
 
+    const apartmentName = fullReportData?.apartmentName || selectedReport?.apartmentName || '';
+
     if (dashboardFacade.addFieldReportComment) {
-      await dashboardFacade.addFieldReportComment(reportId, text, user.uid);
+      await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
     }
     
     // Trigger push notification to report author
@@ -93,7 +101,7 @@ export function useComments(
     if (isMountedRef.current) {
       setCommentInput(prev => ({ ...prev, [reportId]: '' }));
     }
-  };
+  }, [user, fullReportData, selectedReport, requestLogin]);
 
   return {
     commentsData,

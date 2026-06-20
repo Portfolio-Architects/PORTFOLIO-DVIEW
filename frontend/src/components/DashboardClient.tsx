@@ -300,6 +300,10 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
+const EMPTY_OBJECT = {};
+const EMPTY_SET = new Set<string>();
+const EMPTY_ARRAY: any[] = [];
+
 const DashboardClient = React.memo(function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
@@ -957,105 +961,111 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       >
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
-          <ErrorBoundary name="마크로 대시보드">
-            {!mounted ? (
-              <MacroDashboardSkeleton />
-            ) : (
-              <MacroDashboardClient 
-                sheetApartments={sheetApartments} 
-                txSummaryData={txSummaryData}
-                macroTrendData={macroTrend}
-                nameMapping={nameMapping || {}}
-                updateFavoriteOrder={updateFavoriteOrder}
-                publicRentalSet={publicRentalSet}
-                userFavorites={userFavorites}
-                isFavoritesLoading={isFavoritesLoading}
-                fieldReportsMap={fieldReportsMap}
-                favoriteCounts={favoriteCounts}
-                recent7DaysVolume={recent7DaysVolume}
-                typeMap={typeMap}
-                onOpenAdModal={handleOpenAdModal}
-                onOpenCompare={handleOpenCompare}
-                onOpenJeonseSafety={handleOpenJeonseSafety}
-                onOpenMortgage={handleOpenMortgage}
-                onOpenTaxCalculator={handleOpenTaxCalculator}
-                onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
-                onSelectApt={handleAptClickByName}
-              />
-            )}
-          </ErrorBoundary>
+          {activeTab === 'overview' && (
+            <ErrorBoundary name="마크로 대시보드">
+              {!mounted ? (
+                <MacroDashboardSkeleton />
+              ) : (
+                <MacroDashboardClient 
+                  sheetApartments={sheetApartments} 
+                  txSummaryData={txSummaryData}
+                  macroTrendData={macroTrend}
+                  nameMapping={nameMapping || EMPTY_OBJECT}
+                  updateFavoriteOrder={updateFavoriteOrder}
+                  publicRentalSet={publicRentalSet}
+                  userFavorites={userFavorites}
+                  isFavoritesLoading={isFavoritesLoading}
+                  fieldReportsMap={fieldReportsMap}
+                  favoriteCounts={favoriteCounts}
+                  recent7DaysVolume={recent7DaysVolume}
+                  typeMap={typeMap}
+                  onOpenAdModal={handleOpenAdModal}
+                  onOpenCompare={handleOpenCompare}
+                  onOpenJeonseSafety={handleOpenJeonseSafety}
+                  onOpenMortgage={handleOpenMortgage}
+                  onOpenTaxCalculator={handleOpenTaxCalculator}
+                  onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+                  onSelectApt={handleAptClickByName}
+                />
+              )}
+            </ErrorBoundary>
+          )}
         </section>
 
 
         {/* ═══ TAB 1-2: 큐레이션 ═══ */}
         <section className={`w-full bg-transparent ${activeTab === 'gap' ? 'block' : 'hidden'}`}>
-          {!mounted ? (
-            <GapExplorerSkeleton />
-          ) : (
-            <>
-              <PageHeroHeader 
-                title="D-VIEW 단지 큐레이션"
-                subtitleStrong="입지 및 가치 기준 테마별 단지 추천"
-                subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
-              />
-              <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
-                <RegionAccordion
-                  sheetApartments={sheetApartments}
-                  txSummaryData={txSummary}
-                  nameMapping={nameMapping}
-                  publicRentalSet={publicRentalSet}
-                  fieldReportsMap={fieldReportsMap}
-                  favoriteCounts={favoriteCounts}
-                  onSelectApt={handleAptClickByName}
-                  onOpenAdModal={() => setIsAdModalOpen(true)}
+          {activeTab === 'gap' && (
+            !mounted ? (
+              <GapExplorerSkeleton />
+            ) : (
+              <>
+                <PageHeroHeader 
+                  title="D-VIEW 단지 큐레이션"
+                  subtitleStrong="입지 및 가치 기준 테마별 단지 추천"
+                  subtitleLight="동탄 실수요자와 투자자를 위한 맞춤형 단지 큐레이션 리포트"
                 />
+                <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-16 flex flex-col gap-8">
+                  <RegionAccordion
+                    sheetApartments={sheetApartments}
+                    txSummaryData={txSummary}
+                    nameMapping={nameMapping || EMPTY_OBJECT}
+                    publicRentalSet={publicRentalSet}
+                    fieldReportsMap={fieldReportsMap}
+                    favoriteCounts={favoriteCounts}
+                    onSelectApt={handleAptClickByName}
+                    onOpenAdModal={handleOpenAdModal}
+                  />
 
-                <AIRecommendations
-                  sheetApartments={sheetApartments}
-                  txSummaryData={txSummary}
-                  nameMapping={nameMapping || {}}
-                  publicRentalSet={publicRentalSet}
-                  fieldReportsMap={fieldReportsMap}
-                  userFavorites={userFavorites || new Set()}
-                  onSelectApt={handleAptClickByName}
-                  onOpenTaxCalculator={handleOpenTaxCalculator}
-                  onOpenMortgage={handleOpenMortgage}
-                  onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
-                />
+                  <AIRecommendations
+                    sheetApartments={sheetApartments}
+                    txSummaryData={txSummary}
+                    nameMapping={nameMapping || EMPTY_OBJECT}
+                    publicRentalSet={publicRentalSet}
+                    fieldReportsMap={fieldReportsMap}
+                    userFavorites={userFavorites || EMPTY_SET}
+                    onSelectApt={handleAptClickByName}
+                    onOpenTaxCalculator={handleOpenTaxCalculator}
+                    onOpenMortgage={handleOpenMortgage}
+                    onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+                  />
 
-                <ChopoomaCuration
-                  sheetApartments={sheetApartments}
-                  txSummaryData={txSummary}
-                  nameMapping={nameMapping || {}}
-                  publicRentalSet={publicRentalSet}
-                  locationScores={locationScores}
-                  onSelectApt={handleAptClickByName}
-                />
+                  <ChopoomaCuration
+                    sheetApartments={sheetApartments}
+                    txSummaryData={txSummary}
+                    nameMapping={nameMapping || EMPTY_OBJECT}
+                    publicRentalSet={publicRentalSet}
+                    locationScores={locationScores}
+                    onSelectApt={handleAptClickByName}
+                  />
 
-                <GapInvestmentExplorer
-                  sheetApartments={sheetApartments}
-                  txSummaryData={txSummary}
-                  nameMapping={nameMapping || {}}
-                  publicRentalSet={publicRentalSet}
-                  onSelectApt={handleAptClickByName}
-                  onOpenAdModal={handleOpenAdModal}
-                />
+                  <GapInvestmentExplorer
+                    sheetApartments={sheetApartments}
+                    txSummaryData={txSummary}
+                    nameMapping={nameMapping || EMPTY_OBJECT}
+                    publicRentalSet={publicRentalSet}
+                    onSelectApt={handleAptClickByName}
+                    onOpenAdModal={handleOpenAdModal}
+                  />
 
-                <LocalEventCuration 
-                  txSummaryData={txSummary}
-                  onSelectApt={handleAptClickByName} 
-                />
-              </div>
-            </>
+                  <LocalEventCuration 
+                    txSummaryData={txSummary}
+                    onSelectApt={handleAptClickByName} 
+                  />
+                </div>
+              </>
+            )
           )}
         </section>
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         <section className={`w-full bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
-          {!mounted ? (
-            <LoungeSkeleton />
-          ) : (
-            <LoungeContainerClient initialPosts={[]} onRequestLogin={handleRequestLogin} />
+          {activeTab === 'lounge' && (
+            !mounted ? (
+              <LoungeSkeleton />
+            ) : (
+              <LoungeContainerClient initialPosts={EMPTY_ARRAY} onRequestLogin={handleRequestLogin} />
+            )
           )}
         </section>
 

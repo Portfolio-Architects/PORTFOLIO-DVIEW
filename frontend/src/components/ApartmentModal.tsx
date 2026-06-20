@@ -370,6 +370,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   // Zod-based safe transaction parsing guard to prevent null/undefined runtime exceptions
   const safeTransactions = useMemo(() => {
     if (!rawTransactions) return [];
+    if (rawTransactions.length === 0) return [];
     // Zod safeParse is extremely heavy on large arrays. 
     // We skip safeParse for items > 50 to avoid browser freeze and perform lightweight verification instead.
     if (rawTransactions.length > 50) {
@@ -1251,7 +1252,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
         }
       }
     }
-    setActiveTab(current);
+    setActiveTab(prev => {
+      if (prev !== current) return current;
+      return prev;
+    });
   }, []);
 
   useEffect(() => {
@@ -1969,14 +1973,15 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <div className="w-full flex flex-wrap items-center justify-between gap-4 pb-4.5 mb-4.5 border-b border-border/50 shrink-0">
             <div className="flex flex-wrap items-center gap-3">
               {/* 평형 필터 (5개 초과 시 드롭다운, 5개 이하 시 칩스 형식) */}
-              {areaFilterChips.length > 2 && (
+              {areaFilterChips.length > 0 && (
                 areaFilterChips.length > 5 ? (
                   <div className="relative shrink-0">
                     <select
                       value={selectedAreaFilter}
                       onChange={(e) => { setSelectedAreaFilter(e.target.value); loadAllTransactions?.(); }}
-                      className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer"
+                      className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                       aria-label="평형 타입 필터 선택"
+                      disabled={areaFilterChips.length === 1 && areaFilterChips[0] === '전체'}
                     >
                       {areaFilterChips.map(chip => (
                          <option key={chip} value={chip} className="font-medium text-secondary">
@@ -1994,6 +1999,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                     value={selectedAreaFilter}
                     onChange={(val) => { setSelectedAreaFilter(val); loadAllTransactions?.(); }}
                     className="max-w-full"
+                    disabled={areaFilterChips.length === 1 && areaFilterChips[0] === '전체'}
                   />
                 )
               )}
