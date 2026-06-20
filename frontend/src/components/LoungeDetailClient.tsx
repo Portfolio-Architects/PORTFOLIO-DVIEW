@@ -148,7 +148,10 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
+      if (uploadFocusTimeoutRef.current) {
+        clearTimeout(uploadFocusTimeoutRef.current);
+        uploadFocusTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -623,12 +626,16 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         if (mountedRef.current) {
           setEditContent(newText);
         }
-        if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
+        if (uploadFocusTimeoutRef.current) {
+          clearTimeout(uploadFocusTimeoutRef.current);
+          uploadFocusTimeoutRef.current = null;
+        }
         uploadFocusTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current && textarea) {
             textarea.focus();
             textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
           }
+          uploadFocusTimeoutRef.current = null;
         }, 10);
       } else {
         if (mountedRef.current) {

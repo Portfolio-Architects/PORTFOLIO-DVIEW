@@ -22,7 +22,10 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+        successTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -50,6 +53,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
       if (!mountedRef.current) return;
       if (successTimeoutRef.current) {
         clearTimeout(successTimeoutRef.current);
+        successTimeoutRef.current = null;
       }
       setIsSuccess(true);
       successTimeoutRef.current = setTimeout(() => {
