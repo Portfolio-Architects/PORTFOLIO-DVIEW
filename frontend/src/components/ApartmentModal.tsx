@@ -2790,6 +2790,21 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   {String(report.metrics.yearBuilt).substring(0, 4)}년 입주
                 </span>
               )}
+              {calculatedValuation?.status === 'undervalued' && (
+                <span className="bg-emerald-500/20 text-[#00d29d] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-emerald-500/30">
+                  저평가 메리트 🟢
+                </span>
+              )}
+              {calculatedValuation?.status === 'overvalued' && (
+                <span className="bg-rose-500/20 text-rose-400 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-rose-500/30">
+                  시세 고평가 🚨
+                </span>
+              )}
+              {calculatedValuation?.status === 'fair' && (
+                <span className="bg-slate-800 text-slate-300 text-[14px] font-black px-3.5 py-1.5 rounded-full">
+                  적정 시세 ⚖️
+                </span>
+              )}
             </div>
             <h1 className="text-[44px] font-black leading-tight tracking-tight text-white drop-shadow-sm">
               {displayAptName}
