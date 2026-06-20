@@ -1602,6 +1602,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       setCopiedStatus('all-link');
       if (copiedTimeoutRef.current) {
         clearTimeout(copiedTimeoutRef.current);
+        copiedTimeoutRef.current = null;
       }
       copiedTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
@@ -1674,6 +1675,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       setCopiedStatus('summary');
       if (copiedTimeoutRef.current) {
         clearTimeout(copiedTimeoutRef.current);
+        copiedTimeoutRef.current = null;
       }
       copiedTimeoutRef.current = setTimeout(() => {
         if (mountedRef.current) {
