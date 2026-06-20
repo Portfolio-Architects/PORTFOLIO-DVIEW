@@ -462,6 +462,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const isResizingRef = useRef(false);
   const animationFrameIdRef = useRef<number | null>(null);
+  const resizeListenersRef = useRef<{
+    mousemove: ((e: MouseEvent) => void) | null;
+    mouseup: (() => void) | null;
+  }>({ mousemove: null, mouseup: null });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -490,12 +494,14 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       document.body.style.userSelect = '';
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      resizeListenersRef.current = { mousemove: null, mouseup: null };
       if (animationFrameIdRef.current) {
         window.cancelAnimationFrame(animationFrameIdRef.current);
         animationFrameIdRef.current = null;
       }
     };
 
+    resizeListenersRef.current = { mousemove: handleMouseMove, mouseup: handleMouseUp };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
   };
@@ -505,6 +511,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       if (animationFrameIdRef.current) {
         window.cancelAnimationFrame(animationFrameIdRef.current);
       }
+      const { mousemove, mouseup } = resizeListenersRef.current;
+      if (mousemove) window.removeEventListener('mousemove', mousemove);
+      if (mouseup) window.removeEventListener('mouseup', mouseup);
     };
   }, []);
 
