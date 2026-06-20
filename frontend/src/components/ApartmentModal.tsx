@@ -1828,10 +1828,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
             className="flex items-center gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 py-1.5 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0 select-none"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
+            {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) — 모바일은 하단 스티키 바와 중복되므로 hidden 처리 */}
             <button
               onClick={handleNativeShare}
-              className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
+              className={`h-10 px-4 rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
                 copiedStatus === 'all-link'
                   ? 'bg-emerald-500 text-white shadow-md'
                   : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary'
@@ -2682,18 +2682,18 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
               <button
                 onClick={handleNativeShare}
-                className={`flex-1 h-[56px] text-white font-extrabold text-[15px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] ${
+                className={`flex-1 h-[56px] text-white font-extrabold text-[14px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] break-keep text-center px-2 ${
                   copiedStatus === 'all-link'
                     ? 'bg-emerald-600 shadow-[0_8px_16px_rgba(16,185,129,0.2)] hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)]'
                     : 'bg-[#008262] active:bg-[#006b50] shadow-[0_8px_16px_rgba(0,130,98,0.2)] hover:shadow-[0_10px_20px_rgba(0,130,98,0.3)] hover:-translate-y-0.5'
                 }`}
               >
                 {copiedStatus === 'all-link' ? (
-                  <Check size={20} strokeWidth={2.5} className="mr-0.5 text-white" />
+                  <Check size={18} strokeWidth={2.5} className="shrink-0 text-white" />
                 ) : (
-                  <Share size={20} strokeWidth={2.5} className="mr-0.5" />
+                  <Share size={18} strokeWidth={2.5} className="shrink-0" />
                 )}
-                {copiedStatus === 'all-link' ? '공유 링크 복사 완료!' : '이 아파트 분석 리포트 공유하기'}
+                <span className="break-keep leading-tight">{copiedStatus === 'all-link' ? '공유 링크 복사 완료!' : '분석 리포트 공유하기'}</span>
               </button>
             </div>
           </footer>
