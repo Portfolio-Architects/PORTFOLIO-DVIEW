@@ -16,6 +16,7 @@ const defaultFetcher = async (url: string) => {
 
 const SWRProvider = React.memo(function SWRProvider({ children }: { children: ReactNode }) {
   const isOnline = useNetworkStatus();
+  const cacheRef = useRef<Map<any, any> | null>(null);
 
   useEffect(() => {
     if (!isOnline || typeof window === 'undefined') return;
@@ -57,6 +58,7 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
 
   const getCache = useCallback(() => {
     if (typeof window === 'undefined') return new Map();
+    if (cacheRef.current) return cacheRef.current;
     
     let initialEntries: [any, any][] = [];
     try {
@@ -76,8 +78,16 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
     }
 
     const map = new Map<any, any>(initialEntries);
+    cacheRef.current = map;
+    return map;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
     const syncToLocalStorage = () => {
+      const map = cacheRef.current;
+      if (!map) return;
       try {
         if (typeof window.localStorage === 'undefined') return;
         const appCache = Array.from(map.entries())
@@ -101,9 +111,10 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
       }
     };
 
-    // Use pagehide or beforeunload event to write map contents back to localStorage
     window.addEventListener('pagehide', syncToLocalStorage);
-    return map;
+    return () => {
+      window.removeEventListener('pagehide', syncToLocalStorage);
+    };
   }, []);
 
   return (
