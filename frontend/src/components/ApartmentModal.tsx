@@ -64,7 +64,14 @@ const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').ca
   console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
   safeReload('BuyOrWaitVote');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[142px] mt-6 rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+      <span className="text-[12px] font-bold text-tertiary">매수 심리 위젯 로딩 중...</span>
+    </div>
+  )
+});
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import PushSubscriptionModal from './pwa/PushSubscriptionModal';
