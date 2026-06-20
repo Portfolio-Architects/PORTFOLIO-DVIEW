@@ -1,5 +1,85 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import Image from 'next/image';
+
+const GalleryRow = React.memo(function GalleryRow({
+  children,
+  className
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDown = true;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+    };
+
+    const handleMouseLeave = () => {
+      isDown = false;
+    };
+
+    const handleMouseUp = () => {
+      isDown = false;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      el.scrollLeft = scrollLeft - walk;
+    };
+
+    // Touch event handlers with passive: true
+    let touchStartX = 0;
+    let touchScrollLeft = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].pageX - el.offsetLeft;
+      touchScrollLeft = el.scrollLeft;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const x = e.touches[0].pageX - el.offsetLeft;
+      const walk = (x - touchStartX) * 1.2;
+      el.scrollLeft = touchScrollLeft - walk;
+    };
+
+    el.addEventListener('mousedown', handleMouseDown);
+    el.addEventListener('mouseleave', handleMouseLeave);
+    el.addEventListener('mouseup', handleMouseUp);
+    el.addEventListener('mousemove', handleMouseMove);
+
+    el.addEventListener('touchstart', handleTouchStart, { passive: true });
+    el.addEventListener('touchmove', handleTouchMove, { passive: true });
+
+    return () => {
+      el.removeEventListener('mousedown', handleMouseDown);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+      el.removeEventListener('mouseup', handleMouseUp);
+      el.removeEventListener('mousemove', handleMouseMove);
+
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
+
+  return (
+    <div ref={rowRef} className={className}>
+      {children}
+    </div>
+  );
+});
 
 export const ApartmentGallery = React.memo(function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptName }: {
   images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string; uploaderName?: string}[];
@@ -35,7 +115,7 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
               </span>
             </div>
             
-            <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <GalleryRow className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {categoryImages.map((img, i) => {
                 const altText = aptName 
                   ? `동탄 ${aptName} ${img.caption ? img.caption : `${label} 전경 및 임장 사진`} - D-VIEW`
@@ -82,7 +162,7 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                 </div>
                 );
               })}
-            </div>
+            </GalleryRow>
           </div>
         );
       })}

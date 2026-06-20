@@ -15,7 +15,9 @@ const eslintConfig = defineConfig([
     "scripts/**",
     "*.js",
     "scratch/**",
-    "**/scratch/**"
+    "**/scratch/**",
+    "playwright-report/**",
+    "test-results/**"
   ]),
   {
     linterOptions: {

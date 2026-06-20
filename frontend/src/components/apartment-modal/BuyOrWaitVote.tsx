@@ -114,6 +114,46 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   const buyPercent = totalVotes > 0 ? Math.round((buyCount / totalVotes) * 100) : 50;
   const waitPercent = totalVotes > 0 ? 100 - buyPercent : 50;
 
+  const [animatedBuyPercent, setAnimatedBuyPercent] = useState(50);
+  const [animatedWaitPercent, setAnimatedWaitPercent] = useState(50);
+
+  useEffect(() => {
+    if (!hasVoted) return;
+
+    let rId: number;
+    const startBuy = animatedBuyPercent;
+    const startWait = animatedWaitPercent;
+    const targetBuy = buyPercent;
+    const targetWait = waitPercent;
+    const duration = 600; // 600ms transition
+    let startTime: number | null = null;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const progressRatio = Math.min(progress / duration, 1);
+      
+      // Ease out quad
+      const easeRatio = progressRatio * (2 - progressRatio); 
+
+      const currentBuy = startBuy + (targetBuy - startBuy) * easeRatio;
+      const currentWait = startWait + (targetWait - startWait) * easeRatio;
+
+      setAnimatedBuyPercent(Math.round(currentBuy));
+      setAnimatedWaitPercent(Math.round(currentWait));
+
+      if (progress < duration) {
+        rId = requestAnimationFrame(animate);
+      }
+    };
+
+    rId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(rId);
+    };
+  }, [hasVoted, buyPercent, waitPercent]);
+
   return (
     <div className="bg-body rounded-2xl p-4 sm:p-5 border border-border shadow-sm mt-6">
       <div className="flex items-center justify-between mb-4">
@@ -176,19 +216,19 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
         <div className="flex flex-col gap-3">
           <div className="w-full h-8 bg-black/5 dark:bg-surface/10 rounded-xl overflow-hidden flex relative">
             <div
-              style={{ width: `${buyPercent}%` }}
-              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center pl-3 transition-all duration-500 ease-out"
+              style={{ width: `${animatedBuyPercent}%` }}
+              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center pl-3"
             >
               <span className="text-[11.5px] font-black text-white whitespace-nowrap">
-                매수 {buyPercent}%
+                매수 {animatedBuyPercent}%
               </span>
             </div>
             <div
-              style={{ width: `${waitPercent}%` }}
-              className="h-full bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-end pr-3 transition-all duration-500 ease-out"
+              style={{ width: `${animatedWaitPercent}%` }}
+              className="h-full bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-end pr-3"
             >
               <span className="text-[11.5px] font-black text-white whitespace-nowrap">
-                관망 {waitPercent}%
+                관망 {animatedWaitPercent}%
               </span>
             </div>
           </div>

@@ -60,9 +60,16 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
     
     let initialEntries: [any, any][] = [];
     try {
-      const rawCache = localStorage.getItem('app-swr-cache');
-      if (rawCache) {
-        initialEntries = JSON.parse(rawCache);
+      if (typeof window.localStorage !== 'undefined') {
+        const rawCache = localStorage.getItem('app-swr-cache');
+        if (rawCache) {
+          const parsed = JSON.parse(rawCache);
+          if (Array.isArray(parsed) && parsed.every(entry => Array.isArray(entry) && entry.length === 2)) {
+            initialEntries = parsed;
+          } else {
+            console.warn('SWRProvider.getCache: Invalid cache structure inside localStorage');
+          }
+        }
       }
     } catch (err) {
       console.warn('Failed to parse SWR localStorage cache:', err);
@@ -72,6 +79,7 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
 
     const syncToLocalStorage = () => {
       try {
+        if (typeof window.localStorage === 'undefined') return;
         const appCache = Array.from(map.entries())
           .filter(([key, value]) => {
             // Only serialize static JSON assets/APIs and check serializability
