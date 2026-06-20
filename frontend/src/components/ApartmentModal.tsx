@@ -430,9 +430,18 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   useEffect(() => {
     return () => {
-      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-      if (activeTabTimeoutRef.current) clearTimeout(activeTabTimeoutRef.current);
-      if (shareActionTimeoutRef.current) clearTimeout(shareActionTimeoutRef.current);
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+        copiedTimeoutRef.current = null;
+      }
+      if (activeTabTimeoutRef.current) {
+        clearTimeout(activeTabTimeoutRef.current);
+        activeTabTimeoutRef.current = null;
+      }
+      if (shareActionTimeoutRef.current) {
+        clearTimeout(shareActionTimeoutRef.current);
+        shareActionTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -1197,6 +1206,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }
 
     // Delay activeTab state update to prevent rendering workload from blocking the initial scroll animation
+    if (activeTabTimeoutRef.current) {
+      clearTimeout(activeTabTimeoutRef.current);
+      activeTabTimeoutRef.current = null;
+    }
     activeTabTimeoutRef.current = setTimeout(() => {
       setActiveTab(id);
       activeTabTimeoutRef.current = null;
