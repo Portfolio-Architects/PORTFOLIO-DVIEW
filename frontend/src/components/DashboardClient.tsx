@@ -1131,7 +1131,10 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         id="main-content" 
         className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
       >
-        {memoizedTabContents}
+        <div className={mobileModalOpen ? "md:visible invisible" : ""}>
+          {memoizedTabContents}
+        </div>
+
 
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {resolvedReport && mobileModalOpen && (

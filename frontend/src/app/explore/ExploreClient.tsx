@@ -402,23 +402,26 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       >
         <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)]">
           <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500">
-            <section className="w-full bg-transparent">
-              <TossApartmentExploreClient
-                sheetApartments={sheetApartments}
-                txSummaryData={txSummaryData}
-                nameMapping={nameMapping || {}}
-                fieldReportsMap={fieldReportsMap}
-                publicRentalSet={publicRentalSet}
-                userFavorites={userFavorites}
-                favoriteCounts={favoriteCounts}
-                typeMap={typeMap}
-                handleSelectApt={handleAptClickByName}
-                onToggleFavorite={handleAptToggleFavorite}
-                onOpenCompare={handleOpenCompare}
-                onOpenJeonseSafety={handleOpenJeonseSafety}
-                onOpenMortgage={handleOpenMortgage}
-              />
-            </section>
+            <div className={mobileModalOpen ? "md:visible invisible" : ""}>
+              <section className="w-full bg-transparent">
+                <TossApartmentExploreClient
+                  sheetApartments={sheetApartments}
+                  txSummaryData={txSummaryData}
+                  nameMapping={nameMapping || {}}
+                  fieldReportsMap={fieldReportsMap}
+                  publicRentalSet={publicRentalSet}
+                  userFavorites={userFavorites}
+                  favoriteCounts={favoriteCounts}
+                  typeMap={typeMap}
+                  handleSelectApt={handleAptClickByName}
+                  onToggleFavorite={handleAptToggleFavorite}
+                  onOpenCompare={handleOpenCompare}
+                  onOpenJeonseSafety={handleOpenJeonseSafety}
+                  onOpenMortgage={handleOpenMortgage}
+                />
+              </section>
+            </div>
+
 
             {/* Apartment Detail Modal */}
             {resolvedReport && mobileModalOpen && (
