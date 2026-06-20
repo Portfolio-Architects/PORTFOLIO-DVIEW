@@ -2073,7 +2073,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {/* Left: 실거래가 전체 리스트 (35%) */}
           <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
             {!isAnimationFinished || isTxLoading ? (
-              <div className="w-full h-[408px] md:h-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+              <div className="w-full h-[401px] md:h-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
                 <span className="text-[12px] font-bold text-tertiary">거래 데이터 분석 중...</span>
               </div>
             ) : (
@@ -2090,7 +2090,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
             <ErrorBoundary name="실거래 차트">
               {!isAnimationFinished || isTxLoading ? (
-                <div className="w-full h-[519px] md:h-[544px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
+                <div className="w-full h-[549px] md:h-[578px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
                   <span className="text-[12px] font-bold text-tertiary">시세 차트 로딩 중...</span>
                 </div>
               ) : (
@@ -2113,7 +2113,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
       {!isAnimationFinished || isTxLoading ? (
-        <div className="w-full h-[440px] md:h-[390px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse mt-4" />
+        <div className="w-full h-[460px] md:h-[386px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse mt-4" />
       ) : (
         <TransactionSummaryMetrics 
           transactions={transactions} 
