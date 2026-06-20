@@ -127,7 +127,7 @@ export function useApartmentDetails(
     
     const timer = setTimeout(() => {
       setShouldFetchFull(true);
-    }, 200); // 200ms delay to keep initial mount ultra-fast
+    }, 600); // 600ms delay to keep initial mount ultra-fast and avoid layout/parse clash during slide-in animation
     
     return () => clearTimeout(timer);
   }, [selectedReport]);

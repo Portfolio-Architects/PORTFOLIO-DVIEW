@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp, X, MapPin } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from 'recharts';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { calculateDynamicDCF, calculateDongSpread, calculateForwardJeonseTrajectory } from '@/lib/utils/valuationEngine';

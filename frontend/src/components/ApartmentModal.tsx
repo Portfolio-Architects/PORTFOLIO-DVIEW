@@ -1105,7 +1105,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // Prevent body scroll when modal is open without causing global layout thrashing
   useEffect(() => {
-    if (inline || !mounted) return;
+    if (inline || !isAnimationFinished) return;
     
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalOverflow = document.body.style.overflow;
@@ -1120,7 +1120,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       document.body.style.overflow = originalOverflow || '';
       document.body.style.paddingRight = originalPaddingRight || '';
     };
-  }, [inline, mounted]);
+  }, [inline, isAnimationFinished]);
 
 
   const isUnlocked = true;
@@ -2606,8 +2606,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
         <div className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" onClick={onClose} />
         
         <article 
-          onMouseEnter={loadAllTransactions}
-          onTouchStart={loadAllTransactions}
           className={`relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}
         >
 

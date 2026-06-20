@@ -31,6 +31,22 @@ interface TransactionChartSectionProps {
   txSummary?: AptTxSummary;
 }
 
+// ── DATE/TIMESTAMP CACHING TO PREVENT SYNCHRONOUS INSTANTIATION OVERHEAD ──
+const globalTsCache = new Map<string, number>();
+const getCachedTimestamp = (ymStr: string, dayStr: string) => {
+  const key = `${ymStr}-${dayStr}`;
+  let ts = globalTsCache.get(key);
+  if (ts === undefined) {
+    const year = parseInt(ymStr.slice(0, 4)) || 2026;
+    const month = parseInt(ymStr.slice(4, 6)) || 6;
+    const day = parseInt(dayStr) || 15;
+    const tsVal = new Date(year, month - 1, day).getTime();
+    ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
+    globalTsCache.set(key, ts);
+  }
+  return ts;
+};
+
 export const TransactionChartSection = React.memo(function TransactionChartSection({
   transactions,
   chartType,
@@ -55,6 +71,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const chartRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const sizeRef = useRef({ width: 0, height: 0 });
   const [isChartReady, setIsChartReady] = useState(false);
 
   const mountedRef = useRef(true);
@@ -79,11 +96,20 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     const resizeObserver = new ResizeObserver((entries) => {
       if (!entries || entries.length === 0) return;
       const { width, height } = entries[0].contentRect;
+
+      // 2px 이하 미세 변화는 리사이즈 무시하여 불필요한 차트 리렌더 억제
+      const diffW = Math.abs(width - sizeRef.current.width);
+      const diffH = Math.abs(height - sizeRef.current.height);
+      if (sizeRef.current.width > 0 && sizeRef.current.height > 0 && diffW <= 2 && diffH <= 2) {
+        return;
+      }
       
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         if (mountedRef.current) {
-          setDimensions({ width, height });
+          const newSize = { width, height };
+          sizeRef.current = newSize;
+          setDimensions(newSize);
         }
       }, 100);
     });
@@ -141,6 +167,10 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   }, [transactions, chartType]);
 
   const rawData = React.useMemo(() => {
+    const today = new Date();
+    const todayMs = today.getTime();
+    const maxAllowedYm = today.getFullYear() * 100 + (today.getMonth() + 1);
+
     return relevantTxs.map((tx) => {
       let rawPrice = tx.price;
       if (chartType === 'jeonse') {
@@ -151,10 +181,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
       const ym = String(tx.contractYm || '');
       const year = parseInt(ym.slice(0, 4)) || 2026;
-      const month = parseInt(ym.slice(4)) || 6;
+      const month = parseInt(ym.slice(4, 6)) || 6;
       const day = parseInt(tx.contractDay) || 1;
-      const tsVal = new Date(year, month - 1, day).getTime();
-      const ts = isNaN(tsVal) ? new Date(2026, 5, 1).getTime() : tsVal;
+      const ts = getCachedTimestamp(ym, String(day));
       return {
         ts,
         yearMonth: parseInt(ym) || 202606, contractDay: day,
@@ -167,9 +196,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         areaLabelPyeong: tx.areaLabelPyeong,
       };
     }).filter(d => {
-      const today = new Date();
-      const maxAllowedYm = today.getFullYear() * 100 + (today.getMonth() + 1);
-      const isFuture = d.yearMonth > maxAllowedYm || (d.yearMonth === maxAllowedYm && d.ts > today.getTime());
+      const isFuture = d.yearMonth > maxAllowedYm || (d.yearMonth === maxAllowedYm && d.ts > todayMs);
       return !isFuture && !isNaN(d.ts);
     });
   }, [relevantTxs, chartType]);
@@ -346,8 +373,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       if ((parseInt(ym) || 0) < cutoffYm) return false;
       if (tx.dealType === '전세' || tx.dealType === '월세') return false;
       
-      const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
-      const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
+      const ts = getCachedTimestamp(ym, String(tx.contractDay || '15'));
       if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
       if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
       return true;
@@ -358,8 +384,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       if ((parseInt(ym) || 0) < cutoffYm) return false;
       if (tx.dealType !== '전세' && tx.dealType !== '월세') return false;
       
-      const tsVal = new Date(parseInt(ym.slice(0, 4)) || 2026, (parseInt(ym.slice(4)) || 6) - 1, parseInt(tx.contractDay) || 15).getTime();
-      const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
+      const ts = getCachedTimestamp(ym, String(tx.contractDay || '15'));
       if (zoomDomain.left !== 'dataMin' && ts < (zoomDomain.left as number)) return false;
       if (zoomDomain.right !== 'dataMax' && ts > (zoomDomain.right as number)) return false;
       return true;

@@ -38,18 +38,25 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
   const metrics = useMemo(() => {
     // 실거래가의 가장 최근 계약일을 기준일(now)로 삼아 싱크 지연이나 시스템 시각 불일치 시의 계산 정합성 확보
-    const now = (() => {
-      if (!transactions || transactions.length === 0) return new Date();
-      const todayMs = Date.now();
-      const dates = transactions.map(tx => {
-        const y = parseInt(tx.contractYm.slice(0, 4)) || 2026;
-        const m = parseInt(tx.contractYm.slice(4, 6)) || 6;
-        const d = parseInt(tx.contractDay) || 15;
-        return new Date(y, m - 1, d).getTime();
-      }).filter(ts => ts <= todayMs);
-      const maxTs = dates.length > 0 ? Math.max(...dates) : todayMs;
-      return new Date(maxTs);
-    })();
+    const today = new Date();
+    const todayDateNum = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+
+    let maxDateNum = 0;
+    for (let i = 0; i < transactions.length; i++) {
+      const tx = transactions[i] as any;
+      const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      if (dateNum <= todayDateNum && dateNum > maxDateNum) {
+        maxDateNum = dateNum;
+      }
+    }
+    
+    let now = new Date();
+    if (maxDateNum > 0) {
+      const year = Math.floor(maxDateNum / 10000);
+      const month = Math.floor((maxDateNum % 10000) / 100);
+      const day = maxDateNum % 100;
+      now = new Date(year, month - 1, day);
+    }
     
     // 1) 타입 필터 칩 목록 구성
     const byArea = new Map<string, { label: string; area: number }>();
@@ -89,23 +96,13 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       { key: 'ALL', label: '전체', months: 9999 },
     ];
 
-    const getTxDate = (tx: TransactionRecord) => {
-      const y = parseInt(tx.contractYm.slice(0, 4));
-      const m = parseInt(tx.contractYm.slice(4, 6));
-      const d = parseInt(tx.contractDay) || 1;
-      return new Date(y, m - 1, d);
-    };
-
     const periodTransactions = transactions.filter(tx => {
       if (periodDealType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
       if (periodDealType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
       
-      // 방어적 미래 일자 필터링
-      const y = parseInt(tx.contractYm.slice(0, 4)) || 2026;
-      const m = parseInt(tx.contractYm.slice(4, 6)) || 6;
-      const d = parseInt(tx.contractDay) || 15;
-      const ts = new Date(y, m - 1, d).getTime();
-      if (ts > Date.now()) return false;
+      // 방어적 미래 일자 필터링 (numeric 비교로 최적화)
+      const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      if (dateNum > todayDateNum) return false;
       
       return true;
     });
@@ -147,12 +144,20 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
     };
 
     const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + getTxPrice(t), 0) / baseTx.length : 0;
-    const sortedBaseTx = [...baseTx].sort((a, b) => getTxDate(b).getTime() - getTxDate(a).getTime());
+    const sortedBaseTx = [...baseTx].sort((a, b) => {
+      const dateNumA = (a as any).contractDateNum || (a.contractYm ? parseInt(a.contractYm + String(a.contractDay || '15').padStart(2, '0')) : 20260615);
+      const dateNumB = (b as any).contractDateNum || (b.contractYm ? parseInt(b.contractYm + String(b.contractDay || '15').padStart(2, '0')) : 20260615);
+      return dateNumB - dateNumA;
+    });
     const fallbackTx = sortedBaseTx.length > 0 ? sortedBaseTx[0] : null;
 
     const periodData = periods.map(p => {
       const cutoffDate = new Date(now.getFullYear(), now.getMonth() - p.months, now.getDate());
-      const filtered = baseTx.filter(tx => p.months >= 9999 || getTxDate(tx) >= cutoffDate);
+      const cutoffNum = cutoffDate.getFullYear() * 10000 + (cutoffDate.getMonth() + 1) * 100 + cutoffDate.getDate();
+      const filtered = baseTx.filter(tx => {
+        const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+        return p.months >= 9999 || dateNum >= cutoffNum;
+      });
       
       let rawAvgPrice = 0;
       let perPyeong = 0;
@@ -188,8 +193,16 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
     const filteredJeonses = baseTx.filter(tx => tx.dealType === '전세');
 
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-    const recentSales = filteredSales.filter(tx => getTxDate(tx) >= sixMonthsAgo);
-    const recentJeonses = filteredJeonses.filter(tx => getTxDate(tx) >= sixMonthsAgo);
+    const sixMonthsAgoNum = sixMonthsAgo.getFullYear() * 10000 + (sixMonthsAgo.getMonth() + 1) * 100 + sixMonthsAgo.getDate();
+    
+    const recentSales = filteredSales.filter(tx => {
+      const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      return dateNum >= sixMonthsAgoNum;
+    });
+    const recentJeonses = filteredJeonses.filter(tx => {
+      const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      return dateNum >= sixMonthsAgoNum;
+    });
 
     const isRecentFallback = (filteredSales.length > 0 && recentSales.length === 0) || 
                              (filteredJeonses.length > 0 && recentJeonses.length === 0);
