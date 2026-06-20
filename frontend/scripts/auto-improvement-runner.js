@@ -231,6 +231,22 @@ async function main() {
         const escapedTaskText = taskText.replace(/"/g, "'");
         execSync(`git commit -m "Auto Refactoring: ${escapedTaskText} - Phase ${history.phase}"`, { cwd: PROJECT_ROOT });
         log(colors.green, '   ✅ Git commit generated.');
+
+        // Push changes to remote repository since it passed audit checks (authorized by AGENT.md push-exception)
+        try {
+          log(colors.cyan, '🚀 Synchronizing changes with remote repository (git push)...');
+          execSync('git push origin master', { cwd: PROJECT_ROOT });
+          log(colors.green, '   ✅ Git push completed successfully.');
+        } catch (pushErr) {
+          log(colors.red, `   ⚠️ Git push failed: ${pushErr.message}. Will try to pull and push again.`);
+          try {
+            execSync('git pull origin master --rebase', { cwd: PROJECT_ROOT });
+            execSync('git push origin master', { cwd: PROJECT_ROOT });
+            log(colors.green, '   ✅ Git push succeeded after rebase.');
+          } catch (rebasePushErr) {
+            log(colors.red, `   ❌ Rebase push also failed: ${rebasePushErr.message}. Leaving commits in local status.`);
+          }
+        }
       } else {
         log(colors.yellow, '   ℹ️ No file changes detected to commit.');
       }
