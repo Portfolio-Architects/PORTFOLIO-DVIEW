@@ -1316,10 +1316,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
     if (!el) return;
 
     let ticking = false;
+    let rId: number | null = null;
     const onScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          handleScroll();
+        rId = window.requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            handleScroll();
+          }
           ticking = false;
         });
         ticking = true;
@@ -1329,6 +1332,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       el.removeEventListener('scroll', onScroll);
+      if (rId) window.cancelAnimationFrame(rId);
     };
   }, [handleScroll, mounted, inline]);
 
