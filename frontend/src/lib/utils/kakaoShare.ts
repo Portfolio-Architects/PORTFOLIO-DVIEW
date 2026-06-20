@@ -32,30 +32,19 @@ export const loadKakaoSdk = (): Promise<void> => {
     const existingScript = document.querySelector('script[src*="kakao.min.js"]') as HTMLScriptElement | null;
     if (existingScript) {
       // Poll dynamically up to 5 seconds to prevent race conditions in slower network environments
+      // We don't overwrite existingScript.onload to prevent memory leaks and callback chain breaking.
       let attempts = 0;
-      const originalOnload = existingScript.onload;
       const interval = setInterval(() => {
         attempts++;
         if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
           clearInterval(interval);
-          existingScript.onload = originalOnload;
           resolve();
         } else if (attempts >= 50) { // 50 * 100ms = 5000ms (5s)
           clearInterval(interval);
-          existingScript.onload = originalOnload;
           kakaoLoadPromise = null;
           reject(new Error("Kakao SDK 스크립트는 존재하나 로드가 완료되지 않았습니다. 잠시 후 다시 시도해주세요."));
         }
       }, 100);
-
-      existingScript.onload = (e) => {
-        if (typeof originalOnload === 'function') originalOnload.call(existingScript, e);
-        if (window.Kakao && typeof window.Kakao.isInitialized === "function" && window.Kakao.Share) {
-          clearInterval(interval);
-          existingScript.onload = originalOnload;
-          resolve();
-        }
-      };
       return;
     }
 

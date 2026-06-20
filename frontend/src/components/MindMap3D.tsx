@@ -259,6 +259,10 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     };
 
     const render = () => {
+      if (!mountedRef.current) {
+        isLoopRunning.current = false;
+        return;
+      }
       if (!isVisible.current) {
         isLoopRunning.current = false;
         return;
