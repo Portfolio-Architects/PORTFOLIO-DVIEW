@@ -5,7 +5,6 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import PageHeroHeader from './PageHeroHeader';
 import HotComplexRanking from './HotComplexRanking';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
@@ -297,7 +296,7 @@ const AptRow = memo(({
       {/* Mobile View (Hidden on Desktop) - Sleek Toss-style List Tile */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
-        className={`flex md:hidden items-center justify-between px-4 py-3.5 cursor-pointer transition-all duration-200 ease-in-out active:bg-neutral-100/60 dark:active:bg-zinc-900/40 ${
+        className={`flex md:hidden items-center justify-between px-4 h-[64px] cursor-pointer transition-all duration-200 ease-in-out active:bg-neutral-100/60 dark:active:bg-zinc-900/40 ${
           index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-neutral-50/20 dark:bg-zinc-900/5'
         } border-b border-neutral-100/40 dark:border-zinc-900/10`}
       >
@@ -801,16 +800,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
   return (
     <div className="flex flex-col w-full bg-transparent">
-      {/* Standardized Hero Header */}
-      <div className="shrink-0">
-        <PageHeroHeader 
-          title="D-VIEW 아파트 탐색"
-          subtitleStrong="동탄 전역 아파트 비교 분석"
-          subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
-        />
-      </div>
-
-
       {/* Main Content Area */}
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
