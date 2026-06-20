@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, MapPin, Building, Info, Map as MapIcon, ShieldAlert, Zap, RotateCcw, Save } from 'lucide-react';
 import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/DashboardFacade';
-import { auth } from '@/lib/firebaseConfig';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { User } from 'firebase/auth';
+import { useAuth } from '@/hooks/useAuth';
 import { EmojiRating as BaseEmojiRating, MultiPhotoDropzone as BaseMultiPhotoDropzone, TextInput as BaseTextInput, SelectInput as BaseSelectInput } from '@/components/write-report/ReportUI';
 
 const DRAFT_KEY = 'dtdls_report_draft';
@@ -107,7 +107,11 @@ MultiPhotoDropzone.displayName = 'MultiPhotoDropzone';
 const WriteFieldReport = React.memo(function WriteFieldReport() {
   const router = useRouter();
   const { dongtanApartments } = useDashboardData();
-  const [user, setUser] = useState<User | null>(null);
+  const { user: authUser, isLoading } = useAuth();
+  
+  const user = process.env.NODE_ENV === 'development'
+    ? ({ uid: 'dev-user', email: 'dev@localhost' } as User)
+    : authUser;
   
   const mountedRef = useRef(false);
   useEffect(() => {
@@ -154,31 +158,21 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
 
   // -- Auth guard --
   useEffect(() => {
-    let active = true;
+    if (process.env.NODE_ENV === 'development') return;
+    if (isLoading) return;
 
-    // Dev mode: skip auth entirely
-    if (process.env.NODE_ENV === 'development') {
-      setUser({ uid: 'dev-user', email: 'dev@localhost' } as User);
+    if (!authUser) {
+      alert("로그인이 필요한 페이지입니다.");
+      router.push('/');
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!active) return;
-      if (!currentUser) {
-        alert("로그인이 필요한 페이지입니다.");
-        router.push('/');
-      } else if (!dashboardFacade.isAdmin(currentUser.email)) {
-        alert("관리자 전용 기능입니다.");
-        router.push('/');
-      } else {
-        setUser(currentUser);
-      }
-    });
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, [router]);
+    if (!dashboardFacade.isAdmin(authUser.email)) {
+      alert("관리자 전용 기능입니다.");
+      router.push('/');
+      return;
+    }
+  }, [authUser, isLoading, router]);
 
   // -- Draft Recovery Check --
   useEffect(() => {
