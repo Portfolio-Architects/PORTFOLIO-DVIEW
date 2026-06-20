@@ -329,7 +329,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       } catch (err) {
         console.warn('localStorage is unavailable:', err);
       }
-      await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { likes: increment(1) });
+      await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
       if (!mountedRef.current) return;
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
       showToast("이 글에 공감(좋아요)을 보냈습니다. ❤️");
@@ -492,7 +492,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         authorUid: authorUid || '',
         createdAt: serverTimestamp(),
       });
-      await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), { commentCount: increment(1) });
+      await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) });
       if (!mountedRef.current) return;
       lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
@@ -541,7 +541,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const handleSaveEdit = useCallback(async () => {
     if (!postId || !editTitle.trim()) return;
     try {
-      await updateDoc(doc(db, 'posts', postId).withConverter(postConverter), {
+      await updateDoc(doc(db, 'posts', postId), {
         title: editTitle.trim(),
         content: editContent.trim(),
         category: editCategory,

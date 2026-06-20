@@ -131,7 +131,7 @@ async function invalidatePostCache(postId: string): Promise<void> {
  */
 export async function incrementPostLike(postId: string): Promise<void> {
   try {
-    const postRef = doc(db, 'posts', postId).withConverter(postConverter);
+    const postRef = doc(db, 'posts', postId);
     await throttle(() => updateDoc(postRef, { likes: increment(1) }));
     await invalidatePostCache(postId);
   } catch (error) {
@@ -150,7 +150,7 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
  */
 export async function incrementPostView(postId: string, title: string = '알 수 없는 글'): Promise<void> {
   try {
-    const postRef = doc(db, 'posts', postId).withConverter(postConverter);
+    const postRef = doc(db, 'posts', postId);
     await throttle(() => updateDoc(postRef, { views: increment(1) }));
     await TrafficRepo.incrementContentView(postId, title, 'lounge');
     await invalidatePostCache(postId);
