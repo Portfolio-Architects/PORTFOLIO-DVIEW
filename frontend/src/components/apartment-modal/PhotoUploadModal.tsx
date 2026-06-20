@@ -33,6 +33,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
   const { handleLogin } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [category, setCategory] = useState<string>('gateImg');
   const [caption, setCaption] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -76,6 +77,40 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
   }, [previewUrl]);
 
   if (!isOpen || !mounted) return null;
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const selected = e.dataTransfer.files?.[0];
+    if (selected && selected.type.startsWith('image/')) {
+      if (selected.size > 10 * 1024 * 1024) {
+        alert('이미지 크기는 10MB 이하여야 합니다.');
+        return;
+      }
+      setFile(selected);
+      const url = URL.createObjectURL(selected);
+      setPreviewUrl(url);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -200,8 +235,16 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                 <label className="text-[14px] font-bold text-secondary">사진 등록 (필수)</label>
                 <div 
                   className={`w-full aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden
-                    ${previewUrl ? 'border-transparent bg-black' : 'border-border bg-body hover:bg-surface'}`}
+                    ${previewUrl 
+                      ? 'border-transparent bg-black' 
+                      : isDragging 
+                        ? 'border-[#3182f6] bg-[#3182f6]/5' 
+                        : 'border-border bg-body hover:bg-surface'}`}
                   onClick={() => fileInputRef.current?.click()}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                 >
                   {previewUrl ? (
                     <>
