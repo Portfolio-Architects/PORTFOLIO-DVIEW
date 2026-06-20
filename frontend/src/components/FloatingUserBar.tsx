@@ -53,6 +53,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
       window.removeEventListener('scroll', handleScroll);
       if (scrollTimeoutRef.current) {
         window.cancelAnimationFrame(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
       }
     };
   }, []);
