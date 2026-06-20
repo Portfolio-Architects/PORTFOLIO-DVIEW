@@ -435,6 +435,7 @@ interface TossApartmentExploreClientProps {
   onOpenCompare?: () => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
+  onSearchFocus?: () => void;
 }
 
 const TossApartmentExploreClientPropsSchema = z.object({
@@ -459,6 +460,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
+  onSearchFocus,
 }: TossApartmentExploreClientProps) {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [mounted, setMounted] = useState(false);
@@ -972,7 +974,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
+              onFocus={() => {
+                setIsSearchFocused(true);
+                if (onSearchFocus) onSearchFocus();
+              }}
               onBlur={() => {
                 if (searchFocusTimeoutRef.current) {
                   clearTimeout(searchFocusTimeoutRef.current);

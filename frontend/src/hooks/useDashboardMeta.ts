@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { logger } from '@/lib/services/logger';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
@@ -42,6 +42,8 @@ export interface DashboardInitialDataLocal {
 }
 
 export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLocal) {
+  const [startFetch, setStartFetch] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [sheetApartments, setSheetApartments] = useState<Record<string, DongApartment[]>>(() => {
     if (initialDashboardData?.sheetApartments && Object.keys(initialDashboardData.sheetApartments).length > 0) {
       const updatedByDong = Object.fromEntries(
@@ -96,28 +98,27 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     return new Set();
   });
 
+  const triggerFetch = useCallback(() => {
+    setStartFetch(true);
+  }, []);
+
   const hasSheetData = !!(initialDashboardData?.sheetApartments && Object.keys(initialDashboardData.sheetApartments).length > 0);
 
-  // Fetch sheet apartments only if not provided by server
+  // Fetch combined sheet apartments and typeMap on demand (Lazy Fetching)
   useEffect(() => {
-    if (hasSheetData) return;
+    if (hasSheetData || !startFetch) return;
     
     let unmounted = false;
-    fetch('/api/apartments-by-dong')
+    setIsLoading(true);
+    
+    fetch('/api/explore/search-data')
       .then(r => r.json())
       .then(data => {
         if (unmounted) return;
-        const validation = ApartmentsByDongResponseSchema.safeParse(data);
-        if (!validation.success) {
-          logger.warn('useDashboardMeta.fetchApartments', 'Validation failed for /api/apartments-by-dong', {
-            errors: validation.error.issues.map(e => e.message),
-          });
-          return;
-        }
-        const validatedData = validation.data;
-        if (validatedData.byDong && Object.keys(validatedData.byDong).length > 0) {
+        
+        if (data.sheetApartments && Object.keys(data.sheetApartments).length > 0) {
           const updatedByDong = Object.fromEntries(
-            Object.entries(validatedData.byDong).map(([dong, apts]) => {
+            Object.entries(data.sheetApartments).map(([dong, apts]) => {
               const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a?.name || '') }));
               const dedupedMap = new Map<string, DongApartment>();
               for (const a of mappedApts) {
@@ -132,15 +133,30 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
           );
           setSheetApartments(updatedByDong);
         }
+
+        if (data.typeMap) {
+          const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
+          for (const e of data.typeMap) {
+            const key = normalizeAptName(e.aptName);
+            if (!map[key]) map[key] = {};
+            map[key][String(Number(e.area))] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
+          }
+          setTypeMap(map);
+        }
       })
-      .catch((err) => { logger.warn('Dashboard', 'Failed to fetch apartments', {}, err); });
+      .catch((err) => { 
+        logger.warn('DashboardMeta', 'Failed to lazy fetch search data', {}, err); 
+      })
+      .finally(() => {
+        if (!unmounted) setIsLoading(false);
+      });
 
       return () => { unmounted = true; };
-  }, [hasSheetData]);
+  }, [hasSheetData, startFetch]);
 
-  // Fetch init map only if not provided by server
+  // Fetch init map only if not provided by server (and not starting the combined lazy fetch yet)
   useEffect(() => {
-    if (initialDashboardData) return;
+    if (initialDashboardData || startFetch) return;
 
     let unmounted = false;
     fetch('/api/dashboard-init').then(r => r.json()).then(data => {
@@ -178,12 +194,14 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
       }
     }).catch(() => !unmounted && setNameMapping({}));
     return () => { unmounted = true; };
-  }, [initialDashboardData]);
+  }, [initialDashboardData, startFetch]);
 
   return {
     sheetApartments,
     typeMap,
     nameMapping,
-    publicRentalSet
+    publicRentalSet,
+    triggerFetch,
+    isLoading
   };
 }

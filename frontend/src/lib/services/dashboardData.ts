@@ -7,6 +7,7 @@ import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
+import { serverLruCache } from '@/lib/utils/server/lruCache';
 
 
 
@@ -59,7 +60,7 @@ const DongtanMacroTrendPointSchema = z.object({
 
 export const InitialPageDataSchema = z.object({
   favoriteCounts: z.record(z.string(), z.number().int().nonnegative()),
-  typeMap: z.array(TypeMapItemSchema),
+  typeMap: z.array(TypeMapItemSchema).optional(),
   apartmentMeta: ApartmentMetaSchema,
   sheetApartments: z.record(z.string(), z.array(z.any())).optional(),
   fieldReports: z.array(FieldReportSchema),
@@ -174,12 +175,19 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchFavCounts = async () => {
+    const l1Cache = serverLruCache.get('favCounts');
+    if (l1Cache) {
+      result.favoriteCounts = l1Cache;
+      return;
+    }
+
     if (pipelinedFavs && Object.keys(pipelinedFavs).length > 0) {
       const castedFavs: Record<string, number> = {};
       Object.entries(pipelinedFavs).forEach(([k, v]) => {
         castedFavs[k] = Number(v) || 0;
       });
       result.favoriteCounts = castedFavs;
+      serverLruCache.set('favCounts', castedFavs, 60 * 1000);
       return;
     }
     if (adminDb) {
@@ -188,6 +196,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
+      serverLruCache.set('favCounts', result.favoriteCounts, 60 * 1000);
       if (redis && Object.keys(result.favoriteCounts).length > 0) {
         redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => 
           logger.warn('DashboardData.fetchFavCounts', 'Redis favoriteCounts write-back failed', {}, err)
@@ -197,12 +206,19 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchMeta = async () => {
+    const l1Cache = serverLruCache.get('apartmentMeta');
+    if (l1Cache) {
+      result.apartmentMeta = l1Cache;
+      return;
+    }
+
     let parsedMeta = pipelinedMeta;
     if (typeof pipelinedMeta === 'string') {
       try { parsedMeta = JSON.parse(pipelinedMeta); } catch { parsedMeta = null; }
     }
     if (parsedMeta && typeof parsedMeta === 'object' && Object.keys(parsedMeta).length > 0) {
       result.apartmentMeta = parsedMeta as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+      serverLruCache.set('apartmentMeta', result.apartmentMeta, 300 * 1000);
       return;
     }
     if (adminDb) {
@@ -210,6 +226,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
       if (metaDoc.exists) {
         const metaData = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
         result.apartmentMeta = metaData;
+        serverLruCache.set('apartmentMeta', metaData, 300 * 1000);
         if (redis && Object.keys(metaData).length > 0) {
           redis.set('DTDLS:cache:apartmentMeta', metaData, { ex: 86400 }).catch(e => logger.warn('DashboardData', 'Redis meta write error', {}, e));
         }
@@ -218,12 +235,19 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchReports = async () => {
+    const l1Cache = serverLruCache.get('fieldReports');
+    if (l1Cache) {
+      result.fieldReports = l1Cache;
+      return;
+    }
+
     let parsedReports = pipelinedReports;
     if (typeof pipelinedReports === 'string') {
       try { parsedReports = JSON.parse(pipelinedReports); } catch { parsedReports = null; }
     }
     if (parsedReports && Array.isArray(parsedReports) && parsedReports.length > 0) {
       result.fieldReports = parsedReports;
+      serverLruCache.set('fieldReports', parsedReports, 120 * 1000);
       return;
     }
     if (adminDb) {
@@ -266,6 +290,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
         };
       });
       result.fieldReports = reports;
+      serverLruCache.set('fieldReports', reports, 120 * 1000);
       if (redis && reports.length > 0) {
         redis.set('DTDLS:cache:fieldReports', reports, { ex: 3600 }).catch(e => logger.warn('DashboardData', 'Redis reports write error', {}, e));
       }
@@ -303,8 +328,8 @@ async function fetchFreshData(): Promise<InitialPageData> {
     fetchFavCounts().catch(e => logger.warn('DashboardData', 'favCounts error', {}, e)),
     fetchMeta().catch(e => logger.warn('DashboardData', 'meta error', {}, e)),
     fetchReports().catch(e => logger.warn('DashboardData', 'reports error', {}, e)),
-    fetchTypeMap().catch(e => logger.warn('DashboardData', 'typeMap error', {}, e)),
-    fetchApts().catch(e => logger.warn('DashboardData', 'apts error', {}, e)),
+    // fetchTypeMap().catch(e => logger.warn('DashboardData', 'typeMap error', {}, e)), // Omitted for Lazy Fetching to save HTML serialization size
+    // fetchApts().catch(e => logger.warn('DashboardData', 'apts error', {}, e)),       // Omitted for Lazy Fetching to save HTML serialization size
     fetchMacroTrend().catch(e => logger.warn('DashboardData', 'macroTrend error', {}, e)),
     // fetchTxSummary().catch(e => logger.warn('DashboardData', 'txSummary error', {}, e)), // Omitted to reduce initial HTML serialization size (1.15MB -> 0MB)
   ]);

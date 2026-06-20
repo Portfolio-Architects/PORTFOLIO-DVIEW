@@ -121,14 +121,7 @@ const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsum
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
 }), { ssr: false });
-const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient').catch(err => {
-  console.warn('MacroDashboardClient Chunk Load failure, initiating fallback reload', err);
-  safeReload('MacroDashboardClient');
-  return { default: () => null };
-}), { 
-  ssr: false,
-  loading: () => <MacroDashboardSkeleton />
-});
+
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient').catch(err => {
   console.warn('LoungeContainerClient Chunk Load failure, initiating fallback reload', err);
   safeReload('LoungeContainerClient');
@@ -251,6 +244,7 @@ import useSWR from 'swr';
 import { getDisplayName } from '@/lib/types/user.types';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
+import MacroDashboardClient from '@/components/MacroDashboardClient';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
@@ -312,7 +306,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const adBanner = dashboardFacade.getAdBanner();
   // Moduled Hooks Architecture
   const { user, userProfile, anonProfile, handleLogin, handleLogout } = useAuth();
-  const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
+  const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch, isLoading } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder, isFavoritesLoading } = useFavorites(user, initialDashboardData?.favoriteCounts);
   
   const [mounted, setMounted] = useState(false);
@@ -434,6 +428,18 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'gap' | 'lounge'>('overview');
   const [isPending, startTransition] = useTransition();
+
+  // Trigger lazy fetching of detailed sheets data on relevant tab switches or deep-links
+  useEffect(() => {
+    if (activeTab === 'gap' || activeTab === 'imjang') {
+      triggerFetch();
+    } else if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash.includes('apt=') || hash.includes('gap') || hash.includes('imjang')) {
+        triggerFetch();
+      }
+    }
+  }, [activeTab, triggerFetch]);
 
   const fieldReportsMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -909,31 +915,27 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
           {activeTab === 'overview' && (
             <ErrorBoundary name="마크로 대시보드">
-              {!mounted ? (
-                <MacroDashboardSkeleton />
-              ) : (
-                <MacroDashboardClient 
-                  sheetApartments={sheetApartments} 
-                  txSummaryData={txSummaryData}
-                  macroTrendData={macroTrend}
-                  nameMapping={nameMapping || EMPTY_OBJECT}
-                  updateFavoriteOrder={updateFavoriteOrder}
-                  publicRentalSet={publicRentalSet}
-                  userFavorites={userFavorites}
-                  isFavoritesLoading={isFavoritesLoading}
-                  fieldReportsMap={fieldReportsMap}
-                  favoriteCounts={favoriteCounts}
-                  recent7DaysVolume={recent7DaysVolume}
-                  typeMap={typeMap}
-                  onOpenAdModal={handleOpenAdModal}
-                  onOpenCompare={handleOpenCompare}
-                  onOpenJeonseSafety={handleOpenJeonseSafety}
-                  onOpenMortgage={handleOpenMortgage}
-                  onOpenTaxCalculator={handleOpenTaxCalculator}
-                  onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
-                  onSelectApt={handleAptClickByName}
-                />
-              )}
+              <MacroDashboardClient 
+                sheetApartments={sheetApartments} 
+                txSummaryData={txSummaryData}
+                macroTrendData={macroTrend}
+                nameMapping={nameMapping || EMPTY_OBJECT}
+                updateFavoriteOrder={updateFavoriteOrder}
+                publicRentalSet={publicRentalSet}
+                userFavorites={userFavorites}
+                isFavoritesLoading={isFavoritesLoading}
+                fieldReportsMap={fieldReportsMap}
+                favoriteCounts={favoriteCounts}
+                recent7DaysVolume={recent7DaysVolume}
+                typeMap={typeMap}
+                onOpenAdModal={handleOpenAdModal}
+                onOpenCompare={handleOpenCompare}
+                onOpenJeonseSafety={handleOpenJeonseSafety}
+                onOpenMortgage={handleOpenMortgage}
+                onOpenTaxCalculator={handleOpenTaxCalculator}
+                onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+                onSelectApt={handleAptClickByName}
+              />
             </ErrorBoundary>
           )}
         </section>

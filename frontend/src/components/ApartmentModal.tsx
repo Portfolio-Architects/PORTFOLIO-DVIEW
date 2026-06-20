@@ -59,6 +59,7 @@ const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModa
 }), { ssr: false });
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
+import { trackEvent } from '@/lib/utils/analytics';
 const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
   console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
   safeReload('BuyOrWaitVote');
@@ -405,6 +406,23 @@ const FieldReportModal = React.memo(function FieldReportModal({
       if (activeTabTimeoutRef.current) clearTimeout(activeTabTimeoutRef.current);
     };
   }, []);
+
+  // Track activeTab switches
+  useEffect(() => {
+    if (mounted && report?.apartmentName) {
+      trackEvent('apt_tab_switch', {
+        apt_name: report.apartmentName,
+        tab_name: activeTab
+      });
+    }
+  }, [activeTab, mounted, report?.apartmentName]);
+
+  // Track photo upload request modal opens
+  useEffect(() => {
+    if (isUploadModalOpen && report?.apartmentName) {
+      trackEvent('request_photo_upload', { apt_name: report.apartmentName });
+    }
+  }, [isUploadModalOpen, report?.apartmentName]);
 
   // Preload heavy sub-components of ApartmentModal to prevent ChunkLoadErrors on scroll
   useEffect(() => {
@@ -1291,6 +1309,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const handleKakaoShare = async () => {
     if (isSharing) return;
     setIsSharing(true);
+    trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'kakao' });
     const shareTheme = getAutoShareTheme();
     const baseUrl = window.location.origin;
 
@@ -1517,6 +1536,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   };
 
   const handleCopyLink = () => {
+    trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'copy_url' });
     const baseUrl = window.location.origin;
     let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
     if (activeTab === 'sec-education' && eduScoreInfo) {
@@ -1564,6 +1584,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   };
 
   const handleCopySummary = async () => {
+    trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'copy_summary' });
     const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
     const jeonseTxs = transactions.filter(t => t.dealType === '전세');
     const latestSale = saleTxs[0];

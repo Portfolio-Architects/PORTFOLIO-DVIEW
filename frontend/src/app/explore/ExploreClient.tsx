@@ -113,8 +113,15 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const fieldReports = initialDashboardData?.fieldReports || [];
 
   const { user, userProfile, handleLogin } = useAuth();
-  const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
+  const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
+
+  // Trigger lazy fetching of detailed sheets data on mount if user is deep-linking to an apartment modal
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('apt=')) {
+      triggerFetch();
+    }
+  }, [triggerFetch]);
 
   const fieldReportsMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -422,6 +429,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   onOpenCompare={handleOpenCompare}
                   onOpenJeonseSafety={handleOpenJeonseSafety}
                   onOpenMortgage={handleOpenMortgage}
+                  onSearchFocus={triggerFetch}
                 />
               </section>
             </div>

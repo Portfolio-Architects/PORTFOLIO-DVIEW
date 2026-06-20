@@ -2065,7 +2065,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </div>
 
             {/* 동탄 철도 교통 게시판 위젯 */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:h-[360px] justify-start">
+            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:h-[380px] justify-start">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">
@@ -2088,7 +2088,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               </div>
 
               {/* 소식 리스트 */}
-              <div className="flex flex-col gap-3.5 flex-1 justify-start py-1.5 overflow-hidden">
+              <div className="flex flex-col gap-2.5 flex-1 justify-start py-1.5 overflow-hidden">
                 {/* 1. 철도전략과 소식 */}
                 <div className="flex flex-col gap-1.5">
                   <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2 mb-0.5">
@@ -2106,7 +2106,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         onClick={() => {
                           window.location.href = `/news?notice=${item.id}`;
                         }}
-                        className="flex items-center justify-between py-2 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                        className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
                       >
                         {/* Left: Icon & Title */}
                         <div className="flex items-center gap-2.5 min-w-0 mr-3">
@@ -2148,7 +2148,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         onClick={() => {
                           window.location.href = `/news?notice=${item.id}`;
                         }}
-                        className="flex items-center justify-between py-2 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                        className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
                       >
                         {/* Left: Icon & Title */}
                         <div className="flex items-center gap-2.5 min-w-0 mr-3">
