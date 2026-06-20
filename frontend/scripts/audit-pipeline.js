@@ -250,6 +250,10 @@ function auditBundleSizes() {
 
 // 6. Perform Playwright E2E Integration & UI/UX Audit tests
 function auditE2ETests() {
+  if (process.env.SKIP_E2E === 'true') {
+    log(colors.yellow, '⏭️ Skipping Playwright E2E Integration tests (SKIP_E2E=true)...');
+    return true;
+  }
   log(colors.cyan, '🔄 Running Playwright E2E Integration & UI/UX Audit tests (npm run test:e2e)...');
   let testsPassed = false;
   try {

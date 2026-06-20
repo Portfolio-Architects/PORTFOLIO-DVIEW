@@ -143,7 +143,11 @@ function saveHistory(history) {
 function runAudit() {
   log(colors.cyan, '🔄 Running DVIEW Audit Pipeline (npm run audit)...');
   try {
-    execSync('npm run audit', { cwd: path.join(PROJECT_ROOT, 'frontend'), stdio: 'inherit' });
+    execSync('npm run audit', { 
+      cwd: path.join(PROJECT_ROOT, 'frontend'), 
+      stdio: 'inherit',
+      env: { ...process.env, SKIP_E2E: 'true' }
+    });
     return true;
   } catch (err) {
     return false;

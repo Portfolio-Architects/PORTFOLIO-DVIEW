@@ -16,6 +16,9 @@ interface CommentSectionProps {
   onRequestLogin?: (message: string) => void;
 }
 
+// Keep render-dependent regexes static at the module level to avoid recreation lag and react-hooks/refs lint errors
+const MENTION_REGEX = /(@[a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_]+)/g;
+
 const CommentSection = React.memo(function CommentSection({
   comments,
   commentInput,
@@ -31,6 +34,10 @@ const CommentSection = React.memo(function CommentSection({
   const popoverRef = useRef<HTMLDivElement>(null);
   const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  
+  // Cache event-only regexes in useRef to optimize input handling
+  const spaceRegexRef = useRef(/\s+/);
+  const isInvalidInputRef = useRef(/^\s*$/);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -65,6 +72,7 @@ const CommentSection = React.memo(function CommentSection({
   }, []);
 
   const handleAction = () => {
+    if (isInvalidInputRef.current.test(commentInput)) return;
     onSubmitComment();
     // 댓글 달면 A2HS 모달 트리거
     triggerCustomA2HSModal();
@@ -91,7 +99,7 @@ const CommentSection = React.memo(function CommentSection({
     onCommentChange(text);
 
     // Auto-suggest triggered by typing '@'
-    const words = text.split(/\s+/);
+    const words = text.split(spaceRegexRef.current);
     const lastWord = words[words.length - 1];
 
     if (lastWord.startsWith('@')) {
@@ -115,7 +123,7 @@ const CommentSection = React.memo(function CommentSection({
   };
 
   const selectSuggestion = (nickname: string) => {
-    const words = commentInput.split(/\s+/);
+    const words = commentInput.split(spaceRegexRef.current);
     words[words.length - 1] = `@${nickname} `;
     onCommentChange(words.join(' '));
     setShowSuggestions(false);
@@ -215,7 +223,7 @@ const CommentSection = React.memo(function CommentSection({
               </ul>
             </div>
           )}
-
+ 
           <div className="flex gap-3">
             <input
               ref={inputRef}
@@ -264,7 +272,7 @@ const CommentSection = React.memo(function CommentSection({
             </p>
           )}
         </div>
-
+ 
         {/* Comment List */}
         <div className="flex flex-col gap-4 mt-2">
           {comments.length > 0 ? (
@@ -278,7 +286,7 @@ const CommentSection = React.memo(function CommentSection({
                   onClickAuthor={handleMentionAuthor}
                 />
               ))}
-
+ 
               {/* 나머지 댓글: 결제 사용자만 */}
               {comments.length > 1 && (
                 isUnlocked ? (
@@ -325,12 +333,11 @@ const CommentSection = React.memo(function CommentSection({
     </div>
   );
 });
-
+ 
 /** 멘션 하이라이트 파싱 헬퍼 함수 */
 function renderCommentText(text: string) {
   if (!text) return '';
-  const mentionRegex = /(@[a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣_]+)/g;
-  const parts = text.split(mentionRegex);
+  const parts = text.split(MENTION_REGEX);
   
   return parts.map((part, index) => {
     if (part.startsWith('@')) {
@@ -346,7 +353,7 @@ function renderCommentText(text: string) {
     return part;
   });
 }
-
+ 
 /** Single comment item */
 const CommentItem = React.memo(function CommentItem({ 
   comment, 
@@ -386,7 +393,7 @@ const CommentItem = React.memo(function CommentItem({
     </div>
   );
 });
-
+ 
 CommentItem.displayName = 'CommentItem';
 CommentSection.displayName = 'CommentSection';
 export default CommentSection;
