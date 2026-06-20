@@ -65,10 +65,15 @@ const ZoneDetailPage = React.memo(function ZoneDetailPage() {
   // Listen to comments when a report is selected
   useEffect(() => {
     if (selectedReport && !commentsData[selectedReport.id]) {
+      let unmounted = false;
       const unsubscribe = dashboardFacade.listenToComments(selectedReport.id, (comments) => {
+        if (unmounted) return;
         setCommentsData(prev => ({ ...prev, [selectedReport.id]: comments }));
       });
-      return () => unsubscribe();
+      return () => {
+        unmounted = true;
+        unsubscribe();
+      };
     }
   }, [selectedReport]);
 

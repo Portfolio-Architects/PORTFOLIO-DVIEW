@@ -21,6 +21,7 @@ export default function AptStoriesWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     const q = query(
       collection(db, 'lounge_apt_stories'),
       orderBy('createdAt', 'desc'),
@@ -28,6 +29,7 @@ export default function AptStoriesWidget() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!active) return;
       const list: AptStory[] = [];
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -45,10 +47,15 @@ export default function AptStoriesWidget() {
       setLoading(false);
     }, (error) => {
       console.error('Failed to listen to lounge_apt_stories:', error);
-      setLoading(false);
+      if (active) {
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const handleCardClick = (aptName: string) => {
