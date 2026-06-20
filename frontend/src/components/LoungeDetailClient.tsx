@@ -45,6 +45,23 @@ interface PostComment {
 // Memory caches to eliminate blank screen flickers on modal transition
 const postLocalCache: Record<string, Record<string, unknown>> = {};
 const commentsLocalCache: Record<string, PostComment[]> = {};
+const cacheEvictionQueue: string[] = [];
+const MAX_CACHE_SIZE = 30;
+
+function manageCacheLimit(postId: string) {
+  if (!postLocalCache[postId] && !commentsLocalCache[postId]) {
+    if (!cacheEvictionQueue.includes(postId)) {
+      cacheEvictionQueue.push(postId);
+      if (cacheEvictionQueue.length > MAX_CACHE_SIZE) {
+        const oldestId = cacheEvictionQueue.shift();
+        if (oldestId) {
+          delete postLocalCache[oldestId];
+          delete commentsLocalCache[oldestId];
+        }
+      }
+    }
+  }
+}
 
 interface CommentInputProps {
   user: User | null;
@@ -145,6 +162,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         ...initialPost,
         createdAt: initialPost.createdAt ? new Date(initialPost.createdAt as string | number | Date).toLocaleDateString('ko-KR') : '방금 전'
       };
+      manageCacheLimit(postId);
       postLocalCache[postId] = formatted;
       return formatted;
     }
@@ -217,6 +235,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           verificationLevel: data.verificationLevel,
           createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
         };
+        manageCacheLimit(postId);
         postLocalCache[postId] = formatted;
         setPost(formatted);
         
@@ -239,7 +258,10 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
             // Optionally update UI view count locally immediately
             setPost((p) => {
               const updated = p ? { ...p, views: (Number(p.views) || 0) + 1 } : p;
-              if (updated) postLocalCache[postId] = updated;
+              if (updated) {
+                manageCacheLimit(postId);
+                postLocalCache[postId] = updated;
+              }
               return updated;
             });
           } catch (e) {
@@ -314,6 +336,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
         });
       });
+      manageCacheLimit(postId);
       commentsLocalCache[postId] = list;
       setComments(list);
     });
@@ -554,7 +577,10 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       if (!mountedRef.current) return;
       setPost((prev) => {
         const updated = prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev;
-        if (updated) postLocalCache[postId] = updated;
+        if (updated) {
+          manageCacheLimit(postId);
+          postLocalCache[postId] = updated;
+        }
         return updated;
       });
       setIsEditing(false);
