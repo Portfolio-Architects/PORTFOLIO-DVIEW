@@ -129,13 +129,20 @@ const nextConfig: NextConfig = {
     '/apartment/[aptName]': ['./public/tx-data/**/*.json'],
   },
   webpack: (config, { dev, isServer }) => {
-    // Enable filesystem caching for Webpack compilations to speed up incremental builds
-    if (config.cache && typeof config.cache === 'object') {
-      config.cache = {
-        type: 'filesystem',
-        buildDependencies: {
-          config: [__filename],
-        },
+    // 🔧 HMR (Fast Refresh) 무한 리로드 루프 방지를 위한 watchOptions 설정 추가
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          '**/node_modules/**',
+          '**/.next/**',
+          '**/public/tx-data/**',
+          '**/public/data/**',
+          '**/src/lib/build-version.ts',
+          '**/public/sw.js',
+          '**/*.log',
+          '**/*.tsbuildinfo'
+        ],
       };
     }
     // Block redundant plugins that degrade compilation performance
