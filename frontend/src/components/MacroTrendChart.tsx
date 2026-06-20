@@ -121,12 +121,16 @@ const formatXAxisTick = (value: string) => {
   return value;
 };
 
-// Custom ResizeObserver hook with debounce wrapper to completely prevent 'ResizeObserver loop completed with undelivered notifications' errors.
-function useResizeObserver(ref: React.RefObject<HTMLDivElement | null>, delay = 150) {
+// Custom ResizeObserver hook with callback ref pattern to ensure ResizeObserver is bound when the DOM element mounts.
+function useResizeObserver(delay = 150) {
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+
+  const refCallback = React.useCallback((node: HTMLDivElement | null) => {
+    setElement(node);
+  }, []);
 
   useEffect(() => {
-    const element = ref.current;
     if (!element) return;
 
     let timeoutId: NodeJS.Timeout;
@@ -147,9 +151,9 @@ function useResizeObserver(ref: React.RefObject<HTMLDivElement | null>, delay = 
       observer.disconnect();
       clearTimeout(timeoutId);
     };
-  }, [ref, delay]);
+  }, [element, delay]);
 
-  return size;
+  return [refCallback, size] as const;
 }
 
 const MacroTrendChart = React.memo(function MacroTrendChart({
@@ -164,8 +168,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   const [mounted, setMounted] = useState(false);
   const [isChartActive, setIsChartActive] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useResizeObserver(containerRef, 150);
+  const [containerRef, { width, height }] = useResizeObserver(150);
 
   useEffect(() => {
     setMounted(true);

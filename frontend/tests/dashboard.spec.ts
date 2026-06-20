@@ -86,4 +86,37 @@ test.describe('Dashboard E2E Tests', () => {
         expect(filteredCountText).toContain('실거래가');
     }
   });
+
+  test('should render MacroTrendChart successfully on Data Lab tab with non-zero dimensions', async ({ page }) => {
+    test.setTimeout(60000);
+    
+    // Dismiss welcome modal and ad block banner before navigation using localStorage
+    await page.addInitScript(() => {
+      window.localStorage.setItem('dview-welcome-seen', 'true');
+      window.localStorage.setItem('dview-adblock-banner-dismissed', Date.now().toString());
+    });
+
+    // Go to the home page (defaults to Data Lab tab)
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    
+    // Wait for the chart container to be visible
+    const chartContainer = page.locator('div.touch-pan-y.relative');
+    await expect(chartContainer).toBeVisible({ timeout: 20000 });
+
+    // Let the ResizeObserver trigger and state updates settle
+    await page.waitForTimeout(2000);
+
+    // Verify the container has non-zero width and height in the viewport
+    const box = await chartContainer.boundingBox();
+    expect(box).not.toBeNull();
+    console.log(`Chart Container bounding box: width=${box?.width}, height=${box?.height}`);
+    expect(box?.width).toBeGreaterThan(0);
+    expect(box?.height).toBeGreaterThan(0);
+
+    // Verify Recharts AreaChart SVG is successfully rendered inside the container
+    const rechartsSvg = chartContainer.locator('svg.recharts-surface');
+    await expect(rechartsSvg).toBeVisible({ timeout: 10000 });
+    console.log('✅ MacroTrendChart successfully rendered with SVG surface!');
+  });
 });
