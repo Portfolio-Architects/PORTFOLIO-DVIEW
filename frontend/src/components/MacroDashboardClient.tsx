@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useDeferredValue, useEffect, useCallback, useTransition } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
@@ -22,6 +22,13 @@ const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err =
 }), {
   ssr: false,
 });
+
+const DEFAULT_TIMELINE_APTS = [
+  "동탄역 롯데캐슬",
+  "동탄역 시범 우남퍼스트빌",
+  "동탄역 시범 더샵 센트럴시티",
+  "동탄역 시범 한화꿈에그린 프레스티지"
+];
 
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
@@ -269,14 +276,14 @@ export const formatGapPrice = (priceMan: number) => {
 
 export const formatDeltaPrice = (deltaEok: number): string => {
   if (deltaEok === undefined || deltaEok === null || isNaN(deltaEok)) return "";
-  const deltaMan = Math.round(deltaEok * 10000);
+  const deltaMan = Math.round(Math.abs(deltaEok) * 10000);
   if (isNaN(deltaMan)) return "";
   if (deltaMan >= 10000) {
     const eok = Math.floor(deltaMan / 10000);
     const man = deltaMan % 10000;
-    return man === 0 ? `+${eok}억` : `+${eok}억 ${man.toLocaleString()}만`;
+    return man === 0 ? `${eok}억` : `${eok}억 ${man.toLocaleString()}만`;
   }
-  return `+${deltaMan.toLocaleString()}만`;
+  return `${deltaMan.toLocaleString()}만`;
 };
 
 const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): Date | null => {
@@ -360,10 +367,69 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 4대 대장 아파트 시세 데이터 백그라운드 프리패칭 (Idle-time 및 지연 처리)
+  useEffect(() => {
+    if (!mounted || !txSummaryData) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const prefetchApts = () => {
+      DEFAULT_TIMELINE_APTS.forEach((apt) => {
+        const txKey = findTxKey(apt, txSummaryData, nameMapping) || apt;
+        fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal }).catch((err) => {
+          if (err.name !== "AbortError") {
+            console.warn(`Prefetch failed for ${txKey}:`, err);
+          }
+        });
+      });
+    };
+
+    let idleId: number;
+    let timerId: NodeJS.Timeout;
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(prefetchApts);
+    } else {
+      timerId = setTimeout(prefetchApts, 1500);
+    }
+
+    return () => {
+      controller.abort();
+      if (idleId && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [mounted, txSummaryData, nameMapping]);
   const [gapRankingDong, setGapRankingDong] = useState<string>("전체");
+  const [timelineDongFilter, setTimelineDongFilter] = useState<string>("전체");
+  const [timelineAptFilter, setTimelineAptFilter] = useState<string>("전체");
+
+  useEffect(() => {
+    setTimelineAptFilter("전체");
+  }, [timelineDongFilter]);
+
+  const availableDongs = useMemo(() => {
+    if (!sheetApartments) return [];
+    return Object.keys(sheetApartments).sort();
+  }, [sheetApartments]);
+
+  const availableApts = useMemo(() => {
+    if (!sheetApartments) return [];
+    if (timelineDongFilter !== "전체") {
+      return (sheetApartments[timelineDongFilter] || []).map(a => a.name).sort();
+    }
+    return Object.values(sheetApartments).flat().map(a => a.name).sort();
+  }, [sheetApartments, timelineDongFilter]);
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
   const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
   const { data: locationScores } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher);
@@ -582,17 +648,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   useEffect(() => {
     if (!mounted || isFavoritesLoading) return;
     
-    // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
-    if (!user || !userFavorites || userFavorites.size === 0) {
-      if (selectedTimelineApt !== "동탄역 롯데캐슬") {
-        setSelectedTimelineApt("동탄역 롯데캐슬");
-      }
-      setHasSetDefaultApt(false);
+    // 이미 디폴트 아파트를 설정한 경우 스킵
+    if (hasSetDefaultApt) {
       return;
     }
 
-    // 이미 디폴트 아파트를 설정한 경우 스킵
-    if (hasSetDefaultApt) {
+    // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
+    if (!user || !userFavorites || userFavorites.size === 0) {
+      setSelectedTimelineApt("동탄역 롯데캐슬");
+      setHasSetDefaultApt(true);
       return;
     }
     
@@ -602,7 +666,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       setSelectedTimelineApt(firstFav);
       setHasSetDefaultApt(true);
     }
-  }, [user, userFavorites, selectedTimelineApt, mounted, hasSetDefaultApt, isFavoritesLoading]);
+  }, [user, userFavorites, mounted, hasSetDefaultApt, isFavoritesLoading]);
+
+  // 로그인 상태 변화 감지 및 세션 전환 시 디폴트 설정 리셋
+  const [prevUser, setPrevUser] = useState<string | null>(null);
+  useEffect(() => {
+    if (!mounted) return;
+    const currentUserId = user ? user.uid : null;
+    if (currentUserId !== prevUser) {
+      setHasSetDefaultApt(false);
+      setPrevUser(currentUserId);
+    }
+  }, [user, prevUser, mounted]);
 
   const [aptRealTxData, setAptRealTxData] = useState<any[] | null>(null);
   const [isAptTxLoading, setIsAptTxLoading] = useState(false);
@@ -941,44 +1016,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const rentAnchorValue = monthlyAverages[rentAnchorKey].rent ?? 0;
 
     const macroTrendList = deferredMacroTrendData;
+    const runningLastSaleRef = { current: saleAnchorValue };
+    const runningLastRentRef = { current: rentAnchorValue };
+
+    const interpolatedSale = macroTrendList.map((point, i) => {
+      const val = monthlyAverages[point.name].sale;
+      if (val !== null) runningLastSaleRef.current = val;
+      return i < firstSaleAnchorIndex ? null : runningLastSaleRef.current;
+    });
+
+    const interpolatedRent = macroTrendList.map((point, i) => {
+      const val = monthlyAverages[point.name].rent;
+      if (val !== null) runningLastRentRef.current = val;
+      return i < firstRentAnchorIndex ? null : runningLastRentRef.current;
+    });
+
     const finalChartData = macroTrendList.map((point, idx) => {
       const key = point.name;
-      let finalSale = monthlyAverages[key].sale;
-      let finalRent = monthlyAverages[key].rent;
-
-      // --- 매매 보간 ---
-      if (finalSale === null) {
-        if (idx < firstSaleAnchorIndex) {
-          finalSale = null;
-        } else {
-          let lastValidSale = saleAnchorValue;
-          for (let j = idx - 1; j >= firstSaleAnchorIndex; j--) {
-            const prevKey = macroTrendList[j].name;
-            if (monthlyAverages[prevKey].sale !== null) {
-              lastValidSale = monthlyAverages[prevKey].sale ?? lastValidSale;
-              break;
-            }
-          }
-          finalSale = lastValidSale;
-        }
-      }
-
-      // --- 전세 보간 ---
-      if (finalRent === null) {
-        if (idx < firstRentAnchorIndex) {
-          finalRent = null;
-        } else {
-          let lastValidRent = rentAnchorValue;
-          for (let j = idx - 1; j >= firstRentAnchorIndex; j--) {
-            const prevKey = macroTrendList[j].name;
-            if (monthlyAverages[prevKey].rent !== null) {
-              lastValidRent = monthlyAverages[prevKey].rent ?? lastValidRent;
-              break;
-            }
-          }
-          finalRent = lastValidRent;
-        }
-      }
+      let finalSale = monthlyAverages[key].sale ?? interpolatedSale[idx];
+      let finalRent = monthlyAverages[key].rent ?? interpolatedRent[idx];
 
       // 전세 거래내역 그래프는 첫 매매 그래프가 생긴시점부터 시작되도록
       if (realFirstSaleIndex !== -1 && idx < realFirstSaleIndex) {
@@ -1467,6 +1523,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       });
   }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime, typeMap]);
 
+  const filteredTimelineData = useMemo(() => {
+    if (timelineDongFilter === "전체" && timelineAptFilter === "전체") return dailyTimelineData;
+    return dailyTimelineData
+      .map((group) => {
+        const filteredItems = group.items.filter((item) => {
+          const matchesDong = timelineDongFilter === "전체" || item.dong === timelineDongFilter;
+          const matchesApt = timelineAptFilter === "전체" || item.aptName === timelineAptFilter;
+          return matchesDong && matchesApt;
+        });
+        return {
+          ...group,
+          items: filteredItems,
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [dailyTimelineData, timelineDongFilter, timelineAptFilter]);
+
 
 
 
@@ -1586,15 +1659,41 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래
                 </h2>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <select
+                    value={timelineDongFilter}
+                    onChange={(e) => setTimelineDongFilter(e.target.value)}
+                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm shrink-0"
+                  >
+                    <option value="전체">전체 동</option>
+                    {availableDongs.map((dong) => (
+                      <option key={dong} value={dong}>
+                        {dong}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={timelineAptFilter}
+                    onChange={(e) => setTimelineAptFilter(e.target.value)}
+                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[110px] sm:w-[130px] truncate shrink-0"
+                  >
+                    <option value="전체">전체 단지</option>
+                    {availableApts.map((apt) => (
+                      <option key={apt} value={apt}>
+                        {getDisplayAptName(apt)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto md:max-h-none max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0">
-                {dailyTimelineData.length === 0 ? (
+                {filteredTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     최근 실거래 내역이 없습니다.
                   </div>
                 ) : (
-                  ((!isMobileViewport || isTimelineExpanded) ? dailyTimelineData : dailyTimelineData.slice(0, 3)).map((group) => {
+                  ((!isMobileViewport || isTimelineExpanded) ? filteredTimelineData : filteredTimelineData.slice(0, 3)).map((group) => {
                     const isGroupSelected = group.items.some(item => selectedTimelineApt === item.aptName);
                     return (
                       <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 border-l-2 border-slate-100 dark:border-slate-800/80">
@@ -1722,7 +1821,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 )}
               </div>
 
-              {isMobileViewport && dailyTimelineData.length > 3 && (
+              {isMobileViewport && filteredTimelineData.length > 3 && (
                 <button
                   onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
                   className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
@@ -1734,7 +1833,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     </>
                   ) : (
                     <>
-                      <span>최근 실거래 더보기 ({dailyTimelineData.length - 3}개 더보기)</span>
+                      <span>최근 실거래 더보기 ({filteredTimelineData.length - 3}개 더보기)</span>
                       <ChevronDown size={14} />
                     </>
                   )}
@@ -1752,68 +1851,91 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <div className="flex flex-col gap-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
-                        동탄 아파트 시세 추이
+                        {selectedTimelineApt && selectedTimelineApt !== "동탄역 롯데캐슬" ? `${selectedTimelineApt} 시세 추이` : "동탄 대표 아파트 시세 추이"}
                       </h3>
 
                       {isDefaultAptSettingUp ? (
                         <div className="w-[150px] sm:w-[190px] h-[28px] bg-zinc-100 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
                       ) : (
-                        mounted && user && userFavorites && userFavorites.size > 0 && (
-                          <div className="relative flex items-center gap-1">
-                            <select
-                              value={selectedTimelineApt || ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setSelectedTimelineApt(val === "" ? null : val);
-                              }}
-                              className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
-                            >
-                              <option value="">전체 추이 보기</option>
-                              {favoritesArray.map((fav) => (
-                                <option key={fav} value={fav}>
-                                  {fav}
-                                </option>
-                              ))}
-                            </select>
-
-                            {/* ⚙️ 관심 단지 순서 편집 버튼 */}
-                            <div className="relative flex items-center" ref={orderEditorRef}>
-                              <button
-                                onClick={() => setShowOrderEditor(!showOrderEditor)}
-                                title="관심 단지 정렬 순서 편집"
-                                className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+                        mounted && (
+                          user && userFavorites && userFavorites.size > 0 ? (
+                            <div className="relative flex items-center gap-1">
+                              <select
+                                value={selectedTimelineApt || ""}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  startTransition(() => {
+                                    setSelectedTimelineApt(val === "" ? null : val);
+                                  });
+                                }}
+                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
                               >
-                                <Settings size={13} />
-                              </button>
+                                <option value="">전체 추이 보기</option>
+                                {favoritesArray.map((fav) => (
+                                  <option key={fav} value={fav}>
+                                    {fav}
+                                  </option>
+                                ))}
+                              </select>
 
-                              {/* 팝오버 UI */}
-                              {showOrderEditor && (
-                                <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                                  <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
-                                    <span>⭐ 관심 단지 순서 편집</span>
-                                    <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
+                              {/* ⚙️ 관심 단지 순서 편집 버튼 */}
+                              <div className="relative flex items-center" ref={orderEditorRef}>
+                                <button
+                                  onClick={() => setShowOrderEditor(!showOrderEditor)}
+                                  title="관심 단지 정렬 순서 편집"
+                                  className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+                                >
+                                  <Settings size={13} />
+                                </button>
+
+                                {/* 팝오버 UI */}
+                                {showOrderEditor && (
+                                  <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
+                                      <span>⭐ 관심 단지 순서 편집</span>
+                                      <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                      {favoritesArray.map((fav, index) => (
+                                        <div
+                                          key={fav}
+                                          draggable
+                                          onDragStart={(e) => handleDragStart(e, index)}
+                                          onDragOver={(e) => handleDragOver(e, index)}
+                                          onDragEnd={handleDragEnd}
+                                          className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
+                                            draggedIndex === index ? "opacity-40 border-dashed border-[#00d29d]" : ""
+                                          }`}
+                                        >
+                                          <span className="truncate pr-2">{getDisplayAptName(fav)}</span>
+                                          <span className="text-tertiary text-[10px] shrink-0 font-normal">☰</span>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div className="flex flex-col gap-1.5">
-                                    {favoritesArray.map((fav, index) => (
-                                      <div
-                                        key={fav}
-                                        draggable
-                                        onDragStart={(e) => handleDragStart(e, index)}
-                                        onDragOver={(e) => handleDragOver(e, index)}
-                                        onDragEnd={handleDragEnd}
-                                        className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
-                                          draggedIndex === index ? "opacity-40 border-dashed border-[#00d29d]" : ""
-                                        }`}
-                                      >
-                                        <span className="truncate pr-2">{getDisplayAptName(fav)}</span>
-                                        <span className="text-tertiary text-[10px] shrink-0 font-normal">☰</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="relative flex items-center gap-1">
+                              <select
+                                value={selectedTimelineApt || ""}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  startTransition(() => {
+                                    setSelectedTimelineApt(val === "" ? null : val);
+                                  });
+                                }}
+                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
+                              >
+                                {DEFAULT_TIMELINE_APTS.map((apt) => (
+                                  <option key={apt} value={apt}>
+                                    {apt}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )
                         )
                       )}
 

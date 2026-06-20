@@ -44,7 +44,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     const gapPriceStr = gapPrice > 0 ? `${gapPrice.toFixed(1)}억` : null;
 
     return (
-      <div className="bg-surface/85 backdrop-blur-md dark:bg-zinc-900/80 p-3.5 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2 min-w-[170px] transition-all duration-200">
+      <div className="bg-surface/95 dark:bg-zinc-900/90 p-3.5 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2 min-w-[170px] transition-all duration-200">
         <div className="text-[12px] font-extrabold text-tertiary mb-0.5">
           {label}
         </div>
@@ -124,6 +124,7 @@ const formatXAxisTick = (value: string) => {
 // Custom ResizeObserver hook with callback ref pattern to ensure ResizeObserver is bound when the DOM element mounts.
 function useResizeObserver(delay = 150) {
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const sizeRef = useRef({ width: 0, height: 0 });
   const [element, setElement] = useState<HTMLDivElement | null>(null);
 
   const refCallback = React.useCallback((node: HTMLDivElement | null) => {
@@ -138,10 +139,19 @@ function useResizeObserver(delay = 150) {
       if (!entries || !entries.length) return;
       const { width, height } = entries[0].contentRect;
       
+      // 2px 이하 미세 변화는 리사이즈 무시하여 불필요한 차트 리렌더 억제
+      const diffW = Math.abs(width - sizeRef.current.width);
+      const diffH = Math.abs(height - sizeRef.current.height);
+      if (sizeRef.current.width > 0 && sizeRef.current.height > 0 && diffW <= 2 && diffH <= 2) {
+        return;
+      }
+
       // Debounce state update to prevent UI rendering thrashing during resizing or animations
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        setSize({ width, height });
+        const newSize = { width, height };
+        sizeRef.current = newSize;
+        setSize(newSize);
       }, delay);
     });
 
