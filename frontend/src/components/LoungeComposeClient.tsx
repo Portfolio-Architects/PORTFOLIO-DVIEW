@@ -117,8 +117,14 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
-      if (rewardToastTimeoutRef.current) clearTimeout(rewardToastTimeoutRef.current);
+      if (uploadFocusTimeoutRef.current) {
+        clearTimeout(uploadFocusTimeoutRef.current);
+        uploadFocusTimeoutRef.current = null;
+      }
+      if (rewardToastTimeoutRef.current) {
+        clearTimeout(rewardToastTimeoutRef.current);
+        rewardToastTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -161,12 +167,16 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
         }
         
         // Timeout to set focus back to textarea
-        if (uploadFocusTimeoutRef.current) clearTimeout(uploadFocusTimeoutRef.current);
+        if (uploadFocusTimeoutRef.current) {
+          clearTimeout(uploadFocusTimeoutRef.current);
+          uploadFocusTimeoutRef.current = null;
+        }
         uploadFocusTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current && textarea) {
             textarea.focus();
             textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
           }
+          uploadFocusTimeoutRef.current = null;
         }, 10);
       } else {
         if (mountedRef.current) {
@@ -388,11 +398,15 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                         apartments.forEach((aptName) => {
                           localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
                         });
-                        if (rewardToastTimeoutRef.current) clearTimeout(rewardToastTimeoutRef.current);
+                        if (rewardToastTimeoutRef.current) {
+                          clearTimeout(rewardToastTimeoutRef.current);
+                          rewardToastTimeoutRef.current = null;
+                        }
                         rewardToastTimeoutRef.current = setTimeout(() => {
                           if (mountedRef.current) {
                             showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
                           }
+                          rewardToastTimeoutRef.current = null;
                         }, 1000);
                       }
                     } catch (unlockErr) {

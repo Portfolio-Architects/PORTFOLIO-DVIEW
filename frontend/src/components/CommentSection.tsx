@@ -43,7 +43,10 @@ const CommentSection = React.memo(function CommentSection({
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+        focusTimeoutRef.current = null;
+      }
     };
   }, []);
   
@@ -87,11 +90,15 @@ const CommentSection = React.memo(function CommentSection({
       onCommentChange(commentInput + mentionText);
     }
     
-    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = null;
+    }
     focusTimeoutRef.current = setTimeout(() => {
       if (mountedRef.current && inputRef.current) {
         inputRef.current.focus();
       }
+      focusTimeoutRef.current = null;
     }, 50);
   };
 
@@ -128,11 +135,15 @@ const CommentSection = React.memo(function CommentSection({
     onCommentChange(words.join(' '));
     setShowSuggestions(false);
 
-    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = null;
+    }
     focusTimeoutRef.current = setTimeout(() => {
       if (mountedRef.current && inputRef.current) {
         inputRef.current.focus();
       }
+      focusTimeoutRef.current = null;
     }, 50);
   };
 
