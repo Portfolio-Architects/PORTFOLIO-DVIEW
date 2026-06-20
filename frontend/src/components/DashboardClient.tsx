@@ -1131,7 +1131,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         id="main-content" 
         className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
       >
-        <div className={mobileModalOpen ? "md:visible invisible" : ""}>
+        <div className={mobileModalOpen ? "invisible" : ""}>
           {memoizedTabContents}
         </div>
 

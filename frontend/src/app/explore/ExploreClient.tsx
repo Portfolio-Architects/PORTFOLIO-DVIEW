@@ -402,7 +402,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       >
         <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)]">
           <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500">
-            <div className={mobileModalOpen ? "md:visible invisible" : ""}>
+            <div className={mobileModalOpen ? "invisible" : ""}>
               <section className="w-full bg-transparent">
                 <TossApartmentExploreClient
                   sheetApartments={sheetApartments}
