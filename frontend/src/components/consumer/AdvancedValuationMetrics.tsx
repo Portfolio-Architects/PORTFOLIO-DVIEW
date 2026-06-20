@@ -636,22 +636,22 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
                     </div>
 
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col gap-3.5">
-                      <div className="flex justify-between items-center text-[12.5px]">
-                        <span className="text-tertiary font-bold">최적 대중교통 경로</span>
-                        <span className="font-bold text-secondary text-right">{commuteAnalysis.method}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[12.5px] gap-1 sm:gap-2">
+                        <span className="text-tertiary font-bold shrink-0 whitespace-nowrap">최적 대중교통 경로</span>
+                        <span className="font-bold text-secondary text-left sm:text-right break-keep">{commuteAnalysis.method}</span>
                       </div>
                       <div className="h-px w-full bg-border/40" />
-                      <div className="flex justify-between items-center text-[12.5px]">
-                        <span className="text-tertiary font-bold">동탄역 연계 (트램/도보)</span>
-                        <span className="font-extrabold text-primary">{commuteAnalysis.linkTime}분</span>
+                      <div className="flex justify-between items-center text-[12.5px] gap-2">
+                        <span className="text-tertiary font-bold shrink-0 whitespace-nowrap">동탄역 연계 (트램/도보)</span>
+                        <span className="font-extrabold text-primary shrink-0 whitespace-nowrap">{commuteAnalysis.linkTime}분</span>
                       </div>
-                      <div className="flex justify-between items-center text-[12.5px]">
-                        <span className="text-tertiary font-bold">광역철도 탑승 (GTX-A 등)</span>
-                        <span className="font-extrabold text-primary">{commuteAnalysis.transitTime}분</span>
+                      <div className="flex justify-between items-center text-[12.5px] gap-2">
+                        <span className="text-tertiary font-bold shrink-0 whitespace-nowrap">광역철도 탑승 (GTX-A 등)</span>
+                        <span className="font-extrabold text-primary shrink-0 whitespace-nowrap">{commuteAnalysis.transitTime}분</span>
                       </div>
-                      <div className="flex justify-between items-center text-[12.5px]">
-                        <span className="text-tertiary font-bold">목적지 하차 후 이동</span>
-                        <span className="font-extrabold text-primary">8분 (고정)</span>
+                      <div className="flex justify-between items-center text-[12.5px] gap-2">
+                        <span className="text-tertiary font-bold shrink-0 whitespace-nowrap">목적지 하차 후 이동</span>
+                        <span className="font-extrabold text-primary shrink-0 whitespace-nowrap">8분 (고정)</span>
                       </div>
                     </div>
                   </div>

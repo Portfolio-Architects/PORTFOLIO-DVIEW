@@ -1824,39 +1824,42 @@ const FieldReportModal = React.memo(function FieldReportModal({
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap">
+          <div 
+            className="flex items-center gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 py-1.5 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0 select-none"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {/* 단일화된 공유하기 버튼 (데스크톱/모바일 전체 지원) */}
             <button
               onClick={handleNativeShare}
-              className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] ${
+              className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
                 copiedStatus === 'all-link'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-800 dark:text-emerald-400'
-                  : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] text-secondary border-border/20'
+                  ? 'bg-emerald-500 text-white shadow-md'
+                  : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary'
               }`}
               title="아파트 분석 리포트 공유하기"
             >
               {copiedStatus === 'all-link' ? (
-                <Check size={15} strokeWidth={2.5} className="text-emerald-500" />
+                <Check size={14} strokeWidth={2.5} className="text-white" />
               ) : (
-                <Share size={15} strokeWidth={2.5} className="text-secondary/80" />
+                <Share size={14} strokeWidth={2.5} className="text-secondary/80" />
               )}
-              <span>{copiedStatus === 'all-link' ? '복사 완료!' : '공유하기'}</span>
+              <span>{copiedStatus === 'all-link' ? '링크 복사 완료!' : '공유하기'}</span>
             </button>
 
             {/* 단톡방 요약 복사 버튼 */}
             <button
               onClick={handleCopySummary}
-              className={`px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md ${
+              className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
                 copiedStatus === 'summary'
-                  ? 'bg-emerald-100/90 dark:bg-emerald-900/40 border-emerald-500/40 text-emerald-900 dark:text-emerald-300 scale-[1.03]'
-                  : 'bg-emerald-50/60 hover:bg-emerald-100/80 dark:bg-emerald-950/15 dark:hover:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 border-emerald-100/30 dark:border-emerald-900/30'
+                  ? 'bg-emerald-500 text-white border-transparent shadow-md'
+                  : 'bg-emerald-50/50 hover:bg-emerald-100/60 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/10'
               }`}
               title="단톡방용 텍스트 요약 복사"
             >
               {copiedStatus === 'summary' ? (
-                <Check size={15} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+                <Check size={14} strokeWidth={2.5} className="text-white" />
               ) : (
-                <MessageSquare size={15} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+                <MessageSquare size={14} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
               )}
               <span>{copiedStatus === 'summary' ? '요약 복사 완료!' : '단톡방 요약 복사'}</span>
             </button>
@@ -1864,32 +1867,32 @@ const FieldReportModal = React.memo(function FieldReportModal({
             {/* 인포그래픽 요약 이미지 다운로드 버튼 */}
             <button
               onClick={handleDownloadShareCard}
-              className="px-4 py-2 bg-neutral-100 dark:bg-zinc-900 hover:bg-[#e5e8eb] dark:hover:bg-zinc-800 text-secondary border border-border/20 rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md"
+              className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
               title="인포그래픽 요약 카드 이미지 다운로드"
             >
-              <Camera size={15} strokeWidth={2.5} className="text-secondary/80" />
+              <Camera size={14} strokeWidth={2.5} className="text-secondary/80" />
               <span>이미지 저장</span>
             </button>
 
             {/* 실거래 변동 알림 받기 버튼 */}
             <button
               onClick={() => setIsPushModalOpen(true)}
-              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl shadow-sm flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] hover:shadow-md"
+              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
               title="실거래 변동 Web Push 알림 받기"
             >
-              <Bell size={15} strokeWidth={2.5} className="animate-pulse" />
+              <Bell size={14} strokeWidth={2.5} className="animate-pulse" />
               <span>실거래 알림 받기</span>
             </button>
 
 
             {/* 통합 금융/분석 드롭다운 도구함 */}
-            <div className="relative" ref={toolDropdownRef}>
+            <div className="relative shrink-0" ref={toolDropdownRef}>
               <button
                 onClick={() => setIsToolDropdownOpen(prev => !prev)}
-                className={`px-4 py-2 bg-gradient-to-r from-[#008262] to-[#00a37b] hover:from-[#00a37b] hover:to-[#00b386] text-white rounded-2xl shadow-md flex items-center gap-1.5 font-extrabold text-[13.5px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
+                className={`h-10 px-4 bg-gradient-to-r from-emerald-700 to-teal-600 hover:from-emerald-600 hover:to-teal-500 text-white rounded-[12px] shadow-md flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
                 title="AI 분석 리포트 및 부동산 금융 계산기 열기"
               >
-                <Calculator size={15} />
+                <Calculator size={14} />
                 <span>분석 및 금융 도구</span>
                 <ChevronDown size={14} className={`transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
