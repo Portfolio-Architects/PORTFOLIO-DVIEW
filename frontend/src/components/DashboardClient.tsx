@@ -472,11 +472,11 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       const tabParam = params.get('tab');
       const hasCurationParams = params.has('chopoomaStep') || params.has('maxGap');
 
-      if (window.location.hash === '#imjang' || tabParam === 'imjang') {
+      if (window.location.hash.startsWith('#imjang') || tabParam === 'imjang') {
         setActiveTab('imjang');
-      } else if (window.location.hash === '#gap' || tabParam === 'gap' || hasCurationParams) {
+      } else if (window.location.hash.startsWith('#gap') || tabParam === 'gap' || hasCurationParams) {
         setActiveTab('gap');
-      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=') || tabParam === 'lounge') {
+      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || tabParam === 'lounge') {
         setActiveTab('lounge');
       }
 
@@ -514,13 +514,13 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
         if (!isMounted) return;
         startTransition(() => {
-          if (window.location.hash.startsWith('#lounge') || window.location.hash.includes('post=') || window.location.hash.includes('notice=') || queryTab === 'lounge') {
+          if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || queryTab === 'lounge') {
             setActiveTab('lounge');
-          } else if (window.location.hash === '#imjang' || queryTab === 'imjang') {
+          } else if (window.location.hash.startsWith('#imjang') || queryTab === 'imjang') {
             setActiveTab('imjang');
-          } else if (window.location.hash === '#gap' || queryTab === 'gap' || hasCuration) {
+          } else if (window.location.hash.startsWith('#gap') || queryTab === 'gap' || hasCuration) {
             setActiveTab('gap');
-          } else if (window.location.hash === '#overview' || window.location.hash === '' || queryTab === 'overview') {
+          } else if (window.location.hash.startsWith('#overview') || window.location.hash === '' || queryTab === 'overview') {
             setActiveTab('overview');
           }
         });
@@ -610,36 +610,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price'>('total-price');
-  const [listHeight, setListHeight] = useState(600);
-  const [isDesktop, setIsDesktop] = useState(true);
   const leftPanelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && leftPanelRef.current) {
-      // 모달이 열려 있을 때는 리사이즈 감지를 일시 중지하여 무한 reflow-render 루프를 방지
-      if (mobileModalOpen) return;
-
-      let debounceTimer: NodeJS.Timeout | null = null;
-      const resizeObserver = new ResizeObserver(entries => {
-        for (const entry of entries) {
-          // Adjust for header elements inside the left panel (Trending + FilterBar = ~110px)
-          const availableHeight = entry.contentRect.height;
-          if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            if (mounted) {
-              setListHeight(Math.max(400, availableHeight - 110));
-              setIsDesktop(window.innerWidth >= 768);
-            }
-          }, 100);
-        }
-      });
-      resizeObserver.observe(leftPanelRef.current);
-      return () => {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        resizeObserver.disconnect();
-      };
-    }
-  }, [mounted, activeTab, mobileModalOpen]);
 
   // Scroll to top when tab changes & track event
   useEffect(() => {

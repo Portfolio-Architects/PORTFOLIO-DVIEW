@@ -159,7 +159,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-1.5">
           <Users size={16} className="text-emerald-500" />
-          <h4 className="text-[13.5px] font-black text-primary tracking-tight">실수요자 실시간 매수 심리</h4>
+          <h3 className="text-[13.5px] font-black text-primary tracking-tight">실수요자 실시간 매수 심리</h3>
         </div>
         {!(isLoading && !data && !error) && !error && (
           <span className="text-[11px] font-bold text-tertiary">
