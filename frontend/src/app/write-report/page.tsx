@@ -190,21 +190,16 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
     } catch { /* noop */ }
   }, []);
 
-  // Ref to hold the latest imagePreviews for unmount cleanup
-  const previewsRef = useRef<Record<string, string[]>>({});
-  
-  useEffect(() => {
-    previewsRef.current = imagePreviews;
-  }, [imagePreviews]);
+  // Track all created Object URLs to prevent memory leaks on unmount
+  const createdObjectUrlsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     return () => {
       // Clean up all object URLs on unmount to prevent leaks
-      Object.values(previewsRef.current).forEach(urls => {
-        urls.forEach(url => {
-          try { URL.revokeObjectURL(url); } catch { /* noop */ }
-        });
+      createdObjectUrlsRef.current.forEach(url => {
+        try { URL.revokeObjectURL(url); } catch { /* noop */ }
       });
+      createdObjectUrlsRef.current.clear();
     };
   }, []);
 
@@ -228,11 +223,16 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
     setShowDraftModal(false);
   }, []);
 
+  const draftRef = useRef({ step, selectedDong, reportAptName, sections });
+  useEffect(() => {
+    draftRef.current = { step, selectedDong, reportAptName, sections };
+  }, [step, selectedDong, reportAptName, sections]);
+
   // -- Auto Save --
   useEffect(() => {
     const interval = setInterval(() => {
       try {
-        const draft = { step, selectedDong, reportAptName, sections, savedAt: Date.now() };
+        const draft = { ...draftRef.current, savedAt: Date.now() };
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
         if (mountedRef.current) {
           setLastSaved(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
@@ -240,7 +240,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
       } catch { /* noop */ }
     }, AUTO_SAVE_INTERVAL);
     return () => clearInterval(interval);
-  }, [step, selectedDong, reportAptName, sections]);
+  }, []);
 
   const updateSectionState = useCallback((section: keyof ReportSections, field: string, value: string | number) => {
     setSections(prev => ({
@@ -278,7 +278,11 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
         }
         if (unique.length === 0) return prev;
         // Also update previews
-        const newPreviews = unique.map(file => URL.createObjectURL(file));
+        const newPreviews = unique.map(file => {
+          const url = URL.createObjectURL(file);
+          createdObjectUrlsRef.current.add(url);
+          return url;
+        });
         setImagePreviews(p => ({ ...p, [key]: [...(p[key] || []), ...newPreviews] }));
         return { ...prev, [key]: [...existing, ...unique] };
       });
@@ -298,6 +302,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
       if (removed) {
         try {
           URL.revokeObjectURL(removed);
+          createdObjectUrlsRef.current.delete(removed);
         } catch (e) {
           console.warn('Failed to revoke object URL', e);
         }
@@ -372,7 +377,11 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
           alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
         }
         if (unique.length === 0) return prev;
-        const newPreviews = unique.map(file => URL.createObjectURL(file));
+        const newPreviews = unique.map(file => {
+          const url = URL.createObjectURL(file);
+          createdObjectUrlsRef.current.add(url);
+          return url;
+        });
         setImagePreviews(p => ({ ...p, [key]: [...(p[key] || []), ...newPreviews] }));
         return { ...prev, [key]: [...existing, ...unique] };
       });
