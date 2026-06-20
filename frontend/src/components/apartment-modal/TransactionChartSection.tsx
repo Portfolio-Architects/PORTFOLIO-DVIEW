@@ -210,17 +210,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     return new Date(maxTs);
   }, [rawData]);
 
-  if (relevantTxs.length === 0) {
-    return (
-      <div className="w-full flex flex-col">
-        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 dark:ring-white/10 min-h-[300px]">
-          <span className="text-[40px] mb-2">🤫</span>
-          <span className="text-tertiary text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
-          <span className="text-tertiary text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
-        </div>
-      </div>
-    );
-  }
+  // Early return moved below hook definitions to satisfy the Rules of Hooks
 
   const getRecentAvgByMonths = (months: number) => {
     const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
@@ -459,6 +449,18 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       alert("차트 이미지 저장에 실패했습니다.");
     }
   };
+
+  if (relevantTxs.length === 0) {
+    return (
+      <div className="w-full flex flex-col">
+        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 dark:ring-white/10 min-h-[300px]">
+          <span className="text-[40px] mb-2">🤫</span>
+          <span className="text-tertiary text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
+          <span className="text-tertiary text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col h-full">
