@@ -384,7 +384,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
     const prefetchApts = () => {
       DEFAULT_TIMELINE_APTS.forEach((apt) => {
-        const txKey = findTxKey(apt, txSummaryData, nameMapping) || apt;
+        const resolved = findTxKey(apt, txSummaryData, nameMapping) || apt;
+        if (!resolved) return;
+        const txKey = normalizeAptName(resolved);
         fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal }).catch((err) => {
           if (err.name !== "AbortError") {
             console.warn(`Prefetch failed for ${txKey}:`, err);
@@ -691,7 +693,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const txKey = useMemo(() => {
     if (!selectedTimelineApt || !txSummaryData || Object.keys(txSummaryData).length === 0) return null;
-    return findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
+    const resolved = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
+    return resolved ? normalizeAptName(resolved) : null;
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   // 모든 타임프레임에서 데이터 정합성 보장을 위해 전체 데이터(.json)를 페치합니다 (초경량 130KB 이내)

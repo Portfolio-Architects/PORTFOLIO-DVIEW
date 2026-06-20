@@ -461,7 +461,8 @@ const AptCompareModal = React.memo(function AptCompareModal({
     }
     setIsTxLoading1(true);
     const controller = new AbortController();
-    const txKey = findTxKey(apt1.name, txSummaryData, nameMapping) || apt1.name;
+    const resolved = findTxKey(apt1.name, txSummaryData, nameMapping) || apt1.name;
+    const txKey = normalizeAptName(resolved);
     fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
@@ -494,7 +495,8 @@ const AptCompareModal = React.memo(function AptCompareModal({
     }
     setIsTxLoading2(true);
     const controller = new AbortController();
-    const txKey = findTxKey(apt2.name, txSummaryData, nameMapping) || apt2.name;
+    const resolved = findTxKey(apt2.name, txSummaryData, nameMapping) || apt2.name;
+    const txKey = normalizeAptName(resolved);
     fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
