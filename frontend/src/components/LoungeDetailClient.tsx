@@ -183,7 +183,9 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   useEffect(() => {
     setDongtanApartments(dashboardFacade.getDongtanApartments());
     const unsub = dashboardFacade.subscribeTo('dongtanApartments', () => {
-      setDongtanApartments(dashboardFacade.getDongtanApartments());
+      if (mountedRef.current) {
+        setDongtanApartments(dashboardFacade.getDongtanApartments());
+      }
     });
     return unsub;
   }, []);
@@ -324,8 +326,10 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   // Listen to comments
   useEffect(() => {
     if (!postId) return;
+    let active = true;
     const q = query(collection(db, `posts/${postId}/comments`).withConverter(commentConverter), orderBy('createdAt', 'asc'));
     const unsub = onSnapshot(q, (snapshot) => {
+      if (!active) return;
       const list: PostComment[] = [];
       snapshot.forEach((d) => {
         const data = d.data();
@@ -340,7 +344,10 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       commentsLocalCache[postId] = list;
       setComments(list);
     });
-    return () => unsub();
+    return () => {
+      active = false;
+      unsub();
+    };
   }, [postId]);
 
   const handleLike = useCallback(async () => {
