@@ -318,6 +318,26 @@ const calculateInfraScore = (metrics: any) => {
 
 // Removed inline ViralPaywallGate, imported from external file.
 
+interface CalculatedValuation {
+  status: 'undervalued' | 'overvalued' | 'fair';
+  amount: string;
+  ratio: number;
+  priceStr: string;
+}
+
+interface CalculatedJeonseSafety {
+  latestPrice: number;
+  latestDeposit: number;
+  ratio: number;
+}
+
+interface EnrichedTransaction extends TransactionRecord {
+  areaLabelM2: string;
+  areaLabelPyeong: string;
+  calculatedPrice: number;
+  contractDateNum: number;
+}
+
 const FieldReportModal = React.memo(function FieldReportModal({ 
   report, 
   onClose,
@@ -375,9 +395,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const [isAnimationFinished, setIsAnimationFinished] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
 
-  const [calculatedTransactions, setCalculatedTransactions] = useState<any[]>([]);
-  const [calculatedValuation, setCalculatedValuation] = useState<any>({ status: 'fair', amount: '0', ratio: 0, priceStr: '0' });
-  const [calculatedJeonseSafety, setCalculatedJeonseSafety] = useState<any>(null);
+  const [calculatedTransactions, setCalculatedTransactions] = useState<EnrichedTransaction[]>([]);
+  const [calculatedValuation, setCalculatedValuation] = useState<CalculatedValuation>({ status: 'fair', amount: '0', ratio: 0, priceStr: '0' });
+  const [calculatedJeonseSafety, setCalculatedJeonseSafety] = useState<CalculatedJeonseSafety | null>(null);
   const [calculatedAreaFilterChips, setCalculatedAreaFilterChips] = useState<string[]>(['전체']);
 
   // 3대 입지 및 교육 스코어 연산 결과 useMemo로 캐싱하여 불필요한 재계산 오버헤드 차단
@@ -837,11 +857,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       // 1. safeTransactions (Zod 검증을 스킵한 초고속 필터링)
       const safeTxs = Array.isArray(rawTransactions)
-        ? rawTransactions.filter(tx => tx && typeof tx === 'object' && tx.price !== undefined) as any[]
+        ? rawTransactions.filter(tx => tx && typeof tx === 'object' && tx.price !== undefined) as TransactionRecord[]
         : [];
 
       // 2. enrichedTransactions
-      const enrichedTxs = safeTxs.map(tx => {
+      const enrichedTxs: EnrichedTransaction[] = safeTxs.map(tx => {
         const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
         const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
         const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
@@ -889,8 +909,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
             let sum = 0;
             let count = 0;
             for (let w = start; w < end; w++) {
-              if (w !== idx) {
-                sum += group[w].calculatedPrice;
+              const item = group[w];
+              if (w !== idx && item) {
+                sum += item.calculatedPrice;
                 count++;
               }
             }
@@ -903,8 +924,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
             const mean = sum / count;
             let sumSqDiff = 0;
             for (let w = start; w < end; w++) {
-              if (w !== idx) {
-                sumSqDiff += Math.pow(group[w].calculatedPrice - mean, 2);
+              const item = group[w];
+              if (w !== idx && item) {
+                sumSqDiff += Math.pow(item.calculatedPrice - mean, 2);
               }
             }
             const variance = sumSqDiff / count;
@@ -987,7 +1009,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       let conversionRateSpread = 0;
       if (report.metrics) {
-        const m = report.metrics as any;
+        const m = report.metrics;
         if (m.distanceToSubway && m.distanceToSubway <= 500) {
           conversionRateSpread -= 0.005;
         } else if (m.distanceToSubway && m.distanceToSubway > 1200) {
@@ -1016,7 +1038,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       let savedTime = 0;
       if (report.metrics) {
-        const m = report.metrics as any;
+        const m = report.metrics;
         const distSubway = typeof m.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
         const distTram = typeof m.distanceToTram === 'number' ? m.distanceToTram : 1000;
         const walkToSubway = distSubway / 80;
@@ -1033,7 +1055,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const priceMan = avg3MSale % 10000;
       const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
 
-      let status = 'fair';
+      let status: 'undervalued' | 'overvalued' | 'fair' = 'fair';
       let amount = '0';
 
       if (avg3MSale > 0 && dcf.impliedValue > 0) {
