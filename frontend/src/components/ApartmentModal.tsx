@@ -1903,7 +1903,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             {/* 실거래 변동 알림 받기 버튼 */}
             <button
               onClick={() => setIsPushModalOpen(true)}
-              className="h-10 px-4 bg-emerald-600 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
+              className="h-10 px-4 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
               title="실거래 변동 Web Push 알림 받기"
             >
               <Bell size={14} strokeWidth={2.5} className="animate-pulse" />

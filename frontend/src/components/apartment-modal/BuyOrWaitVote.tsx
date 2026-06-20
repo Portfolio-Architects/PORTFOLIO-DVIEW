@@ -17,8 +17,31 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   valuationStatus = 'fair',
   valuationAmount = '0'
 }: BuyOrWaitVoteProps) {
-  const [hasVoted, setHasVoted] = useState(false);
-  const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(null);
+  const localStorageKey = `dview-vote-${aptName.replace(/\s+/g, '')}`;
+
+  const [hasVoted, setHasVoted] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedVote = localStorage.getItem(`dview-vote-${aptName.replace(/\s+/g, '')}`);
+        return !!savedVote;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem(`dview-vote-${aptName.replace(/\s+/g, '')}`) as 'buy' | 'wait' | null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const mountedRef = useRef(true);
@@ -33,8 +56,6 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
       }
     };
   }, []);
-
-  const localStorageKey = `dview-vote-${aptName.replace(/\s+/g, '')}`;
 
   const { data, error, isLoading, mutate: mutateVote } = useSWR(
     aptName ? `/api/apartments/vote?aptName=${encodeURIComponent(aptName)}` : null,
