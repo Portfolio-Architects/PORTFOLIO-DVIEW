@@ -12,22 +12,9 @@ import { logger } from '@/lib/services/logger';
 import type { NewsItemData } from '@/lib/types/dashboard.types';
 import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
 import { postConverter, PostDocument } from '@/lib/utils/firestoreConverters';
-import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
-
-export const PostDataSchema = z.object({
-  title: z.string().default(''),
-  category: z.string().default('자유'),
-  content: z.string().default(''),
-  authorName: z.string().default('익명'),
-  authorUid: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
-  verifiedApartment: z.string().nullable().optional(),
-  verificationLevel: z.string().nullable().optional(),
-  likes: z.number().default(0),
-  views: z.number().default(0),
-  commentCount: z.number().default(0),
-}).passthrough();
+import { PostDataSchema } from '@/lib/validation/facade.schemas';
+import { executeIsomorphicQuery } from './isomorphicHelper';
 
 
 /**
@@ -184,69 +171,29 @@ export async function deletePost(postId: string): Promise<void> {
 export async function getPost(postId: string): Promise<any | null> {
   const cacheKey = `DTDLS:cache:loungePost:${postId}`;
 
-  if (typeof window === 'undefined') {
-    try {
-      const { redis } = await import('@/lib/redis');
-      if (redis) {
-        const cached = await redis.get<any>(cacheKey);
-        if (cached !== null) {
-          if (cached === 'null') return null;
-          return cached;
-        }
-      }
-    } catch (e) {
-      logger.warn('PostRepository.getPost', 'Redis read error', { postId }, e as Error);
-    }
-  }
-
-  let docData: any = null;
-
-  if (typeof window === 'undefined') {
-    try {
+  const docData = await executeIsomorphicQuery<any>({
+    cacheKey,
+    cacheEx: 15,
+    serverQuery: async () => {
       const { adminDb } = await import('@/lib/firebaseAdmin');
-      if (adminDb) {
-        const snap = await throttle(() => adminDb.collection('posts').doc(postId).get());
-        if (snap.exists) {
-          docData = { id: snap.id, ...snap.data() };
-        }
+      if (!adminDb) return null;
+      const snap = await throttle(() => adminDb.collection('posts').doc(postId).get());
+      if (snap.exists) {
+        return { id: snap.id, ...snap.data() };
       }
-    } catch (adminError) {
-      logger.warn('PostRepository.getPost', 'Admin SDK fetch failed, falling back', { postId }, adminError);
-    }
-  }
-
-  if (!docData) {
-    try {
+      return null;
+    },
+    clientQuery: async () => {
       const docRef = doc(db, 'posts', postId).withConverter(postConverter);
       const snap = await throttle(() => getDoc(docRef));
       if (snap.exists()) {
-        docData = { id: snap.id, ...snap.data() };
-      }
-    } catch (e) {
-      logger.error('PostRepository.getPost', 'Client SDK fetch failed', { postId }, e);
-      if (typeof window === 'undefined') {
-        try {
-          const { redis } = await import('@/lib/redis');
-          if (redis) {
-            await redis.set(cacheKey, 'null', { ex: 60 }).catch(() => {});
-          }
-        } catch (_) {}
+        return { id: snap.id, ...snap.data() };
       }
       return null;
     }
-  }
+  });
 
-  if (!docData) {
-    if (typeof window === 'undefined') {
-      try {
-        const { redis } = await import('@/lib/redis');
-        if (redis) {
-          await redis.set(cacheKey, 'null', { ex: 60 }).catch(() => {});
-        }
-      } catch (_) {}
-    }
-    return null;
-  }
+  if (!docData) return null;
 
   const parsed = PostDataSchema.safeParse(docData);
   if (!parsed.success) {
@@ -271,7 +218,7 @@ export async function getPost(postId: string): Promise<any | null> {
     }
   }
 
-  const result = {
+  return {
     id: docData.id,
     title: data.title || '',
     category: data.category || '',
@@ -284,67 +231,33 @@ export async function getPost(postId: string): Promise<any | null> {
     verificationLevel: data.verificationLevel || null,
     createdAt: createdAtMillis,
   };
-
-  if (typeof window === 'undefined') {
-    try {
-      const { redis } = await import('@/lib/redis');
-      if (redis) {
-        await redis.set(cacheKey, result, { ex: 15 }).catch(err =>
-          logger.warn('PostRepository.getPost', 'Redis write error', { postId }, err as Error)
-        );
-      }
-    } catch (_) {}
-  }
-
-  return result;
 }
 
-/**
- * Fetches recent posts. Supporting server-side (adminDb) and client-side (db) fetches.
- */
 export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
   const cacheKey = `DTDLS:cache:loungeRecentPosts:${limitCount}`;
-  
-  if (typeof window === 'undefined') {
-    try {
-      const { redis } = await import('@/lib/redis');
-      if (redis) {
-        const cached = await redis.get<any[]>(cacheKey);
-        if (cached) {
-          return cached;
-        }
-      }
-    } catch (e) {
-      logger.warn('PostRepository.getRecentPosts', 'Redis read error', { limitCount }, e as Error);
-    }
-  }
 
-  let rawPosts: any[] = [];
-  let rawComments: any[] = [];
-
-  if (typeof window === 'undefined') {
-    try {
+  const result = await executeIsomorphicQuery<any[]>({
+    cacheKey,
+    cacheEx: 30,
+    serverQuery: async () => {
       const { adminDb } = await import('@/lib/firebaseAdmin');
-      if (adminDb) {
-        const [postsSnap, commentsSnap] = await Promise.all([
-          throttle(() => adminDb.collection('posts')
-            .orderBy('createdAt', 'desc')
-            .limit(limitCount)
-            .get()),
-          throttle(() => adminDb.collectionGroup('comments')
-            .limit(100)
-            .get())
-        ]);
-        rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
-      }
-    } catch (adminError) {
-      logger.warn('PostRepository.getRecentPosts', 'Admin SDK fetch failed, falling back', undefined, adminError);
-    }
-  }
-
-  if (rawPosts.length === 0) {
-    try {
+      if (!adminDb) return null;
+      
+      const [postsSnap, commentsSnap] = await Promise.all([
+        throttle(() => adminDb.collection('posts')
+          .orderBy('createdAt', 'desc')
+          .limit(limitCount)
+          .get()),
+        throttle(() => adminDb.collectionGroup('comments')
+          .limit(100)
+          .get())
+      ]);
+      const rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
+      
+      return processCombinedPosts(rawPosts, rawComments, limitCount);
+    },
+    clientQuery: async () => {
       const { collectionGroup } = await import('firebase/firestore');
       const [postsSnap, commentsSnap] = await Promise.all([
         throttle(() => getDocs(query(
@@ -357,14 +270,17 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
           limit(100)
         )))
       ]);
-      rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
-    } catch (e) {
-      logger.error('PostRepository.getRecentPosts', 'Client SDK fetch failed', undefined, e);
-      return [];
+      const rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
+      
+      return processCombinedPosts(rawPosts, rawComments, limitCount);
     }
-  }
+  });
 
+  return result || [];
+}
+
+async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCount: number): Promise<any[]> {
   // Filter comments to only include those under field_reports
   const filteredComments = rawComments.filter(c => {
     const parentRef = c.ref?.parent?.parent;
@@ -484,24 +400,10 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
     };
   });
 
-  const combined = [...postsList, ...commentsList]
+  return [...postsList, ...commentsList]
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
     .slice(0, limitCount);
-
-  if (typeof window === 'undefined' && combined.length > 0) {
-    try {
-      const { redis } = await import('@/lib/redis');
-      if (redis) {
-        await redis.set(cacheKey, combined, { ex: 30 }).catch(err =>
-          logger.warn('PostRepository.getRecentPosts', 'Redis write error', { limitCount }, err as Error)
-        );
-      }
-    } catch (e) {
-      // Ignore dynamic import error if any
-    }
-  }
-
-  return combined;
 }
+
 
 

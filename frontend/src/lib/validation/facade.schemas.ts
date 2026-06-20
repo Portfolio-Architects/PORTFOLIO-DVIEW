@@ -105,3 +105,36 @@ export const QuizAnswerSchema = z.object({
 });
 
 export const ViewedAptsSchema = z.array(z.string());
+
+// Unified Lounge Post Validation Schemas
+export const PostDataSchema = z.object({
+  title: z.string().default(''),
+  category: z.string().default('자유'),
+  content: z.string().default(''),
+  authorName: z.string().default('익명'),
+  authorUid: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
+  verifiedApartment: z.string().nullable().optional(),
+  verificationLevel: z.string().nullable().optional(),
+  likes: z.number().default(0),
+  views: z.number().default(0),
+  commentCount: z.number().default(0),
+}).passthrough();
+
+export const CreatePostSchema = z.object({
+  title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내여야 합니다.'),
+  content: z.string().min(1, '내용을 입력해주세요.'),
+  category: z.string(),
+  authorUid: z.string(),
+  authorEmail: z.string().email().nullable().optional(),
+  customNickname: z.string().max(10, '닉네임은 10자 이내여야 합니다.').optional(),
+});
+
+export const SyncManagerPostSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  category: z.string(),
+  authorEmail: z.string().email().nullable().optional(),
+  providedApartments: z.array(z.string()).optional(),
+});
+

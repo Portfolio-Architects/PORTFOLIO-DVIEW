@@ -191,8 +191,9 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
       if (mountedRef.current) {
         onClose();
       }
-    } catch {
-      // error handled in facade
+    } catch (error) {
+      console.error("Review submission failed", error);
+      alert("리뷰 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
     } finally {
       if (mountedRef.current) {
         setIsSubmitting(false);

@@ -77,8 +77,13 @@ const ZoneDetailPage = React.memo(function ZoneDetailPage() {
     const text = commentInput[reportId];
     if (!text?.trim()) return;
     const apartmentName = fullReportData?.apartmentName || selectedReport?.apartmentName || '';
-    await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
-    setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+    try {
+      await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
+      setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+    } catch (error) {
+      console.error("Comment submission failed", error);
+      alert("댓글 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
+    }
   };
 
   // Filter reports that belong to this zone

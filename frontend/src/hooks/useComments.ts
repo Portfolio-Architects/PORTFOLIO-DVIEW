@@ -73,33 +73,38 @@ export function useComments(
 
     const apartmentName = fullReportData?.apartmentName || selectedReport?.apartmentName || '';
 
-    if (dashboardFacade.addFieldReportComment) {
-      await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
-    }
-    
-    // Trigger push notification to report author
     try {
-      let profile = null;
-      if (dashboardFacade.getUserProfile) {
-        profile = await dashboardFacade.getUserProfile(user.uid);
+      if (dashboardFacade.addFieldReportComment) {
+        await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
       }
-      const nickname = profile?.nickname || user.displayName || user.email || '익명';
-      await fetch('/api/push/notify-comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reportId,
-          commentText: text,
-          authorName: nickname,
-          commentAuthorUid: user.uid
-        }),
-      });
-    } catch (pushErr) {
-      logger.warn('useComments.handleSubmitComment', 'Failed to send push notification trigger', {}, pushErr as Error);
-    }
+      
+      // Trigger push notification to report author
+      try {
+        let profile = null;
+        if (dashboardFacade.getUserProfile) {
+          profile = await dashboardFacade.getUserProfile(user.uid);
+        }
+        const nickname = profile?.nickname || user.displayName || user.email || '익명';
+        await fetch('/api/push/notify-comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reportId,
+            commentText: text,
+            authorName: nickname,
+            commentAuthorUid: user.uid
+          }),
+        });
+      } catch (pushErr) {
+        logger.warn('useComments.handleSubmitComment', 'Failed to send push notification trigger', {}, pushErr as Error);
+      }
 
-    if (isMountedRef.current) {
-      setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+      if (isMountedRef.current) {
+        setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+      }
+    } catch (error) {
+      console.error("Comment submission failed", error);
+      alert("댓글 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
     }
   }, [user, fullReportData, selectedReport, requestLogin]);
 

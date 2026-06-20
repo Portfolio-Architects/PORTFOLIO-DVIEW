@@ -186,9 +186,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     try {
       await PostService.createPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addPost', 'Post creation failed', { title }, e);
-      alert("글 저장 실패! 이유: " + msg);
+      throw e;
     }
   }
 
@@ -197,9 +196,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     try {
       await ReportService.createFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addFieldReport', 'Field report creation failed', { apartmentName }, e);
-      alert('임장기 저장 실패! 이유: ' + msg);
+      throw e;
     }
   }
 
@@ -208,9 +206,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
       await CommentRepo.addComment(reportId, text, profile.nickname, authorUid, apartmentName);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addFieldReportComment', 'Comment failed', { reportId }, e);
-      alert("댓글 저장 실패! 이유: " + msg);
+      throw e;
     }
   }
 
@@ -251,9 +248,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         profile.verifiedApartment, profile.verificationLevel, imageFile
       );
     } catch (e: unknown) {
-      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addUserReview', 'Review failed', { apartmentName }, e);
-      alert('리뷰 저장 실패! 이유: ' + msg);
+      throw e;
     }
   }
 
@@ -325,10 +321,7 @@ export class DashboardFacade {
     if (!validation.success) {
       const errorMsg = validation.error.issues.map(err => err.message).join(', ');
       logger.warn('DashboardFacade.addPost', 'Validation failed', { error: validation.error.format() });
-      if (typeof window !== 'undefined') {
-        alert('글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-      }
-      return;
+      throw new Error('글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
     }
     if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
   }
@@ -338,10 +331,7 @@ export class DashboardFacade {
     if (!validation.success) {
       const errorMsg = validation.error.issues.map(err => err.message).join(', ');
       logger.warn('DashboardFacade.addFieldReport', 'Validation failed', { error: validation.error.format() });
-      if (typeof window !== 'undefined') {
-        alert('임장기 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-      }
-      return;
+      throw new Error('임장기 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
     }
     if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
   }
@@ -351,10 +341,7 @@ export class DashboardFacade {
     if (!validation.success) {
       const errorMsg = validation.error.issues.map(err => err.message).join(', ');
       logger.warn('DashboardFacade.addFieldReportComment', 'Validation failed', { error: validation.error.format() });
-      if (typeof window !== 'undefined') {
-        alert('댓글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-      }
-      return;
+      throw new Error('댓글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
     }
     if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid, apartmentName);
   }
@@ -364,10 +351,7 @@ export class DashboardFacade {
     if (!validation.success) {
       const errorMsg = validation.error.issues.map(err => err.message).join(', ');
       logger.warn('DashboardFacade.addUserReview', 'Validation failed', { error: validation.error.format() });
-      if (typeof window !== 'undefined') {
-        alert('리뷰 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-      }
-      return;
+      throw new Error('리뷰 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
     }
     if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile);
   }

@@ -9,27 +9,7 @@ import * as PostRepo from '@/lib/repositories/post.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import { logger } from '@/lib/services/logger';
-import { z } from 'zod';
-
-
-// ── Zod Schemas ─────────────────────────────────────
-
-export const CreatePostSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내여야 합니다.'),
-  content: z.string().min(1, '내용을 입력해주세요.'),
-  category: z.string(),
-  authorUid: z.string(),
-  authorEmail: z.string().email().nullable().optional(),
-  customNickname: z.string().max(10, '닉네임은 10자 이내여야 합니다.').optional(),
-});
-
-export const SyncManagerPostSchema = z.object({
-  title: z.string(),
-  content: z.string(),
-  category: z.string(),
-  authorEmail: z.string().email().nullable().optional(),
-  providedApartments: z.array(z.string()).optional(),
-});
+import { CreatePostSchema, SyncManagerPostSchema } from '@/lib/validation/facade.schemas';
 
 /**
  * Creates a new community post with optional image upload.

@@ -300,7 +300,7 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-const EMPTY_OBJECT = {};
+const EMPTY_OBJECT: Record<string, any> = {};
 const EMPTY_SET = new Set<string>();
 const EMPTY_ARRAY: any[] = [];
 
@@ -316,6 +316,8 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   
   const [mounted, setMounted] = useState(false);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [isConsumerAdModalOpen, setIsConsumerAdModalOpen] = useState(false);
   const [consumerAdInfo, setConsumerAdInfo] = useState<{ adType: 'insurance' | 'interior' | 'academy' | 'cleaning'; adTitle: string } | null>(null);
@@ -405,12 +407,12 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     setIsLoginGateOpen(true);
   }, []);
   
-  const { txSummary = {}, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
+  const { txSummary = EMPTY_OBJECT, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
     initialDashboardData?.macroTrend,
     initialDashboardData?.txSummary,
     initialDashboardData?.recent7DaysVolume
   );
-  const { locationScores = {} } = useLocationScores();
+  const { locationScores = EMPTY_OBJECT } = useLocationScores();
   
   const getLocScore = (aptName: string) => {
     if (!aptName || !locationScores) return {};
@@ -442,6 +444,16 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     return map;
   }, [fieldReports, sheetApartments, nameMapping]);
 
+  const hashStateRef = useRef<{ mounted: boolean; sheetApartments: any; fieldReportsMap: any; nameMapping: any }>({
+    mounted: false,
+    sheetApartments: null,
+    fieldReportsMap: null,
+    nameMapping: null
+  });
+  useEffect(() => {
+    hashStateRef.current = { mounted, sheetApartments, fieldReportsMap, nameMapping };
+  }, [mounted, sheetApartments, fieldReportsMap, nameMapping]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -467,6 +479,19 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         import('@/components/GapInvestmentExplorer').catch(() => {});
         import('@/components/LoungeContainerClient').catch(() => {});
         import('@/components/MacroDashboardClient').catch(() => {});
+        
+        // Preload ApartmentModal sub-components as well for 0ms transition stutter
+        import('@/components/CommentSection').catch(() => {});
+        import('./apartment-modal/ViralPaywallGate').catch(() => {});
+        import('./apartment-modal/JeonseSafetyReport').catch(() => {});
+        import('./apartment-modal/TransactionChartSection').catch(() => {});
+        import('./apartment-modal/PhotoUploadModal').catch(() => {});
+        import('./apartment-modal/BuyOrWaitVote').catch(() => {});
+        import('./apartment-modal/EducationAnalysisSection').catch(() => {});
+        import('./apartment-modal/InfraAnalysisSection').catch(() => {});
+        import('./apartment-modal/ScoutingReportDetailSection').catch(() => {});
+        import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
+        import('@/components/consumer/AnchorTenantCard').catch(() => {});
       };
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
@@ -529,18 +554,19 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   // Handle #apt= hash to open modal automatically (e.g. from Kakao Share)
   useEffect(() => {
-    if (!mounted || !sheetApartments) return;
-    
     const checkHashForApt = () => {
+      const { mounted: m, sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
+      if (!m || !apartments) return;
+      
       const match = window.location.hash.match(/[#&]apt=([^&]+)/);
       if (match) {
         const aptName = decodeURIComponent(match[1]);
-        const allApts = Object.values(sheetApartments).flat();
-        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, nameMapping));
+        const allApts = Object.values(apartments).flat() as any[];
+        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, mapping));
         
         if (targetApt) {
           userHasSelected.current = true;
-          const report = fieldReportsMap.get(targetApt.name);
+          const report = reportsMap.get(targetApt.name);
           if (report) {
             setSelectedReport(report);
           } else {
@@ -560,12 +586,13 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       }
     };
 
-    // Check once on mount/data-load
-    checkHashForApt();
+    if (mounted && sheetApartments) {
+      checkHashForApt();
+    }
     
     window.addEventListener('hashchange', checkHashForApt);
     return () => window.removeEventListener('hashchange', checkHashForApt);
-  }, [mounted, sheetApartments, fieldReportsMap, nameMapping]);
+  }, [mounted, !!sheetApartments]);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -573,6 +600,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const [searchQuery, setSearchQuery] = useState('');
 
 
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price'>('total-price');
   const [listHeight, setListHeight] = useState(600);
   const [isDesktop, setIsDesktop] = useState(true);
@@ -580,6 +608,9 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   useEffect(() => {
     if (typeof window !== 'undefined' && leftPanelRef.current) {
+      // 모달이 열려 있을 때는 리사이즈 감지를 일시 중지하여 무한 reflow-render 루프를 방지
+      if (mobileModalOpen) return;
+
       let debounceTimer: NodeJS.Timeout | null = null;
       const resizeObserver = new ResizeObserver(entries => {
         for (const entry of entries) {
@@ -600,7 +631,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         resizeObserver.disconnect();
       };
     }
-  }, [mounted, activeTab]);
+  }, [mounted, activeTab, mobileModalOpen]);
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -609,7 +640,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     }
   }, [activeTab]);
 
-  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  console.log("DEBUG: DashboardClient render triggered!", { selectedReportId: selectedReport?.id, mobileModalOpen });
   const userHasSelected = useRef(false);
 
   useEffect(() => {
@@ -866,99 +897,9 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     return baseSortedApts.filter(apt => apt.name.toLowerCase().replace(/\s+/g, '').includes(q) || (apt.brand && apt.brand.toLowerCase().replace(/\s+/g, '').includes(q)));
   }, [baseSortedApts, deferredSearchQuery]);
 
-  return (
-    <>
-    <PullToRefresh 
-      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : activeTab === 'gap' ? 'gap-scroll' : 'recommend-scroll'}
-      disabled={mobileModalOpen || !!selectedReport}
-    >
-      <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)]">
-        
-        {/* a11y: Skip to Content */}
-        <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
-
-
-      
-      {/* Main Header — Logo + Nav integrated */}
-      <header className="hidden md:block shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
-        <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between h-[68px] gap-4 md:gap-0">
-            
-            {/* Mobile: Top Bar */}
-            <div className="md:hidden flex items-center justify-end w-full">
-              <FloatingUserBar />
-            </div>
-
-            {/* Center: Nav Tabs (Segmented Control Style) */}
-            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
-               <button
-                 onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                   activeTab === 'overview'
-                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                 }`}
-               >
-                 <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                 <span>데이터 랩</span>
-               </button>
- 
-               <button
-                 onClick={() => router.push('/explore')}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
-               >
-                 <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                 <span>아파트 탐색</span>
-               </button>
-
-               <button
-                 onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                   activeTab === 'lounge'
-                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                 }`}
-               >
-                 <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                 <span>커뮤니티</span>
-               </button>
-               
-               <button
-                 onClick={() => router.push('/news')}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
-               >
-                 <Newspaper size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                 <span>동탄 소식</span>
-               </button>
-               
-               <button
-                 onClick={() => startTransition(() => { setActiveTab('gap'); window.location.hash = 'gap'; })}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                   activeTab === 'gap'
-                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                 }`}
-               >
-                 <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                 <span>큐레이션</span>
-               </button>
-              
-            </nav>
-
-            {/* Right: Desktop Extra Nav & User Bar */}
-            <div className="hidden md:flex items-center justify-end gap-4">
-              <FloatingUserBar />
-            </div>
-            
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main 
-        id="main-content" 
-        className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
-      >
+  const memoizedTabContents = useMemo(() => {
+    return (
+      <>
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
           {activeTab === 'overview' && (
@@ -1068,9 +1009,130 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
             )
           )}
         </section>
+      </>
+    );
+  }, [
+    activeTab,
+    mounted,
+    sheetApartments,
+    txSummaryData,
+    macroTrend,
+    nameMapping,
+    updateFavoriteOrder,
+    publicRentalSet,
+    userFavorites,
+    isFavoritesLoading,
+    fieldReportsMap,
+    favoriteCounts,
+    recent7DaysVolume,
+    typeMap,
+    txSummary,
+    locationScores,
+    handleOpenAdModal,
+    handleOpenCompare,
+    handleOpenJeonseSafety,
+    handleOpenMortgage,
+    handleOpenTaxCalculator,
+    handleOpenSellTimingCalculator,
+    handleAptClickByName,
+    handleRequestLogin
+  ]);
 
-
+  return (
+    <>
+    <PullToRefresh 
+      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : activeTab === 'gap' ? 'gap-scroll' : 'recommend-scroll'}
+      disabled={mobileModalOpen || !!selectedReport}
+    >
+      <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)]">
         
+        {/* a11y: Skip to Content */}
+        <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
+
+
+      
+      {/* Main Header — Logo + Nav integrated */}
+      <header className="hidden md:block shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
+        <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
+          <div className="flex flex-col md:flex-row md:items-center justify-between h-[68px] gap-4 md:gap-0">
+            
+            {/* Mobile: Top Bar */}
+            <div className="md:hidden flex items-center justify-end w-full">
+              <FloatingUserBar />
+            </div>
+
+            {/* Center: Nav Tabs (Segmented Control Style) */}
+            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+               <button
+                 onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                   activeTab === 'overview'
+                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                 }`}
+               >
+                 <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                 <span>데이터 랩</span>
+               </button>
+ 
+               <button
+                 onClick={() => router.push('/explore')}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+               >
+                 <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                 <span>아파트 탐색</span>
+               </button>
+
+               <button
+                 onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                   activeTab === 'lounge'
+                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                 }`}
+               >
+                 <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                 <span>커뮤니티</span>
+               </button>
+               
+               <button
+                 onClick={() => router.push('/news')}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+               >
+                 <Newspaper size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                 <span>동탄 소식</span>
+               </button>
+               
+               <button
+                 onClick={() => startTransition(() => { setActiveTab('gap'); window.location.hash = 'gap'; })}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                   activeTab === 'gap'
+                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                 }`}
+               >
+                 <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                 <span>큐레이션</span>
+               </button>
+              
+            </nav>
+
+            {/* Right: Desktop Extra Nav & User Bar */}
+            <div className="hidden md:flex items-center justify-end gap-4">
+              <FloatingUserBar />
+            </div>
+            
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main 
+        id="main-content" 
+        className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
+      >
+        {memoizedTabContents}
+
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {resolvedReport && mobileModalOpen && (
           <FieldReportModal

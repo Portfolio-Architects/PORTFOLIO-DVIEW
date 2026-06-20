@@ -252,12 +252,15 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     return '#00d29d'; // Emerald/green for Sale
   };
 
-  const byMonthTier = new Map<number, { all: number[] }>();
-  scatterData.forEach(d => {
-    if (!byMonthTier.has(d.yearMonth)) byMonthTier.set(d.yearMonth, { all: [] });
-    const bucket = byMonthTier.get(d.yearMonth)!;
-    bucket.all.push(d.price);
-  });
+  const byMonthTier = React.useMemo(() => {
+    const map = new Map<number, { all: number[] }>();
+    scatterData.forEach(d => {
+      if (!map.has(d.yearMonth)) map.set(d.yearMonth, { all: [] });
+      const bucket = map.get(d.yearMonth)!;
+      bucket.all.push(d.price);
+    });
+    return map;
+  }, [scatterData]);
   
   // Calculate secondary line data and monthly average stats (Jeonse/Sale averages) - Cached to avoid mousemove lag
   const monthlyData = React.useMemo(() => {

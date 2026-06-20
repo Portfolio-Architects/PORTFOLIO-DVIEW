@@ -106,6 +106,8 @@ const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTim
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
+const EMPTY_OBJECT: Record<string, any> = {};
+
 const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }: { initialDashboardData?: DashboardInitialDataLocal }) {
   const fieldReports = initialDashboardData?.fieldReports || [];
 
@@ -217,12 +219,12 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     setIsLoginGateOpen(true);
   }, []);
 
-  const { txSummary = {} } = useTxData(
+  const { txSummary = EMPTY_OBJECT } = useTxData(
     initialDashboardData?.macroTrend,
     initialDashboardData?.txSummary,
     initialDashboardData?.recent7DaysVolume
   );
-  const { locationScores = {} } = useLocationScores();
+  const { locationScores = EMPTY_OBJECT } = useLocationScores();
 
   const getLocScore = (aptName: string) => {
     if (!aptName || !locationScores) return {};

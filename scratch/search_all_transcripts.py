@@ -1,25 +1,34 @@
 import os
-import json
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 brain_dir = r"C:\Users\ocs56\.gemini\antigravity\brain"
-search_str = "maxDateTime"
+keywords = ["아키텍처", "레이어", "리팩토링"]
 
-found = []
+found_plans = []
 for folder in os.listdir(brain_dir):
     folder_path = os.path.join(brain_dir, folder)
     if os.path.isdir(folder_path):
-        transcript_path = os.path.join(folder_path, ".system_generated", "logs", "transcript.jsonl")
-        if os.path.exists(transcript_path):
+        plan_path = os.path.join(folder_path, "implementation_plan.md")
+        if os.path.exists(plan_path):
             try:
-                with open(transcript_path, 'r', encoding='utf-8') as f:
-                    for line_idx, line in enumerate(f):
-                        if search_str in line:
-                            data = json.loads(line)
-                            step = data.get('step_index')
-                            found.append((folder, step, line_idx))
+                with open(plan_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if any(kw in content for kw in keywords) and ("dview" in content.lower() or "apart" in content.lower()):
+                        # get the title (first few lines)
+                        lines = content.split('\n')
+                        title = next((line for line in lines if line.startswith('#')), "Untitled")
+                        found_plans.append((folder, title, content[:600] + "..."))
             except Exception as e:
                 pass
 
-print(f"Found {len(found)} occurrences in conversation logs:")
-for conv_id, step, line_idx in found:
-    print(f"- Conv: {conv_id}, Step: {step}, Line in transcript: {line_idx}")
+print(f"Found {len(found_plans)} implementation plans matching conditions:")
+for folder, title, snippet in found_plans:
+    print(f"=========================================\nFolder: {folder}\nTitle: {title}\nSnippet:\n{snippet}\n")
+
+
+
+
+
+

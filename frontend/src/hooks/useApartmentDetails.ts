@@ -55,6 +55,8 @@ interface RawTransactionRecord {
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : []);
 
+const EMPTY_ARRAY: any[] = [];
+
 export interface UseApartmentDetailsReturn {
   txSummaryData: Record<string, AptTxSummary>;
   fullReportData: FieldReportData | null;
@@ -156,11 +158,11 @@ export function useApartmentDetails(
     }
   );
 
-  const records = Array.isArray(fullRecords) ? fullRecords : (Array.isArray(recentRecords) ? recentRecords : []);
+  const records = Array.isArray(fullRecords) ? fullRecords : (Array.isArray(recentRecords) ? recentRecords : EMPTY_ARRAY);
   const isTxLoading = isRecentLoading && !recentRecords; // 최근 데이터가 왔거나 이미 캐시가 있으면 로딩 해제
 
   const modalTransactions = useMemo(() => {
-    if (!records || records.length === 0) return [];
+    if (!records || records.length === 0) return EMPTY_ARRAY;
 
     return records.map((r: any, i) => {
       if (!r || typeof r !== 'object') {
@@ -256,7 +258,7 @@ export function useApartmentDetails(
     }
     
     return () => { unmounted = true; };
-  }, [selectedReport, sheetApartments, nameMapping, txSummaryData, user]);
+  }, [selectedReport, user]);
 
   const resolvedReport = useMemo(() => {
     if (!selectedReport) return null;

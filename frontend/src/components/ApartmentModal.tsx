@@ -367,62 +367,21 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const [isAnimationFinished, setIsAnimationFinished] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
 
-  // Zod-based safe transaction parsing guard to prevent null/undefined runtime exceptions
-  const safeTransactions = useMemo(() => {
-    if (!rawTransactions) return [];
-    if (rawTransactions.length === 0) return [];
-    // Zod safeParse is extremely heavy on large arrays. 
-    // We skip safeParse for items > 50 to avoid browser freeze and perform lightweight verification instead.
-    if (rawTransactions.length > 50) {
-      return Array.isArray(rawTransactions)
-        ? rawTransactions.filter(tx => tx && typeof tx === 'object' && tx.aptName && tx.price !== undefined) as any[]
-        : [];
-    }
-    const parsed = TransactionListSchema.safeParse(rawTransactions);
-    if (parsed.success) {
-      return parsed.data;
-    } else {
-      console.warn('[ApartmentModal] Transactions Zod validation failed, using fallback data parsing:', parsed.error);
-      return Array.isArray(rawTransactions) 
-        ? rawTransactions.filter(tx => tx && typeof tx === 'object') as any[]
-        : [];
-    }
-  }, [rawTransactions]);
+  const [calculatedTransactions, setCalculatedTransactions] = useState<any[]>([]);
+  const [calculatedValuation, setCalculatedValuation] = useState<any>({ status: 'fair', amount: '0', ratio: 0, priceStr: '0' });
+  const [calculatedJeonseSafety, setCalculatedJeonseSafety] = useState<any>(null);
+  const [calculatedAreaFilterChips, setCalculatedAreaFilterChips] = useState<string[]>(['전체']);
 
-  // 1. 사전 연산: 각 거래 건의 실제 가격/전세전환가 및 타입맵 정보를 미리 연산하여 캐싱 (의존성 최소화로 filterOutliers 토글 시 재연산 방지)
-  const enrichedTransactions = useMemo(() => {
-    if (!safeTransactions || safeTransactions.length === 0) return [];
-    return safeTransactions.map(tx => {
-      const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-      const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
-      const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
-      
-      // 전세/월세 보증금 전환가 미리 계산
-      const calcPrice = (tx.dealType === '전세' || tx.dealType === '월세')
-        ? (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)
-         : tx.price;
-      
-      // 날짜를 YYYYMMDD 형태의 숫자로 캐싱
-      const dateNum = parseInt(tx.contractYm + String(tx.contractDay || '01').padStart(2, '0'));
-
-      return {
-        ...tx,
-        calculatedPrice: calcPrice,
-        contractDateNum: dateNum,
-        areaLabelM2: labelM2,
-        areaLabelPyeong: labelPyeong
-      };
-    });
-  }, [safeTransactions, typeMap]);
-
-  // 2. 3대 입지 및 교육 스코어 연산 결과 useMemo로 캐싱하여 불필요한 재계산 오버헤드 차단
+  // 3대 입지 및 교육 스코어 연산 결과 useMemo로 캐싱하여 불필요한 재계산 오버헤드 차단
   const eduScoreInfo = useMemo(() => {
+    if (!isAnimationFinished) return null;
     return report.metrics ? calculateEducationScore(report.metrics) : null;
-  }, [report.metrics]);
+  }, [report.metrics, isAnimationFinished]);
 
   const infraScoreInfo = useMemo(() => {
+    if (!isAnimationFinished) return null;
     return report.metrics ? calculateInfraScore(report.metrics) : null;
-  }, [report.metrics]);
+  }, [report.metrics, isAnimationFinished]);
 
   useEffect(() => {
     if (mounted) {
@@ -449,6 +408,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // Preload heavy sub-components of ApartmentModal to prevent ChunkLoadErrors on scroll
   useEffect(() => {
+    if (!isAnimationFinished) return; // Delay component preloading until slide-in animation is fully complete
+
     let active = true;
     let idleId: number | null = null;
     let timerId: NodeJS.Timeout | null = null;
@@ -470,9 +431,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
     if (typeof window !== 'undefined') {
       if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadAptModalChunks, { timeout: 4000 });
+        idleId = (window as any).requestIdleCallback(preloadAptModalChunks, { timeout: 2000 });
       } else {
-        timerId = setTimeout(preloadAptModalChunks, 2500);
+        timerId = setTimeout(preloadAptModalChunks, 1000);
       }
     }
 
@@ -485,7 +446,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         clearTimeout(timerId);
       }
     };
-  }, []);
+  }, [isAnimationFinished]);
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
   const deferredAreaFilter = useDeferredValue(selectedAreaFilter);
@@ -834,258 +795,304 @@ const FieldReportModal = React.memo(function FieldReportModal({
     return '';
   }, [report.premiumContent]);
 
-  // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김 - 토글 활성화 시에만 적용)
-  const transactions = useMemo(() => {
-    if (!enrichedTransactions || enrichedTransactions.length === 0) return [];
+  // ── 비동기 실거래가 분석 및 밸류에이션 계산 파이프라인 (requestIdleCallback 활용) ──
+  useEffect(() => {
+    if (!isAnimationFinished || !rawTransactions || rawTransactions.length === 0) {
+      setCalculatedTransactions([]);
+      setCalculatedValuation({ status: 'fair', amount: '0', ratio: 0, priceStr: '0' });
+      setCalculatedJeonseSafety(null);
+      setCalculatedAreaFilterChips(['전체']);
+      return;
+    }
 
-    // 롤링 윈도우 기반 시계열 이상치 필터링 (동적 메모리 할당 제거하여 성능 최적화)
-    const filterOutliersRolling = (txs: typeof enrichedTransactions) => {
-      // 1. 시간순(오름차순) 정렬 (캐시된 contractDateNum 활용)
-      const sortedTxs = [...txs].sort((a, b) => a.contractDateNum - b.contractDateNum);
+    let active = true;
 
-      // 2. 면적별 그룹화
-      const byArea: Record<number, typeof enrichedTransactions> = {};
-      const sortedLen = sortedTxs.length;
-      for (let i = 0; i < sortedLen; i++) {
-        const t = sortedTxs[i];
-        const a = Math.round(Number(t.area || 0));
-        if (!byArea[a]) byArea[a] = [];
-        byArea[a].push(t);
-      }
+    const runCalculation = () => {
+      if (!active) return;
 
-      const validTxs: typeof enrichedTransactions = [];
-      const areas = Object.keys(byArea);
-      const areasLen = areas.length;
+      // 1. safeTransactions (Zod 검증을 스킵한 초고속 필터링)
+      const safeTxs = Array.isArray(rawTransactions)
+        ? rawTransactions.filter(tx => tx && typeof tx === 'object' && tx.price !== undefined) as any[]
+        : [];
 
-      for (let aIdx = 0; aIdx < areasLen; aIdx++) {
-        const group = byArea[Number(areas[aIdx])];
-        const groupLen = group.length;
+      // 2. enrichedTransactions
+      const enrichedTxs = safeTxs.map(tx => {
+        const t = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+        const labelM2 = t ? t.typeM2 : `${tx.area}m²`;
+        const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${tx.areaPyeong || Math.round(tx.area * 0.3025)}평`;
+        
+        const calcPrice = (tx.dealType === '전세' || tx.dealType === '월세')
+          ? (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)
+           : tx.price;
+        
+        const dateNum = parseInt(tx.contractYm + String(tx.contractDay || '01').padStart(2, '0'));
 
-        for (let idx = 0; idx < groupLen; idx++) {
-          const t = group[idx];
-          const start = Math.max(0, idx - 5);
-          const end = Math.min(groupLen, idx + 6); // exclusive limit
-          
-          let sum = 0;
-          let count = 0;
-          for (let w = start; w < end; w++) {
-            if (w !== idx) {
-              sum += group[w].calculatedPrice;
-              count++;
+        return {
+          ...tx,
+          calculatedPrice: calcPrice,
+          contractDateNum: dateNum,
+          areaLabelM2: labelM2,
+          areaLabelPyeong: labelPyeong
+        };
+      });
+
+      // 3. transactions (이상치 필터링)
+      const filterOutliersRolling = (txs: typeof enrichedTxs) => {
+        const sortedTxs = [...txs].sort((a, b) => a.contractDateNum - b.contractDateNum);
+        const byArea: Record<number, typeof enrichedTxs> = {};
+        const sortedLen = sortedTxs.length;
+        for (let i = 0; i < sortedLen; i++) {
+          const t = sortedTxs[i];
+          const a = Math.round(Number(t.area || 0));
+          if (!byArea[a]) byArea[a] = [];
+          byArea[a].push(t);
+        }
+
+        const validTxs: typeof enrichedTxs = [];
+        const areas = Object.keys(byArea);
+        const areasLen = areas.length;
+
+        for (let aIdx = 0; aIdx < areasLen; aIdx++) {
+          const group = byArea[Number(areas[aIdx])];
+          const groupLen = group.length;
+
+          for (let idx = 0; idx < groupLen; idx++) {
+            const t = group[idx];
+            const start = Math.max(0, idx - 5);
+            const end = Math.min(groupLen, idx + 6);
+            
+            let sum = 0;
+            let count = 0;
+            for (let w = start; w < end; w++) {
+              if (w !== idx) {
+                sum += group[w].calculatedPrice;
+                count++;
+              }
             }
-          }
-          
-          if (count < 3) {
-            validTxs.push(t);
-            continue; // 비교 표본이 부족하면 패스
-          }
-          
-          const mean = sum / count;
-          let sumSqDiff = 0;
-          for (let w = start; w < end; w++) {
-            if (w !== idx) {
-              sumSqDiff += Math.pow(group[w].calculatedPrice - mean, 2);
-            }
-          }
-          const variance = sumSqDiff / count;
-          const stdDev = Math.sqrt(variance);
-          const p = t.calculatedPrice;
-          
-          // 1. 하위 가격(급매 등) 필터링: 최소 5% 편차 여유 기준 2 표준편차 이하인 거래 제외
-          if (p < mean) {
-            if ((mean - p) <= 2 * Math.max(stdDev, mean * 0.05)) {
+            
+            if (count < 3) {
               validTxs.push(t);
+              continue;
             }
-          } else {
-            // 2. 상위 가격(기입 오류 또는 기형 월세 거래) 필터링: 3 표준편차 초과 시 제외
-            if ((p - mean) <= 3 * Math.max(stdDev, mean * 0.05)) {
-              validTxs.push(t);
+            
+            const mean = sum / count;
+            let sumSqDiff = 0;
+            for (let w = start; w < end; w++) {
+              if (w !== idx) {
+                sumSqDiff += Math.pow(group[w].calculatedPrice - mean, 2);
+              }
+            }
+            const variance = sumSqDiff / count;
+            const stdDev = Math.sqrt(variance);
+            const p = t.calculatedPrice;
+            
+            if (p < mean) {
+              if ((mean - p) <= 2 * Math.max(stdDev, mean * 0.05)) {
+                validTxs.push(t);
+              }
+            } else {
+              if ((p - mean) <= 3 * Math.max(stdDev, mean * 0.05)) {
+                validTxs.push(t);
+              }
             }
           }
         }
+        return validTxs;
+      };
+
+      const saleTxs = enrichedTxs.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+      const jeonseTxs = enrichedTxs.filter(t => {
+        if (t.dealType === '전세') return true;
+        if (t.dealType === '월세' && t.monthlyRent && t.monthlyRent > 0) return true;
+        return false;
+      });
+
+      const finalSale = filterOutliers ? filterOutliersRolling(saleTxs) : saleTxs;
+      const finalJeonse = filterOutliers ? filterOutliersRolling(jeonseTxs) : jeonseTxs;
+      const combined = [...finalSale, ...finalJeonse];
+      const sortedCombined = combined.sort((a, b) => {
+        if (a.contractDateNum !== b.contractDateNum) return b.contractDateNum - a.contractDateNum;
+        return b.price - a.price;
+      });
+
+      if (!active) return;
+      setCalculatedTransactions(sortedCombined);
+
+      // 4. Valuation 계산
+      const sales = sortedCombined.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+      const rents = sortedCombined.filter(t => t.dealType === '전세' || t.dealType === '월세');
+
+      const now = new Date();
+      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      const oneMonthAgoNum = oneMonthAgo.getFullYear() * 10000 + (oneMonthAgo.getMonth() + 1) * 100 + oneMonthAgo.getDate();
+      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      const threeMonthsAgoNum = threeMonthsAgo.getFullYear() * 10000 + (threeMonthsAgo.getMonth() + 1) * 100 + threeMonthsAgo.getDate();
+
+      const isRecent1M = (t: any) => (t.contractDateNum || 0) >= oneMonthAgoNum;
+      const isRecent3M = (t: any) => (t.contractDateNum || 0) >= threeMonthsAgoNum;
+
+      const recentSales1M = sales.filter(isRecent1M);
+      const recentSales3M = sales.filter(isRecent3M);
+      const recentRents1M = rents.filter(isRecent1M);
+      const recentRents3M = rents.filter(isRecent3M);
+
+      const avg3MSale = recentSales1M.length > 0
+        ? Math.round(recentSales1M.reduce((sum, t) => sum + t.price, 0) / recentSales1M.length)
+        : (recentSales3M.length > 0
+          ? Math.round(recentSales3M.reduce((sum, t) => sum + t.price, 0) / recentSales3M.length)
+          : (sales.length > 0 ? sales[0].price : 0));
+
+      const getJeonseEq = (t: any) => t.calculatedPrice || t.price || 0;
+
+      const avg3MRent = recentRents1M.length > 0
+        ? Math.round(recentRents1M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents1M.length)
+        : (recentRents3M.length > 0
+          ? Math.round(recentRents3M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents3M.length)
+          : (rents.length > 0 ? getJeonseEq(rents[0]) : 0));
+
+      const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
+
+      const macroConfig = {
+        riskFreeRate: 3.25,
+        fundingCost: 3.8,
+        jeonseConversionRate: 0.055,
+        baseInflationRate: 2.0,
+        baseDate: ''
+      };
+
+      let conversionRateSpread = 0;
+      if (report.metrics) {
+        const m = report.metrics as any;
+        if (m.distanceToSubway && m.distanceToSubway <= 500) {
+          conversionRateSpread -= 0.005;
+        } else if (m.distanceToSubway && m.distanceToSubway > 1200) {
+          conversionRateSpread += 0.005;
+        }
+
+        const year = m.yearBuilt ? parseInt(String(m.yearBuilt).substring(0, 4)) : new Date().getFullYear();
+        const age = !isNaN(year) ? new Date().getFullYear() - year + 1 : 10;
+        const mu = getBrandMultiplier(m.brand || report.apartmentName || '');
+        
+        if (age <= 5 || mu >= 1.09) {
+          conversionRateSpread -= 0.005;
+        } else if (age > 15) {
+          conversionRateSpread += 0.005;
+        }
       }
-      return validTxs;
+
+      const dynamicConversionRate = Math.max(0.035, Math.min(0.065, macroConfig.jeonseConversionRate + conversionRateSpread));
+      const dynamicMacroConfig = { ...macroConfig, jeonseConversionRate: dynamicConversionRate };
+
+      let utilityScore = 50;
+      if (report.metrics) {
+        const premium = calculatePremiumScores(report.metrics);
+        utilityScore = premium.totalScore;
+      }
+
+      let savedTime = 0;
+      if (report.metrics) {
+        const m = report.metrics as any;
+        const distSubway = typeof m.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
+        const distTram = typeof m.distanceToTram === 'number' ? m.distanceToTram : 1000;
+        const walkToSubway = distSubway / 80;
+        const tramToSubway = distTram / 250 + 5;
+        const linkTimeToSubway = Math.min(walkToSubway, tramToSubway);
+        const totalTime = Math.round(linkTimeToSubway) + 42 + 8;
+        savedTime = Math.max(0, 60 - totalTime);
+      }
+      const transitPremium = savedTime * 0.015;
+
+      const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScore, transitPremium);
+
+      const priceEok = Math.floor(avg3MSale / 10000);
+      const priceMan = avg3MSale % 10000;
+      const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
+
+      let status = 'fair';
+      let amount = '0';
+
+      if (avg3MSale > 0 && dcf.impliedValue > 0) {
+        const diff = Math.abs(avg3MSale - dcf.impliedValue);
+        const diffEok = Math.floor(diff / 10000);
+        const diffMan = Math.round(diff % 10000);
+        
+        let amountStr = '';
+        if (diffEok > 0) {
+          amountStr = diffMan > 0 ? `${diffEok}억 ${diffMan.toLocaleString()}만원` : `${diffEok}억원`;
+        } else {
+          amountStr = `${diffMan.toLocaleString()}만원`;
+        }
+        amount = amountStr;
+
+        if (avg3MSale > dcf.impliedValue) {
+          status = 'overvalued';
+        } else if (avg3MSale < dcf.impliedValue) {
+          status = 'undervalued';
+        }
+      }
+
+      if (!active) return;
+      setCalculatedValuation({ status, amount, ratio: jeonseRatio, priceStr });
+
+      // 5. Jeonse Safety 계산
+      const latestSale = sales[0]?.price || 0;
+      const latestRent = rents[0] ? (rents[0].calculatedPrice || rents[0].price || 0) : 0;
+      const safetyRatio = latestSale > 0 ? (latestRent / latestSale) : 0;
+
+      setCalculatedJeonseSafety({
+        latestPrice: latestSale,
+        latestDeposit: latestRent,
+        ratio: safetyRatio
+      });
+
+      // 6. Area Filter Chips 계산
+      const rawAreas = Array.from(new Set(enrichedTxs.map(tx => {
+        return areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
+      })));
+      const validAreas = rawAreas.filter((a): a is string => !!a);
+      const chips = ['전체', ...validAreas.sort((a, b) => {
+        const numA = parseInt(a.match(/\d+/)?.[0] || '0');
+        const numB = parseInt(b.match(/\d+/)?.[0] || '0');
+        return numA - numB;
+      })];
+
+      setCalculatedAreaFilterChips(chips);
     };
 
-    const saleTxs = enrichedTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = enrichedTransactions.filter(t => {
-      if (t.dealType === '전세') return true;
-      if (t.dealType === '월세' && t.monthlyRent && t.monthlyRent > 0) return true;
-      return false;
-    });
+    let idleId: number | null = null;
+    let timerId: NodeJS.Timeout | null = null;
 
-    const finalSale = filterOutliers ? filterOutliersRolling(saleTxs) : saleTxs;
-    const finalJeonse = filterOutliers ? filterOutliersRolling(jeonseTxs) : jeonseTxs;
-
-    const combined = [...finalSale, ...finalJeonse];
-
-    // 정렬 (캐시된 contractDateNum 활용하여 내림차순 정렬)
-    return combined.sort((a, b) => {
-      if (a.contractDateNum !== b.contractDateNum) return b.contractDateNum - a.contractDateNum;
-      return b.price - a.price;
-    });
-  }, [enrichedTransactions, filterOutliers]);
-
-  const valuation = useMemo(() => {
-    if (!transactions || transactions.length === 0) {
-      return { status: 'fair', amount: '0', ratio: 0, priceStr: '0' };
+    if ('requestIdleCallback' in window) {
+      idleId = (window as any).requestIdleCallback(runCalculation);
+    } else {
+      timerId = setTimeout(runCalculation, 50);
     }
 
-    const now = new Date();
-    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const oneMonthAgoNum = oneMonthAgo.getFullYear() * 10000 + (oneMonthAgo.getMonth() + 1) * 100 + oneMonthAgo.getDate();
-
-    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-    const threeMonthsAgoNum = threeMonthsAgo.getFullYear() * 10000 + (threeMonthsAgo.getMonth() + 1) * 100 + threeMonthsAgo.getDate();
-
-    const isRecent1M = (t: any) => (t.contractDateNum || 0) >= oneMonthAgoNum;
-    const isRecent3M = (t: any) => (t.contractDateNum || 0) >= threeMonthsAgoNum;
-
-    const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
-    const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
-
-    const recentSales1M = sales.filter(isRecent1M);
-    const recentSales3M = sales.filter(isRecent3M);
-
-    const recentRents1M = rents.filter(isRecent1M);
-    const recentRents3M = rents.filter(isRecent3M);
-
-    const avg3MSale = recentSales1M.length > 0
-      ? Math.round(recentSales1M.reduce((sum, t) => sum + t.price, 0) / recentSales1M.length)
-      : (recentSales3M.length > 0
-        ? Math.round(recentSales3M.reduce((sum, t) => sum + t.price, 0) / recentSales3M.length)
-        : (sales.length > 0 ? sales[0].price : 0));
-
-    const getJeonseEq = (t: any) => t.calculatedPrice || t.price || 0;
-
-    const avg3MRent = recentRents1M.length > 0
-      ? Math.round(recentRents1M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents1M.length)
-      : (recentRents3M.length > 0
-        ? Math.round(recentRents3M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents3M.length)
-        : (rents.length > 0 ? getJeonseEq(rents[0]) : 0));
-
-    const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
-
-    const macroConfig = {
-      riskFreeRate: 3.25,
-      fundingCost: 3.8,
-      jeonseConversionRate: 0.055,
-      baseInflationRate: 2.0,
-      baseDate: ''
+    return () => {
+      active = false;
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
     };
+  }, [isAnimationFinished, rawTransactions, report, typeMap, filterOutliers, areaUnit]);
 
-    let conversionRateSpread = 0;
-    if (report.metrics) {
-      const m = report.metrics as any;
-      if (m.distanceToSubway && m.distanceToSubway <= 500) {
-        conversionRateSpread -= 0.005;
-      } else if (m.distanceToSubway && m.distanceToSubway > 1200) {
-        conversionRateSpread += 0.005;
-      }
-
-      const year = m.yearBuilt ? parseInt(String(m.yearBuilt).substring(0, 4)) : new Date().getFullYear();
-      const age = !isNaN(year) ? new Date().getFullYear() - year + 1 : 10;
-      const mu = getBrandMultiplier(m.brand || report.apartmentName || '');
-      
-      if (age <= 5 || mu >= 1.09) {
-        conversionRateSpread -= 0.005;
-      } else if (age > 15) {
-        conversionRateSpread += 0.005;
-      }
-    }
-
-    const dynamicConversionRate = Math.max(0.035, Math.min(0.065, macroConfig.jeonseConversionRate + conversionRateSpread));
-    const dynamicMacroConfig = { ...macroConfig, jeonseConversionRate: dynamicConversionRate };
-
-    let utilityScore = 50;
-    if (report.metrics) {
-      const premium = calculatePremiumScores(report.metrics);
-      utilityScore = premium.totalScore;
-    }
-
-    let savedTime = 0;
-    if (report.metrics) {
-      const m = report.metrics as any;
-      const distSubway = typeof m.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
-      const distTram = typeof m.distanceToTram === 'number' ? m.distanceToTram : 1000;
-      const walkToSubway = distSubway / 80;
-      const tramToSubway = distTram / 250 + 5;
-      const linkTimeToSubway = Math.min(walkToSubway, tramToSubway);
-      const totalTime = Math.round(linkTimeToSubway) + 42 + 8;
-      savedTime = Math.max(0, 60 - totalTime);
-    }
-    const transitPremium = savedTime * 0.015;
-
-    const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScore, transitPremium);
-
-    const priceEok = Math.floor(avg3MSale / 10000);
-    const priceMan = avg3MSale % 10000;
-    const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
-
-    let status = 'fair';
-    let amount = '0';
-
-    if (avg3MSale > 0 && dcf.impliedValue > 0) {
-      const diff = Math.abs(avg3MSale - dcf.impliedValue);
-      const diffEok = Math.floor(diff / 10000);
-      const diffMan = Math.round(diff % 10000);
-      
-      let amountStr = '';
-      if (diffEok > 0) {
-        amountStr = diffMan > 0 ? `${diffEok}억 ${diffMan.toLocaleString()}만원` : `${diffEok}억원`;
-      } else {
-        amountStr = `${diffMan.toLocaleString()}만원`;
-      }
-      amount = amountStr;
-
-      if (avg3MSale > dcf.impliedValue) {
-        status = 'overvalued';
-      } else if (avg3MSale < dcf.impliedValue) {
-        status = 'undervalued';
-      }
-    }
-
-    return { status, amount, ratio: jeonseRatio, priceStr };
-  }, [safeTransactions, report]);
-
-  const jeonseSafetyData = useMemo(() => {
-    if (!safeTransactions || safeTransactions.length === 0) return null;
-    const sales = safeTransactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
-    const rents = safeTransactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
-
-    const latestSale = sales[0]?.price || 0;
-    const latestRent = rents[0] ? (rents[0].calculatedPrice || rents[0].price || 0) : 0;
-
-    const ratio = latestSale > 0 ? (latestRent / latestSale) : 0;
-
-    return {
-      latestPrice: latestSale,
-      latestDeposit: latestRent,
-      ratio
-    };
-  }, [safeTransactions]);
-
-  // 특정 평형 필터 칩 목록 (사전 계산된 필드 활용)
-  const areaFilterChips = useMemo(() => {
-    const rawAreas = Array.from(new Set(enrichedTransactions.map(tx => {
-      return areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
-    })));
-    const validAreas = rawAreas.filter((a): a is string => !!a);
-    return ['전체', ...validAreas.sort((a, b) => {
-      const numA = parseInt(a.match(/\d+/)?.[0] || '0');
-      const numB = parseInt(b.match(/\d+/)?.[0] || '0');
-      return numA - numB;
-    })];
-  }, [enrichedTransactions, areaUnit]);
+  const transactions = calculatedTransactions;
+  const valuation = calculatedValuation;
+  const jeonseSafetyData = calculatedJeonseSafety;
+  const areaFilterChips = calculatedAreaFilterChips;
 
   // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {
+    if (!isAnimationFinished) return [];
     if (deferredAreaFilter === '전체') return transactions;
     return transactions.filter(tx => {
       const label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
       return label === deferredAreaFilter;
     });
-  }, [transactions, deferredAreaFilter, areaUnit]);
+  }, [transactions, deferredAreaFilter, areaUnit, isAnimationFinished]);
 
   // Hydration-safe portal mount
   useEffect(() => {
@@ -1096,28 +1103,22 @@ const FieldReportModal = React.memo(function FieldReportModal({
     };
   }, []);
 
-  // Prevent body scroll when modal is open (with native mobile support)
+  // Prevent body scroll when modal is open without causing global layout thrashing
   useEffect(() => {
     if (inline || !mounted) return;
-    const scrollY = window.scrollY;
     
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalOverflow = document.body.style.overflow;
-    const originalPosition = document.body.style.position;
-    const originalTop = document.body.style.top;
-    const originalWidth = document.body.style.width;
+    const originalPaddingRight = document.body.style.paddingRight;
 
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
 
     return () => {
       document.body.style.overflow = originalOverflow || '';
-      document.body.style.position = originalPosition || '';
-      document.body.style.top = originalTop || '';
-      document.body.style.width = originalWidth || '';
-      
-      window.scrollTo(0, scrollY);
+      document.body.style.paddingRight = originalPaddingRight || '';
     };
   }, [inline, mounted]);
 

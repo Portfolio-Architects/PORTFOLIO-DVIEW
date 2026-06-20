@@ -5,6 +5,11 @@ import path from "path";
 const nextConfig: NextConfig = {
   turbopack: process.env.VERCEL ? {} : {
     root: path.resolve(import.meta.dirname, '..'),
+    resolveAlias: {
+      '@/lib/firebaseAdmin': './src/lib/firebaseAdmin.client.ts',
+      './src/lib/firebaseAdmin': './src/lib/firebaseAdmin.client.ts',
+      './src/lib/firebaseAdmin.ts': './src/lib/firebaseAdmin.client.ts',
+    }
   },
   productionBrowserSourceMaps: false,
   compress: true,
@@ -165,6 +170,56 @@ const nextConfig: NextConfig = {
         return name !== 'BundleAnalyzerPlugin' && name !== 'CircularDependencyPlugin';
       });
     }
+
+    // 서버 사이드 모듈이 클라이언트 측 번들에 포함되려 할 때 빈 모듈로 대체하여 빌드 에러 방지
+    if (!isServer) {
+      const serverFile = path.resolve(import.meta.dirname, 'src/lib/firebaseAdmin.ts');
+      const serverFileNoExt = path.resolve(import.meta.dirname, 'src/lib/firebaseAdmin');
+      const clientFile = path.resolve(import.meta.dirname, 'src/lib/firebaseAdmin.client.ts');
+
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@/lib/firebaseAdmin': clientFile,
+        [serverFile]: clientFile,
+        [serverFileNoExt]: clientFile,
+      };
+
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        dns: false,
+        fs: false,
+        child_process: false,
+        crypto: false,
+        url: false,
+        http2: false,
+        http: false,
+        https: false,
+        zlib: false,
+        stream: false,
+        path: false,
+        os: false,
+        util: false,
+        assert: false,
+        // node: scheme fallbacks for Webpack 5 browser compilation
+        'node:buffer': false,
+        'node:crypto': false,
+        'node:events': false,
+        'node:fs': false,
+        'node:https': false,
+        'node:http': false,
+        'node:net': false,
+        'node:path': false,
+        'node:process': false,
+        'node:stream': false,
+        'node:stream/web': false,
+        'node:url': false,
+        'node:util': false,
+        'node:zlib': false,
+      };
+    }
+
     return config;
   },
 };
