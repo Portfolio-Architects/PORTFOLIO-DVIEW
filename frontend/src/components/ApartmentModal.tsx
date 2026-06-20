@@ -1098,6 +1098,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
   useEffect(() => {
     mountedRef.current = true;
     setMounted(true);
+    
+    // Preload critical dynamic components immediately on modal mount
+    (TransactionChartSection as any).preload?.();
+    (CommentSection as any).preload?.();
+    
     return () => {
       mountedRef.current = false;
     };

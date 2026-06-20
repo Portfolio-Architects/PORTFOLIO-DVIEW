@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -78,19 +78,27 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   useEffect(() => {
     mountedRef.current = true;
-    const timer = setTimeout(() => {
-      if (mountedRef.current) {
-        setIsChartReady(true);
-      }
-    }, 350);
+    // 마운트 완료 시 즉시 차트 렌더링 활성화 (350ms 고정 딜레이 제거)
+    if (mountedRef.current) {
+      setIsChartReady(true);
+    }
     return () => {
       mountedRef.current = false;
-      clearTimeout(timer);
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!containerRef.current) return;
+    
+    // Measure immediately before paint to prevent 1-frame visual flash of "차트 로드 중..."
+    const initialWidth = containerRef.current.clientWidth;
+    const initialHeight = containerRef.current.clientHeight;
+    if (initialWidth > 0 && initialHeight > 0) {
+      const initialSize = { width: initialWidth, height: initialHeight };
+      setDimensions(initialSize);
+      sizeRef.current = initialSize;
+    }
+
     let debounceTimer: NodeJS.Timeout | null = null;
     
     const resizeObserver = new ResizeObserver((entries) => {
@@ -104,14 +112,21 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         return;
       }
       
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        if (mountedRef.current) {
-          const newSize = { width, height };
-          sizeRef.current = newSize;
-          setDimensions(newSize);
-        }
-      }, 100);
+      const isFirstMeasure = sizeRef.current.width === 0 || sizeRef.current.height === 0;
+      const newSize = { width, height };
+      sizeRef.current = newSize;
+
+      if (isFirstMeasure) {
+        // 최초 크기 계측 시에는 디바운스 지연 없이 즉시 레이아웃 크기를 셋업하여 0ms 차트 로딩 확보
+        setDimensions(newSize);
+      } else {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (mountedRef.current) {
+            setDimensions(newSize);
+          }
+        }, 100);
+      }
     });
     
     resizeObserver.observe(containerRef.current);
