@@ -129,7 +129,10 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
 
   useEffect(() => {
     return () => {
-      if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+        alertTimeoutRef.current = null;
+      }
     };
   }, []);
   const [showDraftModal, setShowDraftModal] = useState(false);
@@ -267,8 +270,14 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
         const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
         const dupCount = allNew.length - unique.length;
         if (dupCount > 0) {
-          if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
-          alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+          if (alertTimeoutRef.current) {
+            clearTimeout(alertTimeoutRef.current);
+            alertTimeoutRef.current = null;
+          }
+          alertTimeoutRef.current = setTimeout(() => {
+            alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
+            alertTimeoutRef.current = null;
+          }, 0);
         }
         if (unique.length === 0) return prev;
         // Also update previews
@@ -367,8 +376,14 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
         const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
         const dupCount = allNew.length - unique.length;
         if (dupCount > 0) {
-          if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
-          alertTimeoutRef.current = setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+          if (alertTimeoutRef.current) {
+            clearTimeout(alertTimeoutRef.current);
+            alertTimeoutRef.current = null;
+          }
+          alertTimeoutRef.current = setTimeout(() => {
+            alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
+            alertTimeoutRef.current = null;
+          }, 0);
         }
         if (unique.length === 0) return prev;
         const newPreviews = unique.map(file => {
