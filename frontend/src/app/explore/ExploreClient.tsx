@@ -268,7 +268,14 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
       } else {
-        preloadTimeoutRef.current = setTimeout(preloadHeavyChunks, 2000);
+        if (preloadTimeoutRef.current) {
+          clearTimeout(preloadTimeoutRef.current);
+          preloadTimeoutRef.current = null;
+        }
+        preloadTimeoutRef.current = setTimeout(() => {
+          preloadHeavyChunks();
+          preloadTimeoutRef.current = null;
+        }, 2000);
       }
     }
 
@@ -278,7 +285,10 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       if (idleId !== null && 'cancelIdleCallback' in window) {
         (window as any).cancelIdleCallback(idleId);
       }
-      if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
+        preloadTimeoutRef.current = null;
+      }
     };
   }, []);
 
