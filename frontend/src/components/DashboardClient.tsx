@@ -311,6 +311,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   
   const [mounted, setMounted] = useState(false);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
   
 
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -364,12 +365,18 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     setNicknameError('');
     try {
       await UserRepo.updateNickname(user.uid, trimmed);
-      window.location.reload();
+      if (mountedRef.current) {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Failed to set nickname:', error);
-      setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (mountedRef.current) {
+        setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     } finally {
-      setIsSubmittingNickname(false);
+      if (mountedRef.current) {
+        setIsSubmittingNickname(false);
+      }
     }
   };
 
@@ -465,6 +472,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   useEffect(() => {
     let isMounted = true;
+    mountedRef.current = true;
     setMounted(true);
     let idleId: number | null = null;
     if (typeof window !== 'undefined') {
@@ -548,6 +556,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
       return () => {
         isMounted = false;
+        mountedRef.current = false;
         if (idleId !== null && 'cancelIdleCallback' in window) {
           (window as any).cancelIdleCallback(idleId);
         }

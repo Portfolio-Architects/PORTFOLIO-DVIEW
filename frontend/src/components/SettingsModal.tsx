@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Moon, Sun, Monitor, Scaling } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
@@ -8,9 +8,16 @@ import { useSettings } from '@/lib/contexts/SettingsContext';
 const SettingsModal = React.memo(function SettingsModal() {
   const [mounted, setMounted] = useState(false);
   const { isSettingsModalOpen, setIsSettingsModalOpen, areaUnit, setAreaUnit, theme, setTheme } = useSettings();
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    setMounted(true);
+    mountedRef.current = true;
+    if (mountedRef.current) {
+      setMounted(true);
+    }
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   // Prevent background scroll when settings modal is open
