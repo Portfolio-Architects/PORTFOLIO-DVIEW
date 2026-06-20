@@ -75,7 +75,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
       return () => {
         clearTimeout(renderTimer);
         window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition, { capture: true } as any);
+        window.removeEventListener('scroll', updatePosition, true);
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
       };
     }
