@@ -14,6 +14,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
+import { trackEvent } from '@/lib/utils/analytics';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -325,6 +326,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const handleOpenConsumerAdModal = useCallback((adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => {
     setConsumerAdInfo({ adType, adTitle });
     setIsConsumerAdModalOpen(true);
+    trackEvent('ad_modal_open', { ad_type: adType, ad_title: adTitle });
   }, []);
   const [showAdBlockBanner, setShowAdBlockBanner] = useState(false);
   const { isAdBlockActive } = useAdBlockDetector();
@@ -633,12 +635,15 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     }
   }, [mounted, activeTab, mobileModalOpen]);
 
-  // Scroll to top when tab changes
+  // Scroll to top when tab changes & track event
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [activeTab]);
+    if (mounted) {
+      trackEvent('tab_view', { tab_name: activeTab });
+    }
+  }, [activeTab, mounted]);
 
   console.log("DEBUG: DashboardClient render triggered!", { selectedReportId: selectedReport?.id, mobileModalOpen });
   const userHasSelected = useRef(false);

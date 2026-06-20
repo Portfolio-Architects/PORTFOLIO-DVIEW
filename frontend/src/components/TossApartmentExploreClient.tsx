@@ -14,6 +14,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { trackEvent } from '@/lib/utils/analytics';
 
 const formatPrice = (priceMan: number) => {
   const { value, unit } = formatEokWithUnit(priceMan);
@@ -460,6 +461,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onOpenMortgage,
 }: TossApartmentExploreClientProps) {
   const [sidebarWidth, setSidebarWidth] = useState(240);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const isResizingRef = useRef(false);
   const animationFrameIdRef = useRef<number | null>(null);
   const resizeListenersRef = useRef<{
@@ -570,6 +575,12 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   useEffect(() => {
     setVisibleCount(15);
   }, [currentCategory, debouncedSearchQuery]);
+
+  useEffect(() => {
+    if (mounted && debouncedSearchQuery.trim()) {
+      trackEvent('search_apartment', { query: debouncedSearchQuery });
+    }
+  }, [debouncedSearchQuery, mounted]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -1031,7 +1042,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                           <button
                             key={kw}
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => setSearchQuery(kw)}
+                            onClick={() => {
+                              setSearchQuery(kw);
+                              trackEvent('search_tag_click', { tag: kw });
+                            }}
                             className="bg-body hover:bg-black/5 dark:hover:bg-white/5 text-secondary text-[12px] font-bold px-3 py-1.5 rounded-full transition-all active:scale-95 border border-transparent hover:border-border"
                           >
                             {kw}
@@ -1054,6 +1068,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                               setCurrentCategory(`dong-${dong.name}`);
                               setSearchQuery('');
                               setIsSearchFocused(false);
+                              trackEvent('search_tag_click', { tag: `dong-${dong.name}` });
                             }}
                             className="flex items-center gap-2 bg-body hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-xl text-left transition-all active:scale-95 border border-transparent hover:border-border"
                           >
@@ -1083,6 +1098,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                               onClick={() => {
                                 handleSelectApt(item.apt.name);
                                 setIsSearchFocused(false);
+                                trackEvent('view_apartment', { apt_name: item.apt.name, trigger: 'search_shortcut' });
                               }}
                               className="flex items-center justify-between p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-all text-left group active:scale-99 border border-transparent hover:border-border"
                             >
@@ -1124,6 +1140,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                                   setCurrentCategory(`dong-${dong.name}`);
                                   setSearchQuery('');
                                   setIsSearchFocused(false);
+                                  trackEvent('search_tag_click', { tag: `dong-${dong.name}` });
                                 }}
                                 className="flex items-center justify-between p-2.5 bg-toss-blue/5 hover:bg-toss-blue/10 border border-toss-blue/20 rounded-xl text-left transition-all active:scale-98"
                               >
@@ -1146,7 +1163,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                                 <button
                                   key={brand}
                                   onMouseDown={(e) => e.preventDefault()}
-                                  onClick={() => setSearchQuery(brand)}
+                                  onClick={() => {
+                                    setSearchQuery(brand);
+                                    trackEvent('search_tag_click', { tag: brand });
+                                  }}
                                   className="bg-body hover:bg-black/5 dark:hover:bg-white/5 text-primary text-[12px] font-bold px-3 py-1.5 rounded-full border border-border/80 transition-all active:scale-95"
                                 >
                                   🔍 {brand}

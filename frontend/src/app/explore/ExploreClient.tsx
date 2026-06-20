@@ -26,6 +26,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
+import { trackEvent } from '@/lib/utils/analytics';
 
 const ExploreListSkeleton = () => (
   <div className="w-full flex flex-col gap-3 animate-pulse">
@@ -331,6 +332,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   }, []);
 
   const handleAptClick = useCallback((apt: { name: string; dong: string }) => {
+    trackEvent('view_apartment', { apt_name: apt.name });
     const report = fieldReportsMap.get(apt.name);
     if (report) {
       setSelectedReport(report);
@@ -373,6 +375,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
   const handleAptToggleFavorite = useCallback((aptName: string) => {
+    const isAdding = !userFavorites.has(aptName);
+    trackEvent('toggle_favorite', { apt_name: aptName, status: isAdding ? 'added' : 'removed' });
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
     if (user && !userFavorites.has(aptName)) {
       triggerCustomA2HSModal();
@@ -451,22 +455,27 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                 onOpenCompare={(aptName) => {
                   setCompareInitialApt(aptName);
                   setIsCompareOpen(true);
+                  trackEvent('open_calculator', { calculator_type: 'compare', apt_name: aptName });
                 }}
                 onOpenJeonseSafety={(aptName) => {
                   setJeonseSafetyInitialApt(aptName);
                   setIsJeonseSafetyOpen(true);
+                  trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: aptName });
                 }}
                 onOpenMortgage={(aptName) => {
                   setMortgageInitialApt(aptName);
                   setIsMortgageOpen(true);
+                  trackEvent('open_calculator', { calculator_type: 'mortgage', apt_name: aptName });
                 }}
                 onOpenTaxCalculator={(aptName) => {
                   setTaxCalcInitialApt(aptName);
                   setIsTaxCalcOpen(true);
+                  trackEvent('open_calculator', { calculator_type: 'property_tax', apt_name: aptName });
                 }}
                 onOpenSellTimingCalculator={(aptName) => {
                   setSellTimingInitialApt(aptName);
                   setIsSellTimingOpen(true);
+                  trackEvent('open_calculator', { calculator_type: 'sell_timing', apt_name: aptName });
                 }}
               />
             )}

@@ -153,12 +153,18 @@ function useResizeObserver(delay = 150) {
       }
 
       // Debounce state update to prevent UI rendering thrashing during resizing or animations
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
+      if (sizeRef.current.width === 0 || sizeRef.current.height === 0) {
         const newSize = { width, height };
         sizeRef.current = newSize;
         setSize(newSize);
-      }, delay);
+      } else {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          const newSize = { width, height };
+          sizeRef.current = newSize;
+          setSize(newSize);
+        }, delay);
+      }
     });
 
     observer.observe(element);
@@ -182,19 +188,14 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isChartActive, setIsChartActive] = useState(false);
-
+ 
   const [containerRef, { width, height }] = useResizeObserver(150);
-
+ 
   useEffect(() => {
     setMounted(true);
     if (typeof window !== "undefined") {
       setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
     }
-    const timer = setTimeout(() => {
-      setIsChartActive(true);
-    }, 100);
-    return () => clearTimeout(timer);
   }, []);
 
   const fontSize = isBottomSheet ? 11 : 12;
@@ -229,7 +230,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 
   return (
     <div ref={containerRef} className="w-full h-full touch-pan-y relative">
-      {isChartActive && width > 0 && height > 0 && (
+      {width > 0 && height > 0 && (
         <AreaChart
           width={width}
           height={height}
