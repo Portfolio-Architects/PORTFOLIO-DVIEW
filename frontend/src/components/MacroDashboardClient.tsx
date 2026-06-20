@@ -1854,7 +1854,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       <h3 
                         className="text-[15px] font-bold text-primary tracking-tight shrink-0"
                       >
-                        동탄 대표 아파트 시세 추이
+                        {user ? "내 관심 단지 시세 추이" : "동탄 대표 아파트 시세 추이"}
                       </h3>
 
                       {isDefaultAptSettingUp ? (

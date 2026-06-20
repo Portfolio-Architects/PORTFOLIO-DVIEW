@@ -195,10 +195,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
       {isWritableCategory && (
         <button
           onClick={() => {
-            const defaultCategory = (currentTab === '동탄 부동산 뉴스' || currentTab === '동탄구 소식')
-              ? '우리동네 이야기'
-              : currentTab;
-            setPostCategory(defaultCategory);
+            setPostCategory('우리동네 이야기');
             setCustomNickname(''); // Reset to trigger auto-generation
             setShowCompose(true);
             if (isUserAdmin && !postContent) {
@@ -223,29 +220,9 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                 <X size={16} className="text-secondary" />
               </button>
             </div>
-            
-            <div className="mb-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 dark:border-emerald-500/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm select-none">
-              <div className="flex items-center gap-3">
-                <span className="text-[20px] animate-bounce shrink-0">🎁</span>
-                <div className="flex flex-col">
-                  <span className="text-[13.5px] font-black text-emerald-800 dark:text-emerald-300">
-                    지금 글 쓰고 프리미엄 리포트 무료 해금!
-                  </span>
-                  <span className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400/80 mt-0.5">
-                    동네 이야기나 아파트 리뷰를 작성하시면 24시간 동안 D-VIEW 모든 분석 리포트가 무료 패스됩니다.
-                  </span>
-                </div>
-              </div>
-              <span className="shrink-0 bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse shadow-sm">
-                100% 해금
-              </span>
-            </div>
 
             <div className="flex gap-2 mb-4 overflow-x-auto">
-              {(isUserAdmin 
-                ? ['매니저 임장기', '동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔'] 
-                : ['동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔']
-              ).map((cat) => (
+              {['우리동네 이야기'].map((cat) => (
                 <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#008262] text-surface border-transparent shadow-sm' : 'bg-surface text-secondary border-toss-gray hover:border-[#008262]'}`}>{cat}</button>
               ))}
             </div>

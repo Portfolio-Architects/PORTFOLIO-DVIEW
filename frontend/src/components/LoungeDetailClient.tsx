@@ -711,9 +711,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
             <div className="mt-4 flex flex-col gap-3">
               <div className="flex gap-2 mb-2 overflow-x-auto">
                 {(() => {
-                  const defaultCats = checkAdmin(user?.email)
-                    ? ['매니저 임장기', '동탄 임장/분석', '동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권']
-                    : ['동탄 육아/교육', '실시간 오픈런/정보', '우리동네 이야기', '동탄 벼룩/나눔', '동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'];
+                  const defaultCats = ['우리동네 이야기'];
                   const cats = defaultCats.includes(editCategory) ? defaultCats : [...defaultCats, editCategory];
                   return cats.map((cat) => (
                     <button key={cat} onClick={() => setEditCategory(cat)} className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${editCategory === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{cat}</button>
