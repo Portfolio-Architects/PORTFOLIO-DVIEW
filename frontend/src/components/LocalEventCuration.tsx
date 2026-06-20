@@ -35,7 +35,10 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
     };
   }, []);
 
-  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices');
+  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', (url: string) => fetch(url).then(res => res.json()), {
+    revalidateOnFocus: false,
+    dedupingInterval: 120000
+  });
   const allNotices = (noticesData?.notices || []) as LocalNoticeItem[];
   // Filter for Dongtan-related ones or fallback to latest general if none found
   const localNotices = allNotices.filter((n: LocalNoticeItem) => n.isDongtan).slice(0, 5);

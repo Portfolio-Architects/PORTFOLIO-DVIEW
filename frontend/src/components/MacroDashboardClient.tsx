@@ -37,6 +37,7 @@ import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from
 import { haversineDistance } from "@/lib/utils/haversine";
 import { useSettingsValues } from "@/lib/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocationScores } from "@/hooks/useStaticData";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
 import {
@@ -430,10 +431,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
     return Object.values(sheetApartments).flat().map(a => a.name).sort();
   }, [sheetApartments, timelineDongFilter]);
-  const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher);
-  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher);
-  const { data: locationScores } = useSWR<Record<string, any>>('/data/location-scores.json', fetcher);
-  const { data: postsData } = useSWR('/api/posts?limit=50', fetcher);
+  const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
+  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 120000 });
+  const { locationScores } = useLocationScores();
+  const { data: postsData } = useSWR('/api/posts?limit=50', fetcher, { revalidateOnFocus: false, dedupingInterval: 30000 });
   const noticesLoading = !noticesData && !noticesError;
 
 
@@ -1850,8 +1851,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <div className="flex flex-col gap-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-[15px] font-bold text-primary tracking-tight truncate flex items-center gap-1.5 max-w-[360px] sm:max-w-none">
-                        {selectedTimelineApt && selectedTimelineApt !== "동탄역 롯데캐슬" ? `${selectedTimelineApt} 시세 추이` : "동탄 대표 아파트 시세 추이"}
+                      <h3 
+                        className="text-[15px] font-bold text-primary tracking-tight shrink-0"
+                      >
+                        동탄 대표 아파트 시세 추이
                       </h3>
 
                       {isDefaultAptSettingUp ? (
