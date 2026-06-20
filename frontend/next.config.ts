@@ -66,6 +66,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/favicon.ico',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=604800, must-revalidate',
+          },
+        ],
+      },
+      {
         source: '/sw.js',
         headers: [
           {
@@ -88,7 +97,9 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            value: isDev 
+              ? 'no-store, no-cache, must-revalidate, max-age=0'
+              : 'public, max-age=900, stale-while-revalidate=3600',
           },
         ],
       },
@@ -97,7 +108,9 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            value: isDev 
+              ? 'no-store, no-cache, must-revalidate, max-age=0'
+              : 'public, max-age=900, stale-while-revalidate=3600',
           },
         ],
       },
