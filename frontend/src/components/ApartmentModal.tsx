@@ -1846,10 +1846,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
               <span>{copiedStatus === 'all-link' ? '링크 복사 완료!' : '공유하기'}</span>
             </button>
 
-            {/* 단톡방 요약 복사 버튼 */}
+            {/* 단톡방 요약 복사 버튼 — 모바일은 하단 스티키 바와 중복되므로 hidden 처리 */}
             <button
               onClick={handleCopySummary}
-              className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
+              className={`h-10 px-4 rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
                 copiedStatus === 'summary'
                   ? 'bg-emerald-500 text-white border-transparent shadow-md'
                   : 'bg-emerald-50/50 hover:bg-emerald-100/60 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/10'
@@ -1864,10 +1864,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
               <span>{copiedStatus === 'summary' ? '요약 복사 완료!' : '단톡방 요약 복사'}</span>
             </button>
 
-            {/* 인포그래픽 요약 이미지 다운로드 버튼 */}
+            {/* 인포그래픽 요약 이미지 다운로드 버튼 — 모바일은 하단 스티키 바와 중복되므로 hidden 처리 */}
             <button
               onClick={handleDownloadShareCard}
-              className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
+              className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
               title="인포그래픽 요약 카드 이미지 다운로드"
             >
               <Camera size={14} strokeWidth={2.5} className="text-secondary/80" />
