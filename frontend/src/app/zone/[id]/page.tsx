@@ -15,8 +15,7 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').cat
   return { default: () => null };
 }), { ssr: false });
 
-import { auth, googleProvider } from '@/lib/firebaseConfig';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 const ZoneDetailPage = React.memo(function ZoneDetailPage() {
   const params = useParams();
@@ -28,24 +27,11 @@ const ZoneDetailPage = React.memo(function ZoneDetailPage() {
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
 
   // Comments state for modal
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    let active = true;
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (active) {
-        setUser(currentUser);
-      }
-    });
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, []);
 
   const handleSelectReport = (report: FieldReportData) => {
     setSelectedReport(report);

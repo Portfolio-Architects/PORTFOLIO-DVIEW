@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-react';
-import { auth, storage } from '@/lib/firebaseConfig';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
@@ -24,11 +23,10 @@ interface Props {
 }
 
 const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
-  const { handleLogin } = useAuth();
+  const { user, userProfile, handleLogin } = useAuth();
   const router = useRouter();
   const { showToast } = usePWA();
   const submitLockRef = useRef(false);
-  const [user, setUser] = useState<User | null>(null);
   const [footerOffset, setFooterOffset] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -91,7 +89,6 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     currentTab !== '동탄 부동산 뉴스' && 
     currentTab !== '동탄구 소식' && 
     (currentTab !== '매니저 임장기' || isUserAdmin);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showCompose, setShowCompose] = useState(false);
   const [postTitle, setPostTitle] = useState('');
   const MARKDOWN_TEMPLATE = `이웃 주민들과 나누고 싶은 실시간 동탄 소식을 알려주세요! 💚
@@ -185,25 +182,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     }
   };
 
-  useEffect(() => {
-    let active = true;
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!active) return;
-      setUser(currentUser);
-      if (currentUser) {
-        const profile = await UserRepo.getOrCreateProfile(currentUser.uid);
-        if (active) {
-          setUserProfile(profile);
-        }
-      } else {
-        setUserProfile(null);
-      }
-    });
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, []);
+
 
 
 

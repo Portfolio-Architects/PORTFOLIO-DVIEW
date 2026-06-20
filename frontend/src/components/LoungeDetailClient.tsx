@@ -13,7 +13,8 @@ import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, E
 import { db, auth, storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp, where, limit, getDocs } from 'firebase/firestore';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { User } from 'firebase/auth';
+import { useAuth } from '@/hooks/useAuth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { postConverter, commentConverter } from '@/lib/utils/firestoreConverters';
 import type { UserProfile } from '@/lib/types/user.types';
@@ -134,8 +135,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     };
   }, []);
 
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { user, userProfile } = useAuth();
   const [post, setPost] = useState<Record<string, unknown> | null>(() => {
     if (postId && postLocalCache[postId]) {
       return postLocalCache[postId];
@@ -185,24 +185,6 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auth
-  useEffect(() => {
-    let active = true;
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      if (!active) return;
-      setUser(u);
-      if (u) {
-        const profile = await UserRepo.getOrCreateProfile(u.uid);
-        if (active) {
-          setUserProfile(profile);
-        }
-      }
-    });
-    return () => {
-      active = false;
-      unsub();
-    };
-  }, []);
 
   useEffect(() => {
     if (!postId) return;

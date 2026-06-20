@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebaseConfig';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user, isLoading } = useAuth();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(
     process.env.NODE_ENV === 'development' ? true : null
   );
@@ -22,15 +22,16 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!mounted) return;
-      if (!user) {
-        setIsAuthorized(false);
-        localStorage.removeItem('dview_is_admin');
-        router.push('/');
-        return;
-      }
+    if (isLoading) return;
 
+    if (!user) {
+      setIsAuthorized(false);
+      localStorage.removeItem('dview_is_admin');
+      router.push('/');
+      return;
+    }
+
+    const checkAdminClaims = async () => {
       try {
         // Force refresh the token to get the latest custom claims
         const idTokenResult = await user.getIdTokenResult(true);
@@ -51,13 +52,14 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         localStorage.removeItem('dview_is_admin');
         router.push('/');
       }
-    });
+    };
+
+    checkAdminClaims();
 
     return () => {
       mounted = false;
-      unsubscribe();
     };
-  }, [router, pathname]);
+  }, [user, isLoading, router, pathname]);
 
   if (isAuthorized === null) {
     return (
