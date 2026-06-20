@@ -2065,7 +2065,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </div>
 
             {/* 동탄 철도 교통 게시판 위젯 */}
-            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:h-[380px] justify-start">
+            <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:h-[350px] justify-start">
               {/* Header */}
               <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
                 <div className="relative group/title flex items-center gap-1.5 min-w-0">

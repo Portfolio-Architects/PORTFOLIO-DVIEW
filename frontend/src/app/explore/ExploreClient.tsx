@@ -116,11 +116,9 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
-  // Trigger lazy fetching of detailed sheets data on mount if user is deep-linking to an apartment modal
+  // Trigger lazy fetching of detailed sheets data on mount for the Explore page
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash.includes('apt=')) {
-      triggerFetch();
-    }
+    triggerFetch();
   }, [triggerFetch]);
 
   const fieldReportsMap = useMemo(() => {
