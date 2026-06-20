@@ -128,11 +128,22 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
           // 3. Zero-click simulation if initialAptName is present
           if (initialAptName) {
             setIsCalculating(true);
-            const timer = setTimeout(() => {
-              setIsCalculating(false);
-              setShowResult(true);
+            if (calculateTimeoutRef.current) {
+              clearTimeout(calculateTimeoutRef.current);
+            }
+            calculateTimeoutRef.current = setTimeout(() => {
+              if (mountedRef.current) {
+                setIsCalculating(false);
+                setShowResult(true);
+              }
+              calculateTimeoutRef.current = null;
             }, 1200);
-            return () => clearTimeout(timer);
+            return () => {
+              if (calculateTimeoutRef.current) {
+                clearTimeout(calculateTimeoutRef.current);
+                calculateTimeoutRef.current = null;
+              }
+            };
           }
         }
       } catch (e) {
