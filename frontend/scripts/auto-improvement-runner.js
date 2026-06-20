@@ -23,7 +23,7 @@ function log(color, message) {
 }
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
-const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\05d86d13-327f-465d-b1bc-6c8b812512a4';
+const BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\28b6bafc-668a-4a16-b821-df4b07ce6ad6';
 const TASK_MD_PATH = path.join(BRAIN_DIR, 'task.md');
 const HISTORY_JSON_PATH = path.join(BRAIN_DIR, 'scratch/loop-history.json');
 
