@@ -426,11 +426,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
   const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeTabTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shareActionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
       if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
       if (activeTabTimeoutRef.current) clearTimeout(activeTabTimeoutRef.current);
+      if (shareActionTimeoutRef.current) clearTimeout(shareActionTimeoutRef.current);
     };
   }, []);
 
@@ -1347,8 +1349,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
     const baseUrl = window.location.origin;
 
     try {
+      if (shareActionTimeoutRef.current) {
+        clearTimeout(shareActionTimeoutRef.current);
+      }
       // Allow React to mount the off-screen share card DOM before capture
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise<void>((resolve) => {
+        shareActionTimeoutRef.current = setTimeout(() => {
+          shareActionTimeoutRef.current = null;
+          resolve();
+        }, 150);
+      });
       if (!mountedRef.current) return;
 
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
@@ -1501,8 +1511,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
     showToast("📸 요약 카드 이미지를 생성하고 있습니다...");
     
     try {
+      if (shareActionTimeoutRef.current) {
+        clearTimeout(shareActionTimeoutRef.current);
+      }
       // Allow React to mount the off-screen share card DOM before capture
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise<void>((resolve) => {
+        shareActionTimeoutRef.current = setTimeout(() => {
+          shareActionTimeoutRef.current = null;
+          resolve();
+        }, 200);
+      });
       if (!mountedRef.current) return;
 
       if (shareCardRef.current) {
