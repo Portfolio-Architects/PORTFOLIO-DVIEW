@@ -432,7 +432,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }
   }, [mounted]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('sec-summary');
+  const [activeTab, setActiveTab] = useState('sec-comments');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
@@ -1129,8 +1129,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
       clearTimeout(activeTabTimeoutRef.current);
     }
 
-    if (id === 'sec-summary' && modalRef.current) {
-      // Summary = first section, just scroll modal to top
+    if (id === 'sec-comments' && modalRef.current) {
+      // Comments = first section, just scroll modal to top
       modalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       const el = modalRef.current?.querySelector(`#${id}`);
@@ -1238,10 +1238,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
       setShowScrollTop(false);
     }
 
-    const sections = ['sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-jeonse-safety', 'sec-photos', 'sec-comments'];
-    let current = 'sec-summary';
+    const sections = ['sec-comments', 'sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-jeonse-safety', 'sec-photos'];
+    let current = 'sec-comments';
     for (const id of sections) {
-      if (id === 'sec-summary') continue;
+      if (id === 'sec-comments') continue;
       const el = modalRef.current.querySelector(`#${id}`);
       if (el) {
         const rect = el.getBoundingClientRect();
@@ -2091,13 +2091,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
             <div role="tablist" className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
               {(() => {
                 const tabs = [
+                  { id: 'sec-comments', label: '아파트 이야기', show: true },
                   { id: 'sec-summary', label: '단지 기본정보', show: true },
                   { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
                   { id: 'sec-education', label: '학군/육아 분석', show: !!report.metrics },
                   { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
                   { id: 'sec-jeonse-safety', label: '전세 안전 진단', show: transactions.length > 0 },
                   { id: 'sec-photos', label: '우리 단지 갤러리', show: true },
-                  { id: 'sec-comments', label: '아파트 이야기', show: true },
                 ].filter(t => t.show);
 
                 return tabs.map((tab) => {
@@ -2126,15 +2126,32 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {/* Magazine Content Wrapper */}
           <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
 
+            {/* Comments Section (Moved to top) */}
+            <section id="sec-comments" className="scroll-mt-14">
+              <ErrorBoundary name="임장기 댓글">
+                <LazyRender estimatedHeight={250}>
+                  <CommentSection
+                    comments={comments}
+                    commentInput={commentInput}
+                    onCommentChange={onCommentChange}
+                    onSubmitComment={handleCommentSubmitWithUnlock}
+                    user={user}
+                    isUnlocked={isUnlocked}
+                    selectedCommentId={selectedCommentId}
+                    onRequestLogin={onRequestLogin}
+                  />
+                </LazyRender>
+              </ErrorBoundary>
+            </section>
+
             {/* 1. 단지 기본 명세 (Specs) */}
-            <ApartmentSpecsSection
-              report={report}
-              inline={inline}
-              managerPost={managerPost}
-              parsedTitle={parsedTitle}
-              displayAptName={displayAptName}
-              onClose={onClose}
-            />
+            <div id="sec-summary" className="scroll-mt-14">
+              <ApartmentSpecsSection
+                report={report}
+                inline={inline}
+                displayAptName={displayAptName}
+              />
+            </div>
 
               {/* 🎯 아파트별 1:1 컨텍스트 타겟팅 B2B CPA 광고 배너 연동 (105차) */}
               {report.metrics && (
@@ -2387,23 +2404,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 />
               </div>
 
-              {/* Comments Section */}
-              <section id="sec-comments">
-                <ErrorBoundary name="임장기 댓글">
-                  <LazyRender estimatedHeight={250}>
-                    <CommentSection
-                      comments={comments}
-                      commentInput={commentInput}
-                      onCommentChange={onCommentChange}
-                      onSubmitComment={handleCommentSubmitWithUnlock}
-                      user={user}
-                      isUnlocked={isUnlocked}
-                      selectedCommentId={selectedCommentId}
-                      onRequestLogin={onRequestLogin}
-                    />
-                  </LazyRender>
-                </ErrorBoundary>
-              </section>
+
             </>
           ) : (
             <div className="w-full py-16 flex flex-col items-center justify-center gap-3 bg-surface/30 rounded-3xl border border-border/50 animate-pulse">

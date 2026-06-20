@@ -1,22 +1,16 @@
 import React from 'react';
-import { Building, Crown, ChevronRight } from 'lucide-react';
+import { Building } from 'lucide-react';
 
 interface ApartmentSpecsSectionProps {
   report: any;
   inline?: boolean;
-  managerPost: any;
-  parsedTitle: string;
   displayAptName: string;
-  onClose: () => void;
 }
 
 const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
   report,
   inline = false,
-  managerPost,
-  parsedTitle,
   displayAptName,
-  onClose,
 }: ApartmentSpecsSectionProps) {
   if (!report.metrics) return null;
 
@@ -117,40 +111,6 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
           </div>
         ))}
       </div>
-
-      {/* Premium Scouting Report Banner for high visibility */}
-      {report.premiumContent && (
-        <div className="mt-6 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-center gap-4 w-full sm:w-auto min-w-0">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-              <Crown size={24} className="text-emerald-600 fill-emerald-600/30" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[15px] font-extrabold text-primary leading-snug break-keep whitespace-normal sm:truncate mt-0.5">
-                {managerPost?.title || parsedTitle || `${displayAptName} 매니저 임장기`}
-              </h3>
-              <p className="text-[12.5px] text-secondary mt-1 break-keep whitespace-normal sm:truncate">
-                D-VIEW 매니저가 직접 현장에서 검증한 대장 단지의 가치 평가 리포트
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              if (managerPost?.id) {
-                window.location.hash = `#post=${managerPost.id}`;
-                onClose();
-              } else {
-                window.location.hash = '#lounge';
-                onClose();
-              }
-            }}
-            className="w-full sm:w-auto shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[13px] px-4.5 py-3 rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-98 flex items-center justify-center gap-1 border-none cursor-pointer"
-          >
-            <span>임장기 보러가기</span>
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      )}
     </section>
   );
 });
