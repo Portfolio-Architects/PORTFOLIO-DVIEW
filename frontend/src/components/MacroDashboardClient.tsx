@@ -508,7 +508,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
 
 
-  const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>(null);
+  const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>("동탄역 롯데캐슬");
   const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
 
   const isDefaultAptSettingUp = useMemo(() => {
@@ -582,17 +582,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   useEffect(() => {
     if (!mounted || isFavoritesLoading) return;
     
-    // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 초기화 상태 유지
+    // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
     if (!user || !userFavorites || userFavorites.size === 0) {
+      if (selectedTimelineApt !== "동탄역 롯데캐슬") {
+        setSelectedTimelineApt("동탄역 롯데캐슬");
+      }
       setHasSetDefaultApt(false);
       return;
     }
 
-    // 이미 디폴트 아파트를 설정했거나, 유저가 수동으로 아파트를 선택한 경우 스킵
-    if (hasSetDefaultApt || selectedTimelineApt) {
-      if (selectedTimelineApt && !hasSetDefaultApt) {
-        setHasSetDefaultApt(true);
-      }
+    // 이미 디폴트 아파트를 설정한 경우 스킵
+    if (hasSetDefaultApt) {
       return;
     }
     
