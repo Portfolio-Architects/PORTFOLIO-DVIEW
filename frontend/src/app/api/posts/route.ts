@@ -55,6 +55,7 @@ export async function GET(req: Request) {
       logger.warn('PostsAPI.GET', 'Firebase Admin DB not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
+    const adminDb = db;
 
     const { searchParams } = new URL(req.url);
     const queryParse = PostsQuerySchema.safeParse({
@@ -76,13 +77,13 @@ export async function GET(req: Request) {
       return NextResponse.json(cachedData);
     }
 
-    let q = db.collection('posts')
+    let q = adminDb.collection('posts')
       .orderBy('createdAt', 'desc')
       .limit(limitVal);
 
     // Bypass Firestore COLLECTION_GROUP_DESC index error by removing orderBy/startAfter.
     // Query a fixed limit, then filter and sort in-memory.
-    const commentQ = db.collectionGroup('comments')
+    const commentQ = adminDb.collectionGroup('comments')
       .limit(200);
 
     if (lastCreatedAtStr) {
@@ -145,7 +146,7 @@ export async function GET(req: Request) {
     if (parentIdsToResolve.size > 0) {
       try {
         const parentSnaps = await Promise.all(
-          Array.from(parentIdsToResolve).map(id => db!.collection('field_reports').doc(id).get())
+          Array.from(parentIdsToResolve).map(id => adminDb.collection('field_reports').doc(id).get())
         );
         parentSnaps.forEach(snap => {
           if (snap.exists) {
@@ -236,6 +237,7 @@ export async function POST(req: Request) {
       logger.warn('PostsAPI.POST', 'Firebase Admin DB not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
+    const adminDb = db;
 
     const body = await req.json();
     const parsed = PostCreateSchema.safeParse(body);
@@ -256,7 +258,7 @@ export async function POST(req: Request) {
       imageUrl 
     } = parsed.data;
 
-    const docRef = await db.collection('posts').add({
+    const docRef = await adminDb.collection('posts').add({
       title,
       content,
       category,
@@ -270,6 +272,16 @@ export async function POST(req: Request) {
       commentCount: 0,
       createdAt: Timestamp.now(),
     });
+
+    // Invalidate lounge recent posts cache in Redis to keep the feed fresh
+    try {
+      const { redis } = await import('@/lib/redis');
+      if (redis) {
+        await redis.del('DTDLS:cache:loungeRecentPosts:30').catch(() => {});
+      }
+    } catch (cacheErr) {
+      logger.warn('PostsAPI.POST', 'Failed to invalidate lounge recent posts cache', {}, cacheErr as Error);
+    }
 
     logger.info('PostsAPI.POST', 'Post created via background sync API', { id: docRef.id });
     return NextResponse.json({ status: 'success', id: docRef.id });
