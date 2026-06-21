@@ -1,13 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { fetchSheetApartmentsByDong, fetchSheetTypeMap } from '@/lib/services/googleSheets';
 import { serverLruCache } from '@/lib/utils/server/lruCache';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 // Set L1 Cache TTL (10 minutes)
 const CACHE_TTL_MS = 600 * 1000;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_explore_searchdata_get_${rawIp}`);
+      if (!success) {
+        logger.warn('ExploreSearchDataAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     // 1. Try to read from L1 Cache
     const cachedData = serverLruCache.get('exploreSearchData');
     if (cachedData) {
