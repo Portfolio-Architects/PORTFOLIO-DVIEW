@@ -49,7 +49,7 @@ describe('ApartmentMapping Unit Tests', () => {
   describe('findTxKey() cascading logic', () => {
     const mockTxSummary = {
       '롯데캐슬알바트로스': { count: 1 },
-      '금강펜테리움': { count: 2 },
+      '금강펜테리움센트럴파크': { count: 2 },
       '동탄호수자이파밀리에': { count: 3 },
       'KCC스위첸': { count: 4 }
     };
@@ -62,7 +62,7 @@ describe('ApartmentMapping Unit Tests', () => {
     it('Step 2: match after stripping long location prefixes', () => {
       // txSummary has "롯데캐슬알바트로스", aptName is "동탄역롯데캐슬알바트로스"
       expect(findTxKey('동탄역 롯데캐슬알바트로스', mockTxSummary)).toBe('롯데캐슬알바트로스');
-      expect(findTxKey('동탄2신도시 금강펜테리움', mockTxSummary)).toBe('금강펜테리움');
+      expect(findTxKey('동탄2신도시 금강펜테리움센트럴파크', mockTxSummary)).toBe('금강펜테리움센트럴파크');
     });
 
     it('Step 3: deep normalization fallback', () => {
@@ -74,11 +74,12 @@ describe('ApartmentMapping Unit Tests', () => {
         '동탄레이크자연앤푸르지오(주상복합)': { count: 2 },
         '반도유보라아이비파크4.0': { count: 3 },
         '반도유보라아이비파크10차1단지': { count: 4 },
-        'KCC스위콈': { count: 5 }
+        '영천동,KCC스위콈': { count: 5 }
       };
 
-      // "동명," prefix should be stripped by Deep Normalize
-      expect(findTxKey('동탄호수 자이파밀리에', mockTxSummary2)).toBe('산척동,동탄호수자이파밀리에');
+      // "동명," prefix should be stripped by Deep Normalize.
+      // Since "자이파밀리에" is in BRAND_NAMES (generic), we must provide matching dong info.
+      expect(findTxKey('동탄호수 자이파밀리에', mockTxSummary2, undefined, false, '산척동')).toBe('산척동,동탄호수자이파밀리에');
 
       // ".0" and Roman numeral variations
       expect(findTxKey('반도유보라아이비파크 4.0', mockTxSummary2)).toBe('반도유보라아이비파크4.0');
@@ -89,7 +90,7 @@ describe('ApartmentMapping Unit Tests', () => {
       expect(findTxKey('반도유보라 아이비파크 10 1단지', mockTxSummary2)).toBe('반도유보라아이비파크10차1단지');
       
       // "스위콈" alias
-      expect(findTxKey('케이씨씨 스위첸', mockTxSummary2)).toBe('KCC스위콈');
+      expect(findTxKey('영천동 케이씨씨 스위첸', mockTxSummary2)).toBe('영천동,KCC스위콈');
     });
 
     it('Step 0: Manual mapping takes absolute precedence over logic', () => {
