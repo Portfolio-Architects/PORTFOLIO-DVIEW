@@ -136,15 +136,17 @@ import * as TrafficRepo from '@/lib/repositories/traffic.repository';
  * @throws FirestoreError if update fails
  */
 export async function incrementPostView(postId: string, title: string = '알 수 없는 글'): Promise<void> {
-  try {
-    const postRef = doc(db, 'posts', postId);
-    await throttle(() => updateDoc(postRef, { views: increment(1) }));
-    await TrafficRepo.incrementContentView(postId, title, 'lounge');
-    await invalidatePostCache(postId);
-  } catch (error) {
-    logger.error('PostRepository.incrementPostView', 'Failed to increment post view', { postId }, error);
-    throw error;
-  }
+  // Fire and forget: run view increment, traffic api, and cache invalidation asynchronously
+  (async () => {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      await throttle(() => updateDoc(postRef, { views: increment(1) }));
+      await TrafficRepo.incrementContentView(postId, title, 'lounge');
+      await invalidatePostCache(postId);
+    } catch (innerError) {
+      logger.error('PostRepository.incrementPostView', 'Asynchronous view count pipeline failed', { postId }, innerError);
+    }
+  })();
 }
 
 /**
