@@ -7,7 +7,7 @@
  * remains database-agnostic. Enables future migration to another DB.
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp, getDoc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp, getDoc, getDocs, collectionGroup } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { NewsItemData } from '@/lib/types/dashboard.types';
 import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
@@ -260,6 +260,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
           .limit(limitCount)
           .get()),
         throttle(() => adminDb.collectionGroup('comments')
+          .orderBy('createdAt', 'desc')
           .limit(100)
           .get())
       ]);
@@ -269,7 +270,6 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
       return processCombinedPosts(rawPosts, rawComments, limitCount);
     },
     clientQuery: async () => {
-      const { collectionGroup } = await import('firebase/firestore');
       const [postsSnap, commentsSnap] = await Promise.all([
         throttle(() => getDocs(query(
           collection(db, 'posts').withConverter(postConverter),
@@ -278,6 +278,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
         ))),
         throttle(() => getDocs(query(
           collectionGroup(db, 'comments'),
+          orderBy('createdAt', 'desc'),
           limit(100)
         )))
       ]);
