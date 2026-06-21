@@ -20,14 +20,17 @@ const ApartmentsByDongSchema = z.object({
 
 // Client-side in-memory cache for static apartment names
 let cachedApartmentNames: string[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 300000; // 5 minutes cache
 
 /**
  * Fetches full apartment list from /api/apartments-by-dong (Google Sheets).
  * Returns in "[법정동] 아파트명" format for WriteReviewModal, resident verification, etc.
  */
 export async function fetchApartmentNames(): Promise<string[]> {
-  // Return cached result if available on the client side
-  if (typeof window !== 'undefined' && cachedApartmentNames) {
+  const now = Date.now();
+  // Return cached result if available and valid on the client side
+  if (typeof window !== 'undefined' && cachedApartmentNames && (now - cacheTimestamp < CACHE_TTL_MS)) {
     return cachedApartmentNames;
   }
 
@@ -53,18 +56,27 @@ export async function fetchApartmentNames(): Promise<string[]> {
 
     // Fallback/Client-side: Fetch via HTTP API
     if (Object.keys(byDong).length === 0) {
-      const response = await fetch('/api/apartments-by-dong', {
-        cache: 'no-store', // force fresh data
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
-      const rawResult = await response.json();
-      const parsed = ApartmentsByDongSchema.safeParse(rawResult);
-      if (parsed.success) {
-        byDong = parsed.data.byDong;
-      } else {
-        logger.warn('ApartmentRepository.fetch', 'Zod validation failed for /api/apartments-by-dong API. Falling back to raw.', undefined, parsed.error);
-        byDong = rawResult.byDong || {};
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      try {
+        const response = await fetch('/api/apartments-by-dong', {
+          cache: 'no-store', // force fresh data
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const rawResult = await response.json();
+        const parsed = ApartmentsByDongSchema.safeParse(rawResult);
+        if (parsed.success) {
+          byDong = parsed.data.byDong;
+        } else {
+          logger.warn('ApartmentRepository.fetch', 'Zod validation failed for /api/apartments-by-dong API. Falling back to raw.', undefined, parsed.error);
+          byDong = rawResult.byDong || {};
+        }
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        throw fetchErr;
       }
     }
     
@@ -81,6 +93,7 @@ export async function fetchApartmentNames(): Promise<string[]> {
     // Store in-memory cache on the client side
     if (typeof window !== 'undefined' && apartments.length > 0) {
       cachedApartmentNames = apartments;
+      cacheTimestamp = Date.now();
     }
     
     return apartments;
