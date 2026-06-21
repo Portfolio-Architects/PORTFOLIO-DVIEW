@@ -7,6 +7,7 @@ import { db } from '@/lib/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 export const DailyStatSchema = z.object({
   websiteVisits: z.number().default(0),
@@ -63,7 +64,7 @@ export async function getDailyVisitStats(): Promise<DailyStat[]> {
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await adminDb.collection('daily_stats').get();
+        const snap = await throttle(() => adminDb.collection('daily_stats').get());
         rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
@@ -73,7 +74,7 @@ export async function getDailyVisitStats(): Promise<DailyStat[]> {
 
   if (rawDocs.length === 0) {
     try {
-      const snap = await getDocs(collection(db, 'daily_stats'));
+      const snap = await throttle(() => getDocs(collection(db, 'daily_stats')));
       rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
     } catch (e) {
       logger.error('TrafficRepository.getDailyVisitStats', 'Fetch failed', undefined, e);
@@ -104,7 +105,7 @@ export async function getDailyContentViews(dateStr: string): Promise<ContentView
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
-        const snap = await adminDb.collection(`daily_stats/${dateStr}/content_views`).get();
+        const snap = await throttle(() => adminDb.collection(`daily_stats/${dateStr}/content_views`).get());
         rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
@@ -114,7 +115,7 @@ export async function getDailyContentViews(dateStr: string): Promise<ContentView
 
   if (rawDocs.length === 0) {
     try {
-      const snap = await getDocs(collection(db, `daily_stats/${dateStr}/content_views`));
+      const snap = await throttle(() => getDocs(collection(db, `daily_stats/${dateStr}/content_views`)));
       rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
     } catch (e) {
       logger.error('TrafficRepository.getDailyContentViews', 'Fetch failed', { dateStr }, e);
