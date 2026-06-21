@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,18 @@ const VotePostSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_apartmentsvote_get_${rawIp}`);
+      if (!success) {
+        logger.warn('ApartmentVoteAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
+    const { searchParams } = request.nextUrl;
     const aptNameParam = searchParams.get('aptName');
 
     const parsed = VoteGetSchema.safeParse({ aptName: aptNameParam });
@@ -85,7 +97,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_apartmentsvote_post_${rawIp}`);
+      if (!success) {
+        logger.warn('ApartmentVoteAPI.POST', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (jsonErr) {
+      logger.warn('ApartmentVoteAPI.POST', 'Malformed JSON payload', {});
+      return NextResponse.json({ error: 'Malformed JSON body payload' }, { status: 400 });
+    }
+
     const parsed = VotePostSchema.safeParse(body);
     
     if (!parsed.success) {
