@@ -99,20 +99,56 @@ export function filterByBBox<T extends Coord>(origin: Coord, pois: T[]): T[] {
 
 // ── Google Sheet Loaders ───────────────────────────
 
+async function fetchCSVWithRetry(url: string, options: RequestInit = {}, retries = 3, delayMs = 1000): Promise<Response> {
+  const TIMEOUT_MS = 5000; // 5 seconds timeout per attempt
+  
+  for (let i = 0; i < retries; i++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      
+      if (response.ok) {
+        return response;
+      }
+      
+      logger.warn('locationService.fetchCSVWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} returned status ${response.status}`);
+    } catch (err: any) {
+      clearTimeout(id);
+      const isTimeout = err?.name === 'AbortError';
+      logger.warn('locationService.fetchCSVWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} ${isTimeout ? 'TIMED OUT' : 'FAILED'}`, {
+        error: err?.message || String(err)
+      });
+    }
+    
+    if (i < retries - 1) {
+      const jitter = Math.random() * 200;
+      const currentDelay = delayMs * Math.pow(2, i) + jitter;
+      await new Promise(resolve => setTimeout(resolve, currentDelay));
+    }
+  }
+  
+  throw new Error(`Google Sheets fetch failed after ${retries} attempts`);
+}
+
 async function fetchSheetCSV(tabName: string, forceRefresh = false): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_t=${Date.now()}`;
   const fetchOptions: RequestInit = forceRefresh 
-    ? { cache: 'no-store', signal: AbortSignal.timeout(5000) } 
-    : { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) };
+    ? { cache: 'no-store' } 
+    : { next: { revalidate: 86400 } };
   
   try {
-    const res = await fetch(csvUrl, fetchOptions);
-    if (!res.ok) return [];
+    const res = await fetchCSVWithRetry(csvUrl, fetchOptions);
     const csvText = await res.text();
     const lines = csvText.split('\n').filter(l => l.trim());
     return lines.map(l => parseCsvLine(l));
   } catch (err) {
-    logger.error('locationService.fetchSheetCSV', 'Google Sheets CSV fetch failed or timed out', { tabName }, err as Error);
+    logger.error('locationService.fetchSheetCSV', 'Google Sheets CSV fetch failed completely after retries', { tabName }, err as Error);
     return [];
   }
 }

@@ -28,6 +28,10 @@ interface LogEntry {
  * @param error - Optional Error object for stack trace capture
  */
 function log(level: LogLevel, context: string, message: string, data?: Record<string, unknown>, error?: unknown): void {
+  if (level === 'DEBUG' && process.env.NODE_ENV === 'production') {
+    return;
+  }
+
   const entry: LogEntry = {
     timestamp: new Date().toISOString(),
     level,
