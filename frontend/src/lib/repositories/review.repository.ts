@@ -6,7 +6,7 @@
 import { db } from '@/lib/firebaseConfig';
 import {
   collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
-  doc, updateDoc, increment, deleteDoc, getDocs
+  doc, updateDoc, increment, deleteDoc, getDocs, getDoc
 } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { UserReview } from '@/lib/types/review.types';
@@ -197,6 +197,15 @@ export async function incrementReviewLike(reviewId: string): Promise<void> {
 export async function deleteReview(reviewId: string): Promise<void> {
   try {
     const reviewRef = doc(db, COLLECTION, reviewId);
+    const snap = await throttle(() => getDoc(reviewRef));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data?.photoURL) {
+        const { deleteImage } = await import('@/lib/services/storage.service');
+        // Run asynchronously in the background to avoid blocking review deletion
+        deleteImage(data.photoURL).catch(() => {});
+      }
+    }
     await throttle(() => deleteDoc(reviewRef));
     logger.info('ReviewRepository.deleteReview', 'Review deleted', { reviewId });
   } catch (error) {

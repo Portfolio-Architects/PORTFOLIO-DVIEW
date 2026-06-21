@@ -157,6 +157,15 @@ export async function incrementPostView(postId: string, title: string = '알 수
 export async function deletePost(postId: string): Promise<void> {
   try {
     const postRef = doc(db, 'posts', postId).withConverter(postConverter);
+    const snap = await throttle(() => getDoc(postRef));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data?.imageUrl) {
+        const { deleteImage } = await import('@/lib/services/storage.service');
+        // Run asynchronously in the background to avoid blocking post deletion
+        deleteImage(data.imageUrl).catch(() => {});
+      }
+    }
     await throttle(() => deleteDoc(postRef));
     logger.info('PostRepository.deletePost', 'Post deleted', { postId });
     await invalidatePostCache(postId);
