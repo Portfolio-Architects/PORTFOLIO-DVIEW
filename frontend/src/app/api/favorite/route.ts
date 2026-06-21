@@ -12,6 +12,7 @@ import { verifyAuthHeader } from '@/lib/authUtils';
 import { redis } from '@/lib/redis';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,17 @@ const favoriteQuerySchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_favorite_post_${rawIp}`);
+      if (!success) {
+        logger.warn('FavoriteAPI.POST', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
 
     // Auth Validation
@@ -37,7 +49,14 @@ export async function POST(request: NextRequest) {
     }
     const userId = decodedToken.uid;
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch (jsonErr) {
+      logger.warn('FavoriteAPI.POST', 'Invalid JSON body structure', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+    }
+
     const parsed = favSchema.safeParse(rawBody);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
@@ -88,6 +107,17 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_favorite_get_${rawIp}`);
+      if (!success) {
+        logger.warn('FavoriteAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ favorites: [], error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (!adminDb) return NextResponse.json({ favorites: [], warning: 'DB not initialized' }, { status: 200 });
 
     // Auth Validation
@@ -195,6 +225,17 @@ const orderSchema = z.object({
  */
 export async function PUT(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_favorite_put_${rawIp}`);
+      if (!success) {
+        logger.warn('FavoriteAPI.PUT', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
 
     let decodedToken;
@@ -205,7 +246,14 @@ export async function PUT(request: NextRequest) {
     }
     const userId = decodedToken.uid;
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch (jsonErr) {
+      logger.warn('FavoriteAPI.PUT', 'Invalid JSON body structure', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+    }
+
     const parsed = orderSchema.safeParse(rawBody);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
