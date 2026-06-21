@@ -65,7 +65,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
     
     // Initial sync
     setIsMobile(window.innerWidth < 640);

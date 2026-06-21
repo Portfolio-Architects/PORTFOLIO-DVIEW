@@ -560,7 +560,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       }, 100);
     };
     setIsMobileViewport(window.innerWidth < 1024);
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize, { passive: true });
     return () => {
       window.removeEventListener("resize", handleResize);
       if (debounceTimer) clearTimeout(debounceTimer);

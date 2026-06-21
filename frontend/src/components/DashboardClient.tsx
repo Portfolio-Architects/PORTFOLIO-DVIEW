@@ -541,7 +541,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
           }
         });
       };
-      window.addEventListener('hashchange', handleHashChange);
+      window.addEventListener('hashchange', handleHashChange, { passive: true });
 
       let scrollTimeout: number | null = null;
       const handleScroll = () => {
@@ -560,7 +560,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
           setIsAdModalOpen(true);
         }
       };
-      window.addEventListener('open-ad-inquiry', handleOpenAdInquiry);
+      window.addEventListener('open-ad-inquiry', handleOpenAdInquiry, { passive: true });
 
       return () => {
         isMounted = false;
@@ -618,7 +618,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       checkHashForApt();
     }
     
-    window.addEventListener('hashchange', checkHashForApt);
+    window.addEventListener('hashchange', checkHashForApt, { passive: true });
     return () => window.removeEventListener('hashchange', checkHashForApt);
   }, [mounted, !!sheetApartments]);
 
@@ -689,7 +689,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         userHasSelected.current = true;
       }
     };
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handlePopState, { passive: true });
     return () => window.removeEventListener('popstate', handlePopState);
   }, [setSelectedReport]);
 
