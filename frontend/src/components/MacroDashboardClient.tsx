@@ -2412,19 +2412,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
       </div>
 
-      {isQuizOpen && (
-        <AptFitFinder
-          sheetApartments={sheetApartments}
-          txSummaryData={txSummaryData}
-          nameMapping={nameMapping || EMPTY_OBJECT}
-          publicRentalSet={publicRentalSet}
-          fieldReportsMap={fieldReportsMap}
-          onSelectApt={onSelectApt || (() => {})}
-          isOpen={isQuizOpen}
-          onClose={() => setIsQuizOpen(false)}
-          locationScores={locationScores || EMPTY_OBJECT}
-        />
-      )}
+      <AptFitFinder
+        sheetApartments={sheetApartments}
+        txSummaryData={txSummaryData}
+        nameMapping={nameMapping || EMPTY_OBJECT}
+        publicRentalSet={publicRentalSet}
+        fieldReportsMap={fieldReportsMap}
+        onSelectApt={onSelectApt || (() => {})}
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        locationScores={locationScores || EMPTY_OBJECT}
+      />
 
       {/* 🔔 내 아파트 시세 브리핑 안내 팝업/모달 */}
       {showBriefingPopup && mounted && typeof window !== 'undefined' && createPortal(

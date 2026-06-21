@@ -198,8 +198,6 @@ const AptFitFinder = React.memo(function AptFitFinder({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const handleSelectOption = (key: keyof QuizAnswer, value: string) => {
     setAnswers(prev => ({ ...prev, [key]: value }));
     setStep(prev => prev + 1);
@@ -593,6 +591,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
     }
     return `${rounded.toLocaleString()}만`;
   };
+
+  if (!isOpen) return null;
 
   return (
     <div 
