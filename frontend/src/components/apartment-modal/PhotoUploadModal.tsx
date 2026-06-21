@@ -107,6 +107,10 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         alert('이미지 크기는 10MB 이하여야 합니다.');
         return;
       }
+      // Explicitly revoke previous previewUrl to prevent memory leaks in case of sequential selection
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
+      }
       setFile(selected);
       const url = URL.createObjectURL(selected);
       setPreviewUrl(url);
@@ -119,6 +123,10 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
       if (selected.size > 10 * 1024 * 1024) {
         alert('이미지 크기는 10MB 이하여야 합니다.');
         return;
+      }
+      // Explicitly revoke previous previewUrl to prevent memory leaks in case of sequential selection
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
       }
       setFile(selected);
       const url = URL.createObjectURL(selected);
