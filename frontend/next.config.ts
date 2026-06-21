@@ -3,12 +3,18 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  turbopack: process.env.VERCEL ? {} : {
-    root: path.resolve(import.meta.dirname, '..'),
+  turbopack: {
+    ...(process.env.VERCEL ? {} : { root: path.resolve(import.meta.dirname, '..') }),
     resolveAlias: {
-      '@/lib/firebaseAdmin': './src/lib/firebaseAdmin.client.ts',
-      './src/lib/firebaseAdmin': './src/lib/firebaseAdmin.client.ts',
-      './src/lib/firebaseAdmin.ts': './src/lib/firebaseAdmin.client.ts',
+      '@/lib/firebaseAdmin': {
+        browser: './src/lib/firebaseAdmin.client.ts',
+      },
+      './src/lib/firebaseAdmin': {
+        browser: './src/lib/firebaseAdmin.client.ts',
+      },
+      './src/lib/firebaseAdmin.ts': {
+        browser: './src/lib/firebaseAdmin.client.ts',
+      },
     }
   },
   productionBrowserSourceMaps: false,
