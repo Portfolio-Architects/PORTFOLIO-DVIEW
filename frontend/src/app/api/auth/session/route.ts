@@ -12,9 +12,20 @@ const SessionInputSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const rawBody = await request.json();
+    let rawBody: any;
+    try {
+      const text = await request.text();
+      if (!text.trim()) {
+        logger.warn('SessionAPI.POST', 'Empty request body', {});
+        return NextResponse.json({ error: 'Bad Request: Empty Payload' }, { status: 400 });
+      }
+      rawBody = JSON.parse(text);
+    } catch (jsonErr) {
+      logger.warn('SessionAPI.POST', 'Invalid JSON format', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Bad Request: Invalid JSON' }, { status: 400 });
+    }
+
     const parsed = SessionInputSchema.safeParse(rawBody);
-    
     if (!parsed.success) {
       logger.warn('SessionAPI.POST', 'Invalid session creation payload', { errors: parsed.error.format() });
       return NextResponse.json({ error: 'idToken is required' }, { status: 400 });
@@ -37,9 +48,8 @@ export async function POST(request: NextRequest) {
     const cookieName = isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session';
     
     // Cookie Options: HttpOnly, Secure, SameSite=Lax
-    // __Secure- prefix requires Secure attribute (modern browsers allow Secure over HTTP on localhost)
-    const secureFlag = isDev ? '' : 'Secure;';
-    const cookieHeader = `${cookieName}=${sessionCookie}; Max-Age=${expiresIn / 1000}; Path=/; SameSite=Lax; ${secureFlag} HttpOnly`;
+    const secureFlag = isDev ? '' : '; Secure';
+    const cookieHeader = `${cookieName}=${sessionCookie}; Max-Age=${expiresIn / 1000}; Path=/; SameSite=Lax; HttpOnly${secureFlag}`;
 
     const response = NextResponse.json({ status: 'success' });
     response.headers.set('Set-Cookie', cookieHeader);
@@ -55,8 +65,9 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   const isDev = process.env.NODE_ENV === 'development';
   const cookieName = isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session';
-  const secureFlag = isDev ? '' : 'Secure;';
-  const cookieHeader = `${cookieName}=; Max-Age=0; Path=/; SameSite=Lax; ${secureFlag} HttpOnly`;
+  const secureFlag = isDev ? '' : '; Secure';
+  // Include Max-Age=0 and Expires in the past (1970) for absolute invalidation across all user agents
+  const cookieHeader = `${cookieName}=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; SameSite=Lax; HttpOnly${secureFlag}`;
 
   const response = NextResponse.json({ status: 'success' });
   response.headers.set('Set-Cookie', cookieHeader);
