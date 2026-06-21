@@ -59,6 +59,9 @@ export async function GET() {
     ]);
   };
 
+  const isDev = process.env.NODE_ENV === 'development';
+  const firestoreTimeout = isDev ? 1000 : 5000;
+
   // 1. Favorite counts (Redis First -> Firebase Fallback)
   try {
     if (redis) {
@@ -75,7 +78,7 @@ export async function GET() {
       
       if (Object.keys(result.favoriteCounts).length === 0 && adminDb) {
         // 1-B. 캐시 미스 Fallback (1회 한정 Full Scan)
-        const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
+        const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
         const rawCounts: Record<string, number> = {};
         snap.docs.forEach(doc => {
           const data = doc.data();
@@ -96,7 +99,7 @@ export async function GET() {
       }
     } else if (adminDb) {
       // 1-C. Redis가 없는 레거시 환경 Fallback
-      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
+      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
       const rawCounts: Record<string, number> = {};
       snap.docs.forEach(doc => {
         const data = doc.data();
@@ -148,7 +151,7 @@ export async function GET() {
     }
 
     if (Object.keys(result.apartmentMeta).length === 0 && adminDb) {
-      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
+      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), firestoreTimeout);
       if (metaDoc.exists) {
         const metaData = metaDoc.data() || {};
         const parsed = apartmentMetaSchema.safeParse(metaData);

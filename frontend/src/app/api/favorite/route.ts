@@ -138,10 +138,14 @@ export async function GET(request: NextRequest) {
       ]);
     };
 
+    const isDev = process.env.NODE_ENV === 'development';
+    const favoritesTimeout = isDev ? 1000 : 5000;
+    const userDocTimeout = isDev ? 1000 : 2000;
+
     // Execute queries in parallel using Promise.all
     const [snap, userDoc] = await Promise.all([
-      withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), 5000),
-      withTimeout(adminDb.collection('users').doc(userId).get(), 2000).catch(dbErr => {
+      withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), favoritesTimeout),
+      withTimeout(adminDb.collection('users').doc(userId).get(), userDocTimeout).catch(dbErr => {
         logger.warn('FavoriteAPI.GET', 'Failed to read user doc', { userId }, dbErr as Error);
         return null;
       })

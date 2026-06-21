@@ -32,8 +32,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ buyCount: 0, waitCount: 0 });
     }
 
+    const isDev = process.env.NODE_ENV === 'development';
+    const timeoutMs = isDev ? 1000 : 3000;
+
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+      let timeoutId: any;
+      const timeoutPromise = new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
+      });
+      return Promise.race([
+        promise.then((val) => {
+          clearTimeout(timeoutId);
+          return val;
+        }).catch((err) => {
+          clearTimeout(timeoutId);
+          throw err;
+        }),
+        timeoutPromise
+      ]);
+    };
+
     if (!aptName || aptName === 'global') {
-      const snap = await adminDb.collection('apartmentVotes').get();
+      const snap = await withTimeout(adminDb.collection('apartmentVotes').get(), timeoutMs);
       let buyCount = 0;
       let waitCount = 0;
       snap.forEach(doc => {
@@ -46,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     const docId = normalizeAptName(aptName);
     const docRef = adminDb.collection('apartmentVotes').doc(docId);
-    const docSnap = await docRef.get();
+    const docSnap = await withTimeout(docRef.get(), timeoutMs);
 
     if (!docSnap.exists) {
       return NextResponse.json({ buyCount: 0, waitCount: 0 });
@@ -58,8 +78,8 @@ export async function GET(request: NextRequest) {
       waitCount: data.waitCount || 0,
     });
   } catch (error: any) {
-    logger.error('ApartmentVoteAPI.GET', 'Error fetching votes', {}, error);
-    return NextResponse.json({ error: 'Failed to fetch votes' }, { status: 500 });
+    logger.warn('ApartmentVoteAPI.GET', 'Error fetching votes, using fallback', {}, error);
+    return NextResponse.json({ buyCount: 0, waitCount: 0 });
   }
 }
 

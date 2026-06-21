@@ -210,11 +210,31 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
     }
     dongQuery = dongQuery.limit(400);
 
+    const isDev = process.env.NODE_ENV === 'development';
+    const timeoutMs = isDev ? 1000 : 5000;
+
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+      let timeoutId: any;
+      const timeoutPromise = new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
+      });
+      return Promise.race([
+        promise.then((val) => {
+          clearTimeout(timeoutId);
+          return val;
+        }).catch((err) => {
+          clearTimeout(timeoutId);
+          throw err;
+        }),
+        timeoutPromise
+      ]);
+    };
+
     const [citySnapshot, railSnapshot, cultureSnapshot, dongSnapshot] = await Promise.all([
-      cityQuery.get(),
-      railQuery.get(),
-      cultureQuery.get(),
-      dongQuery.get()
+      withTimeout(cityQuery.get(), timeoutMs),
+      withTimeout(railQuery.get(), timeoutMs),
+      withTimeout(cultureQuery.get(), timeoutMs),
+      withTimeout(dongQuery.get(), timeoutMs)
     ]);
 
     const getTopN = (snapshot: any, limitVal = 100) => {
