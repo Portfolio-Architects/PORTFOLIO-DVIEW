@@ -18,6 +18,7 @@ import { ADMIN_EMAILS } from '@/lib/config/admin.config';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { getKSTDateString } from '@/lib/utils/date';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +39,17 @@ function getAdminDb() {
 
 export async function POST(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_reportview_${rawIp}`);
+      if (!success) {
+        logger.warn('ReportViewAPI.POST', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     let rawBody: any;
     try {
       const text = await request.text();
