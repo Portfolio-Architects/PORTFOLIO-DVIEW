@@ -18,11 +18,19 @@ const ApartmentsByDongSchema = z.object({
   byDong: z.record(z.string(), z.array(ApartmentItemSchema))
 });
 
+// Client-side in-memory cache for static apartment names
+let cachedApartmentNames: string[] | null = null;
+
 /**
  * Fetches full apartment list from /api/apartments-by-dong (Google Sheets).
  * Returns in "[법정동] 아파트명" format for WriteReviewModal, resident verification, etc.
  */
 export async function fetchApartmentNames(): Promise<string[]> {
+  // Return cached result if available on the client side
+  if (typeof window !== 'undefined' && cachedApartmentNames) {
+    return cachedApartmentNames;
+  }
+
   try {
     let byDong: Record<string, { name: string }[]> = {};
 
@@ -69,6 +77,12 @@ export async function fetchApartmentNames(): Promise<string[]> {
     
     apartments.sort();
     logger.info('ApartmentRepository.fetch', `Loaded ${apartments.length} apartments successfully`);
+    
+    // Store in-memory cache on the client side
+    if (typeof window !== 'undefined' && apartments.length > 0) {
+      cachedApartmentNames = apartments;
+    }
+    
     return apartments;
   } catch (error) {
     logger.warn('ApartmentRepository.fetch', '/api/apartments-by-dong failed', undefined, error);
