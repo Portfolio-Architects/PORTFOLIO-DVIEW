@@ -418,11 +418,11 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   );
   const { locationScores = EMPTY_OBJECT } = useLocationScores();
   
-  const getLocScore = (aptName: string) => {
+  const getLocScore = useCallback((aptName: string) => {
     if (!aptName || !locationScores) return {};
     const matchKey = findTxKey(aptName, locationScores, nameMapping);
     return matchKey ? locationScores[matchKey] : {};
-  };
+  }, [locationScores, nameMapping]);
   
   const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions } = useApartmentDetails(
     selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
@@ -696,19 +696,42 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const handleAptClick = useCallback((apt: StaticApartment) => {
     userHasSelected.current = true;
     const report = fieldReportsMap.get(apt.name);
-    if (report) {
-      setSelectedReport(report);
-    } else {
-      setSelectedReport({
-        id: `stub-${normalizeAptName(apt.name)}`,
-        apartmentName: apt.name,
-        dong: apt.dong,
-        author: '',
-        likes: 0,
-        commentCount: 0,
-        createdAt: null,
-        metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
-      });
+    const initialReport = report || {
+      id: `stub-${normalizeAptName(apt.name)}`,
+      apartmentName: apt.name,
+      dong: apt.dong,
+      author: '',
+      likes: 0,
+      commentCount: 0,
+      createdAt: null,
+      metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+    };
+    setSelectedReport(initialReport);
+
+    // Backfill detailed metrics asynchronously if missing (e.g. when entered from quiz before explore data loads)
+    if (!apt.householdCount) {
+      fetch('/api/apartments-by-dong')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.byDong) {
+            const allApts = Object.values(data.byDong).flat() as any[];
+            const targetApt = allApts.find(a => isSameApartment(a.name, apt.name, nameMapping, a.dong, apt.dong));
+            if (targetApt && targetApt.householdCount) {
+              setSelectedReport(prev => {
+                if (!prev || prev.apartmentName !== apt.name) return prev;
+                return {
+                  ...prev,
+                  metrics: {
+                    ...prev.metrics,
+                    ...targetApt,
+                    ...(getLocScore(apt.name) || {})
+                  } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+                };
+              });
+            }
+          }
+        })
+        .catch(err => console.warn('Failed to backfill apartment details:', err));
     }
 
     // Record viewed history for AI recommendation engine
@@ -726,7 +749,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
     History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
     setMobileModalOpen(true);
-  }, [fieldReportsMap, setSelectedReport]);
+  }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore]);
 
   const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
