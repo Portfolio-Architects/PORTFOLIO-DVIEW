@@ -437,7 +437,34 @@ export default function TechnoValleyClient() {
 
                 {/* 결과 시각화 영역 */}
                 <div className="lg:col-span-7 flex flex-col gap-6">
-                  {searchResult ? (
+                  {isSearching ? (
+                    <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-pulse min-h-[580px] justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="w-full">
+                          <div className="h-4 bg-body/20 dark:bg-surface/5 rounded w-32 mb-2" />
+                          <div className="h-6 bg-body/20 dark:bg-surface/5 rounded w-48 mt-2" />
+                          <div className="h-3 bg-body/20 dark:bg-surface/5 rounded w-24 mt-2" />
+                        </div>
+                      </div>
+                      
+                      <div className="w-full h-44 bg-body/20 dark:bg-surface/5 rounded-2xl flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="animate-spin text-tertiary" size={24} />
+                        <span className="text-[12px] font-bold text-tertiary">AI 가치평가 및 공실률 분석 중...</span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <div className="h-4 bg-body/20 dark:bg-surface/5 rounded w-28 mb-2" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="h-12 bg-body/20 dark:bg-surface/5 rounded-xl" />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="h-16 bg-body/20 dark:bg-surface/5 rounded-xl w-full" />
+                      <div className="h-12 bg-body/20 dark:bg-surface/5 rounded-xl w-full" />
+                    </div>
+                  ) : searchResult ? (
                     <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>

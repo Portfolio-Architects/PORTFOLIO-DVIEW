@@ -21,11 +21,71 @@ import { postConverter } from '@/lib/utils/firestoreConverters';
 import { safeReload } from '@/lib/utils/safeReload';
 import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 
+const CommentSkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
+    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-32 mb-2" />
+    <div className="flex gap-3">
+      <div className="flex-1 h-12 bg-body/20 dark:bg-surface/5 rounded-xl" />
+      <div className="w-16 h-12 bg-body/20 dark:bg-surface/5 rounded-xl" />
+    </div>
+    <div className="w-full h-24 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  </div>
+);
+
+const JeonseSafetySkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
+    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
+    <div className="w-full h-36 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  </div>
+);
+
+const EducationAnalysisSkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
+    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
+    <div className="w-full h-40 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  </div>
+);
+
+const InfraAnalysisSkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
+    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="h-32 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+      <div className="h-32 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+    </div>
+  </div>
+);
+
+const ScoutingReportDetailSkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
+    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
+    <div className="w-full h-36 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  </div>
+);
+
+const AdvancedValuationSkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
+    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
+    <div className="w-full h-48 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  </div>
+);
+
+const AnchorTenantSkeleton = () => (
+  <div className="w-full h-24 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40 animate-pulse mt-4" />
+);
+
+const ViralPaywallSkeleton = () => (
+  <div className="w-full h-[180px] bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40 animate-pulse mt-4" />
+);
+
 const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
   console.warn('CommentSection Chunk Load failure, initiating fallback reload', err);
   safeReload('CommentSection');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <CommentSkeleton />
+});
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
@@ -34,12 +94,18 @@ const ViralPaywallGate = dynamic(() => import('./apartment-modal/ViralPaywallGat
   console.warn('ViralPaywallGate Chunk Load failure, initiating fallback reload', err);
   safeReload('ViralPaywallGate');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <ViralPaywallSkeleton />
+});
 const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyReport').catch(err => {
   console.warn('JeonseSafetyReport Chunk Load failure, initiating fallback reload', err);
   safeReload('JeonseSafetyReport');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <JeonseSafetySkeleton />
+});
 const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection).catch(err => {
   console.warn('TransactionChartSection Chunk Load failure, initiating fallback reload', err);
   safeReload('TransactionChartSection');
@@ -88,28 +154,43 @@ const EducationAnalysisSection = dynamic(() => import('./apartment-modal/Educati
   console.warn('EducationAnalysisSection Chunk Load failure, initiating fallback reload', err);
   safeReload('EducationAnalysisSection');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <EducationAnalysisSkeleton />
+});
 const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalysisSection').catch(err => {
   console.warn('InfraAnalysisSection Chunk Load failure, initiating fallback reload', err);
   safeReload('InfraAnalysisSection');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <InfraAnalysisSkeleton />
+});
 const ScoutingReportDetailSection = dynamic(() => import('./apartment-modal/ScoutingReportDetailSection').catch(err => {
   console.warn('ScoutingReportDetailSection Chunk Load failure, initiating fallback reload', err);
   safeReload('ScoutingReportDetailSection');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <ScoutingReportDetailSkeleton />
+});
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics').catch(err => {
   console.warn('AdvancedValuationMetrics Chunk Load failure, initiating fallback reload', err);
   safeReload('AdvancedValuationMetrics');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <AdvancedValuationSkeleton />
+});
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard').catch(err => {
   console.warn('AnchorTenantCard Chunk Load failure, initiating fallback reload', err);
   safeReload('AnchorTenantCard');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <AnchorTenantSkeleton />
+});
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 interface TransactionRecord {
