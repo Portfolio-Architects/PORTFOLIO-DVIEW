@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
@@ -6,6 +6,7 @@ import { sendMail } from '@/lib/mailService';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -325,9 +326,20 @@ const authHeaderSchema = z.string().refine(
   { message: 'Invalid or unconfigured authorization token' }
 );
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const scrapeErrors: string[] = [];
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_cron_synclocalnotices_get_${rawIp}`);
+      if (!success) {
+        logger.warn('SyncLocalNoticesAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     // 개발 모드에서 WAF 차단 방지 (쿨타임)
     if (process.env.NODE_ENV === 'development') {
       const now = Date.now();
@@ -360,7 +372,7 @@ export async function GET(request: Request) {
     }
 
     // 2. Fetch pages
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const parsedQuery = syncLocalNoticesQuerySchema.safeParse({
       full: searchParams.get('full'),
     });

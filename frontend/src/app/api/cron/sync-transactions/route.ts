@@ -5,11 +5,12 @@
  * Vercel Cron에서 매일 1회 호출 (vercel.json에서 설정)
  * 수동 호출도 가능: fetch('/api/cron/sync-transactions')
  */
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { sendMail } from '@/lib/mailService';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -157,8 +158,19 @@ const transactionRecordSchema = z.object({
   rnuYn: z.string().optional(),
 });
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_cron_synctransactions_get_${rawIp}`);
+      if (!success) {
+        logger.warn('SyncTransactionsAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (process.env.NODE_ENV !== 'development') {
       const authHeader = request.headers.get('authorization') || '';
       const authResult = authHeaderSchema.safeParse(authHeader);
