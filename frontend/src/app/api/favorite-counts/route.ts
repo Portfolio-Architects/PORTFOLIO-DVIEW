@@ -1,12 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { redis } from '@/lib/redis';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // 1. IP 속도 제한 (Rate Limiting) 가드
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_favoritecounts_${rawIp}`);
+      if (!success) {
+        logger.warn('FavoriteCountsAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (redis) {
       try {
         const cachedCounts = await redis.hgetall<Record<string, number | string>>('DTDLS:cache:favoriteCounts');
