@@ -695,6 +695,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   const handleAptClick = useCallback((apt: StaticApartment) => {
     userHasSelected.current = true;
+    triggerFetch(); // Trigger lazy fetching of detailed metadata (typeMap, sheetApartments) immediately on modal entry
     const report = fieldReportsMap.get(apt.name);
     const initialReport = report || {
       id: `stub-${normalizeAptName(apt.name)}`,
@@ -749,7 +750,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
     History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
     setMobileModalOpen(true);
-  }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore]);
+  }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore, triggerFetch]);
 
   const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
