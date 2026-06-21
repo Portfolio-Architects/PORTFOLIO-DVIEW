@@ -115,7 +115,7 @@ export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {
   ],
   '영천동': [
     { name: '동탄 파크한양수자인', dong: '영천동', householdCount: 806, yearBuilt: '2019', brand: '한양' },
-    { name: '동탄 퍼스트파크', dong: '영천동', householdCount: 470, yearBuilt: '2003', brand: '성���산업개발' },
+    { name: '동탄 퍼스트파크', dong: '영천동', householdCount: 470, yearBuilt: '2003', brand: '성원산업개발' },
     { name: '동탄역 경남아너스빌', dong: '영천동', householdCount: 344, yearBuilt: '2016', brand: '경남기업' },
     { name: '동탄역 대방디엠시티 더센텀', dong: '영천동', householdCount: 463, yearBuilt: '2021', brand: '대방건설' },
     { name: '동탄역 동원로얄듀크 1차', dong: '영천동', householdCount: 434, yearBuilt: '2018', brand: '동원개발' },

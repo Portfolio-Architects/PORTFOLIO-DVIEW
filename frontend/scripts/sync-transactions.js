@@ -316,6 +316,7 @@ async function main() {
     processedDocIds.add(docSnap.id);
 
     byApt[key].push({
+        aptName: validData.aptName,
         contractYm: validData.contractYm,
         contractDay: validData.contractDay || '',
         price: validData.price || 0,
@@ -391,6 +392,7 @@ async function main() {
     processedDocIds.add(docSnap.id);
 
     byApt[key].push({
+        aptName: validData.aptName,
         contractYm: validData.contractYm,
         contractDay: validData.contractDay || '',
         price: validData.price || 0,
