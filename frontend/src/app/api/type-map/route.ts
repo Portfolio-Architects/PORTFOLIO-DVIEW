@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const runtime = 'edge';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
@@ -27,9 +28,37 @@ const typeMapEntrySchema = z.object({
   typePyeong: z.string().optional().default(''),
 });
 
-export async function GET(request: Request) {
+async function fetchWithTimeout(url: string, timeoutMs: number = 3000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const { searchParams } = new URL(request.url);
+    const response = await fetch(url, {
+      cache: 'no-store',
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (e) {
+    clearTimeout(id);
+    throw e;
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // 1. IP 속도 제한 (Rate Limiting) 가드
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_typemap_${rawIp}`);
+      if (!success) {
+        logger.warn('TypeMapAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
+    const { searchParams } = request.nextUrl;
     const parsedQuery = typeMapQuerySchema.safeParse({
       refresh: searchParams.get('refresh') || undefined,
     });
@@ -42,7 +71,7 @@ export async function GET(request: Request) {
     }
 
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}&_t=${Date.now()}`;
-    const res = await fetch(csvUrl, { cache: 'no-store', signal: AbortSignal.timeout(6000) });
+    const res = await fetchWithTimeout(csvUrl, 3000);
 
     if (!res.ok) {
       logger.warn('TypeMapAPI.GET', 'Sheet fetch failed, using fallback', {});
