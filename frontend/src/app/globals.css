@@ -317,3 +317,14 @@
   backface-visibility: hidden;
 }
 
+/* Recharts Focus Outline and Tap Highlight Removal */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-legend-wrapper,
+.recharts-tooltip-wrapper {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+

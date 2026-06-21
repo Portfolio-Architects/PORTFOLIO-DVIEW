@@ -135,11 +135,45 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
   // 랭킹 배너 자동 롤링 setInterval 타이머 unmount 시점 clearTimeout/clearInterval 안전 클린업 검증 탑재
   useEffect(() => {
     if (recentList.length === 0) return;
-    const intervalId = setInterval(() => {
-      setRollingIndex((prev) => (prev + 1) % Math.min(recentList.length, 5));
-    }, 3000);
+    
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    const startTimer = () => {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(() => {
+        setRollingIndex((prev) => (prev + 1) % Math.min(recentList.length, 5));
+      }, 3000);
+    };
+    
+    const stopTimer = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    };
+    
+    if (typeof document !== 'undefined') {
+      if (document.visibilityState !== 'hidden') {
+        startTimer();
+      }
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    } else {
+      startTimer();
+    }
+    
     return () => {
-      clearInterval(intervalId);
+      stopTimer();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
     };
   }, [recentList.length]);
 

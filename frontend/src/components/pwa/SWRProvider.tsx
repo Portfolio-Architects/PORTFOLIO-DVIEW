@@ -127,6 +127,10 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
         dedupingInterval: 30000, // deduplication window (30s) to guard against redundant API hammering
         // Disable SWR auto-polling while offline to prevent error loops
         refreshInterval: isOnline ? undefined : 0,
+        isVisible: () => {
+          if (typeof document === 'undefined') return true;
+          return document.visibilityState !== 'hidden';
+        },
         onError: (err) => {
           if (!isOnline) {
             // Mute errors in console when offline to avoid spamming

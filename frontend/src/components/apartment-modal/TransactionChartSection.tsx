@@ -73,11 +73,15 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const sizeRef = useRef({ width: 0, height: 0 });
   const [isChartReady, setIsChartReady] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
+    if (typeof window !== 'undefined') {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    }
     // 마운트 완료 시 즉시 차트 렌더링 활성화 (350ms 고정 딜레이 제거)
     if (mountedRef.current) {
       setIsChartReady(true);
@@ -587,11 +591,19 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               <ComposedChart 
                 data={monthlyData} 
                 margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
-                onMouseDown={(e) => { if (e) setRefAreaLeft(e.activeLabel ? Number(e.activeLabel) : null); }}
-                onMouseMove={(e) => { if (refAreaLeft !== null && e) setRefAreaRight(e.activeLabel ? Number(e.activeLabel) : null); }}
-                onMouseUp={handleZoom}
-                onDoubleClick={handleResetZoom}
+                onMouseDown={(e) => {
+                  if (isTouchDevice) return;
+                  if (e) setRefAreaLeft(e.activeLabel ? Number(e.activeLabel) : null);
+                }}
+                onMouseMove={(e) => {
+                  if (isTouchDevice) return;
+                  if (refAreaLeft !== null && e) setRefAreaRight(e.activeLabel ? Number(e.activeLabel) : null);
+                }}
+                onMouseUp={isTouchDevice ? undefined : handleZoom}
+                onDoubleClick={isTouchDevice ? undefined : handleResetZoom}
+                onTouchStart={() => setHoveredDot(null)}
                 className="select-none cursor-crosshair"
+                style={{ outline: 'none' }}
               >
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
@@ -700,9 +712,13 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                               opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
                               stroke={isHov ? '#fbbf24' : 'none'}
                               strokeWidth={isHov ? 2 : 0}
-                              style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
-                              onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
-                              onMouseLeave={() => setHoveredDot(null)}
+                              style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s', WebkitTapHighlightColor: 'transparent' }}
+                              onMouseEnter={isTouchDevice ? undefined : () => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
+                              onMouseLeave={isTouchDevice ? undefined : () => setHoveredDot(null)}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                                setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } });
+                              }}
                             />
                           );
                         })}

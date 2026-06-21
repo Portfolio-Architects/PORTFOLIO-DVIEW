@@ -12,9 +12,38 @@ interface MobileDockProps {
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
   const { setIsSettingsModalOpen } = useSettingsUi();
+  const [shouldHide, setShouldHide] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const handleResize = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      
+      // If viewport height drops significantly (e.g. by more than 120px), 
+      // it strongly indicates that the on-screen keyboard is open.
+      const initialHeight = window.innerHeight;
+      if (vv.height < initialHeight - 120) {
+        setShouldHide(true);
+      } else {
+        setShouldHide(false);
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    // Initial trigger
+    handleResize();
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.04)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40">
+    <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.04)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40 transition-all duration-300 ${
+      shouldHide ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+    }`}>
       {/* 5개 탭 */}
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
