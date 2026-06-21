@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { getKSTDateString } from '@/lib/utils/date';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,7 @@ export async function POST(request: NextRequest) {
     const { action, contentId, title, type } = parsed.data;
 
     // Get KST today date
-    const d = new Date();
-    d.setHours(d.getHours() + 9);
-    const today = d.toISOString().split('T')[0];
+    const today = getKSTDateString();
 
     if (action === 'websiteVisit') {
       const ref = adminDb.collection('daily_stats').doc(today);

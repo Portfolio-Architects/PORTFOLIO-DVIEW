@@ -56,3 +56,28 @@ export function parseTimestampToMillis(ts: any, fallback: number = 0): number {
   }
   return fallback;
 }
+
+/**
+ * Returns YYYY-MM-DD date string in KST (Asia/Seoul) timezone.
+ * @param date - Custom JavaScript Date object (defaults to current date)
+ */
+export function getKSTDateString(date: Date = new Date()): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = formatter.formatToParts(date);
+    const year = parts.find(p => p.type === 'year')?.value;
+    const month = parts.find(p => p.type === 'month')?.value;
+    const day = parts.find(p => p.type === 'day')?.value;
+    if (year && month && day) {
+      return `${year}-${month}-${day}`;
+    }
+  } catch (e) {
+    // Fallback to UTC representation if Intl formatter fails
+  }
+  return date.toISOString().slice(0, 10);
+}

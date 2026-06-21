@@ -17,6 +17,7 @@ import { createHash } from 'crypto';
 import { ADMIN_EMAILS } from '@/lib/config/admin.config';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { getKSTDateString } from '@/lib/utils/date';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16);
 
     // ── Daily dedup key: reportId_ipHash_YYYY-MM-DD ──
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getKSTDateString();
     const dedupKey = `${reportId}_${ipHash}_${today}`;
 
     const adminDb = getAdminDb();
