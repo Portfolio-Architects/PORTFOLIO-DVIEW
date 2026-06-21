@@ -19,17 +19,35 @@ import {
   ChevronDown 
 } from 'lucide-react';
 
+const LoungeFeedSkeleton = () => (
+  <div className="w-full flex flex-col gap-4 animate-pulse min-h-[400px]">
+    {[1, 2, 3].map(i => (
+      <div key={i} className="w-full h-[110px] bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+    ))}
+  </div>
+);
+
+const LoungeComposeSkeleton = () => (
+  <div className="w-full h-[80px] bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40 animate-pulse mt-4" />
+);
+
 const LoungeFeedClient = dynamic(() => import('@/components/LoungeFeedClient').catch(err => {
   console.warn('LoungeFeedClient Chunk Load failure, initiating fallback reload', err);
   safeReload('LoungeFeedClient');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <LoungeFeedSkeleton />
+});
 
 const LoungeComposeClient = dynamic(() => import('@/components/LoungeComposeClient').catch(err => {
   console.warn('LoungeComposeClient Chunk Load failure, initiating fallback reload', err);
   safeReload('LoungeComposeClient');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <LoungeComposeSkeleton />
+});
 
 const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
   ssr: true,

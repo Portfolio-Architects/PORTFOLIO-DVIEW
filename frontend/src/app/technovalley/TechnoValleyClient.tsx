@@ -298,7 +298,7 @@ export default function TechnoValleyClient() {
           </div>
 
           {/* 탭 콘텐츠 영역 */}
-          <div className="w-full">
+          <div className="w-full min-h-[580px] sm:min-h-[640px]">
             
             {/* 1. 오피스 핏파인더 */}
             {activeSubTab === 'fitfinder' && (
