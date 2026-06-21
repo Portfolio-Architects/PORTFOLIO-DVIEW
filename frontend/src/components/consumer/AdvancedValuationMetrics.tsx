@@ -190,6 +190,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
   }, [report, commuteDest]);
 
   useEffect(() => {
+    setOverrideScore(0); // Reset immediately on apartment change to prevent flickering
     let active = true;
     const fetchOverrides = async () => {
       try {

@@ -2326,7 +2326,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
                     <ErrorBoundary name="밸류에이션 분석">
                       <LazyRender estimatedHeight={400}>
-                        <AdvancedValuationMetrics report={report} transactions={transactions} />
+                        <AdvancedValuationMetrics key={report.id || report.apartmentName} report={report} transactions={transactions} />
                       </LazyRender>
                     </ErrorBoundary>
                     <BuyOrWaitVote aptName={report.apartmentName} valuationStatus={valuation.status} valuationAmount={valuation.amount} />
