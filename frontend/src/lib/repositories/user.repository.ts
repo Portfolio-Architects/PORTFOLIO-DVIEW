@@ -11,6 +11,7 @@ import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
 import { getRandomDefaultAvatar } from '@/lib/types/user.types';
 import { userProfileConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 const UserProfileSchema = z.object({
   nickname: z.string().default(DEFAULT_NICKNAME),
@@ -36,12 +37,15 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
       const { adminDb } = await import('@/lib/firebaseAdmin');
       if (adminDb) {
         const userRef = adminDb.collection('users').doc(uid);
-        const userSnap = await userRef.get();
+        const userSnap = await throttle(() => userRef.get());
         if (userSnap.exists) {
           docData = userSnap.data();
           if (docData && !docData.photoURL) {
             const randomAvatar = getRandomDefaultAvatar();
-            await userRef.update({ photoURL: randomAvatar });
+            // Non-blocking background update with catch block
+            userRef.update({ photoURL: randomAvatar }).catch((err) => {
+              logger.error('UserRepository.getOrCreateProfile', 'Failed to update photoURL in adminDb asynchronously', { uid }, err);
+            });
             docData.photoURL = randomAvatar;
           }
         } else {
@@ -53,7 +57,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
             uploaderPoints: 0,
             uploaderTier: '초보 임장러',
           };
-          await userRef.set(newProfile);
+          await throttle(() => userRef.set(newProfile));
           logger.info('UserRepository.getOrCreateProfile', 'New user profile created via Admin DB', { uid, nickname: newProfile.nickname });
           docData = newProfile;
         }
@@ -66,13 +70,16 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
   if (!docData) {
     try {
       const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-      const userSnap = await getDoc(userRef);
+      const userSnap = await throttle(() => getDoc(userRef));
 
       if (userSnap.exists()) {
         const data = userSnap.data();
         if (!data.photoURL) {
           const randomAvatar = getRandomDefaultAvatar();
-          await updateDoc(userRef, { photoURL: randomAvatar });
+          // Non-blocking background update with throttle and catch block
+          throttle(() => updateDoc(userRef, { photoURL: randomAvatar })).catch((err) => {
+            logger.error('UserRepository.getOrCreateProfile', 'Failed to update photoURL in db asynchronously', { uid }, err);
+          });
           data.photoURL = randomAvatar;
         }
         docData = data;
@@ -85,7 +92,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
           uploaderPoints: 0,
           uploaderTier: '초보 임장러',
         };
-        await setDoc(userRef, newProfile);
+        await throttle(() => setDoc(userRef, newProfile));
         logger.info('UserRepository.getOrCreateProfile', 'New user profile created via Client SDK', { uid, nickname: newProfile.nickname });
         docData = {
           nickname: newProfile.nickname,
@@ -127,7 +134,7 @@ export async function setApartmentVerification(
 ): Promise<void> {
   try {
     const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-    await updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level });
+    await throttle(() => updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level }));
     logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
   } catch (error) {
     logger.error('UserRepository.setApartmentVerification', 'Failed to set apartment verification', { uid, apartment, level }, error);
@@ -141,7 +148,7 @@ export async function setApartmentVerification(
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
   try {
     const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-    await updateDoc(userRef, { nickname, hasSetNickname: true });
+    await throttle(() => updateDoc(userRef, { nickname, hasSetNickname: true }));
     logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
   } catch (error) {
     logger.error('UserRepository.updateNickname', 'Failed to update nickname', { uid, nickname }, error);
@@ -155,7 +162,7 @@ export async function updateNickname(uid: string, nickname: string): Promise<voi
 export async function updatePhotoURL(uid: string, photoURL: string): Promise<void> {
   try {
     const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
-    await updateDoc(userRef, { photoURL });
+    await throttle(() => updateDoc(userRef, { photoURL }));
     logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
   } catch (error) {
     logger.error('UserRepository.updatePhotoURL', 'Failed to update photo URL', { uid }, error);
