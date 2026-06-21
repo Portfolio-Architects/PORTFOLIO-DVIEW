@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,15 +50,26 @@ let cachedData: any = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 15000; // 15 seconds
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = req.headers.get('x-forwarded-for');
+      const realIp = req.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_posts_get_${rawIp}`);
+      if (!success) {
+        logger.warn('PostsAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (!db) {
       logger.warn('PostsAPI.GET', 'Firebase Admin DB not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     const adminDb = db;
 
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = req.nextUrl;
     const queryParse = PostsQuerySchema.safeParse({
       lastCreatedAt: searchParams.get('lastCreatedAt'),
       limit: searchParams.get('limit'),
@@ -231,15 +243,33 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = req.headers.get('x-forwarded-for');
+      const realIp = req.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_posts_post_${rawIp}`);
+      if (!success) {
+        logger.warn('PostsAPI.POST', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (!db) {
       logger.warn('PostsAPI.POST', 'Firebase Admin DB not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     const adminDb = db;
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (jsonErr) {
+      logger.warn('PostsAPI.POST', 'Invalid JSON body structure', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+    }
+
     const parsed = PostCreateSchema.safeParse(body);
     
     if (!parsed.success) {
