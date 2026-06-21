@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import NewsClient from './NewsClient';
 import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
@@ -50,23 +51,6 @@ async function NewsDataLoader() {
 }
 
 export default async function NewsPage() {
-  const headersList = await headers();
-  const nonce = headersList.get('x-nonce') || undefined;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-
-  const jsonLd = getNewsMainSchema(baseUrl);
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        nonce={nonce}
-        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
-      />
-      <Suspense fallback={<NewsSkeleton />}>
-        <NewsDataLoader />
-      </Suspense>
-    </>
-  );
+  redirect('/lounge?tab=news');
 }
 

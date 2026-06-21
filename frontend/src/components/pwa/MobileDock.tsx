@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp, Newspaper } from 'lucide-react';
+import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSettingsUi } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'news';
-  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'news') => void;
+  activeTab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'technovalley';
+  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'gap' | 'technovalley') => void;
 }
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
@@ -20,20 +20,20 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
           { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/explore' },
-          { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/#lounge' },
-          { id: 'news' as const, label: '동탄 소식', icon: Newspaper, href: '/news' },
+          { id: 'lounge' as const, label: '동탄 라운지', icon: MessageSquare, href: '/lounge' },
+          { id: 'technovalley' as const, label: '테크노밸리', icon: Building2, href: '/technovalley' },
           { id: 'gap' as const, label: '큐레이션', icon: Coins, href: '/#gap' },
         ].map(tab => {
           const isActive = activeTab === tab.id;
           
-          if (onTabClick && tab.id !== 'imjang' && tab.id !== 'news') {
-             // Dashboard usage (except for separated explore/news tabs)
+          if (onTabClick && tab.id !== 'imjang' && tab.id !== 'lounge' && tab.id !== 'technovalley') {
+             // Dashboard usage (except for separated explore/lounge/technovalley pages)
              return (
                <button
                  key={tab.id}
                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                    e.preventDefault();
-                   onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'gap' | 'news');
+                   onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'gap' | 'technovalley');
                    if (tab.id === 'overview') {
                      window.history.replaceState(null, '', window.location.pathname + window.location.search);
                    } else {
@@ -53,7 +53,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
              );
           }
 
-          // Lounge, Explore, or cross-page links
+          // Lounge, Explore, Technovalley or cross-page links
           return (
             <Link
               key={tab.id}

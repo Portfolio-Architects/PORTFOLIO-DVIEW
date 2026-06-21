@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins, Newspaper } from 'lucide-react';
+import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins, Newspaper, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,7 +61,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
               </Link>
               
               <Link
-                href="/#lounge"
+                href="/lounge"
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'lounge'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -69,19 +69,19 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 }`}
               >
                 <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>커뮤니티</span>
+                <span>동탄 라운지</span>
               </Link>
  
               <Link
-                href="/news"
+                href="/technovalley"
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'news'
+                  activeTab === 'technovalley'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                 }`}
               >
-                <Newspaper size={18} className={activeTab === 'news' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                <span>동탄 소식</span>
+                <Building2 size={18} className={activeTab === 'technovalley' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>테크노밸리</span>
               </Link>
  
               <Link

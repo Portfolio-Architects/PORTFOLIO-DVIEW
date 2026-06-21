@@ -516,7 +516,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
       </div>
     )}
 
-    <MobileDock activeTab="news" />
+    <MobileDock activeTab="lounge" />
     </React.Fragment>
   );
 });

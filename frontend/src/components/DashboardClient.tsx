@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, X, LayoutDashboard, Home, Search, Coins, TrendingUp, Newspaper } from 'lucide-react';
+import { MessageSquare, X, LayoutDashboard, Home, Search, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
 
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import FloatingUserBar from '@/components/FloatingUserBar';
@@ -434,7 +434,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'gap' | 'lounge'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'gap' | 'lounge' | 'technovalley'>('overview');
   const [isPending, startTransition] = useTransition();
 
   // Trigger lazy fetching of detailed sheets data on relevant tab switches or deep-links
@@ -1115,15 +1115,19 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
                  }`}
                >
                  <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                 <span>커뮤니티</span>
+                 <span>동탄 라운지</span>
                </button>
                
                <button
-                 onClick={() => router.push('/news')}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+                  onClick={() => router.push('/technovalley')}
+                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                    activeTab === 'technovalley'
+                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                  }`}
                >
-                 <Newspaper size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                 <span>동탄 소식</span>
+                  <Building2 size={18} className={activeTab === 'technovalley' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                  <span>테크노밸리</span>
                </button>
                
                <button
@@ -1226,7 +1230,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       <MobileDock 
         activeTab={activeTab} 
         onTabClick={(tab) => {
-          if (tab !== 'news' && tab !== 'imjang') {
+          if (tab !== 'lounge' && tab !== 'technovalley' && tab !== 'imjang') {
             setActiveTab(tab);
           }
         }}

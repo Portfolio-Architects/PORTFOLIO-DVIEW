@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import { logger } from '@/lib/services/logger';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,12 +57,21 @@ export default async function LoungePage({
 }) {
   const resolvedParams = await searchParams;
   let posts: Record<string, unknown>[] = [];
+  let initialNews: any[] = [];
+  let initialNotices: any[] = [];
   let errorMessage: string | null = null;
   
   try {
-    posts = await PostRepo.getRecentPosts(50);
+    const [fetchedPosts, fetchedNews, fetchedNoticesData] = await Promise.all([
+      PostRepo.getRecentPosts(50).catch(() => []),
+      getMacroNews(40).catch(() => []),
+      getLocalNotices(true).catch(() => ({ notices: [], lastUpdated: null }))
+    ]);
+    posts = fetchedPosts;
+    initialNews = fetchedNews;
+    initialNotices = fetchedNoticesData.notices;
   } catch (error: unknown) {
-    logger.error('LoungePage.fetchPosts', 'Failed to fetch lounge posts server-side', {}, error as Error);
+    logger.error('LoungePage.fetchData', 'Failed to fetch lounge page data server-side', {}, error as Error);
     errorMessage = 'Failed to load posts. Please try again later.';
   }
 
@@ -96,7 +106,12 @@ export default async function LoungePage({
             🚧 Server Error: {errorMessage}
           </div>
         )}
-        <LoungeContainerClient initialPosts={posts as any} searchParams={resolvedParams} />
+        <LoungeContainerClient 
+          initialPosts={posts as any} 
+          initialNews={initialNews}
+          initialNotices={initialNotices}
+          searchParams={resolvedParams} 
+        />
       </main>
     </>
   );
