@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,8 +19,43 @@ function escapeHtml(unsafe: string): string {
     .replace(/'/g, '&#039;');
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    // 1. IP 속도 제한 (Rate Limiting) 가드
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_unsubscribe_${rawIp}`);
+      if (!success) {
+        logger.warn('UnsubscribeAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return new NextResponse(
+          `<html>
+            <head>
+              <title>요청 제한 - D-VIEW</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f9fafb; color: #1f2937; }
+                .card { background: white; padding: 40px; border-radius: 24px; text-align: center; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 400px; width: 90%; }
+                h1 { font-size: 20px; font-weight: 800; color: #ef4444; margin-top: 0; }
+                p { font-size: 14px; color: #4b5563; line-height: 1.6; margin-bottom: 24px; }
+                .btn { background-color: #3b82f6; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h1>너무 많은 요청</h1>
+                <p>단기간에 너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해 주세요.</p>
+                <a href="/" class="btn">D-VIEW 홈으로 이동</a>
+              </div>
+            </body>
+          </html>`,
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 429 }
+        );
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const emailParam = searchParams.get('email');
 

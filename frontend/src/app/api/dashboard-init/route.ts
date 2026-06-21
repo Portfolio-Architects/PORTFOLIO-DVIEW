@@ -8,7 +8,7 @@
  * 
  * Single serverless cold-start instead of 3.
  */
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { redis } from '@/lib/redis';
@@ -17,6 +17,7 @@ import path from 'path';
 import typeMapStatic from '../../../../public/data/type-map.json';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
 
@@ -31,7 +32,17 @@ const typeMapEntrySchema = z.object({
 const typeMapSchema = z.array(typeMapEntrySchema);
 const apartmentMetaSchema = z.record(z.string(), z.unknown());
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (rateLimiter) {
+    const forwarded = request.headers.get('x-forwarded-for');
+    const realIp = request.headers.get('x-real-ip');
+    const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+    const { success } = await rateLimiter.limit(`ratelimit_${rawIp}`);
+    if (!success) {
+      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+    }
+  }
+
   const result: {
     favoriteCounts: Record<string, number>;
     typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
@@ -116,10 +127,20 @@ export async function GET() {
     try {
       if (redis) {
         const cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
-        if (cachedMeta && typeof cachedMeta === 'object') {
-          const parsed = apartmentMetaSchema.safeParse(cachedMeta);
-          if (parsed.success) return parsed.data;
-          logger.warn('DashboardInitAPI.GET', 'Redis apartmentMeta schema mismatch', { errors: parsed.error.format() });
+        if (cachedMeta) {
+          let metaObj = cachedMeta;
+          if (typeof cachedMeta === 'string') {
+            try {
+              metaObj = JSON.parse(cachedMeta);
+            } catch (err) {
+              logger.warn('DashboardInitAPI.GET', 'Failed to parse Redis apartmentMeta JSON string', {}, err as Error);
+            }
+          }
+          if (metaObj && typeof metaObj === 'object') {
+            const parsed = apartmentMetaSchema.safeParse(metaObj);
+            if (parsed.success) return parsed.data;
+            logger.warn('DashboardInitAPI.GET', 'Redis apartmentMeta schema mismatch', { errors: parsed.error.format() });
+          }
         }
       }
 

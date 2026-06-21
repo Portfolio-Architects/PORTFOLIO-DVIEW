@@ -13,8 +13,10 @@ const ApartmentsQuerySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     if (rateLimiter) {
-      const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_${ip}`);
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_${rawIp}`);
       if (!success) {
         return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
       }

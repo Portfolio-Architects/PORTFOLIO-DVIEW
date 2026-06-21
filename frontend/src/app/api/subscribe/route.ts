@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { sendMail } from '@/lib/mailService';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,10 +15,35 @@ const subscribeSchema = z.object({
   }).optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = subscribeSchema.safeParse(body);
+    // 1. IP 속도 제한 (Rate Limiting) 가드
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_subscribe_${rawIp}`);
+      if (!success) {
+        logger.warn('SubscribeAPI.POST', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
+    // 2. JSON 파싱 방어 가드
+    let rawBody: any;
+    try {
+      const text = await request.text();
+      if (!text.trim()) {
+        logger.warn('SubscribeAPI.POST', 'Empty request body', {});
+        return NextResponse.json({ error: 'Bad Request: Empty Payload' }, { status: 400 });
+      }
+      rawBody = JSON.parse(text);
+    } catch (jsonErr) {
+      logger.warn('SubscribeAPI.POST', 'Invalid JSON format', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Bad Request: Invalid JSON' }, { status: 400 });
+    }
+
+    const parsed = subscribeSchema.safeParse(rawBody);
     
     if (!parsed.success) {
       logger.warn('SubscribeAPI.POST', 'Invalid subscription payload', { errors: parsed.error.format() });
@@ -37,7 +63,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '최소 한 개 이상의 알림 항목을 선택해주세요.' }, { status: 400 });
     }
 
-    // 2. Firestore 저장 (subscriptions 컬렉션)
+    // 3. Firestore 저장 (subscriptions 컬렉션)
     const docRef = db.collection('subscriptions').doc(email);
     
     // 기존 데이터 존재 여부 확인 후 병합
@@ -55,7 +81,7 @@ export async function POST(request: Request) {
 
     await docRef.set(dataToSave, { merge: true });
 
-    // 3. 웰컴 / 확인 이메일 발송
+    // 4. 웰컴 / 확인 이메일 발송 (예외 격리)
     const unsubscribeLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/unsubscribe?email=${encodeURIComponent(email)}`;
     
     const mailHtml = `
@@ -104,11 +130,16 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    await sendMail({
-      to: email,
-      subject: '[D-VIEW] 실거래가 알림 구독 신청이 완료되었습니다.',
-      html: mailHtml,
-    });
+    try {
+      await sendMail({
+        to: email,
+        subject: '[D-VIEW] 실거래가 알림 구독 신청이 완료되었습니다.',
+        html: mailHtml,
+      });
+    } catch (mailErr) {
+      logger.error('SubscribeAPI.POST', 'Welcome email failed to send', { email }, mailErr as Error);
+      // 구독은 이미 데이터베이스에 등록되었으므로 성공으로 응답을 내려주고, 에러 로그만 확보한다.
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
