@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,10 +20,21 @@ const transactionSummaryQuerySchema = z.object({
   apartment: z.string().optional(),
 });
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_txsummary_get_${rawIp}`);
+      if (!success) {
+        logger.warn('TransactionSummaryAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     const TX_SUMMARY = await getTxSummary();
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const parsedQuery = transactionSummaryQuerySchema.safeParse({
       apartment: searchParams.get('apartment') || undefined,
     });
