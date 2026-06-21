@@ -70,6 +70,7 @@ export function normalizeAptName(name: string | undefined | null): string {
 }
 
 export const HARDCODED_MAPPING: Record<string, string> = {
+  '동탄역센트럴자이': '동탄역센트럴자이A-10',
   '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
   '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
   '동탄풍성신미주': '동탄역신미주',
@@ -493,8 +494,11 @@ export function findTxKey<T>(
       ? resObj.dong
       : extractDong(res);
     if (!aptDong || !keyDong || aptDong === keyDong) {
-      resolvedMap.set(cacheKey, res);
-      return res;
+      const isGeneric = BRAND_NAMES.has(stripped) || stripped.length <= 3;
+      if (!isGeneric || (aptDong && keyDong && aptDong === keyDong)) {
+        resolvedMap.set(cacheKey, res);
+        return res;
+      }
     }
   }
 
@@ -506,10 +510,14 @@ export function findTxKey<T>(
     if (aptDong && keyDong && aptDong !== keyDong) continue;
 
     const normKey = normalizeAptName(key);
-    if (stripLocationSuffix(stripLocationPrefix(normKey)) === stripped) {
-      const res = key;
-      resolvedMap.set(cacheKey, res);
-      return res;
+    const keyStripped = stripLocationSuffix(stripLocationPrefix(normKey));
+    if (keyStripped === stripped) {
+      const isGeneric = BRAND_NAMES.has(stripped) || stripped.length <= 3;
+      if (!isGeneric || (aptDong && keyDong && aptDong === keyDong)) {
+        const res = key;
+        resolvedMap.set(cacheKey, res);
+        return res;
+      }
     }
   }
 
@@ -525,9 +533,12 @@ export function findTxKey<T>(
     const normKey = normalizeAptName(key);
     const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
     if (keyDeep === deepNorm || deepNormalize(stripLocationSuffix(stripLocationPrefix(normKey))) === deepNorm) {
-      const res = key;
-      resolvedMap.set(cacheKey, res);
-      return res;
+      const isGeneric = BRAND_NAMES.has(deepNorm) || deepNorm.length <= 3;
+      if (!isGeneric || (aptDong && keyDong && aptDong === keyDong)) {
+        const res = key;
+        resolvedMap.set(cacheKey, res);
+        return res;
+      }
     }
   }
 

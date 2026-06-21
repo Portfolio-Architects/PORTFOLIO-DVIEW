@@ -276,7 +276,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
       
       const normName = normalizeAptName(apt.name);
       const overrideKey = HARDCODED_MAPPING[normName];
-      const txKey = findTxKey(overrideKey || apt.name, txSummaryData, nameMapping) || normName;
+      const rawTxKey = overrideKey || (apt as { txKey?: string })?.txKey || findTxKey(apt.name, txSummaryData, nameMapping, false, apt.dong) || normName;
+      const txKey = rawTxKey ? normalizeAptName(rawTxKey) : normName;
       const summary = txSummaryData[txKey];
       
       const salesPrice = summary ? (summary.avg3MPrice || summary.latestPrice || 0) : 0;
@@ -575,8 +576,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
       };
     });
 
-    // Sort by match percentage (descending)
+    // Filter out apartments without transaction data (salesPrice <= 0) and sort by match percentage (descending)
     return scoredApts
+      .filter(item => item.salesPrice > 0)
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
       .slice(0, 3);
   }, [step, precomputedApts, answers]);
