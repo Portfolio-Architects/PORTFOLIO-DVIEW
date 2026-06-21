@@ -10,6 +10,13 @@ import { getBrandMultiplier } from '@/lib/utils/scoring';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 
+const LOADING_TEXTS = [
+  '1단계: 동탄 아파트 180여 개 단지 데이터 로드 중...',
+  '2단계: 가용 예산 한도 범위 외 단지 필터링 중...',
+  '3단계: 교통(GTX/트램) 및 교육(초품아) 입지 점수 산출 중...',
+  '4단계: 라이프스타일 지표 가중치 시뮬레이션 매칭 중...'
+];
+
 interface AptFitFinderProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
@@ -149,6 +156,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
   });
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [loadingTextIndex, setLoadingTextIndex] = useState<number>(0);
   const shareTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const mountedRef = React.useRef(true);
 
@@ -162,13 +170,22 @@ const AptFitFinder = React.memo(function AptFitFinder({
     };
   }, []);
 
-  // Auto transition from calculating screen to results
+  // Auto transition from calculating screen to results with a dynamic rolling text loader
   useEffect(() => {
     if (step === 8) {
-      const timer = setTimeout(() => {
+      setLoadingTextIndex(0);
+      const textTimer = setInterval(() => {
+        setLoadingTextIndex(prev => (prev + 1) % 4);
+      }, 450);
+
+      const transitionTimer = setTimeout(() => {
         setStep(9);
       }, 1800); // 1.8s for premium loading feel
-      return () => clearTimeout(timer);
+
+      return () => {
+        clearInterval(textTimer);
+        clearTimeout(transitionTimer);
+      };
     }
   }, [step]);
 
@@ -296,6 +313,14 @@ const AptFitFinder = React.memo(function AptFitFinder({
     if (step !== 9) return [];
 
     const scoredApts = precomputedApts.map(({ apt, m, salesPrice, jeonseRatio }) => {
+      // Hard budget limit enforcement: filter out apartments that are way out of budget range
+      if (salesPrice <= 0) return null; // Exclude apartments without price data
+      if (answers.budget === '3eok' && salesPrice > 38000) return null;
+      if (answers.budget === '5eok' && (salesPrice < 25000 || salesPrice > 68000)) return null;
+      if (answers.budget === '8eok' && (salesPrice < 50000 || salesPrice > 98000)) return null;
+      if (answers.budget === '12eok' && (salesPrice < 80000 || salesPrice > 155000)) return null;
+      if (answers.budget === 'unlimited' && salesPrice < 110000) return null;
+
       let score = 35; // baseline
 
       // 1. Budget Question Matching (Total: 25pts)
@@ -574,9 +599,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
       };
     });
 
-    // Filter out apartments without transaction data (salesPrice <= 0) and sort by match percentage (descending)
+    // Filter out null values and sort by match percentage (descending)
     return scoredApts
-      .filter(item => item.salesPrice > 0)
+      .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
       .slice(0, 3);
   }, [step, precomputedApts, answers]);
@@ -927,9 +952,11 @@ const AptFitFinder = React.memo(function AptFitFinder({
                 <div className="absolute inset-0 rounded-full border-4 border-[#00d29d]/20 border-t-[#00d29d] animate-spin" />
                 <Compass className="w-6 h-6 text-[#00d29d] animate-pulse" />
               </div>
-              <div className="flex flex-col gap-2 text-center">
-                <h4 className="text-[16px] font-black text-primary">당신의 라이프스타일 분석 중...</h4>
-                <p className="text-[12.5px] text-tertiary font-semibold">동탄 100여 개 아파트 단지 실거래가 및 인프라 점수를 매칭하고 있습니다.</p>
+              <div className="flex flex-col gap-2 text-center h-[54px] justify-center items-center">
+                <h4 className="text-[15px] sm:text-[16px] font-black text-[#00d29d] transition-all duration-300">
+                  {LOADING_TEXTS[loadingTextIndex]}
+                </h4>
+                <p className="text-[11.5px] sm:text-[12.5px] text-tertiary font-semibold">동탄 100여 개 아파트 단지 실거래가 및 인프라 점수를 실시간 분석하고 있습니다.</p>
               </div>
             </div>
           )}
@@ -995,10 +1022,33 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             </div>
                             {/* Matching Tags */}
                             <div className="flex gap-1.5 mt-0.5">
-                              {item.tags.map(tag => (
+                              {item.tags.map((tag: string) => (
                                 <span key={tag} className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-neutral-100 dark:bg-zinc-800/80 text-secondary dark:text-zinc-300 rounded-[4px] tracking-wide">
                                   #{tag}
                                 </span>
+                              ))}
+                            </div>
+
+                            {/* Mini scoring breakdown (Visible at all times for easy comparison) */}
+                            <div className="grid grid-cols-4 gap-x-2.5 gap-y-1 mt-2.5 border-t border-neutral-100/60 dark:border-zinc-900/50 pt-2.5 w-[240px] sm:w-[320px] md:w-[360px] shrink-0">
+                              {[
+                                { label: '자금', score: item.scores.budget, color: 'bg-amber-400' },
+                                { label: '교통', score: item.scores.transit, color: 'bg-[#00d29d]' },
+                                { label: '교육', score: item.scores.education, color: 'bg-emerald-400' },
+                                { label: '생활', score: item.scores.lifestyle, color: 'bg-[#c084fc]' }
+                              ].map(scoreItem => (
+                                <div key={scoreItem.label} className="flex flex-col gap-0.5 min-w-0">
+                                  <div className="flex justify-between items-center text-[9px] font-black text-tertiary">
+                                    <span>{scoreItem.label}</span>
+                                    <span className="font-extrabold text-primary">{scoreItem.score}%</span>
+                                  </div>
+                                  <div className="w-full h-1 bg-neutral-100 dark:bg-zinc-800/80 rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full ${scoreItem.color} rounded-full`}
+                                      style={{ width: `${scoreItem.score}%` }}
+                                    />
+                                  </div>
+                                </div>
                               ))}
                             </div>
                           </div>
