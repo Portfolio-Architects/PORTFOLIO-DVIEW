@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only, no business logic)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot, orderBy } from 'firebase/firestore';
 import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
@@ -91,7 +91,11 @@ const FieldReportDataSchema = z.object({
  * @returns Unsubscribe function
  */
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
-  const q = query(collection(db, 'scoutingReports'), limit(30));
+  const q = query(
+    collection(db, 'scoutingReports'),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
 
   const mapSnapshot = (snapshot: QuerySnapshot<DocumentData>): FieldReportData[] => {
     const reports: FieldReportData[] = [];
