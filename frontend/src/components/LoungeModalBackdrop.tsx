@@ -1,10 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useRef } from 'react';
+import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
 
 const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, onClose }: { children: ReactNode, onClose?: () => void }) {
   const router = useRouter();
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  usePreventElasticBounce(backdropRef);
 
   const handleClose = () => {
     if (onClose) {
@@ -25,6 +29,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
 
   return (
     <div 
+      ref={backdropRef}
       className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
       onClick={handleClose}
     >

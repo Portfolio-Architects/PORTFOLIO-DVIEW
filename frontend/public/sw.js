@@ -1,9 +1,9 @@
-const CACHE_NAME = 'dview-cache-v-1782008256590';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1782008256590';
+const CACHE_NAME = 'dview-cache-v-1782026863978';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1782026863978';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  // Removed self.skipWaiting() to prevent unexpected hard-reloads of open tabs
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
@@ -12,7 +12,16 @@ self.addEventListener('install', (event) => {
         '/icon-192x192.png',
         '/icon-512x512.png',
         '/d-view-icon.png',
-        '/offline.html'
+        '/offline.html',
+        '/data/apartments-by-dong.json',
+        '/data/coordinate-corrections.json',
+        '/data/local-ads.json',
+        '/data/local-events.json',
+        '/data/location-scores.json',
+        '/data/macro-trend.json',
+        '/data/public-prices.json',
+        '/data/type-map.json',
+        '/tx-data/_index.json'
       ]);
     })
   );
@@ -311,5 +320,12 @@ self.addEventListener('notificationclick', (event) => {
       }
     })
   );
+});
+
+// --- Message handling for updates ---
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 

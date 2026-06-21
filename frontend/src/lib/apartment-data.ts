@@ -3,7 +3,7 @@
  * 
  * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
  * 동기화: npm run sync-apartments
- * 마지막 동기화: 2026-06-17
+ * 마지막 동기화: 2026-06-21
  */
 
 export interface StaticApartment {
@@ -101,7 +101,7 @@ export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {
     { name: '동탄역 반도유보라 아이비파크 6.0', dong: '여울동', householdCount: 532, yearBuilt: '2017', brand: '반도건설' },
     { name: '동탄역 반도유보라 아이비파크 7.0', dong: '여울동', householdCount: 710, yearBuilt: '2019', brand: '반도건설' },
     { name: '동탄역 반도유보라 아이비파크 8.0', dong: '여울동', householdCount: 671, yearBuilt: '2018', brand: '반도건설' },
-    { name: '동탄역 삼정그린코아 더베스트', dong: '여울동', householdCount: 183, yearBuilt: '2022', brand: '삼정��설' },
+    { name: '동탄역 삼정그린코아 더베스트', dong: '여울동', householdCount: 183, yearBuilt: '2022', brand: '삼정건설' },
     { name: '동탄역 신미주', dong: '여울동', householdCount: 538, yearBuilt: '2005', brand: '풍성주택' },
     { name: '동탄역 에일린의뜰', dong: '여울동', householdCount: 489, yearBuilt: '2016', brand: '아이에스동서' },
     { name: '동탄역 예미지 시그너스', dong: '여울동', householdCount: 498, yearBuilt: '2021', brand: '금성백조주택' },
@@ -123,9 +123,9 @@ export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {
     { name: '동탄역 센트럴상록아파트', dong: '영천동', householdCount: 1005, yearBuilt: '2017', brand: '호반산업' },
     { name: '동탄역 센트럴예미지', dong: '영천동', householdCount: 451, yearBuilt: '2017', brand: '금성백조주택' },
     { name: '동탄역 센트럴자이', dong: '영천동', householdCount: 559, yearBuilt: '2015', brand: 'GS건설' },
-    { name: '동탄역 이지더원', dong: '영천동', householdCount: 642, yearBuilt: '2015', brand: '라인' },
     { name: '동탄역 포레너스', dong: '영천동', householdCount: 1316, yearBuilt: '2017', brand: '부영주택' },
     { name: '동탄역 푸르지오', dong: '영천동', householdCount: 832, yearBuilt: '2017', brand: '대우건설' },
+    { name: '동��역 이지더원', dong: '영천동', householdCount: 642, yearBuilt: '2015', brand: '라인' },
     { name: '영천동 동원로얄듀크포레 4차', dong: '영천동', householdCount: 196, yearBuilt: '2020', brand: '동원개발' },
     { name: '영천동 파크자이', dong: '영천동', householdCount: 979, yearBuilt: '2018', brand: '지에스건설' },
     { name: '영천동 파크푸르지오', dong: '영천동', householdCount: 913, yearBuilt: '2018', brand: '대우건설' },

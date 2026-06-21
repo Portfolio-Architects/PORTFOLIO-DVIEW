@@ -4,6 +4,7 @@ import { X, Upload, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from 'lu
 import { db } from '@/lib/firebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { uploadImage } from '@/lib/services/storage.service';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 import Image from 'next/image';
 import type { User } from 'firebase/auth';
@@ -139,7 +140,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         clearTimeout(successTimeoutRef.current);
         successTimeoutRef.current = null;
       }
-      await addDoc(collection(db, 'pending_photos'), {
+      await throttle(() => addDoc(collection(db, 'pending_photos'), {
         apartmentId,
         apartmentName,
         url: downloadUrl,
@@ -151,7 +152,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         uploaderUid: user?.uid || 'anonymous',
         uploaderEmail: user?.email || 'anonymous',
         uploaderName,
-      });
+      }));
       
       if (!mountedRef.current) return;
       if (successTimeoutRef.current) {

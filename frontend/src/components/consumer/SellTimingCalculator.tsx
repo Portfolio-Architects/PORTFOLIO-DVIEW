@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, MessageSquare, Sparkles, TrendingDown, Coins, ShieldAlert, Award, ExternalLink } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
@@ -319,7 +320,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         userId: userId || 'anonymous',
         timestamp: serverTimestamp()
       };
-      addDoc(collection(db, 'sell_diagnosis_logs'), logData).catch(err => {
+      throttle(() => addDoc(collection(db, 'sell_diagnosis_logs'), logData)).catch(err => {
         console.warn('[CPA Tracker] Failed to log sell diagnosis:', err);
       });
     }
@@ -415,7 +416,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         deviceType: typeof window !== 'undefined' && window.innerWidth < 768 ? 'mobile' : 'desktop',
         timestamp: serverTimestamp()
       };
-      addDoc(collection(db, 'ad_clicks'), clickLog).catch(err => {
+      throttle(() => addDoc(collection(db, 'ad_clicks'), clickLog)).catch(err => {
         console.warn('[CPA Tracker] Failed to log ad click:', err);
       });
     }

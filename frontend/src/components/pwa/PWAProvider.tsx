@@ -1,8 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react';
 import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { initSafeReloadDiagnostics } from '@/lib/utils/safeReload';
 
 
 
@@ -84,6 +85,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const [showCacheExpiredModal, setShowCacheExpiredModal] = useState(false);
   const [expiredCacheUrl, setExpiredCacheUrl] = useState<string | null>(null);
 
+  // SW Update state
+  const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
+
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const installRewardTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pushSupportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -91,6 +95,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
   useEffect(() => {
     mountedRef.current = true;
+    initSafeReloadDiagnostics();
     return () => {
       mountedRef.current = false;
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -284,6 +289,30 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       });
     }
 
+    // 🔧 SW Update monitor
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
+      navigator.serviceWorker.ready.then((reg) => {
+        if (!isMounted) return;
+        
+        // 1. If SW is already waiting to activate
+        if (reg.waiting) {
+          setSwUpdateAvailable(true);
+        }
+
+        // 2. If new SW installation completes
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && reg.waiting) {
+                setSwUpdateAvailable(true);
+              }
+            });
+          }
+        });
+      });
+    }
+
     return () => {
       isMounted = false;
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -300,6 +329,19 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         }
       }
     };
+  }, []);
+
+  const handleApplyUpdate = useCallback(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        const activeReg = registrations.find(r => r.waiting);
+        if (activeReg && activeReg.waiting) {
+          activeReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+          window.location.reload();
+        }
+      });
+    }
   }, []);
 
   const triggerA2HSPrompt = async () => {
@@ -446,6 +488,30 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {swUpdateAvailable && (
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[24px] shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[12.5px] leading-relaxed flex-1">
+              🚀 새로운 버전의 DVIEW 앱이 준비되었습니다. 최신 시세 정보와 기능을 바로 적용해 보세요!
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={handleApplyUpdate}
+              className="flex-1 bg-[#00d29d] hover:bg-[#00b083] text-neutral-950 text-[12.5px] font-black py-2.5 rounded-xl transition-colors cursor-pointer shadow-md"
+            >
+              업데이트 적용
+            </button>
+            <button 
+              onClick={() => setSwUpdateAvailable(false)}
+              className="px-4 bg-white/10 hover:bg-white/20 text-white text-[12px] font-bold py-2.5 rounded-xl transition-colors cursor-pointer"
+            >
+              나중에
+            </button>
+          </div>
         </div>
       )}
 

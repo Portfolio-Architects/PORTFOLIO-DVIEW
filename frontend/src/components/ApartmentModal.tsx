@@ -14,6 +14,8 @@ import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { doc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { throttle } from '@/lib/utils/firestoreThrottle';
+import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
 import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
 import { safeReload } from '@/lib/utils/safeReload';
@@ -1189,6 +1191,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const isUnlocked = true;
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
+  usePreventElasticBounce(modalRef);
   const scrollToSection = (id: string) => {
     if (activeTabTimeoutRef.current) {
       clearTimeout(activeTabTimeoutRef.current);
@@ -2599,9 +2602,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
               }
               if (!confirm('이 사진을 아파트 카드의 대표 썸네일로 설정하시겠습니까?')) return;
               try {
-                await updateDoc(doc(db, 'scoutingReports', report.id), {
+                await throttle(() => updateDoc(doc(db, 'scoutingReports', report.id), {
                   thumbnailUrl: currentImgData.url
-                });
+                }));
                 alert('대표 썸네일이 변경되었습니다. 새로고침 시 반영됩니다.');
               } catch (err) {
                 console.error(err);

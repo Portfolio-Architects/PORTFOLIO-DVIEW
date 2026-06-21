@@ -23,6 +23,7 @@ import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { syncManagerPostToScoutingReport } from '@/lib/services/post.service';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
@@ -362,7 +363,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       } catch (err) {
         console.warn('localStorage is unavailable:', err);
       }
-      await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
+      await throttle(() => updateDoc(doc(db, 'posts', postId), { likes: increment(1) }));
       if (!mountedRef.current) return;
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
       showToast("이 글에 공감(좋아요)을 보냈습니다. ❤️");
@@ -519,13 +520,13 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         authorUid = getAnonymousUid();
       }
 
-      await addDoc(collection(db, `posts/${postId}/comments`).withConverter(commentConverter), {
+      await throttle(() => addDoc(collection(db, `posts/${postId}/comments`).withConverter(commentConverter), {
         text: text.trim(),
         authorName: displayName,
         authorUid: authorUid || '',
         createdAt: serverTimestamp(),
-      });
-      await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) });
+      }));
+      await throttle(() => updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) }));
       if (!mountedRef.current) return;
       lastCommentTimeRef.current = Date.now();
       triggerCustomA2HSModal();
@@ -574,12 +575,12 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const handleSaveEdit = useCallback(async () => {
     if (!postId || !editTitle.trim()) return;
     try {
-      await updateDoc(doc(db, 'posts', postId), {
+      await throttle(() => updateDoc(doc(db, 'posts', postId), {
         title: editTitle.trim(),
         content: editContent.trim(),
         category: editCategory,
         updatedAt: serverTimestamp(),
-      });
+      }));
 
       // Sync edited manager report to scoutingReports.premiumContent using the shared service helper
       await syncManagerPostToScoutingReport(editTitle, editContent, editCategory, user?.email, dongtanApartments);
@@ -725,7 +726,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
               onClick={async () => {
                 if (!confirm('이 글을 삭제하시겠습니까?')) return;
                 try {
-                  await deleteDoc(doc(db, 'posts', postId).withConverter(postConverter));
+                  await throttle(() => deleteDoc(doc(db, 'posts', postId).withConverter(postConverter)));
                   router.push('/lounge');
                 } catch {
                   alert('삭제에 실패했습니다.');
@@ -833,7 +834,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                         onClick={async () => {
                           if (!confirm('이 글을 삭제하시겠습니까?')) return;
                           try {
-                            await deleteDoc(doc(db, 'posts', postId).withConverter(postConverter));
+                            await throttle(() => deleteDoc(doc(db, 'posts', postId).withConverter(postConverter)));
                             router.back();
                           } catch {
                             alert('삭제에 실패했습니다.');

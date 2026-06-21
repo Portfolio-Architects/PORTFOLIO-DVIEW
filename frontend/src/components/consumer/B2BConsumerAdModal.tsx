@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, GraduationCap, Brush, Sparkles, Phone, MessageSquare, Calendar, Home, CheckCircle2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 interface B2BConsumerAdModalProps {
   onClose: () => void;
@@ -88,7 +89,7 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
 
     try {
       if (db) {
-        await addDoc(collection(db, 'ad_inquiries'), {
+        await throttle(() => addDoc(collection(db, 'ad_inquiries'), {
           adType,
           adTitle,
           apartmentName,
@@ -100,7 +101,7 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
           customData,
           status: 'pending',
           createdAt: serverTimestamp()
-        });
+        }));
       }
       if (!mountedRef.current) return;
       if (successTimeoutRef.current) {

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Building2, User, MessageSquare } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { throttle } from '@/lib/utils/firestoreThrottle';
 
 interface AdInquiryModalProps {
   onClose: () => void;
@@ -43,13 +44,13 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
     }
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'adInquiries'), {
+      await throttle(() => addDoc(collection(db, 'adInquiries'), {
         companyName: companyName.trim(),
         contactInfo: contactInfo.trim(),
         message: message.trim(),
         status: 'pending',
         createdAt: serverTimestamp(),
-      });
+      }));
       if (!mountedRef.current) return;
       if (successTimeoutRef.current) {
         clearTimeout(successTimeoutRef.current);
