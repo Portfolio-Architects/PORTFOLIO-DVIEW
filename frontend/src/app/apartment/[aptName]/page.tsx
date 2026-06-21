@@ -173,123 +173,161 @@ function generateAiBriefing(aptName: string, aptSummary: AptTxSummary | undefine
 
 // --- SEO: Dynamic Metadata Generator ---
 // Await the params and searchParams Promise for Next.js 15+
+function getDefaultMetadata(baseUrl: string, aptName: string = '아파트'): Metadata {
+  const title = `동탄 ${aptName} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+  const description = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/apartment/${encodeURIComponent(aptName)}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+      siteName: 'D-VIEW',
+      locale: 'ko_KR',
+      type: 'website',
+    }
+  };
+}
+
+// --- SEO: Dynamic Metadata Generator ---
+// Await the params and searchParams Promise for Next.js 15+
 export async function generateMetadata(props: { 
   params: Promise<{ aptName: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
-  const params = await props.params;
-  const searchParams = await props.searchParams;
-  const decodedName = decodeURIComponent(params.aptName);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   
-  let imageUrl = '';
   try {
-    const reportData = await fetchScoutingReportCached(decodedName);
-    if (reportData) {
-      if (reportData.images && reportData.images.length > 0) {
-        imageUrl = reportData.images[0].url;
-      } else if ((reportData as any).thumbnailUrl) {
-        imageUrl = (reportData as any).thumbnailUrl;
+    const params = props.params ? (await props.params) : null;
+    const searchParams = props.searchParams ? (await props.searchParams) : {};
+    
+    if (!params?.aptName) {
+      return getDefaultMetadata(baseUrl);
+    }
+    
+    const decodedName = decodeURIComponent(params.aptName);
+    
+    let imageUrl = '';
+    try {
+      const reportData = await fetchScoutingReportCached(decodedName);
+      if (reportData) {
+        if (reportData.images && reportData.images.length > 0) {
+          imageUrl = reportData.images[0].url;
+        } else if ((reportData as any).thumbnailUrl) {
+          imageUrl = (reportData as any).thumbnailUrl;
+        }
       }
+    } catch (e) {
+      logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
     }
-  } catch (e) {
-    logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
-  }
+    
+    const txSummary = await getTxSummaryData();
+    const aptSummary = txSummary[decodedName];
+    const txs = await getApartmentTransactions(decodedName);
+    const pyeongSummaries = getPyeongSummaries(txs);
+    
+    // Dynamic OG Image URL
+    const ogUrl = new URL(`${baseUrl}/api/og`);
+    ogUrl.searchParams.set('title', decodedName);
+    
+    const shareType = searchParams?.shareType;
+    const grade = searchParams?.grade;
+    const score = searchParams?.score;
+    
+    if (shareType && typeof shareType === 'string') {
+      ogUrl.searchParams.set('shareType', shareType);
+    }
+    if (grade && typeof grade === 'string') {
+      ogUrl.searchParams.set('grade', grade);
+    }
+    if (score && typeof score === 'string') {
+      ogUrl.searchParams.set('score', score);
+    }
+    
+    let subtitleText = '동탄 실거래가 및 가치 분석';
+    if (aptSummary?.dong) {
+      subtitleText = `동탄구 ${aptSummary.dong} · 실거래 가치 분석 리포트`;
+    }
+    ogUrl.searchParams.set('subtitle', subtitleText);
+    
+    if (imageUrl) {
+      ogUrl.searchParams.set('bgUrl', imageUrl);
+    }
+    
+    if (aptSummary?.latestPrice) {
+      ogUrl.searchParams.set('price', formatPriceEok(aptSummary.latestPrice));
+    }
+    
+    const salesVal = aptSummary ? (aptSummary.avg1MPrice || aptSummary.avg3MPrice || aptSummary.latestPrice || 0) : 0;
+    const jeonseVal = aptSummary ? (aptSummary.avg1MRentDeposit || aptSummary.avg3MRentDeposit || aptSummary.latestRentDeposit || 0) : 0;
+    const ratioPercent = salesVal > 0 && jeonseVal > 0 ? Math.round((jeonseVal / salesVal) * 100) : 0;
+    if (ratioPercent > 0) {
+      ogUrl.searchParams.set('ratio', ratioPercent.toString());
+    }
+    
+    const maxPriceVal = aptSummary?.maxPrice || 0;
+    const latestPriceVal = aptSummary?.latestPrice || 0;
+    const isHigh = latestPriceVal > 0 && maxPriceVal > 0 && latestPriceVal >= maxPriceVal - 500;
+    const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 ? '갭투자추천' : '인기단지');
+    ogUrl.searchParams.set('status', statusStr);
+    
+    let seoTitle = '';
+    if (pyeongSummaries.length > 0) {
+      const pyeongListStr = pyeongSummaries.map(p => `${p.pyeong}평`).join('/');
+      seoTitle = `${decodedName} ${pyeongListStr} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+    } else {
+      const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
+      const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+      seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+    }
+    
+    const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
+    const pyeongKeywordsList = pyeongSummaries.map(p => `${decodedName} ${p.pyeong}평, ${decodedName} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`).join(', ');
+    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
   
-  const txSummary = await getTxSummaryData();
-  const aptSummary = txSummary[decodedName];
-  const txs = await getApartmentTransactions(decodedName);
-  const pyeongSummaries = getPyeongSummaries(txs);
-  
-  // Dynamic OG Image URL
-  const ogUrl = new URL(`${baseUrl}/api/og`);
-  ogUrl.searchParams.set('title', decodedName);
-  
-  const shareType = searchParams.shareType;
-  const grade = searchParams.grade;
-  const score = searchParams.score;
-  
-  if (shareType && typeof shareType === 'string') {
-    ogUrl.searchParams.set('shareType', shareType);
-  }
-  if (grade && typeof grade === 'string') {
-    ogUrl.searchParams.set('grade', grade);
-  }
-  if (score && typeof score === 'string') {
-    ogUrl.searchParams.set('score', score);
-  }
-  
-  let subtitleText = '동탄 실거래가 및 가치 분석';
-  if (aptSummary?.dong) {
-    subtitleText = `동탄구 ${aptSummary.dong} · 실거래 가치 분석 리포트`;
-  }
-  ogUrl.searchParams.set('subtitle', subtitleText);
-  
-  if (imageUrl) {
-    ogUrl.searchParams.set('bgUrl', imageUrl);
-  }
-  
-  if (aptSummary?.latestPrice) {
-    ogUrl.searchParams.set('price', formatPriceEok(aptSummary.latestPrice));
-  }
-  
-  const salesVal = aptSummary ? (aptSummary.avg1MPrice || aptSummary.avg3MPrice || aptSummary.latestPrice || 0) : 0;
-  const jeonseVal = aptSummary ? (aptSummary.avg1MRentDeposit || aptSummary.avg3MRentDeposit || aptSummary.latestRentDeposit || 0) : 0;
-  const ratioPercent = salesVal > 0 && jeonseVal > 0 ? Math.round((jeonseVal / salesVal) * 100) : 0;
-  if (ratioPercent > 0) {
-    ogUrl.searchParams.set('ratio', ratioPercent.toString());
-  }
-  
-  const maxPriceVal = aptSummary?.maxPrice || 0;
-  const latestPriceVal = aptSummary?.latestPrice || 0;
-  const isHigh = latestPriceVal > 0 && maxPriceVal > 0 && latestPriceVal >= maxPriceVal - 500;
-  const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 ? '갭투자추천' : '인기단지');
-  ogUrl.searchParams.set('status', statusStr);
-  
-  let seoTitle = '';
-  if (pyeongSummaries.length > 0) {
-    const pyeongListStr = pyeongSummaries.map(p => `${p.pyeong}평`).join('/');
-    seoTitle = `${decodedName} ${pyeongListStr} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
-  } else {
-    const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
-    const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
-    seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
-  }
-  
-  const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
-  const pyeongKeywordsList = pyeongSummaries.map(p => `${decodedName} ${p.pyeong}평, ${decodedName} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`).join(', ');
-  const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
-
-  return {
-    title: seoTitle,
-    description: seoDescription,
-    keywords: dynamicKeywords,
-    alternates: {
-      canonical: `/apartment/${params.aptName}`,
-    },
-    openGraph: {
+    return {
       title: seoTitle,
       description: seoDescription,
-      url: `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
-      siteName: 'D-VIEW',
-      locale: 'ko_KR',
-      type: 'website',
-      images: [
-        {
-          url: ogUrl.toString(),
-          width: 1200,
-          height: 630,
-          alt: `${decodedName} 가치 분석 썸네일`,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: seoTitle,
-      description: seoDescription,
-      images: [ogUrl.toString()],
+      keywords: dynamicKeywords,
+      alternates: {
+        canonical: `/apartment/${params.aptName}`,
+      },
+      openGraph: {
+        title: seoTitle,
+        description: seoDescription,
+        url: `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
+        siteName: 'D-VIEW',
+        locale: 'ko_KR',
+        type: 'website',
+        images: [
+          {
+            url: ogUrl.toString(),
+            width: 1200,
+            height: 630,
+            alt: `${decodedName} 가치 분석 썸네일`,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: seoTitle,
+        description: seoDescription,
+        images: [ogUrl.toString()],
+      }
+    };
+  } catch (err) {
+    logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to generate metadata, returning default', {}, err as Error);
+    try {
+      const params = props.params ? (await props.params) : null;
+      return getDefaultMetadata(baseUrl, params?.aptName ? decodeURIComponent(params.aptName) : undefined);
+    } catch {
+      return getDefaultMetadata(baseUrl);
     }
-  };
+  }
 }
 
 import { createInitialKPIs } from '@/lib/services/kpi.service';
@@ -343,8 +381,18 @@ async function fetchScoutingReportCached(aptName: string): Promise<FieldReportDa
 }
 
 export default async function ApartmentPage(props: { params: Promise<{ aptName: string }> }) {
-  const params = await props.params;
-  const decodedName = decodeURIComponent(params.aptName);
+  let params: { aptName: string } | null = null;
+  let decodedName = '아파트';
+  
+  try {
+    params = props.params ? (await props.params) : null;
+    if (params?.aptName) {
+      decodedName = decodeURIComponent(params.aptName);
+    }
+  } catch (e) {
+    logger.warn('ApartmentPage', 'ApartmentPage params resolution failure', {}, e as Error);
+  }
+
   const initialData = await getInitialData();
   const nonce = (await headers()).get('x-nonce') || undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
