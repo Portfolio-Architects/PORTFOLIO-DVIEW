@@ -770,6 +770,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // 이상치 필터링 토글 상태
   const [filterOutliers, setFilterOutliers] = useState<boolean>(true);
+  const deferredFilterOutliers = useDeferredValue(filterOutliers);
 
   // Load outlier filter state from localStorage on mount (hydration-safe)
   useEffect(() => {
@@ -1048,8 +1049,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
         return false;
       });
 
-      const finalSale = filterOutliers ? filterOutliersRolling(saleTxs) : saleTxs;
-      const finalJeonse = filterOutliers ? filterOutliersRolling(jeonseTxs) : jeonseTxs;
+      const finalSale = deferredFilterOutliers ? filterOutliersRolling(saleTxs) : saleTxs;
+      const finalJeonse = deferredFilterOutliers ? filterOutliersRolling(jeonseTxs) : jeonseTxs;
       const combined = [...finalSale, ...finalJeonse];
       const sortedCombined = combined.sort((a, b) => {
         if (a.contractDateNum !== b.contractDateNum) return b.contractDateNum - a.contractDateNum;
@@ -1218,7 +1219,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         clearTimeout(timerId);
       }
     };
-  }, [isAnimationFinished, rawTransactions, report, typeMap, filterOutliers, areaUnit]);
+  }, [isAnimationFinished, rawTransactions, report, typeMap, deferredFilterOutliers, areaUnit]);
 
   const transactions = calculatedTransactions;
   const valuation = calculatedValuation;

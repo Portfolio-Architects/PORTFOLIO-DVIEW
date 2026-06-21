@@ -114,6 +114,15 @@ export default function TechnoValleyClient() {
   const [applyName, setApplyName] = useState('');
   const [applyPhone, setApplyPhone] = useState('');
   const [applyBizType, setApplyBizType] = useState('');
+  const [applyErrors, setApplyErrors] = useState<{ name?: string; phone?: string; bizType?: string }>({});
+
+  // 입주 컨설팅 신청 모달 상태
+  const [isConsultingModalOpen, setIsConsultingModalOpen] = useState(false);
+  const [consultingName, setConsultingName] = useState('');
+  const [consultingPhone, setConsultingPhone] = useState('');
+  const [consultingDate, setConsultingDate] = useState('');
+  const [consultingBizSize, setConsultingBizSize] = useState<'under5' | '5to15' | 'above15'>('under5');
+  const [consultingErrors, setConsultingErrors] = useState<{ name?: string; phone?: string; date?: string }>({});
 
   // 핏파인더 추천 알고리즘
   const handleFindOffice = () => {
@@ -178,16 +187,65 @@ export default function TechnoValleyClient() {
   // 공동 임차 메이트 매칭 신청 접수
   const handleApplyMatch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!applyName || !applyPhone || !applyBizType) {
-      showToast('⚠️ 모든 정보를 입력해 주세요.');
+    const errors: typeof applyErrors = {};
+    if (!applyName.trim()) {
+      errors.name = '기업명 또는 대표자명을 입력해주세요.';
+    }
+    const phoneRegex = /^(010-\d{3,4}-\d{4}|010\d{7,8})$/;
+    if (!applyPhone.trim()) {
+      errors.phone = '연락처를 입력해주세요.';
+    } else if (!phoneRegex.test(applyPhone)) {
+      errors.phone = '올바른 휴대폰 번호 형식(010-XXXX-XXXX)으로 입력해주세요.';
+    }
+    if (!applyBizType.trim()) {
+      errors.bizType = '업종 및 선호 면적을 입력해주세요.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setApplyErrors(errors);
+      showToast('⚠️ 입력 정보를 다시 확인해주세요.');
       return;
     }
+
+    setApplyErrors({});
     showToast('💚 공동 임차 매칭 신청이 접수되었습니다! 매이트 찾기 알림톡을 발송합니다.');
     setIsApplyModalOpen(false);
     setSelectedPost(null);
     setApplyName('');
     setApplyPhone('');
     setApplyBizType('');
+  };
+
+  // 입주 컨설팅 연계 신청 접수
+  const handleConsultingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: typeof consultingErrors = {};
+    if (!consultingName.trim()) {
+      errors.name = '기업명 또는 신청자명을 입력해주세요.';
+    }
+    const phoneRegex = /^(010-\d{3,4}-\d{4}|010\d{7,8})$/;
+    if (!consultingPhone.trim()) {
+      errors.phone = '연락처를 입력해주세요.';
+    } else if (!phoneRegex.test(consultingPhone)) {
+      errors.phone = '올바른 휴대폰 번호 형식(010-XXXX-XXXX)으로 입력해주세요.';
+    }
+    if (!consultingDate) {
+      errors.date = '희망 입주일자를 선택해주세요.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setConsultingErrors(errors);
+      showToast('⚠️ 입력 정보를 다시 확인해주세요.');
+      return;
+    }
+
+    setConsultingErrors({});
+    showToast('☎️ 입주 컨설팅 연계 신청이 접수되었습니다! 담당 전문가가 24시간 내 연락해 드립니다.');
+    setIsConsultingModalOpen(false);
+    setConsultingName('');
+    setConsultingPhone('');
+    setConsultingDate('');
+    setConsultingBizSize('under5');
   };
 
   // 매칭 보드 가상 데이터
@@ -509,9 +567,7 @@ export default function TechnoValleyClient() {
 
                       <div className="flex items-center gap-3 mt-2">
                         <button
-                          onClick={() => {
-                            showToast('☎️ 입주 컨설팅 연계 신청이 접수되었습니다! 담당 전문가가 24시간 내 연락해 드립니다.');
-                          }}
+                          onClick={() => setIsConsultingModalOpen(true)}
                           className="flex-1 py-3.5 bg-secondary text-primary-inverse text-[13.5px] font-extrabold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
                         >
                           <span>공실 매물 및 무료 임대 투어 신청</span>
@@ -781,6 +837,7 @@ export default function TechnoValleyClient() {
                 onClick={() => {
                   setIsApplyModalOpen(false);
                   setSelectedPost(null);
+                  setApplyErrors({});
                 }}
                 className="p-1 rounded-lg hover:bg-body/30 text-secondary transition-all"
               >
@@ -788,55 +845,234 @@ export default function TechnoValleyClient() {
               </button>
             </div>
             
-            <form onSubmit={handleApplyMatch} className="p-5 flex flex-col gap-4">
+            <form onSubmit={handleApplyMatch} noValidate className="p-5 flex flex-col gap-2">
               {selectedPost && (
-                <div className="bg-body/20 p-3.5 rounded-xl border border-border/30 text-[12px] text-secondary font-medium">
+                <div className="bg-body/20 p-3.5 rounded-xl border border-border/30 text-[12px] text-secondary font-medium mb-2">
                   <p className="font-bold text-primary">{selectedPost.title}</p>
                   <p className="text-tertiary mt-1">제안 조건: {selectedPost.rent} / {selectedPost.area}</p>
                 </div>
               )}
 
-              <div className="flex flex-col gap-1.5">
+              {/* 기업명 */}
+              <div className="flex flex-col gap-1.5 relative pb-6">
                 <label className="text-[12px] font-bold text-secondary">기업명 (또는 대표자 성함)</label>
                 <input
                   type="text"
-                  required
                   placeholder="예: D-VIEW 솔루션"
                   value={applyName}
-                  onChange={(e) => setApplyName(e.target.value)}
-                  className="w-full bg-body/30 border border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d] rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold"
+                  onChange={(e) => {
+                    setApplyName(e.target.value);
+                    if (applyErrors.name) setApplyErrors(prev => ({ ...prev, name: undefined }));
+                  }}
+                  className={`w-full bg-body/30 border ${
+                    applyErrors.name 
+                      ? 'border-rose-500 focus:border-rose-500' 
+                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                  } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
+                {applyErrors.name && (
+                  <div className="absolute left-0 bottom-0 text-[11px] font-extrabold text-rose-500 flex items-center gap-1 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle size={12} />
+                    <span>{applyErrors.name}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              {/* 연락처 */}
+              <div className="flex flex-col gap-1.5 relative pb-6">
                 <label className="text-[12px] font-bold text-secondary">휴대폰 번호 (연락처)</label>
                 <input
                   type="tel"
-                  required
                   placeholder="예: 010-1234-5678"
                   value={applyPhone}
-                  onChange={(e) => setApplyPhone(e.target.value)}
-                  className="w-full bg-body/30 border border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d] rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold"
+                  onChange={(e) => {
+                    setApplyPhone(e.target.value);
+                    if (applyErrors.phone) setApplyErrors(prev => ({ ...prev, phone: undefined }));
+                  }}
+                  className={`w-full bg-body/30 border ${
+                    applyErrors.phone 
+                      ? 'border-rose-500 focus:border-rose-500' 
+                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                  } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
+                {applyErrors.phone && (
+                  <div className="absolute left-0 bottom-0 text-[11px] font-extrabold text-rose-500 flex items-center gap-1 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle size={12} />
+                    <span>{applyErrors.phone}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              {/* 업종 */}
+              <div className="flex flex-col gap-1.5 relative pb-6">
                 <label className="text-[12px] font-bold text-secondary">업종 및 선호 면적</label>
                 <input
                   type="text"
-                  required
                   placeholder="예: IT 벤처 / 10평 내외 선호"
                   value={applyBizType}
-                  onChange={(e) => setApplyBizType(e.target.value)}
-                  className="w-full bg-body/30 border border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d] rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold"
+                  onChange={(e) => {
+                    setApplyBizType(e.target.value);
+                    if (applyErrors.bizType) setApplyErrors(prev => ({ ...prev, bizType: undefined }));
+                  }}
+                  className={`w-full bg-body/30 border ${
+                    applyErrors.bizType 
+                      ? 'border-rose-500 focus:border-rose-500' 
+                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                  } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
+                {applyErrors.bizType && (
+                  <div className="absolute left-0 bottom-0 text-[11px] font-extrabold text-rose-500 flex items-center gap-1 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle size={12} />
+                    <span>{applyErrors.bizType}</span>
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
-                className="w-full mt-2 py-3 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px]"
+                className="w-full mt-4 py-3 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px] cursor-pointer active:scale-[0.98]"
               >
                 {selectedPost ? '매이트 매칭 신청 제안' : '공동 임차 모집글 게시'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 입주 컨설팅 신청 모달 */}
+      {isConsultingModalOpen && (
+        <div className="fixed inset-0 z-[20000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-border/80 w-full max-w-[480px] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-border/60">
+              <h3 className="text-[16px] font-black text-primary">
+                입주 컨설팅 & 무료 임대 투어 신청
+              </h3>
+              <button
+                onClick={() => {
+                  setIsConsultingModalOpen(false);
+                  setConsultingErrors({});
+                }}
+                className="p-1 rounded-lg hover:bg-body/30 text-secondary transition-all"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleConsultingSubmit} noValidate className="p-5 flex flex-col gap-2">
+              <div className="bg-[#008262]/5 dark:bg-[#00d29d]/5 p-3.5 rounded-2xl border border-[#008262]/10 dark:border-[#00d29d]/10 text-[12px] text-secondary font-medium mb-2">
+                <p className="font-extrabold text-[#008262] dark:text-[#00d29d] flex items-center gap-1.5">
+                  <Sparkles size={14} />
+                  <span>AI 매칭 추천 빌딩: {searchResult?.name}</span>
+                </p>
+                <p className="text-tertiary mt-1 leading-normal">
+                  선택하신 예산 및 물류 동선 조건에 최적화된 호실과 시세 맞춤 혜택을 24시간 내 제공해 드립니다.
+                </p>
+              </div>
+
+              {/* 기업명 */}
+              <div className="flex flex-col gap-1.5 relative pb-6">
+                <label className="text-[12px] font-bold text-secondary">기업명 (또는 신청자 성함)</label>
+                <input
+                  type="text"
+                  placeholder="예: D-VIEW 솔루션"
+                  value={consultingName}
+                  onChange={(e) => {
+                    setConsultingName(e.target.value);
+                    if (consultingErrors.name) setConsultingErrors(prev => ({ ...prev, name: undefined }));
+                  }}
+                  className={`w-full bg-body/30 border ${
+                    consultingErrors.name 
+                      ? 'border-rose-500 focus:border-rose-500' 
+                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                  } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
+                />
+                {consultingErrors.name && (
+                  <div className="absolute left-0 bottom-0 text-[11px] font-extrabold text-rose-500 flex items-center gap-1 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle size={12} />
+                    <span>{consultingErrors.name}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 연락처 */}
+              <div className="flex flex-col gap-1.5 relative pb-6">
+                <label className="text-[12px] font-bold text-secondary">휴대폰 번호 (연락처)</label>
+                <input
+                  type="tel"
+                  placeholder="예: 010-1234-5678"
+                  value={consultingPhone}
+                  onChange={(e) => {
+                    setConsultingPhone(e.target.value);
+                    if (consultingErrors.phone) setConsultingErrors(prev => ({ ...prev, phone: undefined }));
+                  }}
+                  className={`w-full bg-body/30 border ${
+                    consultingErrors.phone 
+                      ? 'border-rose-500 focus:border-rose-500' 
+                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                  } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
+                />
+                {consultingErrors.phone && (
+                  <div className="absolute left-0 bottom-0 text-[11px] font-extrabold text-rose-500 flex items-center gap-1 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle size={12} />
+                    <span>{consultingErrors.phone}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 희망 입주일자 */}
+              <div className="flex flex-col gap-1.5 relative pb-6">
+                <label className="text-[12px] font-bold text-secondary">희망 입주일자</label>
+                <input
+                  type="date"
+                  value={consultingDate}
+                  onChange={(e) => {
+                    setConsultingDate(e.target.value);
+                    if (consultingErrors.date) setConsultingErrors(prev => ({ ...prev, date: undefined }));
+                  }}
+                  className={`w-full bg-body/30 border ${
+                    consultingErrors.date 
+                      ? 'border-rose-500 focus:border-rose-500' 
+                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                  } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
+                />
+                {consultingErrors.date && (
+                  <div className="absolute left-0 bottom-0 text-[11px] font-extrabold text-rose-500 flex items-center gap-1 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle size={12} />
+                    <span>{consultingErrors.date}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 입주 규모 선택 */}
+              <div className="flex flex-col gap-1.5 mb-2">
+                <label className="text-[12px] font-bold text-secondary">예상 상주 인원</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'under5', label: '5인 미만' },
+                    { id: '5to15', label: '5 ~ 15인' },
+                    { id: 'above15', label: '15인 이상' }
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setConsultingBizSize(item.id as any)}
+                      className={`py-2 rounded-xl text-[12px] font-extrabold transition-all border ${
+                        consultingBizSize === item.id 
+                          ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                          : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-4 py-3 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px] cursor-pointer shadow-sm active:scale-[0.98]"
+              >
+                상담 및 투어 일정 신청 완료
               </button>
             </form>
           </div>
