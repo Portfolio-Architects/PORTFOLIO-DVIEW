@@ -15,6 +15,7 @@ import { postConverter, PostDocument } from '@/lib/utils/firestoreConverters';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { PostDataSchema } from '@/lib/validation/facade.schemas';
 import { executeIsomorphicQuery } from './isomorphicHelper';
+import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
 
 
 /**
@@ -42,7 +43,7 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
       else if (data.category === '부동산') { icon = Building; tagClass = 'tag-realestate'; }
       else if (data.category === '교육') { icon = BookOpen; tagClass = 'tag-edu'; }
 
-      const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전';
+      const dateStr = formatTimestamp(data.createdAt, '방금 전');
 
       posts.push({
         id: docSnap.id,
@@ -212,22 +213,7 @@ export async function getPost(postId: string): Promise<any | null> {
   }
 
   const data = parsed.success ? parsed.data : docData;
-  const createdAtVal = docData.createdAt;
-  let createdAtMillis = null;
-
-  if (createdAtVal) {
-    if (typeof createdAtVal.toMillis === 'function') {
-      createdAtMillis = createdAtVal.toMillis();
-    } else if (createdAtVal instanceof Date) {
-      createdAtMillis = createdAtVal.getTime();
-    } else if (typeof createdAtVal.toDate === 'function') {
-      createdAtMillis = createdAtVal.toDate().getTime();
-    } else if (typeof createdAtVal === 'number') {
-      createdAtMillis = createdAtVal;
-    } else if (typeof createdAtVal === 'object' && createdAtVal._seconds) {
-      createdAtMillis = createdAtVal._seconds * 1000;
-    }
-  }
+  const createdAtMillis = parseTimestampToMillis(docData.createdAt, null as any);
 
   return {
     id: docData.id,
@@ -326,22 +312,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
   const postsList = rawPosts.map(docData => {
     const parsed = PostDataSchema.safeParse(docData);
     const data = parsed.success ? parsed.data : docData;
-    const createdAtVal = docData.createdAt;
-    let createdAtMillis = null;
-
-    if (createdAtVal) {
-      if (typeof createdAtVal.toMillis === 'function') {
-        createdAtMillis = createdAtVal.toMillis();
-      } else if (createdAtVal instanceof Date) {
-        createdAtMillis = createdAtVal.getTime();
-      } else if (typeof createdAtVal.toDate === 'function') {
-        createdAtMillis = createdAtVal.toDate().getTime();
-      } else if (typeof createdAtVal === 'number') {
-        createdAtMillis = createdAtVal;
-      } else if (typeof createdAtVal === 'object' && createdAtVal._seconds) {
-        createdAtMillis = createdAtVal._seconds * 1000;
-      }
-    }
+    const createdAtMillis = parseTimestampToMillis(docData.createdAt, null as any);
 
     const rawContent = data.content || '';
     const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
@@ -376,22 +347,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
   const commentsList = filteredComments.map(c => {
     const parentId = c.ref.parent.parent.id;
     const apartmentName = parentMap.get(parentId) || '알 수 없는 단지';
-    const createdAtVal = c.createdAt;
-    let createdAtMillis = null;
-
-    if (createdAtVal) {
-      if (typeof createdAtVal.toMillis === 'function') {
-        createdAtMillis = createdAtVal.toMillis();
-      } else if (createdAtVal instanceof Date) {
-        createdAtMillis = createdAtVal.getTime();
-      } else if (typeof createdAtVal.toDate === 'function') {
-        createdAtMillis = createdAtVal.toDate().getTime();
-      } else if (typeof createdAtVal === 'number') {
-        createdAtMillis = createdAtVal;
-      } else if (typeof createdAtVal === 'object' && createdAtVal._seconds) {
-        createdAtMillis = createdAtVal._seconds * 1000;
-      }
-    }
+    const createdAtMillis = parseTimestampToMillis(c.createdAt, null as any);
 
     const dateStr = createdAtMillis ? new Date(createdAtMillis).toLocaleDateString('ko-KR') : '방금 전';
 

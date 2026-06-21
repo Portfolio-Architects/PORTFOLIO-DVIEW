@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { serverLruCache } from '@/lib/utils/server/lruCache';
+import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
 
 
 
@@ -254,19 +255,8 @@ async function fetchFreshData(): Promise<InitialPageData> {
       const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 1000);
       const reports = snap.docs.map(doc => {
         const data = doc.data();
-        let createdAtStr = '방금 전';
-        let rawTimestamp = 0;
-        if (data.createdAt) {
-          if (typeof data.createdAt.toDate === 'function') {
-            const d = data.createdAt.toDate();
-            createdAtStr = d.toLocaleDateString('ko-KR');
-            rawTimestamp = d.getTime();
-          } else if (data.createdAt.seconds) {
-            const d = new Date(data.createdAt.seconds * 1000);
-            createdAtStr = d.toLocaleDateString('ko-KR');
-            rawTimestamp = d.getTime();
-          }
-        }
+        const createdAtStr = formatTimestamp(data.createdAt, '방금 전');
+        const rawTimestamp = parseTimestampToMillis(data.createdAt, 0);
         return {
           id: doc.id,
           dong: data.dong || '오산동 (동탄역)',

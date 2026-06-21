@@ -12,6 +12,7 @@ import { logger } from '@/lib/services/logger';
 import type { UserReview } from '@/lib/types/review.types';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import { formatTimestamp } from '@/lib/utils/date';
 
 const COLLECTION = 'user_reviews';
 
@@ -49,7 +50,7 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
         verifiedApartment: data.verifiedApartment || '',
         verificationLevel: data.verificationLevel || '',
         likes: data.likes || 0,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : (data.createdAt?.toDate?.() ? data.createdAt.toDate().toLocaleDateString('ko-KR') : ''),
+        createdAt: formatTimestamp(data.createdAt, ''),
       };
 
       const parsed = UserReviewSchema.safeParse(mapped);
@@ -118,7 +119,7 @@ export async function getRecentReviews(limitCount: number = 30): Promise<UserRev
       verifiedApartment: data.verifiedApartment || '',
       verificationLevel: data.verificationLevel || '',
       likes: data.likes || 0,
-      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : (data.createdAt?.toDate?.() ? data.createdAt.toDate().toLocaleDateString('ko-KR') : ''),
+      createdAt: formatTimestamp(data.createdAt, ''),
     };
 
     const parsed = UserReviewSchema.safeParse(mapped);

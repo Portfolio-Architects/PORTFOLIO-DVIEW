@@ -8,6 +8,7 @@ import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc
 import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
+import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
 
 const ReportSpecsSchema = z.object({
   builtYear: z.string().default(''),
@@ -114,9 +115,9 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         images: data.images || [],
         metrics: data.metrics,
         scoutingDate: data.scoutingDate || '',
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+        createdAt: formatTimestamp(data.createdAt, '방금 전'),
         // keep raw timestamp for sorting
-        _rawTimestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0, 
+        _rawTimestamp: parseTimestampToMillis(data.createdAt, 0), 
       } as FieldReportData & { _rawTimestamp: number });
     });
     return reports.sort((a, b) => (b as FieldReportData & { _rawTimestamp: number })._rawTimestamp - (a as FieldReportData & { _rawTimestamp: number })._rawTimestamp);
@@ -171,8 +172,6 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
         const data = docSnap.data();
         if (!data) return null;
 
-        const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
-
         rawReport = {
           id: docSnap.id,
           dong: data.dong || '오산동 (동탄역)',
@@ -187,7 +186,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
           images: data.images || [],
           metrics: data.metrics,
           scoutingDate: data.scoutingDate || '',
-          createdAt: createdAtDate ? createdAtDate.toLocaleDateString('ko-KR') : '방금 전',
+          createdAt: formatTimestamp(data.createdAt, '방금 전'),
         };
       }
     } catch (adminError) {
@@ -215,7 +214,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
       images: data.images || [],
       metrics: data.metrics,
       scoutingDate: data.scoutingDate || '',
-      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+      createdAt: formatTimestamp(data.createdAt, '방금 전'),
     };
   }
 
@@ -251,8 +250,6 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
         const docSnap = querySnapshot.docs[0];
         const data = docSnap.data();
 
-        const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
-
         rawReport = {
           id: docSnap.id,
           dong: data.dong || '오산동 (동탄역)',
@@ -267,7 +264,7 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
           images: data.images || [],
           metrics: data.metrics,
           scoutingDate: data.scoutingDate || '',
-          createdAt: createdAtDate ? createdAtDate.toLocaleDateString('ko-KR') : '방금 전',
+          createdAt: formatTimestamp(data.createdAt, '방금 전'),
         };
       }
     } catch (adminError) {
@@ -296,7 +293,7 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
       images: data.images || [],
       metrics: data.metrics,
       scoutingDate: data.scoutingDate || '',
-      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+      createdAt: formatTimestamp(data.createdAt, '방금 전'),
     };
   }
 

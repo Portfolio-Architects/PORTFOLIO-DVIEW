@@ -10,6 +10,7 @@ import type { CommentData } from '@/lib/types/report.types';
 import { commentConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import { formatTimestamp } from '@/lib/utils/date';
 
 const CommentDataSchema = z.object({
   text: z.string().default(''),
@@ -95,7 +96,7 @@ export function listenToComments(
         id: docSnap.id,
         text: data.text || '',
         authorName: data.authorName || '익명',
-        createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
+        createdAt: formatTimestamp(data.createdAt, '방금 전'),
       };
 
       const parsed = CommentDataSchema.safeParse(mapped);
@@ -160,12 +161,11 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
 
   return rawDocs.map(item => {
     const data = item.data;
-    const createdAtDate = data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate() : new Date(data.createdAt)) : null;
     const mapped: any = {
       id: item.id,
       text: data.text || '',
       authorName: data.authorName || '익명',
-      createdAt: createdAtDate ? createdAtDate.toLocaleDateString('ko-KR') : '방금 전',
+      createdAt: formatTimestamp(data.createdAt, '방금 전'),
     };
 
     const parsed = CommentDataSchema.safeParse(mapped);
