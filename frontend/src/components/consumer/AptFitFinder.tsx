@@ -136,6 +136,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
   onClose,
   locationScores,
 }: AptFitFinderProps) {
+  const modalRef = React.useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<number>(0); // 0: Intro, 1-7: Qs, 8: Calculating, 9: Results
   const [answers, setAnswers] = useState<QuizAnswer>({
     budget: '',
@@ -182,6 +183,20 @@ const AptFitFinder = React.memo(function AptFitFinder({
       }
     }
   }, [step, answers]);
+
+  // Smooth scroll window and focus viewport on the modal when the quiz opens
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -579,11 +594,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
   return (
     <div 
-      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300"
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div 
-        className="w-full sm:w-[500px] bg-white dark:bg-zinc-950 border-t sm:border border-neutral-200 dark:border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[92vh] sm:max-h-[90vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
+        ref={modalRef}
+        className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[94vh] sm:max-h-[92vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

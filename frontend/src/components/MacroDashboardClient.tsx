@@ -520,6 +520,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
   const [showBriefingPopup, setShowBriefingPopup] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   useEffect(() => {
     if (!mounted || authLoading || isFavoritesLoading) return;
@@ -562,9 +563,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     };
   }, []);
 
-  // 바텀 시트 오픈 시 body 스크롤 방지
+  // 바텀 시트 및 퀴즈 오픈 시 body 스크롤 방지
   useEffect(() => {
-    if (isBottomSheetOpen) {
+    if (isBottomSheetOpen || isQuizOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -572,7 +573,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isBottomSheetOpen]);
+  }, [isBottomSheetOpen, isQuizOpen]);
 
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -682,8 +683,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       setPrevUser(currentUserId);
     }
   }, [user, prevUser, mounted]);
-
-  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
