@@ -643,7 +643,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, []);
   
   const allApts = useMemo(() => {
-    return Object.values(sheetApartments).flat().filter((a: DongApartment) => !publicRentalSet.has(a.name));
+    return Object.values(sheetApartments)
+      .flat()
+      .filter((a: DongApartment) => !publicRentalSet.has(a.name) && a.lat !== 0 && a.lng !== 0);
   }, [sheetApartments, publicRentalSet]);
 
   const enrichedApts = useMemo(() => {
