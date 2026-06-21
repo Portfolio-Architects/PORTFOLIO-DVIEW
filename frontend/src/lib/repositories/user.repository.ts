@@ -105,7 +105,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
         };
       }
     } catch (e) {
-      logger.error('UserRepository.getOrCreateProfile', 'Client SDK fetch failed', { uid }, e);
+      logger.warn('UserRepository.getOrCreateProfile', 'Client SDK fetch failed (using fallback)', { uid }, e);
       // Fallback profile if Firestore itself fails or is offline
       docData = {
         nickname: DEFAULT_NICKNAME,
