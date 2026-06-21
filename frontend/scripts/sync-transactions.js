@@ -137,6 +137,7 @@ async function fetchTypeMap() {
 
 /** page.tsx와 동일한 정규화 — 공백·괄호·[동이름] 제거 */
 function normalizeAptName(name) {
+  if (!name) return '';
   return name
     .replace(/\[.*?\]\s*/g, '')
     .replace(/\s+/g, '')
@@ -794,31 +795,7 @@ async function main() {
       avg3MPriceEok: formatPriceEok(avg3MPrice),
       avg3MPerPyeong,
       avg3MTxCount: recent3MonthSale.length,
-      recent: saleTxs.slice(0, 25).map(t => {
-        const dt = parseYYYYMMDD(t.contractDate);
-        let dateLabel = '';
-        if (dt) {
-          const month = dt.getMonth() + 1;
-          const dateVal = dt.getDate();
-          dateLabel = `${month}월 ${dateVal}일`;
-        }
-        return {
-          date: `${t.contractYm.slice(4)}.${t.contractDay}`,
-          contractDate: t.contractDate,
-          priceEok: t.priceEok,
-          priceVal: t.price / 10000,
-          areaPyeong: t.areaPyeong,
-          floor: t.floor,
-          area: t.area,
-          dealType: t.dealType || '매매',
-          isNewHigh: !!t.isNewHigh,
-          newHighDelta: t.newHighDelta ? t.newHighDelta / 10000 : undefined,
-          prevPriceVal: t.prevPriceVal ? t.prevPriceVal / 10000 : undefined,
-          delta: t.delta ? t.delta / 10000 : 0,
-          deltaPercent: t.deltaPercent || 0,
-          dateLabel
-        };
-      }),
+      
       
       // 전월세 데이터
       rentTxCount: rentTxs.length,
@@ -936,6 +913,47 @@ async function main() {
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(outputData, null, 2), 'utf-8');
   console.log(`📁 파일 생성: ${OUTPUT_PATH}`);
 
+  // ── 최근 90일간의 전체 매매 실거래 플랫 리스트 생성 ──
+  const ninetyDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 90);
+  const recentTransactions = allSaleTxs
+    .filter(t => {
+      const dt = parseYYYYMMDD(t.contractDate);
+      return dt && dt >= ninetyDaysAgo;
+    })
+    .sort((a, b) => b.contractDate.localeCompare(a.contractDate))
+    .slice(0, 1000)
+    .map(t => {
+      const dt = parseYYYYMMDD(t.contractDate);
+      let dateLabel = '';
+      if (dt) {
+        const month = dt.getMonth() + 1;
+        const dateVal = dt.getDate();
+        dateLabel = `${month}월 ${dateVal}일`;
+      }
+      return {
+        aptName: t.aptName,
+        txKey: normalizeAptName(t.aptName),
+        date: `${t.contractYm.slice(4)}.${t.contractDay}`,
+        contractDate: t.contractDate,
+        priceVal: t.price / 10000,
+        priceEok: t.priceEok,
+        area: t.area,
+        areaPyeong: t.areaPyeong,
+        floor: t.floor,
+        dealType: t.dealType || '매매',
+        isNewHigh: !!t.isNewHigh,
+        newHighDelta: t.newHighDelta ? t.newHighDelta / 10000 : undefined,
+        prevPriceVal: t.prevPriceVal ? t.prevPriceVal / 10000 : undefined,
+        delta: t.delta ? t.delta / 10000 : 0,
+        deltaPercent: t.deltaPercent || 0,
+        dateLabel
+      };
+    });
+
+  const RECENT_TX_OUTPUT_PATH = path.resolve(__dirname, '../public/data/recent-transactions.json');
+  fs.writeFileSync(RECENT_TX_OUTPUT_PATH, JSON.stringify(recentTransactions, null, 2), 'utf-8');
+  console.log(`📁 파일 생성: ${RECENT_TX_OUTPUT_PATH}`);
+
   const MACRO_TREND_OUTPUT_PATH = path.resolve(__dirname, '../public/data/macro-trend.json');
   fs.writeFileSync(MACRO_TREND_OUTPUT_PATH, JSON.stringify(dongtanMacroTrend, null, 2), 'utf-8');
   console.log(`📁 파일 생성: ${MACRO_TREND_OUTPUT_PATH}`);
@@ -963,7 +981,7 @@ async function main() {
     ...(allAptTxKeys ? Array.from(allAptTxKeys) : []),
     ...(localApts ? Array.from(localApts) : [])
   ]);
-  const targetApts = combinedApts.size > 0 ? Array.from(combinedApts) : filteredApts;
+  const targetApts = (combinedApts.size > 0 ? Array.from(combinedApts) : filteredApts).filter(Boolean);
 
   for (const aptName of targetApts) {
     const txs = byApt[aptName] || byApt[normalizeAptName(aptName)] || [];

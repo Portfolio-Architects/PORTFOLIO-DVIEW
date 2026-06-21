@@ -410,10 +410,11 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     setIsLoginGateOpen(true);
   }, []);
   
-  const { txSummary = EMPTY_OBJECT, macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
+  const { txSummary = EMPTY_OBJECT, recentTransactions = [], macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
     initialDashboardData?.macroTrend,
     initialDashboardData?.txSummary,
-    initialDashboardData?.recent7DaysVolume
+    initialDashboardData?.recent7DaysVolume,
+    initialDashboardData?.recentTransactions
   );
   const { locationScores = EMPTY_OBJECT } = useLocationScores();
   
@@ -908,6 +909,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
                 txSummaryData={txSummaryData}
+                recentTransactions={recentTransactions}
                 macroTrendData={macroTrend}
                 nameMapping={nameMapping || EMPTY_OBJECT}
                 updateFavoriteOrder={updateFavoriteOrder}

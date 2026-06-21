@@ -51,101 +51,58 @@ function parsePriceEokToMan(priceStr: string): number {
   return Math.round(totalMan);
 }
 
-// 3. 매매 평균값 및 건수 재산출 헬퍼
-function recalculateSaleAverages(target: AptTxSummary) {
-  if (!target.recent || target.recent.length === 0) return;
+// 3. 실시간 매매 평균가 가중 업데이트 헬퍼
+function updateSaleAveragesWithNewTx(target: AptTxSummary, price: number, txDate: Date) {
   const latestDateStr = target.latestDate ? String(target.latestDate) : '';
-  if (latestDateStr.length !== 8) return;
-  
-  const latestYear = parseInt(latestDateStr.substring(0, 4), 10);
-  const latestMonth = parseInt(latestDateStr.substring(4, 6), 10);
-  const latestDay = parseInt(latestDateStr.substring(6, 8), 10);
-  const latestDt = new Date(latestYear, latestMonth - 1, latestDay);
-  
-  const oneMonthAgo = new Date(latestDt.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const threeMonthsAgo = new Date(latestDt.getTime() - 90 * 24 * 60 * 60 * 1000);
-  
-  let sum1MPrice = 0;
-  let count1M = 0;
-  let sum1MPerPyeong = 0;
-  
-  let sum3MPrice = 0;
-  let count3M = 0;
-  let sum3MPerPyeong = 0;
-  
-  target.recent.forEach(r => {
-    const parts = r.date.split('.');
-    if (parts.length < 2) return;
-    const m = parseInt(parts[0], 10) - 1;
-    const d = parseInt(parts[1], 10);
-    
-    let y = latestYear;
-    if (m > latestMonth - 1) {
-      y = latestYear - 1; // 12월 -> 1월 등 연도 경계 처리
-    }
-    const txDate = new Date(y, m, d);
-    const price = parsePriceEokToMan(r.priceEok);
-    
-    if (txDate >= oneMonthAgo) {
-      sum1MPrice += price;
-      count1M++;
-      if (r.areaPyeong > 0) {
-        sum1MPerPyeong += price / r.areaPyeong;
-      }
-    }
-    if (txDate >= threeMonthsAgo) {
-      sum3MPrice += price;
-      count3M++;
-      if (r.areaPyeong > 0) {
-        sum3MPerPyeong += price / r.areaPyeong;
-      }
-    }
-  });
-  
-  if (count1M > 0) {
-    target.avg1MPrice = Math.round(sum1MPrice / count1M / 100) * 100;
-    target.avg1MPriceEok = formatPriceEok(target.avg1MPrice);
-    target.avg1MPerPyeong = Math.round(sum1MPerPyeong / count1M);
-    target.avg1MTxCount = count1M;
-  } else if (target.latestPrice > 0) {
-    target.avg1MPrice = target.latestPrice;
-    target.avg1MPriceEok = target.latestPriceEok;
-    target.avg1MPerPyeong = target.latestArea > 0 ? Math.round(target.latestPrice / target.latestArea) : 0;
-    target.avg1MTxCount = 1;
+  let refDate = new Date();
+  if (latestDateStr.length === 8) {
+    const y = parseInt(latestDateStr.substring(0, 4), 10);
+    const m = parseInt(latestDateStr.substring(4, 6), 10);
+    const d = parseInt(latestDateStr.substring(6, 8), 10);
+    refDate = new Date(y, m - 1, d);
   }
   
-  if (count3M > 0) {
-    target.avg3MPrice = Math.round(sum3MPrice / count3M / 100) * 100;
-    target.avg3MPriceEok = formatPriceEok(target.avg3MPrice);
-    target.avg3MPerPyeong = Math.round(sum3MPerPyeong / count3M);
-    target.avg3MTxCount = count3M;
-  } else if (target.latestPrice > 0) {
-    target.avg3MPrice = target.latestPrice;
-    target.avg3MPriceEok = target.latestPriceEok;
-    target.avg3MPerPyeong = target.latestArea > 0 ? Math.round(target.latestPrice / target.latestArea) : 0;
-    target.avg3MTxCount = 1;
+  const oneMonthAgo = new Date(refDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const threeMonthsAgo = new Date(refDate.getTime() - 90 * 24 * 60 * 60 * 1000);
+  
+  if (txDate >= oneMonthAgo) {
+    const prevCount = target.avg1MTxCount || 0;
+    const prevAvg = target.avg1MPrice || 0;
+    const newCount = prevCount + 1;
+    const newAvg = Math.round(((prevAvg * prevCount) + price) / newCount / 100) * 100;
+    target.avg1MTxCount = newCount;
+    target.avg1MPrice = newAvg;
+    target.avg1MPriceEok = formatPriceEok(newAvg);
+  }
+  
+  if (txDate >= threeMonthsAgo) {
+    const prevCount = target.avg3MTxCount || 0;
+    const prevAvg = target.avg3MPrice || 0;
+    const newCount = prevCount + 1;
+    const newAvg = Math.round(((prevAvg * prevCount) + price) / newCount / 100) * 100;
+    target.avg3MTxCount = newCount;
+    target.avg3MPrice = newAvg;
+    target.avg3MPriceEok = formatPriceEok(newAvg);
   }
 }
 
-// 4. 정적 요약본 + Firestore 신규 거래 메모리 병합 헬퍼
+// 4. 정적 요약본 + Firestore 신규 거래 메모리 병합 헬퍼 (얕은 복사 & 부분 복제)
 function mergeTransactions(
   staticSummary: Record<string, AptTxSummary>,
   newTxs: any[]
 ): Record<string, AptTxSummary> {
   if (!newTxs || newTxs.length === 0) return staticSummary;
   
-  // 깊은 복사로 불변성 보장
-  const merged = JSON.parse(JSON.stringify(staticSummary)) as Record<string, AptTxSummary>;
+  const merged = { ...staticSummary };
+  const updatedKeys = new Set<string>();
 
   newTxs.forEach((tx) => {
     const validation = FirestoreTransactionSchema.safeParse(tx);
-    if (!validation.success) {
-      return; // Skip invalid records safely
-    }
+    if (!validation.success) return;
+    
     const validatedTx = validation.data;
     const rawAptName = validatedTx.aptName;
 
-    // 아파트명 정규화 (sync-transactions.js 와 통일)
     const aptKey = rawAptName
       .normalize('NFC')
       .replace(/[\u200B-\u200D\uFEFF]/g, '')
@@ -154,81 +111,58 @@ function mergeTransactions(
       .replace(/[()（）]/g, '')
       .trim();
 
-    const target = merged[aptKey];
-    if (!target) return; // Google Sheet상 승인된 동탄 아파트 단지가 아니면 패스
+    const staticTarget = staticSummary[aptKey];
+    if (!staticTarget) return;
 
+    if (!updatedKeys.has(aptKey)) {
+      merged[aptKey] = { ...staticTarget };
+      if (staticTarget.maxPriceByArea) {
+        merged[aptKey].maxPriceByArea = { ...staticTarget.maxPriceByArea };
+      }
+      updatedKeys.add(aptKey);
+    }
+    
+    const target = merged[aptKey];
     const contractYmStr = validatedTx.contractYm;
     if (contractYmStr.length < 6) return;
 
     const isSale = validatedTx.dealType !== '전세' && validatedTx.dealType !== '월세';
-    const txDateFormatted = `${contractYmStr.substring(4)}.${validatedTx.contractDay}`; // MM.DD 포맷
+    const txFullDate = validatedTx.contractDate || `${contractYmStr}${validatedTx.contractDay}`;
 
     if (isSale) {
-      // 1. 매매 중복 검증
-      if (!target.recent) {
-        target.recent = [];
-      }
-      const isDup = target.recent.some(r => 
-        r.date === txDateFormatted &&
-        Math.abs(r.area - validatedTx.area) < 0.01 &&
-        r.floor === validatedTx.floor &&
-        parsePriceEokToMan(r.priceEok) === validatedTx.price
-      );
-      if (isDup) return;
-
-      const priceDisplay = formatPriceEok(validatedTx.price || 0);
-      const newRecentItem = {
-        date: txDateFormatted,
-        priceEok: priceDisplay,
-        areaPyeong: validatedTx.areaPyeong || (validatedTx.area * 0.3025 * 1.33),
-        floor: validatedTx.floor || 0,
-        area: validatedTx.area
-      };
-
-      // 병합 및 정렬 (최근 25건 컷)
-      target.recent = [newRecentItem, ...target.recent];
-      target.recent.sort((a, b) => b.date.localeCompare(a.date));
-      target.recent = target.recent.slice(0, 25);
-      
       target.txCount = (target.txCount || 0) + 1;
 
-      // 단지 전체 최고가 검증
       if (validatedTx.price > (target.maxPrice || 0)) {
         target.maxPrice = validatedTx.price;
-        target.maxPriceEok = priceDisplay;
+        target.maxPriceEok = formatPriceEok(validatedTx.price);
       }
 
-      // 평형별 최고가 갱신
       const areaKey = (Math.round(validatedTx.area * 100) / 100).toFixed(2);
       if (!target.maxPriceByArea) target.maxPriceByArea = {};
       if (!target.maxPriceByArea[areaKey] || validatedTx.price > target.maxPriceByArea[areaKey]) {
         target.maxPriceByArea[areaKey] = validatedTx.price;
       }
 
-      // 최근 거래 메타데이터 업데이트
-      const txFullDate = validatedTx.contractDate || `${validatedTx.contractYm}${validatedTx.contractDay}`;
       if (!target.latestDate || txFullDate >= target.latestDate) {
         target.latestDate = txFullDate;
         target.latestPrice = validatedTx.price || 0;
-        target.latestPriceEok = priceDisplay;
+        target.latestPriceEok = formatPriceEok(validatedTx.price);
         target.latestArea = validatedTx.areaPyeong || (validatedTx.area * 0.3025 * 1.33);
         target.latestFloor = validatedTx.floor || 0;
       }
 
-      // 평균값 재산출
-      recalculateSaleAverages(target);
+      const latestYear = parseInt(contractYmStr.substring(0, 4), 10);
+      const latestMonth = parseInt(contractYmStr.substring(4, 6), 10);
+      const dayVal = parseInt(validatedTx.contractDay, 10) || 1;
+      const txDate = new Date(latestYear, latestMonth - 1, dayVal);
+      updateSaleAveragesWithNewTx(target, validatedTx.price, txDate);
 
     } else {
-      // 2. 임대차 (전세/월세) 처리
-      const txFullDate = validatedTx.contractDate || `${contractYmStr}${validatedTx.contractDay}`;
       const deposit = validatedTx.deposit || 0;
       const monthlyRent = validatedTx.monthlyRent || 0;
       const convertedDeposit = deposit + (monthlyRent ? Math.round(monthlyRent * 12 / 0.055) : 0);
-      const priceDisplay = formatPriceEok(convertedDeposit) + (monthlyRent ? `/${monthlyRent}` : '');
 
-      // 중복 체크 및 업데이트 판정 (latestRentDate보다 최신이거나 같을 때)
       if (!target.latestRentDate || txFullDate >= target.latestRentDate) {
-        // 중복이 아닐 때만 갱신
         const isRentDup = target.latestRentDate === txFullDate && 
                           target.latestRentDeposit === convertedDeposit && 
                           target.latestRentMonthly === monthlyRent;
@@ -246,6 +180,65 @@ function mergeTransactions(
   return merged;
 }
 
+// 4-2. 정적 최근 거래 플랫 리스트 + Firestore 신규 거래 메모리 병합 헬퍼
+function mergeRecentTransactions(
+  staticRecent: any[],
+  newTxs: any[]
+): any[] {
+  if (!newTxs || newTxs.length === 0) return staticRecent;
+  
+  const merged = [...staticRecent];
+  
+  newTxs.forEach((tx) => {
+    const validation = FirestoreTransactionSchema.safeParse(tx);
+    if (!validation.success) return;
+    
+    const validatedTx = validation.data;
+    const isSale = validatedTx.dealType !== '전세' && validatedTx.dealType !== '월세';
+    if (!isSale) return;
+
+    const txDateFormatted = `${validatedTx.contractYm.substring(4)}.${validatedTx.contractDay}`;
+    const contractDate = validatedTx.contractDate || `${validatedTx.contractYm}${validatedTx.contractDay}`;
+    const aptKey = validatedTx.aptName
+      .normalize('NFC')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\[.*?\]\s*/g, '')
+      .replace(/\s+/g, '')
+      .replace(/[()（）]/g, '')
+      .trim();
+
+    const isDup = merged.some(r => 
+      r.contractDate === contractDate &&
+      r.txKey === aptKey &&
+      Math.abs(r.area - validatedTx.area) < 0.01 &&
+      r.floor === validatedTx.floor &&
+      r.priceVal === validatedTx.price / 10000
+    );
+    if (isDup) return;
+
+    const newTxItem = {
+      aptName: validatedTx.aptName,
+      txKey: aptKey,
+      date: txDateFormatted,
+      contractDate: contractDate,
+      priceVal: validatedTx.price / 10000,
+      priceEok: formatPriceEok(validatedTx.price),
+      area: validatedTx.area,
+      areaPyeong: validatedTx.areaPyeong || (validatedTx.area * 0.3025 * 1.33),
+      floor: validatedTx.floor,
+      dealType: validatedTx.dealType || '매매',
+      isNewHigh: false,
+      delta: 0,
+      deltaPercent: 0
+    };
+
+    merged.unshift(newTxItem);
+  });
+
+  merged.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
+  return merged;
+}
+
 // 5. Firestore 최근 7일 거래 조회 fetcher
 const fetchRecentTxsFromFirestore = async () => {
   if (!db) return [];
@@ -255,7 +248,7 @@ const fetchRecentTxsFromFirestore = async () => {
     const y = sevenDaysAgo.getFullYear();
     const m = String(sevenDaysAgo.getMonth() + 1).padStart(2, '0');
     const d = String(sevenDaysAgo.getDate()).padStart(2, '0');
-    const cutoffDateStr = `${y}${m}${d}`; // YYYYMMDD
+    const cutoffDateStr = `${y}${m}${d}`;
 
     const q = query(
       collection(db, 'transactions'),
@@ -277,7 +270,8 @@ const fetchRecentTxsFromFirestore = async () => {
 export function useTxData(
   initialMacroTrend?: DongtanMacroTrendPoint[],
   initialTxSummary?: Record<string, AptTxSummary>,
-  initialRecent7DaysVolume?: any
+  initialRecent7DaysVolume?: any,
+  initialRecentTransactions?: any[]
 ) {
   const [shouldFetch, setShouldFetch] = useState(false);
   
@@ -317,8 +311,21 @@ export function useTxData(
     revalidateOnFocus: false,
     revalidateIfStale: true,
     revalidateOnReconnect: false,
-    dedupingInterval: 3600000 // 1 hour cache
+    dedupingInterval: 3600000
   });
+
+  // 1-2. 최근 전체 실거래 플랫 리스트 페칭 (recent-transactions.json)
+  const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<any[]>(
+    shouldFetch ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
+    fetcher,
+    {
+      fallbackData: initialRecentTransactions,
+      revalidateOnFocus: false,
+      revalidateIfStale: true,
+      revalidateOnReconnect: false,
+      dedupingInterval: 3600000
+    }
+  );
 
   // 2. Firestore 실시간 최근 7일 거래 페칭
   const { data: recentFirestoreTxs, error: firestoreError } = useSWR<any[]>(
@@ -328,7 +335,7 @@ export function useTxData(
       revalidateOnFocus: false,
       revalidateIfStale: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 300000 // 5 minutes cache to prevent spamming Firestore reads
+      dedupingInterval: 300000
     }
   );
 
@@ -340,6 +347,13 @@ export function useTxData(
     return mergeTransactions(activeSummary, recentFirestoreTxs);
   }, [summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
+  // 3-2. 정적 최근 거래 목록 + Firestore 실시간 데이터 병합 계산
+  const mergedRecentTxs = useMemo(() => {
+    const activeRecent = recentTxData || initialRecentTransactions || [];
+    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeRecent;
+    return mergeRecentTransactions(activeRecent, recentFirestoreTxs);
+  }, [recentTxData, initialRecentTransactions, recentFirestoreTxs]);
+
   // 4. 실시간 거래량을 가산한 7일 거래 지표 계산
   const mergedRecent7DaysVolume = useMemo(() => {
     const activeVolume = summaryData?.recent7DaysVolume || initialRecent7DaysVolume;
@@ -347,7 +361,6 @@ export function useTxData(
     if (!activeVolume || !activeSummary) return undefined;
     if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeVolume;
 
-    // staticSummary의 아파트들 중 가장 최신 거래일을 구함
     let maxStaticDate = '00000000';
     Object.values(activeSummary).forEach(s => {
       if (s.latestDate && s.latestDate > maxStaticDate) {
@@ -355,7 +368,6 @@ export function useTxData(
       }
     });
 
-    // staticSummary 기준일보다 이후에 일어난 신규 실시간 매매 건수를 카운트
     const newTxsAfterStatic = recentFirestoreTxs.filter(tx => {
       const isSale = tx.dealType !== '전세' && tx.dealType !== '월세';
       const txFullDate = tx.contractDate || `${tx.contractYm}${tx.contractDay}`;
@@ -408,10 +420,11 @@ export function useTxData(
 
   return {
     txSummary: mergedSummary,
+    recentTransactions: mergedRecentTxs,
     recent7DaysVolume: mergedRecent7DaysVolume,
     macroTrend: trendData || initialMacroTrend,
-    isLoading: (!shouldFetch && !initialMacroTrend) || isSummaryLoading || (isTrendLoading && !initialMacroTrend),
-    error: summaryError || trendError || firestoreError
+    isLoading: (!shouldFetch && !initialMacroTrend) || isSummaryLoading || isRecentTxLoading || (isTrendLoading && !initialMacroTrend),
+    error: summaryError || trendError || recentTxError || firestoreError
   };
 }
 

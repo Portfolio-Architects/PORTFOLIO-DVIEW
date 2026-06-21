@@ -39,6 +39,7 @@ export interface DashboardInitialDataLocal {
   macroTrend?: DongtanMacroTrendPoint[];
   txSummary?: Record<string, AptTxSummary>;
   recent7DaysVolume?: any;
+  recentTransactions?: any[];
 }
 
 export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLocal) {

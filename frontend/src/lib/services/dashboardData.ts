@@ -69,6 +69,7 @@ export const InitialPageDataSchema = z.object({
   macroTrend: z.array(DongtanMacroTrendPointSchema).optional(),
   txSummary: z.record(z.string(), z.any()).optional(),
   recent7DaysVolume: z.any().optional(),
+  recentTransactions: z.array(z.any()).optional(),
 });
 
 export type InitialPageData = z.infer<typeof InitialPageDataSchema>;
@@ -140,6 +141,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
     macroTrend: [],
     txSummary: {},
     recent7DaysVolume: undefined,
+    recentTransactions: [],
   };
 
   // Upstash Redis 파이프라인 일괄 실행을 통해 RTT 네트워크 왕복 최소화 (서버 사이드 레이턴시 절감)
@@ -303,15 +305,8 @@ async function fetchFreshData(): Promise<InitialPageData> {
     result.macroTrend = await readJsonFileCached<any[]>('public/data/macro-trend.json', []);
   };
 
-  const fetchTxSummary = async () => {
-    const parsed = await readJsonFileCached<any>('public/data/tx-summary.json', null);
-    if (parsed) {
-      result.txSummary = parsed.summary || parsed;
-      result.recent7DaysVolume = parsed.recent7DaysVolume;
-    } else {
-      result.txSummary = {};
-      result.recent7DaysVolume = undefined;
-    }
+  const fetchRecentTransactions = async () => {
+    result.recentTransactions = await readJsonFileCached<any[]>('public/data/recent-transactions.json', []);
   };
 
   await Promise.allSettled([
@@ -321,6 +316,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
     // fetchTypeMap().catch(e => logger.warn('DashboardData', 'typeMap error', {}, e)), // Omitted for Lazy Fetching to save HTML serialization size
     // fetchApts().catch(e => logger.warn('DashboardData', 'apts error', {}, e)),       // Omitted for Lazy Fetching to save HTML serialization size
     fetchMacroTrend().catch(e => logger.warn('DashboardData', 'macroTrend error', {}, e)),
+    fetchRecentTransactions().catch(e => logger.warn('DashboardData', 'recentTransactions error', {}, e)),
     // fetchTxSummary().catch(e => logger.warn('DashboardData', 'txSummary error', {}, e)), // Omitted to reduce initial HTML serialization size (1.15MB -> 0MB)
   ]);
 

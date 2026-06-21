@@ -124,6 +124,7 @@ interface MacroDashboardProps {
     trendColor: string;
     badge: string;
   };
+  recentTransactions?: any[];
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
 }
@@ -364,6 +365,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   onOpenTaxCalculator,
   onOpenSellTimingCalculator,
   recent7DaysVolume,
+  recentTransactions = [],
   typeMap = {},
   updateFavoriteOrder,
 }: MacroDashboardProps) {
@@ -766,24 +768,20 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   // Compute max transaction date across all data once
   const maxDateTime = useMemo(() => {
     let maxVal = 0;
-    Object.values(txSummaryData).forEach((sum) => {
-      if (sum.recent) {
-        sum.recent.forEach((tx) => {
-          const dt = parseDateHelper(tx.date, sum.latestDate);
-          if (dt) {
-            const time = dt.getTime();
-            if (time > maxVal) {
-              maxVal = time;
-            }
-          }
-        });
+    recentTransactions.forEach((tx) => {
+      const dt = parseDateHelper(tx.contractDate);
+      if (dt) {
+        const time = dt.getTime();
+        if (time > maxVal) {
+          maxVal = time;
+        }
       }
     });
     if (maxVal === 0) {
       maxVal = new Date("2026-05-26").getTime();
     }
     return maxVal;
-  }, [txSummaryData]);
+  }, [recentTransactions]);
 
   // 1. Donut Chart Data (실거래 등락 비중 - 상승 vs 하락 vs 보합)
   const donutData = useMemo(() => {
@@ -793,43 +791,40 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     let downCount = 0;
     let sameCount = 0;
 
-    Object.values(txSummaryData).forEach((sum) => {
-      if (!sum.recent || sum.recent.length === 0) return;
-      const areaGroups: Record<number, typeof sum.recent> = {};
-      sum.recent.forEach((tx) => {
-        const areaKey = Math.floor(tx.area);
-        if (!areaGroups[areaKey]) {
-          areaGroups[areaKey] = [];
-        }
-        areaGroups[areaKey].push(tx);
-      });
+    const aptAreaGroups: Record<string, any[]> = {};
+    recentTransactions.forEach((tx) => {
+      const groupKey = `${tx.txKey}-${Math.floor(tx.area)}`;
+      if (!aptAreaGroups[groupKey]) {
+        aptAreaGroups[groupKey] = [];
+      }
+      aptAreaGroups[groupKey].push(tx);
+    });
 
-      Object.values(areaGroups).forEach((transactions) => {
-        const mapped = transactions
-          .map((tx) => ({
-            tx,
-            dt: parseDateHelper(tx.date, sum.latestDate),
-          }))
-          .filter((item): item is { tx: typeof item.tx; dt: Date } => item.dt !== null);
+    Object.values(aptAreaGroups).forEach((transactions) => {
+      const mapped = transactions
+        .map((tx) => ({
+          tx,
+          dt: parseDateHelper(tx.contractDate),
+        }))
+        .filter((item): item is { tx: typeof item.tx; dt: Date } => item.dt !== null);
 
-        const sorted = mapped.sort((a, b) => a.dt.getTime() - b.dt.getTime());
+      const sorted = mapped.sort((a, b) => a.dt.getTime() - b.dt.getTime());
 
-        for (let j = 1; j < sorted.length; j++) {
-          const current = sorted[j];
-          const prev = sorted[j - 1];
-          if (current.dt.getTime() >= cutoffTime) {
-            const currentPrice = parsePriceEokHelper(current.tx.priceEok);
-            const prevPrice = parsePriceEokHelper(prev.tx.priceEok);
-            if (currentPrice > prevPrice) {
-              upCount++;
-            } else if (currentPrice < prevPrice) {
-              downCount++;
-            } else if (currentPrice === prevPrice) {
-              sameCount++;
-            }
+      for (let j = 1; j < sorted.length; j++) {
+        const current = sorted[j];
+        const prev = sorted[j - 1];
+        if (current.dt.getTime() >= cutoffTime) {
+          const currentPrice = current.tx.priceVal;
+          const prevPrice = prev.tx.priceVal;
+          if (currentPrice > prevPrice) {
+            upCount++;
+          } else if (currentPrice < prevPrice) {
+            downCount++;
+          } else if (currentPrice === prevPrice) {
+            sameCount++;
           }
         }
-      });
+      }
     });
 
     return [
@@ -837,7 +832,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       { name: "하락 거래", value: downCount },
       { name: "보합 거래", value: sameCount },
     ];
-  }, [txSummaryData, chartMode, maxDateTime]);
+  }, [recentTransactions, chartMode, maxDateTime]);
 
   const [totalHouseholds, publicRentalHouseholds] = useMemo(() => {
     let total = 0;
@@ -1222,19 +1217,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     let currentCount = 0;
     let prevCount = 0;
 
-    Object.values(txSummaryData).forEach((sum) => {
-      if (sum.recent) {
-        sum.recent.forEach((tx) => {
-          const dt = parseDateHelper(tx.date, sum.latestDate);
-          if (dt) {
-            const time = dt.getTime();
-            if (time >= cutoff7) {
-              currentCount++;
-            } else if (time >= cutoff14) {
-              prevCount++;
-            }
-          }
-        });
+    recentTransactions.forEach((tx) => {
+      const dt = parseDateHelper(tx.contractDate);
+      if (dt) {
+        const time = dt.getTime();
+        if (time >= cutoff7) {
+          currentCount++;
+        } else if (time >= cutoff14) {
+          prevCount++;
+        }
       }
     });
 
@@ -1260,7 +1251,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       trendColor,
       badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`,
     };
-  }, [recent7DaysVolume, txSummaryData, maxDateTime]);
+  }, [recent7DaysVolume, recentTransactions, maxDateTime]);
 
   // 1안 Card 4: 실시간 최고 관심 단지
   const card4Data = useMemo(() => {
@@ -1475,21 +1466,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const dailyTimelineData = useMemo(() => {
     const groups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
 
-    if (!sheetApartments || !txSummaryData) return [];
-
-    // O(1) txKey to Apartment map to prevent duplicate listings and ensure official name usage
-    const txKeyToAptMap = new Map<string, DongApartment>();
-    const allApts = Object.values(sheetApartments).flat();
-
-    allApts.forEach((apt) => {
-      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-      if (txKey) {
-        const existing = txKeyToAptMap.get(txKey);
-        if (!existing || apt.name === txKey || normalizeAptName(apt.name) === normalizeAptName(txKey)) {
-          txKeyToAptMap.set(txKey, apt);
-        }
-      }
-    });
+    if (!recentTransactions || !txSummaryData) return [];
 
     // 역방향 매핑 맵 생성 (txKey -> 시트 설정 커스텀 명칭)
     const txKeyToCustomNameMap = new Map<string, string>();
@@ -1502,57 +1479,51 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       }
     }
 
-    txKeyToAptMap.forEach((apt, txKey) => {
-      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(apt.name)) return;
-      const sum = txSummaryData[txKey];
-      if (sum && sum.recent && sum.recent.length > 0) {
-        sum.recent.forEach((tx) => {
+    recentTransactions.forEach((tx) => {
+      if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(tx.aptName)) return;
 
-          const dt = parseDateHelper(tx.date, sum.latestDate);
-          if (!dt) return;
+      const dt = parseDateHelper(tx.contractDate);
+      if (!dt) return;
 
-          // 미래 혹은 가짜 일자 오차 방어
-          const diffMs = maxDateTime - dt.getTime();
-          const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-          if (diffDays >= 0) {
-            const dateKey = tx.date;
-            const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-            const dayName = daysOfWeek[dt.getDay()];
-            const month = dt.getMonth() + 1;
-            const dateVal = dt.getDate();
-            const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+      const diffMs = maxDateTime - dt.getTime();
+      const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+      if (diffDays >= 0) {
+        const dateKey = tx.date;
+        const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+        const dayName = daysOfWeek[dt.getDay()];
+        const month = dt.getMonth() + 1;
+        const dateVal = dt.getDate();
+        const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
 
-            if (!groups[dateKey]) {
-              groups[dateKey] = {
-                dateStr,
-                timestamp: dt.getTime(),
-                items: [],
-              };
-            }
+        if (!groups[dateKey]) {
+          groups[dateKey] = {
+            dateStr,
+            timestamp: dt.getTime(),
+            items: [],
+          };
+        }
 
-            const t = typeMap ? findTypeMapEntry(typeMap, apt.name, tx.area) : null;
-            const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
-            const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
+        const t = typeMap ? findTypeMapEntry(typeMap, tx.aptName, tx.area) : null;
+        const labelM2 = t ? t.typeM2 : `${tx.area}㎡`;
+        const labelPyeong = t ? (t.typePyeong || t.typeM2) : `${Math.round(tx.areaPyeong)}평`;
 
-            const customAptName = txKeyToCustomNameMap.get(txKey) || txKeyToCustomNameMap.get(normalizeAptName(txKey)) || apt.name;
+        const customAptName = txKeyToCustomNameMap.get(tx.txKey) || tx.aptName;
 
-            groups[dateKey].items.push({
-              aptName: apt.name,
-              displayAptName: getDisplayAptName(customAptName),
-              dong: apt.dong || sum.dong || "",
-              priceEok: tx.priceEok,
-              priceVal: tx.priceVal || parsePriceEokHelper(tx.priceEok),
-              areaPyeong: tx.areaPyeong,
-              area: tx.area,
-              floor: tx.floor,
-              type: tx.isNewHigh ? "high" : "normal",
-              delta: tx.isNewHigh ? (tx.newHighDelta || tx.delta || 0) : (tx.delta || 0),
-              deltaPercent: tx.deltaPercent || 0,
-              prevPriceVal: tx.prevPriceVal,
-              areaLabelM2: labelM2,
-              areaLabelPyeong: labelPyeong,
-            });
-          }
+        groups[dateKey].items.push({
+          aptName: tx.aptName,
+          displayAptName: getDisplayAptName(customAptName),
+          dong: txSummaryData[tx.txKey]?.dong || "",
+          priceEok: tx.priceEok,
+          priceVal: tx.priceVal,
+          areaPyeong: tx.areaPyeong,
+          area: tx.area,
+          floor: tx.floor,
+          type: tx.isNewHigh ? "high" : "normal",
+          delta: tx.delta || 0,
+          deltaPercent: tx.deltaPercent || 0,
+          prevPriceVal: tx.prevPriceVal || (tx.priceVal - tx.delta),
+          areaLabelM2: labelM2,
+          areaLabelPyeong: labelPyeong,
         });
       }
     });
@@ -1561,14 +1532,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return Object.values(groups)
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((group) => {
-        // Sort items inside same date by price descending
         const sortedItems = group.items.sort((a, b) => b.priceVal - a.priceVal);
         return {
           ...group,
           items: sortedItems,
         };
       });
-  }, [txSummaryData, sheetApartments, publicRentalSet, nameMapping, maxDateTime, typeMap]);
+  }, [txSummaryData, recentTransactions, publicRentalSet, nameMapping, maxDateTime, typeMap]);
 
   const filteredTimelineData = useMemo(() => {
     if (timelineDongFilter === "전체" && timelineAptFilter === "전체") return dailyTimelineData;
