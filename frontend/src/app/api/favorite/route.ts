@@ -46,35 +46,36 @@ export async function POST(request: NextRequest) {
 
     const docId = `${userId}_${aptName}`;
     const favRef = adminDb.collection('favorites').doc(docId);
-    const favSnap = await favRef.get();
+    const countRef = adminDb.collection('favoriteCounts').doc(aptName);
 
-    if (favSnap.exists) {
-      // Remove favorite
-      await favRef.delete();
-      // Decrement count
-      const countRef = adminDb.collection('favoriteCounts').doc(aptName);
-      await countRef.set({ count: FieldValue.increment(-1), aptName }, { merge: true });
-      if (redis) {
-        await Promise.all([
-          redis.hincrby('DTDLS:cache:favoriteCounts', aptName, -1),
-          redis.del(`DTDLS:user:${userId}:favorites`)
-        ]).catch(err => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
+    const favorited = await adminDb.runTransaction(async (transaction) => {
+      const favSnap = await transaction.get(favRef);
+      const exists = favSnap.exists;
+
+      if (exists) {
+        // Remove favorite
+        transaction.delete(favRef);
+        // Decrement count
+        transaction.set(countRef, { count: FieldValue.increment(-1), aptName }, { merge: true });
+        return false;
+      } else {
+        // Add favorite
+        transaction.set(favRef, { userId, aptName, createdAt: FieldValue.serverTimestamp() });
+        // Increment count
+        transaction.set(countRef, { count: FieldValue.increment(1), aptName }, { merge: true });
+        return true;
       }
-      return NextResponse.json({ favorited: false });
-    } else {
-      // Add favorite
-      await favRef.set({ userId, aptName, createdAt: FieldValue.serverTimestamp() });
-      // Increment count
-      const countRef = adminDb.collection('favoriteCounts').doc(aptName);
-      await countRef.set({ count: FieldValue.increment(1), aptName }, { merge: true });
-      if (redis) {
-        await Promise.all([
-          redis.hincrby('DTDLS:cache:favoriteCounts', aptName, 1),
-          redis.del(`DTDLS:user:${userId}:favorites`)
-        ]).catch(err => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
-      }
-      return NextResponse.json({ favorited: true });
+    });
+
+    if (redis) {
+      const diff = favorited ? 1 : -1;
+      Promise.all([
+        redis.hincrby('DTDLS:cache:favoriteCounts', aptName, diff),
+        redis.del(`DTDLS:user:${userId}:favorites`)
+      ]).catch(err => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
     }
+
+    return NextResponse.json({ favorited });
   } catch (error: unknown) {
     logger.error('FavoriteAPI.POST', 'Failed to toggle favorite', {}, error as Error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
