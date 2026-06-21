@@ -23,6 +23,8 @@ const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err =
   ssr: false,
 });
 
+const EMPTY_OBJECT = {};
+
 const DEFAULT_TIMELINE_APTS = [
   "동탄역 롯데캐슬",
   "동탄역 시범 우남퍼스트빌",
@@ -108,7 +110,7 @@ interface MacroDashboardProps {
   isFavoritesLoading?: boolean;
   fieldReportsMap: Map<string, FieldReportData>;
   favoriteCounts: Record<string, number>;
-  onSelectApt?: (name: string) => void;
+  onSelectApt?: (name: string, dong?: string) => void;
   onOpenAdModal?: () => void;
   onOpenCompare?: () => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
@@ -2414,13 +2416,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         <AptFitFinder
           sheetApartments={sheetApartments}
           txSummaryData={txSummaryData}
-          nameMapping={nameMapping || {}}
+          nameMapping={nameMapping || EMPTY_OBJECT}
           publicRentalSet={publicRentalSet}
           fieldReportsMap={fieldReportsMap}
           onSelectApt={onSelectApt || (() => {})}
           isOpen={isQuizOpen}
           onClose={() => setIsQuizOpen(false)}
-          locationScores={locationScores || {}}
+          locationScores={locationScores || EMPTY_OBJECT}
         />
       )}
 

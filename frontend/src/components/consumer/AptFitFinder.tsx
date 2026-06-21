@@ -16,7 +16,7 @@ interface AptFitFinderProps {
   nameMapping: Record<string, string>;
   publicRentalSet: Set<string>;
   fieldReportsMap: Map<string, FieldReportData>;
-  onSelectApt: (name: string) => void;
+  onSelectApt: (name: string, dong?: string) => void;
   isOpen: boolean;
   onClose: () => void;
   locationScores?: Record<string, any>;
@@ -1088,7 +1088,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                           {/* Action Button: View Details */}
                           <button
                             onClick={() => {
-                              onSelectApt(item.apt.name);
+                              onSelectApt(item.apt.name, item.apt.dong);
                               onClose();
                             }}
                             className="w-full py-2.5 bg-[#00d29d] hover:bg-[#00b386] active:scale-[0.98] text-white text-[12px] font-extrabold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer mt-1"

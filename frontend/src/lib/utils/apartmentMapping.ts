@@ -340,8 +340,18 @@ function deepNormalize(name: string): string {
   return result;
 }
 
+interface TxKeyInfo {
+  originalKey: string;
+  normKey: string;
+  keyStripped: string;
+  keyDeep: string;
+  keyDeepAlt: string;
+  keyDong: string | null;
+}
+
 // WeakMap caches for findTxKey performance optimization
 const txMapNormalizedKeysCache = new WeakMap<object, Record<string, string>>();
+const txMapInfoCache = new WeakMap<object, TxKeyInfo[]>();
 const resolvedTxKeyCache = new WeakMap<object, Map<string, string | null>>();
 
 function getManualMappingKey(manualMapping?: Record<string, string>): string {
@@ -412,12 +422,35 @@ export function findTxKey<T>(
 
   // 1. Get or build normalized txMap keys cache (using original txMap reference for WeakMap caching)
   let normalizedTxMap = txMapNormalizedKeysCache.get(txMap);
-  if (!normalizedTxMap) {
+  let infoList = txMapInfoCache.get(txMap);
+
+  if (!normalizedTxMap || !infoList) {
     normalizedTxMap = {};
+    infoList = [];
     for (const key of Object.keys(txMap)) {
-      normalizedTxMap[normalizeAptName(key)] = key;
+      const normKey = normalizeAptName(key);
+      normalizedTxMap[normKey] = key;
+
+      const keyStripped = stripLocationSuffix(stripLocationPrefix(normKey));
+      const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
+      const keyDeepAlt = deepNormalize(keyStripped);
+
+      const keyObj = txMap[key] as any;
+      const keyDong = (keyObj && typeof keyObj === 'object' && 'dong' in keyObj && keyObj.dong)
+        ? keyObj.dong
+        : extractDong(key);
+
+      infoList.push({
+        originalKey: key,
+        normKey,
+        keyStripped,
+        keyDeep,
+        keyDeepAlt,
+        keyDong
+      });
     }
     txMapNormalizedKeysCache.set(txMap, normalizedTxMap);
+    txMapInfoCache.set(txMap, infoList);
   }
 
   // 2. Get or build resolved tx keys cache
@@ -502,19 +535,13 @@ export function findTxKey<T>(
     }
   }
 
-  for (const key of Object.keys(txMap)) {
-    const keyObj = txMap[key] as any;
-    const keyDong = (keyObj && typeof keyObj === 'object' && 'dong' in keyObj && keyObj.dong)
-      ? keyObj.dong
-      : extractDong(key);
-    if (aptDong && keyDong && aptDong !== keyDong) continue;
+  for (const info of infoList) {
+    if (aptDong && info.keyDong && aptDong !== info.keyDong) continue;
 
-    const normKey = normalizeAptName(key);
-    const keyStripped = stripLocationSuffix(stripLocationPrefix(normKey));
-    if (keyStripped === stripped) {
+    if (info.keyStripped === stripped) {
       const isGeneric = BRAND_NAMES.has(stripped) || stripped.length <= 3;
-      if (!isGeneric || (aptDong && keyDong && aptDong === keyDong)) {
-        const res = key;
+      if (!isGeneric || (aptDong && info.keyDong && aptDong === info.keyDong)) {
+        const res = info.originalKey;
         resolvedMap.set(cacheKey, res);
         return res;
       }
@@ -523,19 +550,13 @@ export function findTxKey<T>(
 
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
-  for (const key of Object.keys(txMap)) {
-    const keyObj = txMap[key] as any;
-    const keyDong = (keyObj && typeof keyObj === 'object' && 'dong' in keyObj && keyObj.dong)
-      ? keyObj.dong
-      : extractDong(key);
-    if (aptDong && keyDong && aptDong !== keyDong) continue;
+  for (const info of infoList) {
+    if (aptDong && info.keyDong && aptDong !== info.keyDong) continue;
 
-    const normKey = normalizeAptName(key);
-    const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
-    if (keyDeep === deepNorm || deepNormalize(stripLocationSuffix(stripLocationPrefix(normKey))) === deepNorm) {
+    if (info.keyDeep === deepNorm || info.keyDeepAlt === deepNorm) {
       const isGeneric = BRAND_NAMES.has(deepNorm) || deepNorm.length <= 3;
-      if (!isGeneric || (aptDong && keyDong && aptDong === keyDong)) {
-        const res = key;
+      if (!isGeneric || (aptDong && info.keyDong && aptDong === info.keyDong)) {
+        const res = info.originalKey;
         resolvedMap.set(cacheKey, res);
         return res;
       }

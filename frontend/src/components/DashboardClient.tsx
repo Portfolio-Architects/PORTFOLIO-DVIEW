@@ -727,13 +727,13 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     setMobileModalOpen(true);
   }, [fieldReportsMap, setSelectedReport]);
 
-  const handleAptClickByName = useCallback((name: string) => {
+  const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
-    const targetApt = allApts.find(a => isSameApartment(a.name, name, nameMapping));
+    const targetApt = allApts.find(a => isSameApartment(a.name, name, nameMapping, a.dong, dong));
     if (targetApt) {
       handleAptClick(targetApt);
     } else {
-      handleAptClick({ name, dong: '' });
+      handleAptClick({ name, dong: dong || '' });
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
