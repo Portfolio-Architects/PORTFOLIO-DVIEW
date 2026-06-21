@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,15 +32,33 @@ const CommentCreateSchema = z.object({
   }
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = req.headers.get('x-forwarded-for');
+      const realIp = req.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_comments_${rawIp}`);
+      if (!success) {
+        logger.warn('CommentsAPI.POST', 'Rate limit exceeded', { ip: rawIp });
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    }
+
     if (!db) {
       logger.warn('CommentsAPI.POST', 'Firebase Admin DB not initialized');
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     const adminDb = db;
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (jsonErr) {
+      logger.warn('CommentsAPI.POST', 'Invalid JSON body structure', {}, jsonErr as Error);
+      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+    }
+
     const parsed = CommentCreateSchema.safeParse(body);
     
     if (!parsed.success) {
