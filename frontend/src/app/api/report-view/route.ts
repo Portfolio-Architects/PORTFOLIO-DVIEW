@@ -73,42 +73,54 @@ export async function POST(request: NextRequest) {
 
     const adminDb = getAdminDb();
     const viewRef = adminDb.collection('reportViews').doc(dedupKey);
-    const viewSnap = await viewRef.get();
+    const reportDocRef = adminDb.collection('scoutingReports').doc(reportId);
+    const dailyStatsRef = adminDb.doc(`daily_stats/${today}/content_views/${reportId}`);
 
-    if (viewSnap.exists) {
-      return NextResponse.json({ counted: false, reason: 'duplicate' });
-    }
+    const result = await adminDb.runTransaction(async (transaction) => {
+      const viewSnap = await transaction.get(viewRef);
+      if (viewSnap.exists) {
+        return { success: false, reason: 'duplicate' as const };
+      }
 
-    // ── Pre-check: Verify report existence ──
-    const reportRef = await adminDb.collection('scoutingReports').doc(reportId).get();
-    if (!reportRef.exists) {
-      logger.warn('ReportViewAPI.POST', 'Scouting report not found', { reportId });
-      return NextResponse.json({ error: 'Report not found' }, { status: 404 });
-    }
+      const reportSnap = await transaction.get(reportDocRef);
+      if (!reportSnap.exists) {
+        return { success: false, reason: 'not_found' as const };
+      }
 
-    const title = reportRef.data()?.apartmentName || '알 수 없는 단지';
+      const title = reportSnap.data()?.apartmentName || '알 수 없는 단지';
 
-    // ── Record view + increment counter atomically ──
-    const batch = adminDb.batch();
-    batch.set(viewRef, {
-      reportId,
-      ipHash,
-      createdAt: FieldValue.serverTimestamp(),
+      transaction.set(viewRef, {
+        reportId,
+        ipHash,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+
+      transaction.update(reportDocRef, {
+        viewCount: FieldValue.increment(1),
+      });
+
+      transaction.set(
+        dailyStatsRef,
+        {
+          title,
+          type: 'report',
+          views: FieldValue.increment(1)
+        },
+        { merge: true }
+      );
+
+      return { success: true };
     });
-    batch.update(adminDb.collection('scoutingReports').doc(reportId), {
-      viewCount: FieldValue.increment(1),
-    });
 
-    batch.set(
-      adminDb.doc(`daily_stats/${today}/content_views/${reportId}`),
-      {
-        title,
-        type: 'report',
-        views: FieldValue.increment(1)
-      },
-      { merge: true }
-    );
-    await batch.commit();
+    if (!result.success) {
+      if (result.reason === 'duplicate') {
+        return NextResponse.json({ counted: false, reason: 'duplicate' });
+      }
+      if (result.reason === 'not_found') {
+        logger.warn('ReportViewAPI.POST', 'Scouting report not found', { reportId });
+        return NextResponse.json({ error: 'Report not found' }, { status: 404 });
+      }
+    }
 
     return NextResponse.json({ counted: true });
   } catch (error: unknown) {
