@@ -40,23 +40,27 @@ const AdSense = React.memo(function AdSense({
     const pushAd = () => {
       if (initialized.current) return;
       try {
-        if (!(window as any).adsbygoogle) {
+        // Robust fallback initialization of adsbygoogle array
+        if (typeof (window as any).adsbygoogle === 'undefined') {
           (window as any).adsbygoogle = [];
         }
+        
         const ads = (window as any).adsbygoogle;
-        if (ads && typeof ads.push === 'function') {
+        
+        // Strict verification of adsbygoogle type and its push capability
+        if (ads && typeof ads === 'object' && typeof ads.push === 'function') {
           try {
-            // Enhanced try-catch guard to prevent crashes when ad blocker freezes the adsbygoogle array
+            // Enhanced try-catch isolation to prevent crashes when ad blockers freeze, seal, or mock the push method
             ads.push({});
             initialized.current = true;
           } catch (pushErr) {
-            console.warn('[AdSense] adsbygoogle.push failed. This usually happens when an AdBlocker intercepts or freezes the adsbygoogle array:', pushErr);
+            console.warn('[AdSense] adsbygoogle.push call failed. Handled successfully (AdBlocker interception suspected):', pushErr);
           }
         } else {
-          console.warn('[AdSense] adsbygoogle is not an array or push method is missing. The script might be blocked or crippled.');
+          console.warn('[AdSense] adsbygoogle object is disabled, modified or not pushable. AdBlocker active.');
         }
       } catch (err) {
-        console.warn('[AdSense] Failed to initialize ad slot:', adSlot, err);
+        console.warn('[AdSense] Exception during ad slot push initialization:', adSlot, err);
       }
     };
 
@@ -152,13 +156,14 @@ const AdSense = React.memo(function AdSense({
 
     const timer = setTimeout(() => {
       const adsbygoogle = (window as any).adsbygoogle;
-      const isLoaded = adsbygoogle && adsbygoogle.push !== Array.prototype.push;
+      // Protect against null/undefined object types when checking push capability
+      const isLoaded = adsbygoogle && 
+                       typeof adsbygoogle === 'object' && 
+                       'push' in adsbygoogle && 
+                       adsbygoogle.push !== Array.prototype.push;
       
       if (!isLoaded) {
-        console.error(
-          '%c[AdSense] 광고 차단기(AdBlock/AdGuard) 또는 보안 설정으로 인해 구글 광고 스크립트가 차단되었습니다. (window.adsbygoogle is not loaded)',
-          'color: #ef4444; font-weight: bold; font-size: 13px;'
-        );
+        console.warn('[AdSense] Google AdSense script might be blocked or not loaded properly (window.adsbygoogle check bypassed).');
       }
     }, 4000);
 
