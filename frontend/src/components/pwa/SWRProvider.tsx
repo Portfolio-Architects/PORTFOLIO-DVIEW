@@ -121,10 +121,10 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
     <SWRConfig
       value={{
         provider: getCache,
-        revalidateOnFocus: isOnline,
+        revalidateOnFocus: false, // Prevent redundant background fetches on tab/app switching (use local manual/SWR trigger overrides)
         revalidateOnReconnect: isOnline,
         shouldRetryOnError: isOnline,
-        dedupingInterval: 5000, // deduplication window (5s) to guard against redundant API hammering
+        dedupingInterval: 30000, // deduplication window (30s) to guard against redundant API hammering
         // Disable SWR auto-polling while offline to prevent error loops
         refreshInterval: isOnline ? undefined : 0,
         onError: (err) => {
