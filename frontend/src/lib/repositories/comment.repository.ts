@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { CommentData } from '@/lib/types/report.types';
 import { commentConverter } from '@/lib/utils/firestoreConverters';
@@ -32,35 +32,42 @@ export async function addComment(
   apartmentName?: string
 ): Promise<void> {
   try {
+    const batch = writeBatch(db);
+
     const commentsRef = collection(db, `field_reports/${reportId}/comments`).withConverter(commentConverter);
-    await throttle(() => addDoc(commentsRef, {
+    const newCommentRef = doc(commentsRef);
+    batch.set(newCommentRef, {
       text,
       authorName,
       authorUid,
       createdAt: serverTimestamp(),
-    }));
+    });
 
     // Double-write to lounge_apt_stories collection
     if (apartmentName) {
       const aptStoriesRef = collection(db, 'lounge_apt_stories');
-      await throttle(() => addDoc(aptStoriesRef, {
+      const newStoryRef = doc(aptStoriesRef);
+      batch.set(newStoryRef, {
         text,
         authorName,
         authorUid,
         apartmentName,
         reportId,
         createdAt: serverTimestamp(),
-      }));
+      });
     }
 
     // Increment parent report's comment counter
-    await throttle(() => updateDoc(doc(db, 'field_reports', reportId), {
+    const parentReportRef = doc(db, 'field_reports', reportId);
+    batch.update(parentReportRef, {
       commentCount: increment(1),
-    }));
+    });
 
-    logger.info('CommentRepository.addComment', 'Comment added with double-write option', { reportId, apartmentName });
+    await throttle(() => batch.commit());
+
+    logger.info('CommentRepository.addComment', 'Comment added with atomic writeBatch', { reportId, apartmentName });
   } catch (error) {
-    logger.error('CommentRepository.addComment', 'Failed to add comment', { reportId, authorUid }, error);
+    logger.error('CommentRepository.addComment', 'Failed to add comment atomically', { reportId, authorUid }, error);
     throw error;
   }
 }
