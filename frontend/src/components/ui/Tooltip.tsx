@@ -141,7 +141,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
             position: 'absolute',
             top: `${coords.top}px`,
             left: `${coords.left}px`,
-            zIndex: 9999999,
+            zIndex: 20000,
           }}
           className={`pointer-events-none px-3.5 py-2 bg-[#1e293b]/95 dark:bg-[#0f172a]/95 text-white text-[11px] font-bold rounded-xl shadow-xl max-w-[280px] break-keep text-center animate-tooltip-spring transition-opacity select-none border border-white/10 ${className}`}
           role="tooltip"
