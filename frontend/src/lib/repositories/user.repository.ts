@@ -21,6 +21,7 @@ const UserProfileSchema = z.object({
   verificationLevel: z.enum(['none', 'self_declared', 'registry_verified']).default('none'),
   uploaderPoints: z.number().default(0),
   uploaderTier: z.string().default('초보 임장러'),
+  createdAt: z.any().optional(),
 }).passthrough();
 
 /**
@@ -100,6 +101,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
           uploaderPoints: 0,
           uploaderTier: '초보 임장러',
           hasSetNickname: false,
+          createdAt: new Date(),
         };
       }
     } catch (e) {
