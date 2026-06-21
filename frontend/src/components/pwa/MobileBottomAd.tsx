@@ -25,22 +25,23 @@ const MobileBottomAd = React.memo(function MobileBottomAd({ adSlot }: MobileBott
     }
   }, []);
 
-  if (!mounted) {
-    // Pre-hydration placeholder that preserves CSS height constraints
-    return (
-      <div className="w-full h-[50px] block md:hidden bg-transparent" aria-hidden="true" />
-    );
-  }
-
-  // MobileDock가 노출되는 주요 서비스 페이지(/, /lounge, /explore, /news 등) 및 어드민 페이지에서는 
-  // 고정 하단 광고를 표시하지 않습니다. (MobileDock과의 겹침 및 정책 위반 방지)
   const isDockPage = pathname === '/' || 
                      pathname?.startsWith('/lounge') || 
                      pathname?.startsWith('/apartment') ||
                      pathname?.startsWith('/explore') ||
                      pathname?.startsWith('/news');
   const isAdminPage = pathname?.startsWith('/admin');
-  
+
+  if (!mounted) {
+    if (isDockPage || isAdminPage) {
+      return null;
+    }
+    // Pre-hydration placeholder that preserves CSS height constraints
+    return (
+      <div className="w-full h-[50px] block md:hidden bg-transparent" aria-hidden="true" />
+    );
+  }
+
   // 아파트 모달, 라운지 게시글 모달 등이 떠 있을 때도 광고가 모달과 겹치거나 가려지지 않도록 미노출 처리
   const hasActiveModal = hash.includes('apt=') || hash.includes('post=') || hash.includes('notice=');
 
