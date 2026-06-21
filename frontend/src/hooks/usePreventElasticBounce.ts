@@ -28,6 +28,14 @@ export function usePreventElasticBounce(ref: RefObject<HTMLElement | null>) {
       const scrollHeight = el.scrollHeight;
       const clientHeight = el.clientHeight;
 
+      // 0. If content is shorter than or equal to container height, prevent all bouncing
+      if (scrollHeight <= clientHeight) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        return;
+      }
+
       // 1. Swiping down at the top limit -> prevent default bounce
       if (scrollTop <= 0 && deltaY > 0) {
         if (e.cancelable) {
