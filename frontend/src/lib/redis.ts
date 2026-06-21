@@ -1,6 +1,7 @@
 import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { logger } from "@/lib/services/logger";
+import { serverLruCache } from "@/lib/utils/server/lruCache";
 
 /**
  * Simple in-memory fallback cache when Redis is unavailable or timeouts occur.
@@ -58,6 +59,14 @@ class MemoryCacheFallback {
     await this.set(key, nextVal);
     return Object.keys(value).length;
   }
+
+  async hincrby(key: string, field: string, increment: number): Promise<number> {
+    const current = (await this.get<Record<string, number>>(key)) || {};
+    const val = (current[field] || 0) + increment;
+    current[field] = val;
+    await this.set(key, current);
+    return val;
+  }
 }
 
 const REDIS_TIMEOUT_MS = 1500;
@@ -92,9 +101,22 @@ export class ResilientRedisWrapper {
   }
 
   async get<T>(key: string): Promise<T | null> {
+    try {
+      const cached = serverLruCache.get(key);
+      if (cached !== null && cached !== undefined) {
+        return cached as T;
+      }
+    } catch (e: any) {
+      logger.warn("ResilientRedis.get.L1", "L1 cache read failed", { key, error: e.message });
+    }
+
     if (!this.client) return this.fallback.get<T>(key);
     try {
-      return await withTimeout(this.client.get<T>(key));
+      const val = await withTimeout(this.client.get<T>(key));
+      if (val !== null && val !== undefined) {
+        serverLruCache.set(key, val, 10000);
+      }
+      return val;
     } catch (e: any) {
       logger.warn("ResilientRedis.get", "Upstash Redis get failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.get<T>(key);
@@ -102,9 +124,17 @@ export class ResilientRedisWrapper {
   }
 
   async set(key: string, value: any, options?: any): Promise<any> {
+    try {
+      serverLruCache.delete(key);
+    } catch (e: any) {
+      logger.warn("ResilientRedis.set.L1", "L1 cache delete failed", { key, error: e.message });
+    }
+
     if (!this.client) return this.fallback.set(key, value, options);
     try {
-      return await withTimeout(this.client.set(key, value, options));
+      const res = await withTimeout(this.client.set(key, value, options));
+      serverLruCache.set(key, value, 10000);
+      return res;
     } catch (e: any) {
       logger.warn("ResilientRedis.set", "Upstash Redis set failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.set(key, value, options);
@@ -112,6 +142,12 @@ export class ResilientRedisWrapper {
   }
 
   async incr(key: string): Promise<number> {
+    try {
+      serverLruCache.delete(key);
+    } catch (e: any) {
+      logger.warn("ResilientRedis.incr.L1", "L1 cache delete failed", { key, error: e.message });
+    }
+
     if (!this.client) return this.fallback.incr(key);
     try {
       return await withTimeout(this.client.incr(key));
@@ -122,6 +158,12 @@ export class ResilientRedisWrapper {
   }
 
   async del(...keys: string[]): Promise<number> {
+    try {
+      keys.forEach((k) => serverLruCache.delete(k));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.del.L1", "L1 cache delete failed", { keys, error: e.message });
+    }
+
     if (!this.client) return this.fallback.del(...keys);
     try {
       return await withTimeout(this.client.del(...keys));
@@ -132,9 +174,22 @@ export class ResilientRedisWrapper {
   }
 
   async hgetall<T extends Record<string, any>>(key: string): Promise<T | null> {
+    try {
+      const cached = serverLruCache.get(key);
+      if (cached !== null && cached !== undefined) {
+        return cached as T;
+      }
+    } catch (e: any) {
+      logger.warn("ResilientRedis.hgetall.L1", "L1 cache read failed", { key, error: e.message });
+    }
+
     if (!this.client) return this.fallback.hgetall<T>(key);
     try {
-      return await withTimeout(this.client.hgetall<T>(key));
+      const val = await withTimeout(this.client.hgetall<T>(key));
+      if (val !== null && val !== undefined) {
+        serverLruCache.set(key, val, 10000);
+      }
+      return val;
     } catch (e: any) {
       logger.warn("ResilientRedis.hgetall", "Upstash Redis hgetall failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.hgetall<T>(key);
@@ -142,12 +197,34 @@ export class ResilientRedisWrapper {
   }
 
   async hset(key: string, value: Record<string, any>): Promise<any> {
+    try {
+      serverLruCache.delete(key);
+    } catch (e: any) {
+      logger.warn("ResilientRedis.hset.L1", "L1 cache delete failed", { key, error: e.message });
+    }
+
     if (!this.client) return this.fallback.hset(key, value);
     try {
       return await withTimeout(this.client.hset(key, value));
     } catch (e: any) {
       logger.warn("ResilientRedis.hset", "Upstash Redis hset failed or timed out, falling back to Memory Cache", { key, error: e.message });
       return this.fallback.hset(key, value);
+    }
+  }
+
+  async hincrby(key: string, field: string, increment: number): Promise<number> {
+    try {
+      serverLruCache.delete(key);
+    } catch (e: any) {
+      logger.warn("ResilientRedis.hincrby.L1", "L1 cache delete failed", { key, error: e.message });
+    }
+
+    if (!this.client) return this.fallback.hincrby(key, field, increment);
+    try {
+      return await withTimeout(this.client.hincrby(key, field, increment));
+    } catch (e: any) {
+      logger.warn("ResilientRedis.hincrby", "Upstash Redis hincrby failed or timed out, falling back to Memory Cache", { key, field, error: e.message });
+      return this.fallback.hincrby(key, field, increment);
     }
   }
 

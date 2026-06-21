@@ -62,22 +62,37 @@ export async function GET() {
   const isDev = process.env.NODE_ENV === 'development';
   const firestoreTimeout = isDev ? 1000 : 5000;
 
-  // 1. Favorite counts (Redis First -> Firebase Fallback)
-  try {
-    if (redis) {
-      // 1-A. Redis 캐시 우선 조회 (HGETALL은 Firebase 과금을 유발하지 않음)
-      const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
-      if (cachedCounts && Object.keys(cachedCounts).length > 0) {
-        const parsed = favoriteCountsSchema.safeParse(cachedCounts);
-        if (parsed.success) {
-          result.favoriteCounts = parsed.data;
-        } else {
+  // Helper 1: Fetch favorite counts (Redis First -> Firebase Fallback)
+  const fetchFavoriteCounts = async (): Promise<Record<string, number>> => {
+    try {
+      if (redis) {
+        const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
+        if (cachedCounts && Object.keys(cachedCounts).length > 0) {
+          const parsed = favoriteCountsSchema.safeParse(cachedCounts);
+          if (parsed.success) return parsed.data;
           logger.warn('DashboardInitAPI.GET', 'Redis favoriteCounts schema mismatch', { errors: parsed.error.format() });
         }
-      }
-      
-      if (Object.keys(result.favoriteCounts).length === 0 && adminDb) {
-        // 1-B. 캐시 미스 Fallback (1회 한정 Full Scan)
+        
+        if (adminDb) {
+          const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
+          const rawCounts: Record<string, number> = {};
+          snap.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.count > 0) {
+              rawCounts[data.aptName || doc.id] = data.count;
+            }
+          });
+          
+          const parsed = favoriteCountsSchema.safeParse(rawCounts);
+          if (parsed.success) {
+            redis.hset('DTDLS:cache:favoriteCounts', parsed.data).catch(err => {
+              logger.warn('DashboardInitAPI.GET', 'Redis HSET error', {}, err as Error);
+            });
+            return parsed.data;
+          }
+          logger.warn('DashboardInitAPI.GET', 'Firestore favoriteCounts schema mismatch', { errors: parsed.error.format() });
+        }
+      } else if (adminDb) {
         const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
         const rawCounts: Record<string, number> = {};
         snap.docs.forEach(doc => {
@@ -86,39 +101,60 @@ export async function GET() {
             rawCounts[data.aptName || doc.id] = data.count;
           }
         });
-        
         const parsed = favoriteCountsSchema.safeParse(rawCounts);
-        if (parsed.success) {
-          result.favoriteCounts = parsed.data;
-          redis.hset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => {
-            logger.warn('DashboardInitAPI.GET', 'Redis HSET error', {}, err as Error);
-          });
-        } else {
-          logger.warn('DashboardInitAPI.GET', 'Firestore favoriteCounts schema mismatch', { errors: parsed.error.format() });
-        }
-      }
-    } else if (adminDb) {
-      // 1-C. Redis가 없는 레거시 환경 Fallback
-      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
-      const rawCounts: Record<string, number> = {};
-      snap.docs.forEach(doc => {
-        const data = doc.data();
-        if (data.count > 0) {
-          rawCounts[data.aptName || doc.id] = data.count;
-        }
-      });
-      const parsed = favoriteCountsSchema.safeParse(rawCounts);
-      if (parsed.success) {
-        result.favoriteCounts = parsed.data;
-      } else {
+        if (parsed.success) return parsed.data;
         logger.warn('DashboardInitAPI.GET', 'Firestore favoriteCounts schema mismatch (no-redis)', { errors: parsed.error.format() });
       }
+    } catch (e) {
+      logger.warn('DashboardInitAPI.GET', 'favoriteCounts error', {}, e as Error);
     }
-  } catch (e) {
-    logger.warn('DashboardInitAPI.GET', 'favoriteCounts error', {}, e as Error);
-  }
+    return {};
+  };
 
-  // 2. Type map (Static JSON Cache first -> Google Sheets Fallback)
+  // Helper 2: Fetch apartment metadata (Redis First -> Firestore Fallback)
+  const fetchApartmentMeta = async (): Promise<Record<string, unknown>> => {
+    try {
+      if (redis) {
+        const cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
+        if (cachedMeta && typeof cachedMeta === 'object') {
+          const parsed = apartmentMetaSchema.safeParse(cachedMeta);
+          if (parsed.success) return parsed.data;
+          logger.warn('DashboardInitAPI.GET', 'Redis apartmentMeta schema mismatch', { errors: parsed.error.format() });
+        }
+      }
+
+      if (adminDb) {
+        const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), firestoreTimeout);
+        if (metaDoc.exists) {
+          const metaData = metaDoc.data() || {};
+          const parsed = apartmentMetaSchema.safeParse(metaData);
+          if (parsed.success) {
+            if (redis && Object.keys(parsed.data).length > 0) {
+              redis.set('DTDLS:cache:apartmentMeta', parsed.data, { ex: 86400 }).catch(e => {
+                logger.warn('DashboardInitAPI.GET', 'Redis meta write error', {}, e as Error);
+              });
+            }
+            return parsed.data;
+          }
+          logger.warn('DashboardInitAPI.GET', 'Firestore apartmentMeta schema mismatch', { errors: parsed.error.format() });
+        }
+      }
+    } catch (e) {
+      logger.warn('DashboardInitAPI.GET', 'apartmentMeta error', {}, e as Error);
+    }
+    return {};
+  };
+
+  // Run database queries in parallel
+  const [favoriteCountsRes, apartmentMetaRes] = await Promise.all([
+    fetchFavoriteCounts(),
+    fetchApartmentMeta()
+  ]);
+
+  result.favoriteCounts = favoriteCountsRes;
+  result.apartmentMeta = apartmentMetaRes;
+
+  // Type map (Static JSON Cache first -> Google Sheets Fallback)
   try {
     const parsed = typeMapSchema.safeParse(typeMapStatic);
     if (parsed.success) {
@@ -131,45 +167,6 @@ export async function GET() {
     logger.warn('DashboardInitAPI.GET', 'typeMap error', {}, e as Error);
   }
 
-  // 3. Apartment meta (Redis Cache first -> Firestore Fallback)
-  try {
-    let cachedMeta: unknown = null;
-    if (redis) {
-      try {
-        cachedMeta = await redis.get('DTDLS:cache:apartmentMeta');
-        if (cachedMeta && typeof cachedMeta === 'object') {
-          const parsed = apartmentMetaSchema.safeParse(cachedMeta);
-          if (parsed.success) {
-            result.apartmentMeta = parsed.data;
-          } else {
-            logger.warn('DashboardInitAPI.GET', 'Redis apartmentMeta schema mismatch', { errors: parsed.error.format() });
-          }
-        }
-      } catch (e) {
-        logger.warn('DashboardInitAPI.GET', 'Redis meta read error', {}, e as Error);
-      }
-    }
-
-    if (Object.keys(result.apartmentMeta).length === 0 && adminDb) {
-      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), firestoreTimeout);
-      if (metaDoc.exists) {
-        const metaData = metaDoc.data() || {};
-        const parsed = apartmentMetaSchema.safeParse(metaData);
-        if (parsed.success) {
-          result.apartmentMeta = parsed.data;
-          if (redis && Object.keys(parsed.data).length > 0) {
-            redis.set('DTDLS:cache:apartmentMeta', parsed.data, { ex: 86400 }).catch(e => {
-              logger.warn('DashboardInitAPI.GET', 'Redis meta write error', {}, e as Error);
-            });
-          }
-        } else {
-          logger.warn('DashboardInitAPI.GET', 'Firestore apartmentMeta schema mismatch', { errors: parsed.error.format() });
-        }
-      }
-    }
-  } catch (e) {
-    logger.warn('DashboardInitAPI.GET', 'apartmentMeta error', {}, e as Error);
-  }
-
   return NextResponse.json(result);
 }
+

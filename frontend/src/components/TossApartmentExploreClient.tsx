@@ -937,7 +937,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
       {/* Main Table Area */}
       <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
-        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-10">
+        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-30">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
@@ -1022,7 +1022,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             {/* Premium Autocomplete & Suggestions Dropdown */}
             {isSearchFocused && (
               <div 
-                className="absolute top-full left-0 md:left-auto md:right-0 mt-2 w-full md:w-[360px] bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border border-border/80 shadow-2xl rounded-2xl z-50 overflow-y-auto max-h-[480px] p-4 flex flex-col gap-4"
+                className="absolute top-full left-0 md:left-auto md:right-0 mt-2 w-full md:w-[360px] bg-white/98 dark:bg-zinc-950/98 backdrop-blur-xl border border-neutral-200/80 dark:border-zinc-800/80 shadow-2xl rounded-2xl z-50 overflow-y-auto max-h-[480px] p-4.5 flex flex-col gap-4.5"
                 role="listbox"
                 aria-label="검색 추천 및 자동완성"
               >
@@ -1030,8 +1030,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                   <>
                     {/* Recommended Keywords */}
                     <div>
-                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <Sparkles size={12} className="text-[#00d29d]" /> 추천 검색어
+                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2">
+                        추천 검색어
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {recommendedKeywords.map((kw) => (
@@ -1042,7 +1042,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                               setSearchQuery(kw);
                               trackEvent('search_tag_click', { tag: kw });
                             }}
-                            className="bg-body hover:bg-black/5 dark:hover:bg-white/5 text-secondary text-[12px] font-bold px-3 py-1.5 rounded-full transition-all active:scale-95 border border-transparent hover:border-border"
+                            className="bg-neutral-50 dark:bg-zinc-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-secondary text-[12px] font-bold px-3.5 py-1.5 rounded-full transition-all active:scale-95 border border-neutral-200/50 dark:border-zinc-800/50"
                           >
                             {kw}
                           </button>
@@ -1051,9 +1051,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     </div>
 
                     {/* Dongs Shortcuts */}
-                    <div className="border-t border-border/40 pt-3">
-                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
-                        📍 법정동 바로가기
+                    <div className="border-t border-border/40 pt-3.5">
+                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2">
+                        법정동 바로가기
                       </h4>
                       <div className="grid grid-cols-2 gap-2">
                         {DONGS.map((dong) => (
@@ -1066,12 +1066,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                               setIsSearchFocused(false);
                               trackEvent('search_tag_click', { tag: `dong-${dong.name}` });
                             }}
-                            className="flex items-center gap-2 bg-body hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-xl text-left transition-all active:scale-95 border border-transparent hover:border-border"
+                            className="group flex flex-col bg-neutral-50/50 dark:bg-zinc-900/40 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/5 hover:border-emerald-500/30 p-2.5 rounded-xl text-left transition-all active:scale-95 border border-neutral-200/60 dark:border-zinc-800/60"
                           >
-                            <span className="text-[16px]">{dong.emoji}</span>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-primary text-[12px] font-bold truncate">{dong.name}</span>
-                              <span className="text-tertiary text-[9.5px] truncate max-w-[120px]">{dong.description}</span>
+                              <span className="text-primary text-[12.5px] font-bold truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{dong.name}</span>
+                              <span className="text-tertiary text-[9.5px] truncate max-w-[140px] mt-0.5">{dong.description}</span>
                             </div>
                           </button>
                         ))}
@@ -1082,8 +1081,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                   <>
                     {/* Matching Apartments */}
                     <div>
-                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
-                        🏢 아파트 단지 바로가기
+                      <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2">
+                        아파트 단지 바로가기
                       </h4>
                       {suggestionsApts.length > 0 ? (
                         <div className="flex flex-col gap-1">
@@ -1096,11 +1095,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                                 setIsSearchFocused(false);
                                 trackEvent('view_apartment', { apt_name: item.apt.name, trigger: 'search_shortcut' });
                               }}
-                              className="flex items-center justify-between p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-all text-left group active:scale-99 border border-transparent hover:border-border"
+                              className="flex items-center justify-between p-2.5 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/5 rounded-xl transition-all text-left group active:scale-99 border border-transparent hover:border-emerald-500/10"
                             >
                               <div className="flex flex-col min-w-0 pr-2">
-                                <span className="text-primary text-[13px] font-bold group-hover:text-[#00d29d] transition-colors truncate">
-                                  🏢 {item.apt.name}
+                                <span className="text-primary text-[13px] font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                                  {item.apt.name}
                                 </span>
                                 <span className="text-tertiary text-[11px] mt-0.5">
                                   {item.apt.dong} · {item.formattedHousehold} · {item.formattedYearBuilt}
@@ -1108,7 +1107,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                               </div>
                               <div className="text-right shrink-0">
                                 {item.totalPrice > 0 ? (
-                                  <span className="text-[#00d29d] text-[13px] font-extrabold">{item.formattedPrice}</span>
+                                  <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-extrabold">{item.formattedPrice}</span>
                                 ) : (
                                   <span className="text-tertiary text-[12px]">-</span>
                                 )}
@@ -1125,7 +1124,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
                     {/* Matching Dongs or Brands */}
                     {(suggestionsDongs.length > 0 || suggestionsBrands.length > 0) && (
-                      <div className="border-t border-border/40 pt-3 flex flex-col gap-3">
+                      <div className="border-t border-border/40 pt-3.5 flex flex-col gap-3">
                         {suggestionsDongs.length > 0 && (
                           <div className="flex flex-col gap-1.5">
                             {suggestionsDongs.map((dong) => (
@@ -1138,12 +1137,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                                   setIsSearchFocused(false);
                                   trackEvent('search_tag_click', { tag: `dong-${dong.name}` });
                                 }}
-                                className="flex items-center justify-between p-2.5 bg-toss-blue/5 hover:bg-toss-blue/10 border border-toss-blue/20 rounded-xl text-left transition-all active:scale-98"
+                                className="flex items-center justify-between p-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-left transition-all active:scale-98 group"
                               >
-                                <span className="text-toss-blue text-[13px] font-bold flex items-center gap-1.5">
-                                  📍 {dong.emoji} {dong.name} 카테고리로 바로 이동
+                                <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-bold">
+                                  {dong.name} 카테고리로 바로 이동
                                 </span>
-                                <ChevronRight size={14} className="text-toss-blue" />
                               </button>
                             ))}
                           </div>
@@ -1151,8 +1149,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
                         {suggestionsBrands.length > 0 && (
                           <div>
-                            <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1">
-                              🔍 브랜드 검색 완성
+                            <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2">
+                              브랜드 검색 완성
                             </h4>
                             <div className="flex flex-wrap gap-1.5">
                               {suggestionsBrands.map((brand) => (
@@ -1163,9 +1161,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                                     setSearchQuery(brand);
                                     trackEvent('search_tag_click', { tag: brand });
                                   }}
-                                  className="bg-body hover:bg-black/5 dark:hover:bg-white/5 text-primary text-[12px] font-bold px-3 py-1.5 rounded-full border border-border/80 transition-all active:scale-95"
+                                  className="bg-neutral-50 dark:bg-zinc-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-primary text-[12px] font-bold px-3.5 py-1.5 rounded-full border border-neutral-200/50 dark:border-zinc-800/50 transition-all active:scale-95"
                                 >
-                                  🔍 {brand}
+                                  {brand}
                                 </button>
                               ))}
                             </div>

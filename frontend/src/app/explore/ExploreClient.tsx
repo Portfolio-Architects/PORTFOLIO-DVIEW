@@ -61,7 +61,7 @@ const ExploreListSkeleton = () => (
       {/* Main Table Area Skeleton */}
       <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
         {/* Title, Total count and Search Bar Skeleton */}
-        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-10">
+        <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-30">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start w-full md:w-auto">
             <div className="w-40 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
             <div className="w-20 h-4 bg-black/5 dark:bg-surface/5 rounded mt-2 hidden md:block" />
