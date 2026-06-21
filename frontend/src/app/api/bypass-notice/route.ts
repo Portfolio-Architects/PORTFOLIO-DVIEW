@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { rateLimiter } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,10 +30,21 @@ function escapeHtml(unsafe: string): string {
     .replace(/'/g, '&#039;');
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    if (rateLimiter) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      const realIp = request.headers.get('x-real-ip');
+      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
+      const { success } = await rateLimiter.limit(`ratelimit_bypassnotice_get_${rawIp}`);
+      if (!success) {
+        logger.warn('BypassNoticeAPI.GET', 'Rate limit exceeded', { ip: rawIp });
+        return new NextResponse('Too Many Requests', { status: 429 });
+      }
+    }
+
     const nonce = request.headers.get('x-nonce') || '';
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const targetUrlParam = searchParams.get('url');
 
     const parsed = bypassNoticeQuerySchema.safeParse({ url: targetUrlParam });
