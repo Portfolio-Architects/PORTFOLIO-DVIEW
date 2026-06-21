@@ -124,6 +124,8 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
         revalidateOnFocus: false, // Prevent redundant background fetches on tab/app switching (use local manual/SWR trigger overrides)
         revalidateOnReconnect: isOnline,
         shouldRetryOnError: isOnline,
+        errorRetryCount: 3,
+        errorRetryInterval: 3000,
         dedupingInterval: 30000, // deduplication window (30s) to guard against redundant API hammering
         // Disable SWR auto-polling while offline to prevent error loops
         refreshInterval: isOnline ? undefined : 0,
