@@ -180,7 +180,7 @@ function getDefaultMetadata(baseUrl: string, aptName: string = '아파트'): Met
     title,
     description,
     alternates: {
-      canonical: `/apartment/${encodeURIComponent(aptName)}`,
+      canonical: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
     },
     openGraph: {
       title,
@@ -255,7 +255,14 @@ export async function generateMetadata(props: {
     ogUrl.searchParams.set('subtitle', subtitleText);
     
     if (imageUrl) {
-      ogUrl.searchParams.set('bgUrl', imageUrl);
+      // Force absolute path for thumbnail to prevent OG parsing breaks
+      let absoluteImageUrl = imageUrl;
+      if (imageUrl.startsWith('/')) {
+        absoluteImageUrl = `${baseUrl}${imageUrl}`;
+      } else if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+        absoluteImageUrl = `${baseUrl}/${imageUrl}`;
+      }
+      ogUrl.searchParams.set('bgUrl', absoluteImageUrl);
     }
     
     if (aptSummary?.latestPrice) {
@@ -294,7 +301,7 @@ export async function generateMetadata(props: {
       description: seoDescription,
       keywords: dynamicKeywords,
       alternates: {
-        canonical: `/apartment/${params.aptName}`,
+        canonical: `${baseUrl}/apartment/${params.aptName}`,
       },
       openGraph: {
         title: seoTitle,
