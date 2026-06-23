@@ -500,6 +500,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       document.body.style.userSelect = '';
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('blur', handleMouseUp);
       resizeListenersRef.current = { mousemove: null, mouseup: null };
       if (animationFrameIdRef.current) {
         window.cancelAnimationFrame(animationFrameIdRef.current);
@@ -510,6 +511,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     resizeListenersRef.current = { mousemove: handleMouseMove, mouseup: handleMouseUp };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('blur', handleMouseUp);
   };
 
   useEffect(() => {
@@ -519,7 +521,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       }
       const { mousemove, mouseup } = resizeListenersRef.current;
       if (mousemove) window.removeEventListener('mousemove', mousemove);
-      if (mouseup) window.removeEventListener('mouseup', mouseup);
+      if (mouseup) {
+        window.removeEventListener('mouseup', mouseup);
+        window.removeEventListener('blur', mouseup);
+      }
     };
   }, []);
 

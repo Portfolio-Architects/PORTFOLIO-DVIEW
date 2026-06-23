@@ -81,14 +81,23 @@ export function useSwipeNavigation({
       }
     };
 
+    const handleTouchCancel = () => {
+      startX.current = null;
+      startY.current = null;
+      currentX.current = null;
+      currentY.current = null;
+    };
+
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchCancel);
     };
   }, [router, threshold, edgeWidth, enabled]);
 }
