@@ -60,23 +60,29 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
 
   const closeProfileModal = () => {
     setShowProfileModal(false);
-    if (profilePhotoPreview && profilePhotoPreview.startsWith('blob:')) {
-      try { URL.revokeObjectURL(profilePhotoPreview); } catch { /* ignore */ }
-    }
     setProfilePhotoPreview(null);
     setProfilePhotoFile(null);
   };
 
-  // Clean up object URL to prevent memory leaks
+  // Declarative Object URL lifecycle management to prevent memory leaks
+  useEffect(() => {
+    if (!profilePhotoFile) return;
+
+    const url = URL.createObjectURL(profilePhotoFile);
+    setProfilePhotoPreview(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [profilePhotoFile]);
+
+  // Manage mounted state to prevent state updates on unmounted component
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (profilePhotoPreview && profilePhotoPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(profilePhotoPreview);
-      }
     };
-  }, [profilePhotoPreview]);
+  }, []);
 
   // Prevent background scroll when profile edit modal is open
   useEffect(() => {
@@ -169,7 +175,6 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                     const file = e.target.files?.[0];
                     if (file) {
                       setProfilePhotoFile(file);
-                      setProfilePhotoPreview(URL.createObjectURL(file));
                     }
                   }}
                 />
