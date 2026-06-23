@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFormContext, useWatch, Path } from 'react-hook-form';
+import { logger } from '@/lib/services/logger';
 import { FormValues } from './types';
 import { FALLBACK_DONG_DATA } from './constants';
 
@@ -28,7 +29,7 @@ export const BasicInfoSection = React.memo(function BasicInfoSection({ lockedMet
         }
       } catch (err) {
         if (active) {
-          console.warn('아파트 목록 API 호출 실패, 기본 데이터 사용:', err);
+          logger.warn('BasicInfoSection', 'Failed to fetch apartments by dong, falling back to local constants', undefined, err);
         }
       } finally {
         if (active) {

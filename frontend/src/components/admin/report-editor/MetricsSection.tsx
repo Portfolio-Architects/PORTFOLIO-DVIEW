@@ -1,5 +1,6 @@
 import React from 'react';
 import { useFormContext, Path, useWatch } from 'react-hook-form';
+import { logger } from '@/lib/services/logger';
 import { FormValues } from './types';
 
 // Export type to be used by parent
@@ -174,7 +175,7 @@ export const MetricsSection = React.memo(function MetricsSection({
     } catch (e) {
       if (mountedRef.current) {
         if (!silent) alert('자동 출력 중 오류가 발생했습니다.');
-        console.error(e);
+        logger.error('MetricsSection', 'Error auto-calculating metrics', { apartmentName: aptName }, e);
       }
     } finally {
       if (mountedRef.current) {

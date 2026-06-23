@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { CheckCircle2 } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 import { createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
 import { uploadImage } from '@/lib/services/storage.service';
 
@@ -245,7 +246,7 @@ const ReportEditorForm = React.memo(function ReportEditorForm({ initialData = nu
         router.push('/admin'); 
       }
     } catch (error: unknown) {
-      console.error(error);
+      logger.error('ReportEditorForm', 'Failed to publish/save scouting report', { reportId }, error);
       alert(`오류가 발생했습니다: ${(error as Error).message}`);
     } finally {
       setIsSubmitting(false);
@@ -299,7 +300,7 @@ const ReportEditorForm = React.memo(function ReportEditorForm({ initialData = nu
                 localStorage.setItem(`draft_report_${reportId || 'new'}`, JSON.stringify(safeData));
                 alert('✅ 임시 저장되었습니다!');
               } catch (err) {
-                console.error('Draft save error:', err);
+                logger.error('ReportEditorForm', 'Draft save error', { reportId }, err);
                 alert('임시 저장에 실패했습니다.');
               }
             }}

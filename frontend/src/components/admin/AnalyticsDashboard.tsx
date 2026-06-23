@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
+import { logger } from '@/lib/services/logger';
 import {
   BarChart3, Globe, ShieldCheck, Eye, MousePointerClick, TrendingUp, Users, UserCheck, Clock
 } from 'lucide-react';
@@ -56,13 +57,13 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        console.warn('[GA4 API] Fetch failed, falling back to client mock:', res.status);
+        logger.warn('AnalyticsDashboard', '[GA4 API] Fetch failed, falling back to client mock', { status: res.status });
         return generateLocalMockData();
       }
       const json = await res.json();
       return json.data || generateLocalMockData();
     } catch (err) {
-      console.error('[GA4 API] Fetch error, falling back to client mock:', err);
+      logger.error('AnalyticsDashboard', '[GA4 API] Fetch error, falling back to client mock', undefined, err);
       return generateLocalMockData();
     }
   }, { revalidateOnFocus: false, dedupingInterval: 30000 });
@@ -88,13 +89,13 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        console.warn('[Search Console API] Fetch failed, falling back to client mock:', res.status);
+        logger.warn('AnalyticsDashboard', '[Search Console API] Fetch failed, falling back to client mock', { status: res.status });
         return generateLocalMockSearchConsoleData();
       }
       const json = await res.json();
       return json && json.success === false ? generateLocalMockSearchConsoleData() : (json || generateLocalMockSearchConsoleData());
     } catch (err) {
-      console.error('[Search Console API] Fetch error, falling back to client mock:', err);
+      logger.error('AnalyticsDashboard', '[Search Console API] Fetch error, falling back to client mock', undefined, err);
       return generateLocalMockSearchConsoleData();
     }
   }, { revalidateOnFocus: false, dedupingInterval: 30000 });

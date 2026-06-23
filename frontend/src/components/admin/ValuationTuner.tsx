@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { logger } from '@/lib/services/logger';
 import { Check, X, ShieldAlert, Award } from 'lucide-react';
 
 interface VoteRecord {
@@ -95,7 +96,7 @@ export const ValuationTuner = React.memo(function ValuationTuner() {
       setSuggestions(computedSuggestions);
     } catch (error) {
       if (mountedRef.current) {
-        console.error('Failed to fetch valuation tuner data:', error);
+        logger.error('ValuationTuner', 'Failed to fetch valuation tuner data', undefined, error);
       }
     } finally {
       if (mountedRef.current) {
