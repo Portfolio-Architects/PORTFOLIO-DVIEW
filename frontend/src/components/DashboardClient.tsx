@@ -659,7 +659,6 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     }
   }, [activeTab, mounted]);
 
-  console.log("DEBUG: DashboardClient render triggered!", { selectedReportId: selectedReport?.id, mobileModalOpen });
   const userHasSelected = useRef(false);
 
   useEffect(() => {

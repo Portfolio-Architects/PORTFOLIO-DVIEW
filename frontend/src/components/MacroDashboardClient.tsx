@@ -370,7 +370,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   typeMap = {},
   updateFavoriteOrder,
 }: MacroDashboardProps) {
-  console.log("DEBUG: MacroDashboardClient render triggered!");
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
   const [mounted, setMounted] = useState(false);
