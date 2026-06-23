@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { GraduationCap, MapPin, HelpCircle, ArrowRight, BookOpen, Share2, Check } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey, isSameApartment } from '@/lib/utils/apartmentMapping';
@@ -54,7 +55,7 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
         }
       }, 2000);
     }).catch(err => {
-      console.error('Failed to copy URL:', err);
+      logger.error('ChopoomaCuration', 'Failed to copy URL', undefined, err);
     });
   };
 

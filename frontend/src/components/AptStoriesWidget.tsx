@@ -5,6 +5,7 @@ import { db } from '@/lib/firebaseConfig';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { MessageSquare, Sparkles, ChevronRight, Home } from 'lucide-react';
 import { formatRelativeTime } from '@/components/LoungeFeedClient'; // Re-use relative time helper if needed, or implement locally
+import { logger } from '@/lib/services/logger';
 
 interface AptStory {
   id: string;
@@ -46,7 +47,7 @@ export default function AptStoriesWidget() {
       setStories(list);
       setLoading(false);
     }, (error) => {
-      console.error('Failed to listen to lounge_apt_stories:', error);
+      logger.error('AptStoriesWidget', 'Failed to listen to lounge_apt_stories', undefined, error);
       if (active) {
         setLoading(false);
       }

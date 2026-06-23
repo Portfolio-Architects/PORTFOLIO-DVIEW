@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Building2, User, MessageSquare } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { throttle } from '@/lib/utils/firestoreThrottle';
@@ -64,7 +65,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
         }
       }, 2000);
     } catch (error) {
-      console.error('Error submitting inquiry:', error);
+      logger.error('AdInquiryModal', 'Error submitting inquiry', undefined, error);
       alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       if (mountedRef.current) {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Phone, ExternalLink, GraduationCap } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 interface AdItem {
   id: string;
@@ -70,7 +71,7 @@ const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educa
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
-        console.error('[LoadAdsError]', err);
+        logger.error('LocalEducationAd', 'Failed to load ads', undefined, err);
       } finally {
         if (mountedRef.current) {
           setLoading(false);
@@ -99,7 +100,7 @@ const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educa
         }),
       });
     } catch (err) {
-      console.error('[AdClickLoggingError]', err);
+      logger.error('LocalEducationAd', 'Failed to log ad click', undefined, err);
     }
   };
 
