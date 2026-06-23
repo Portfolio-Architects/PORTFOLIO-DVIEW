@@ -496,6 +496,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   }, [report.metrics, isAnimationFinished]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (mounted) {
       const timer = setTimeout(() => {
         setIsAnimationFinished(true);
@@ -939,6 +940,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // ── 비동기 실거래가 분석 및 밸류에이션 계산 파이프라인 (requestIdleCallback 활용) ──
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!isAnimationFinished || !rawTransactions || rawTransactions.length === 0) {
       setCalculatedTransactions([]);
       setCalculatedValuation({ status: 'fair', amount: '0', ratio: 0, priceStr: '0' });
