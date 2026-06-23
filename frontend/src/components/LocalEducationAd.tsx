@@ -35,6 +35,7 @@ const LocalEducationAd = React.memo(function LocalEducationAd({ dong = '', educa
   const mountedRef = React.useRef(true);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     mountedRef.current = true;
     const controller = new AbortController();
 

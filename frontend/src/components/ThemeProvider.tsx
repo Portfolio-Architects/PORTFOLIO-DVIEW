@@ -7,6 +7,7 @@ function ThemeColorUpdater() {
   const { resolvedTheme } = useTheme();
 
   React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!resolvedTheme) return;
 
     // Dark mode uses #121212, Light mode uses #ffffff
