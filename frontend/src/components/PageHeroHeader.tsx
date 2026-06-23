@@ -28,6 +28,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
   const [hasModalOpen, setHasModalOpen] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let scrollFrame: number | null = null;
     const handleScroll = () => {
       if (scrollFrame) return;
