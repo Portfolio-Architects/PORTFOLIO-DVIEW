@@ -47,6 +47,7 @@ export const TransactionTable = React.memo(function TransactionTable({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let debounceTimer: NodeJS.Timeout | null = null;
     const checkIsDesktop = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -106,6 +107,7 @@ export const TransactionTable = React.memo(function TransactionTable({
 
   // Close dropdown on outside click
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!activeDropdown) return;
     const handleClickOutside = (e: MouseEvent) => {
       setActiveDropdown(null);

@@ -57,6 +57,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     const getScrollTop = () => {
       if (scrollContainerId) {
         const el = document.getElementById(scrollContainerId);

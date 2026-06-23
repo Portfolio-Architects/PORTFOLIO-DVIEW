@@ -28,6 +28,7 @@ export function useSwipeNavigation({
   });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!enabled) return;
 
     const handleTouchStart = (e: TouchEvent) => {

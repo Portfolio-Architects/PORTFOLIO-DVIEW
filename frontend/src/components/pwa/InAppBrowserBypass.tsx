@@ -35,6 +35,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
