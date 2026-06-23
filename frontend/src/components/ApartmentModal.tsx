@@ -20,6 +20,7 @@ import { createPortal } from 'react-dom';
 import { postConverter } from '@/lib/utils/firestoreConverters';
 import { safeReload } from '@/lib/utils/safeReload';
 import { TransactionListSchema } from '@/lib/validation/facade.schemas';
+import { logger } from '@/lib/services/logger';
 
 const CommentSkeleton = () => (
   <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
@@ -79,7 +80,7 @@ const ViralPaywallSkeleton = () => (
 );
 
 const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
-  console.warn('CommentSection Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'CommentSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('CommentSection');
   return { default: () => null };
 }), { 
@@ -91,7 +92,7 @@ import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
 const ViralPaywallGate = dynamic(() => import('./apartment-modal/ViralPaywallGate').catch(err => {
-  console.warn('ViralPaywallGate Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'ViralPaywallGate Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ViralPaywallGate');
   return { default: () => null };
 }), { 
@@ -99,7 +100,7 @@ const ViralPaywallGate = dynamic(() => import('./apartment-modal/ViralPaywallGat
   loading: () => <ViralPaywallSkeleton />
 });
 const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyReport').catch(err => {
-  console.warn('JeonseSafetyReport Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'JeonseSafetyReport Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('JeonseSafetyReport');
   return { default: () => null };
 }), { 
@@ -107,7 +108,7 @@ const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyR
   loading: () => <JeonseSafetySkeleton />
 });
 const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection).catch(err => {
-  console.warn('TransactionChartSection Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'TransactionChartSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('TransactionChartSection');
   return () => null;
 }), {
@@ -121,7 +122,7 @@ const TransactionChartSection = dynamic(() => import('./apartment-modal/Transact
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
-  console.warn('PhotoUploadModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'PhotoUploadModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('PhotoUploadModal');
   return () => null;
 }), { ssr: false });
@@ -129,7 +130,7 @@ import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
 import { trackEvent } from '@/lib/utils/analytics';
 const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
-  console.warn('BuyOrWaitVote Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'BuyOrWaitVote Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('BuyOrWaitVote');
   return { default: () => null };
 }), { 
@@ -151,7 +152,7 @@ import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 
 import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
 const EducationAnalysisSection = dynamic(() => import('./apartment-modal/EducationAnalysisSection').catch(err => {
-  console.warn('EducationAnalysisSection Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'EducationAnalysisSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('EducationAnalysisSection');
   return { default: () => null };
 }), { 
@@ -159,7 +160,7 @@ const EducationAnalysisSection = dynamic(() => import('./apartment-modal/Educati
   loading: () => <EducationAnalysisSkeleton />
 });
 const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalysisSection').catch(err => {
-  console.warn('InfraAnalysisSection Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'InfraAnalysisSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('InfraAnalysisSection');
   return { default: () => null };
 }), { 
@@ -167,7 +168,7 @@ const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalys
   loading: () => <InfraAnalysisSkeleton />
 });
 const ScoutingReportDetailSection = dynamic(() => import('./apartment-modal/ScoutingReportDetailSection').catch(err => {
-  console.warn('ScoutingReportDetailSection Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'ScoutingReportDetailSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ScoutingReportDetailSection');
   return { default: () => null };
 }), { 
@@ -176,7 +177,7 @@ const ScoutingReportDetailSection = dynamic(() => import('./apartment-modal/Scou
 });
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics').catch(err => {
-  console.warn('AdvancedValuationMetrics Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'AdvancedValuationMetrics Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AdvancedValuationMetrics');
   return { default: () => null };
 }), { 
@@ -184,7 +185,7 @@ const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/Adv
   loading: () => <AdvancedValuationSkeleton />
 });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard').catch(err => {
-  console.warn('AnchorTenantCard Chunk Load failure, initiating fallback reload', err);
+  logger.warn('ApartmentModal.dynamic', 'AnchorTenantCard Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AnchorTenantCard');
   return { default: () => null };
 }), { 
@@ -780,7 +781,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         setFilterOutliers(false);
       }
     } catch (e) {
-      console.warn('localStorage is unavailable:', e);
+      logger.warn('ApartmentModal.localStorage', 'localStorage is unavailable', undefined, e);
     }
   }, []);
 
@@ -790,7 +791,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       try {
         localStorage.setItem('dview_filter_outliers', String(next));
       } catch (e) {
-        console.warn('Failed to set dview_filter_outliers to localStorage:', e);
+        logger.warn('ApartmentModal.localStorage', 'Failed to set dview_filter_outliers to localStorage', undefined, e);
       }
       return next;
     });
@@ -915,7 +916,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         }
       } catch (err) {
         if (active) {
-          console.error('Failed to fetch matching manager post in modal:', err);
+          logger.error('ApartmentModal.fetchPost', 'Failed to fetch matching manager post in modal', undefined, err);
         }
       }
     };
@@ -1379,17 +1380,17 @@ const FieldReportModal = React.memo(function FieldReportModal({
           a.click();
           document.body.removeChild(a);
         } catch (e) {
-          console.error('Canvas tainting or drawing error:', e);
+          logger.error('ApartmentModal.downloadImage', 'Canvas tainting or drawing error', undefined, e);
           window.open(imageUrl, '_blank', 'noopener,noreferrer');
         }
       };
       
       img.onerror = () => {
-        console.warn('Canvas download failed due to load error, falling back to original image.');
+        logger.warn('ApartmentModal.downloadImage', 'Canvas download failed due to load error, falling back to original image');
         window.open(imageUrl, '_blank', 'noopener,noreferrer');
       };
     } catch (error) {
-      console.error('Failed to download watermarked image', error);
+      logger.error('ApartmentModal.downloadImage', 'Failed to download watermarked image', undefined, error);
       window.open(imageUrl, '_blank', 'noopener,noreferrer');
     }
   };
@@ -1553,7 +1554,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         incrementViralShareCount();
       }
     } catch (error) {
-      console.error("Kakao share card generation failed:", error);
+      logger.error('ApartmentModal.shareKakao', 'Kakao share card generation failed', undefined, error);
       if (mountedRef.current) {
         showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
       }
@@ -1659,7 +1660,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         showToast("이미지 캡처 대상을 찾을 수 없습니다.");
       }
     } catch (error) {
-      console.error("Image card download failed:", error);
+      logger.error('ApartmentModal.downloadCard', 'Image card download failed', undefined, error);
       if (mountedRef.current) {
         showToast("이미지 저장 중 오류가 발생했습니다. 상단의 '단톡방 요약 복사'를 통해 텍스트로 공유해 보세요!");
       }
@@ -1729,7 +1730,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
       navigator.clipboard.writeText(shareUrl).then(executeSuccess).catch((err) => {
-        console.warn("Clipboard API failed, trying fallback copy:", err);
+        logger.warn('ApartmentModal.copyLink', 'Clipboard API failed, trying fallback copy', undefined, err);
         if (fallbackCopyTextToClipboard(shareUrl)) {
           executeSuccess();
         } else {
@@ -1842,7 +1843,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          console.error("Native share failed:", err);
+          logger.error('ApartmentModal.nativeShare', 'Native share failed', undefined, err);
           handleCopyLink();
         }
       }
@@ -1919,7 +1920,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         });
         incrementViralShareCount();
       } catch (e) {
-        console.error(e);
+        logger.error('ApartmentModal.shareSection.childcare', 'Failed to share childcare section to Kakao', undefined, e);
       }
     } else if (infraScoreInfo) {
       const grade = infraScoreInfo.grade;
@@ -1984,7 +1985,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         });
         incrementViralShareCount();
       } catch (e) {
-        console.error(e);
+        logger.error('ApartmentModal.shareSection.infra', 'Failed to share infra section to Kakao', undefined, e);
       }
     }
   };
@@ -2718,7 +2719,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 }));
                 alert('대표 썸네일이 변경되었습니다. 새로고침 시 반영됩니다.');
               } catch (err) {
-                console.error(err);
+                logger.error('ApartmentModal.setThumbnail', 'Failed to set thumbnail', { reportId: report.id, thumbnailUrl: currentImgData.url }, err);
                 alert('썸네일 설정에 실패했습니다.');
               }
             }}
