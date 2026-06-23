@@ -27,13 +27,15 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
     console.log(`%c[Analytics Event] ${eventName}`, 'color: #00d29d; font-weight: bold;', params);
   }
 
-  // Send to GA4 via @next/third-parties/google
-  try {
-    sendGAEvent({
-      event: eventName,
-      ...params,
-    });
-  } catch (err) {
-    console.error('Failed to send GA event:', err);
+  // Send to GA4 via @next/third-parties/google only when initialized (production & GA_ID provided)
+  if (process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production') {
+    try {
+      sendGAEvent({
+        event: eventName,
+        ...params,
+      });
+    } catch (err) {
+      console.error('Failed to send GA event:', err);
+    }
   }
 }
