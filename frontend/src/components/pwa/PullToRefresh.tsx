@@ -144,8 +144,8 @@ const PullToRefresh = React.memo(function PullToRefresh({
     if (element) {
       element.addEventListener('touchstart', handleTouchStart, { passive: true });
       element.addEventListener('touchmove', handleTouchMove, { passive: false });
-      element.addEventListener('touchend', handleTouchEnd);
-      element.addEventListener('touchcancel', handleTouchCancel);
+      element.addEventListener('touchend', handleTouchEnd, { passive: true });
+      element.addEventListener('touchcancel', handleTouchCancel, { passive: true });
     }
 
     return () => {

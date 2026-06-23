@@ -29,7 +29,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
       }
     };
 
-    vv.addEventListener('resize', handleResize);
+    vv.addEventListener('resize', handleResize, { passive: true });
     // Initial trigger
     handleResize();
 
