@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Upload, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from 'lucide-react';
 import { db } from '@/lib/firebaseConfig';
+import { logger } from '@/lib/services/logger';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { uploadImage } from '@/lib/services/storage.service';
 import { throttle } from '@/lib/utils/firestoreThrottle';
@@ -168,7 +169,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
       }, 2000);
       
     } catch (error) {
-      console.error('Upload failed:', error);
+      logger.error('PhotoUploadModal', 'Upload failed', { apartmentId, apartmentName }, error);
       alert('업로드 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       if (mountedRef.current) {

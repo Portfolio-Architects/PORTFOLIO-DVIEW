@@ -9,6 +9,7 @@ import { findTxKey, normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apar
 import { getBrandMultiplier } from '@/lib/utils/scoring';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
+import { logger } from '@/lib/services/logger';
 
 const LOADING_TEXTS = [
   '1단계: 동탄 아파트 180여 개 단지 데이터 로드 중...',
@@ -196,7 +197,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
         localCache.set('dview_quiz_answers', answers, 604800); // 7 days TTL
         window.dispatchEvent(new Event('dview_quiz_answers_changed'));
       } catch (e) {
-        console.warn('LocalStorage save error (quiz answers):', e);
+        logger.warn('AptFitFinder', 'LocalStorage save error (quiz answers)', undefined, e);
       }
     }
   }, [step, answers]);
@@ -229,7 +230,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
       localCache.remove('dview_quiz_answers');
       window.dispatchEvent(new Event('dview_quiz_answers_changed'));
     } catch (e) {
-      console.warn('LocalStorage remove error (quiz answers):', e);
+      logger.warn('AptFitFinder', 'LocalStorage remove error (quiz answers)', undefined, e);
     }
     setAnswers({
       budget: '',
@@ -263,7 +264,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
         }
       }, 2000);
     }).catch(err => {
-      console.error('Failed to copy share link:', err);
+      logger.error('AptFitFinder', 'Failed to copy share link', undefined, err);
     });
   };
 

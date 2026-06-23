@@ -12,6 +12,7 @@ import { calculateVerdictScore, calculateCapitalGainsTax, VerdictResult, TaxResu
 import { shareSellTimingToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { logger } from '@/lib/services/logger';
 
 interface SellTimingCalculatorProps {
   isOpen: boolean;
@@ -170,7 +171,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
           }
         }
       } catch (e) {
-        console.warn('Failed to parse quiz answers in SellTimingCalculator:', e);
+        logger.warn('SellTimingCalculator', 'Failed to parse quiz answers', undefined, e);
       }
     } else {
       setShowResult(false);
@@ -321,7 +322,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         timestamp: serverTimestamp()
       };
       throttle(() => addDoc(collection(db, 'sell_diagnosis_logs'), logData)).catch(err => {
-        console.warn('[CPA Tracker] Failed to log sell diagnosis:', err);
+        logger.warn('SellTimingCalculator', '[CPA Tracker] Failed to log sell diagnosis', { apartmentName: selectedApt?.name }, err);
       });
     }
 
@@ -417,7 +418,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         timestamp: serverTimestamp()
       };
       throttle(() => addDoc(collection(db, 'ad_clicks'), clickLog)).catch(err => {
-        console.warn('[CPA Tracker] Failed to log ad click:', err);
+        logger.warn('SellTimingCalculator', '[CPA Tracker] Failed to log ad click', { apartmentName: selectedApt?.name, adType }, err);
       });
     }
 

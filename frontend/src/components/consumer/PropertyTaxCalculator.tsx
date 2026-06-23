@@ -9,6 +9,7 @@ import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apar
 import { shareTaxToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { logger } from '@/lib/services/logger';
 
 interface PropertyTaxCalculatorProps {
   isOpen: boolean;
@@ -149,7 +150,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
           }
         }
       } catch (e) {
-        console.warn('Failed to parse quiz answers in PropertyTaxCalculator:', e);
+        logger.warn('PropertyTaxCalculator', 'Failed to parse quiz answers', undefined, e);
       }
     } else {
       // Reset state on close

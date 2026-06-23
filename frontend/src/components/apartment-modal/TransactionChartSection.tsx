@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { logger } from '@/lib/services/logger';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -464,7 +465,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error("Failed to capture chart:", err);
+      logger.error('TransactionChartSection', 'Failed to capture chart', { apartmentName: displayAptName, chartType }, err);
       alert("차트 이미지 저장에 실패했습니다.");
     }
   };

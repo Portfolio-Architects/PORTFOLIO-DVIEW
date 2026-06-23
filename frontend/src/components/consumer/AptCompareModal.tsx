@@ -11,6 +11,7 @@ import { shareCompareToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { BUILD_VERSION } from '@/lib/build-version';
+import { logger } from '@/lib/services/logger';
 
 interface AptCompareModalProps {
   isOpen: boolean;
@@ -271,7 +272,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
           .filter((a): a is DongApartment => !!a);
         setRecentApts(matched);
       } catch (e) {
-        console.error('Error loading recent apartments', e);
+        logger.error('AptCompareModal', 'Error loading recent apartments', undefined, e);
       }
     }
   }, [isOpen, allApartments]);
@@ -283,7 +284,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
         const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
         setQuizAnswers(answers);
       } catch (e) {
-        console.warn('Failed to parse quiz answers in AptCompareModal:', e);
+        logger.warn('AptCompareModal', 'Failed to parse quiz answers', undefined, e);
       }
     };
     if (isOpen) {
@@ -305,7 +306,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
       try {
         localCache.set('dview_compare_recent', updated.map(a => a.name), 604800); // 7 days TTL
       } catch (e) {
-        console.error('Error saving recent apartment', e);
+        logger.error('AptCompareModal', 'Error saving recent apartment', { apartmentName: apt.name }, e);
       }
       return updated;
     });

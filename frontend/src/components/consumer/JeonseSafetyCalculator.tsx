@@ -9,6 +9,7 @@ import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apar
 import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { logger } from '@/lib/services/logger';
 
 interface JeonseSafetyCalculatorProps {
   isOpen: boolean;
@@ -187,7 +188,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
           }
         }
       } catch (e) {
-        console.warn('Failed to parse quiz answers in JeonseSafetyCalculator:', e);
+        logger.warn('JeonseSafetyCalculator', 'Failed to parse quiz answers', undefined, e);
       }
     } else {
       setShowResult(false);

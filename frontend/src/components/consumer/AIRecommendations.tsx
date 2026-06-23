@@ -9,6 +9,7 @@ import type { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
+import { logger } from '@/lib/services/logger';
 
 interface AIRecommendationsProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -660,7 +661,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
           copyTimeoutRef.current = null;
         }
       }, 2000);
-    }).catch(err => console.error('Link copy failed:', err));
+    }).catch(err => logger.error('AIRecommendations', 'Link copy failed', undefined, err));
   };
 
   const priceFormatter = (priceMan: number) => {

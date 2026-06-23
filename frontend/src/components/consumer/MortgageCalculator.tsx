@@ -10,6 +10,7 @@ import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apar
 import { shareMortgageToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { logger } from '@/lib/services/logger';
 
 interface MortgageCalculatorProps {
   isOpen: boolean;
@@ -166,7 +167,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
           }
         }
       } catch (e) {
-        console.warn('Failed to parse quiz answers in MortgageCalculator:', e);
+        logger.warn('MortgageCalculator', 'Failed to parse quiz answers', undefined, e);
       }
     } else {
       // Reset state on close

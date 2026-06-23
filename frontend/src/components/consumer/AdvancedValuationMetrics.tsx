@@ -8,6 +8,7 @@ import { calculateDynamicDCF, calculateDongSpread, calculateForwardJeonseTraject
 import { MACRO_CONFIG } from '@/lib/macro-summary';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { logger } from '@/lib/services/logger';
 
 interface TxRecord {
   dealType?: string;
@@ -212,7 +213,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
         }
       } catch (err) {
         if (active) {
-          console.error('Failed to load valuation overrides:', err);
+          logger.error('AdvancedValuationMetrics', 'Failed to load valuation overrides', { apartmentName: report.apartmentName }, err);
         }
       }
     };
@@ -243,7 +244,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
           return;
         }
         if (active) {
-          console.error('Failed to fetch real-time macro rates:', err);
+          logger.error('AdvancedValuationMetrics', 'Failed to fetch real-time macro rates', undefined, err);
         }
       }
     };
@@ -458,7 +459,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
         }
       }, 2000);
     }).catch(err => {
-      console.error('시나리오 복사 실패:', err);
+      logger.error('AdvancedValuationMetrics', 'Failed to copy scenario', undefined, err);
     });
   };
 

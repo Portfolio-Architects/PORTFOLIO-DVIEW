@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ThumbsUp, HelpCircle, Users, Check } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
+import { logger } from '@/lib/services/logger';
 
 interface BuyOrWaitVoteProps {
   aptName: string;
@@ -80,7 +81,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           setUserVote(null);
         }
       } catch (e) {
-        console.warn('localStorage is unavailable:', e);
+        logger.warn('BuyOrWaitVote', 'localStorage is unavailable', { aptName }, e);
       }
     }
   }, [aptName, localStorageKey]);
@@ -110,7 +111,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
         try {
           localStorage.setItem(localStorageKey, type);
         } catch (e) {
-          console.warn('Failed to save vote to localStorage:', e);
+          logger.warn('BuyOrWaitVote', 'Failed to save vote to localStorage', { aptName, voteType: type }, e);
         }
         if (mountedRef.current) {
           setHasVoted(true);
@@ -123,7 +124,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
         }, false);
       }
     } catch (err) {
-      console.error('Failed to submit vote:', err);
+      logger.error('BuyOrWaitVote', 'Failed to submit vote', { aptName, voteType: type }, err);
     } finally {
       cooldownTimeoutRef.current = setTimeout(() => {
         isSubmittingRef.current = false;

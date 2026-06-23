@@ -5,6 +5,7 @@ import { X, Send, GraduationCap, Brush, Sparkles, Phone, MessageSquare, Calendar
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import { logger } from '@/lib/services/logger';
 
 interface B2BConsumerAdModalProps {
   onClose: () => void;
@@ -115,7 +116,7 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
         }
       }, 2500);
     } catch (error) {
-      console.error('Error submitting B2B Lead:', error);
+      logger.error('B2BConsumerAdModal', 'Error submitting B2B Lead', { adType, adTitle, apartmentName }, error);
       alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       if (mountedRef.current) {

@@ -4,6 +4,7 @@ import React, { useTransition } from 'react';
 import { Sparkles, Shield, GraduationCap, Brush, ExternalLink } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { logger } from '@/lib/services/logger';
 import { getContextualAd } from '@/lib/utils/ContextualAdEngine';
 
 interface ContextualB2BAdBannerProps {
@@ -75,7 +76,7 @@ const ContextualB2BAdBanner = React.memo(function ContextualB2BAdBanner({
       };
       
       addDoc(collection(db, 'ad_clicks'), clickLog).catch(err => {
-        console.warn('[CPA Tracker] Failed to log ad click:', err);
+        logger.warn('ContextualB2BAdBanner', '[CPA Tracker] Failed to log ad click', { apartmentName, adType: ad.adType }, err);
       });
     }
 
