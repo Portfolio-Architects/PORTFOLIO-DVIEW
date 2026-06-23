@@ -289,10 +289,32 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       });
     }
 
+    let registeredReg: ServiceWorkerRegistration | null = null;
+    let registeredWorker: ServiceWorker | null = null;
+
+    const handleStateChange = () => {
+      if (registeredWorker && registeredWorker.state === 'installed' && registeredReg && registeredReg.waiting) {
+        setSwUpdateAvailable(true);
+      }
+    };
+
+    const handleUpdateFound = () => {
+      if (!registeredReg) return;
+      const newWorker = registeredReg.installing;
+      if (newWorker) {
+        if (registeredWorker) {
+          registeredWorker.removeEventListener('statechange', handleStateChange);
+        }
+        registeredWorker = newWorker;
+        newWorker.addEventListener('statechange', handleStateChange);
+      }
+    };
+
     // 🔧 SW Update monitor
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
       navigator.serviceWorker.ready.then((reg) => {
         if (!isMounted) return;
+        registeredReg = reg;
         
         // 1. If SW is already waiting to activate
         if (reg.waiting) {
@@ -300,16 +322,15 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         }
 
         // 2. If new SW installation completes
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && reg.waiting) {
-                setSwUpdateAvailable(true);
-              }
-            });
-          }
-        });
+        reg.addEventListener('updatefound', handleUpdateFound);
+        
+        // Also listen to statechange on current installing worker if present
+        if (reg.installing) {
+          registeredWorker = reg.installing;
+          registeredWorker.addEventListener('statechange', handleStateChange);
+        }
+      }).catch((err) => {
+        console.warn('[PWAProvider] serviceWorker.ready failed in update monitor:', err);
       });
     }
 
@@ -320,6 +341,14 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('online', handleOnlineStatus);
       window.removeEventListener('offline', handleOfflineStatus);
+      
+      if (registeredReg) {
+        registeredReg.removeEventListener('updatefound', handleUpdateFound);
+      }
+      if (registeredWorker) {
+        registeredWorker.removeEventListener('statechange', handleStateChange);
+      }
+
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         try {
           navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
