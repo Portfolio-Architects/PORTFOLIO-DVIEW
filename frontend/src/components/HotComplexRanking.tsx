@@ -134,6 +134,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
 
   // 랭킹 배너 자동 롤링 setInterval 타이머 unmount 시점 clearTimeout/clearInterval 안전 클린업 검증 탑재
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (recentList.length === 0) return;
     
     let intervalId: NodeJS.Timeout | null = null;
