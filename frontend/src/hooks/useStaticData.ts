@@ -310,7 +310,7 @@ export function useTxData(
       trendColor: string;
       badge: string;
     };
-  }>(shouldFetch ? '/data/tx-summary.json' : null, fetcher, {
+  }>(shouldFetch ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, fetcher, {
     fallbackData: (initialTxSummary && Object.keys(initialTxSummary).length > 0) ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
     revalidateOnFocus: false,
     revalidateIfStale: true,

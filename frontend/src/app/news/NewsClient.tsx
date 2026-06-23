@@ -85,7 +85,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
     fetcher,
     { 
       revalidateOnFocus: false, 
-      dedupingInterval: 60000,
+      dedupingInterval: 300000,
       fallbackData: initialNews ? { data: initialNews } : undefined
     }
   );
@@ -96,7 +96,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
     fetcher,
     { 
       revalidateOnFocus: false, 
-      dedupingInterval: 60000,
+      dedupingInterval: 300000,
       fallbackData: initialNotices ? { notices: initialNotices } : undefined
     }
   );

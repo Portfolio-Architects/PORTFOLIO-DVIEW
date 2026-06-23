@@ -438,10 +438,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
     return Object.values(sheetApartments).flat().map(a => a.name).sort();
   }, [sheetApartments, timelineDongFilter]);
-  const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
-  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 120000 });
+  const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
+  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
   const { locationScores } = useLocationScores();
-  const { data: postsData } = useSWR('/api/posts?limit=50', fetcher, { revalidateOnFocus: false, dedupingInterval: 30000 });
+  const { data: postsData } = useSWR('/api/posts?limit=50', fetcher, { revalidateOnFocus: false, dedupingInterval: 180000 });
   const noticesLoading = !noticesData && !noticesError;
 
 

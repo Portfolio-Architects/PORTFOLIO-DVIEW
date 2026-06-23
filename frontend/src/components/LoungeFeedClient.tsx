@@ -170,6 +170,10 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       fallbackData: initialPosts ? [initialPosts] : undefined,
       revalidateFirstPage: false,
       persistSize: true,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 180000
     }
   );
 

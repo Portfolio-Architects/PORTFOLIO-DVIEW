@@ -240,7 +240,6 @@ interface StaticApartment { name: string; dong: string; householdCount?: number;
 import { isSameApartment, normalizeAptName, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
 import { getDisplayName } from '@/lib/types/user.types';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';

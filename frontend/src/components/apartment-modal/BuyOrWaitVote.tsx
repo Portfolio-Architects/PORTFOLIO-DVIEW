@@ -59,7 +59,13 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
 
   const { data, error, isLoading, mutate: mutateVote } = useSWR(
     aptName ? `/api/apartments/vote?aptName=${encodeURIComponent(aptName)}` : null,
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 300000
+    }
   );
 
   useEffect(() => {
