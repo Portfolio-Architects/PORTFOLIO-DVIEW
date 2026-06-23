@@ -569,6 +569,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   // 바텀 시트 및 퀴즈 오픈 시 body 스크롤 방지
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (isBottomSheetOpen || isQuizOpen) {
       document.body.style.overflow = 'hidden';
     } else {
