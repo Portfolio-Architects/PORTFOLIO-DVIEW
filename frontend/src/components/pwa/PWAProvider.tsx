@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useRe
 import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { initSafeReloadDiagnostics } from '@/lib/utils/safeReload';
+import { logger } from '@/lib/services/logger';
 
 
 
@@ -187,12 +188,12 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // 🔧 Multi-tab Service Worker lifecycle update synchronization
     const handleControllerChange = () => {
-      console.log('[PWAProvider] Service Worker controller changed. Reloading page to apply updates...');
+      logger.info('PWAProvider', 'Service Worker controller changed. Reloading page to apply updates...');
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         try {
           navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
         } catch (err) {
-          console.warn('[PWAProvider] Failed to remove controllerchange listener during reload:', err);
+          logger.warn('PWAProvider', 'Failed to remove controllerchange listener during reload', undefined, err);
         }
       }
       window.location.reload();
@@ -213,13 +214,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // 🔧 Online status restoration manual queue replay
     const handleOnlineStatus = () => {
-      console.log('[PWAProvider] Network restored. Triggering manual offline sync queue replay...');
+      logger.info('PWAProvider', 'Network restored. Triggering manual offline sync queue replay...');
       retryOfflineRequests();
       // 온라인 복구 시 만료 캐시 경고창 자동 해제
       setShowCacheExpiredModal(false);
     };
     const handleOfflineStatus = () => {
-      console.log('[PWAProvider] Network connection lost.');
+      logger.info('PWAProvider', 'Network connection lost.');
     };
     window.addEventListener('online', handleOnlineStatus);
     window.addEventListener('offline', handleOfflineStatus);
@@ -281,11 +282,11 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           reg.pushManager.getSubscription().then((sub) => {
             if (isMounted && sub) setPushSubscription(sub);
           }).catch((err) => {
-            console.warn('[PWAProvider] getSubscription failed:', err);
+            logger.warn('PWAProvider', 'getSubscription failed', undefined, err);
           });
         }
       }).catch((err) => {
-        console.warn('[PWAProvider] serviceWorker.ready failed:', err);
+        logger.warn('PWAProvider', 'serviceWorker.ready failed', undefined, err);
       });
     }
 
@@ -330,7 +331,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           registeredWorker.addEventListener('statechange', handleStateChange);
         }
       }).catch((err) => {
-        console.warn('[PWAProvider] serviceWorker.ready failed in update monitor:', err);
+        logger.warn('PWAProvider', 'serviceWorker.ready failed in update monitor', undefined, err);
       });
     }
 
@@ -354,7 +355,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
           navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
         } catch (err) {
-          console.warn('[PWAProvider] Cleanup failed for serviceWorker listeners:', err);
+          logger.warn('PWAProvider', 'Cleanup failed for serviceWorker listeners', undefined, err);
         }
       }
     };
@@ -405,7 +406,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       try {
         permission = await Notification.requestPermission();
       } catch (permErr) {
-        console.warn('[PWAProvider] Notification.requestPermission standard promise call failed, trying callback fallback:', permErr);
+        logger.warn('PWAProvider', 'Notification.requestPermission standard promise call failed, trying callback fallback', undefined, permErr);
         permission = await new Promise<NotificationPermission>((resolve) => {
           Notification.requestPermission(resolve);
         });
@@ -444,7 +445,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
             showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다 💚');
           }
         } catch (err) {
-          console.error('Failed to enqueue push subscription', err);
+          logger.error('PWAProvider', 'Failed to enqueue push subscription', undefined, err);
         }
       } else {
         try {
@@ -453,9 +454,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ subscription: sub, uid: uid || null })
           });
-          console.log('Push Subscribed & Saved:', JSON.stringify(sub));
+          logger.info('PWAProvider', 'Push Subscribed & Saved', { subscription: JSON.stringify(sub) });
         } catch (fetchErr) {
-          console.warn('Failed to save push subscription online, queuing offline', fetchErr);
+          logger.warn('PWAProvider', 'Failed to save push subscription online, queuing offline', undefined, fetchErr);
           try {
             await enqueueOfflineRequest({
               url: '/api/push/subscribe',
@@ -466,13 +467,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
               showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다 💚');
             }
           } catch (err) {
-            console.error('Failed to enqueue push subscription after fetch failure', err);
+            logger.error('PWAProvider', 'Failed to enqueue push subscription after fetch failure', undefined, err);
           }
         }
       }
       return true;
     } catch (error) {
-      console.error('Error subscribing to push', error);
+      logger.error('PWAProvider', 'Error subscribing to push', undefined, error);
       return false;
     }
   };

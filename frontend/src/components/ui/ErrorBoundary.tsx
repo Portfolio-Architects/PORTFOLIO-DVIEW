@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 interface Props {
   children: ReactNode;
@@ -42,17 +43,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleOnline = () => {
     if (this.state.hasError) {
-      console.log(`[ErrorBoundary:${this.props.name || 'Global'}] Network restored. Triggering self-healing auto-recovery...`);
+      logger.info('ErrorBoundary', `[ErrorBoundary:${this.props.name || 'Global'}] Network restored. Triggering self-healing auto-recovery...`);
       this.handleReset();
     }
   };
 
   private handleOffline = () => {
-    console.log(`[ErrorBoundary:${this.props.name || 'Global'}] Network offline.`);
+    logger.info('ErrorBoundary', `[ErrorBoundary:${this.props.name || 'Global'}] Network offline.`);
   };
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`[ErrorBoundary:${this.props.name || 'Global'}] Caught error:`, error, errorInfo);
+    logger.error('ErrorBoundary', `[ErrorBoundary:${this.props.name || 'Global'}] Caught error`, { errorInfo: errorInfo as any }, error);
   }
 
   private handleReset = () => {
