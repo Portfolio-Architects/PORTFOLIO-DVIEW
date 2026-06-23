@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useTransition, useRef } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
+import { logger } from '@/lib/services/logger';
 import { Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export interface AdInquiry {
@@ -72,7 +73,9 @@ const InquiriesPage = React.memo(function InquiriesPage() {
     try {
       await updateDoc(doc(db, 'adInquiries', id), { status: currentStatus === 'pending' ? 'reviewed' : 'pending' });
     } catch (e) {
-      if (mountedRef.current) console.error(e);
+      if (mountedRef.current) {
+        logger.error('AdminInquiriesPage', 'Failed to toggle inquiry status', { id, currentStatus }, e);
+      }
     }
   };
 
@@ -82,7 +85,9 @@ const InquiriesPage = React.memo(function InquiriesPage() {
     try {
       await deleteDoc(doc(db, 'adInquiries', id));
     } catch (e) {
-      if (mountedRef.current) console.error(e);
+      if (mountedRef.current) {
+        logger.error('AdminInquiriesPage', 'Failed to delete inquiry', { id }, e);
+      }
     }
   };
 
@@ -94,7 +99,9 @@ const InquiriesPage = React.memo(function InquiriesPage() {
         updatedAt: new Date()
       });
     } catch (e) {
-      if (mountedRef.current) console.error(e);
+      if (mountedRef.current) {
+        logger.error('AdminInquiriesPage', 'Failed to toggle subscription status', { id, currentStatus }, e);
+      }
     }
   };
 
@@ -104,7 +111,9 @@ const InquiriesPage = React.memo(function InquiriesPage() {
     try {
       await deleteDoc(doc(db, 'subscriptions', id));
     } catch (e) {
-      if (mountedRef.current) console.error(e);
+      if (mountedRef.current) {
+        logger.error('AdminInquiriesPage', 'Failed to delete subscription', { id }, e);
+      }
     }
   };
 

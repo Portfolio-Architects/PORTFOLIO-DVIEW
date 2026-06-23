@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, useRef } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
+import { logger } from '@/lib/services/logger';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
@@ -19,7 +20,7 @@ import { useTxData } from '@/hooks/useStaticData';
 import { safeReload } from '@/lib/utils/safeReload';
 
 const ValuationTuner = dynamic(() => import('@/components/admin/ValuationTuner').then(m => m.ValuationTuner).catch(err => {
-  console.warn('ValuationTuner Chunk Load failure, initiating fallback reload', err);
+  logger.warn('AdminPage', 'ValuationTuner Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ValuationTuner');
   return { default: () => null };
 }), {
@@ -124,7 +125,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
         });
         setReportsByApt(byApt);
       } catch (err) {
-        console.error('Failed to load scouting reports:', err);
+        logger.error('AdminPage', 'Failed to load scouting reports', undefined, err);
       }
     };
     loadReports();
@@ -177,7 +178,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
         if (Object.keys(fbMap).length > 0) return fbMap;
       }
     } catch (fbErr) {
-      console.error('Firestore cache read failed, falling back to API:', fbErr);
+      logger.error('AdminPage', 'Firestore cache read failed, falling back to API', undefined, fbErr);
     }
 
     try {
@@ -204,7 +205,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       }
       return sheetMap;
     } catch (e) {
-      console.error('Failed to load sheets, trying static fallback:', e);
+      logger.error('AdminPage', 'Failed to load sheets, trying static fallback', undefined, e);
       const staticMap: MetaMap = {};
       for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
         apts.forEach(aptName => {
@@ -246,7 +247,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       }
     } catch (e: any) {
       if (mountedRef.current) {
-        console.error('Sync error:', e);
+        logger.error('AdminPage', 'Sync error', undefined, e);
         alert('동기화 중 오류가 발생했습니다: ' + e.message);
       }
     } finally {
@@ -272,7 +273,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       }
     } catch (e: any) {
       if (mountedRef.current) {
-        console.error('Notice sync error:', e);
+        logger.error('AdminPage', 'Notice sync error', undefined, e);
         alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
       }
     } finally {
@@ -316,7 +317,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       alert(`리포트 동기화 완료!\n- 동기화된 리포트: ${totalUpdated}건`);
     } catch (e: any) {
       if (mountedRef.current) {
-        console.error('Reports sync error:', e);
+        logger.error('AdminPage', 'Reports sync error', undefined, e);
         alert('리포트 동기화 중 오류가 발생했습니다: ' + e.message);
       }
     } finally {
@@ -368,7 +369,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       alert('Google Sheets 데이터를 성공적으로 가져왔습니다!\n변경 사항을 저장하려면 하단의 "저장하기" 버튼을 눌러주세요.');
     } catch (e: any) {
       if (mountedRef.current) {
-        console.error('Sheets sync error:', e);
+        logger.error('AdminPage', 'Sheets sync error', undefined, e);
         alert('동기화 중 오류가 발생했습니다: ' + e.message);
       }
     } finally {
@@ -513,7 +514,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       }
     } catch (e: unknown) {
       if (mountedRef.current) {
-        console.error('Save failed:', e);
+        logger.error('AdminPage', 'Save failed', undefined, e);
         alert('저장에 실패했습니다: ' + (e as Error).message);
       }
     } finally {

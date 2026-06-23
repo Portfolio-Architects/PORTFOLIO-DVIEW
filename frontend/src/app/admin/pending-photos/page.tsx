@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '@/lib/firebaseConfig';
+import { logger } from '@/lib/services/logger';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc, orderBy } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { Camera, Check, X, Loader2, AlertCircle } from 'lucide-react';
@@ -54,7 +55,7 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
       setPhotos(fetched);
     } catch (error) {
       if (mountedRef.current) {
-        console.error("Error fetching pending photos:", error);
+        logger.error('PendingPhotosPage', 'Error fetching pending photos', undefined, error);
         alert('데이터를 불러오는데 실패했습니다.');
       }
     } finally {
@@ -146,7 +147,7 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
       
     } catch (error) {
       if (mountedRef.current) {
-        console.error("Approval failed:", error);
+        logger.error('PendingPhotosPage', 'Approval failed', { photoId: photo.id }, error);
         alert('승인 처리 중 오류가 발생했습니다.');
       }
     } finally {
@@ -174,7 +175,7 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
         const imageRef = ref(storage, photo.url);
         await deleteObject(imageRef);
       } catch (e) {
-        console.warn('Could not delete image from storage:', e);
+        logger.warn('PendingPhotosPage', 'Could not delete image from storage', { url: photo.url }, e);
       }
 
       if (!mountedRef.current) return;
@@ -183,7 +184,7 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
       setPhotos(prev => prev.filter(p => p.id !== photo.id));
     } catch (error) {
       if (mountedRef.current) {
-        console.error("Rejection failed:", error);
+        logger.error('PendingPhotosPage', 'Rejection failed', { photoId: photo.id }, error);
         alert('거절 처리 중 오류가 발생했습니다.');
       }
     } finally {

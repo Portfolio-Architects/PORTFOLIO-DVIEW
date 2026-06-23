@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import useSWR from 'swr';
+import { logger } from '@/lib/services/logger';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
@@ -205,7 +206,7 @@ const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
         }
       }
     } catch (e) {
-      console.warn('Firestore load failed, trying Sheets:', e);
+      logger.warn('AdminApartmentPage', 'Firestore load failed, trying Sheets', { name: originalName }, e);
     }
 
     try {
@@ -490,7 +491,7 @@ const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
     } catch (e) {
       if (mountedRef.current) {
         alert('자동 출력 중 오류가 발생했습니다.');
-        console.error(e);
+        logger.error('AdminApartmentPage', 'Auto-calculation failed', { name: originalName }, e);
       }
     } finally {
       if (mountedRef.current) {
@@ -735,7 +736,7 @@ const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
       }
     } catch (e: unknown) {
       if (mountedRef.current) {
-        console.error('Save failed:', e);
+        logger.error('AdminApartmentPage', 'Save failed', { name: originalName }, e);
         alert('저장에 실패했습니다: ' + (e as Error).message);
       }
     } finally {
@@ -780,7 +781,7 @@ const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
       }
     } catch (e: unknown) {
       if (mountedRef.current) {
-        console.error('Delete failed:', e);
+        logger.error('AdminApartmentPage', 'Delete failed', { name: originalName }, e);
         alert('삭제에 실패했습니다: ' + (e as Error).message);
       }
     } finally {

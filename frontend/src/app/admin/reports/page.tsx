@@ -1,9 +1,10 @@
 'use client';
 
+import { logger } from '@/lib/services/logger';
 import nextDynamic from 'next/dynamic';
 
 const AnalyticsDashboard = nextDynamic(() => import('@/components/admin/AnalyticsDashboard').catch(err => {
-  console.warn('AnalyticsDashboard Chunk Load failure, initiating fallback reload', err);
+  logger.warn('AdminReportsPage', 'AnalyticsDashboard Chunk Load failure, initiating fallback reload', undefined, err);
   return { default: () => null };
 }), {
   ssr: false,
