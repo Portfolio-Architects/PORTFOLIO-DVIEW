@@ -664,7 +664,6 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const userHasSelected = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     if (userHasSelected.current) return;
     if (selectedReport) return;
     const allApts = Object.values(sheetApartments).flat();
@@ -676,24 +675,24 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       const targetApt = allApts.find(a => isSameApartment(a.name, preselectedAptName, nameMapping));
       if (targetApt) {
         const report = fieldReportsMap.get(targetApt.name);
-        if (report) {
-          setSelectedReport(report);
-        } else {
-          setSelectedReport({
-            id: `stub-${normalizeAptName(targetApt.name)}`,
-            apartmentName: targetApt.name,
-            dong: targetApt.dong,
-            author: '',
-            likes: 0,
-            commentCount: 0,
-            createdAt: null,
-            metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
-          });
+        setSelectedReport(report || {
+          id: `stub-${normalizeAptName(targetApt.name)}`,
+          apartmentName: targetApt.name,
+          dong: targetApt.dong,
+          author: '',
+          likes: 0,
+          commentCount: 0,
+          createdAt: null,
+          metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+        });
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+          setMobileModalOpen(true);
         }
       }
       return; 
     }
 
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     // Auto-select is disabled so that the Ad slot placeholder remains visible on desktop until a user actively clicks an apartment.
   }, [fieldReports, preselectedAptName]);
 

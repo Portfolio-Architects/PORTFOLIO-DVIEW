@@ -2023,6 +2023,23 @@ const FieldReportModal = React.memo(function FieldReportModal({
               <span>{copiedStatus === 'all-link' ? '링크 복사 완료!' : '공유하기'}</span>
             </button>
 
+            {/* 카카오톡 공유하기 버튼 */}
+            <button
+              onClick={handleKakaoShare}
+              disabled={isSharing}
+              className="h-10 px-4 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 disabled:opacity-75"
+              title="카카오톡으로 공유하기"
+            >
+              {isSharing ? (
+                <div className="w-3.5 h-3.5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin shrink-0" />
+              ) : (
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 shrink-0">
+                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                </svg>
+              )}
+              <span>카카오톡 공유</span>
+            </button>
+
             {/* 단톡방 요약 복사 버튼 — 모바일은 하단 스티키 바와 중복되므로 hidden 처리 */}
             <button
               onClick={handleCopySummary}
@@ -2827,6 +2844,23 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 aria-label="뒤로가기"
               >
                 <ArrowLeft size={24} strokeWidth={2.5} />
+              </button>
+
+              {/* 카카오톡 공유 (모바일 숏컷) */}
+              <button
+                onClick={handleKakaoShare}
+                disabled={isSharing}
+                className="w-[56px] h-[56px] bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm border border-transparent transform duration-200 active:scale-[0.94] disabled:opacity-75"
+                title="카카오톡으로 공유하기"
+                aria-label="카카오톡으로 공유하기"
+              >
+                {isSharing ? (
+                  <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin shrink-0" />
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 shrink-0">
+                    <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                  </svg>
+                )}
               </button>
 
               {/* 단톡방 요약 복사 (모바일 숏컷) */}
