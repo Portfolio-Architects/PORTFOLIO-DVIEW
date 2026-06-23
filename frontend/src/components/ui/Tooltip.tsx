@@ -19,8 +19,10 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   const rafRef = useRef<number | null>(null);
 
   const updatePosition = useCallback(() => {
+    if (typeof window === 'undefined') return;
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
+      if (typeof window === 'undefined') return;
       if (!triggerRef.current || !tooltipRef.current) return;
       const triggerRect = triggerRef.current.getBoundingClientRect();
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
