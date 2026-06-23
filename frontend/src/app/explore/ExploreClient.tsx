@@ -362,7 +362,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       import('@/components/consumer/SellTimingCalculator').catch(() => {});
     };
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
       } else {

@@ -269,7 +269,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       if (!isMounted) return;
       import('@/components/LoungeDetailClient').catch(() => {});
     };
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadDetail, { timeout: 3000 });
       } else {

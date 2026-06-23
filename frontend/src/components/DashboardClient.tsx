@@ -527,17 +527,19 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
         import('@/components/consumer/AnchorTenantCard').catch(() => {});
       };
-      if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
-      } else {
-        if (preloadTimeoutRef.current) {
-          clearTimeout(preloadTimeoutRef.current);
-          preloadTimeoutRef.current = null;
+      if (process.env.NODE_ENV === 'production') {
+        if ('requestIdleCallback' in window) {
+          idleId = (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
+        } else {
+          if (preloadTimeoutRef.current) {
+            clearTimeout(preloadTimeoutRef.current);
+            preloadTimeoutRef.current = null;
+          }
+          preloadTimeoutRef.current = setTimeout(() => {
+            preloadHeavyComponents();
+            preloadTimeoutRef.current = null;
+          }, 1000);
         }
-        preloadTimeoutRef.current = setTimeout(() => {
-          preloadHeavyComponents();
-          preloadTimeoutRef.current = null;
-        }, 1000);
       }
 
       const handleHashChange = () => {

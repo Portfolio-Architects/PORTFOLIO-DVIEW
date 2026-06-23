@@ -568,7 +568,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       import('@/components/consumer/AnchorTenantCard').catch(() => {});
     };
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadAptModalChunks, { timeout: 2000 });
       } else {

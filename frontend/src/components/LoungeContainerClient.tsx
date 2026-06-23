@@ -208,7 +208,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
       import('@/components/LoungeFeedClient').catch(() => {});
       import('@/components/LoungeComposeClient').catch(() => {});
     };
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
       if ('requestIdleCallback' in window) {
         idleId = (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
       } else {
