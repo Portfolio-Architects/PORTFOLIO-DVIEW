@@ -416,6 +416,24 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     initialDashboardData?.recent7DaysVolume,
     initialDashboardData?.recentTransactions
   );
+
+  const filteredRecentTransactions = useMemo(() => {
+    if (!recentTransactions || recentTransactions.length === 0 || !nameMapping) return recentTransactions;
+    
+    const targetTxKeys = new Set<string>();
+    for (const [_, tKey] of Object.entries(nameMapping)) {
+      if (tKey) {
+        targetTxKeys.add(normalizeAptName(tKey));
+      }
+    }
+
+    return recentTransactions.filter((tx: any) => {
+      if (!tx || !tx.txKey) return false;
+      const normTxKey = normalizeAptName(tx.txKey);
+      return targetTxKeys.has(normTxKey);
+    });
+  }, [recentTransactions, nameMapping]);
+
   const { locationScores = EMPTY_OBJECT } = useLocationScores();
   
   const getLocScore = useCallback((aptName: string) => {
@@ -933,7 +951,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
                 txSummaryData={txSummaryData}
-                recentTransactions={recentTransactions}
+                recentTransactions={filteredRecentTransactions}
                 macroTrendData={macroTrend}
                 nameMapping={nameMapping || EMPTY_OBJECT}
                 updateFavoriteOrder={updateFavoriteOrder}

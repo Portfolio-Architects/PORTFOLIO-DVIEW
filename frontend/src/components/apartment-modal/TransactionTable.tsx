@@ -3,6 +3,7 @@ import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
 
 export interface TransactionRecord {
   dong?: string;
@@ -44,6 +45,8 @@ export const TransactionTable = React.memo(function TransactionTable({
   const [activeDropdown, setActiveDropdown] = useState<'sort' | null>(null);
   // 화면 너비 감지 (반응형 상태)
   const [isDesktop, setIsDesktop] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  usePreventElasticBounce(scrollContainerRef);
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
@@ -171,6 +174,7 @@ export const TransactionTable = React.memo(function TransactionTable({
       </div>
 
       <div 
+      ref={scrollContainerRef}
       className={`${visibleCount > defaultCount ? 'overflow-y-auto' : 'overflow-y-hidden'} touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px]`}
       style={{ WebkitOverflowScrolling: 'touch' }}
       >
