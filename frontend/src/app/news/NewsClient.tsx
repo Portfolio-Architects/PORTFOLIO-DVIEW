@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useSWR from 'swr';
 import dynamic from 'next/dynamic';
 
@@ -101,13 +101,13 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
     }
   );
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     if (activeTab === 'news') {
       await mutateNews();
     } else {
       await mutateNotices();
     }
-  };
+  }, [activeTab, mutateNews, mutateNotices]);
 
   const newsList: NewsItem[] = newsRes?.data || [];
   const noticesList: NoticeItem[] = noticesRes?.notices || [];
