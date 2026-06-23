@@ -398,8 +398,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     if (typeof window === 'undefined') return false;
 
     if (!isPushSupported || typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
-      alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
-      return false;
+      throw new Error('UNSUPPORTED_BROWSER');
     }
     try {
       let permission: NotificationPermission;
@@ -413,14 +412,12 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       }
 
       if (permission !== 'granted') {
-        alert('푸시 알림 권한이 거부되었습니다.');
-        return false;
+        throw new Error('PERMISSION_DENIED');
       }
       
       const reg = await navigator.serviceWorker.ready;
       if (!reg || !reg.pushManager) {
-        alert('푸시 서비스 등록을 준비하지 못했습니다. 브라우저 설정 또는 오프라인 상태인지 확인해주세요.');
-        return false;
+        throw new Error('REGISTRATION_FAILED');
       }
       
       // Replace with your VAPID public key

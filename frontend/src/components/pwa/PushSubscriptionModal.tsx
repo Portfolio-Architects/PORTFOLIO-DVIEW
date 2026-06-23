@@ -13,6 +13,7 @@ interface PushSubscriptionModalProps {
 const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen, onClose, aptName }: PushSubscriptionModalProps) {
   const { subscribeToPush, showToast, isPushSupported } = usePWA();
   const [submitting, setSubmitting] = React.useState(false);
+  const [errorState, setErrorState] = React.useState<'denied' | 'unsupported' | 'failed' | null>(null);
   const mountedRef = React.useRef(true);
 
   React.useEffect(() => {
@@ -24,6 +25,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
 
   React.useEffect(() => {
     if (!isOpen) return;
+    setErrorState(null);
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -36,14 +38,24 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
   const handleSubscribe = async () => {
     if (submitting) return;
     setSubmitting(true);
+    setErrorState(null);
     try {
       const success = await subscribeToPush();
       if (success && mountedRef.current) {
         showToast(`🔔 ${aptName}의 실거래가 변동 알림 신청이 완료되었습니다!`);
         onClose();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Subscription error in modal', err);
+      if (mountedRef.current) {
+        if (err.message === 'PERMISSION_DENIED') {
+          setErrorState('denied');
+        } else if (err.message === 'UNSUPPORTED_BROWSER') {
+          setErrorState('unsupported');
+        } else {
+          setErrorState('failed');
+        }
+      }
     } finally {
       if (mountedRef.current) {
         setSubmitting(false);
@@ -105,13 +117,35 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
             </ul>
           </div>
 
-          {!isPushSupported && (
+          {errorState === 'denied' || (typeof window !== 'undefined' && typeof Notification !== 'undefined' && Notification.permission === 'denied') ? (
+            <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-rose-600 dark:text-rose-400 mb-1.5 flex items-center gap-1.5">
+                <span>⚠️ 알림 권한이 차단되어 있습니다</span>
+              </p>
+              <p className="text-[12px] text-secondary font-bold leading-relaxed">
+                브라우저 설정에서 알림 권한이 거부되어 실거래가 소식을 보내드릴 수 없습니다. 아래 설정 방법을 참고해 허용해 주세요.
+              </p>
+              <div className="mt-3 pt-2.5 border-t border-rose-200/20 dark:border-rose-800/30 text-[11px] text-tertiary font-bold space-y-1">
+                <p>• <strong>안드로이드/Chrome</strong>: 주소창 왼쪽 설정(조절기) 아이콘 클릭 ➔ 권한 ➔ 알림 허용</p>
+                <p>• <strong>아이폰/Safari</strong>: 설정 ➔ 알림 ➔ DVIEW(또는 추가된 홈앱) ➔ 알림 허용</p>
+              </div>
+            </div>
+          ) : errorState === 'failed' ? (
+            <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                <span>⚠️ 알림 등록 중 오류가 발생했습니다</span>
+              </p>
+              <p className="text-[12px] text-secondary font-bold mt-1 leading-relaxed">
+                네트워크 연결이 일시적으로 끊겼거나 브라우저 내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.
+              </p>
+            </div>
+          ) : (!isPushSupported || errorState === 'unsupported') ? (
             <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 mb-6 text-center">
               <p className="text-[12px] font-bold text-rose-600 dark:text-rose-400">
                 ※ 현재 사용 중이신 브라우저는 Web Push 알림을 지원하지 않습니다. Chrome, Safari(iOS 16.4+), Edge 브라우저를 이용해 주세요.
               </p>
             </div>
-          )}
+          ) : null}
 
           {/* Action Buttons */}
           <div className="flex gap-3">
