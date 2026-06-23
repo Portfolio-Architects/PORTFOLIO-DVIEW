@@ -72,6 +72,77 @@ export const loadKakaoSdk = (): Promise<void> => {
   return kakaoLoadPromise;
 };
 
+// 범용 클립보드 복사 유틸리티 (navigator.clipboard + execCommand fallback)
+export const copyTextToClipboardDirect = async (text: string): Promise<boolean> => {
+  try {
+    if (typeof window === 'undefined') return false;
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const success = document.execCommand('copy');
+      textArea.remove();
+      return success;
+    }
+  } catch (err) {
+    logger.error('kakaoShare.copyTextToClipboardDirect', 'Failed to copy text', { error: String(err) });
+    return false;
+  }
+};
+
+// 카카오 SDK 로딩을 점검하고 실패 시 자동으로 클립보드에 정보를 복사하여 폴백하는 가드 함수
+export const checkKakaoSdkAndFallback = async (
+  title: string,
+  description: string,
+  shareUrl: string,
+  fallbackMsg: string,
+  customFallback?: () => Promise<boolean>
+): Promise<boolean> => {
+  try {
+    await loadKakaoSdk();
+    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
+      throw new Error("SDK_NOT_LOADED");
+    }
+    if (!window.Kakao.isInitialized()) {
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!key) throw new Error("KEY_NOT_CONFIGURED");
+      window.Kakao.init(key);
+    }
+    return true; // SDK 정상 이용 가능
+  } catch (e) {
+    logger.warn('kakaoShare.checkKakaoSdkAndFallback', 'Kakao SDK failure, falling back to clipboard', { error: String(e) });
+    
+    if (customFallback) {
+      await customFallback();
+      return false;
+    }
+
+    // 이쁘게 정렬된 클립보드 텍스트 구성
+    let text = `📢 [DVIEW] ${title}\n`;
+    if (description) {
+      text += `👉 ${description}\n\n`;
+    }
+    text += `🔗 링크 바로가기: ${shareUrl}\n\n`;
+    text += `#DVIEW #동탄부동산`;
+    
+    const copied = await copyTextToClipboardDirect(text);
+    if (copied) {
+      alert(`${fallbackMsg} 클립보드에 상세 분석 요약과 전용 링크가 복사되었습니다. 원하는 단톡방/카페에 붙여넣기(Ctrl+V) 하세요!`);
+    } else {
+      alert("공유에 실패했습니다 (카카오톡 실행 불가 및 클립보드 복사 에러)");
+    }
+    return false; // SDK 사용 불가, 폴백 완료 처리
+  }
+};
+
 // Zod custom schema for File check, safe for SSR (Node environments)
 const IsomorphicFileSchema = z.custom<any>((val) => {
   if (typeof File === 'undefined') return true;
@@ -208,29 +279,32 @@ export const shareAptToKakao = async (params: ShareAptParams) => {
   }
   const { aptName, priceEok, priceMan, ratio, imageUrl, imageFile, customTitle, customDesc, valStatus, valAmount } = validation.data;
 
+  const priceStr =
+    priceMan > 0
+      ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
+      : `${priceEok}억원`;
+
+  const description = customDesc || `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`;
+  const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
+  const titleText = customTitle || `🧐 지금 사면 호구될까? ${aptName} 가치분석 리포트`;
+
   try {
-    await loadKakaoSdk();
-
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareAptToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
+    const sdkOk = await checkKakaoSdkAndFallback(
+      titleText,
+      description,
+      shareUrl,
+      "카카오톡 연결을 불러올 수 없어, 대신",
+      async () => {
+        const copied = await copyAptSummaryToClipboard(params);
+        if (copied) {
+          alert("카카오톡 스크립트를 불러올 수 없어, 대신 아파트 가치분석 요약과 전용 링크를 클립보드에 복사했습니다. 원하는 곳에 붙여넣기(Ctrl+V) 하세요!");
+        } else {
+          alert("공유에 실패했습니다 (카카오 SDK 로드 실패 및 클립보드 복사 실패)");
+        }
+        return copied;
       }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareAptToKakao', 'Kakao SDK initialized');
-    }
-
-    const priceStr =
-      priceMan > 0
-        ? `${priceEok}억 ${priceMan.toLocaleString()}만원`
-        : `${priceEok}억원`;
+    );
+    if (!sdkOk) return;
 
     let finalImageUrl = imageUrl;
     if (!finalImageUrl) {
@@ -252,7 +326,7 @@ export const shareAptToKakao = async (params: ShareAptParams) => {
 
     if (imageFile) {
       logger.info('kakaoShare.shareAptToKakao', 'Uploading generated share card image to Kakao');
-      const uploadRes = await window.Kakao.Share.uploadImage({
+      const uploadRes = await window.Kakao!.Share.uploadImage({
         file: [imageFile],
       });
       if (uploadRes && uploadRes.infos && uploadRes.infos.original && uploadRes.infos.original.url) {
@@ -263,13 +337,10 @@ export const shareAptToKakao = async (params: ShareAptParams) => {
       }
     }
 
-    const description = customDesc || `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`;
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: customTitle || `🧐 지금 사면 호구될까? ${aptName} 가치분석 리포트`,
+        title: titleText,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,
@@ -316,33 +387,20 @@ export const sharePostToKakao = async (params: SharePostParams) => {
   }
   const { postId, title, category, contentSummary, imageUrl } = validation.data;
 
+  const finalImageUrl = imageUrl || "https://dongtanview.com/api/og?title=" + encodeURIComponent(title);
+  const shareUrl = `${window.location.origin}/lounge/${postId}?utm_source=kakaotalk&utm_medium=share&utm_campaign=lounge_detail`;
+
+  const cleanDesc = contentSummary.replace(/[#*`_~[\]]/g, '').trim();
+  const truncatedDesc = cleanDesc.length > 80 ? cleanDesc.substring(0, 80) + "..." : cleanDesc;
+  const finalDesc = `[${category}] ${truncatedDesc}\n지금 D-VIEW 라운지에서 확인하고 소통하세요!`;
+  
+  const titleText = `라운지 인기글: "${title}"`;
+
   try {
-    await loadKakaoSdk();
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, finalDesc, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.sharePostToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.sharePostToKakao', 'Kakao SDK initialized');
-    }
-
-    const finalImageUrl = imageUrl || "https://dongtanview.com/api/og?title=" + encodeURIComponent(title);
-    const shareUrl = `${window.location.origin}/lounge/${postId}?utm_source=kakaotalk&utm_medium=share&utm_campaign=lounge_detail`;
-
-    const cleanDesc = contentSummary.replace(/[#*`_~[\]]/g, '').trim();
-    const truncatedDesc = cleanDesc.length > 80 ? cleanDesc.substring(0, 80) + "..." : cleanDesc;
-    const finalDesc = `[${category}] ${truncatedDesc}\n지금 D-VIEW 라운지에서 확인하고 소통하세요!`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: title,
@@ -395,39 +453,28 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams) 
   }
   const { aptName, dong, marketPrice, jeonseAmount, lienAmount, debtRatio, riskLabel } = validation.data;
 
+  const formatEokMan = (manWon: number) => {
+    const eok = Math.floor(manWon / 10000);
+    const man = Math.round(manWon % 10000);
+    if (eok > 0) {
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    }
+    return `${man.toLocaleString()}만원`;
+  };
+
+  const marketPriceStr = formatEokMan(marketPrice);
+  const jeonseStr = formatEokMan(jeonseAmount);
+  const lienStr = formatEokMan(lienAmount);
+  const totalDebt = jeonseAmount + lienAmount;
+  const totalDebtStr = formatEokMan(totalDebt);
+
+  const titleText = `${aptName} (${dong}) 전세 안심진단`;
+  const fallbackDesc = `진단 결과: ${riskLabel} (부채비율 ${debtRatio.toFixed(1)}%)\n매매시세: ${marketPriceStr}\n전세금: ${jeonseStr} | 융자금: ${lienStr}`;
+  const fallbackUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=clipboard&utm_medium=share&utm_campaign=jeonse_share`;
+
   try {
-    await loadKakaoSdk();
-
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareJeonseSafetyToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareJeonseSafetyToKakao', 'Kakao SDK initialized');
-    }
-
-    const formatEokMan = (manWon: number) => {
-      const eok = Math.floor(manWon / 10000);
-      const man = Math.round(manWon % 10000);
-      if (eok > 0) {
-        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
-      }
-      return `${man.toLocaleString()}만원`;
-    };
-
-    const marketPriceStr = formatEokMan(marketPrice);
-    const jeonseStr = formatEokMan(jeonseAmount);
-    const lienStr = formatEokMan(lienAmount);
-    const totalDebt = jeonseAmount + lienAmount;
-    const totalDebtStr = formatEokMan(totalDebt);
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, fallbackDesc, fallbackUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
     const baseUrl = window.location.origin;
     const finalImageUrl = `${baseUrl}/api/og?type=jeonse&title=${encodeURIComponent(aptName)}&status=${encodeURIComponent(riskLabel)}&ratio=${debtRatio.toFixed(1)}&price=${encodeURIComponent(marketPriceStr)}&lien=${encodeURIComponent(lienStr)}&totalDebt=${encodeURIComponent(totalDebtStr)}`;
@@ -435,7 +482,7 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams) 
     const description = `🚨 HUG 보증보험 가입 여부 및 경매 낙찰 안전마진 진단 결과:\n보증금 ${jeonseStr} | 부채비율 ${debtRatio.toFixed(1)}% [${riskLabel}]\n소중한 보증금 반환 안전 지수를 D-VIEW에서 1초 만에 진단받으세요!`;
     const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=kakaotalk&utm_medium=share&utm_campaign=jeonse_share`;
 
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: `⚠️ 내 전세금, 깡통전세 위험은? [${aptName} 안전진단]`,
@@ -488,38 +535,27 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams) => {
   }
   const { aptName, dong, marketPrice, bestProduct, maxLoanAmount, finalRate, monthlyPayment, ownCapitalRequired } = validation.data;
 
+  const formatEokMan = (manWon: number) => {
+    const eok = Math.floor(manWon / 10000);
+    const man = Math.round(manWon % 10000);
+    if (eok > 0) {
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    }
+    return `${man.toLocaleString()}만원`;
+  };
+
+  const marketPriceStr = formatEokMan(marketPrice);
+  const maxLoanStr = formatEokMan(maxLoanAmount);
+  const monthlyPayStr = `${Math.round(monthlyPayment / 10000).toLocaleString()}만원`;
+  const ownCapitalStr = formatEokMan(ownCapitalRequired);
+
+  const titleText = `${aptName} (${dong}) 주담대 진단`;
+  const fallbackDesc = `추천 상품: ${bestProduct}\n대출 한도: ${maxLoanStr} (금리 ${finalRate.toFixed(2)}%)\n필요 자기자본: ${ownCapitalStr} | 월 상환액: ${monthlyPayStr}`;
+  const fallbackUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=clipboard&utm_medium=share&utm_campaign=mortgage_share`;
+
   try {
-    await loadKakaoSdk();
-
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareMortgageToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareMortgageToKakao', 'Kakao SDK initialized');
-    }
-
-    const formatEokMan = (manWon: number) => {
-      const eok = Math.floor(manWon / 10000);
-      const man = Math.round(manWon % 10000);
-      if (eok > 0) {
-        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
-      }
-      return `${man.toLocaleString()}만원`;
-    };
-
-    const marketPriceStr = formatEokMan(marketPrice);
-    const maxLoanStr = formatEokMan(maxLoanAmount);
-    const monthlyPayStr = `${Math.round(monthlyPayment / 10000).toLocaleString()}만원`;
-    const ownCapitalStr = formatEokMan(ownCapitalRequired);
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, fallbackDesc, fallbackUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
     const baseUrl = window.location.origin;
     const finalImageUrl = `${baseUrl}/api/og?type=mortgage&title=${encodeURIComponent(aptName)}&bestProduct=${encodeURIComponent(bestProduct)}&price=${encodeURIComponent(maxLoanStr)}&ratio=${finalRate.toFixed(2)}&status=${encodeURIComponent(ownCapitalStr)}&subtitle=${encodeURIComponent(monthlyPayStr)}`;
@@ -527,7 +563,7 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams) => {
     const description = `추천 상품: ${bestProduct}\n대출 한도: ${maxLoanStr} (금리 ${finalRate.toFixed(2)}%)\n필요 자기자본: ${ownCapitalStr} | 월 상환액: ${monthlyPayStr}`;
     const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=kakaotalk&utm_medium=share&utm_campaign=mortgage_share`;
 
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: `[대출·자금조달 진단] ${aptName} (${dong})`,
@@ -582,49 +618,35 @@ export const shareTaxToKakao = async (params: ShareTaxParams) => {
   }
   const { aptName, dong, marketPrice, ownedHouses, exclusiveArea, acquisitionTax, localEducationTax, ruralSpecialTax, brokerFee, totalCost } = validation.data;
 
+  const formatEokMan = (manWon: number) => {
+    const eok = Math.floor(manWon / 10000);
+    const man = Math.round(manWon % 10000);
+    if (eok > 0) {
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    }
+    return `${man.toLocaleString()}만원`;
+  };
+
+  const marketPriceStr = formatEokMan(marketPrice);
+  const totalTax = acquisitionTax + localEducationTax + ruralSpecialTax;
+  const totalTaxStr = formatEokMan(totalTax);
+  const brokerFeeStr = formatEokMan(brokerFee);
+  const totalCostStr = formatEokMan(totalCost);
+  const ownedHousesStr = `${ownedHouses}주택`;
+  const areaStr = exclusiveArea === '85under' ? '전용 85㎡ 이하' : '전용 85㎡ 초과';
+
+  const titleText = `${aptName} (${dong}) 세금/부대비용 진단`;
+  const description = `매매가: ${marketPriceStr}\n취득세 등 세금: ${totalTaxStr}\n중개보수: ${brokerFeeStr}\n총 부대비용: ${totalCostStr} (${ownedHousesStr} | ${areaStr})`;
+  const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=tax&utm_source=kakaotalk&utm_medium=share&utm_campaign=tax_share`;
+
+  const baseUrl = window.location.origin;
+  const finalImageUrl = `${baseUrl}/api/og?type=tax&title=${encodeURIComponent(aptName)}&subtitle=${encodeURIComponent(dong)}&price=${encodeURIComponent(marketPriceStr)}&ratio=${encodeURIComponent(totalCostStr)}&status=${encodeURIComponent(ownedHousesStr)}&lien=${encodeURIComponent(totalTaxStr)}&totalDebt=${encodeURIComponent(brokerFeeStr)}&bestProduct=${encodeURIComponent(areaStr)}`;
+
   try {
-    await loadKakaoSdk();
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareTaxToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareTaxToKakao', 'Kakao SDK initialized');
-    }
-
-    const formatEokMan = (manWon: number) => {
-      const eok = Math.floor(manWon / 10000);
-      const man = Math.round(manWon % 10000);
-      if (eok > 0) {
-        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
-      }
-      return `${man.toLocaleString()}만원`;
-    };
-
-    const marketPriceStr = formatEokMan(marketPrice);
-    const totalTax = acquisitionTax + localEducationTax + ruralSpecialTax;
-    const totalTaxStr = formatEokMan(totalTax);
-    const brokerFeeStr = formatEokMan(brokerFee);
-    const totalCostStr = formatEokMan(totalCost);
-    const ownedHousesStr = `${ownedHouses}주택`;
-    const areaStr = exclusiveArea === '85under' ? '전용 85㎡ 이하' : '전용 85㎡ 초과';
-
-    const baseUrl = window.location.origin;
-    const finalImageUrl = `${baseUrl}/api/og?type=tax&title=${encodeURIComponent(aptName)}&subtitle=${encodeURIComponent(dong)}&price=${encodeURIComponent(marketPriceStr)}&ratio=${encodeURIComponent(totalCostStr)}&status=${encodeURIComponent(ownedHousesStr)}&lien=${encodeURIComponent(totalTaxStr)}&totalDebt=${encodeURIComponent(brokerFeeStr)}&bestProduct=${encodeURIComponent(areaStr)}`;
-
-    const description = `매매가: ${marketPriceStr}\n취득세 등 세금: ${totalTaxStr}\n중개보수: ${brokerFeeStr}\n총 부대비용: ${totalCostStr} (${ownedHousesStr} | ${areaStr})`;
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=tax&utm_source=kakaotalk&utm_medium=share&utm_campaign=tax_share`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: `[취득세·중개보수 계산] ${aptName} (${dong})`,
@@ -676,32 +698,18 @@ export const shareLocalEventToKakao = async (params: ShareLocalEventParams) => {
   }
   const { id, title, date, time, location, category, tip } = validation.data;
 
+  const titleText = `[동탄 소식] ${title}`;
+  const description = `일시: ${date} (${time})\n장소: ${location}\n꿀팁: ${tip.substring(0, 50)}`;
+  const shareUrl = `${window.location.origin}/#lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=event_share`;
+
+  const baseUrl = window.location.origin;
+  const finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(`${date} (${time})`)}&location=${encodeURIComponent(location)}&tip=${encodeURIComponent(tip.substring(0, 80))}`;
+
   try {
-    await loadKakaoSdk();
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareLocalEventToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareLocalEventToKakao', 'Kakao SDK initialized');
-    }
-
-    const baseUrl = window.location.origin;
-    const finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(`${date} (${time})`)}&location=${encodeURIComponent(location)}&tip=${encodeURIComponent(tip.substring(0, 80))}`;
-
-    const description = `일시: ${date} (${time})\n장소: ${location}\n꿀팁: ${tip.substring(0, 50)}`;
-    const shareUrl = `${window.location.origin}/#lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=event_share`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: `[로컬 캘린더] ${title}`,
@@ -750,32 +758,18 @@ export const shareCompareToKakao = async (params: ShareCompareParams) => {
   }
   const { apt1Name, apt2Name, scoreApt1, scoreApt2 } = validation.data;
 
+  const titleText = `[아파트 1:1 비교] ${apt1Name} VS ${apt2Name}`;
+  const description = `종합 비교 판정\n${apt1Name} 우세: ${scoreApt1}개 항목\n${apt2Name} 우세: ${scoreApt2}개 항목`;
+  const shareUrl = `${window.location.origin}/#explore?compare=${encodeURIComponent(apt1Name)}:${encodeURIComponent(apt2Name)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=compare_share`;
+
+  const baseUrl = window.location.origin;
+  const finalImageUrl = `${baseUrl}/api/og?type=compare&apt1=${encodeURIComponent(apt1Name)}&apt2=${encodeURIComponent(apt2Name)}&score1=${scoreApt1}&score2=${scoreApt2}`;
+
   try {
-    await loadKakaoSdk();
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareCompareToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareCompareToKakao', 'Kakao SDK initialized');
-    }
-
-    const baseUrl = window.location.origin;
-    const finalImageUrl = `${baseUrl}/api/og?type=compare&apt1=${encodeURIComponent(apt1Name)}&apt2=${encodeURIComponent(apt2Name)}&score1=${scoreApt1}&score2=${scoreApt2}`;
-
-    const description = `종합 비교 판정\n${apt1Name} 우세: ${scoreApt1}개 항목\n${apt2Name} 우세: ${scoreApt2}개 항목`;
-    const shareUrl = `${window.location.origin}/#explore?compare=${encodeURIComponent(apt1Name)}:${encodeURIComponent(apt2Name)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=compare_share`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: `[비교 리포트] ${apt1Name} VS ${apt2Name}`,
@@ -825,64 +819,49 @@ export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams) =>
   }
   const { id, title, dept, date, source } = validation.data;
 
-  try {
-    await loadKakaoSdk();
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const isAI = dept === 'AI 데이터 랩';
+  const isCulture = source === 'culture' || id.startsWith('culture_');
+  const isLecture = title.includes('[강좌]');
+  
+  let finalImageUrl = '';
+  let description = '';
+  let shareUrl = '';
+  let titleText = '';
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareLocalNoticeToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareLocalNoticeToKakao', 'Kakao SDK initialized');
-    }
-
-    const baseUrl = window.location.origin;
-    const isAI = dept === 'AI 데이터 랩';
-    const isCulture = source === 'culture' || id.startsWith('culture_');
-    const isLecture = title.includes('[강좌]');
+  if (isAI) {
+    finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent('AI 시황분석')}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent('D-VIEW AI 데이터 랩이 실거래 통계를 통해 automatic 도출한 분석 리포트입니다.')}`;
+    description = `작성부서: ${dept}\n분석일자: ${date}\n실거래 통계 기반으로 추출한 단지 랭킹 및 세무 가이드 상세 분석 본문을 확인해 보세요!`;
+    shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_report_share`;
+    titleText = title;
+  } else if (isCulture) {
+    const category = title.includes('[루나쇼]') ? '동탄호수공원 루나쇼' : 
+                     title.includes('[강좌]') ? '주민센터 강좌' :
+                     title.includes('[버스킹]') ? '여울공원 버스킹' : 
+                     title.includes('[축제]') ? '동탄 로컬 축제' : '동탄 문화 행사';
     
-    let finalImageUrl = '';
-    let description = '';
-    let shareUrl = '';
-    let titleText = '';
+    const tipText = isLecture ? '선착순 모집 주민자치센터 유익한 혜택 프로그램' : '가족 나들이 및 아파트 조망권 추천 정보';
+    
+    finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent(tipText)}`;
+    
+    description = isLecture 
+      ? `접수개시: ${date} (수강료: 무료~3만원 선)\n${dept} 주민자치센터의 유익한 라이프스타일 강좌 일정을 D-VIEW에서 확인해보세요!`
+      : `장소: ${dept}\n행사일: ${date} (이용 요금: 무료)\nD-VIEW에서 루나쇼 명당 단지 정보 및 상세 가치 분석을 확인하세요!`;
+      
+    shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=culture_share`;
+    titleText = title;
+  } else {
+    finalImageUrl = `${baseUrl}/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept)}&date=${encodeURIComponent(date)}`;
+    description = `작성부서: ${dept}\n등록일자: ${date}\nD-VIEW에서 동탄구 소식 상세 내용을 확인하세요.`;
+    shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=notice_share`;
+    titleText = `[동탄 소식] ${title}`;
+  }
 
-    if (isAI) {
-      finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent('AI 시황분석')}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent('D-VIEW AI 데이터 랩이 실거래 통계를 통해 automatic 도출한 분석 리포트입니다.')}`;
-      description = `작성부서: ${dept}\n분석일자: ${date}\n실거래 통계 기반으로 추출한 단지 랭킹 및 세무 가이드 상세 분석 본문을 확인해 보세요!`;
-      shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_report_share`;
-      titleText = title;
-    } else if (isCulture) {
-      const category = title.includes('[루나쇼]') ? '동탄호수공원 루나쇼' : 
-                       title.includes('[강좌]') ? '주민센터 강좌' :
-                       title.includes('[버스킹]') ? '여울공원 버스킹' : 
-                       title.includes('[축제]') ? '동탄 로컬 축제' : '동탄 문화 행사';
-      
-      const tipText = isLecture ? '선착순 모집 주민자치센터 유익한 혜택 프로그램' : '가족 나들이 및 아파트 조망권 추천 정보';
-      
-      finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent(tipText)}`;
-      
-      description = isLecture 
-        ? `접수개시: ${date} (수강료: 무료~3만원 선)\n${dept} 주민자치센터의 유익한 라이프스타일 강좌 일정을 D-VIEW에서 확인해보세요!`
-        : `장소: ${dept}\n행사일: ${date} (이용 요금: 무료)\nD-VIEW에서 루나쇼 명당 단지 정보 및 상세 가치 분석을 확인하세요!`;
-        
-      shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=culture_share`;
-      titleText = title;
-    } else {
-      finalImageUrl = `${baseUrl}/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept)}&date=${encodeURIComponent(date)}`;
-      description = `작성부서: ${dept}\n등록일자: ${date}\nD-VIEW에서 동탄구 소식 상세 내용을 확인하세요.`;
-      shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=notice_share`;
-      titleText = `[동탄구 소식] ${title}`;
-    }
+  try {
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: titleText,
@@ -934,38 +913,23 @@ export const shareRecommendationsToKakao = async (params: ShareRecommendationsPa
   }
   const { apt1, score1, apt2, score2, apt3, score3, fallback } = validation.data;
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const finalImageUrl = `${baseUrl}/api/og?type=recommend&apt1=${encodeURIComponent(apt1)}&score1=${score1}&apt2=${encodeURIComponent(apt2)}&score2=${score2}&apt3=${encodeURIComponent(apt3)}&score3=${score3}`;
+
+  const titleText = fallback
+    ? "동탄 실시간 인기 & 가치 단지 TOP 3"
+    : "나를 위한 동탄 AI 맞춤 아파트 TOP 3";
+  const description = `AI 분석 결과: 1위 ${apt1} (${score1}%), 2위 ${apt2} (${score2}%), 3위 ${apt3} (${score3}%)\nD-VIEW에서 내 조건에 맞는 단지를 확인하세요.`;
+  const shareUrl = `${window.location.origin}/?from=share_recommend&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_recommendation`;
+
   try {
-    await loadKakaoSdk();
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareRecommendationsToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareRecommendationsToKakao', 'Kakao SDK initialized');
-    }
-
-    const baseUrl = window.location.origin;
-    const finalImageUrl = `${baseUrl}/api/og?type=recommend&apt1=${encodeURIComponent(apt1)}&score1=${score1}&apt2=${encodeURIComponent(apt2)}&score2=${score2}&apt3=${encodeURIComponent(apt3)}&score3=${score3}`;
-
-    const title = fallback
-      ? "동탄 실시간 인기 & 가치 단지 TOP 3"
-      : "나를 위한 동탄 AI 맞춤 아파트 TOP 3";
-    const description = `AI 분석 결과: 1위 ${apt1} (${score1}%), 2위 ${apt2} (${score2}%), 3위 ${apt3} (${score3}%)\nD-VIEW에서 내 조건에 맞는 단지를 확인하세요.`;
-    const shareUrl = `${window.location.origin}/?from=share_recommend&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_recommendation`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: title,
+        title: titleText,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,
@@ -1017,46 +981,32 @@ export const shareSellTimingToKakao = async (params: ShareSellTimingParams) => {
   }
   const { aptName, dong, acquisitionPrice, transferPrice, holdingYears, resideYears, isOneHouse, verdictScore, verdictLabel, totalTax } = validation.data;
 
+  const formatEokMan = (manWon: number) => {
+    const eok = Math.floor(manWon / 10000);
+    const man = Math.round(manWon % 10000);
+    if (eok > 0) {
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    }
+    return `${man.toLocaleString()}만원`;
+  };
+
+  const acqStr = formatEokMan(acquisitionPrice);
+  const transferStr = formatEokMan(transferPrice);
+  const taxStr = formatEokMan(totalTax);
+  const houseStr = isOneHouse ? "1주택" : "다주택";
+
+  const titleText = `${aptName} (${dong}) 매도 가치진단`;
+  const description = `매도가: ${transferStr} (취득가: ${acqStr})\n호구지수: ${verdictScore}% [${verdictLabel}]\n보유기간: ${holdingYears}년 | 실거주: ${resideYears}년 (${houseStr})\n예상 총 세금: ${taxStr}`;
+  const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=sell_timing&utm_source=kakaotalk&utm_medium=share&utm_campaign=sell_timing_share`;
+
+  const baseUrl = window.location.origin;
+  const finalImageUrl = `${baseUrl}/api/og?type=sell_timing&title=${encodeURIComponent(aptName)}&score=${verdictScore}&status=${encodeURIComponent(verdictLabel)}&price=${encodeURIComponent(transferStr)}&ratio=${encodeURIComponent(taxStr)}&subtitle=${encodeURIComponent(dong)}`;
+
   try {
-    await loadKakaoSdk();
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    if (!sdkOk) return;
 
-    if (typeof window === "undefined" || !window.Kakao || typeof window.Kakao.isInitialized !== "function" || !window.Kakao.Share) {
-      logger.warn('kakaoShare.shareSellTimingToKakao', 'Kakao SDK not loaded');
-      alert("카카오 스크립트를 불러올 수 없습니다. 광고 차단기(Adblock)를 끄거나 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
-    if (!window.Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-      if (!key) {
-        alert("카카오 앱 키가 설정되지 않았습니다.");
-        return;
-      }
-      window.Kakao.init(key);
-      logger.info('kakaoShare.shareSellTimingToKakao', 'Kakao SDK initialized');
-    }
-
-    const formatEokMan = (manWon: number) => {
-      const eok = Math.floor(manWon / 10000);
-      const man = Math.round(manWon % 10000);
-      if (eok > 0) {
-        return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
-      }
-      return `${man.toLocaleString()}만원`;
-    };
-
-    const acqStr = formatEokMan(acquisitionPrice);
-    const transferStr = formatEokMan(transferPrice);
-    const taxStr = formatEokMan(totalTax);
-    const houseStr = isOneHouse ? "1주택" : "다주택";
-
-    const baseUrl = window.location.origin;
-    const finalImageUrl = `${baseUrl}/api/og?type=sell_timing&title=${encodeURIComponent(aptName)}&score=${verdictScore}&status=${encodeURIComponent(verdictLabel)}&price=${encodeURIComponent(transferStr)}&ratio=${encodeURIComponent(taxStr)}&subtitle=${encodeURIComponent(dong)}`;
-
-    const description = `매도가: ${transferStr} (취득가: ${acqStr})\n호구지수: ${verdictScore}% [${verdictLabel}]\n보유기간: ${holdingYears}년 | 실거주: ${resideYears}년 (${houseStr})\n예상 총 세금: ${taxStr}`;
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=sell_timing&utm_source=kakaotalk&utm_medium=share&utm_campaign=sell_timing_share`;
-
-    window.Kakao.Share.sendDefault({
+    window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
         title: `[AI 매도 진단] ${aptName} 지금 팔면 호구일까?`,
