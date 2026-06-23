@@ -259,7 +259,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     };
     
     checkParams();
-    window.addEventListener('hashchange', checkParams);
+    window.addEventListener('hashchange', checkParams, { passive: true });
 
     const preloadDetail = () => {
       if (!isMounted) return;

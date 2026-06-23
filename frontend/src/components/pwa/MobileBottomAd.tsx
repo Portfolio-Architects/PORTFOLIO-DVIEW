@@ -20,7 +20,7 @@ const MobileBottomAd = React.memo(function MobileBottomAd({ adSlot }: MobileBott
       const handleHashChange = () => {
         setHash(window.location.hash);
       };
-      window.addEventListener('hashchange', handleHashChange);
+      window.addEventListener('hashchange', handleHashChange, { passive: true });
       return () => window.removeEventListener('hashchange', handleHashChange);
     }
   }, []);

@@ -357,7 +357,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       syncStatesFromUrl();
     };
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handlePopState, { passive: true });
     return () => {
       mountedRef.current = false;
       window.removeEventListener('popstate', handlePopState);

@@ -426,7 +426,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       checkHashForApt();
     }
     
-    window.addEventListener('hashchange', checkHashForApt);
+    window.addEventListener('hashchange', checkHashForApt, { passive: true });
     return () => window.removeEventListener('hashchange', checkHashForApt);
   }, [mounted, !!sheetApartments]);
 
@@ -439,7 +439,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         setMobileModalOpen(false);
       }
     };
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handlePopState, { passive: true });
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 

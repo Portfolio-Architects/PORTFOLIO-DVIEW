@@ -55,7 +55,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       }
     };
     checkModal();
-    window.addEventListener("hashchange", checkModal);
+    window.addEventListener("hashchange", checkModal, { passive: true });
     return () => window.removeEventListener("hashchange", checkModal);
   }, []);
 
