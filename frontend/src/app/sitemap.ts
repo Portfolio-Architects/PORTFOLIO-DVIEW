@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
+import { ZONES } from '@/lib/zones';
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
@@ -46,6 +47,12 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
         priority: 0.9,
       },
       {
+        url: `${baseUrl}/technovalley`,
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
+      },
+      {
         url: `${baseUrl}/about`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
@@ -70,6 +77,17 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
         priority: 0.5,
       },
     ];
+
+    // Add Zone Routes dynamically from ZONES config
+    ZONES.forEach((zone) => {
+      routes.push({
+        url: `${baseUrl}/zone/${zone.id}`,
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.85,
+      });
+    });
+
 
     // Apartment Routes
     try {
