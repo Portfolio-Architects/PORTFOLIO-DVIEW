@@ -27,6 +27,7 @@ import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent } from '@/lib/utils/analytics';
+import { logger } from '@/lib/services/logger';
 
 const ExploreListSkeleton = () => (
   <div className="flex flex-col w-full bg-transparent">
@@ -150,55 +151,55 @@ const ModalSkeleton = () => (
 
 // Heavy components dynamic load - TossApartmentExploreClient is loaded with SSR enabled to optimize Largest Contentful Paint (LCP) and SEO.
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient').catch(err => {
-  console.warn('TossApartmentExploreClient Chunk Load failure, page reload initiated', err);
+  logger.warn('ExploreClient.dynamic', 'TossApartmentExploreClient Chunk Load failure, page reload initiated', undefined, err);
   safeReload('TossApartmentExploreClient');
   return { default: () => null };
 }), { ssr: true, loading: () => <ExploreListSkeleton /> });
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
-  console.warn('FieldReportModal Chunk Load failure, page reload initiated', err);
+  logger.warn('ExploreClient.dynamic', 'FieldReportModal Chunk Load failure, page reload initiated', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
 }), { ssr: false, loading: () => <ModalSkeleton /> });
 
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
-  console.warn('AdInquiryModal Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'AdInquiryModal Chunk Load failure', undefined, err);
   safeReload('AdInquiryModal');
   return { default: () => null };
 }), { ssr: false });
 
 const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
-  console.warn('B2BConsumerAdModal Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'B2BConsumerAdModal Chunk Load failure', undefined, err);
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
 }), { ssr: false });
 
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
-  console.warn('AptCompareModal Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'AptCompareModal Chunk Load failure', undefined, err);
   safeReload('AptCompareModal');
   return { default: () => null };
 }), { ssr: false });
 
 const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
-  console.warn('JeonseSafetyCalculator Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure', undefined, err);
   safeReload('JeonseSafetyCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
-  console.warn('MortgageCalculator Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'MortgageCalculator Chunk Load failure', undefined, err);
   safeReload('MortgageCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
-  console.warn('PropertyTaxCalculator Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'PropertyTaxCalculator Chunk Load failure', undefined, err);
   safeReload('PropertyTaxCalculator');
   return { default: () => null };
 }), { ssr: false });
 
 const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
-  console.warn('SellTimingCalculator Chunk Load failure', err);
+  logger.warn('ExploreClient.dynamic', 'SellTimingCalculator Chunk Load failure', undefined, err);
   safeReload('SellTimingCalculator');
   return { default: () => null };
 }), { ssr: false });
@@ -290,7 +291,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       await UserRepo.updateNickname(user.uid, trimmed);
       window.location.reload();
     } catch (error) {
-      console.error('Failed to set nickname:', error);
+      logger.error('ExploreClient.nickname', 'Failed to set nickname', { userId: user?.uid }, error);
       setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmittingNickname(false);
@@ -469,7 +470,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         localCache.set('dview_viewed_apts', updated, 604800); // 7 days TTL
         window.dispatchEvent(new Event('dview_viewed_apts_changed'));
       } catch (e) {
-        console.warn('LocalStorage write error:', e);
+        logger.warn('ExploreClient.history', 'LocalStorage write error', undefined, e);
       }
     }
 
@@ -708,7 +709,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
-                console.warn('ChunkLoadError caught in AptCompareModal. Reloading page...');
+                logger.warn('ExploreClient.ErrorBoundary', 'ChunkLoadError caught in AptCompareModal, page reload initiated');
                 safeReload('AptCompareModal_ExploreBoundary');
               }
               return null;
@@ -762,7 +763,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
-                console.warn('ChunkLoadError caught in JeonseSafetyCalculator. Reloading page...');
+                logger.warn('ExploreClient.ErrorBoundary', 'ChunkLoadError caught in JeonseSafetyCalculator, page reload initiated');
                 safeReload('JeonseSafetyCalculator_ExploreBoundary');
               }
               return null;
@@ -814,7 +815,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
-                console.warn('ChunkLoadError caught in MortgageCalculator. Reloading page...');
+                logger.warn('ExploreClient.ErrorBoundary', 'ChunkLoadError caught in MortgageCalculator, page reload initiated');
                 safeReload('MortgageCalculator_ExploreBoundary');
               }
               return null;
@@ -866,7 +867,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
-                console.warn('ChunkLoadError caught in PropertyTaxCalculator. Reloading page...');
+                logger.warn('ExploreClient.ErrorBoundary', 'ChunkLoadError caught in PropertyTaxCalculator, page reload initiated');
                 safeReload('PropertyTaxCalculator_ExploreBoundary');
               }
               return null;
@@ -917,7 +918,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           fallback={(error, reset) => {
             if (error && (error.name === 'ChunkLoadError' || error.message?.includes('Loading chunk') || error.message?.includes('Failed to fetch dynamically imported module'))) {
               if (typeof window !== 'undefined') {
-                console.warn('ChunkLoadError caught in SellTimingCalculator. Reloading page...');
+                logger.warn('ExploreClient.ErrorBoundary', 'ChunkLoadError caught in SellTimingCalculator, page reload initiated');
                 safeReload('SellTimingCalculator_ExploreBoundary');
               }
               return null;
