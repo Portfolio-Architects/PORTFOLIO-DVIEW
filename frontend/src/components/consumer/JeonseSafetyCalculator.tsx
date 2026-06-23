@@ -209,6 +209,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
 
   // Lock body scroll when modal is open
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';

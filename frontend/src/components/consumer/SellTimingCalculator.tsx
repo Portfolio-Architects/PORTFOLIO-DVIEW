@@ -229,6 +229,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
   // Lock body scroll
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isOpen) return;
     const original = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
