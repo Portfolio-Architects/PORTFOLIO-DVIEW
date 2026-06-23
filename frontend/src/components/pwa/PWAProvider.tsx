@@ -150,6 +150,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let isMounted = true;
 
     // Trigger initial offline sync queue processing on mount if online

@@ -207,6 +207,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
 
   // Handle clicking outside of dropdown to close it
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isFocused) return;
 
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {

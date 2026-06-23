@@ -56,6 +56,7 @@ const CommentSection = React.memo(function CommentSection({
   const [suggestionIndex, setSuggestionIndex] = useState(0);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (
         popoverRef.current && 

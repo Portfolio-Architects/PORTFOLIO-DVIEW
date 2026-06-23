@@ -226,6 +226,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
   }, [activeSubCategory, activeDongFilter]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let isMounted = true;
     let idleId: number | null = null;
     const checkParams = () => {

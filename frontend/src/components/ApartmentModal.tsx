@@ -598,6 +598,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const toolDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isToolDropdownOpen) return;
     const handleClickOutside = (e: Event) => {
       if (toolDropdownRef.current && !toolDropdownRef.current.contains(e.target as Node)) {
@@ -1258,6 +1259,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // Prevent body scroll when modal is open without causing global layout thrashing
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (inline || !isAnimationFinished) return;
     
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -1425,6 +1427,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     const el = modalRef.current;
     if (!el) return;
 
@@ -2655,6 +2658,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // Keyboard navigation & preloading
   React.useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!fullscreenImage || !hasImages) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {

@@ -63,6 +63,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (isOpen) {
       // Small timeout to allow tooltip DOM mount and bounding rect calculation
       const renderTimer = setTimeout(() => {

@@ -551,6 +551,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let debounceTimer: NodeJS.Timeout | null = null;
     const handleResize = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -603,6 +604,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   // 바깥 클릭 시 팝오버 닫기
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     function handleClickOutside(event: MouseEvent) {
       if (orderEditorRef.current && !orderEditorRef.current.contains(event.target as Node)) {
         setShowOrderEditor(false);
@@ -728,6 +730,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
 
   React.useEffect(() => {
+    if (typeof window === 'undefined') return;
     let scrollFrame: number | null = null;
     const handleScroll = () => {
       if (scrollFrame) return;
@@ -746,6 +749,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const chartContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (
         chartContainerRef.current &&

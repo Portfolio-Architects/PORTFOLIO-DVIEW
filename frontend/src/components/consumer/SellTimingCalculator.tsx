@@ -239,6 +239,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
   // Click outside to close autocomplete dropdown
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isFocused) return;
 
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {

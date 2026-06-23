@@ -635,6 +635,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, [currentCategory]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let scrollFrame: number | null = null;
     const handleScroll = () => {
       if (scrollFrame) return;

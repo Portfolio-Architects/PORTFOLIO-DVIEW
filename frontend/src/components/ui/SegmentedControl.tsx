@@ -39,6 +39,7 @@ function SegmentedControlInner<T extends string | number>({
   const optionsKey = options.map((opt) => `${opt.label}-${opt.value}`).join('|');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!isMounted) return;
 
     const updateSlider = () => {

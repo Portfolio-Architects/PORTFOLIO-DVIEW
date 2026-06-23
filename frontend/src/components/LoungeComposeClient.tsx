@@ -32,6 +32,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let activeFrame: number | null = null;
     
     const handleScroll = () => {

@@ -439,6 +439,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
 
   // Handle clicking outside of dropdowns to close them
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isFocused1 && !isFocused2) return;
 
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
