@@ -14,6 +14,7 @@ import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent } from '@/lib/utils/analytics';
+import { logger } from '@/lib/services/logger';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -98,7 +99,7 @@ const ModalSkeleton = () => (
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
-  console.warn('FieldReportModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
 }), { 
@@ -106,23 +107,23 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').cat
   loading: () => <ModalSkeleton />
 });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal').catch(err => {
-  console.warn('WriteReviewModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'WriteReviewModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('WriteReviewModal');
   return { default: () => null };
 }), { ssr: false });
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
-  console.warn('AdInquiryModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'AdInquiryModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AdInquiryModal');
   return { default: () => null };
 }), { ssr: false });
 const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
-  console.warn('B2BConsumerAdModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'B2BConsumerAdModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
 }), { ssr: false });
 
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient').catch(err => {
-  console.warn('LoungeContainerClient Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeContainerClient');
   return { default: () => null };
 }), { 
@@ -131,13 +132,13 @@ const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainer
 });
 
 const RegionAccordion = dynamic(() => import('@/components/curation/RegionAccordion').catch(err => {
-  console.warn('RegionAccordion Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'RegionAccordion Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('RegionAccordion');
   return { default: () => null };
 }), { ssr: false });
 
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer').catch(err => {
-  console.warn('GapInvestmentExplorer Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'GapInvestmentExplorer Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('GapInvestmentExplorer');
   return { default: () => null };
 }), { 
@@ -145,22 +146,22 @@ const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentEx
   loading: () => <GapExplorerSkeleton />
 });
 const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration').catch(err => {
-  console.warn('ChopoomaCuration Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'ChopoomaCuration Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ChopoomaCuration');
   return { default: () => null };
 }), { ssr: false });
 const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration').catch(err => {
-  console.warn('LocalEventCuration Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'LocalEventCuration Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LocalEventCuration');
   return { default: () => null };
 }), { ssr: false });
 const AIRecommendations = dynamic(() => import('@/components/consumer/AIRecommendations').catch(err => {
-  console.warn('AIRecommendations Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'AIRecommendations Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AIRecommendations');
   return { default: () => null };
 }), { ssr: false });
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
-  console.warn('AptCompareModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptCompareModal');
   return { default: () => null };
 }), {
@@ -174,7 +175,7 @@ const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareMo
   )
 });
 const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
-  console.warn('JeonseSafetyCalculator Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('JeonseSafetyCalculator');
   return { default: () => null };
 }), {
@@ -188,7 +189,7 @@ const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/Jeons
   )
 });
 const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
-  console.warn('MortgageCalculator Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'MortgageCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MortgageCalculator');
   return { default: () => null };
 }), {
@@ -203,7 +204,7 @@ const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageC
 });
 
 const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
-  console.warn('PropertyTaxCalculator Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'PropertyTaxCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('PropertyTaxCalculator');
   return { default: () => null };
 }), {
@@ -218,7 +219,7 @@ const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/Proper
 });
 
 const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
-  console.warn('SellTimingCalculator Chunk Load failure, initiating fallback reload', err);
+  logger.warn('DashboardClient.dynamic', 'SellTimingCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('SellTimingCalculator');
   return { default: () => null };
 }), {
@@ -326,7 +327,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         window.location.reload();
       }
     } catch (error) {
-      console.error('Failed to set nickname:', error);
+      logger.error('DashboardClient.handleNicknameSubmit', 'Failed to set nickname', undefined, error);
       if (mountedRef.current) {
         setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
@@ -703,7 +704,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
             }
           }
         })
-        .catch(err => console.warn('Failed to backfill apartment details:', err));
+        .catch(err => logger.warn('DashboardClient.handleAptClick', 'Failed to backfill apartment details', undefined, err));
     }
 
     // Record viewed history for AI recommendation engine
@@ -714,7 +715,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         localCache.set('dview_viewed_apts', updated, 604800); // 7 days TTL
         window.dispatchEvent(new Event('dview_viewed_apts_changed'));
       } catch (e) {
-        console.warn('LocalStorage write error:', e);
+        logger.warn('DashboardClient.handleAptClick', 'LocalStorage write error', undefined, e);
       }
     }
 
