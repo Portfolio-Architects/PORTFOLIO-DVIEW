@@ -61,7 +61,7 @@ export async function enqueueOfflineRequest(payload: OfflineRequestPayload): Pro
   logger.info('OfflineSync', 'Request enqueued to offline DB', { id: mutation.id, url: payload.url });
 
   // Register background sync if service worker is active and sync is supported
-  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'SyncManager' in window) {
     try {
       const registration = await navigator.serviceWorker.ready;
       const syncReg = (registration as any).sync;

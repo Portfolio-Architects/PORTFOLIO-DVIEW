@@ -525,6 +525,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         window.removeEventListener('mouseup', mouseup);
         window.removeEventListener('blur', mouseup);
       }
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
   }, []);
 
