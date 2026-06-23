@@ -106,6 +106,7 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
 
   // 3. System theme change listener (only active for system preference)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!mounted || theme !== 'system') return;
     
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -130,6 +131,7 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
 
   // 4. Listen to multi-tab localStorage change to synchronize settings across tabs
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!mounted) return;
 
     const handleStorageChange = (e: StorageEvent) => {
