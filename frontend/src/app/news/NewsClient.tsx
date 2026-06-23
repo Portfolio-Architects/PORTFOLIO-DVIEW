@@ -71,6 +71,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
 
   // Prevent background scroll when modal is open
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!selectedNotice) return;
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';

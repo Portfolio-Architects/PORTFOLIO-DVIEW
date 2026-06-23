@@ -88,6 +88,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
 
   // Prevent background scroll when profile edit modal is open
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!showProfileModal) return;
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';

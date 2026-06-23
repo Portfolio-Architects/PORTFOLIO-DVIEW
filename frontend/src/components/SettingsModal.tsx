@@ -22,6 +22,7 @@ const SettingsModal = React.memo(function SettingsModal() {
 
   // Prevent background scroll when settings modal is open
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!isSettingsModalOpen) return;
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
