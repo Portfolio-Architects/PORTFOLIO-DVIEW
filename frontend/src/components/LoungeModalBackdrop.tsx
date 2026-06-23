@@ -10,9 +10,15 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
 
   usePreventElasticBounce(backdropRef);
 
+  const onCloseRef = useRef(onClose);
+  
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   const handleClose = () => {
-    if (onClose) {
-      onClose();
+    if (onCloseRef.current) {
+      onCloseRef.current();
     } else {
       router.back();
     }
@@ -25,7 +31,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [router, onClose]);
+  }, [router]);
 
   return (
     <div 

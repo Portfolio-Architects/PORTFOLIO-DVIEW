@@ -36,6 +36,8 @@ function SegmentedControlInner<T extends string | number>({
     };
   }, []);
 
+  const optionsKey = options.map((opt) => `${opt.label}-${opt.value}`).join('|');
+
   useEffect(() => {
     if (!isMounted) return;
 
@@ -66,7 +68,7 @@ function SegmentedControlInner<T extends string | number>({
       window.removeEventListener('resize', updateSlider);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [value, options, isMounted]);
+  }, [value, optionsKey, isMounted]);
 
   return (
     <div

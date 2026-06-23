@@ -30,8 +30,13 @@ const PullToRefresh = React.memo(function PullToRefresh({
   const isRefreshingRef = useRef<boolean>(false);
   const mountedRef = useRef(true);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const onRefreshRef = useRef(onRefresh);
 
   // Sync state with refs for event listener stability
+  useEffect(() => {
+    onRefreshRef.current = onRefresh;
+  });
+
   useEffect(() => {
     progressRef.current = pullProgress;
   }, [pullProgress]);
@@ -99,8 +104,8 @@ const PullToRefresh = React.memo(function PullToRefresh({
         }
         
         try {
-          if (onRefresh) {
-            await onRefresh();
+          if (onRefreshRef.current) {
+            await onRefreshRef.current();
           } else {
             // Fallback to Next.js router refresh
             router.refresh();
@@ -154,7 +159,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [disabled, scrollContainerId, pullThreshold, onRefresh, router]);
+  }, [disabled, scrollContainerId, pullThreshold, router]);
 
   return (
     <div ref={contentRef} className="min-h-screen">
