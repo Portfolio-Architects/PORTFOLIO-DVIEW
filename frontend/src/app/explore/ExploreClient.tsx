@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
 import dynamic from 'next/dynamic';
 
 import { MessageSquare } from 'lucide-react';

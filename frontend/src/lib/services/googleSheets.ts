@@ -69,6 +69,8 @@ const SHEETS_CACHE_TTL = 3600; // 1 hour
 async function fetchCsv(sheetName: string): Promise<string[][]> {
   const cacheKey = `DTDLS:cache:sheets:${sheetName}`;
   const now = Date.now();
+  const LOCAL_CACHE_DIR = path.resolve(process.cwd(), 'scratch/sheets-cache');
+  const localCachePath = path.join(LOCAL_CACHE_DIR, `${sheetName}.json`);
 
   // 1. Check in-memory cache first
   const memCached = sheetsMemoryCache[cacheKey];
@@ -90,6 +92,15 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
           fetchCsvFromGoogle(sheetName).then(freshData => {
             redis?.set(cacheKey, { data: freshData, timestamp: Date.now() });
             sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: Date.now() };
+            // Save to local file cache as well
+            try {
+              if (!fs.existsSync(LOCAL_CACHE_DIR)) {
+                fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
+              }
+              fs.writeFileSync(localCachePath, JSON.stringify({ data: freshData, timestamp: Date.now() }), 'utf-8');
+            } catch (err) {
+              logger.error('fetchCsv', `Local file cache write failed on background refresh: ${sheetName}`, undefined, err);
+            }
           }).catch(err => {
             logger.error('fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err);
           });
@@ -108,6 +119,16 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
     const freshData = await fetchCsvFromGoogle(sheetName);
     sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: now };
 
+    // Write to local file cache
+    try {
+      if (!fs.existsSync(LOCAL_CACHE_DIR)) {
+        fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
+      }
+      fs.writeFileSync(localCachePath, JSON.stringify({ data: freshData, timestamp: now }), 'utf-8');
+    } catch (e) {
+      logger.error('fetchCsv', `Local file cache write failed for sheet: ${sheetName}`, undefined, e);
+    }
+
     if (redis) {
       try {
         await redis.set(cacheKey, { data: freshData, timestamp: now });
@@ -125,7 +146,21 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
       return sheetsMemoryCache[cacheKey].data;
     }
 
-    // Fallback 2: Stale Redis cache
+    // Fallback 2: Local file cache
+    try {
+      if (fs.existsSync(localCachePath)) {
+        const fileContent = fs.readFileSync(localCachePath, 'utf-8');
+        const cached = JSON.parse(fileContent);
+        if (cached && cached.data) {
+          logger.warn('fetchCsv', `Falling back to local file cache for sheet: ${sheetName}`);
+          return cached.data;
+        }
+      }
+    } catch (fileError) {
+      logger.error('fetchCsv', `Local file cache read fallback failed for sheet: ${sheetName}`, undefined, fileError as Error);
+    }
+
+    // Fallback 3: Stale Redis cache
     if (redis) {
       try {
         const cached = await redis.get<{ data: string[][]; timestamp: number }>(cacheKey);
@@ -138,7 +173,7 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
       }
     }
 
-    // Fallback 3: Return empty array
+    // Fallback 4: Return empty array
     logger.error('fetchCsv', `No cache available for sheet: ${sheetName}. Returning empty array.`, undefined, error as Error);
     return [];
   }
@@ -248,11 +283,9 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
   const cacheKey = 'DTDLS:parsed:apartmentsByDong';
   const now = Date.now();
   
-  if (!bypassLocalCache) {
-    const memCached = sheetsMemoryCache[cacheKey];
-    if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
-      return memCached.data;
-    }
+  const memCached = sheetsMemoryCache[cacheKey];
+  if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
+    return memCached.data;
   }
 
   const [aptRows, sboydsRows, restRows] = await Promise.all([
