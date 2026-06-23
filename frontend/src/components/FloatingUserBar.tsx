@@ -37,6 +37,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
 
   // Scroll Listener with requestAnimationFrame for performance optimization
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let active = true;
     const handleScroll = () => {
       if (scrollTimeoutRef.current) return;

@@ -134,6 +134,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
 
   // 🔧 Admin 동기화 중 탭 닫힘 방지 beforeunload 가드
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const isAnySyncing = isSyncing || isNoticeSyncing || isSheetsSyncing || isReportsSyncing || saving;
     if (!isAnySyncing) return;
 

@@ -167,6 +167,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
 
   // 2. Physics & Render loop
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');

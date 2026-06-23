@@ -26,6 +26,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
 
   // Handle escape key to close modal
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose();
     };
