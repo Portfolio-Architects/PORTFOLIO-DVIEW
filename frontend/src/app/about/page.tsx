@@ -1,6 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Landmark, TrendingUp, Sparkles, ShieldCheck, MapPin } from 'lucide-react';
+import { headers } from 'next/headers';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export const metadata = {
   title: 'D-VIEW 소개 | 동탄 아파트 가치분석의 새로운 기준',
@@ -10,9 +12,66 @@ export const metadata = {
   },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+  const nonce = (await headers()).get('x-nonce') || undefined;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "AboutPage",
+        "@id": `${baseUrl}/about#webpage`,
+        "url": `${baseUrl}/about`,
+        "name": "D-VIEW 소개 | 동탄 아파트 가치분석의 새로운 기준",
+        "description": "D-VIEW의 비전, 부동산 가치 평가 모델(실거주 PER, 입지 유틸리티 스코어, 3D 시그널 맵) 및 데이터 출처와 투명성에 대해 알아봅니다.",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "홈",
+              "item": baseUrl
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "소개",
+              "item": `${baseUrl}/about`
+            }
+          ]
+        }
+      },
+      {
+        "@type": "RealEstateAgent",
+        "@id": `${baseUrl}/#agent`,
+        "name": "D-VIEW 부동산 데이터 랩스",
+        "description": "동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼",
+        "url": baseUrl,
+        "telephone": "+82-2-000-0000",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "KR",
+          "addressRegion": "경기도",
+          "addressLocality": "화성시 동탄역로"
+        }
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-body font-sans pb-20">
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
+      />
+      <div className="sr-only" aria-hidden="true">
+        <h1>동탄 아파트 가치분석 플랫폼 D-VIEW 소개</h1>
+        <p>D-VIEW의 비전, 부동산 가치 평가 모델(실거주 PER, 입지 유틸리티 스코어, 3D 시그널 맵) 및 데이터 출처와 투명성에 대해 알아봅니다.</p>
+      </div>
+
       {/* 상단 네비게이션 헤더 */}
       <div className="bg-surface/90 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-colors duration-200">
         <div className="max-w-[880px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
@@ -136,19 +195,19 @@ export default function AboutPage() {
           </p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] text-secondary font-medium pl-1">
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-emerald-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               국토교통부 실거래가 공개시스템 API
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-emerald-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               행정안전부 지방행정인허가 데이터 (보육)
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-emerald-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               화성시청 및 동탄구청 고시/공고 수집 시스템
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-emerald-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               국가교통DB 및 철도산업정보센터 노선 현황
             </li>
           </ul>
