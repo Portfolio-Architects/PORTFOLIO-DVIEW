@@ -1,7 +1,7 @@
 'use client';
 
 // Security Audit: Verified that no target="_blank" links exist in this welcome modal component to prevent Tabnabbing (rel="noopener noreferrer" guard).
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Compass, ShieldCheck, Map, ArrowRight, X } from 'lucide-react';
 
 function getCookie(name: string): string {
@@ -22,9 +22,9 @@ function setCookie(name: string, value: string, days: number): void {
 
 const WelcomeModal = React.memo(function WelcomeModal() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const welcomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
     if (typeof window !== 'undefined') {
       try {
         const seenLocal = localStorage.getItem('dview-welcome-seen');
@@ -32,27 +32,36 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         
         if (seenLocal !== 'true' && seenCookie !== 'true') {
           // Trigger the modal after 1.5 seconds to ensure smooth hydration and layout loading
-          timer = setTimeout(() => {
+          welcomeTimeoutRef.current = setTimeout(() => {
             setIsOpen(true);
+            welcomeTimeoutRef.current = null;
           }, 1500);
         }
       } catch (e) {
         console.warn('localStorage is unavailable, checking cookie fallback:', e);
         const seenCookie = getCookie('dview-welcome-seen');
         if (seenCookie !== 'true') {
-          timer = setTimeout(() => {
+          welcomeTimeoutRef.current = setTimeout(() => {
             setIsOpen(true);
+            welcomeTimeoutRef.current = null;
           }, 1500);
         }
       }
     }
     return () => {
-      if (timer) clearTimeout(timer);
+      if (welcomeTimeoutRef.current) {
+        clearTimeout(welcomeTimeoutRef.current);
+        welcomeTimeoutRef.current = null;
+      }
     };
   }, []);
 
   const handleClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault();
+    if (welcomeTimeoutRef.current) {
+      clearTimeout(welcomeTimeoutRef.current);
+      welcomeTimeoutRef.current = null;
+    }
     try {
       localStorage.setItem('dview-welcome-seen', 'true');
     } catch (err) {
