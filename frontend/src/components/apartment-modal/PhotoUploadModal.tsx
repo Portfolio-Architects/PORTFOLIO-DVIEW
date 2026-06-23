@@ -56,26 +56,26 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
     setMounted(true);
   }, []);
 
-  // Reset file, caption, and revoke object URL when modal is closed
+  // Reset file, caption when modal is closed
   useEffect(() => {
     if (!isOpen) {
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
-      }
-      setPreviewUrl(null);
       setFile(null);
       setCaption('');
     }
-  }, [isOpen, previewUrl]);
+  }, [isOpen]);
 
-  // Revoke object URL to prevent memory leaks when preview URL changes or component unmounts
+  // Declarative Object URL lifecycle management to prevent memory leaks
   useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
     return () => {
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
-      }
+      URL.revokeObjectURL(url);
     };
-  }, [previewUrl]);
+  }, [file]);
 
   if (!isOpen || !mounted) return null;
 
@@ -107,13 +107,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         alert('이미지 크기는 10MB 이하여야 합니다.');
         return;
       }
-      // Explicitly revoke previous previewUrl to prevent memory leaks in case of sequential selection
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
-      }
       setFile(selected);
-      const url = URL.createObjectURL(selected);
-      setPreviewUrl(url);
     }
   };
 
@@ -124,13 +118,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         alert('이미지 크기는 10MB 이하여야 합니다.');
         return;
       }
-      // Explicitly revoke previous previewUrl to prevent memory leaks in case of sequential selection
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(previewUrl); } catch { /* ignore */ }
-      }
       setFile(selected);
-      const url = URL.createObjectURL(selected);
-      setPreviewUrl(url);
     }
   };
 
