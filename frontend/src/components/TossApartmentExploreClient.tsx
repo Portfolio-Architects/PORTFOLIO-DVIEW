@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, memo, useDeferredValue } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles } from 'lucide-react';
 import { z } from 'zod';
@@ -575,18 +575,19 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     { id: 'rank-views', label: '조회순' },
     ...DONGS.map(d => ({ id: `dong-${d.name}`, label: d.name }))
   ], []);
-  const debouncedSearchQuery = useDebounce(searchQuery, 200);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const debouncedSearchQueryForAnalytics = useDebounce(searchQuery, 1000);
 
   // 카테고리나 검색어 변경 시 노출 갯수를 15개로 초기화하여 CLS 방지
   useEffect(() => {
     setVisibleCount(15);
-  }, [currentCategory, debouncedSearchQuery]);
+  }, [currentCategory, deferredSearchQuery]);
 
   useEffect(() => {
-    if (mounted && debouncedSearchQuery.trim()) {
-      trackEvent('search_apartment', { query: debouncedSearchQuery });
+    if (mounted && debouncedSearchQueryForAnalytics.trim()) {
+      trackEvent('search_apartment', { query: debouncedSearchQueryForAnalytics });
     }
-  }, [debouncedSearchQuery, mounted]);
+  }, [debouncedSearchQueryForAnalytics, mounted]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -767,16 +768,16 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       return sortDirection === 'desc' ? valB - valA : valA - valB;
     });
 
-    if (debouncedSearchQuery.trim()) {
-      const q = debouncedSearchQuery.toLowerCase().replace(/\s+/g, '');
+    if (deferredSearchQuery.trim()) {
+      const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
       filtered = filtered.filter(a => a.apt.name.toLowerCase().replace(/\s+/g, '').includes(q));
     }
 
     return filtered;
-  }, [enrichedApts, currentCategory, debouncedSearchQuery, sortKey, sortDirection, userFavorites, favoriteCounts, fieldReportsMap]);
+  }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, userFavorites, favoriteCounts, fieldReportsMap]);
 
   const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
-    const q = debouncedSearchQuery.toLowerCase().replace(/\s+/g, '');
+    const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
     if (!q) {
       return { suggestionsApts: [], suggestionsDongs: [], suggestionsBrands: [] };
     }
@@ -799,7 +800,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       suggestionsDongs: matchingDongs,
       suggestionsBrands: matchingBrands
     };
-  }, [enrichedApts, debouncedSearchQuery]);
+  }, [enrichedApts, deferredSearchQuery]);
 
   const recommendedKeywords = ['동탄역', '시범단지', '롯데캐슬', '반도유보라', '자이', '더샵'];
 
