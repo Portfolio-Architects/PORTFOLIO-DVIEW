@@ -3,6 +3,9 @@
 import { useSyncExternalStore } from 'react';
 
 function subscribe(callback: () => void) {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
   window.addEventListener('online', callback);
   window.addEventListener('offline', callback);
   return () => {
@@ -12,6 +15,9 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot() {
+  if (typeof navigator === 'undefined') {
+    return true; // Fallback to online during SSR/hydration
+  }
   return navigator.onLine;
 }
 
