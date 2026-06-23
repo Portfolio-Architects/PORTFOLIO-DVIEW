@@ -40,6 +40,7 @@ import { haversineDistance } from "@/lib/utils/haversine";
 import { useSettingsValues } from "@/lib/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores } from "@/hooks/useStaticData";
+import { BUILD_VERSION } from "@/lib/build-version";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
 import {
@@ -391,7 +392,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         const resolved = findTxKey(apt, txSummaryData, nameMapping) || apt;
         if (!resolved) return;
         const txKey = normalizeAptName(resolved);
-        fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal }).catch((err) => {
+        fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal }).catch((err) => {
           if (err.name !== "AbortError") {
             console.warn(`Prefetch failed for ${txKey}:`, err);
           }
@@ -703,7 +704,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   // 모든 타임프레임에서 데이터 정합성 보장을 위해 전체 데이터(.json)를 페치합니다 (초경량 130KB 이내)
   const fetchUrl = useMemo(() => {
     if (!mounted || !txKey) return null;
-    return `/tx-data/${encodeURIComponent(txKey)}.json`;
+    return `/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`;
   }, [mounted, txKey]);
 
   const { data: aptRealTxDataData, isValidating: isAptTxLoading } = useSWR<any[]>(

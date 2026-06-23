@@ -10,6 +10,7 @@ import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apar
 import { shareCompareToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { BUILD_VERSION } from '@/lib/build-version';
 
 interface AptCompareModalProps {
   isOpen: boolean;
@@ -463,7 +464,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
     const controller = new AbortController();
     const resolved = findTxKey(apt1.name, txSummaryData, nameMapping) || apt1.name;
     const txKey = normalizeAptName(resolved);
-    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal: controller.signal })
+    fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
         return res.json();
@@ -497,7 +498,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
     const controller = new AbortController();
     const resolved = findTxKey(apt2.name, txSummaryData, nameMapping) || apt2.name;
     const txKey = normalizeAptName(resolved);
-    fetch(`/tx-data/${encodeURIComponent(txKey)}.json`, { signal: controller.signal })
+    fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
         return res.json();
