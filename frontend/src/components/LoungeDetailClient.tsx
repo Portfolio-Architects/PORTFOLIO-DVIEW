@@ -28,6 +28,7 @@ import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
+import { logger } from '@/lib/services/logger';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 
 import { sharePostToKakao } from '@/lib/utils/kakaoShare';
@@ -217,7 +218,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       const liked = localStorage.getItem(`post_liked_${postId}`);
       if (active && liked) setIsLiked(true);
     } catch (e) {
-      console.warn('localStorage is unavailable:', e);
+      logger.warn('LoungeDetailClient.usePostEffect', 'localStorage is unavailable', undefined, e);
     }
     
     // View Tracking
@@ -253,11 +254,11 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
             try {
               isAdminUser = localStorage.getItem('dview_is_admin') === 'true';
             } catch (err) {
-              console.warn('localStorage is unavailable:', err);
+              logger.warn('LoungeDetailClient.usePostEffect', 'localStorage is unavailable', undefined, err);
             }
             if (!isAdminUser) {
               dashboardFacade.incrementPostView(postId, data.title).catch((e) => {
-                console.error('View tracking failed in background', e);
+                logger.error('LoungeDetailClient.usePostEffect', 'View tracking failed in background', undefined, e);
               });
             }
             if (!active) return;
@@ -271,7 +272,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
               return updated;
             });
           } catch (e) {
-            console.error('View tracking failed', e);
+            logger.error('LoungeDetailClient.usePostEffect', 'View tracking failed', undefined, e);
           }
         }
       }
@@ -317,7 +318,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         setRecommendedPosts(sorted);
       } catch (err) {
         if (active) {
-          console.warn('Failed to fetch recommended posts:', err);
+          logger.warn('LoungeDetailClient.useRecommendedEffect', 'Failed to fetch recommended posts', undefined, err);
         }
       }
     };
@@ -361,7 +362,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       try {
         localStorage.setItem(`post_liked_${postId}`, 'true');
       } catch (err) {
-        console.warn('localStorage is unavailable:', err);
+        logger.warn('LoungeDetailClient.handleLike', 'localStorage is unavailable', undefined, err);
       }
       await throttle(() => updateDoc(doc(db, 'posts', postId), { likes: increment(1) }));
       if (!mountedRef.current) return;
@@ -374,7 +375,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       try {
         localStorage.removeItem(`post_liked_${postId}`);
       } catch (err) {
-        console.warn('localStorage is unavailable:', err);
+        logger.warn('LoungeDetailClient.handleLike', 'localStorage is unavailable', undefined, err);
       }
       showToast("공감 처리에 실패했습니다.");
     }
@@ -399,7 +400,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       });
       showToast("카카오톡 공유 창을 열었습니다. 💬");
     } catch (err) {
-      console.warn("Kakao SDK share failed, falling back to clipboard copy:", err);
+      logger.warn('LoungeDetailClient.handleShare', 'Kakao SDK share failed, falling back to clipboard copy', undefined, err);
       const shareUrl = `${window.location.origin}/lounge/${postId}`;
       try {
         await navigator.clipboard.writeText(shareUrl);
@@ -496,7 +497,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         triggerCustomA2HSModal();
       } catch (err) {
         if (mountedRef.current) {
-          console.error('Failed to enqueue comment request', err);
+          logger.error('LoungeDetailClient.handleSendComment', 'Failed to enqueue comment request', undefined, err);
           alert('댓글 작성에 실패했습니다.');
         }
       } finally {
@@ -532,7 +533,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       triggerCustomA2HSModal();
     } catch (error) {
       if (!mountedRef.current) return;
-      console.warn('Comment creation failed online, attempting offline fallback', error);
+      logger.warn('LoungeDetailClient.handleSendComment', 'Comment creation failed online, attempting offline fallback', undefined, error);
       try {
         let displayName = '익명이웃';
         let authorUid = null;
@@ -560,7 +561,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         triggerCustomA2HSModal();
       } catch (queueErr) {
         if (mountedRef.current) {
-          console.error('Failed to enqueue comment request', queueErr);
+          logger.error('LoungeDetailClient.handleSendComment', 'Failed to enqueue comment request', undefined, queueErr);
           alert('댓글 작성에 실패했습니다.');
         }
       }
@@ -597,7 +598,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
       setIsEditing(false);
     } catch (e) {
       if (mountedRef.current) {
-        console.error(e);
+        logger.error('LoungeDetailClient.handleSaveEdit', 'Save edit failed', undefined, e);
         alert('수정에 실패했습니다.');
       }
     }
@@ -644,7 +645,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         }
       }
     } catch (error) {
-      console.error('Image upload failed', error);
+      logger.error('LoungeDetailClient.handleImageUpload', 'Image upload failed', undefined, error);
       alert('이미지 업로드에 실패했습니다.');
     } finally {
       if (mountedRef.current) {

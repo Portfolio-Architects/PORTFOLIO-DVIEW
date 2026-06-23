@@ -11,14 +11,15 @@ const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
   loading: () => <div className="w-full h-24 bg-body/20 rounded-2xl animate-pulse" />
 });
 import { safeReload } from '@/lib/utils/safeReload';
+import { logger } from '@/lib/services/logger';
 
 const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient').catch(err => {
-  console.warn('LoungeDetailClient Chunk Load failure, initiating fallback reload', err);
+  logger.warn('LoungeFeedClient.dynamic', 'LoungeDetailClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeDetailClient');
   return { default: () => null };
 }), { ssr: false });
 const AptStoriesWidget = dynamic(() => import('@/components/AptStoriesWidget').catch(err => {
-  console.warn('AptStoriesWidget Chunk Load failure, initiating fallback reload', err);
+  logger.warn('LoungeFeedClient.dynamic', 'AptStoriesWidget Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptStoriesWidget');
   return { default: () => null };
 }), { ssr: false });
@@ -301,7 +302,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
         })
         .catch(err => {
           if (err.name === 'AbortError') return;
-          console.warn('LoungeFeedClient - Failed to fetch news:', err instanceof Error ? err.message : err);
+          logger.warn('LoungeFeedClient.useNewsEffect', 'Failed to fetch news', undefined, err);
         })
         .finally(() => {
           if (active) setNewsLoading(false);
@@ -341,7 +342,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           });
         })
         .catch(err => {
-          if (err.name !== 'AbortError') console.warn(err);
+          if (err.name !== 'AbortError') logger.warn('LoungeFeedClient.useNoticesEffect', 'Failed to fetch local events', undefined, err);
         });
 
       // 2. Fetch Local Notices (Heavier DB API)
@@ -368,7 +369,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
         })
         .catch(err => {
           if (active && err.name !== 'AbortError') {
-            console.warn('LoungeFeedClient - Failed to fetch notices:', err instanceof Error ? err.message : err);
+            logger.warn('LoungeFeedClient.useNoticesEffect', 'Failed to fetch notices', undefined, err);
           }
         })
         .finally(() => {
@@ -434,7 +435,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
         title: `[동탄구 소식] ${notice.title}`,
         text: `${notice.dept} 고시공고 - D-VIEW에서 바로 확인해보세요!`,
         url: shareUrl,
-      }).catch(err => console.error(err));
+      }).catch(err => logger.error('LoungeFeedClient.handleShareNotice', 'Share failed', undefined, err));
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => {
         showToast("소식 공유 링크가 클립보드에 복사되었습니다!");

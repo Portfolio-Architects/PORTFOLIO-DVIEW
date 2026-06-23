@@ -15,6 +15,7 @@ import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { logger } from '@/lib/services/logger';
 
 
 interface Props {
@@ -184,7 +185,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
         }
       }
     } catch (error) {
-      console.error('Image upload failed', error);
+      logger.error('LoungeComposeClient.handleImageUpload', 'Image upload failed', undefined, error);
       alert('이미지 업로드에 실패했습니다.');
     } finally {
       setIsUploadingImage(false);
@@ -366,7 +367,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                       showToast('네트워크가 연결되지 않아 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
                       submitLockRef.current = false;
                     } catch (err) {
-                      console.error('Failed to enqueue post request', err);
+                      logger.error('LoungeComposeClient.onSubmit', 'Failed to enqueue post request', undefined, err);
                       alert('글 작성에 실패했습니다.');
                       submitLockRef.current = false;
                     } finally {
@@ -410,7 +411,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                         }, 1000);
                       }
                     } catch (unlockErr) {
-                      console.warn('Failed to set global unlock rewards:', unlockErr);
+                      logger.warn('LoungeComposeClient.onSubmit', 'Failed to set global unlock rewards', undefined, unlockErr);
                     }
 
                     // Refresh the route to show the new post from the server component
@@ -426,7 +427,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                       alert(error.message);
                       submitLockRef.current = false;
                     } else {
-                      console.warn('Post creation failed online, attempting offline fallback', error);
+                      logger.warn('LoungeComposeClient.onSubmit', 'Post creation failed online, attempting offline fallback', undefined, error);
                       try {
                         await enqueueOfflineRequest({
                           url: '/api/posts',
@@ -445,7 +446,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                         setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
                         showToast('네트워크 오류로 인해 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
                       } catch (queueErr) {
-                        console.error('Failed to enqueue post request', queueErr);
+                        logger.error('LoungeComposeClient.onSubmit', 'Failed to enqueue post request', undefined, queueErr);
                         alert('글 작성에 실패했습니다.');
                       }
                       submitLockRef.current = false;

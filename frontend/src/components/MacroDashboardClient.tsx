@@ -3,8 +3,9 @@ import { createPortal } from "react-dom";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
+import { logger } from "@/lib/services/logger";
 const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
-  console.warn('MacroTrendChart Chunk Load failure, initiating fallback reload', err);
+  logger.warn('MacroDashboardClient.dynamic', 'MacroTrendChart Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroTrendChart');
   return { default: () => null };
 }), {
@@ -16,7 +17,7 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
   )
 });
 const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err => {
-  console.warn('AptFitFinder Chunk Load failure, initiating fallback reload', err);
+  logger.warn('MacroDashboardClient.dynamic', 'AptFitFinder Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptFitFinder');
   return { default: () => null };
 }), {
@@ -391,7 +392,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         const txKey = normalizeAptName(resolved);
         fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal }).catch((err) => {
           if (err.name !== "AbortError") {
-            console.warn(`Prefetch failed for ${txKey}:`, err);
+            logger.warn('MacroDashboardClient.prefetchApts', `Prefetch failed for ${txKey}`, undefined, err);
           }
         });
       });
@@ -709,7 +710,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     async (url) => {
       const res = await fetch(url);
       if (!res.ok) {
-        console.warn(`Failed to load tx data: status ${res.status}`);
+        logger.warn('MacroDashboardClient.fetchTxData', `Failed to load tx data: status ${res.status}`);
         return null;
       }
       return res.json();

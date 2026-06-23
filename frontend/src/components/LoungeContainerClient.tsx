@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeroHeader from './PageHeroHeader';
 import { safeReload } from '@/lib/utils/safeReload';
+import { logger } from '@/lib/services/logger';
 import { 
   MessageSquare, 
   Newspaper, 
@@ -32,7 +33,7 @@ const LoungeComposeSkeleton = () => (
 );
 
 const LoungeFeedClient = dynamic(() => import('@/components/LoungeFeedClient').catch(err => {
-  console.warn('LoungeFeedClient Chunk Load failure, initiating fallback reload', err);
+  logger.warn('LoungeContainerClient.dynamic', 'LoungeFeedClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeFeedClient');
   return { default: () => null };
 }), { 
@@ -41,7 +42,7 @@ const LoungeFeedClient = dynamic(() => import('@/components/LoungeFeedClient').c
 });
 
 const LoungeComposeClient = dynamic(() => import('@/components/LoungeComposeClient').catch(err => {
-  console.warn('LoungeComposeClient Chunk Load failure, initiating fallback reload', err);
+  logger.warn('LoungeContainerClient.dynamic', 'LoungeComposeClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeComposeClient');
   return { default: () => null };
 }), { 
