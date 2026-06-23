@@ -183,7 +183,8 @@ function mergeTransactions(
 // 4-2. 정적 최근 거래 플랫 리스트 + Firestore 신규 거래 메모리 병합 헬퍼
 function mergeRecentTransactions(
   staticRecent: any[],
-  newTxs: any[]
+  newTxs: any[],
+  targetAptKeys?: Set<string>
 ): any[] {
   if (!newTxs || newTxs.length === 0) return staticRecent;
   
@@ -197,8 +198,6 @@ function mergeRecentTransactions(
     const isSale = validatedTx.dealType !== '전세' && validatedTx.dealType !== '월세';
     if (!isSale) return;
 
-    const txDateFormatted = `${validatedTx.contractYm.substring(4)}.${validatedTx.contractDay}`;
-    const contractDate = validatedTx.contractDate || `${validatedTx.contractYm}${validatedTx.contractDay}`;
     const aptKey = validatedTx.aptName
       .normalize('NFC')
       .replace(/[\u200B-\u200D\uFEFF]/g, '')
@@ -206,6 +205,11 @@ function mergeRecentTransactions(
       .replace(/\s+/g, '')
       .replace(/[()（）]/g, '')
       .trim();
+
+    if (targetAptKeys && targetAptKeys.size > 0 && !targetAptKeys.has(aptKey)) return;
+
+    const txDateFormatted = `${validatedTx.contractYm.substring(4)}.${validatedTx.contractDay}`;
+    const contractDate = validatedTx.contractDate || `${validatedTx.contractYm}${validatedTx.contractDay}`;
 
     const isDup = merged.some(r => 
       r.contractDate === contractDate &&
@@ -351,8 +355,9 @@ export function useTxData(
   const mergedRecentTxs = useMemo(() => {
     const activeRecent = recentTxData || initialRecentTransactions || [];
     if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeRecent;
-    return mergeRecentTransactions(activeRecent, recentFirestoreTxs);
-  }, [recentTxData, initialRecentTransactions, recentFirestoreTxs]);
+    const targetAptKeys = new Set(Object.keys(summaryData?.summary || initialTxSummary || {}));
+    return mergeRecentTransactions(activeRecent, recentFirestoreTxs, targetAptKeys);
+  }, [recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary]);
 
   // 4. 실시간 거래량을 가산한 7일 거래 지표 계산
   const mergedRecent7DaysVolume = useMemo(() => {

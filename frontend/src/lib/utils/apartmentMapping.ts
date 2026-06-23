@@ -668,7 +668,9 @@ export function findTypeMapEntry(
       aptEntry = null;
     }
     
-    resolvedAptEntryCache.set(vAptName, aptEntry);
+    if (aptEntry !== null) {
+      resolvedAptEntryCache.set(vAptName, aptEntry);
+    }
   }
 
   if (!aptEntry) return null;
