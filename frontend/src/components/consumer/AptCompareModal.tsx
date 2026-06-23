@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useDeferredValue } from 'react';
-import { X, Search, Building2, TrendingUp, Sparkles, Award, Star, School, TreePine, MapPin, Check, Share2 } from 'lucide-react';
+import { X, Search, Building2, TrendingUp, Sparkles, Award, School, TreePine, MapPin, Share2 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';

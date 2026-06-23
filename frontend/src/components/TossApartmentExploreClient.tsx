@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect, memo, useDeferredValue } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles } from 'lucide-react';
+import { Heart, Search, ChevronRight, ArrowUp, ArrowDown, Camera, ChevronDown, X, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import HotComplexRanking from './HotComplexRanking';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, ShieldAlert, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, Users, Award, ChevronDown, MessageSquare, Sparkles } from 'lucide-react';
+import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, Award, ChevronDown, MessageSquare, Sparkles } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';

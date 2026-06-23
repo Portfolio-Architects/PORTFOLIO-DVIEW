@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, ShieldAlert, Check, Share2, Clipboard, ChevronDown, Award, HelpCircle, ArrowLeft, RefreshCw, MessageSquare, Sparkles } from 'lucide-react';
+import { X, Search, ShieldAlert, Check, Share2, ChevronDown, Award, ArrowLeft, RefreshCw, MessageSquare, Sparkles } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';

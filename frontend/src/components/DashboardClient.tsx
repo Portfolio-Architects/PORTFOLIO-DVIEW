@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, LayoutDashboard, Home, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
+import { MessageSquare, LayoutDashboard, Home, Coins, Newspaper, Building2 } from 'lucide-react';
 
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import FloatingUserBar from '@/components/FloatingUserBar';

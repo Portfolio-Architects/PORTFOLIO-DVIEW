@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, HelpCircle, MessageSquare, Sparkles, TrendingDown, Coins, ShieldAlert, Award, ExternalLink } from 'lucide-react';
+import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, MessageSquare, Sparkles, TrendingDown, Coins, ShieldAlert, ExternalLink } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { throttle } from '@/lib/utils/firestoreThrottle';

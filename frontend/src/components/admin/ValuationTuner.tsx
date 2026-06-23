@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
-import { Check, X, ShieldAlert, Award, TrendingUp, AlertTriangle, Play } from 'lucide-react';
+import { Check, X, ShieldAlert, Award } from 'lucide-react';
 
 interface VoteRecord {
   id: string;

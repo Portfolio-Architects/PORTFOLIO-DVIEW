@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
-import { Sparkles, Share2, Check, ChevronRight, TrendingUp } from 'lucide-react';
+import { Sparkles, Share2, Check, TrendingUp } from 'lucide-react';
 import type { DongApartment } from '@/lib/dong-apartments';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
-import { findTxKey, normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
+import { findTxKey, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
 

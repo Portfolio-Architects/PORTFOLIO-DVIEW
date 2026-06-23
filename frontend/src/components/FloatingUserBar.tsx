@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'firebase/auth';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
-import { Settings, UserCircle, Edit3, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
+import { Settings, UserCircle, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
 import { uploadImage } from '@/lib/services/storage.service';
 
 import { DEFAULT_AVATARS } from '@/lib/types/user.types';

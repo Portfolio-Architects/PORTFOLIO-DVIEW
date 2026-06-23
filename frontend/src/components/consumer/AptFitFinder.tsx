@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sparkles, HelpCircle, X, ChevronRight, ChevronLeft, Building2, Coins, GraduationCap, Train, TreePine, Check, Share2, Award, Heart, ShieldAlert, Compass, MessageSquare, RefreshCw } from 'lucide-react';
+import { Sparkles, X, ChevronRight, ChevronLeft, Building2, Coins, GraduationCap, Train, TreePine, Check, Share2, Award, Heart, Compass, MessageSquare, RefreshCw } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
