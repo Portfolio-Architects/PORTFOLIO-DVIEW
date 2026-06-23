@@ -3,7 +3,6 @@ import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
 
 export interface TransactionRecord {
   dong?: string;
@@ -46,7 +45,6 @@ export const TransactionTable = React.memo(function TransactionTable({
   // 화면 너비 감지 (반응형 상태)
   const [isDesktop, setIsDesktop] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  usePreventElasticBounce(scrollContainerRef);
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout | null = null;

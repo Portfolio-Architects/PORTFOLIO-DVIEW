@@ -1250,6 +1250,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
     };
   }, []);
 
+  const isUnlocked = true;
+  const isStub = report.id.startsWith('stub-');
+  const modalRef = useRef<HTMLDivElement>(null);
+  usePreventElasticBounce(modalRef);
+
   // Prevent body scroll when modal is open without causing global layout thrashing
   useEffect(() => {
     if (inline || !isAnimationFinished) return;
@@ -1263,17 +1268,24 @@ const FieldReportModal = React.memo(function FieldReportModal({
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
+    // Prevent scrolling on background, header, footer (anything outside modalRef)
+    const handleTouchMove = (e: TouchEvent) => {
+      if (modalRef.current && modalRef.current.contains(e.target as Node)) {
+        return;
+      }
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+
     return () => {
       document.body.style.overflow = originalOverflow || '';
       document.body.style.paddingRight = originalPaddingRight || '';
+      document.removeEventListener('touchmove', handleTouchMove);
     };
   }, [inline, isAnimationFinished]);
-
-
-  const isUnlocked = true;
-  const isStub = report.id.startsWith('stub-');
-  const modalRef = useRef<HTMLDivElement>(null);
-  usePreventElasticBounce(modalRef);
   const scrollToSection = (id: string) => {
     if (activeTabTimeoutRef.current) {
       clearTimeout(activeTabTimeoutRef.current);
