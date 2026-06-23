@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { Copy, ExternalLink, Compass, AlertTriangle } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
   const [inAppInfo, setInAppInfo] = useState<{
@@ -64,7 +65,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
         removeVisibilityListener();
       }
       if (!hasRedirected && Date.now() - start < 2000) {
-        console.warn('Deep link redirect failed or app not installed');
+        logger.warn('InAppBrowserBypass.safeBypassRedirect', 'Deep link redirect failed or app not installed');
         if (mountedRef.current) {
           setRedirectFailed(true);
         }
@@ -74,7 +75,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
     try {
       window.location.href = url;
     } catch (err) {
-      console.error('Deep link schema navigation exception caught:', err);
+      logger.error('InAppBrowserBypass.safeBypassRedirect', 'Deep link schema navigation exception caught', undefined, err);
       if (redirectTimeoutRef.current) {
         clearTimeout(redirectTimeoutRef.current);
         redirectTimeoutRef.current = null;
@@ -146,7 +147,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
     try {
       localStorage.setItem('dview_inapp_bypass_dismissed', Date.now().toString());
     } catch (e) {
-      console.warn('Failed to save in-app dismiss state:', e);
+      logger.warn('InAppBrowserBypass.handleDismiss', 'Failed to save in-app dismiss state', undefined, e);
     }
     setShowOverlay(false);
   };
@@ -183,7 +184,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
         return;
       }
     } catch (e) {
-      console.warn('Navigator clipboard failed, trying fallback:', e);
+      logger.warn('InAppBrowserBypass.handleCopyLink', 'Navigator clipboard failed, trying fallback', undefined, e);
     }
 
     try {
@@ -209,7 +210,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
         alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
       }
     } catch (err) {
-      console.error('Fallback copy failed:', err);
+      logger.error('InAppBrowserBypass.handleCopyLink', 'Fallback copy failed', undefined, err);
       alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
     }
   };

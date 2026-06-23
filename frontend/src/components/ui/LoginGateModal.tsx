@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, ArrowRight } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 interface LoginGateModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
         return;
       }
     } catch (e) {
-      console.warn('Clipboard write failed, falling back:', e);
+      logger.warn('LoginGateModal.handleCopyUrl', 'Clipboard write failed, falling back', undefined, e);
     }
     
     try {

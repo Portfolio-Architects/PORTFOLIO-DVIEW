@@ -3,6 +3,7 @@ import { Sparkles, Calendar, Eye, Share, ExternalLink } from 'lucide-react';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import useSWR from 'swr';
+import { logger } from '@/lib/services/logger';
 
 interface LocalNoticeItem {
   id: string;
@@ -76,7 +77,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
           }
         }, 2000);
       } catch (err) {
-        console.error("Curation share failed:", err);
+        logger.error('LocalEventCuration.handleShare', 'Curation share failed', undefined, err);
       }
     } else {
       try {
@@ -93,7 +94,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
           }
         }, 2000);
       } catch (err) {
-        console.error("Failed to copy link:", err);
+        logger.error('LocalEventCuration.handleShare', 'Failed to copy link', undefined, err);
       }
     }
   };

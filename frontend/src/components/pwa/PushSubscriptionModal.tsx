@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { usePWA } from './PWAProvider';
+import { logger } from '@/lib/services/logger';
 import { X, BellRing, Sparkles, ShieldCheck } from 'lucide-react';
 
 interface PushSubscriptionModalProps {
@@ -46,7 +47,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
         onClose();
       }
     } catch (err: any) {
-      console.error('Subscription error in modal', err);
+      logger.error('PushSubscriptionModal.handleSubscribe', 'Subscription error in modal', undefined, err);
       if (mountedRef.current) {
         if (err.message === 'PERMISSION_DENIED') {
           setErrorState('denied');

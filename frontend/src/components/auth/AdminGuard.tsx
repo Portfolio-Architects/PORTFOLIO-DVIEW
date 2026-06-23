@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/services/logger';
 import { Loader2 } from 'lucide-react';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
@@ -40,14 +41,14 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
           setIsAuthorized(true);
           localStorage.setItem('dview_is_admin', 'true');
         } else {
-          console.error("User does not have admin claims.");
+          logger.error('AdminGuard.checkAdminClaims', 'User does not have admin claims');
           setIsAuthorized(false);
           localStorage.removeItem('dview_is_admin');
           router.push('/');
         }
       } catch (error) {
         if (!mounted) return;
-        console.error("Error fetching token claims:", error);
+        logger.error('AdminGuard.checkAdminClaims', 'Error fetching token claims', undefined, error);
         setIsAuthorized(false);
         localStorage.removeItem('dview_is_admin');
         router.push('/');

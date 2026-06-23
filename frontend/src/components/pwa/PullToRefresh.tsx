@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 interface PullToRefreshProps {
   children: React.ReactNode;
@@ -88,7 +89,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
           try {
             e.preventDefault();
           } catch (err) {
-            console.warn("Failed to preventDefault on touchmove:", err);
+            logger.warn('PullToRefresh.handleTouchMove', 'Failed to preventDefault on touchmove', undefined, err);
           }
         }
       }
@@ -115,7 +116,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
             });
           }
         } catch (error) {
-          console.error("Refresh failed:", error);
+          logger.error('PullToRefresh.handleTouchEnd', 'Refresh failed', undefined, error);
         } finally {
           if (mountedRef.current) {
             setIsRefreshing(false);

@@ -8,6 +8,7 @@ import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
 import { Settings, UserCircle, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
 import { uploadImage } from '@/lib/services/storage.service';
+import { logger } from '@/lib/services/logger';
 
 import { DEFAULT_AVATARS } from '@/lib/types/user.types';
 import { useSettings } from '@/lib/contexts/SettingsContext';
@@ -314,7 +315,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                       updateLocalAnonProfile({ nickname: editNickname, photoURL });
                       closeProfileModal();
                     } catch (err) {
-                      console.error('Profile update failed:', err);
+                      logger.error('FloatingUserBar.profileUpdate', 'Profile update failed', undefined, err);
                       alert('프로필 수정에 실패했습니다.');
                     } finally {
                       if (mountedRef.current) {

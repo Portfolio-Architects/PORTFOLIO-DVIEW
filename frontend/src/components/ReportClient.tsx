@@ -6,6 +6,7 @@ import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import jsPDF from 'jspdf';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { getEngineeringReport } from '@/app/actions/getEngineeringReport';
+import { logger } from '@/lib/services/logger';
 import EngineeringReportClient from './EngineeringReportClient';
 
 const ReportClient = React.memo(function ReportClient() {
@@ -45,7 +46,7 @@ const ReportClient = React.memo(function ReportClient() {
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save('DVIEW_Engineering_Report.pdf');
     } catch (err) {
-      console.error('PDF Export failed', err);
+      logger.error('ReportClient.handleExportPDF', 'PDF Export failed', undefined, err);
       alert('PDF 변환에 실패했습니다.');
     } finally {
       if (mountedRef.current) {
@@ -74,7 +75,7 @@ const ReportClient = React.memo(function ReportClient() {
         }
       }, 2000);
     } catch (err) {
-      console.error('Copy failed', err);
+      logger.error('ReportClient.handleCopyMD', 'Copy failed', undefined, err);
       alert('복사에 실패했습니다.');
     }
   };

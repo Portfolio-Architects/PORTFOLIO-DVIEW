@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Download, Copy, Database, Check } from 'lucide-react';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import jsPDF from 'jspdf';
+import { logger } from '@/lib/services/logger';
 
 interface ReportMetadata {
   date: string;
@@ -54,7 +55,7 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save('DVIEW_Engineering_Report.pdf');
     } catch (err) {
-      console.error('PDF Export failed', err);
+      logger.error('EngineeringReportClient.handleExportPDF', 'PDF Export failed', undefined, err);
       alert('PDF 변환에 실패했습니다.');
     } finally {
       if (mountedRef.current) {
@@ -82,7 +83,7 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
         }
       }, 2000);
     } catch (err) {
-      console.error('Copy failed', err);
+      logger.error('EngineeringReportClient.handleCopyMD', 'Copy failed', undefined, err);
       alert('복사에 실패했습니다.');
     }
   };

@@ -3,6 +3,7 @@
 // Security Audit: Verified that no target="_blank" links exist in this welcome modal component to prevent Tabnabbing (rel="noopener noreferrer" guard).
 import React, { useState, useEffect, useRef } from 'react';
 import { Compass, ShieldCheck, Map, ArrowRight, X } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 function getCookie(name: string): string {
   if (typeof document === 'undefined') return '';
@@ -38,7 +39,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
           }, 1500);
         }
       } catch (e) {
-        console.warn('localStorage is unavailable, checking cookie fallback:', e);
+        logger.warn('WelcomeModal.useEffect', 'localStorage is unavailable, checking cookie fallback', undefined, e);
         const seenCookie = getCookie('dview-welcome-seen');
         if (seenCookie !== 'true') {
           welcomeTimeoutRef.current = setTimeout(() => {
@@ -65,12 +66,12 @@ const WelcomeModal = React.memo(function WelcomeModal() {
     try {
       localStorage.setItem('dview-welcome-seen', 'true');
     } catch (err) {
-      console.warn('Failed to save welcome popup state to localStorage:', err);
+      logger.warn('WelcomeModal.handleClose', 'Failed to save welcome popup state to localStorage', undefined, err);
     }
     try {
       setCookie('dview-welcome-seen', 'true', 365);
     } catch (err) {
-      console.warn('Failed to save welcome popup state to cookie:', err);
+      logger.warn('WelcomeModal.handleClose', 'Failed to save welcome popup state to cookie', undefined, err);
     }
     setIsOpen(false);
   };

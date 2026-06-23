@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
+import { logger } from '@/lib/services/logger';
 
 interface AdSenseProps {
   adClient?: string;
@@ -54,13 +55,13 @@ const AdSense = React.memo(function AdSense({
             ads.push({});
             initialized.current = true;
           } catch (pushErr) {
-            console.warn('[AdSense] adsbygoogle.push call failed. Handled successfully (AdBlocker interception suspected):', pushErr);
+            logger.warn('AdSense.pushAd', '[AdSense] adsbygoogle.push call failed. Handled successfully (AdBlocker interception suspected)', undefined, pushErr);
           }
         } else {
-          console.warn('[AdSense] adsbygoogle object is disabled, modified or not pushable. AdBlocker active.');
+          logger.warn('AdSense.pushAd', '[AdSense] adsbygoogle object is disabled, modified or not pushable. AdBlocker active');
         }
       } catch (err) {
-        console.warn('[AdSense] Exception during ad slot push initialization:', adSlot, err);
+        logger.warn('AdSense.pushAd', `[AdSense] Exception during ad slot push initialization: ${adSlot}`, undefined, err);
       }
     };
 
@@ -163,7 +164,7 @@ const AdSense = React.memo(function AdSense({
                        adsbygoogle.push !== Array.prototype.push;
       
       if (!isLoaded) {
-        console.warn('[AdSense] Google AdSense script might be blocked or not loaded properly (window.adsbygoogle check bypassed).');
+        logger.warn('AdSense.scriptCheck', '[AdSense] Google AdSense script might be blocked or not loaded properly (window.adsbygoogle check bypassed)');
       }
     }, 4000);
 

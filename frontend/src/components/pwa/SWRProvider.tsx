@@ -69,12 +69,12 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
           if (Array.isArray(parsed) && parsed.every(entry => Array.isArray(entry) && entry.length === 2)) {
             initialEntries = parsed;
           } else {
-            console.warn('SWRProvider.getCache: Invalid cache structure inside localStorage');
+            logger.warn('SWRProvider.getCache', 'Invalid cache structure inside localStorage');
           }
         }
       }
     } catch (err) {
-      console.warn('Failed to parse SWR localStorage cache:', err);
+      logger.warn('SWRProvider.getCache', 'Failed to parse SWR localStorage cache', undefined, err);
     }
 
     const map = new Map<any, any>(initialEntries);
@@ -107,7 +107,7 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
           });
         localStorage.setItem('app-swr-cache', JSON.stringify(appCache));
       } catch (err) {
-        console.warn('Failed to sync SWR cache to localStorage:', err);
+        logger.warn('SWRProvider.syncToLocalStorage', 'Failed to sync SWR cache to localStorage', undefined, err);
       }
     };
 
@@ -138,7 +138,7 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
             // Mute errors in console when offline to avoid spamming
             return;
           }
-          console.error('SWR Global Error:', err);
+          logger.error('SWRProvider.onError', 'SWR Global Error', undefined, err);
         }
       }}
     >

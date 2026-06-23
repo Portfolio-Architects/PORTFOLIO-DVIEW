@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Star, Camera, Send } from 'lucide-react';
 import { useDashboardData, dashboardFacade } from '@/lib/DashboardFacade';
+import { logger } from '@/lib/services/logger';
 
 interface WriteReviewModalProps {
   onClose: () => void;
@@ -192,7 +193,7 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
         onClose();
       }
     } catch (error) {
-      console.error("Review submission failed", error);
+      logger.error('WriteReviewModal.handleSubmit', 'Review submission failed', undefined, error);
       alert("리뷰 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
     } finally {
       if (mountedRef.current) {

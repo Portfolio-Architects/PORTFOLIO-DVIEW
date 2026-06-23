@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { incrementWebsiteVisit } from '@/lib/repositories/traffic.repository';
+import { logger } from '@/lib/services/logger';
 
 /**
  * Global Site Tracker
@@ -28,10 +29,12 @@ const SiteTracker = React.memo(function SiteTracker() {
       if (lastVisit !== today) {
         localStorage.setItem('dview_last_visit', today);
         // Fire & Forget: increment global stats
-        incrementWebsiteVisit().catch(console.error);
+        incrementWebsiteVisit().catch((err) => {
+          logger.error('SiteTracker.visitIncrement', 'Failed to increment website visit', undefined, err);
+        });
       }
     } catch (e) {
-      console.warn('SiteTracker error:', e);
+      logger.warn('SiteTracker', 'SiteTracker error', undefined, e);
     }
   }, []);
 
