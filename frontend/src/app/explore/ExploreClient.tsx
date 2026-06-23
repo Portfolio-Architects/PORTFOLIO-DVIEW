@@ -393,6 +393,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   // Handle #apt= hash to open modal automatically
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const checkHashForApt = () => {
       const { mounted: m, sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
       if (!m || !apartments) return;
@@ -435,6 +436,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handlePopState = () => {
       if (!window.location.hash && (window.location.pathname === '/explore')) {
         setSelectedReport(null);

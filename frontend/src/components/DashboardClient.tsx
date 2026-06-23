@@ -560,6 +560,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   // Handle #apt= hash to open modal automatically (e.g. from Kakao Share)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const checkHashForApt = () => {
       const { mounted: m, sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
       if (!m || !apartments) return;
@@ -653,6 +654,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   // Handle Browser Back Button for soft-navigation URL routing
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handlePopState = () => {
       // If we go back to the root (no hash), clear selection (soft close)
       if (!window.location.hash && (window.location.pathname === '/' || window.location.pathname === '')) {
