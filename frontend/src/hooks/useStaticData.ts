@@ -5,6 +5,7 @@ import { db } from '@/lib/firebaseConfig';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/lib/types/transaction';
 import { z } from 'zod';
 import { BUILD_VERSION } from '@/lib/build-version';
+import { logger } from '@/lib/services/logger';
 
 const FirestoreTransactionSchema = z.object({
   aptName: z.string().min(1),
@@ -266,7 +267,7 @@ const fetchRecentTxsFromFirestore = async () => {
     });
     return txs;
   } catch (err) {
-    console.error('Failed to fetch recent transactions from Firestore:', err);
+    logger.error('useStaticData.fetchRecentTransactionsFromFirestore', 'Failed to fetch recent transactions from Firestore', {}, err as Error);
     return [];
   }
 };
@@ -420,7 +421,7 @@ export function useTxData(
   );
   
   if (summaryError) {
-    console.error("useTxData SWR summary error:", summaryError);
+    logger.error('useStaticData.useTxData', 'useTxData SWR summary error', {}, summaryError as Error);
   }
 
   return {

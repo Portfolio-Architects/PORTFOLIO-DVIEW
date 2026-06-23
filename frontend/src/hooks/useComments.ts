@@ -103,7 +103,7 @@ export function useComments(
         setCommentInput(prev => ({ ...prev, [reportId]: '' }));
       }
     } catch (error) {
-      console.error("Comment submission failed", error);
+      logger.error('useComments.handleSubmitComment', 'Comment submission failed', { reportId }, error as Error);
       alert("댓글 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
     }
   }, [user, fullReportData, selectedReport, requestLogin]);
