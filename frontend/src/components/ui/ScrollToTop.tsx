@@ -25,9 +25,9 @@ export default function ScrollToTop() {
       }
     };
 
-    // Use capture phase (true) to intercept scroll events from nested scroll containers like modal backdrops
-    window.addEventListener('scroll', toggleVisibility, true);
-    return () => window.removeEventListener('scroll', toggleVisibility, true);
+    // Use capture phase (true) and passive option to intercept scroll events from nested scroll containers without blocking main thread
+    window.addEventListener('scroll', toggleVisibility, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', toggleVisibility, { capture: true });
   }, []);
 
   const scrollToTop = () => {

@@ -16,11 +16,9 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
 
     const handleResize = () => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-      
       // If viewport height drops significantly (e.g. by more than 120px), 
       // it strongly indicates that the on-screen keyboard is open.
       const initialHeight = window.innerHeight;
@@ -31,12 +29,12 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
       }
     };
 
-    window.visualViewport.addEventListener('resize', handleResize);
+    vv.addEventListener('resize', handleResize);
     // Initial trigger
     handleResize();
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', handleResize);
+      vv.removeEventListener('resize', handleResize);
     };
   }, []);
 
