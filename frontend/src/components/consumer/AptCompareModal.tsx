@@ -240,9 +240,11 @@ const AptCompareModal = React.memo(function AptCompareModal({
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const mountedRef = React.useRef(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
+    setMounted(true);
     return () => {
       mountedRef.current = false;
       if (copyTimeoutRef.current) {
@@ -1279,42 +1281,46 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                 
                 {/* Radar Chart Container */}
                 <div className="w-full md:w-[360px] h-[260px] shrink-0 flex items-center justify-center relative">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarChartData}>
-                      <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" className="dark:stroke-zinc-800" />
-                      <PolarAngleAxis 
-                        dataKey="subject" 
-                        tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
-                      />
-                      <PolarRadiusAxis 
-                        angle={30} 
-                        domain={[0, 100]} 
-                        tick={{ fill: '#94a3b8', fontSize: 8 }}
-                        axisLine={false}
-                      />
-                      <Radar
-                        name={apt1Label}
-                        dataKey={apt1Label}
-                        stroke="#00d29d"
-                        fill="#00d29d"
-                        fillOpacity={0.25}
-                      />
-                      <Radar
-                        name={apt2Label}
-                        dataKey={apt2Label}
-                        stroke="#ff9f0a"
-                        fill="#ff9f0a"
-                        fillOpacity={0.25}
-                      />
-                      <Legend 
-                        verticalAlign="bottom" 
-                        height={24}
-                        iconType="circle"
-                        iconSize={8}
-                        wrapperStyle={{ fontSize: '10.5px', fontWeight: 800, color: '#475569' }}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                  {mounted ? (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarChartData}>
+                        <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" className="dark:stroke-zinc-800" />
+                        <PolarAngleAxis 
+                          dataKey="subject" 
+                          tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800 }}
+                        />
+                        <PolarRadiusAxis 
+                          angle={30} 
+                          domain={[0, 100]} 
+                          tick={{ fill: '#94a3b8', fontSize: 8 }}
+                          axisLine={false}
+                        />
+                        <Radar
+                          name={apt1Label}
+                          dataKey={apt1Label}
+                          stroke="#00d29d"
+                          fill="#00d29d"
+                          fillOpacity={0.25}
+                        />
+                        <Radar
+                          name={apt2Label}
+                          dataKey={apt2Label}
+                          stroke="#ff9f0a"
+                          fill="#ff9f0a"
+                          fillOpacity={0.25}
+                        />
+                        <Legend 
+                          verticalAlign="bottom" 
+                          height={24}
+                          iconType="circle"
+                          iconSize={8}
+                          wrapperStyle={{ fontSize: '10.5px', fontWeight: 800, color: '#475569' }}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
+                  )}
                 </div>
               </div>
 
@@ -1663,86 +1669,90 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                   </div>
                 ) : combinedChartData.length > 0 ? (
                   <div className="w-full h-[320px]">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                      <LineChart data={combinedChartData} margin={{ top: 10, right: 10, left: -5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(226, 232, 240, 0.2)" />
-                        <XAxis
-                          dataKey="month"
-                          stroke="#94a3b8"
-                          fontSize={11}
-                          fontWeight="bold"
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value: string) => {
-                            if (typeof value === 'string' && /^\d{2}\.\d{2}$/.test(value)) {
-                              const parts = value.split('.');
-                              return `${parts[0]}년 ${parts[1]}월`;
-                            }
-                            return value;
-                          }}
-                        />
-                        <YAxis
-                          stroke="#94a3b8"
-                          fontSize={11}
-                          fontWeight="bold"
-                          width={priceMetric === 'perPyeong' ? 60 : 42}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value) => priceMetric === 'perPyeong' ? `${value.toLocaleString()}만` : `${value}억`}
-                          domain={yAxisDomain as any}
-                          allowDataOverflow={true}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                            border: 'none',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
-                          }}
-                          labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}
-                          itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                          labelFormatter={(value: any) => {
-                            if (typeof value === 'string' && /^\d{2}\.\d{2}$/.test(value)) {
-                              const parts = value.split('.');
-                              return `${parts[0]}년 ${parts[1]}월`;
-                            }
-                            return value;
-                          }}
-                          formatter={(value: any) => [priceMetric === 'perPyeong' ? `${value.toLocaleString()}만 원` : `${value}억원`]}
-                          useTranslate3d={true}
-                          animationDuration={150}
-                        />
-                        <Legend
-                          verticalAlign="top"
-                          height={36}
-                          iconType="circle"
-                          iconSize={8}
-                          wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey={getDisplayAptName(apt1.name)}
-                          stroke="#00d29d"
-                          strokeWidth={3}
-                          dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
-                          activeDot={{ r: 5 }}
-                          connectNulls
-                          animationDuration={300}
-                          animationEasing="ease-out"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey={getDisplayAptName(apt2.name)}
-                          stroke="#4196f7"
-                          strokeWidth={3}
-                          dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
-                          activeDot={{ r: 5 }}
-                          connectNulls
-                          animationDuration={300}
-                          animationEasing="ease-out"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {mounted ? (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                        <LineChart data={combinedChartData} margin={{ top: 10, right: 10, left: -5, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(226, 232, 240, 0.2)" />
+                          <XAxis
+                            dataKey="month"
+                            stroke="#94a3b8"
+                            fontSize={11}
+                            fontWeight="bold"
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value: string) => {
+                              if (typeof value === 'string' && /^\d{2}\.\d{2}$/.test(value)) {
+                                const parts = value.split('.');
+                                return `${parts[0]}년 ${parts[1]}월`;
+                              }
+                              return value;
+                            }}
+                          />
+                          <YAxis
+                            stroke="#94a3b8"
+                            fontSize={11}
+                            fontWeight="bold"
+                            width={priceMetric === 'perPyeong' ? 60 : 42}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => priceMetric === 'perPyeong' ? `${value.toLocaleString()}만` : `${value}억`}
+                            domain={yAxisDomain as any}
+                            allowDataOverflow={true}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                              border: 'none',
+                              borderRadius: '12px',
+                              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                            }}
+                            labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}
+                            itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                            labelFormatter={(value: any) => {
+                              if (typeof value === 'string' && /^\d{2}\.\d{2}$/.test(value)) {
+                                const parts = value.split('.');
+                                return `${parts[0]}년 ${parts[1]}월`;
+                              }
+                              return value;
+                            }}
+                            formatter={(value: any) => [priceMetric === 'perPyeong' ? `${value.toLocaleString()}만 원` : `${value}억원`]}
+                            useTranslate3d={true}
+                            animationDuration={150}
+                          />
+                          <Legend
+                            verticalAlign="top"
+                            height={36}
+                            iconType="circle"
+                            iconSize={8}
+                            wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey={getDisplayAptName(apt1.name)}
+                            stroke="#00d29d"
+                            strokeWidth={3}
+                            dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
+                            activeDot={{ r: 5 }}
+                            connectNulls
+                            animationDuration={300}
+                            animationEasing="ease-out"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey={getDisplayAptName(apt2.name)}
+                            stroke="#4196f7"
+                            strokeWidth={3}
+                            dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
+                            activeDot={{ r: 5 }}
+                            connectNulls
+                            animationDuration={300}
+                            animationEasing="ease-out"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
+                    )}
                   </div>
                 ) : (
                   <div className="w-full h-[320px] flex items-center justify-center text-center">

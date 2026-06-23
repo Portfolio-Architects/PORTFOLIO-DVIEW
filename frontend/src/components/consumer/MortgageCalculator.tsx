@@ -108,9 +108,11 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const calculateTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const mountedRef = React.useRef(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
+    setMounted(true);
     return () => {
       mountedRef.current = false;
       if (copyTimeoutRef.current) {
@@ -992,36 +994,40 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00d29d] rounded" />남은 대출 원금</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#f43f5e]/70 rounded" />납부 누적이자</span>
                   </div>
-                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                    <AreaChart
-                      data={repaymentDetails.chartData}
-                      margin={{ top: 20, right: 5, left: -20, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00d29d" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0}/>
-                        </linearGradient>
-                        <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
-                          <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="year" tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
-                      <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: 'rgba(255, 255, 255, 0.95)', 
-                          border: '1px solid #ddd', 
-                          borderRadius: '8px', 
-                          fontSize: '11px',
-                          fontWeight: 'bold'
-                        }} 
-                      />
-                      <Area type="monotone" dataKey="남은 대출 원금" stroke="#00d29d" fillOpacity={1} fill="url(#colorPrincipal)" />
-                      <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {mounted ? (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                      <AreaChart
+                        data={repaymentDetails.chartData}
+                        margin={{ top: 20, right: 5, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#00d29d" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0}/>
+                          </linearGradient>
+                          <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
+                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="year" tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
+                        <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            background: 'rgba(255, 255, 255, 0.95)', 
+                            border: '1px solid #ddd', 
+                            borderRadius: '8px', 
+                            fontSize: '11px',
+                            fontWeight: 'bold'
+                          }} 
+                        />
+                        <Area type="monotone" dataKey="남은 대출 원금" stroke="#00d29d" fillOpacity={1} fill="url(#colorPrincipal)" />
+                        <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
+                  )}
                 </div>
               </div>
 
