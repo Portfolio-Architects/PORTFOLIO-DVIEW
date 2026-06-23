@@ -35,14 +35,17 @@ const ReportEditorForm = React.memo(function ReportEditorForm({ initialData = nu
   const [thumbnailPreview, setThumbnailPreview] = useState<string>(initialData?.thumbnailUrl || '');
   const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
 
-  // Clean up thumbnailPreview object URL to prevent memory leaks
+  // Declarative Object URL lifecycle management to prevent memory leaks
   useEffect(() => {
+    if (!thumbnailFile) return;
+
+    const url = URL.createObjectURL(thumbnailFile);
+    setThumbnailPreview(url);
+
     return () => {
-      if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(thumbnailPreview);
-      }
+      URL.revokeObjectURL(url);
     };
-  }, [thumbnailPreview]);
+  }, [thumbnailFile]);
 
   const methods = useForm<FormValues>({
     defaultValues: initialData || {

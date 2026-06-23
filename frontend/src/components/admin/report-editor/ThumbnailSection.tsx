@@ -30,7 +30,6 @@ export const ThumbnailSection = React.memo(function ThumbnailSection({
             const file = e.target.files?.[0];
             if (file) {
               setThumbnailFile(file);
-              setThumbnailPreview(URL.createObjectURL(file));
             }
             e.target.value = '';
           }}
