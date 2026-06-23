@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
 interface TooltipProps {
@@ -18,7 +18,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       if (!triggerRef.current || !tooltipRef.current) return;
@@ -60,7 +60,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
         placement
       });
     });
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {

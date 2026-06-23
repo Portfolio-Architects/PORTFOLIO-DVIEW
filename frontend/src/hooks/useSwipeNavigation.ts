@@ -20,6 +20,13 @@ export function useSwipeNavigation({
   const currentX = useRef<number | null>(null);
   const currentY = useRef<number | null>(null);
 
+  const onBackRef = useRef(onBack);
+  
+  // Sync the ref on every render to ensure it has the latest callback function
+  useEffect(() => {
+    onBackRef.current = onBack;
+  });
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -60,8 +67,8 @@ export function useSwipeNavigation({
         }
 
         if (deltaX >= threshold) {
-          if (onBack) {
-            onBack();
+          if (onBackRef.current) {
+            onBackRef.current();
           } else {
             router.back();
           }
@@ -83,5 +90,5 @@ export function useSwipeNavigation({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [router, threshold, edgeWidth, onBack, enabled]);
+  }, [router, threshold, edgeWidth, enabled]);
 }
