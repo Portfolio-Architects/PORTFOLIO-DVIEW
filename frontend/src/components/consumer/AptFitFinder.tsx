@@ -173,6 +173,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
   // Auto transition from calculating screen to results with a dynamic rolling text loader
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (step === 8) {
       setLoadingTextIndex(0);
       const textTimer = setInterval(() => {
@@ -192,6 +193,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
   // Save quiz answers to localStorage when quiz matches are completed (step 9)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (step === 9) {
       try {
         localCache.set('dview_quiz_answers', answers, 604800); // 7 days TTL
@@ -204,6 +206,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
   // Smooth scroll window and focus viewport on the modal when the quiz opens
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (isOpen) {
       const timer = setTimeout(() => {
         if (modalRef.current) {

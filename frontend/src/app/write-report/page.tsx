@@ -228,6 +228,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
 
   // -- Auto Save --
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const interval = setInterval(() => {
       try {
         const draft = { ...draftRef.current, savedAt: Date.now() };
