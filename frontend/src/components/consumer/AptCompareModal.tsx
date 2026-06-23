@@ -289,12 +289,16 @@ const AptCompareModal = React.memo(function AptCompareModal({
     };
     if (isOpen) {
       loadQuizAnswers();
-      window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+      if (typeof window !== 'undefined') {
+        window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+      }
     } else {
       setQuizAnswers(null);
     }
     return () => {
-      window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+      }
     };
   }, [isOpen]);
 

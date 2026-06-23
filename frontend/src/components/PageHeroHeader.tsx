@@ -44,15 +44,14 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const checkModal = () => {
-      if (typeof window !== "undefined") {
-        const hash = window.location.hash;
-        setHasModalOpen(
-          hash.includes("apt=") ||
-          hash.includes("post=") ||
-          hash.includes("notice=")
-        );
-      }
+      const hash = window.location.hash;
+      setHasModalOpen(
+        hash.includes("apt=") ||
+        hash.includes("post=") ||
+        hash.includes("notice=")
+      );
     };
     checkModal();
     window.addEventListener("hashchange", checkModal, { passive: true });
