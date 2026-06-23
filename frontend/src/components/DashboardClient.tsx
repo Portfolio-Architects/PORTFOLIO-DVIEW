@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, X, LayoutDashboard, Home, Search, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
+import { MessageSquare, LayoutDashboard, Home, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
 
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import FloatingUserBar from '@/components/FloatingUserBar';
@@ -9,7 +9,6 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 
 import dynamic from 'next/dynamic';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
-import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
@@ -233,12 +232,9 @@ const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTim
   )
 });
 
-
-import { DONGS, getAllDongNames } from '@/lib/dongs';
-
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import { isSameApartment, normalizeAptName, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
-import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition, useDeferredValue } from 'react';
+import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
 import { useAuth } from '@/hooks/useAuth';
@@ -253,44 +249,6 @@ import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import LoginGateModal from '@/components/ui/LoginGateModal';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
-
-const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
-  const [localValue, setLocalValue] = useState(value);
-  
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      onChange(localValue);
-    }, 250); // 250ms debounce
-    return () => clearTimeout(handler);
-  }, [localValue, onChange]);
-
-  return (
-    <div className="relative flex-1 max-w-[180px]">
-      <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-        <Search size={14} className="text-tertiary" />
-      </div>
-      <input
-        type="text"
-        placeholder="아파트 검색"
-        value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
-        className="w-full bg-body text-body-normal text-primary placeholder:text-tertiary rounded-[8px] pl-8 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#008262] dark:focus:ring-[#00d29d] transition-all"
-      />
-      {localValue && (
-        <button 
-          onClick={() => { setLocalValue(''); onChange(''); }}
-          className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-tertiary hover:text-secondary"
-        >
-          <X size={14} />
-        </button>
-      )}
-    </div>
-  );
-};
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -643,13 +601,9 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [selectedDong, setSelectedDong] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
-  const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price'>('total-price');
-  const leftPanelRef = useRef<HTMLDivElement>(null);
 
   // Scroll to top when tab changes & track event
   useEffect(() => {
@@ -841,104 +795,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     }
   }, [handleToggleFavorite, handleRequestLogin, user, userFavorites, triggerCustomA2HSModal]);
 
-  const dongAptCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    Object.entries(sheetApartments).forEach(([dong, apts]) => { 
-      counts[dong] = apts.filter(a => !publicRentalSet.has(a.name)).length; 
-    });
-    return counts;
-  }, [sheetApartments, publicRentalSet]);
-
-  const dongReportCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    getAllDongNames().forEach(d => { counts[d] = 0; });
-    fieldReports?.forEach(report => {
-      if (report.dong) counts[report.dong] = (counts[report.dong] || 0) + 1;
-    });
-    return counts;
-  }, [fieldReports]);
-
-  const filteredReports = useMemo(() => {
-    if (!fieldReports) return [];
-    if (selectedDong) {
-      return fieldReports.filter(r => r.dong === selectedDong);
-    }
-    return [...fieldReports];
-  }, [fieldReports, selectedDong]);
-
-  const { areaUnit } = useSettingsValues();
-
-  const rawApts = useMemo(() => {
-    return selectedDong 
-      ? (sheetApartments[selectedDong] || [])
-      : Object.values(sheetApartments).flat();
-  }, [sheetApartments, selectedDong]);
-    
-  const allApts = useMemo(() => rawApts.filter(a => !publicRentalSet.has(a.name)), [rawApts, publicRentalSet]);
-
-  const enrichedApts = useMemo(() => {
-    return allApts.map(apt => {
-      const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
-      const rawKey = overrideKey || apt.txKey || apt.name;
-      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-      const sum = txKey ? txSummaryData[txKey] : undefined;
-      
-      const pyeongPrice = sum?.avg1MPerPyeong || sum?.avg3MPerPyeong || 0;
-      
-      const sales = sum ? (sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0) : 0;
-      const jeonse = sum ? (sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0) : 0;
-      const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
-      
-      return {
-        apt,
-        pyeongPrice,
-        totalPrice: sales,
-        ratio,
-        hasTx: !!sum && !!(sum.avg1MPrice || sum.latestPrice) && !!(sum.avg1MRentDeposit || sum.latestRentDeposit)
-      };
-    });
-  }, [allApts, txSummaryData, nameMapping]);
-
-  const baseSortedApts = useMemo(() => {
-    let filteredApts = enrichedApts;
-    if (listSort === 'valuation') {
-      filteredApts = enrichedApts.filter(e => e.hasTx);
-    }
-
-    return [...filteredApts].sort((a, b) => {
-      if (listSort === 'total-price') {
-        const diff = b.totalPrice - a.totalPrice;
-        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
-      }
-      if (listSort === 'price-rank') {
-        const diff = b.pyeongPrice - a.pyeongPrice;
-        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
-      }
-      if (listSort === 'valuation') {
-        const diff = b.ratio - a.ratio;
-        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
-      }
-      if (listSort === 'views') {
-        const aReport = fieldReportsMap.get(a.apt.name);
-        const bReport = fieldReportsMap.get(b.apt.name);
-        const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
-        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
-      }
-      if (listSort === 'likes') {
-        const diff = (favoriteCounts[b.apt.name] || 0) - (favoriteCounts[a.apt.name] || 0);
-        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
-      }
-      return a.apt.name.localeCompare(b.apt.name, 'ko');
-    }).map(e => e.apt);
-  }, [enrichedApts, listSort, fieldReportsMap, favoriteCounts]);
-
-  const deferredSearchQuery = useDeferredValue(searchQuery);
-
-  const sortedApts = useMemo(() => {
-    if (deferredSearchQuery.trim() === '') return baseSortedApts;
-    const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
-    return baseSortedApts.filter(apt => apt.name.toLowerCase().replace(/\s+/g, '').includes(q) || (apt.brand && apt.brand.toLowerCase().replace(/\s+/g, '').includes(q)));
-  }, [baseSortedApts, deferredSearchQuery]);
+  // Note: Unused apartment calculations removed to offload CPU and keep bundle thin (TossApartmentExploreClient handles explore view now)
 
   const memoizedTabContents = useMemo(() => {
     return (
