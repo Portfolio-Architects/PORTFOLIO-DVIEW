@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition, useMemo } from 'react';
+import React, { useState, useTransition, useMemo, useRef, useEffect } from 'react';
 import { 
   Building2, 
   Search, 
@@ -97,6 +97,15 @@ export default function TechnoValleyClient() {
   const [stationImportance, setStationImportance] = useState<'low' | 'high'>('high');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<OfficeBuilding | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // 세제 혜택 계산기 상태
   const [currentTax, setCurrentTax] = useState<string>('3000'); // 연간 법인세 (만원 단위)
@@ -129,7 +138,11 @@ export default function TechnoValleyClient() {
     setIsSearching(true);
     setSearchResult(null);
 
-    setTimeout(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
       // 매칭 점수 계산
       const scored = BUILDINGS_DB.map(building => {
         let score = building.score;
