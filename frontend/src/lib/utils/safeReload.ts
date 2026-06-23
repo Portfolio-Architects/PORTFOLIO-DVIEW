@@ -4,6 +4,8 @@
  * Hardened with diagnostic logging and a 3-second prefetch guard.
  */
 
+import { logger } from '@/lib/services/logger';
+
 // Record page load time to prevent refreshes during background prefetch/HMR phase
 const PAGE_LOAD_TIME = typeof window !== 'undefined' ? Date.now() : 0;
 const activeTimeouts: Record<string, NodeJS.Timeout> = {};
@@ -29,7 +31,8 @@ export function safeReload(componentName: string) {
 
     // 1. Skip reload during initial 3-second prefetch/hydration phase
     if (isPrefetchPhase) {
-      console.warn(
+      logger.warn(
+        'safeReload',
         `[safeReload] Ignored reload for ${componentName} because page loaded only ${timeSinceLoad}ms ago (prefetch/HMR guard).`,
         reloadInfo
       );
@@ -38,7 +41,8 @@ export function safeReload(componentName: string) {
 
     // 2. Skip reload in local development mode
     if (process.env.NODE_ENV === 'development') {
-      console.warn(
+      logger.warn(
+        'safeReload',
         `[safeReload] Chunk load failure detected for ${componentName} in development. Skipping auto-reload to allow on-demand compilation.`,
         reloadInfo
       );
@@ -49,10 +53,11 @@ export function safeReload(componentName: string) {
     const retried = sessionStorage.getItem(key);
     if (!retried) {
       sessionStorage.setItem(key, 'true');
-      console.warn(`[safeReload] Hard page reload initiated by: ${componentName}`);
+      logger.warn('safeReload', `[safeReload] Hard page reload initiated by: ${componentName}`);
       window.location.reload();
     } else {
-      console.error(
+      logger.error(
+        'safeReload',
         `[Chunk Load] Reload failed repeatedly for ${componentName}. Stopping reload to prevent infinite loop.`,
         reloadInfo
       );
@@ -78,15 +83,10 @@ export function initSafeReloadDiagnostics() {
       const infoStr = sessionStorage.getItem('dview_last_reload_info');
       if (infoStr) {
         const info = JSON.parse(infoStr);
-        console.error(
-          `%c[safeReload Diagnostics] Page was automatically reloaded!%c\n` +
-          `Component: ${info.componentName}\n` +
-          `Time since load when failed: ${info.timeSinceLoadMs}ms\n` +
-          `Failed URL: ${info.href}\n` +
-          `Timestamp: ${info.timestamp}\n` +
-          `Stack Trace:\n${info.stack}`,
-          'color: #ff3b30; font-weight: bold; font-size: 13px;',
-          'color: inherit;'
+        logger.error(
+          'safeReload.diagnostics',
+          `[safeReload Diagnostics] Page was automatically reloaded! Component: ${info.componentName}`,
+          info
         );
         sessionStorage.removeItem('dview_last_reload_info');
       }

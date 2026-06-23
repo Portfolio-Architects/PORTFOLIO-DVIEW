@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
+import { logger } from '@/lib/services/logger';
 
 export default function Error({
   error,
@@ -12,7 +13,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Route error:', error);
+    logger.error('app.Error', 'Route error occurred', undefined, error);
   }, [error]);
 
   return (

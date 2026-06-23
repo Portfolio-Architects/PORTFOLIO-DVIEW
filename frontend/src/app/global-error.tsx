@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 
 export default function GlobalError({
   error,
@@ -11,7 +12,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Global error:', error);
+    logger.error('app.GlobalError', 'Global error occurred', undefined, error);
   }, [error]);
 
   return (

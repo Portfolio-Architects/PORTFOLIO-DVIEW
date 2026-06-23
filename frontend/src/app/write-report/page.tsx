@@ -7,6 +7,7 @@ import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/Dashboa
 import { User } from 'firebase/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { EmojiRating as BaseEmojiRating, MultiPhotoDropzone as BaseMultiPhotoDropzone, TextInput as BaseTextInput, SelectInput as BaseSelectInput } from '@/components/write-report/ReportUI';
+import { logger } from '@/lib/services/logger';
 
 const DRAFT_KEY = 'dtdls_report_draft';
 const AUTO_SAVE_INTERVAL = 30_000; // 30s
@@ -307,7 +308,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
           URL.revokeObjectURL(removed);
           createdObjectUrlsRef.current.delete(removed);
         } catch (e) {
-          console.warn('Failed to revoke object URL', e);
+          logger.warn('write-report.handleRemoveImage', 'Failed to revoke object URL', undefined, e);
         }
       }
       return { ...prev, [key]: arr };
@@ -353,7 +354,7 @@ const WriteFieldReport = React.memo(function WriteFieldReport() {
       alert(`🔥 프로 임장기가 성공적으로 등록되었습니다! (${totalImages}장 업로드)`);
       router.push('/');
     } catch (error) {
-       console.error("Submission failed", error);
+       logger.error('write-report.handleSubmit', 'Submission failed', undefined, error);
        alert("등록 중 오류가 발생했습니다.");
     } finally {
       if (mountedRef.current) {

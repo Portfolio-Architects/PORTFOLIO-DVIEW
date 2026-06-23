@@ -1,6 +1,7 @@
 import LoungeDetailClient from '@/components/LoungeDetailClient';
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { logger } from '@/lib/services/logger';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -33,7 +34,7 @@ export default async function ModalRoute(props: Props) {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch post in intercepted route', error);
+      logger.error('lounge.@modal.ModalRoute', 'Failed to fetch post in intercepted route', undefined, error);
     }
   }
 

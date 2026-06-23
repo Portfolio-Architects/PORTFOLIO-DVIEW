@@ -3,6 +3,7 @@ import LoungeDetailClient from '@/components/LoungeDetailClient';
 import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { logger } from '@/lib/services/logger';
 
 export const revalidate = 60; // Cache and revalidate page at most once every 60 seconds
 export const dynamicParams = true; // Enable on-demand generation for posts not pre-rendered
@@ -14,7 +15,7 @@ export async function generateStaticParams() {
       id: post.id,
     }));
   } catch (error) {
-    console.error('Failed to generateStaticParams for lounge posts', error);
+    logger.error('lounge.[id].generateStaticParams', 'Failed to generateStaticParams for lounge posts', undefined, error);
     return [];
   }
 }
@@ -58,7 +59,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       }
     }
   } catch (error) {
-    console.error('Failed to fetch post for metadata', error);
+    logger.error('lounge.[id].generateMetadata', 'Failed to fetch post for metadata', undefined, error);
   }
 
   const ogImages = imageUrl ? [{ url: imageUrl, alt: title }] : undefined;
@@ -101,7 +102,7 @@ export default async function LoungePostPage(props: Props) {
         initialPost = post;
       }
     } catch (error) {
-      console.error('Failed to fetch initial post in server', error);
+      logger.error('lounge.[id].LoungePostPage', 'Failed to fetch initial post in server', undefined, error);
     }
   }
 

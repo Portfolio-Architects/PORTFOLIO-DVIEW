@@ -1,6 +1,7 @@
 'use client';
 
 import { sendGAEvent } from '@next/third-parties/google';
+import { logger } from '@/lib/services/logger';
 
 /**
  * Tracks a custom event in Google Analytics 4 (GA4).
@@ -35,7 +36,7 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
         ...params,
       });
     } catch (err) {
-      console.error('Failed to send GA event:', err);
+      logger.error('analytics.trackEvent', 'Failed to send GA event', undefined, err);
     }
   }
 }

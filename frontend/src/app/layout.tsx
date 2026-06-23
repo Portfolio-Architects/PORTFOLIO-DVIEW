@@ -35,9 +35,10 @@ import dynamic from 'next/dynamic';
 import WelcomeModal from '@/components/ui/WelcomeModal';
 import { safeReload } from '@/lib/utils/safeReload';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import { logger } from '@/lib/services/logger';
 
 const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
-  console.warn('SettingsModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('layout.SettingsModal', 'SettingsModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('SettingsModal');
   return { default: () => null };
 }));

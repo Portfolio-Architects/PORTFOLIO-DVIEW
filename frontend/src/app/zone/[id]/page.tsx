@@ -8,9 +8,10 @@ import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from 
 import dynamic from 'next/dynamic';
 import { ZONES, dongToZoneId, getZoneById } from '@/lib/zones';
 import { safeReload } from '@/lib/utils/safeReload';
+import { logger } from '@/lib/services/logger';
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
-  console.warn('FieldReportModal Chunk Load failure, initiating fallback reload', err);
+  logger.warn('zone.[id].FieldReportModal', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
 }), { ssr: false });
@@ -86,7 +87,7 @@ const ZoneDetailPage = React.memo(function ZoneDetailPage() {
       await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
       setCommentInput(prev => ({ ...prev, [reportId]: '' }));
     } catch (error) {
-      console.error("Comment submission failed", error);
+      logger.error('zone.[id].handleSubmitComment', 'Comment submission failed', undefined, error);
       alert("댓글 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
     }
   };
