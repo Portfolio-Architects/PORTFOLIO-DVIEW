@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requestGoogleIndexing } from '@/lib/utils/googleIndexing';
+import { requestGoogleIndexing } from '@/lib/utils/server/googleIndexing';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';

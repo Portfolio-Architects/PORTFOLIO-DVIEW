@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { calculatePremiumScores } from '@/lib/utils/scoring';
 import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
-import { requestGoogleIndexing } from '@/lib/utils/googleIndexing';
+import { requestGoogleIndexing } from '@/lib/utils/server/googleIndexing';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
 import { z } from 'zod';
