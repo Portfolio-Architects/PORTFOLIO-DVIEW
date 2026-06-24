@@ -13,16 +13,55 @@ const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
 
+const CalculatorLoader = ({ text }: { text: string }) => (
+  <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
+    <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-5 text-center min-w-[280px] max-w-[320px] backdrop-blur-2xl">
+      <div className="relative w-14 h-14 flex items-center justify-center">
+        {/* outer spin */}
+        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-toss-blue animate-spin" style={{ animationDuration: '0.8s' }} />
+        {/* inner reverse spin */}
+        <div className="absolute inset-1.5 rounded-full border-[2px] border-transparent border-b-toss-blue/60 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.2s' }} />
+        {/* center emerald diamond */}
+        <div className="absolute flex items-center justify-center">
+          <svg className="w-5 h-5 text-toss-blue animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3h12l4 6-10 13L2 9z" />
+            <path d="M11 3 8 9l4 13 4-13-3-6" />
+            <path d="M2 9h20" />
+          </svg>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[15px] font-semibold text-primary tracking-tight">
+          {text}
+        </span>
+        <span className="text-[12px] text-secondary/70">
+          잠시만 기다려주세요
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
 const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient').catch(err => {
   logger.warn('LoungeFeedClient.dynamic', 'LoungeDetailClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeDetailClient');
   return { default: () => null };
-}), { ssr: false });
+}), {
+  ssr: false,
+  loading: () => <CalculatorLoader text="라운지 소통 글 읽는 중" />
+});
 const AptStoriesWidget = dynamic(() => import('@/components/AptStoriesWidget').catch(err => {
   logger.warn('LoungeFeedClient.dynamic', 'AptStoriesWidget Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptStoriesWidget');
   return { default: () => null };
-}), { ssr: false });
+}), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-36 bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl animate-pulse flex items-center justify-center text-[13px] text-tertiary font-medium">
+      실시간 단지 소식 로드 중...
+    </div>
+  )
+});
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
 import { usePWA } from '@/components/pwa/PWAProvider';
