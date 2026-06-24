@@ -4,7 +4,7 @@ import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
 import { logger } from "@/lib/services/logger";
-const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
+const MacroTrendChart = dynamic(() => import("@/components/MacroTrendChart").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'MacroTrendChart Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroTrendChart');
   return { default: () => null };
@@ -16,7 +16,7 @@ const MacroTrendChart = dynamic(() => import("./MacroTrendChart").catch(err => {
     </div>
   )
 });
-const AptFitFinder = dynamic(() => import("./consumer/AptFitFinder").catch(err => {
+const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'AptFitFinder Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptFitFinder');
   return { default: () => null };

@@ -77,7 +77,15 @@ try {
 
   // Console Summaries
   const consoleErrors = rawData.pageErrors || [];
-  const consoleWarns = (rawData.consoleLogs || []).filter(l => l.type === 'error');
+  const consoleWarns = (rawData.consoleLogs || []).filter(l => {
+    if (l.type !== 'error') return false;
+    // Turbopack dev chunk 404 및 link preload 관련 일시적 에러는 제외
+    const url = l.location?.url || '';
+    if (url.includes('/_next/static/chunks/') && url.endsWith('._.js')) {
+      return false;
+    }
+    return true;
+  });
   const consoleLogsCount = consoleErrors.length + consoleWarns.length;
   const consoleStatus = consoleLogsCount === 0 ? '🟢 에러 없음' : `🔴 오류 감지 (${consoleLogsCount}건)`;
 
@@ -155,7 +163,15 @@ try {
       });
       md += `\n`;
     }
-    const filteredConsoleLogs = (rawData.consoleLogs || []).filter(l => l.type === 'error' || l.type === 'warning');
+    const filteredConsoleLogs = (rawData.consoleLogs || []).filter(l => {
+      if (l.type !== 'error' && l.type !== 'warning') return false;
+      // Turbopack dev chunk 404 및 link preload 관련 일시적 에러는 제외
+      const url = l.location?.url || '';
+      if (url.includes('/_next/static/chunks/') && url.endsWith('._.js')) {
+        return false;
+      }
+      return true;
+    });
     if (filteredConsoleLogs.length > 0) {
       md += `### 🟡 경고 및 에러 로그 (Console Warns/Errors):\n`;
       filteredConsoleLogs.forEach((l, idx) => {

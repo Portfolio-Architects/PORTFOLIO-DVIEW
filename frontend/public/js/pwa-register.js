@@ -22,6 +22,17 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
       }).catch(function(err) {
         console.warn('Failed to get service worker registrations:', err);
       });
+
+      if (typeof window.caches !== 'undefined' && window.caches.keys) {
+        window.caches.keys().then(function(keys) {
+          keys.forEach(function(key) {
+            window.caches.delete(key);
+          });
+          console.log('Successfully cleared dev cache storage');
+        }).catch(function(e) {
+          console.warn('Failed to clear dev cache storage:', e);
+        });
+      }
     } else {
       var registerSW = function() {
         if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {

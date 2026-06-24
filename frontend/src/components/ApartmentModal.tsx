@@ -124,7 +124,7 @@ import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
 
-const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyReport').catch(err => {
+const JeonseSafetyReport = dynamic(() => import('@/components/apartment-modal/JeonseSafetyReport').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'JeonseSafetyReport Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('JeonseSafetyReport');
   return { default: () => null };
@@ -132,7 +132,7 @@ const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyR
   ssr: false,
   loading: () => <JeonseSafetySkeleton />
 });
-const TransactionChartSection = dynamic(() => import('./apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection).catch(err => {
+const TransactionChartSection = dynamic(() => import('@/components/apartment-modal/TransactionChartSection').then(mod => mod.TransactionChartSection).catch(err => {
   logger.warn('ApartmentModal.dynamic', 'TransactionChartSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('TransactionChartSection');
   return () => null;
@@ -142,7 +142,7 @@ const TransactionChartSection = dynamic(() => import('./apartment-modal/Transact
 });
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
-const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
+const PhotoUploadModal = dynamic(() => import('@/components/apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
   logger.warn('ApartmentModal.dynamic', 'PhotoUploadModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('PhotoUploadModal');
   return () => null;
@@ -150,7 +150,7 @@ const PhotoUploadModal = dynamic(() => import('./apartment-modal/PhotoUploadModa
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
 import { trackEvent } from '@/lib/utils/analytics';
-const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').catch(err => {
+const BuyOrWaitVote = dynamic(() => import('@/components/apartment-modal/BuyOrWaitVote').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'BuyOrWaitVote Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('BuyOrWaitVote');
   return { default: () => null };
@@ -170,7 +170,7 @@ import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring'
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 
 import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
-const EducationAnalysisSection = dynamic(() => import('./apartment-modal/EducationAnalysisSection').catch(err => {
+const EducationAnalysisSection = dynamic(() => import('@/components/apartment-modal/EducationAnalysisSection').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'EducationAnalysisSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('EducationAnalysisSection');
   return { default: () => null };
@@ -178,7 +178,7 @@ const EducationAnalysisSection = dynamic(() => import('./apartment-modal/Educati
   ssr: false,
   loading: () => <EducationAnalysisSkeleton />
 });
-const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalysisSection').catch(err => {
+const InfraAnalysisSection = dynamic(() => import('@/components/apartment-modal/InfraAnalysisSection').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'InfraAnalysisSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('InfraAnalysisSection');
   return { default: () => null };
@@ -186,7 +186,7 @@ const InfraAnalysisSection = dynamic(() => import('./apartment-modal/InfraAnalys
   ssr: false,
   loading: () => <InfraAnalysisSkeleton />
 });
-const ScoutingReportDetailSection = dynamic(() => import('./apartment-modal/ScoutingReportDetailSection').catch(err => {
+const ScoutingReportDetailSection = dynamic(() => import('@/components/apartment-modal/ScoutingReportDetailSection').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'ScoutingReportDetailSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ScoutingReportDetailSection');
   return { default: () => null };
