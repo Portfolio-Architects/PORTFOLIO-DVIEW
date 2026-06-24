@@ -325,7 +325,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     return matchKey ? locationScores[matchKey] : {};
   };
 
-  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions } = useApartmentDetails(
+  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions, preloadApartmentTx } = useApartmentDetails(
     selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
   );
 
@@ -545,6 +545,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   onOpenJeonseSafety={handleOpenJeonseSafety}
                   onOpenMortgage={handleOpenMortgage}
                   onSearchFocus={triggerFetch}
+                  preloadApartmentTx={preloadApartmentTx}
                 />
               </section>
             </div>

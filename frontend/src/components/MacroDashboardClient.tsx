@@ -127,6 +127,7 @@ interface MacroDashboardProps {
   recentTransactions?: any[];
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
+  preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -368,6 +369,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   recentTransactions = [],
   typeMap = {},
   updateFavoriteOrder,
+  preloadApartmentTx,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
@@ -1720,6 +1722,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                     setIsBottomSheetOpen(true);
                                   }
                                 }}
+                                onMouseEnter={() => {
+                                  preloadApartmentTx?.(item.aptName, item.dong);
+                                  import('@/components/ApartmentModal').catch(() => {});
+                                  import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                }}
+                                onTouchStart={() => {
+                                  preloadApartmentTx?.(item.aptName, item.dong);
+                                  import('@/components/ApartmentModal').catch(() => {});
+                                  import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                }}
                                 className={`flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all border ${
                                   isSelected
                                     ? "border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-[0_2px_12px_rgba(16,185,129,0.08)]"
@@ -1799,6 +1811,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                       if (onSelectApt) {
                                         onSelectApt(item.aptName);
                                       }
+                                    }}
+                                    onMouseEnter={() => {
+                                      preloadApartmentTx?.(item.aptName, item.dong);
+                                      import('@/components/ApartmentModal').catch(() => {});
+                                      import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                    }}
+                                    onTouchStart={() => {
+                                      preloadApartmentTx?.(item.aptName, item.dong);
+                                      import('@/components/ApartmentModal').catch(() => {});
+                                      import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
                                     }}
                                     className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
                                   >
@@ -1938,6 +1960,24 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       {selectedTimelineApt && !isDefaultAptSettingUp && (
                         <button
                           onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
+                          onMouseEnter={() => {
+                            if (selectedTimelineApt) {
+                              const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt);
+                              const dong = aptObj?.dong || '';
+                              preloadApartmentTx?.(selectedTimelineApt, dong);
+                              import('@/components/ApartmentModal').catch(() => {});
+                              import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                            }
+                          }}
+                          onTouchStart={() => {
+                            if (selectedTimelineApt) {
+                              const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt);
+                              const dong = aptObj?.dong || '';
+                              preloadApartmentTx?.(selectedTimelineApt, dong);
+                              import('@/components/ApartmentModal').catch(() => {});
+                              import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                            }
+                          }}
                           className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-sm"
                         >
                           상세 리포트 보기 ➔

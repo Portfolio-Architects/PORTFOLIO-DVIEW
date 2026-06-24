@@ -383,7 +383,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     return matchKey ? locationScores[matchKey] : {};
   }, [locationScores, nameMapping]);
   
-  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions } = useApartmentDetails(
+  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions, preloadApartmentTx } = useApartmentDetails(
     selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
   );
   
@@ -810,6 +810,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
                 onOpenTaxCalculator={handleOpenTaxCalculator}
                 onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
                 onSelectApt={handleAptClickByName}
+                preloadApartmentTx={preloadApartmentTx}
               />
             </ErrorBoundary>
           )}

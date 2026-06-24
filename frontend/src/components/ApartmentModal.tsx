@@ -138,11 +138,7 @@ const TransactionChartSection = dynamic(() => import('./apartment-modal/Transact
   return () => null;
 }), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
-      <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
-    </div>
-  )
+  loading: () => <TransactionChartSkeleton />
 });
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
@@ -161,9 +157,7 @@ const BuyOrWaitVote = dynamic(() => import('./apartment-modal/BuyOrWaitVote').ca
 }), { 
   ssr: false,
   loading: () => (
-    <div className="w-full h-[142px] mt-6 rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
-      <span className="text-[12px] font-bold text-tertiary">매수 심리 위젯 로딩 중...</span>
-    </div>
+    <div className="w-full h-[142px] mt-6 rounded-2xl border border-border/40 animate-shimmer" />
   )
 });
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
@@ -2181,7 +2175,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           
           {/* Left: 실거래가 전체 리스트 (35%) */}
           <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
-            {!isAnimationFinished || isTxLoading ? (
+            {isTxLoading ? (
               <TransactionTableSkeleton />
             ) : (
               <TransactionTable 
@@ -2196,7 +2190,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {/* Right: 실거래가 차트 (65%) */}
           <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
             <ErrorBoundary name="실거래 차트">
-              {!isAnimationFinished || isTxLoading ? (
+              {isTxLoading ? (
                 <TransactionChartSkeleton />
               ) : (
                 <TransactionChartSection 

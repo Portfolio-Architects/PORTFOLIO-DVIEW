@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { logger } from '@/lib/services/logger';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
 import {
@@ -70,7 +70,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Callback Ref pattern for highly reliable ResizeObserver binding
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const sizeRef = useRef({ width: 0, height: 0 });
   const [isChartReady, setIsChartReady] = useState(false);
@@ -83,30 +85,37 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     if (typeof window !== 'undefined') {
       setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
     }
-    // 마운트 완료 시 즉시 차트 렌더링 활성화 (350ms 고정 딜레이 제거)
     if (mountedRef.current) {
       setIsChartReady(true);
     }
     return () => {
       mountedRef.current = false;
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      }
     };
   }, []);
 
-  useLayoutEffect(() => {
-    if (!containerRef.current) return;
-    
-    // Measure immediately before paint to prevent 1-frame visual flash of "차트 로드 중..."
-    const initialWidth = containerRef.current.clientWidth;
-    const initialHeight = containerRef.current.clientHeight;
+  const containerRefCallback = useCallback((node: HTMLDivElement | null) => {
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
+      resizeObserverRef.current = null;
+    }
+
+    if (!node) return;
+
+    // Measure size immediately on mount to prevent initial shimmer delay
+    const initialWidth = node.clientWidth;
+    const initialHeight = node.clientHeight;
     if (initialWidth > 0 && initialHeight > 0) {
       const initialSize = { width: initialWidth, height: initialHeight };
       setDimensions(initialSize);
       sizeRef.current = initialSize;
     }
 
-    let debounceTimer: NodeJS.Timeout | null = null;
-    
-    const resizeObserver = new ResizeObserver((entries) => {
+    function handleResize(entries: ResizeObserverEntry[]) {
       if (!entries || entries.length === 0) return;
       const { width, height } = entries[0].contentRect;
 
@@ -121,24 +130,25 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       const newSize = { width, height };
       sizeRef.current = newSize;
 
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+
       if (isFirstMeasure) {
-        // 최초 크기 계측 시에는 디바운스 지연 없이 즉시 레이아웃 크기를 셋업하여 0ms 차트 로딩 확보
         setDimensions(newSize);
       } else {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
+        debounceTimerRef.current = setTimeout(() => {
           if (mountedRef.current) {
             setDimensions(newSize);
           }
         }, 100);
       }
-    });
-    
-    resizeObserver.observe(containerRef.current);
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      resizeObserver.disconnect();
-    };
+    }
+
+    const ro = new ResizeObserver(handleResize);
+    ro.observe(node);
+    resizeObserverRef.current = ro;
   }, []);
 
   // [자기개선] 실거래 차트 드래그 줌용 상태 및 핸들러 추가
@@ -586,7 +596,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         
 
         
-        <div ref={containerRef} className="h-[320px] md:h-[360px] w-full relative">
+        <div ref={containerRefCallback} className="h-[320px] md:h-[360px] w-full relative">
           {typeof window !== 'undefined' && isChartReady && dimensions.width > 0 && dimensions.height > 0 ? (
             <ResponsiveContainer width={dimensions.width} height={dimensions.height} minWidth={1} minHeight={1} debounce={100}>
               <ComposedChart 
@@ -730,9 +740,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
-              <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
-            </div>
+            <div className="w-full h-full rounded-xl border border-border/20 animate-shimmer" />
           )}
           {hoveredDot && (() => {
             const d = hoveredDot.data;

@@ -164,6 +164,7 @@ interface AptRowProps {
   likes: number;
   photoCount: number;
   views: number;
+  preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
 
 const AptRow = memo(({ 
@@ -175,7 +176,8 @@ const AptRow = memo(({
   isFavorited,
   likes,
   photoCount,
-  views
+  views,
+  preloadApartmentTx
 }: AptRowProps) => {
   /*
    * 🛡️ DEFENSIVE DESIGN (방어적 설계):
@@ -196,6 +198,16 @@ const AptRow = memo(({
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
+        onMouseEnter={() => {
+          preloadApartmentTx?.(item.apt.name, item.apt.dong);
+          import('@/components/ApartmentModal').catch(() => {});
+          import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+        }}
+        onTouchStart={() => {
+          preloadApartmentTx?.(item.apt.name, item.apt.dong);
+          import('@/components/ApartmentModal').catch(() => {});
+          import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+        }}
         className={`hidden md:flex items-center md:px-4 h-[66px] border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
           index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
         } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]`}
@@ -296,6 +308,11 @@ const AptRow = memo(({
       {/* Mobile View (Hidden on Desktop) - Sleek Toss-style List Tile */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
+        onTouchStart={() => {
+          preloadApartmentTx?.(item.apt.name, item.apt.dong);
+          import('@/components/ApartmentModal').catch(() => {});
+          import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+        }}
         className={`flex md:hidden items-center justify-between px-4 h-[64px] cursor-pointer transition-all duration-200 ease-in-out active:bg-neutral-100/60 dark:active:bg-zinc-900/40 ${
           index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-neutral-50/20 dark:bg-zinc-900/5'
         } border-b border-neutral-100/40 dark:border-zinc-900/10`}
@@ -435,6 +452,7 @@ interface TossApartmentExploreClientProps {
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
   onSearchFocus?: () => void;
+  preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
 
 const TossApartmentExploreClientPropsSchema = z.object({
@@ -460,6 +478,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onOpenJeonseSafety,
   onOpenMortgage,
   onSearchFocus,
+  preloadApartmentTx,
 }: TossApartmentExploreClientProps) {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [mounted, setMounted] = useState(false);
@@ -1104,6 +1123,16 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                                 setIsSearchFocused(false);
                                 trackEvent('view_apartment', { apt_name: item.apt.name, trigger: 'search_shortcut' });
                               }}
+                              onMouseEnter={() => {
+                                preloadApartmentTx?.(item.apt.name, item.apt.dong);
+                                import('@/components/ApartmentModal').catch(() => {});
+                                import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                              }}
+                              onTouchStart={() => {
+                                preloadApartmentTx?.(item.apt.name, item.apt.dong);
+                                import('@/components/ApartmentModal').catch(() => {});
+                                import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                              }}
                               className="flex items-center justify-between p-2.5 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/5 rounded-xl transition-all text-left group active:scale-99 border border-transparent hover:border-emerald-500/10"
                             >
                               <div className="flex flex-col min-w-0 pr-2">
@@ -1307,6 +1336,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       likes={favoriteCounts[item.apt.name] || 0}
                       photoCount={fieldReportsMap.get(item.apt.name)?.images?.length || 0}
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
+                      preloadApartmentTx={preloadApartmentTx}
                     />
                     {index === 14 && sortedApts.length > 15 && (
                       <div className="px-3 md:px-4 py-1.5 md:py-1 w-full">
