@@ -4,17 +4,25 @@ import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
 import { logger } from "@/lib/services/logger";
+const InlineLoader = ({ text }: { text: string }) => (
+  <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl p-6 gap-3 backdrop-blur-md">
+    <div className="relative w-10 h-10 flex items-center justify-center">
+      <div className="absolute inset-0 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
+      <svg className="w-4 h-4 text-toss-blue animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 12l10 10 10-10L12 2z" />
+      </svg>
+    </div>
+    <span className="text-[13px] text-secondary tracking-tight font-medium">{text}</span>
+  </div>
+);
+
 const MacroTrendChart = dynamic(() => import("@/components/MacroTrendChart").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'MacroTrendChart Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroTrendChart');
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[200px] flex items-center justify-center bg-body/50 rounded-2xl animate-pulse">
-      <span className="text-tertiary text-[13px] font-bold">차트 로드 중...</span>
-    </div>
-  )
+  loading: () => <InlineLoader text="매크로 동향 차트 분석 중" />
 });
 const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'AptFitFinder Chunk Load failure, initiating fallback reload', undefined, err);
@@ -22,6 +30,7 @@ const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").
   return { default: () => null };
 }), {
   ssr: false,
+  loading: () => <InlineLoader text="맞춤 단지 매칭 엔진 준비 중" />
 });
 
 const EMPTY_OBJECT = {};
