@@ -185,8 +185,3 @@ export function parseCoordString(coordStr: string): Coord | null {
   }
   return null;
 }
-
-function toRad(deg: number): number {
-  return deg * (Math.PI / 180);
-}
-
