@@ -15,14 +15,15 @@ const MobileBottomAd = React.memo(function MobileBottomAd({ adSlot }: MobileBott
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+    setHash(window.location.hash);
+    const handleHashChange = () => {
       setHash(window.location.hash);
-      const handleHashChange = () => {
-        setHash(window.location.hash);
-      };
-      window.addEventListener('hashchange', handleHashChange, { passive: true });
-      return () => window.removeEventListener('hashchange', handleHashChange);
-    }
+    };
+    window.addEventListener('hashchange', handleHashChange, { passive: true });
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   const isDockPage = pathname === '/' || 

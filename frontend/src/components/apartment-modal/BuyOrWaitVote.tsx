@@ -32,16 +32,15 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     mountedRef.current = true;
 
     // Load from localStorage on mount (hydration-safe)
-    if (typeof window !== 'undefined') {
-      try {
-        const savedVote = localStorage.getItem(`dview-vote-${aptName.replace(/\s+/g, '')}`);
-        if (savedVote) {
-          setHasVoted(true);
-          setUserVote(savedVote as 'buy' | 'wait');
-        }
-      } catch (e) {
-        logger.warn('BuyOrWaitVote', 'Failed to read vote from localStorage', undefined, e);
+    if (typeof window === 'undefined') return;
+    try {
+      const savedVote = localStorage.getItem(`dview-vote-${aptName.replace(/\s+/g, '')}`);
+      if (savedVote) {
+        setHasVoted(true);
+        setUserVote(savedVote as 'buy' | 'wait');
       }
+    } catch (e) {
+      logger.warn('BuyOrWaitVote', 'Failed to read vote from localStorage', undefined, e);
     }
 
     return () => {
@@ -64,19 +63,18 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   );
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedVote = localStorage.getItem(localStorageKey);
-        if (savedVote) {
-          setHasVoted(true);
-          setUserVote(savedVote as 'buy' | 'wait');
-        } else {
-          setHasVoted(false);
-          setUserVote(null);
-        }
-      } catch (e) {
-        logger.warn('BuyOrWaitVote', 'localStorage is unavailable', { aptName }, e);
+    if (typeof window === 'undefined') return;
+    try {
+      const savedVote = localStorage.getItem(localStorageKey);
+      if (savedVote) {
+        setHasVoted(true);
+        setUserVote(savedVote as 'buy' | 'wait');
+      } else {
+        setHasVoted(false);
+        setUserVote(null);
       }
+    } catch (e) {
+      logger.warn('BuyOrWaitVote', 'localStorage is unavailable', { aptName }, e);
     }
   }, [aptName, localStorageKey]);
 

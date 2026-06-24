@@ -80,31 +80,29 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
 
   // Parse initial chopoomaStep on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const stepParam = params.get('chopoomaStep');
-      if (stepParam) {
-        const parsed = parseInt(stepParam, 10);
-        if (!isNaN(parsed) && parsed >= 0 && parsed < DISTANCE_STEPS.length) {
-          setSelectedStepIndex(parsed);
-        }
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const stepParam = params.get('chopoomaStep');
+    if (stepParam) {
+      const parsed = parseInt(stepParam, 10);
+      if (!isNaN(parsed) && parsed >= 0 && parsed < DISTANCE_STEPS.length) {
+        setSelectedStepIndex(parsed);
       }
     }
   }, [DISTANCE_STEPS]);
 
   // Sync chopoomaStep state to URL query parameter
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const currentVal = params.get('chopoomaStep');
-      if (currentVal !== String(selectedStepIndex)) {
-        if (currentVal === null && selectedStepIndex === 3) {
-          return;
-        }
-        params.set('chopoomaStep', String(selectedStepIndex));
-        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
-        window.history.replaceState(null, '', newUrl);
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const currentVal = params.get('chopoomaStep');
+    if (currentVal !== String(selectedStepIndex)) {
+      if (currentVal === null && selectedStepIndex === 3) {
+        return;
       }
+      params.set('chopoomaStep', String(selectedStepIndex));
+      const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+      window.history.replaceState(null, '', newUrl);
     }
   }, [selectedStepIndex]);
 

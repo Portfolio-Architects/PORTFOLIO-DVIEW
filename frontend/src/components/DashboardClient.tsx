@@ -609,9 +609,8 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   // Scroll to top when tab changes & track event
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     if (mounted) {
       trackEvent('tab_view', { tab_name: activeTab });
     }
