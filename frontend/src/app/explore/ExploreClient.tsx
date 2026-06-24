@@ -154,13 +154,19 @@ const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch
   logger.warn('ExploreClient.dynamic', 'AdInquiryModal Chunk Load failure', undefined, err);
   safeReload('AdInquiryModal');
   return { default: () => null };
-}), { ssr: false });
+}), {
+  ssr: false,
+  loading: () => <CalculatorLoader text="제휴 및 광고 안내 로드 중" />
+});
 
 const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'B2BConsumerAdModal Chunk Load failure', undefined, err);
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
-}), { ssr: false });
+}), {
+  ssr: false,
+  loading: () => <CalculatorLoader text="맞춤 컨설팅 신청 중" />
+});
 
 const CalculatorLoader = ({ text }: { text: string }) => (
   <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">

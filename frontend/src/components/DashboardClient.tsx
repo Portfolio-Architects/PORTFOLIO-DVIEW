@@ -127,12 +127,18 @@ const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch
   logger.warn('DashboardClient.dynamic', 'AdInquiryModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AdInquiryModal');
   return { default: () => null };
-}), { ssr: false });
+}), {
+  ssr: false,
+  loading: () => <CalculatorLoader text="제휴 및 광고 안내 로드 중" />
+});
 const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'B2BConsumerAdModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
-}), { ssr: false });
+}), {
+  ssr: false,
+  loading: () => <CalculatorLoader text="맞춤 컨설팅 신청 중" />
+});
 
 const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
