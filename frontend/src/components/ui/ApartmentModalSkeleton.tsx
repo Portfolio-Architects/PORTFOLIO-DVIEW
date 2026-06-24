@@ -1,14 +1,23 @@
 'use client';
-
-import React from 'react';
+ 
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ArrowLeft } from 'lucide-react';
-
+ 
 interface ApartmentModalSkeletonProps {
   onClose?: () => void;
 }
-
+ 
 export default function ApartmentModalSkeleton({ onClose }: ApartmentModalSkeletonProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
       {/* Modal Container */}
       <div className="bg-surface text-primary w-full sm:max-w-[1200px] h-full sm:h-[90vh] sm:rounded-3xl shadow-2xl border-none sm:border border-border/80 flex flex-col overflow-hidden relative animate-in zoom-in-95 duration-200">
@@ -102,6 +111,7 @@ export default function ApartmentModalSkeleton({ onClose }: ApartmentModalSkelet
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 }

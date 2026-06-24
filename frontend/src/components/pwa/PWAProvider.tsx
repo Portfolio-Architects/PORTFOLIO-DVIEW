@@ -258,7 +258,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       const currentPasses = Number(localStorage.getItem('dview_free_passes') || '0');
       localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
 
-      setToastMessage('🎉 홈화면 앱 설치 감사 혜택! 무료 리포트 조회권 3회가 지급되었습니다.');
+      setToastMessage('🎉 홈화면 앱 설치 완료! 모바일에서 더 빠르고 편하게 분석 리포트를 확인해 보세요.');
       if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
       installRewardTimeoutRef.current = setTimeout(() => {
         if (isMounted) {

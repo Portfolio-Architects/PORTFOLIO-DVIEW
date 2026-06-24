@@ -23,60 +23,92 @@ import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 
 const CommentSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
-    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-32 mb-2" />
+  <div className="w-full flex flex-col gap-4 mt-4">
+    <div className="h-6 rounded-xl w-32 mb-2 animate-shimmer" />
     <div className="flex gap-3">
-      <div className="flex-1 h-12 bg-body/20 dark:bg-surface/5 rounded-xl" />
-      <div className="w-16 h-12 bg-body/20 dark:bg-surface/5 rounded-xl" />
+      <div className="flex-1 h-12 rounded-xl animate-shimmer" />
+      <div className="w-16 h-12 rounded-xl animate-shimmer" />
     </div>
-    <div className="w-full h-24 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+    <div className="w-full h-24 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const JeonseSafetySkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
-    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
-    <div className="w-full h-36 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  <div className="w-full flex flex-col gap-4 mt-4">
+    <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
+    <div className="w-full h-36 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const EducationAnalysisSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
-    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
-    <div className="w-full h-40 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  <div className="w-full flex flex-col gap-4 mt-4">
+    <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
+    <div className="w-full h-40 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const InfraAnalysisSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
-    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
+  <div className="w-full flex flex-col gap-4 mt-4">
+    <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="h-32 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
-      <div className="h-32 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+      <div className="h-32 rounded-2xl border border-border/40 animate-shimmer" />
+      <div className="h-32 rounded-2xl border border-border/40 animate-shimmer" />
     </div>
   </div>
 );
 
 const ScoutingReportDetailSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
-    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
-    <div className="w-full h-36 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  <div className="w-full flex flex-col gap-4 mt-4">
+    <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
+    <div className="w-full h-36 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const AdvancedValuationSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse mt-4">
-    <div className="h-6 bg-body/20 dark:bg-surface/5 rounded-xl w-40 mb-2" />
-    <div className="w-full h-48 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  <div className="w-full flex flex-col gap-4 mt-4">
+    <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
+    <div className="w-full h-48 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const AnchorTenantSkeleton = () => (
-  <div className="w-full h-24 bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40 animate-pulse mt-4" />
+  <div className="w-full h-24 rounded-2xl border border-border/40 animate-shimmer mt-4" />
 );
 
-const ViralPaywallSkeleton = () => (
-  <div className="w-full h-[180px] bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40 animate-pulse mt-4" />
+const TransactionTableSkeleton = () => (
+  <div className="w-full h-[401px] md:h-full flex flex-col gap-4 p-5 border border-border/40 rounded-2xl">
+    <div className="h-6 w-28 rounded-xl animate-shimmer mb-2" />
+    {[1, 2, 3, 4, 5].map(i => (
+      <div key={i} className="flex justify-between items-center py-3 border-b border-border/20">
+        <div className="h-4 w-20 rounded-lg animate-shimmer" />
+        <div className="h-4 w-12 rounded-lg animate-shimmer" />
+        <div className="h-4 w-24 rounded-lg animate-shimmer" />
+      </div>
+    ))}
+  </div>
+);
+
+const TransactionChartSkeleton = () => (
+  <div className="w-full h-[549px] md:h-[578px] flex flex-col gap-6 p-6 border border-border/40 rounded-2xl">
+    <div className="flex justify-between items-center">
+      <div className="h-6 w-32 rounded bg-neutral-250 dark:bg-zinc-800 animate-shimmer" />
+      <div className="flex gap-2">
+        <div className="h-8 w-16 rounded-lg bg-neutral-200 dark:bg-zinc-800 animate-shimmer" />
+        <div className="h-8 w-16 rounded-lg bg-neutral-200 dark:bg-zinc-800 animate-shimmer" />
+      </div>
+    </div>
+    <div className="flex-1 w-full rounded-xl relative overflow-hidden flex items-end p-4 border border-border/20">
+      <div className="w-full h-full flex items-end justify-between gap-2">
+        {[30, 45, 60, 40, 75, 50, 90, 65, 80, 55, 70, 85].map((h, i) => (
+          <div 
+            key={i} 
+            style={{ height: `${h}%` }} 
+            className="flex-1 rounded-t bg-neutral-200/50 dark:bg-zinc-800/40 animate-shimmer" 
+          />
+        ))}
+      </div>
+    </div>
+  </div>
 );
 
 const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
@@ -91,14 +123,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
-const ViralPaywallGate = dynamic(() => import('./apartment-modal/ViralPaywallGate').catch(err => {
-  logger.warn('ApartmentModal.dynamic', 'ViralPaywallGate Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('ViralPaywallGate');
-  return { default: () => null };
-}), { 
-  ssr: false,
-  loading: () => <ViralPaywallSkeleton />
-});
+
 const JeonseSafetyReport = dynamic(() => import('./apartment-modal/JeonseSafetyReport').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'JeonseSafetyReport Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('JeonseSafetyReport');
@@ -259,7 +284,7 @@ const LazyRender = React.memo(function LazyRender({
     <div ref={containerRef} style={{ minHeight: isVisible ? 'auto' : `${estimatedHeight}px` }}>
       {isVisible ? children : (
         <div 
-          className="w-full bg-surface/40 dark:bg-zinc-900/5 border border-border/40 rounded-2xl animate-pulse flex items-center justify-center" 
+          className="w-full border border-border/40 rounded-2xl animate-shimmer flex items-center justify-center" 
           style={{ height: `${estimatedHeight}px` }}
         >
           <span className="text-tertiary text-[12px] font-bold">콘텐츠 구성 중...</span>
@@ -616,81 +641,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
 
-  const [viralShareCount, setViralShareCount] = useState<number>(0);
-  const [isUnlockedByViral, setIsUnlockedByViral] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && report?.apartmentName) {
-      const aptName = report.apartmentName;
-      const shareKey = `dview-viral-share-count-${aptName}`;
-      const unlockKey = `dview-unlocked-apt-${aptName}`;
-      
-      const savedCount = parseInt(localStorage.getItem(shareKey) || '0', 10);
-      setViralShareCount(savedCount);
-      
-      const unlockedTime = localStorage.getItem(unlockKey);
-      if (unlockedTime) {
-        const parsedTime = parseInt(unlockedTime, 10);
-        if (Date.now() < parsedTime) {
-          setIsUnlockedByViral(true);
-        } else {
-          localStorage.removeItem(unlockKey);
-          setIsUnlockedByViral(false);
-        }
-      } else {
-        setIsUnlockedByViral(false);
-      }
-    }
-  }, [report?.apartmentName]);
-
-  const incrementViralShareCount = useCallback(() => {
-    if (isUnlockedByViral) return;
-    const aptName = report.apartmentName;
-    const shareKey = `dview-viral-share-count-${aptName}`;
-    const unlockKey = `dview-unlocked-apt-${aptName}`;
-    
-    const currentCount = parseInt(localStorage.getItem(shareKey) || '0', 10);
-    const nextCount = currentCount + 1;
-    localStorage.setItem(shareKey, nextCount.toString());
-    setViralShareCount(nextCount);
-    
-    if (nextCount >= 3) {
-      const lockExpiry = Date.now() + 24 * 60 * 60 * 1000;
-      localStorage.setItem(unlockKey, lockExpiry.toString());
-      setIsUnlockedByViral(true);
-      showToast("🎉 공유 미션 달성! 24시간 동안 모든 리포트가 무료로 잠금 해제되었습니다.");
-    } else {
-      showToast(`📢 카카오톡 공유 완료 (${nextCount}/3). 3회 완료 시 무료로 열립니다!`);
-    }
-  }, [report?.apartmentName, isUnlockedByViral, showToast]);
-
-  const handleAlternativeUnlock = useCallback(() => {
-    const target = document.getElementById('sec-comments');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-      showToast("📝 하단 거주후기(댓글) 입력창으로 이동했습니다. 한줄평을 남겨주시면 즉시 해금됩니다!");
-    } else {
-      showToast("아파트 상세 정보 하단의 댓글/후기 창에 글을 작성해 주세요!");
-    }
-  }, [showToast]);
-
-  const handleCommentSubmitWithUnlock = useCallback(async () => {
-    if (!user) {
-      onSubmitComment();
-      return;
-    }
-    if (!commentInput?.trim()) return;
-
-    await onSubmitComment();
-    
-    // Reward Unlock
-    const aptName = report.apartmentName;
-    const unlockKey = `dview-unlocked-apt-${aptName}`;
-    const lockExpiry = Date.now() + 24 * 60 * 60 * 1000;
-    localStorage.setItem(unlockKey, lockExpiry.toString());
-    setIsUnlockedByViral(true);
-    showToast("✍️ 입주민 거주후기(댓글) 작성 감사 혜택! D-VIEW 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚");
-  }, [onSubmitComment, user, commentInput, report?.apartmentName, showToast]);
 
   const getAutoShareTheme = (): 'value' | 'gap' | 'school' | 'deal' => {
     const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
@@ -1254,7 +1204,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
     };
   }, []);
 
-  const isUnlocked = true;
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   usePreventElasticBounce(modalRef);
@@ -1555,9 +1504,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
         valStatus: valuation.status,
         valAmount: valuation.amount
       });
-      if (mountedRef.current) {
-        incrementViralShareCount();
-      }
     } catch (error) {
       logger.error('ApartmentModal.shareKakao', 'Kakao share card generation failed', undefined, error);
       if (mountedRef.current) {
@@ -1611,9 +1557,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
         valStatus: valuation.status,
         valAmount: valuation.amount
       });
-      if (mountedRef.current) {
-        incrementViralShareCount();
-      }
     } finally {
       if (mountedRef.current) {
         setIsSharing(false);
@@ -1660,7 +1603,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
         link.click();
         
         showToast("🎉 인포그래픽 요약 카드가 이미지 파일로 저장되었습니다!");
-        incrementViralShareCount(); // 통계 증가
       } else {
         showToast("이미지 캡처 대상을 찾을 수 없습니다.");
       }
@@ -1849,11 +1791,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           logger.error('ApartmentModal.nativeShare', 'Native share failed', undefined, err);
-          handleCopyLink();
+          handleKakaoShare();
         }
       }
     } else {
-      handleCopyLink();
+      handleKakaoShare();
     }
   };
 
@@ -1923,7 +1865,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
           customTitle,
           customDesc
         });
-        incrementViralShareCount();
       } catch (e) {
         logger.error('ApartmentModal.shareSection.childcare', 'Failed to share childcare section to Kakao', undefined, e);
       }
@@ -1988,7 +1929,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
           customTitle,
           customDesc
         });
-        incrementViralShareCount();
       } catch (e) {
         logger.error('ApartmentModal.shareSection.infra', 'Failed to share infra section to Kakao', undefined, e);
       }
@@ -2039,23 +1979,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 <Share size={14} strokeWidth={2.5} className="text-secondary/80" />
               )}
               <span>{copiedStatus === 'all-link' ? '링크 복사 완료!' : '공유하기'}</span>
-            </button>
-
-            {/* 카카오톡 공유하기 버튼 */}
-            <button
-              onClick={handleKakaoShare}
-              disabled={isSharing}
-              className="h-10 px-4 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 disabled:opacity-75"
-              title="카카오톡으로 공유하기"
-            >
-              {isSharing ? (
-                <div className="w-3.5 h-3.5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin shrink-0" />
-              ) : (
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 shrink-0">
-                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                </svg>
-              )}
-              <span>카카오톡 공유</span>
             </button>
 
             {/* 단톡방 요약 복사 버튼 — 모바일은 하단 스티키 바와 중복되므로 hidden 처리 */}
@@ -2259,9 +2182,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {/* Left: 실거래가 전체 리스트 (35%) */}
           <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
             {!isAnimationFinished || isTxLoading ? (
-              <div className="w-full h-[401px] md:h-full rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
-                <span className="text-[12px] font-bold text-tertiary">거래 데이터 분석 중...</span>
-              </div>
+              <TransactionTableSkeleton />
             ) : (
               <TransactionTable 
                 transactions={filteredTransactions} 
@@ -2276,9 +2197,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
             <ErrorBoundary name="실거래 차트">
               {!isAnimationFinished || isTxLoading ? (
-                <div className="w-full h-[549px] md:h-[578px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse flex items-center justify-center">
-                  <span className="text-[12px] font-bold text-tertiary">시세 차트 로딩 중...</span>
-                </div>
+                <TransactionChartSkeleton />
               ) : (
                 <TransactionChartSection 
                   transactions={filteredTransactions} 
@@ -2299,7 +2218,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
       {!isAnimationFinished || isTxLoading ? (
-        <div className="w-full h-[460px] md:h-[386px] rounded-2xl bg-neutral-100 dark:bg-zinc-900/40 border border-neutral-100/50 dark:border-zinc-900/20 animate-pulse mt-4" />
+        <div className="w-full h-[460px] md:h-[386px] rounded-2xl border border-border/40 animate-shimmer mt-4" />
       ) : (
         <TransactionSummaryMetrics 
           transactions={transactions} 
@@ -2356,9 +2275,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
                     comments={comments}
                     commentInput={commentInput}
                     onCommentChange={onCommentChange}
-                    onSubmitComment={handleCommentSubmitWithUnlock}
+                    onSubmitComment={onSubmitComment}
                     user={user}
-                    isUnlocked={isUnlocked}
+                    isUnlocked={true}
                     selectedCommentId={selectedCommentId}
                     onRequestLogin={onRequestLogin}
                   />
@@ -2416,12 +2335,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
               <LazyRender estimatedHeight={350}>
                 <EducationAnalysisSection
                   report={report}
-                  isUnlocked={isUnlocked}
                   inline={inline}
-                  viralShareCount={viralShareCount}
                   copiedStatus={copiedStatus}
                   handleShareSection={handleShareSection}
-                  handleKakaoShare={handleKakaoShare}
                   displayAptName={displayAptName}
                 />
               </LazyRender>
@@ -2440,7 +2356,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
               <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
                 <div className="relative w-full">
-                  <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
+                  <div>
                     <ErrorBoundary name="밸류에이션 분석">
                       <LazyRender estimatedHeight={400}>
                         <AdvancedValuationMetrics key={report.id || report.apartmentName} report={report} transactions={transactions} />
@@ -2448,15 +2364,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                     </ErrorBoundary>
                     <BuyOrWaitVote aptName={report.apartmentName} valuationStatus={valuation.status} valuationAmount={valuation.amount} />
                   </div>
-                  {!isUnlocked && (
-                    <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
-                      <ViralPaywallGate 
-                        shareCount={viralShareCount} 
-                        onShare={handleKakaoShare} 
-                        onAlternativeUnlock={handleAlternativeUnlock} 
-                      />
-                    </div>
-                  )}
                 </div>
 
                 {/* 취득세 및 복비 계산기 연동 버튼 */}
@@ -2494,7 +2401,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                       <Shield size={18} className="text-[#0d9488]"/> 전세 안전성 진단 리포트
                     </h2>
                     <div className="relative w-full">
-                      <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40' : ''}>
+                      <div>
                         <LazyRender estimatedHeight={300}>
                           <JeonseSafetyReport
                             aptName={report.apartmentName}
@@ -2508,15 +2415,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                           />
                         </LazyRender>
                       </div>
-                      {!isUnlocked && (
-                        <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
-                          <ViralPaywallGate 
-                            shareCount={viralShareCount} 
-                            onShare={handleKakaoShare} 
-                            onAlternativeUnlock={handleAlternativeUnlock} 
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
                 </section>
@@ -2629,9 +2527,21 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
             </>
           ) : (
-            <div className="w-full py-16 flex flex-col items-center justify-center gap-3 bg-surface/30 rounded-3xl border border-border/50 animate-pulse">
-              <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-              <span className="text-[13px] font-bold text-secondary">리포트 분석을 구성하는 중...</span>
+            <div className="w-full flex flex-col gap-10">
+              {/* 입지 분석 Skeleton */}
+              <InfraAnalysisSkeleton />
+              
+              {/* 학군 정보 Skeleton */}
+              {report.metrics && <EducationAnalysisSkeleton />}
+              
+              {/* 밸류에이션 Skeleton */}
+              {transactions.length > 0 && <AdvancedValuationSkeleton />}
+              
+              {/* 전세 안전진단 Skeleton */}
+              {transactions.length > 0 && <JeonseSafetySkeleton />}
+              
+              {/* 임장 총평 Skeleton */}
+              <ScoutingReportDetailSkeleton />
             </div>
           )}
 
@@ -2863,23 +2773,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 aria-label="뒤로가기"
               >
                 <ArrowLeft size={24} strokeWidth={2.5} />
-              </button>
-
-              {/* 카카오톡 공유 (모바일 숏컷) */}
-              <button
-                onClick={handleKakaoShare}
-                disabled={isSharing}
-                className="w-[56px] h-[56px] bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm border border-transparent transform duration-200 active:scale-[0.94] disabled:opacity-75"
-                title="카카오톡으로 공유하기"
-                aria-label="카카오톡으로 공유하기"
-              >
-                {isSharing ? (
-                  <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin shrink-0" />
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 shrink-0">
-                    <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                  </svg>
-                )}
               </button>
 
               {/* 단톡방 요약 복사 (모바일 숏컷) */}

@@ -4,27 +4,19 @@ import { GraduationCap, Check, Share, MapPin } from 'lucide-react';
 import { calculateEducationScore } from '@/lib/utils/scoring';
 import ChildcareDetailSection from './ChildcareDetailSection';
 import LocalEducationAd from '@/components/LocalEducationAd';
-import ViralPaywallGate from './ViralPaywallGate';
-
 interface EducationAnalysisSectionProps {
   report: any;
-  isUnlocked: boolean;
   inline?: boolean;
-  viralShareCount: number;
   copiedStatus: string | null;
   handleShareSection: (section: 'childcare' | 'infra') => void;
-  handleKakaoShare: () => void;
   displayAptName: string;
 }
 
 const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   report,
-  isUnlocked,
   inline = false,
-  viralShareCount,
   copiedStatus,
   handleShareSection,
-  handleKakaoShare,
   displayAptName,
 }: EducationAnalysisSectionProps) {
   if (!report.metrics) return null;
@@ -40,7 +32,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
         </h2>
 
         <div className="relative w-full">
-          <div className={!isUnlocked ? 'filter blur-sm select-none pointer-events-none opacity-40 flex flex-col w-full gap-8' : 'flex flex-col w-full gap-8'}>
+          <div className="flex flex-col w-full gap-8">
 
             {/* ─── 👶 육아 친화도 지수 (Childcare Index) ─── */}
             {(() => {
@@ -399,11 +391,6 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
               />
             </div>
           </div>
-          {!isUnlocked && (
-            <div className="absolute inset-0 flex items-center justify-center p-4 z-10 bg-surface/10 dark:bg-black/10 backdrop-blur-[2px]">
-              <ViralPaywallGate shareCount={viralShareCount} onShare={handleKakaoShare} />
-            </div>
-          )}
         </div>
       </div>
     </section>
