@@ -5,11 +5,27 @@ import { MapPin, Check, Share } from 'lucide-react';
 import { calculateInfraScore } from '@/lib/utils/scoring';
 import { safeReload } from '@/lib/utils/safeReload';
 
+const AnchorTenantSkeleton = () => (
+  <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border animate-pulse">
+    <div className="flex items-center justify-between mb-2 pb-3 border-b border-border">
+      <div className="w-40 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-lg" />
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl p-5 border border-border flex flex-col gap-3 min-h-[140px]" />
+      ))}
+    </div>
+  </div>
+);
+
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard').catch(err => {
   logger.warn('InfraAnalysisSection', 'AnchorTenantCard Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AnchorTenantCard');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <AnchorTenantSkeleton />
+});
 
 interface InfraAnalysisSectionProps {
   report: any;
