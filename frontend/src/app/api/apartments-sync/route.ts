@@ -204,12 +204,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, updatedCount, addedCount, deletedCount });
   };
 
+  let timeoutId: NodeJS.Timeout | undefined;
+  const timeoutPromise = new Promise<NextResponse>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Apartment sync execution timed out')), TIMEOUT_LIMIT);
+  });
+
   try {
     return await Promise.race([
-      syncProcess(),
-      new Promise<NextResponse>((_, reject) =>
-        setTimeout(() => reject(new Error('Apartment sync execution timed out')), TIMEOUT_LIMIT)
-      ),
+      syncProcess().then((res) => {
+        if (timeoutId) clearTimeout(timeoutId);
+        return res;
+      }).catch((err) => {
+        if (timeoutId) clearTimeout(timeoutId);
+        throw err;
+      }),
+      timeoutPromise,
     ]);
   } catch (error: any) {
     logger.error('ApartmentsSyncAPI.POST', 'Google Sheets Sync Error', {}, error as Error);
