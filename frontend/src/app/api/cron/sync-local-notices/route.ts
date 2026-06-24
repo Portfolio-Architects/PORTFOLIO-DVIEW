@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
-import { sendMail } from '@/lib/mailService';
+import { sendMail } from '@/lib/utils/server/mailService';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
