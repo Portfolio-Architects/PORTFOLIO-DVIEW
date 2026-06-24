@@ -80,6 +80,35 @@ const LoungeSkeleton = () => (
   </div>
 );
 
+const CalculatorLoader = ({ text }: { text: string }) => (
+  <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
+    <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-5 text-center min-w-[280px] max-w-[320px] backdrop-blur-2xl">
+      <div className="relative w-14 h-14 flex items-center justify-center">
+        {/* outer spin */}
+        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-toss-blue animate-spin" style={{ animationDuration: '0.8s' }} />
+        {/* inner reverse spin */}
+        <div className="absolute inset-1.5 rounded-full border-[2px] border-transparent border-b-toss-blue/60 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.2s' }} />
+        {/* center emerald diamond */}
+        <div className="absolute flex items-center justify-center">
+          <svg className="w-5 h-5 text-toss-blue animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3h12l4 6-10 13L2 9z" />
+            <path d="M11 3 8 9l4 13 4-13-3-6" />
+            <path d="M2 9h20" />
+          </svg>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[15px] font-semibold text-primary tracking-tight">
+          {text}
+        </span>
+        <span className="text-[12px] text-secondary/70">
+          잠시만 기다려주세요
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
@@ -149,13 +178,7 @@ const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareMo
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
-      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
-        비교 대시보드 로드 중...
-      </div>
-    </div>
-  )
+  loading: () => <CalculatorLoader text="비교 대시보드 로드 중" />
 });
 const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure, initiating fallback reload', undefined, err);
@@ -163,13 +186,7 @@ const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/Jeons
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
-      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
-        전세 안전진단 계산기 로드 중...
-      </div>
-    </div>
-  )
+  loading: () => <CalculatorLoader text="전세 안전진단 계산기 로드 중" />
 });
 const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'MortgageCalculator Chunk Load failure, initiating fallback reload', undefined, err);
@@ -177,13 +194,7 @@ const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageC
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
-      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
-        대출 계산기 로드 중...
-      </div>
-    </div>
-  )
+  loading: () => <CalculatorLoader text="대출 계산기 로드 중" />
 });
 
 const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
@@ -192,13 +203,7 @@ const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/Proper
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
-      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
-        취득세 계산기 로드 중...
-      </div>
-    </div>
-  )
+  loading: () => <CalculatorLoader text="취득세 계산기 로드 중" />
 });
 
 const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
@@ -207,13 +212,7 @@ const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTim
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/30 backdrop-blur-md">
-      <div className="bg-surface p-6 rounded-2xl shadow-xl border border-border animate-pulse text-[14px] font-bold text-secondary">
-        매도 진단기 로드 중...
-      </div>
-    </div>
-  )
+  loading: () => <CalculatorLoader text="매도 진단기 로드 중" />
 });
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
