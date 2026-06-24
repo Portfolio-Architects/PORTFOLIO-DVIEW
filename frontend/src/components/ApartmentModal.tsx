@@ -254,13 +254,15 @@ const LazyRender = React.memo(function LazyRender({
       return;
     }
 
+    function handleIntersect([entry]: IntersectionObserverEntry[]) {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        observer.disconnect();
+      }
+    }
+
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
+      handleIntersect,
       { rootMargin: '250px' } // 250px before entering viewport
     );
 

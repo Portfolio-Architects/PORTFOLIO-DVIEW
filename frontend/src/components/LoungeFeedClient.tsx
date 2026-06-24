@@ -388,13 +388,20 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     setSize(prev => prev + 1);
   }, [isValidating, isReachingEnd, setSize]);
 
+  const loadMorePostsRef = useRef(loadMorePosts);
   useEffect(() => {
+    loadMorePostsRef.current = loadMorePosts;
+  }, [loadMorePosts]);
+
+  useEffect(() => {
+    function handleIntersect(entries: IntersectionObserverEntry[]) {
+      if (entries[0].isIntersecting) {
+        loadMorePostsRef.current();
+      }
+    }
+
     const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          loadMorePosts();
-        }
-      },
+      handleIntersect,
       { threshold: 0.01, rootMargin: '200px' }
     );
 
@@ -403,7 +410,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     }
 
     return () => observer.disconnect();
-  }, [loadMorePosts]);
+  }, []);
 
   // Filter notices data based on sub-category and dong filter
   const filteredNotices = useMemo(() => {
