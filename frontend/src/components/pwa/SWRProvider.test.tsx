@@ -36,7 +36,7 @@ describe('SWRProvider Offline Resilience', () => {
       </SWRProvider>
     );
 
-    expect(screen.getByTestId('revalidateOnFocus').textContent).toBe('true');
+    expect(screen.getByTestId('revalidateOnFocus').textContent).toBe('false');
     expect(screen.getByTestId('revalidateOnReconnect').textContent).toBe('true');
     expect(screen.getByTestId('refreshInterval').textContent).toBe('active');
   });

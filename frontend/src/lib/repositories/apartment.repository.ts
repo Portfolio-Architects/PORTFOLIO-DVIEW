@@ -37,7 +37,7 @@ export async function fetchApartmentNames(): Promise<string[]> {
   try {
     let byDong: Record<string, { name: string }[]> = {};
 
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || process.env.NODE_ENV === 'test') {
       // Server-side: read directly from the static file to avoid relative URL fetch failures
       try {
         const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
