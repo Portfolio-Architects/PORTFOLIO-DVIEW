@@ -15,6 +15,7 @@ import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent } from '@/lib/utils/analytics';
 import { logger } from '@/lib/services/logger';
+import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -79,24 +80,6 @@ const LoungeSkeleton = () => (
   </div>
 );
 
-const ModalSkeleton = () => (
-  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-pulse p-4">
-    <div className="bg-surface w-full max-w-[1200px] h-[90vh] rounded-3xl shadow-2xl border border-border/80 p-6 flex flex-col gap-4">
-      {/* Modal Header Skeleton */}
-      <div className="w-1/3 h-10 bg-body rounded-xl animate-pulse" />
-      {/* Modal Sub-Header Skeleton */}
-      <div className="w-1/4 h-5 bg-body rounded-lg animate-pulse" />
-      {/* Modal Grid Skeleton */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <div className="h-full bg-body rounded-2xl animate-pulse" />
-        <div className="h-full bg-body rounded-2xl animate-pulse" />
-      </div>
-    </div>
-  </div>
-);
-
-
-
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
@@ -104,7 +87,7 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').cat
   return { default: () => null };
 }), { 
   ssr: false,
-  loading: () => <ModalSkeleton />
+  loading: () => <ApartmentModalSkeleton />
 });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'WriteReviewModal Chunk Load failure, initiating fallback reload', undefined, err);
@@ -475,14 +458,14 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         
         // Preload ApartmentModal sub-components as well for 0ms transition stutter
         import('@/components/CommentSection').catch(() => {});
-        import('./apartment-modal/ViralPaywallGate').catch(() => {});
-        import('./apartment-modal/JeonseSafetyReport').catch(() => {});
-        import('./apartment-modal/TransactionChartSection').catch(() => {});
-        import('./apartment-modal/PhotoUploadModal').catch(() => {});
-        import('./apartment-modal/BuyOrWaitVote').catch(() => {});
-        import('./apartment-modal/EducationAnalysisSection').catch(() => {});
-        import('./apartment-modal/InfraAnalysisSection').catch(() => {});
-        import('./apartment-modal/ScoutingReportDetailSection').catch(() => {});
+        import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
+        import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
+        import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+        import('@/components/apartment-modal/PhotoUploadModal').catch(() => {});
+        import('@/components/apartment-modal/BuyOrWaitVote').catch(() => {});
+        import('@/components/apartment-modal/EducationAnalysisSection').catch(() => {});
+        import('@/components/apartment-modal/InfraAnalysisSection').catch(() => {});
+        import('@/components/apartment-modal/ScoutingReportDetailSection').catch(() => {});
         import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
         import('@/components/consumer/AnchorTenantCard').catch(() => {});
       };

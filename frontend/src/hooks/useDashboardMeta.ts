@@ -157,7 +157,8 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
 
   // Fetch init map only if not provided by server (and not starting the combined lazy fetch yet)
   useEffect(() => {
-    if (initialDashboardData || startFetch) return;
+    const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);
+    if (hasInitialTypeMap || startFetch) return;
 
     let unmounted = false;
     fetch('/api/dashboard-init').then(r => r.json()).then(data => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
@@ -10,14 +10,63 @@ import { getZoneById, dongToZoneId } from '@/lib/zones';
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
 import { useAuth } from '@/hooks/useAuth';
+import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   logger.warn('zone.[id].FieldReportModal', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
-}), { ssr: false });
+}), { ssr: false, loading: () => <ApartmentModalSkeleton /> });
 
 const ZoneDetailClient = React.memo(function ZoneDetailClient() {
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Preload heavy chunks for ApartmentModal in the background during idle time
+  useEffect(() => {
+    let isMounted = true;
+    let idleId: number | null = null;
+
+    const preloadHeavyChunks = () => {
+      if (!isMounted) return;
+      import('@/components/ApartmentModal').catch(() => {});
+      import('@/components/CommentSection').catch(() => {});
+      import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
+      import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
+      import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+      import('@/components/apartment-modal/PhotoUploadModal').catch(() => {});
+      import('@/components/apartment-modal/BuyOrWaitVote').catch(() => {});
+      import('@/components/apartment-modal/EducationAnalysisSection').catch(() => {});
+      import('@/components/apartment-modal/InfraAnalysisSection').catch(() => {});
+      import('@/components/apartment-modal/ScoutingReportDetailSection').catch(() => {});
+      import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
+      import('@/components/consumer/AnchorTenantCard').catch(() => {});
+    };
+
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+      if ('requestIdleCallback' in window) {
+        idleId = (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
+      } else {
+        if (preloadTimeoutRef.current) {
+          clearTimeout(preloadTimeoutRef.current);
+          preloadTimeoutRef.current = null;
+        }
+        preloadTimeoutRef.current = setTimeout(() => {
+          preloadHeavyChunks();
+          preloadTimeoutRef.current = null;
+        }, 2000);
+      }
+    }
+
+    return () => {
+      isMounted = false;
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
+      }
+    };
+  }, []);
   const params = useParams();
   const router = useRouter();
   const zoneId = params.id as string;
@@ -197,6 +246,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
           </div>
         )}
       </div>
+
 
       {/* Report Detail Modal */}
       {selectedReport && (
