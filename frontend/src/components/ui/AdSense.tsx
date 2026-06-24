@@ -93,12 +93,13 @@ const AdSense = React.memo(function AdSense({
     }
 
     // 3. Observe visibility/width changes (e.g. tab switching or loading states)
-    const observer = new ResizeObserver(() => {
+    function handleResize() {
       if (checkVisibilityAndPush()) {
         observer.disconnect();
       }
-    });
+    }
 
+    const observer = new ResizeObserver(handleResize);
     observer.observe(container);
 
     return () => {

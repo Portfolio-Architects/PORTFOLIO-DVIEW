@@ -135,7 +135,8 @@ function useResizeObserver(delay = 150) {
     if (!element) return;
 
     let timeoutId: NodeJS.Timeout;
-    const observer = new ResizeObserver((entries) => {
+
+    function handleResize(entries: ResizeObserverEntry[]) {
       // Prevent ResizeObserver from firing layout updates while scroll lock (overflow: hidden) is active.
       // This eliminates rendering overhead on background charts when the apartment modal is opening/active.
       if (typeof document !== 'undefined' && document.body.style.overflow === 'hidden') {
@@ -165,8 +166,9 @@ function useResizeObserver(delay = 150) {
           setSize(newSize);
         }, delay);
       }
-    });
+    }
 
+    const observer = new ResizeObserver(handleResize);
     observer.observe(element);
 
     return () => {
