@@ -506,15 +506,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   };
 
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [isTooltipActive, setIsTooltipActive] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  // Removed unused activeIndex, isTooltipActive, and isTouchDevice states
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
-    }
-  }, []);
 
   const [chartMode, setChartMode] = useState<string>("30");
   const [timeframe, setTimeframe] = useState<
@@ -747,27 +740,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     };
   }, []);
 
-  const chartContainerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (
-        chartContainerRef.current &&
-        !chartContainerRef.current.contains(e.target as Node)
-      ) {
-        setActiveIndex(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside, {
-      passive: true,
-    });
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
+  // Removed unused chartContainerRef and click-outside listener
 
   // Compute max transaction date across all data once
   const maxDateTime = useMemo(() => {

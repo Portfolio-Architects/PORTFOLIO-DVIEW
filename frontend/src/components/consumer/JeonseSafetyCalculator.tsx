@@ -221,18 +221,20 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   // Handle clicking outside of dropdown to close it
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    function handleClickOutside(event: MouseEvent | TouchEvent) {
+    if (!isFocused) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsFocused(false);
       }
-    }
+    };
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('touchstart', handleClickOutside, { passive: true });
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, []);
+  }, [isFocused]);
 
   // Filter list for Autocomplete
   const filteredApts = useMemo(() => {
