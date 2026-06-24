@@ -146,7 +146,17 @@ const PhotoUploadModal = dynamic(() => import('@/components/apartment-modal/Phot
   logger.warn('ApartmentModal.dynamic', 'PhotoUploadModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('PhotoUploadModal');
   return () => null;
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl">
+      <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 text-center min-w-[280px]">
+        <div className="w-10 h-10 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
+        <span className="text-[14px] font-semibold text-primary">사진 등록기 로드 중</span>
+      </div>
+    </div>
+  )
+});
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
 import { trackEvent } from '@/lib/utils/analytics';
