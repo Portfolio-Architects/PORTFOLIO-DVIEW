@@ -37,11 +37,6 @@ import { safeReload } from '@/lib/utils/safeReload';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import { logger } from '@/lib/services/logger';
 
-const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
-  logger.warn('layout.SettingsModal', 'SettingsModal Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('SettingsModal');
-  return { default: () => null };
-}));
 
 export const metadata: Metadata = {
   referrer: 'no-referrer',
@@ -168,7 +163,7 @@ export default async function RootLayout({
                   <ScrollToTop />
                 </PWAProvider>
                 <div id="modal-root" />
-                <SettingsModal />
+
                 
                 {/* Google Analytics 4 (Only renders in production if NEXT_PUBLIC_GA_ID exists to prevent local dev/test data contamination) */}
                 {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production' && (

@@ -3,6 +3,24 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import dynamic from 'next/dynamic';
+import { safeReload } from '@/lib/utils/safeReload';
+
+const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
+  logger.warn('SettingsContext.SettingsModal', 'SettingsModal Chunk Load failure, initiating fallback reload', undefined, err);
+  safeReload('SettingsModal');
+  return { default: () => null };
+}), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl">
+      <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 text-center min-w-[280px]">
+        <div className="w-10 h-10 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
+        <span className="text-[14px] font-semibold text-primary">환경설정 로드 중</span>
+      </div>
+    </div>
+  )
+});
 
 type AreaUnit = 'm2' | 'pyeong';
 type Theme = 'light' | 'dark' | 'system';
@@ -174,6 +192,7 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
     <SettingsValueContext.Provider value={{ areaUnit, setAreaUnit, theme, setTheme }}>
       <SettingsUiContext.Provider value={{ isSettingsModalOpen, setIsSettingsModalOpen }}>
         {children}
+        <SettingsModal />
       </SettingsUiContext.Provider>
     </SettingsValueContext.Provider>
   );
