@@ -20,8 +20,18 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
 }: BuyOrWaitVoteProps) {
   const localStorageKey = `dview-vote-${aptName.replace(/\s+/g, '')}`;
 
-  const [hasVoted, setHasVoted] = useState<boolean>(false);
-  const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(null);
+  const [userVote, setUserVote] = useState<'buy' | 'wait' | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedVote = localStorage.getItem(`dview-vote-${aptName.replace(/\s+/g, '')}`);
+        return (savedVote as 'buy' | 'wait') || null;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+  const [hasVoted, setHasVoted] = useState<boolean>(() => userVote !== null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
@@ -31,25 +41,13 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   useEffect(() => {
     mountedRef.current = true;
 
-    // Load from localStorage on mount (hydration-safe)
-    if (typeof window === 'undefined') return;
-    try {
-      const savedVote = localStorage.getItem(`dview-vote-${aptName.replace(/\s+/g, '')}`);
-      if (savedVote) {
-        setHasVoted(true);
-        setUserVote(savedVote as 'buy' | 'wait');
-      }
-    } catch (e) {
-      logger.warn('BuyOrWaitVote', 'Failed to read vote from localStorage', undefined, e);
-    }
-
     return () => {
       mountedRef.current = false;
       if (cooldownTimeoutRef.current) {
         clearTimeout(cooldownTimeoutRef.current);
       }
     };
-  }, [aptName]);
+  }, []);
 
   const { data, error, isLoading, mutate: mutateVote } = useSWR(
     aptName ? `/api/apartments/vote?aptName=${encodeURIComponent(aptName)}` : null,

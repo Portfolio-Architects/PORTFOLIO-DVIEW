@@ -715,21 +715,19 @@ const FieldReportModal = React.memo(function FieldReportModal({
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
 
-  // 이상치 필터링 토글 상태
-  const [filterOutliers, setFilterOutliers] = useState<boolean>(true);
-  const deferredFilterOutliers = useDeferredValue(filterOutliers);
-
-  // Load outlier filter state from localStorage on mount (hydration-safe)
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('dview_filter_outliers');
-      if (saved === 'false') {
-        setFilterOutliers(false);
+  // 이상치 필터링 토글 상태 (CLS 방지 및 Hydration Safe)
+  const [filterOutliers, setFilterOutliers] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('dview_filter_outliers');
+        return saved !== 'false';
+      } catch (e) {
+        return true;
       }
-    } catch (e) {
-      logger.warn('ApartmentModal.localStorage', 'localStorage is unavailable', undefined, e);
     }
-  }, []);
+    return true;
+  });
+  const deferredFilterOutliers = useDeferredValue(filterOutliers);
 
   const handleToggleFilter = () => {
     setFilterOutliers(prev => {
