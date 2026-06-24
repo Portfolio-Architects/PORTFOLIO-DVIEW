@@ -194,7 +194,7 @@ const AptRow = memo(({
    * - Result: Extremely compact and scannable row without rendering a heavy 3-column slab card.
    */
   return (
-    <div className="w-full flex flex-col px-0 md:px-4 py-0.5 md:py-1">
+    <div className="w-full flex flex-col px-0 py-0">
       {/* Desktop View (Hidden on Mobile) */}
       <div 
         onClick={() => handleSelectApt(item.apt.name)}
@@ -208,9 +208,7 @@ const AptRow = memo(({
           import('@/components/ApartmentModal').catch(() => {});
           import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
         }}
-        className={`hidden md:flex items-center md:px-4 h-[66px] border border-neutral-100/70 dark:border-zinc-900/40 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-200 ease-in-out active:scale-[0.995] ${
-          index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-[#fafcfb]/70 dark:bg-zinc-900/10'
-        } hover:bg-neutral-50 dark:hover:bg-zinc-800/20 hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]`}
+        className="hidden md:flex items-center px-6 h-[60px] border-b border-neutral-100/70 dark:border-zinc-900/30 last:border-b-0 cursor-pointer transition-all duration-200 ease-in-out hover:bg-neutral-50/60 dark:hover:bg-zinc-900/30"
       >
         {/* Heart */}
         <div className="w-[36px] text-center flex justify-center items-center shrink-0">
@@ -255,22 +253,22 @@ const AptRow = memo(({
         </div>
 
         {/* Age (shown at xl) */}
-        <div className="w-[105px] text-right pr-2 text-[13.5px] font-semibold text-neutral-600 dark:text-neutral-400 leading-none shrink-0 hidden xl:block whitespace-nowrap">
+        <div className="w-[95px] text-right pr-3 text-[13.5px] font-semibold text-neutral-600 dark:text-neutral-400 leading-none shrink-0 hidden xl:block whitespace-nowrap">
           {item.formattedYearBuilt}
         </div>
         
         {/* Price */}
-        <div className="w-[100px] text-right pr-2 text-[15.5px] font-black text-neutral-950 dark:text-neutral-50 shrink-0 whitespace-nowrap">
+        <div className="w-[130px] text-right pr-3 text-[15.5px] font-black text-neutral-950 dark:text-neutral-50 shrink-0 whitespace-nowrap">
           {item.formattedPrice}
         </div>
         
         {/* Pyeong */}
-        <div className="w-[85px] text-right pr-2 text-[14.5px] font-extrabold text-[#008060] dark:text-[#00d29d] shrink-0 whitespace-nowrap">
+        <div className="w-[90px] text-right pr-3 text-[14.5px] font-extrabold text-[#008060] dark:text-[#00d29d] shrink-0 whitespace-nowrap">
           {item.formattedPyeong}
         </div>
 
         {/* Jeonse (shown at lg) */}
-        <div className="w-[110px] text-right pr-2 flex flex-col justify-center items-end gap-1 shrink-0 hidden lg:flex">
+        <div className="w-[120px] text-right pr-3 flex flex-col justify-center items-end gap-1 shrink-0 hidden lg:flex">
           <span className="text-[14px] font-bold text-neutral-900 dark:text-neutral-100 leading-none whitespace-nowrap">
             {item.formattedJeonse}
           </span>
@@ -284,12 +282,12 @@ const AptRow = memo(({
         </div>
 
         {/* Household (shown at xl) */}
-        <div className="w-[80px] text-right pr-2 text-[13.5px] font-medium text-neutral-500 dark:text-neutral-400 leading-none shrink-0 hidden xl:block whitespace-nowrap">
+        <div className="w-[90px] text-right pr-3 text-[13.5px] font-medium text-neutral-500 dark:text-neutral-400 leading-none shrink-0 hidden xl:block whitespace-nowrap">
           {item.formattedHousehold}
         </div>
 
         {/* Volume (shown at xl) */}
-        <div className="w-[100px] text-right pr-2 flex flex-col justify-center items-end gap-1 shrink-0 hidden xl:flex">
+        <div className="w-[100px] text-right pr-3 flex flex-col justify-center items-end gap-1 shrink-0 hidden xl:flex">
           <span className="text-[13.5px] font-bold text-neutral-800 dark:text-neutral-200 leading-none whitespace-nowrap">
             {item.formattedVolume}
           </span>
@@ -1247,8 +1245,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col relative">
-          {/* Table Header */}
-          <div className="hidden md:flex sticky top-[68px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none shadow-sm shadow-black/[0.01]">
+          <div className="w-full bg-white dark:bg-zinc-950 border border-neutral-100 dark:border-zinc-900/40 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+            {/* Table Header */}
+            <div className="hidden md:flex sticky top-0 z-20 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm items-center px-6 py-4 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none">
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
@@ -1270,35 +1269,35 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </button>
             <button 
               onClick={() => handleHeaderSort('yearBuilt')}
-              className={`w-[105px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>연식</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('totalPrice')}
-              className={`w-[100px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>매매가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('pyeongPrice')}
-              className={`w-[85px] text-right pr-2 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>평당가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('ratio')}
-              className={`w-[110px] text-right pr-2 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>전세가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('householdCount')}
-              className={`w-[80px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
               <span>세대수</span>
@@ -1322,7 +1321,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
             </div>
           ) : (
-            <div id="explore-list-container" className="w-full flex-1 pt-1.5">
+            <div id="explore-list-container" className="w-full flex-1 pt-0">
               <div className="flex flex-col w-full">
                 {sortedApts.slice(0, visibleCount).map((item, index) => (
                   <React.Fragment key={item.apt.name}>
@@ -1339,7 +1338,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       preloadApartmentTx={preloadApartmentTx}
                     />
                     {index === 14 && sortedApts.length > 15 && (
-                      <div className="px-3 md:px-4 py-1.5 md:py-1 w-full">
+                      <div className="px-6 py-3 w-full border-b border-neutral-100/70 dark:border-zinc-900/30">
                         <NativeAdPlaceholder location="아파트 탐색 리스트 중간" isCompact={true} />
                       </div>
                     )}
@@ -1349,7 +1348,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
               {/* 분석 단지 더보기 버튼 (CLS 최적화 및 뷰포트 안정화) */}
               {sortedApts.length > visibleCount && (
-                <div className="w-full flex justify-center mt-4 mb-2 px-1 md:px-0">
+                <div className="w-full flex justify-center p-4">
                   <button
                     onClick={() => setVisibleCount(prev => prev + 15)}
                     className="w-full py-4 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 font-extrabold text-[14.5px] rounded-2xl border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.995]"
@@ -1362,6 +1361,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
       </div>
