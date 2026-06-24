@@ -388,11 +388,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const { signal } = controller;
 
     const prefetchApts = () => {
+      if (signal.aborted) return;
       DEFAULT_TIMELINE_APTS.forEach((apt) => {
+        if (signal.aborted) return;
         const resolved = findTxKey(apt, txSummaryData, nameMapping) || apt;
         if (!resolved) return;
         const txKey = normalizeAptName(resolved);
         fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal }).catch((err) => {
+          if (signal.aborted) return;
           if (err.name !== "AbortError") {
             logger.warn('MacroDashboardClient.prefetchApts', `Prefetch failed for ${txKey}`, undefined, err);
           }
