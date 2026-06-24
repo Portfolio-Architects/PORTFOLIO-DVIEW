@@ -7,7 +7,7 @@ import { logger } from '@/lib/services/logger';
 
 type Task<T> = () => Promise<T>;
 
-class FirestoreThrottle {
+export class FirestoreThrottle {
   private activeRequests = 0;
   private pendingQueue: Array<{
     task: Task<any>;
