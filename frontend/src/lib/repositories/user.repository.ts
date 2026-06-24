@@ -70,7 +70,8 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
 
   if (!docData) {
     try {
-      const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+      const rawUserRef = doc(db, 'users', uid);
+      const userRef = rawUserRef.withConverter(userProfileConverter);
       const userSnap = await throttle(() => getDoc(userRef));
 
       if (userSnap.exists()) {
@@ -78,7 +79,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
         if (!data.photoURL) {
           const randomAvatar = getRandomDefaultAvatar();
           // Non-blocking background update with throttle and catch block
-          throttle(() => updateDoc(userRef, { photoURL: randomAvatar })).catch((err) => {
+          throttle(() => updateDoc(rawUserRef, { photoURL: randomAvatar })).catch((err) => {
             logger.error('UserRepository.getOrCreateProfile', 'Failed to update photoURL in db asynchronously', { uid }, err);
           });
           data.photoURL = randomAvatar;
@@ -135,7 +136,7 @@ export async function setApartmentVerification(
   level: VerificationLevel
 ): Promise<void> {
   try {
-    const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+    const userRef = doc(db, 'users', uid);
     await throttle(() => updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level }));
     logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
   } catch (error) {
@@ -149,7 +150,7 @@ export async function setApartmentVerification(
  */
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
   try {
-    const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+    const userRef = doc(db, 'users', uid);
     await throttle(() => updateDoc(userRef, { nickname, hasSetNickname: true }));
     logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
   } catch (error) {
@@ -163,7 +164,7 @@ export async function updateNickname(uid: string, nickname: string): Promise<voi
  */
 export async function updatePhotoURL(uid: string, photoURL: string): Promise<void> {
   try {
-    const userRef = doc(db, 'users', uid).withConverter(userProfileConverter);
+    const userRef = doc(db, 'users', uid);
     await throttle(() => updateDoc(userRef, { photoURL }));
     logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
   } catch (error) {
