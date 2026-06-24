@@ -122,7 +122,17 @@ const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal').c
   logger.warn('DashboardClient.dynamic', 'WriteReviewModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('WriteReviewModal');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 text-center min-w-[280px]">
+        <div className="w-10 h-10 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
+        <span className="text-[14px] font-semibold text-primary">리뷰 작성기 로드 중</span>
+      </div>
+    </div>
+  )
+});
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AdInquiryModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AdInquiryModal');
@@ -153,7 +163,10 @@ const RegionAccordion = dynamic(() => import('@/components/curation/RegionAccord
   logger.warn('DashboardClient.dynamic', 'RegionAccordion Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('RegionAccordion');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
+});
 
 const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer').catch(err => {
   logger.warn('DashboardClient.dynamic', 'GapInvestmentExplorer Chunk Load failure, initiating fallback reload', undefined, err);
@@ -167,17 +180,26 @@ const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration').c
   logger.warn('DashboardClient.dynamic', 'ChopoomaCuration Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ChopoomaCuration');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <div className="w-full h-48 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
+});
 const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LocalEventCuration Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LocalEventCuration');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <div className="w-full h-36 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
+});
 const AIRecommendations = dynamic(() => import('@/components/consumer/AIRecommendations').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AIRecommendations Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AIRecommendations');
   return { default: () => null };
-}), { ssr: false });
+}), { 
+  ssr: false,
+  loading: () => <div className="w-full h-40 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
+});
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptCompareModal');
