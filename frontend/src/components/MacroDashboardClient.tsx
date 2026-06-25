@@ -197,15 +197,19 @@ const InfoBox = ({
     "--card-glow-dark": hexToRgba(color, 0.15),
   } as React.CSSProperties;
 
+  const Tag = onClick ? "button" : "div";
+
   return (
-    <div
+    <Tag
+      type={onClick ? "button" : undefined}
       onClick={onClick}
       className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border min-h-[82px] sm:min-h-[88px] md:min-h-[96px] h-auto min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
         onClick
-          ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.01] hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_12px_24px_var(--card-glow)] dark:hover:shadow-[0_12px_32px_var(--card-glow-dark)] active:scale-[0.98]"
+          ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.01] hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_12px_24px_var(--card-glow)] dark:hover:shadow-[0_12px_32px_var(--card-glow-dark)] active:scale-[0.98] text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
           : "cursor-default"
       } ${className || ""}`}
       style={cardStyle}
+      aria-label={onClick ? `${typeof title === 'string' ? title : '지표'}: ${typeof value === 'string' || typeof value === 'number' ? value : ''}${unit || ''} 상세 보기` : undefined}
     >
       {/* Background glow wrapper to clip the glow blob while keeping tooltip visible */}
       <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
@@ -264,7 +268,7 @@ const InfoBox = ({
           <div className="h-[15px] sm:h-[16px] md:h-[18px]" />
         )}
       </div>
-    </div>
+    </Tag>
   );
 };
 
@@ -2442,9 +2446,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       {isBottomSheetOpen && typeof window !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-end justify-center lg:hidden">
           {/* Backdrop Overlay */}
-          <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200" 
+          <button 
+            type="button"
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200 cursor-default focus:outline-none border-none outline-none" 
             onClick={() => setIsBottomSheetOpen(false)}
+            aria-label="바텀시트 닫기"
           />
           {/* Sheet Box */}
           <div className="relative w-full bg-surface rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] border-t border-border flex flex-col max-h-[80vh] z-10 animate-in slide-in-from-bottom duration-300">
