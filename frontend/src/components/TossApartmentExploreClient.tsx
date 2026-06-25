@@ -764,7 +764,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                   }
                 }, 200);
               }}
-              role="searchbox"
+              role="combobox"
+              aria-expanded={isSearchFocused}
+              aria-haspopup="listbox"
+              aria-controls="search-suggestions-listbox"
+              aria-autocomplete="list"
               aria-label="단지명 검색"
               className="w-full bg-body border border-transparent focus:border-toss-blue focus:bg-surface focus:shadow-[0_0_0_2px_rgba(0,210,157,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
             />
