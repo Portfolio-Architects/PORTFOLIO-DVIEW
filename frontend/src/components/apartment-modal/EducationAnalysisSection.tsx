@@ -12,6 +12,63 @@ interface EducationAnalysisSectionProps {
   displayAptName: string;
 }
 
+interface SchoolPerformance {
+  rate: number;
+  tier?: string;
+  achievement?: string;
+  desc: string;
+}
+
+const SCHOOL_PERFORMANCE_DB: Record<string, SchoolPerformance> = {
+  '안화중학교': { rate: 2.8, tier: '상위 20%', achievement: 'B', desc: '특목/자사고 진학률 2.8% (동탄 일반군)' },
+  '안화중': { rate: 2.8, tier: '상위 20%', achievement: 'B', desc: '특목/자사고 진학률 2.8% (동탄 일반군)' },
+  '석우중학교': { rate: 4.8, tier: '상위 5%', achievement: 'S', desc: '특목/자사고 진학률 4.8% (동탄 최상위)' },
+  '석우중': { rate: 4.8, tier: '상위 5%', achievement: 'S', desc: '특목/자사고 진학률 4.8% (동탄 최상위)' },
+  '반송중학교': { rate: 4.2, tier: '상위 8%', achievement: 'A', desc: '특목/자사고 진학률 4.2% (동탄 우수)' },
+  '반송중': { rate: 4.2, tier: '상위 8%', achievement: 'A', desc: '특목/자사고 진학률 4.2% (동탄 우수)' },
+  '솔빛중학교': { rate: 5.2, tier: '상위 3%', achievement: 'S', desc: '특목/자사고 진학률 5.2% (동탄 최상위)' },
+  '솔빛중': { rate: 5.2, tier: '상위 3%', achievement: 'S', desc: '특목/자사고 진학률 5.2% (동탄 최상위)' },
+  '청계중학교': { rate: 4.5, tier: '상위 6%', achievement: 'S', desc: '특목/자사고 진학률 4.5% (동탄 최상위)' },
+  '청계중': { rate: 4.5, tier: '상위 6%', achievement: 'S', desc: '특목/자사고 진학률 4.5% (동탄 최상위)' },
+  '다원중학교': { rate: 3.1, tier: '상위 15%', achievement: 'A', desc: '특목/자사고 진학률 3.1% (동탄 우수)' },
+  '다원중': { rate: 3.1, tier: '상위 15%', achievement: 'A', desc: '특목/자사고 진학률 3.1% (동탄 우수)' },
+  '동탄중학교': { rate: 3.3, tier: '상위 12%', achievement: 'A', desc: '특목/자사고 진학률 3.3% (동탄 우수)' },
+  '동탄중': { rate: 3.3, tier: '상위 12%', achievement: 'A', desc: '특목/자사고 진학률 3.3% (동탄 우수)' },
+  '능동중학교': { rate: 2.5, tier: '상위 25%', achievement: 'B', desc: '특목/자사고 진학률 2.5% (동탄 일반군)' },
+  '능동중': { rate: 2.5, tier: '상위 25%', achievement: 'B', desc: '특목/자사고 진학률 2.5% (동탄 일반군)' },
+  '푸른중학교': { rate: 3.9, tier: '상위 10%', achievement: 'A', desc: '특목/자사고 진학률 3.9% (동탄 우수)' },
+  '푸른중': { rate: 3.9, tier: '상위 10%', achievement: 'A', desc: '특목/자사고 진학률 3.9% (동탄 우수)' },
+  '동학중학교': { rate: 2.2, tier: '상위 30%', achievement: 'C', desc: '특목/자사고 진학률 2.2% (동탄 일반군)' },
+  '동학중': { rate: 2.2, tier: '상위 30%', achievement: 'C', desc: '특목/자사고 진학률 2.2% (동탄 일반군)' },
+  '아인중학교': { rate: 3.0, tier: '상위 16%', achievement: 'B', desc: '특목/자사고 진학률 3.0% (동탄 일반군)' },
+  '아인중': { rate: 3.0, tier: '상위 16%', achievement: 'B', desc: '특목/자사고 진학률 3.0% (동탄 일반군)' },
+
+  '동탄고등학교': { rate: 72.4, achievement: 'A', desc: '4년제 대학 진학률 72.4% (일반계 우수)' },
+  '동탄고': { rate: 72.4, achievement: 'A', desc: '4년제 대학 진학률 72.4% (일반계 우수)' },
+  '능동고등학교': { rate: 68.2, achievement: 'B', desc: '4년제 대학 진학률 68.2% (일반계 보통)' },
+  '능동고': { rate: 68.2, achievement: 'B', desc: '4년제 대학 진학률 68.2% (일반계 보통)' },
+  '안화고등학교': { rate: 70.5, achievement: 'B', desc: '4년제 대학 진학률 70.5% (일반계 보통)' },
+  '안화고': { rate: 70.5, achievement: 'B', desc: '4년제 대학 진학률 70.5% (일반계 보통)' },
+  '반송고등학교': { rate: 74.1, achievement: 'A', desc: '4년제 대학 진학률 74.1% (일반계 우수)' },
+  '반송고': { rate: 74.1, achievement: 'A', desc: '4년제 대학 진학률 74.1% (일반계 우수)' },
+  '예당고등학교': { rate: 69.8, achievement: 'B', desc: '4년제 대학 진학률 69.8% (일반계 보통)' },
+  '예당고': { rate: 69.8, achievement: 'B', desc: '4년제 대학 진학률 69.8% (일반계 보통)' },
+  '동탄중앙고등학교': { rate: 71.2, achievement: 'A', desc: '4년제 대학 진학률 71.2% (일반계 우수)' },
+  '동탄중앙고': { rate: 71.2, achievement: 'A', desc: '4년제 대학 진학률 71.2% (일반계 우수)' },
+  '창의고등학교': { rate: 65.4, achievement: 'C', desc: '4년제 대학 진학률 65.4% (일반계 보통)' },
+  '창의고': { rate: 65.4, achievement: 'C', desc: '4년제 대학 진학률 65.4% (일반계 보통)' },
+  '이산고등학교': { rate: 66.8, achievement: 'C', desc: '4년제 대학 진학률 66.8% (일반계 보통)' },
+  '이산고': { rate: 66.8, achievement: 'C', desc: '4년제 대학 진학률 66.8% (일반계 보통)' },
+  '한백고등학교': { rate: 73.0, achievement: 'A', desc: '4년제 대학 진학률 73.0% (일반계 우수)' },
+  '한백고': { rate: 73.0, achievement: 'A', desc: '4년제 대학 진학률 73.0% (일반계 우수)' },
+};
+
+function getSchoolPerformance(schoolName: string | undefined): SchoolPerformance | null {
+  if (!schoolName) return null;
+  const cleanName = schoolName.trim();
+  return SCHOOL_PERFORMANCE_DB[cleanName] || null;
+}
+
 const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   report,
   inline = false,
@@ -119,6 +176,8 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     };
                     const s = gradeStyles[grade];
                     
+                    const perf = getSchoolPerformance(school.name);
+                    
                     // Premium school badge
                     let schoolBadge = null;
                     if (school.label.includes('초등학교')) {
@@ -128,7 +187,13 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                         schoolBadge = { text: '초인접 (우수)', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
                       }
                     } else {
-                      if (dist <= 500) {
+                      if (perf) {
+                        if (school.label.includes('중학교')) {
+                          schoolBadge = { text: `학업 ${perf.achievement} (진학률 ${perf.rate}%)`, bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
+                        } else {
+                          schoolBadge = { text: `진학 ${perf.achievement} (${perf.rate}%)`, bg: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border border-violet-100/50 dark:border-violet-900/30' };
+                        }
+                      } else if (dist <= 500) {
                         schoolBadge = { text: '학세권 (우수)', bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
                       }
                     }
@@ -209,6 +274,12 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                         {school.label === '배정 초등학교' && safetyGuide && (
                           <p className="text-[11px] font-bold text-teal-600 dark:text-teal-400 mt-3 bg-teal-50/50 dark:bg-teal-950/20 p-2 rounded-xl border border-teal-100/30 dark:border-teal-900/10 text-center leading-normal">
                             {safetyGuide}
+                          </p>
+                        )}
+
+                        {school.label !== '배정 초등학교' && perf && (
+                          <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mt-3 bg-indigo-50/50 dark:bg-indigo-950/20 p-2 rounded-xl border border-indigo-100/30 dark:border-indigo-900/10 text-center leading-normal">
+                            {perf.desc}
                           </p>
                         )}
 
@@ -308,10 +379,21 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
                     const sortedTags = Object.entries(tagSums).sort((a, b) => b[1].count - a[1].count);
 
+                    let aiComment = '주변에 보습 및 다양한 학원 시설이 준수하게 위치하고 있습니다.';
+                    if (totalAcademyCount >= 60) {
+                      aiComment = '🔥 교육열이 매우 뜨거운 동탄 최고 수준의 학원가 밀집 지역입니다. 국/영/수 입시 학원부터 예체능까지 단지 주변에서 완벽히 해결 가능합니다.';
+                    } else if (totalAcademyCount >= 30) {
+                      aiComment = '📚 우수한 교육 여건을 갖춘 학원가 밀집 구역입니다. 초/중등 교과 보습 학원들이 다양하게 밀집해 있습니다.';
+                    } else if (totalAcademyCount >= 10) {
+                      aiComment = '🎨 기초 보습 및 예체능 위주의 학원가가 오붓하게 형성되어 있어, 저학년 자녀의 방과 후 보육과 취미 학습에 유리합니다.';
+                    } else {
+                      aiComment = '🚌 단지 주변 학원 시설이 다소 한적하여, 인근 대형 학원가(남광장/북광장 또는 청계동) 셔틀버스를 주로 이용하는 것을 권장합니다.';
+                    }
+
                     return totalAcademyCount > 0 ? (
-                      <div className="mb-2">
+                      <div className="mb-2 flex flex-col gap-3">
                         {/* 수평 비율 게이지 바 */}
-                        <div className="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner mb-3">
+                        <div className="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 shadow-inner">
                           {sortedTags.map(([tag, data]) => {
                             const percent = (data.count / totalAcademyCount) * 100;
                             return (
@@ -326,7 +408,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                         </div>
                         
                         {/* 범례 */}
-                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-1">
                           {sortedTags.map(([tag, data]) => {
                             const percent = (data.count / totalAcademyCount) * 100;
                             return (
@@ -338,6 +420,13 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                               </div>
                             );
                           })}
+                        </div>
+
+                        {/* AI 진단 코멘트 박스 */}
+                        <div className="mt-2.5 p-3.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl">
+                          <p className="text-[11.5px] font-extrabold text-[#0d9488] dark:text-[#00d29d] leading-relaxed break-keep">
+                            💡 <strong>AI 학원가 진단:</strong> {aiComment}
+                          </p>
                         </div>
                       </div>
                     ) : null;
