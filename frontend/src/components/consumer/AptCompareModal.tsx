@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useDeferredValue } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search, Building2, TrendingUp, Sparkles, Award, School, TreePine, MapPin, Share2 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
@@ -263,6 +264,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef1 = useRef<HTMLDivElement>(null);
   const dropdownRef2 = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   // Load recent apartments from localStorage on mount/isOpen
   useEffect(() => {
@@ -427,6 +429,59 @@ const AptCompareModal = React.memo(function AptCompareModal({
       document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen) {
+      // Auto focus first option when modal opens
+      const timer = setTimeout(() => {
+        if (firstInputRef.current) {
+          firstInputRef.current.focus();
+        }
+      }, 50);
+
+      // Escape key handling
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          if (!isFocused1 && !isFocused2) {
+            onClose();
+          } else {
+            setIsFocused1(false);
+            setIsFocused2(false);
+          }
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, isFocused1, isFocused2, onClose]);
+
+  // Focus Trap Handler
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && containerRef.current) {
+      const focusableElements = containerRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
 
   // Set initial apartment if passed
   useEffect(() => {
@@ -1069,9 +1124,9 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
     };
   }, [isOpen, apt1, apt2, metrics1, metrics2, apt1Label, apt2Label]);
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
       {jsonLd && (
         <script
@@ -1080,20 +1135,29 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
         />
       )}
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <div 
+        className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" 
+        onClick={onClose} 
+        role="presentation"
+      />
 
       {/* Modal Container */}
       <div
         ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="compare-modal-title"
+        aria-describedby="compare-modal-desc"
+        onKeyDown={handleFocusTrap}
         className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[1150px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[90vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl transition-transform duration-300 slide-in-from-bottom overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
           <div className="flex flex-col gap-0.5">
-            <h2 className="text-[17px] font-black text-primary flex items-center gap-1.5">
+            <h2 id="compare-modal-title" className="text-[17px] font-black text-primary flex items-center gap-1.5">
               <span>1:1 아파트 단지 비교 분석기</span>
             </h2>
-            <p className="text-[12px] font-medium text-tertiary">
+            <p id="compare-modal-desc" className="text-[12px] font-medium text-tertiary">
               두 단지의 입지 조건, 단지 규모, 실거래 트렌드를 직관적으로 대조 비교합니다.
             </p>
           </div>
@@ -1116,8 +1180,10 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={16} />
                 <input
+                  ref={firstInputRef}
                   type="text"
                   placeholder="1번 단지 검색..."
+                  aria-label="1번 단지 검색"
                   value={searchQuery1}
                   onChange={(e) => {
                     setSearchQuery1(e.target.value);
@@ -1898,7 +1964,8 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
