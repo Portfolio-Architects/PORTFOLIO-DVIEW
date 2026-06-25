@@ -213,10 +213,16 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
               const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : 5;
 
               return (
-                <div key={report.id} onClick={() => handleSelectReport(report)} className="bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
+                <button
+                  type="button"
+                  key={report.id}
+                  onClick={() => handleSelectReport(report)}
+                  className="w-full text-left bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+                  aria-label={`리포트: ${report.apartmentName}, 작성자: ${report.author}, 평점: ${rating}점`}
+                >
                   {coverImage ? (
                     <div className="w-full h-[200px] shrink-0 bg-body relative overflow-hidden">
-                      <Image src={coverImage} alt="Cover" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={coverImage} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   ) : (
                     <div className="w-full h-[200px] shrink-0 bg-body flex items-center justify-center relative overflow-hidden">
@@ -224,7 +230,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
                      </div>
                   )}
                   
-                  <div className="p-5 flex flex-col justify-between flex-1">
+                  <div className="p-5 flex flex-col justify-between flex-1 w-full">
                      <div>
                        <div className="flex justify-between items-start mb-2">
                          <h3 className="text-[18px] font-bold text-primary tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
@@ -237,7 +243,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
                        </p>
                      </div>
                      
-                     <div className="flex justify-between items-center pt-4 border-t border-body">
+                     <div className="flex justify-between items-center pt-4 border-t border-body w-full">
                         <span className="text-[12px] font-bold text-tertiary">{report.author}</span>
                         <div className="flex items-center gap-3 text-tertiary">
                            <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
@@ -245,7 +251,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
                         </div>
                      </div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
