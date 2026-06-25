@@ -518,6 +518,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
 
+  // Safe close handler to prevent comment data loss (DLP)
+  const handleSafeClose = React.useCallback(() => {
+    if (commentInput && commentInput.trim().length > 0) {
+      if (!window.confirm('작성 중인 댓글 내용이 있습니다. 정말 닫으시겠습니까?')) {
+        return;
+      }
+    }
+    onClose();
+  }, [commentInput, onClose]);
+
   // Escape key handling with layer hierarchy
   useEffect(() => {
     if (inline) return;
@@ -533,14 +543,14 @@ const FieldReportModal = React.memo(function FieldReportModal({
         } else if (isToolDropdownOpen) {
           setIsToolDropdownOpen(false);
         } else {
-          onClose();
+          handleSafeClose();
         }
       }
     };
 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [inline, fullscreenImage, isUploadModalOpen, isPushModalOpen, isToolDropdownOpen, onClose]);
+  }, [inline, fullscreenImage, isUploadModalOpen, isPushModalOpen, isToolDropdownOpen, handleSafeClose]);
 
   // Focus trap handler
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -2608,7 +2618,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       >
         <div 
           className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" 
-          onClick={onClose} 
+          onClick={handleSafeClose} 
           role="presentation"
         />
         
@@ -2630,7 +2640,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <header className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
             <button 
               ref={firstFocusRef}
-              onClick={onClose} 
+              onClick={handleSafeClose} 
               aria-label="닫기" 
               className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group"
             >
@@ -2664,7 +2674,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <footer className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100] shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
             <div className="flex items-center gap-2 w-full">
               <button
-                onClick={onClose}
+                onClick={handleSafeClose}
                 className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm"
                 title="뒤로가기"
                 aria-label="뒤로가기"

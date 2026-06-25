@@ -263,10 +263,18 @@ const CommentSection = React.memo(function CommentSection({
               <div className="text-[10px] font-extrabold text-[#00d29d] dark:text-emerald-400 px-3.5 py-2 border-b border-border/40 dark:border-zinc-800/40 uppercase tracking-widest bg-body/50 dark:bg-zinc-950/30">
                 멘션할 대상을 선택하세요
               </div>
-              <ul className="max-h-[160px] overflow-y-auto py-1 divide-y divide-border/20 dark:divide-zinc-800/20">
+              <ul 
+                id="mention-listbox"
+                role="listbox"
+                aria-label="멘션 자동완성 목록"
+                className="max-h-[160px] overflow-y-auto py-1 divide-y divide-border/20 dark:divide-zinc-800/20"
+              >
                 {suggestions.map((nickname, idx) => (
                   <li 
                     key={nickname}
+                    id={`mention-option-${idx}`}
+                    role="option"
+                    aria-selected={suggestionIndex === idx}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => selectSuggestion(nickname)}
                     className={`px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors flex items-center justify-between ${
@@ -290,6 +298,10 @@ const CommentSection = React.memo(function CommentSection({
               ref={inputRef}
               type="text"
               placeholder="임장기에 대한 생각이나 궁금한 점을 남겨주세요."
+              aria-autocomplete="list"
+              aria-expanded={showSuggestions && suggestions.length > 0}
+              aria-controls={showSuggestions && suggestions.length > 0 ? "mention-listbox" : undefined}
+              aria-activedescendant={showSuggestions && suggestions.length > 0 ? `mention-option-${suggestionIndex}` : undefined}
               className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 transition-shadow"
               value={commentInput}
               onChange={(e) => {
