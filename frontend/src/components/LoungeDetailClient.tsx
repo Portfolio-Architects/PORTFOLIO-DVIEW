@@ -397,7 +397,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         category: (post.category as string) || "자유",
         contentSummary: content,
         imageUrl: firstImageUrl
-      });
+      }, showToast);
       showToast("카카오톡 공유 창을 열었습니다. 💬");
     } catch (err) {
       logger.warn('LoungeDetailClient.handleShare', 'Kakao SDK share failed, falling back to clipboard copy', undefined, err);

@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Shield, ShieldAlert, AlertTriangle, Coins, TrendingUp, CheckCircle2, ChevronRight, MessageSquare } from 'lucide-react';
 import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface JeonseSafetyReportProps {
   aptName: string;
@@ -25,6 +26,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
   householdCount,
   onOpenAdModal
 }: JeonseSafetyReportProps) {
+  const { showToast } = usePWA();
   // Safe Fallback for inputs
   const safeLatestPrice = Math.max(0, latestPrice || 0);
   const safeLatestDeposit = Math.max(0, latestDeposit || 0);
@@ -165,7 +167,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
       debtRatio: jeonseRatePercent,
       riskLabel: gradeLabel,
       riskLevel: grade,
-    });
+    }, showToast);
   };
 
   // Circle path parameters

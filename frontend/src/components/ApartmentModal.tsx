@@ -1349,7 +1349,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         customDesc: shareTexts.desc,
         valStatus: valuation.status || undefined,
         valAmount: valuation.amount || undefined
-      });
+      }, showToast);
     } catch (error) {
       logger.error('ApartmentModal.shareKakao', 'Kakao share card generation failed', undefined, error);
       if (mountedRef.current) {
@@ -1669,7 +1669,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           imageUrl,
           customTitle,
           customDesc
-        });
+        }, showToast);
       } catch (e) {
         logger.error('ApartmentModal.shareSection.childcare', 'Failed to share childcare section to Kakao', undefined, e);
       }
@@ -1733,7 +1733,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           imageUrl,
           customTitle,
           customDesc
-        });
+        }, showToast);
       } catch (e) {
         logger.error('ApartmentModal.shareSection.infra', 'Failed to share infra section to Kakao', undefined, e);
       }

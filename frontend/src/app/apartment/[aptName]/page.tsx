@@ -483,6 +483,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     "longitude": Number(lng)
   } : undefined;
 
+  const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
+
   // Build School instances for containedInPlace SEO property
   const schools: Record<string, any>[] = [];
   if (locationScore?.nearestSchoolNames?.elementary) {
@@ -581,6 +583,36 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "WebPage",
+        "@id": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}#webpage`,
+        "url": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
+        "name": `${decodedName} 실거래가 및 가치 분석 리포트`,
+        "description": aiBriefing,
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "홈",
+              "item": baseUrl
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "아파트 탐색",
+              "item": `${baseUrl}/explore`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": decodedName,
+              "item": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`
+            }
+          ]
+        }
+      },
+      {
         "@type": "ApartmentComplex",
         "@id": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}#complex`,
         "name": `${decodedName}`,
@@ -634,8 +666,6 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       logger.warn('ApartmentPage', 'Failed to fetch comments for SEO', { reportId: matchedReportData.id }, e as Error);
     }
   }
-
-  const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
 
   return (
     <>

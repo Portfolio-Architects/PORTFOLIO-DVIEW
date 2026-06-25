@@ -10,6 +10,7 @@ import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface JeonseSafetyCalculatorProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   nameMapping,
   fieldReportsMap,
 }: JeonseSafetyCalculatorProps) {
+  const { showToast } = usePWA();
   // Flatten list of all apartments
   const allApartments = useMemo(() => {
     return Object.values(sheetApartments).flat().map(a => ({
@@ -380,7 +382,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
       debtRatio: calculationResult.debtRatio,
       riskLabel: calculationResult.riskLabel,
       riskLevel: calculationResult.riskLevel,
-    });
+    }, showToast);
   };
 
   if (!isOpen) return null;
