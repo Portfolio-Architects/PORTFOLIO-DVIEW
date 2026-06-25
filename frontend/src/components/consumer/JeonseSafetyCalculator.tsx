@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search, ShieldAlert, Check, Share2, ChevronDown, Award, ArrowLeft, RefreshCw, MessageSquare, Sparkles } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -118,6 +119,57 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen && mounted) {
+      setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, mounted, onClose]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && containerRef.current) {
+      const focusableElements = containerRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
   const handleAptSelect = (apt: DongApartment) => {
     setSelectedApt(apt);
     setSearchQuery(getDisplayAptName(apt.name));
@@ -385,29 +437,35 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
     }, showToast);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" onClick={onClose} role="presentation" />
 
       {/* Modal Container */}
       <div
         ref={containerRef}
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="jeonse-title"
+        aria-describedby="jeonse-desc"
         className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl transition-transform duration-300 slide-in-from-bottom overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
           <div className="flex flex-col gap-0.5">
-            <h2 className="text-[17px] font-black text-primary flex items-center gap-1.5">
+            <h2 id="jeonse-title" className="text-[17px] font-black text-primary flex items-center gap-1.5">
               <span>전세금 깡통전세 안전진단기</span>
             </h2>
-            <p className="text-[12px] font-medium text-tertiary">
+            <p id="jeonse-desc" className="text-[12px] font-medium text-tertiary">
               실거래 매매가 대비 전세금과 융자 합계의 위험 비율을 계산합니다.
             </p>
           </div>
           <button
+            ref={closeButtonRef}
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center bg-body hover:bg-border/30 text-secondary transition-all"
             aria-label="닫기"
@@ -793,7 +851,8 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 

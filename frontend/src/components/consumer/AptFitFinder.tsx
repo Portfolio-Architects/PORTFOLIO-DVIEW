@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Sparkles, X, ChevronRight, ChevronLeft, Building2, Coins, GraduationCap, Train, TreePine, Check, Share2, Award, Heart, Compass, MessageSquare, RefreshCw } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -147,7 +148,69 @@ const AptFitFinder = React.memo(function AptFitFinder({
 }: AptFitFinderProps) {
   const { showToast } = usePWA();
   const modalRef = React.useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<number>(0); // 0: Intro, 1-7: Qs, 8: Calculating, 9: Results
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!isOpen) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [isOpen]);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen && mounted) {
+      setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, mounted, onClose]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
   const [answers, setAnswers] = useState<QuizAnswer>({
     budget: '',
     family: '',
@@ -623,15 +686,21 @@ const AptFitFinder = React.memo(function AptFitFinder({
     return `${rounded.toLocaleString()}만`;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div 
       className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"
       onClick={onClose}
+      role="presentation"
     >
       <div 
         ref={modalRef}
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="fit-title"
+        aria-describedby="fit-desc"
         className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[94vh] sm:max-h-[92vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
         onClick={e => e.stopPropagation()}
       >
@@ -639,11 +708,14 @@ const AptFitFinder = React.memo(function AptFitFinder({
         <div className="flex justify-between items-center px-5 py-3.5 sm:px-6 sm:py-4 border-b border-neutral-100 dark:border-zinc-900 shrink-0">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-[#00d29d] animate-pulse" />
-            <span className="font-extrabold text-[15px] sm:text-[16px] text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기</span>
+            <span id="fit-title" className="font-extrabold text-[15px] sm:text-[16px] text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기</span>
+            <span id="fit-desc" className="sr-only">라이프스타일과 예산 조건에 가장 적합한 동탄 아파트 단지를 AI가 진단하고 추천합니다.</span>
           </div>
           <button 
+            ref={closeButtonRef}
             onClick={onClose} 
             className="p-1.5 hover:bg-neutral-100 dark:hover:bg-zinc-900 rounded-full transition-colors active:scale-95 cursor-pointer"
+            aria-label="닫기"
           >
             <X className="w-5 h-5 text-tertiary" />
           </button>
@@ -1198,7 +1270,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
