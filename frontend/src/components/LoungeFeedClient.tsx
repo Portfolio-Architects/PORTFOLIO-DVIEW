@@ -850,12 +850,14 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 const displayUrlLabel = isLecture ? '화성시 통합예약 이동' : '원문 고시공고 이동';
                 
                 return (
-                  <div
+                  <button
                     key={notice.id}
+                    type="button"
+                    aria-label={`${isLecture ? '강좌' : '소식'}: ${displayTitle}, ${displayDept} ${notice.date} 상세 보기`}
                     onClick={() => {
                       window.location.hash = `notice=${notice.id}`;
                     }}
-                    className={`flex flex-col gap-4 p-5 rounded-3xl border transition-all cursor-pointer w-full group relative overflow-hidden text-left ${
+                    className={`flex flex-col gap-4 p-5 rounded-3xl border transition-all cursor-pointer w-full group relative overflow-hidden text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent ${
                       isLecture 
                         ? 'border-teal-100/80 dark:border-teal-900/30 bg-gradient-to-br from-teal-500/5 to-emerald-500/5 dark:from-teal-950/10 dark:to-emerald-950/10 hover:border-teal-300 dark:hover:border-teal-700/50 hover:shadow-[0_12px_24px_rgba(20,184,166,0.06)]' 
                         : 'border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-teal-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)]'
@@ -924,7 +926,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               }
 
@@ -1077,7 +1079,9 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 />
               </div>
             )}
-            <div 
+            <button 
+              type="button"
+              aria-label={`${news.category === '임장기' ? '동탄 임장/분석' : news.category === '부동산 기초' ? '부동산 고민상담' : news.category === '정책자금 대출' ? '동탄 청약/대출' : news.category === '인프라' ? '동탄 교통/상권' : (news.category || '기타')} 카테고리 게시글 "${news.title}", 작성자 ${news.author || '익명'} 상세 보기`}
               onClick={() => {
                 if (news.category === '아파트 이야기' && news.apartmentName) {
                   window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
@@ -1085,7 +1089,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   window.location.hash = `post=${news.id}`;
                 }
               }} 
-              className="flex gap-4 p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left"
+              className="flex gap-4 p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
             >
               {/* Left Content Area */}
               <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -1140,7 +1144,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   />
                 </div>
               )}
-            </div>
+            </button>
             </Fragment>
         );
       })}
