@@ -14,6 +14,8 @@ const SettingsModal = React.memo(function SettingsModal() {
   const [subscribedApts, setSubscribedApts] = useState<string[]>([]);
   const [isLoadingApts, setIsLoadingApts] = useState(false);
   const mountedRef = useRef(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstOptionRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -85,6 +87,54 @@ const SettingsModal = React.memo(function SettingsModal() {
     };
   }, [isSettingsModalOpen]);
 
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isSettingsModalOpen) {
+      // Auto focus first option when modal opens
+      const timer = setTimeout(() => {
+        if (firstOptionRef.current) {
+          firstOptionRef.current.focus();
+        }
+      }, 50);
+
+      // Escape key handling
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setIsSettingsModalOpen(false);
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isSettingsModalOpen, setIsSettingsModalOpen]);
+
+  // Focus Trap Handler
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
   if (!mounted || !isSettingsModalOpen) return null;
 
   return createPortal(
@@ -92,21 +142,31 @@ const SettingsModal = React.memo(function SettingsModal() {
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={() => setIsSettingsModalOpen(false)}
+        role="presentation"
       />
-      <div className="relative w-full sm:max-w-md bg-surface sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300">
+      <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        aria-describedby="settings-desc"
+        onKeyDown={handleKeyDown}
+        className="relative w-full sm:max-w-md bg-surface sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
+      >
         <div className="px-6 py-4 flex items-center justify-between border-b border-border bg-body/50">
-          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+          <h2 id="settings-title" className="text-lg font-bold text-primary flex items-center gap-2">
             소비자 설정
           </h2>
           <button 
             onClick={() => setIsSettingsModalOpen(false)}
             className="p-2 -mr-2 text-tertiary hover:text-primary transition-colors rounded-full hover:bg-black/5 dark:bg-surface/5"
+            aria-label="설정 창 닫기"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-8">
+        <div id="settings-desc" className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-8">
           
           {/* Theme Settings */}
           <section className="flex flex-col gap-3">
@@ -114,7 +174,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <Sun size={16} />
               화면 모드
             </h3>
-            <div className="grid grid-cols-3 gap-2 bg-body p-1 rounded-xl">
+            <div role="group" aria-label="화면 모드 선택" className="grid grid-cols-3 gap-2 bg-body p-1 rounded-xl">
               {[
                 { id: 'light' as const, label: '라이트', icon: Sun },
                 { id: 'dark' as const, label: '다크', icon: Moon },
@@ -124,7 +184,9 @@ const SettingsModal = React.memo(function SettingsModal() {
                 return (
                   <button
                     key={opt.id}
+                    ref={opt.id === 'light' ? firstOptionRef : undefined}
                     onClick={() => setTheme(opt.id)}
+                    aria-pressed={isActive}
                     className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg transition-all duration-200 ${
                       isActive 
                         ? 'bg-surface text-toss-blue shadow-sm font-bold' 
@@ -145,7 +207,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <Scaling size={16} />
               면적 표시 기준
             </h3>
-            <div className="grid grid-cols-2 gap-2 bg-body p-1 rounded-xl">
+            <div role="group" aria-label="면적 표시 기준 선택" className="grid grid-cols-2 gap-2 bg-body p-1 rounded-xl">
               {[
                 { id: 'm2', label: '제곱미터 (m²)' },
                 { id: 'pyeong', label: '평' },
@@ -155,6 +217,7 @@ const SettingsModal = React.memo(function SettingsModal() {
                   <button
                     key={opt.id}
                     onClick={() => setAreaUnit(opt.id as 'm2' | 'pyeong')}
+                    aria-pressed={isActive}
                     className={`py-3 rounded-lg transition-all duration-200 text-sm ${
                       isActive 
                         ? 'bg-surface text-toss-blue shadow-sm font-bold' 
