@@ -153,10 +153,12 @@ export default function AptStoriesWidget() {
           }
 
           return (
-            <div
+            <button
               key={story.id}
+              type="button"
+              aria-label={`${story.apartmentName} 입주민 이야기: "${story.text}", 작성자 ${story.authorName}, ${timeText} 상세 보기`}
               onClick={() => handleCardClick(story.apartmentName)}
-              className="min-w-[280px] max-w-[280px] flex flex-col justify-between p-4 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/30 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-[0_8px_16px_rgba(0,130,98,0.06)] dark:hover:shadow-[0_8px_16px_rgba(0,0,0,0.3)] shrink-0"
+              className="min-w-[280px] max-w-[280px] flex flex-col justify-between p-4 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/30 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-[0_8px_16px_rgba(0,130,98,0.06)] dark:hover:shadow-[0_8px_16px_rgba(0,0,0,0.3)] shrink-0 text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div>
                 {/* Header: Apartment Name & Icon */}
@@ -184,7 +186,7 @@ export default function AptStoriesWidget() {
                 </span>
                 <span className="font-medium font-sans">{timeText}</span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
