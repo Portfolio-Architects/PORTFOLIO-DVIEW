@@ -53,10 +53,16 @@ const GapComplexCard = React.memo(function GapComplexCard({
 
   return (
     <div
-      onClick={() => onSelect(item.apt.name)}
       data-testid="complex-card"
-      className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:shadow-md hover-tilt-card rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
+      className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:shadow-md hover-tilt-card rounded-2xl p-5 transition-all duration-300 group relative"
+      role="listitem"
     >
+      <button
+        type="button"
+        onClick={() => onSelect(item.apt.name)}
+        aria-label={`${item.apt.name} 필요 투자금 갭 ${formatPrice(item.gap)} 최근 매매/전세 평균 상세 보기`}
+        className="flex flex-col text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 rounded-xl focus:ring-offset-2"
+      >
       <div className="flex justify-between items-start gap-2 mb-4">
         <div className="flex flex-col min-w-0 pr-1">
           <span 
@@ -102,7 +108,7 @@ const GapComplexCard = React.memo(function GapComplexCard({
         </div>
       </div>
 
-      <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary font-medium mt-auto border-t border-border/20 pt-3 px-0.5">
+      <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary font-medium mt-auto border-t border-border/20 pt-3 px-0.5 w-full">
         <span className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
           매매 평균 <strong className="text-primary font-bold">{formatPrice(item.sales)}</strong>
@@ -112,6 +118,7 @@ const GapComplexCard = React.memo(function GapComplexCard({
           전세 평균 <strong className="text-primary font-bold">{formatPrice(item.jeonse)}</strong>
         </span>
       </div>
+      </button>
 
       <div className="flex items-center justify-between border-t border-border/20 pt-3 mt-3 mb-1">
         <button
