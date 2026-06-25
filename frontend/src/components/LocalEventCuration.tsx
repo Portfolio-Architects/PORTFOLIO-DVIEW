@@ -20,6 +20,63 @@ interface LocalEventCurationProps {
   onSelectApt: (name: string) => void;
 }
 
+const LECTURE_NEAREST_APT_MAP: Record<string, string> = {
+  '동탄1동': '능동역경남아너스빌',
+  '동탄2동': '동탄역반도유보라아이비파크3.0',
+  '동탄3동': '푸른마을두산위브',
+  '동탄4동': '동탄역시범한화꿈에그린프레스티지',
+  '동탄5동': '동탄역테크노밸리예미지3차',
+  '동탄6동': '동탄역유림노르웨이숲',
+  '동탄7동': '동탄역더샵센트럴시티2차',
+  '동탄8동': '동탄린스트라우스더레이크',
+  '동탄9동': '동탄2디에트르포레',
+  '1동': '능동역경남아너스빌',
+  '2동': '동탄역반도유보라아이비파크3.0',
+  '3동': '푸른마을두산위브',
+  '4동': '동탄역시범한화꿈에그린프레스티지',
+  '5동': '동탄역테크노밸리예미지3차',
+  '6동': '동탄역유림노르웨이숲',
+  '7동': '동탄역더샵센트럴시티2차',
+  '8동': '동탄린스트라우스더레이크',
+  '9동': '동탄2디에트르포레'
+};
+
+function calculateDDay(dateStr: string): { text: string; bg: string; textClass: string } | null {
+  try {
+    const targetDate = new Date(dateStr);
+    if (isNaN(targetDate.getTime())) return null;
+    
+    targetDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return { 
+        text: '종료됨', 
+        bg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 border border-neutral-200/50 dark:border-neutral-700/50', 
+        textClass: 'text-neutral-400' 
+      };
+    } else if (diffDays === 0) {
+      return { 
+        text: 'D-Day', 
+        bg: 'bg-rose-500 text-white border border-rose-600 animate-pulse', 
+        textClass: 'text-rose-500 font-extrabold' 
+      };
+    } else {
+      return { 
+        text: `D-${diffDays}`, 
+        bg: 'bg-amber-500 text-white border border-amber-600 font-extrabold', 
+        textClass: 'text-amber-500 font-black' 
+      };
+    }
+  } catch {
+    return null;
+  }
+}
+
 const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryData, onSelectApt }: LocalEventCurationProps) {
   const [shareStatus, setShareStatus] = useState<'copied' | 'shared' | null>(null);
 
@@ -115,7 +172,12 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
           label: '가까운 일정', 
           value: (() => {
             const nextLuna = allNotices.find(n => n.source === 'culture' && n.title.includes('[루나쇼]'));
-            return nextLuna ? `${nextLuna.date} (격주 토요일)` : '5월~10월 격주 토요일';
+            if (nextLuna) {
+              const ddayInfo = calculateDDay(nextLuna.date);
+              const ddayStr = ddayInfo ? ` (${ddayInfo.text})` : '';
+              return `${nextLuna.date}${ddayStr} (격주 토요일)`;
+            }
+            return '5월~10월 격주 토요일';
           })(), 
           highlight: true 
         },
@@ -190,7 +252,12 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
           label: '개장 예정일', 
           value: (() => {
             const nextWater = allNotices.find(n => n.source === 'culture' && n.title.includes('물놀이장'));
-            return nextWater ? nextWater.date : '7월 초 개장';
+            if (nextWater) {
+              const ddayInfo = calculateDDay(nextWater.date);
+              const ddayStr = ddayInfo ? ` (${ddayInfo.text})` : '';
+              return `${nextWater.date}${ddayStr}`;
+            }
+            return '7월 초 개장';
           })(), 
           highlight: true 
         },
@@ -357,21 +424,27 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-0 md:pl-8">
             {activeLectures.map((lecture) => (
-              <a
+              <div
                 key={lecture.id}
-                href={`/api/bypass-notice?url=${encodeURIComponent((lecture.url || '').trim())}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-body hover:bg-surface rounded-2xl p-4.5 border border-border hover:border-emerald-300 hover:shadow-[0_8px_20px_rgba(16,185,129,0.04)] cursor-pointer flex flex-col justify-between gap-3 transition-all duration-300 group text-left will-change-transform transform-gpu"
+                className="bg-body hover:bg-surface rounded-2xl p-4.5 border border-border hover:border-emerald-300 hover:shadow-[0_8px_20px_rgba(16,185,129,0.04)] flex flex-col justify-between gap-3 transition-all duration-300 group text-left will-change-transform transform-gpu"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-lg text-[10.5px] font-black border border-emerald-100/30">
                       {lecture.dept} 주민센터
                     </span>
-                    <span className="text-[11px] font-bold text-tertiary">
-                      개강: {lecture.date}
-                    </span>
+                    {(() => {
+                      const ddayInfo = calculateDDay(lecture.date);
+                      return ddayInfo ? (
+                        <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-black shrink-0 ${ddayInfo.bg}`}>
+                          {ddayInfo.text}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-bold text-tertiary">
+                          개강: {lecture.date}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <h5 className="text-[14px] font-bold text-primary leading-snug group-hover:text-emerald-600 transition-colors">
                     {lecture.title.replace(/\[강좌\]\s*/, '').replace(/\s*수강생\s*선착순\s*모집/, '')}
@@ -380,13 +453,38 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                     수강료: 무료 ~ 3만원 선 (재료비 별도) | 화성시민 누구나 신청 가능
                   </p>
                 </div>
-                <div className="border-t border-border/20 pt-3 flex items-center justify-between mt-1">
-                  <span className="text-[11px] text-emerald-600 font-extrabold">선착순 접수 중</span>
-                  <div className="text-[11.5px] font-black text-emerald-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 will-change-transform transform-gpu">
-                    신청 사이트 이동 <ExternalLink size={11} />
-                  </div>
+                
+                <div className="flex flex-col gap-2 mt-1">
+                  {(() => {
+                    const nearestApt = LECTURE_NEAREST_APT_MAP[lecture.dept] || LECTURE_NEAREST_APT_MAP[lecture.dept.replace(/동탄/g, '')];
+                    return nearestApt ? (
+                      <div 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onSelectApt(nearestApt);
+                        }}
+                        className="pt-2 border-t border-border/20 flex items-center justify-between text-[11.5px] text-[#0d9488] dark:text-[#00d29d] font-black hover:underline cursor-pointer"
+                      >
+                        <span>📍 센터 인근 추천단지: {nearestApt}</span>
+                        <span className="shrink-0 flex items-center gap-0.5">분석보기 &rarr;</span>
+                      </div>
+                    ) : null;
+                  })()}
+
+                  <a
+                    href={`/api/bypass-notice?url=${encodeURIComponent((lecture.url || '').trim())}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border-t border-border/20 pt-2.5 flex items-center justify-between mt-1 cursor-pointer"
+                  >
+                    <span className="text-[11.5px] text-emerald-600 font-extrabold">선착순 접수 중</span>
+                    <div className="text-[11.5px] font-black text-emerald-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 will-change-transform transform-gpu">
+                      신청 사이트 이동 <ExternalLink size={11} />
+                    </div>
+                  </a>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </div>

@@ -1894,25 +1894,45 @@ export async function GET(req: NextRequest) {
       const isFair = valStatus === 'fair';
 
       let valText = '적정 가격 수준';
-      let valBg = '#1e293b';
-      let valBorder = '#475569';
-      let valColor = '#cbd5e1';
+      let valBg = '#1e3a8a';
+      let valBorder = '#2563eb';
+      let valColor = '#93c5fd';
+      let statusSvg = (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '10px' }}>
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      );
 
       if (isUnder) {
         valText = `적정가 대비 ${valAmount} 저평가`;
-        valBg = '#064e3b';
-        valBorder = '#059669';
-        valColor = '#34d399';
+        valBg = 'rgba(16, 185, 129, 0.1)';
+        valBorder = 'rgba(16, 185, 129, 0.35)';
+        valColor = '#10b981';
+        statusSvg = (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '10px' }}>
+            <path d="M12 5v14M19 12l-7 7-7-7" />
+          </svg>
+        );
       } else if (isOver) {
         valText = `적정가 대비 ${valAmount} 고평가`;
-        valBg = '#7f1d1d';
-        valBorder = '#dc2626';
-        valColor = '#fca5a5';
+        valBg = 'rgba(239, 68, 68, 0.1)';
+        valBorder = 'rgba(239, 68, 68, 0.35)';
+        valColor = '#ef4444';
+        statusSvg = (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '10px' }}>
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        );
       } else if (isFair) {
         valText = '적정 가격 수준';
-        valBg = '#1e3a8a';
-        valBorder = '#2563eb';
-        valColor = '#93c5fd';
+        valBg = 'rgba(59, 130, 246, 0.1)';
+        valBorder = 'rgba(59, 130, 246, 0.35)';
+        valColor = '#3b82f6';
+        statusSvg = (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '10px' }}>
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        );
       }
 
       return new ImageResponse(
@@ -1925,8 +1945,8 @@ export async function GET(req: NextRequest) {
               flexDirection: 'column',
               alignItems: 'flex-start',
               justifyContent: 'center',
-              backgroundColor: '#070a13',
-              backgroundImage: 'linear-gradient(to bottom right, #0b1529, #022c22)',
+              backgroundColor: '#030712',
+              backgroundImage: 'radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.08), transparent 45%), radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.08), transparent 45%), linear-gradient(135deg, #090d16 0%, #030712 100%)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
@@ -2003,7 +2023,7 @@ export async function GET(req: NextRequest) {
                   <div
                     style={{
                       background: valBg,
-                      border: `2.5px solid ${valBorder}`,
+                      border: `2px solid ${valBorder}`,
                       color: valColor,
                       padding: '12px 28px',
                       borderRadius: '30px',
@@ -2011,9 +2031,9 @@ export async function GET(req: NextRequest) {
                       fontWeight: 'bold',
                       display: 'flex',
                       alignItems: 'center',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
                     }}
                   >
+                    {statusSvg}
                     {valText}
                   </div>
                 )}
@@ -2033,7 +2053,8 @@ export async function GET(req: NextRequest) {
                   <div
                     style={{
                       flex: 1,
-                      background: 'rgba(255, 255, 255, 0.03)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
                       border: '1.5px solid rgba(255, 255, 255, 0.08)',
                       borderRadius: '20px',
                       padding: '24px 30px',
@@ -2055,7 +2076,8 @@ export async function GET(req: NextRequest) {
                   <div
                     style={{
                       flex: 1,
-                      background: 'rgba(255, 255, 255, 0.03)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
                       border: '1.5px solid rgba(255, 255, 255, 0.08)',
                       borderRadius: '20px',
                       padding: '24px 30px',

@@ -678,9 +678,29 @@ const FieldReportModal = React.memo(function FieldReportModal({
     return 'value';
   };
 
-  const getShareText = (theme: 'value' | 'gap' | 'school' | 'deal', priceEok: number, priceMan: number, ratio: number) => {
+  const getShareText = (
+    theme: 'value' | 'gap' | 'school' | 'deal', 
+    priceEok: number, 
+    priceMan: number, 
+    ratio: number,
+    valStatus?: string,
+    valAmount?: string
+  ) => {
     const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
     const aptName = displayAptName;
+
+    // 만약 가치평가 결과가 있고 저평가/고평가 상태라면 'value' 테마 시 바이럴 텍스트 특화
+    if (theme === 'value' && valStatus === 'undervalued' && valAmount) {
+      return {
+        title: `🔥 적정가 대비 ${valAmount} 저평가! ${aptName} 가치분석 리포트`,
+        desc: `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%. DCF 엔진 진단 결과 메리트 있는 저평가 구간입니다. D-VIEW에서 정밀 보고서를 확인하세요.`
+      };
+    } else if (theme === 'value' && valStatus === 'overvalued' && valAmount) {
+      return {
+        title: `⚠️ 적정가 대비 ${valAmount} 고평가 주의! ${aptName} 가치분석`,
+        desc: `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%. 현재 시세가 적정 가치를 다소 상회하고 있습니다. 매수 대기자라면 D-VIEW 분석 리포트를 확인해 보세요.`
+      };
+    }
 
     switch (theme) {
       case 'gap':
@@ -1418,18 +1438,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
     const baseUrl = window.location.origin;
 
     try {
-      if (shareActionTimeoutRef.current) {
-        clearTimeout(shareActionTimeoutRef.current);
-      }
-      // Allow React to mount the off-screen share card DOM before capture
-      await new Promise<void>((resolve) => {
-        shareActionTimeoutRef.current = setTimeout(() => {
-          shareActionTimeoutRef.current = null;
-          resolve();
-        }, 150);
-      });
-      if (!mountedRef.current) return;
-
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
       const latestSale = saleTxs[0];
@@ -1443,57 +1451,21 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
       const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
 
-      let imageFile: File | undefined = undefined;
+      const shareTheme = getAutoShareTheme();
+      const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio, valuation.status, valuation.amount);
+      const status = ratio >= 65 ? "갭투자추천" : "인기단지";
 
-      if (shareCardRef.current) {
-        // html2canvas를 동적 임포트하여 클라이언트 사이드에서만 실행되도록 함
-        const html2canvasProInstance = (await import('html2canvas-pro')).default;
-        
-        const canvas = await safeHtml2canvasPro(html2canvasProInstance, shareCardRef.current, {
-          width: 1200,
-          height: 630,
-          scale: 1.5, // 1.5배 스케일로 카카오 업로드 용량 제한(5MB) 이내 유지하면서 선명한 화질 확보
-          useCORS: true,
-          backgroundColor: '#0f172a',
-          logging: false
-        });
-
-        if (!mountedRef.current) return;
-
-        const blob = await new Promise<Blob | null>((resolve) => {
-          canvas.toBlob((b) => resolve(b), 'image/png');
-        });
-
-        if (!mountedRef.current) return;
-
-        if (blob) {
-          imageFile = new File([blob], `dview_share_${normalizeAptName(report.apartmentName)}.png`, { type: 'image/png' });
-        }
-      }
-
-      // activeTab에 기반한 동적 분기 처리
-      let imageUrl = '';
-      let customTitle = '';
-      let customDesc = '';
+      // html2canvas 연산 없이, 서버 사이드 Dynamic OG Image API(/api/og) URL을 직접 빌드하여 즉각 공유 창 연결 (캐시 방지 타임스탬프 탑재)
+      let imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status || ''}&valAmount=${encodeURIComponent(valuation.amount || '')}&t=${Date.now()}`;
 
       if (activeTab === 'sec-education' && eduScoreInfo) {
         const grade = eduScoreInfo.grade;
         const score = eduScoreInfo.score;
-        imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
-        customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
-        customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+        imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}&t=${Date.now()}`;
       } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
         const grade = infraScoreInfo.grade;
         const score = infraScoreInfo.score;
-        imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
-        customTitle = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
-        customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
-      } else {
-        const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
-        const status = ratio >= 65 ? "갭투자추천" : "인기단지";
-        imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status}&valAmount=${encodeURIComponent(valuation.amount)}`;
-        customTitle = shareTexts.title;
-        customDesc = shareTexts.desc;
+        imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}&t=${Date.now()}`;
       }
 
       await shareAptToKakao({
@@ -1502,65 +1474,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
         priceMan,
         ratio,
         imageUrl,
-        imageFile,
-        customTitle,
-        customDesc,
-        valStatus: valuation.status,
-        valAmount: valuation.amount
+        customTitle: shareTexts.title,
+        customDesc: shareTexts.desc,
+        valStatus: valuation.status || undefined,
+        valAmount: valuation.amount || undefined
       });
     } catch (error) {
       logger.error('ApartmentModal.shareKakao', 'Kakao share card generation failed', undefined, error);
       if (mountedRef.current) {
-        showToast("공유 이미지 생성 중 오류가 발생했습니다. 기본 템플릿으로 공유합니다.");
+        showToast("공유를 처리하는 도중 오류가 발생했습니다.");
       }
-      
-      // Fallback
-      const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-      const jeonseTxs = transactions.filter(t => t.dealType === '전세');
-      const latestSale = saleTxs[0];
-      const latestJeonse = jeonseTxs[0];
-      const price = latestSale ? latestSale.price : 0;
-      const jeonsePrice = latestJeonse ? latestJeonse.deposit || 0 : 0;
-      const priceEok = Math.floor(price / 10000);
-      const priceMan = price % 10000;
-      const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
-      const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
-
-      let imageUrl = '';
-      let customTitle = '';
-      let customDesc = '';
-
-      if (activeTab === 'sec-education' && eduScoreInfo) {
-        const grade = eduScoreInfo.grade;
-        const score = eduScoreInfo.score;
-        imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
-        customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
-        customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
-      } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
-        const grade = infraScoreInfo.grade;
-        const score = infraScoreInfo.score;
-        imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
-        customTitle = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
-        customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
-      } else {
-        const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio);
-        const status = ratio >= 65 ? "갭투자추천" : "인기단지";
-        imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status}&valAmount=${encodeURIComponent(valuation.amount)}`;
-        customTitle = shareTexts.title;
-        customDesc = shareTexts.desc;
-      }
-
-      await shareAptToKakao({
-        aptName: displayAptName,
-        priceEok,
-        priceMan,
-        ratio,
-        imageUrl,
-        customTitle,
-        customDesc,
-        valStatus: valuation.status,
-        valAmount: valuation.amount
-      });
     } finally {
       if (mountedRef.current) {
         setIsSharing(false);

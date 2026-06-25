@@ -57,3 +57,35 @@ export async function POST(req: Request) {
   }
 }
 
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const endpoint = searchParams.get('endpoint');
+
+    if (!endpoint) {
+      logger.warn('PushSubscribeAPI.GET', 'Missing endpoint parameter');
+      return NextResponse.json({ error: 'Endpoint is required' }, { status: 400 });
+    }
+
+    if (!db) {
+      logger.error('PushSubscribeAPI.GET', 'Firebase Admin not initialized');
+      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+    }
+
+    const endpointHash = Buffer.from(endpoint).toString('base64').replace(/=/g, '').replace(/\//g, '_');
+    const docRef = db.collection('push_subscriptions').doc(endpointHash);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      return NextResponse.json({ apts: [] });
+    }
+
+    const data = docSnap.data();
+    return NextResponse.json({ apts: data?.apts || [] });
+  } catch (error: any) {
+    logger.error('PushSubscribeAPI.GET', 'Failed to retrieve push subscriptions', {}, error);
+    return NextResponse.json({ error: 'Failed to retrieve subscriptions' }, { status: 500 });
+  }
+}
+
+

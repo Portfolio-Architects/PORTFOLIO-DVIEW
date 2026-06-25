@@ -30,6 +30,7 @@ interface PWAContextType {
   isPushSupported: boolean;
   pushSubscription: PushSubscription | null;
   subscribeToPush: (uid?: string | null, aptName?: string) => Promise<boolean>;
+  unsubscribeFromPush: (aptName?: string | null) => Promise<boolean>;
   showToast: (message: string) => void;
   isIOS: boolean;
 }
@@ -44,6 +45,7 @@ const PWAContext = createContext<PWAContextType>({
   isPushSupported: false,
   pushSubscription: null,
   subscribeToPush: async (uid?: string | null, aptName?: string) => false,
+  unsubscribeFromPush: async (aptName?: string | null) => false,
   showToast: () => {},
   isIOS: false,
 });
@@ -485,6 +487,67 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     }
   };
 
+  const unsubscribeFromPush = async (aptName?: string | null) => {
+    if (typeof window === 'undefined') return false;
+    if (!pushSubscription) return false;
+
+    try {
+      if (typeof window !== 'undefined' && !navigator.onLine) {
+        try {
+          await enqueueOfflineRequest({
+            url: '/api/push/unsubscribe',
+            method: 'POST',
+            body: { endpoint: pushSubscription.endpoint, apartmentName: aptName || null }
+          });
+          if (mountedRef.current) {
+            showToast('오프라인 상태입니다. 수신 거부 요청이 오프라인 큐에 저장되었습니다 💚');
+          }
+        } catch (err) {
+          logger.error('PWAProvider', 'Failed to enqueue push unsubscribe', undefined, err);
+        }
+      } else {
+        try {
+          await fetch('/api/push/unsubscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: pushSubscription.endpoint, apartmentName: aptName || null })
+          });
+          logger.info('PWAProvider', 'Push Unsubscribed', { endpoint: pushSubscription.endpoint, apartmentName: aptName });
+        } catch (fetchErr) {
+          logger.warn('PWAProvider', 'Failed to save push unsubscribe online, queuing offline', undefined, fetchErr);
+          try {
+            await enqueueOfflineRequest({
+              url: '/api/push/unsubscribe',
+              method: 'POST',
+              body: { endpoint: pushSubscription.endpoint, apartmentName: aptName || null }
+            });
+            if (mountedRef.current) {
+              showToast('네트워크 불안정으로 수신 거부 요청이 오프라인 큐에 저장되었습니다 💚');
+            }
+          } catch (err) {
+            logger.error('PWAProvider', 'Failed to enqueue push unsubscribe after fetch failure', undefined, err);
+          }
+        }
+      }
+
+      if (!aptName) {
+        await pushSubscription.unsubscribe();
+        if (mountedRef.current) {
+          setPushSubscription(null);
+          showToast('모든 실거래 알림 구독이 해제되었습니다.');
+        }
+      } else {
+        if (mountedRef.current) {
+          showToast(`🔔 ${aptName} 알림 구독이 해제되었습니다.`);
+        }
+      }
+      return true;
+    } catch (error) {
+      logger.error('PWAProvider', 'Error unsubscribing from push', undefined, error);
+      return false;
+    }
+  };
+
   const showToast = (message: string) => {
     if (!mountedRef.current) return;
     setToastMessage(message);
@@ -508,6 +571,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         isPushSupported,
         pushSubscription,
         subscribeToPush,
+        unsubscribeFromPush,
         showToast,
         isIOS,
       }}

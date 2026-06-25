@@ -2,12 +2,17 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Moon, Sun, Monitor, Scaling } from 'lucide-react';
+import { X, Moon, Sun, Monitor, Scaling, Bell, BellOff, Loader2 } from 'lucide-react';
 import { useSettings } from '@/lib/contexts/SettingsContext';
+import { usePWA } from './pwa/PWAProvider';
 
 const SettingsModal = React.memo(function SettingsModal() {
   const [mounted, setMounted] = useState(false);
   const { isSettingsModalOpen, setIsSettingsModalOpen, areaUnit, setAreaUnit, theme, setTheme } = useSettings();
+  const { pushSubscription, unsubscribeFromPush, isPushSupported } = usePWA();
+  
+  const [subscribedApts, setSubscribedApts] = useState<string[]>([]);
+  const [isLoadingApts, setIsLoadingApts] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -19,6 +24,55 @@ const SettingsModal = React.memo(function SettingsModal() {
       mountedRef.current = false;
     };
   }, []);
+
+  // Fetch subscribed apartments when modal opens
+  useEffect(() => {
+    if (!isSettingsModalOpen || !pushSubscription) {
+      setSubscribedApts([]);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchSubscribedApts = async () => {
+      setIsLoadingApts(true);
+      try {
+        const res = await fetch(`/api/push/subscribe?endpoint=${encodeURIComponent(pushSubscription.endpoint)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setSubscribedApts(data.apts || []);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch subscribed apartments', err);
+      } finally {
+        if (isMounted) {
+          setIsLoadingApts(false);
+        }
+      }
+    };
+
+    fetchSubscribedApts();
+    return () => {
+      isMounted = false;
+    };
+  }, [isSettingsModalOpen, pushSubscription]);
+
+  const handleUnsubscribeApt = async (aptName: string) => {
+    const success = await unsubscribeFromPush(aptName);
+    if (success) {
+      setSubscribedApts(prev => prev.filter(name => name !== aptName));
+    }
+  };
+
+  const handleUnsubscribeAll = async () => {
+    if (confirm('모든 아파트의 실거래가 알림을 완전히 해제하시겠습니까?')) {
+      const success = await unsubscribeFromPush(null);
+      if (success) {
+        setSubscribedApts([]);
+      }
+    }
+  };
 
   // Prevent background scroll when settings modal is open
   useEffect(() => {
@@ -112,6 +166,65 @@ const SettingsModal = React.memo(function SettingsModal() {
                 );
               })}
             </div>
+          </section>
+
+          {/* Web Push Subscription Management */}
+          <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-bold text-secondary flex items-center gap-2">
+              <Bell size={16} />
+              실거래 알림 구독 관리
+            </h3>
+            
+            {!isPushSupported ? (
+              <div className="text-xs text-tertiary bg-body p-4 rounded-xl text-center font-medium">
+                이 브라우저는 알림을 지원하지 않습니다.
+              </div>
+            ) : !pushSubscription ? (
+              <div className="text-xs text-tertiary bg-body p-4 rounded-xl text-center font-medium">
+                현재 구독 중인 실거래 알림이 없습니다.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 bg-body p-3 rounded-xl">
+                {isLoadingApts ? (
+                  <div className="flex items-center justify-center py-4 gap-2 text-xs text-tertiary font-medium">
+                    <Loader2 size={14} className="animate-spin text-toss-blue" />
+                    구독 목록 불러오는 중...
+                  </div>
+                ) : subscribedApts.length === 0 ? (
+                  <div className="text-xs text-tertiary py-3 text-center font-medium">
+                    알림을 구독한 단지가 없습니다.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="max-h-[160px] overflow-y-auto flex flex-col gap-1.5 custom-scrollbar pr-1">
+                      {subscribedApts.map(apt => (
+                        <div key={apt} className="flex items-center justify-between bg-surface px-3 py-2 rounded-lg border border-border/40">
+                          <span className="text-[12.5px] font-bold text-secondary truncate max-w-[200px]">
+                            {apt}
+                          </span>
+                          <button
+                            onClick={() => handleUnsubscribeApt(apt)}
+                            className="text-xs font-black text-rose-500 hover:text-rose-600 bg-rose-50 dark:bg-rose-950/20 px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                          >
+                            해제
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="border-t border-border/40 pt-2.5 mt-1 flex justify-end">
+                      <button
+                        onClick={handleUnsubscribeAll}
+                        className="text-xs font-extrabold text-tertiary hover:text-primary flex items-center gap-1 cursor-pointer bg-black/5 dark:bg-white/5 px-2.5 py-1.5 rounded-lg transition-colors"
+                      >
+                        <BellOff size={12} />
+                        전체 수신 거부
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
 
         </div>
