@@ -2,7 +2,8 @@
 
 // Security Audit: Verified that no target="_blank" links exist in this welcome modal component to prevent Tabnabbing (rel="noopener noreferrer" guard).
 import React, { useState, useEffect, useRef } from 'react';
-import { Compass, ShieldCheck, Map, ArrowRight, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Compass, ShieldCheck, ArrowRight, X } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 
 function getCookie(name: string): string {
@@ -23,9 +24,13 @@ function setCookie(name: string, value: string, days: number): void {
 
 const WelcomeModal = React.memo(function WelcomeModal() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
   const welcomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       try {
         const seenLocal = localStorage.getItem('dview-welcome-seen');
@@ -50,6 +55,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
       }
     }
     return () => {
+      setMounted(false);
       if (welcomeTimeoutRef.current) {
         clearTimeout(welcomeTimeoutRef.current);
         welcomeTimeoutRef.current = null;
@@ -57,8 +63,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
     };
   }, []);
 
-  const handleClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
-    e.preventDefault();
+  const closeModal = (): void => {
     if (welcomeTimeoutRef.current) {
       clearTimeout(welcomeTimeoutRef.current);
       welcomeTimeoutRef.current = null;
@@ -66,20 +71,88 @@ const WelcomeModal = React.memo(function WelcomeModal() {
     try {
       localStorage.setItem('dview-welcome-seen', 'true');
     } catch (err) {
-      logger.warn('WelcomeModal.handleClose', 'Failed to save welcome popup state to localStorage', undefined, err);
+      logger.warn('WelcomeModal.closeModal', 'Failed to save welcome popup state to localStorage', undefined, err);
     }
     try {
       setCookie('dview-welcome-seen', 'true', 365);
     } catch (err) {
-      logger.warn('WelcomeModal.handleClose', 'Failed to save welcome popup state to cookie', undefined, err);
+      logger.warn('WelcomeModal.closeModal', 'Failed to save welcome popup state to cookie', undefined, err);
     }
     setIsOpen(false);
   };
 
-  if (!isOpen) return null;
+  // Prevent body scroll when welcome modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!isOpen) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [isOpen]);
 
-  return (
-    <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4">
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen && mounted) {
+      setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, mounted]);
+
+  const handleClose = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    e.preventDefault();
+    closeModal();
+  };
+
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-modal-title"
+      aria-describedby="welcome-modal-desc"
+      ref={modalRef}
+      onKeyDown={handleFocusTrap}
+      className="fixed inset-0 z-[20000] flex items-center justify-center p-4"
+    >
       {/* Background Overlay */}
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-md animate-in fade-in duration-300"
@@ -91,6 +164,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         
         {/* Close Button */}
         <button
+          ref={closeButtonRef}
           onClick={handleClose}
           className="absolute top-4 right-4 p-2 bg-body/50 text-tertiary rounded-full hover:bg-[#e5e8eb] hover:text-primary transition-colors border border-border/30"
           aria-label="닫기"
@@ -104,13 +178,13 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         </div>
 
         {/* Title */}
-        <h2 className="text-[19px] sm:text-[21px] font-black text-primary leading-snug tracking-tight mb-3">
+        <h2 id="welcome-modal-title" className="text-[19px] sm:text-[21px] font-black text-primary leading-snug tracking-tight mb-3">
           동탄 아파트 가치분석 포털<br />
           <span className="text-[#008262] dark:text-[#00d29d] font-black">D-VIEW</span>에 오신 것을 환영합니다
         </h2>
 
         {/* Description */}
-        <p className="text-[13px] sm:text-[14px] text-secondary leading-relaxed break-keep mb-6">
+        <p id="welcome-modal-desc" className="text-[13px] sm:text-[14px] text-secondary leading-relaxed break-keep mb-6">
           D-VIEW는 동탄 179개 아파트 단지의 실거래 트렌드, 안심 통학 학군 스코어, 그리고 입주민 현장 촬영 임장기를 제공하는 하이퍼로컬 부동산 분석 플랫폼입니다.
         </p>
 
@@ -154,7 +228,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
           <ArrowRight size={16} strokeWidth={2.5} />
         </button>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 

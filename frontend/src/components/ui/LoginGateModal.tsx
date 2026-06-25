@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ArrowRight } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface LoginGateModalProps {
   isOpen: boolean;
@@ -12,22 +14,39 @@ interface LoginGateModalProps {
 }
 
 const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, message, onLogin }: LoginGateModalProps) {
-  const [isInApp, setIsInApp] = React.useState(false);
-  const [copySuccess, setCopySuccess] = React.useState(false);
-  const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const mountedRef = React.useRef(true);
+  const { showToast } = usePWA();
+  const [isInApp, setIsInApp] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
+  const [mounted, setMounted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    setMounted(true);
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      setMounted(false);
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
     };
   }, []);
 
-  React.useEffect(() => {
+  // Prevent body scroll when login gate modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!isOpen) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (typeof window === 'undefined' || !isOpen) return;
     const userAgent = navigator.userAgent.toLowerCase();
     const isKakao = /kakaotalk/i.test(userAgent);
@@ -38,6 +57,27 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
     const isTwitter = /twitter|twttr/i.test(userAgent);
     setIsInApp(isKakao || isNaver || isLine || isInstagram || isFacebook || isTwitter);
   }, [isOpen]);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen && mounted) {
+      setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, mounted, onClose]);
 
   const handleCopyLink = async () => {
     const text = window.location.href;
@@ -82,14 +122,45 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
         }, 2000);
       }
     } catch (err) {
-      alert('주소 복사에 실패했습니다. 직접 복사해주세요.');
+      showToast('주소 복사에 실패했습니다. 직접 복사해주세요.');
     }
   };
 
-  if (!isOpen) return null;
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
 
-  return (
-    <div className="fixed inset-0 z-[30000] flex items-center justify-center p-4">
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-gate-title"
+      aria-describedby="login-gate-desc"
+      ref={modalRef}
+      onKeyDown={handleFocusTrap}
+      className="fixed inset-0 z-[30000] flex items-center justify-center p-4"
+    >
       {/* Background Overlay */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-md animate-in fade-in duration-300"
@@ -102,6 +173,7 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
         
         {/* Close Button */}
         <button
+          ref={closeButtonRef}
           onClick={onClose}
           className="absolute top-4 right-4 p-2 bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white rounded-full transition-colors border border-emerald-500/10"
           aria-label="닫기"
@@ -122,12 +194,12 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
         </div>
 
         {/* Title */}
-        <h2 className="text-[19px] sm:text-[21px] font-black leading-snug tracking-tight mb-3">
+        <h2 id="login-gate-title" className="text-[19px] sm:text-[21px] font-black leading-snug tracking-tight mb-3">
           {isInApp ? '외부 브라우저로 접속해 주세요' : '로그인이 필요한 기능입니다'}
         </h2>
 
         {/* Customized Message */}
-        <p className="text-[13px] sm:text-[14px] text-slate-300 leading-relaxed break-keep mb-7">
+        <p id="login-gate-desc" className="text-[13px] sm:text-[14px] text-slate-300 leading-relaxed break-keep mb-7">
           {isInApp 
             ? '구글 보안 정책으로 인해 카카오톡/네이버 등의 인앱 브라우저에서는 구글 로그인이 불가능합니다. 우측 상단의 메뉴(︙)에서 "다른 브라우저로 열기"를 선택하시거나, 아래 버튼을 눌러 주소를 복사한 후 Safari 또는 Chrome에서 실행해 주세요.' 
             : message}
@@ -174,7 +246,8 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
           나중에 하기
         </button>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
