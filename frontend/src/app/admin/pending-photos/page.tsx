@@ -228,14 +228,16 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
           {photos.map(photo => (
             <div key={photo.id} className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row group">
               {/* Image Preview Area - Large Left Panel */}
-              <div 
-                className="relative w-full md:w-[400px] lg:w-[480px] shrink-0 bg-body cursor-pointer overflow-hidden aspect-[4/3] md:aspect-auto md:min-h-[320px]"
+              <button 
+                type="button"
+                className="relative w-full md:w-[400px] lg:w-[480px] shrink-0 bg-body cursor-pointer overflow-hidden aspect-[4/3] md:aspect-auto md:min-h-[320px] text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
                 onClick={() => window.open(photo.url, '_blank', 'noopener,noreferrer')}
                 title="클릭하여 원본 보기"
+                aria-label="클릭하여 업로드된 사진 원본 보기"
               >
                 <Image 
                   src={photo.url} 
-                  alt="등록 사진" 
+                  alt="" 
                   fill 
                   className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   sizes="(max-width: 768px) 100vw, 480px"
@@ -256,7 +258,7 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
                     {photo.apartmentName}
                   </h3>
                 </div>
-              </div>
+              </button>
 
               {/* Card Body - Right Panel */}
               <div className="p-6 md:p-8 flex-1 flex flex-col">
