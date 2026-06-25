@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
-import { User } from 'firebase/auth';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { isAdmin } from '@/lib/config/admin.config';
 import { Settings, UserCircle, X, Camera, Sun, Moon, Monitor, Scaling } from 'lucide-react';
@@ -22,6 +21,9 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, anonProfile, updateLocalAnonProfile, handleLogin, handleLogout } = useAuth();
+
+  // Component mount state to prevent hydration errors (mounted guard)
+  const [mounted, setMounted] = useState(false);
 
   // Profile modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -68,6 +70,19 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
     setProfilePhotoFile(null);
   };
 
+  // Safe close handler to prevent data loss (DLP)
+  const handleSafeClose = React.useCallback(() => {
+    const isNicknameChanged = editNickname !== (anonProfile?.nickname || '매니저');
+    const isPhotoChanged = profilePhotoFile !== null;
+
+    if (isNicknameChanged || isPhotoChanged) {
+      if (!window.confirm('수정한 프로필 내용이 저장되지 않았습니다. 정말 닫으시겠습니까?')) {
+        return;
+      }
+    }
+    closeProfileModal();
+  }, [editNickname, profilePhotoFile, anonProfile]);
+
   // Declarative Object URL lifecycle management to prevent memory leaks
   useEffect(() => {
     if (!profilePhotoFile) return;
@@ -83,8 +98,10 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
   // Manage mounted state to prevent state updates on unmounted component
   useEffect(() => {
     mountedRef.current = true;
+    setMounted(true);
     return () => {
       mountedRef.current = false;
+      setMounted(false);
     };
   }, []);
 
@@ -112,7 +129,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
       // Escape key handling
       const handleEscape = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-          closeProfileModal();
+          handleSafeClose();
         }
       };
       window.addEventListener('keydown', handleEscape);
@@ -121,7 +138,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
         window.removeEventListener('keydown', handleEscape);
       };
     }
-  }, [showProfileModal]);
+  }, [showProfileModal, handleSafeClose]);
 
   // Focus Trap Handler for Profile modal
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -193,11 +210,11 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
       </div>
 
       {/* Profile Edit Modal */}
-      {showProfileModal && user && typeof document !== 'undefined' && createPortal(
+      {showProfileModal && user && mounted && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div 
             className="absolute inset-0 bg-primary/50 backdrop-blur-sm" 
-            onClick={() => closeProfileModal()} 
+            onClick={handleSafeClose} 
             role="presentation"
           />
           <div 
@@ -207,11 +224,16 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
             aria-labelledby="profile-title"
             aria-describedby="profile-desc"
             onKeyDown={handleKeyDown}
-            className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[640px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col"
+            className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[640px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col animate-in slide-in-from-bottom-8 duration-300"
           >
+            {/* WAI-ARIA Screen reader descriptive text to replace duplicate/incoherent ID elements */}
+            <p id="profile-desc" className="sr-only">
+              사용자의 닉네임과 프로필 사진을 편집하고 화면 모드 및 면적 단위를 구성하는 설정 모달 창입니다.
+            </p>
+
             <h2 id="profile-title" className="sr-only">프로필 및 소비자 설정</h2>
             <button 
-              onClick={() => closeProfileModal()} 
+              onClick={handleSafeClose} 
               className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 bg-surface/80 backdrop-blur-md border border-border text-secondary hover:text-primary hover:bg-body flex items-center justify-center rounded-full shadow-sm hover:shadow-md transition-all z-50"
               aria-label="프로필 설정 창 닫기"
             >
@@ -268,7 +290,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
               </div>
             </div>
 
-            <div id="profile-desc" className="space-y-4">
+            <div className="space-y-4">
               {/* Nickname (2~10자) */}
               <div>
                 <label htmlFor="profile-nickname-input" className="text-[12px] font-bold text-secondary mb-1.5 flex items-center justify-between">
@@ -433,7 +455,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
             </div>
           </div>
         </div>,
-        document.body
+        document.getElementById('modal-root') || document.body
       )}
     </>
   );
