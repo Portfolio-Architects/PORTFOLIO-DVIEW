@@ -891,6 +891,63 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const deferredMacroTrendData = useDeferredValue(paddedMacroTrendData);
 
+  const macroTrendJsonLd = useMemo(() => {
+    if (!macroTrendData || macroTrendData.length === 0) return null;
+
+    const formatDateStr = (nameStr: string) => {
+      const parts = nameStr.split('.');
+      if (parts.length === 2) {
+        const year = 2000 + parseInt(parts[0], 10);
+        const month = parts[1];
+        return `${year}-${month}`;
+      }
+      return nameStr;
+    };
+
+    const firstPoint = macroTrendData[0];
+    const lastPoint = macroTrendData[macroTrendData.length - 1];
+    const startDate = firstPoint ? formatDateStr(firstPoint.name) : "2023-01";
+    const endDate = lastPoint ? formatDateStr(lastPoint.name) : "2026-06";
+
+    const latestSalePrice = lastPoint ? lastPoint['동탄 아파트 전체'] : undefined;
+    const latestJeonsePrice = lastPoint ? lastPoint['동탄 아파트 전세 평균'] : undefined;
+
+    const datasetSchema = {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "동탄 아파트 부동산 매크로 시세 및 실거래 트렌드 통계",
+      "description": "동탄 지역 아파트의 매매 실거래 평균가 및 전세 평균 시세의 월별 변동 추이를 집계한 부동산 매크로 통계 데이터셋입니다.",
+      "url": typeof window !== "undefined" ? window.location.href : "https://dview.co.kr",
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "경기도 화성시 동탄"
+      },
+      "temporalCoverage": `${startDate}/${endDate}`,
+      "variableMeasured": [
+        {
+          "@type": "PropertyValue",
+          "name": "동탄 아파트 전체 평균 매매 실거래가",
+          "value": latestSalePrice ? `${latestSalePrice}억 원` : "데이터 없음",
+          "unitText": "억 원"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "동탄 아파트 전세 평균가",
+          "value": latestJeonsePrice ? `${latestJeonsePrice}억 원` : "데이터 없음",
+          "unitText": "억 원"
+        }
+      ],
+      "distribution": {
+        "@type": "DataDownload",
+        "name": "동탄 아파트 월별 매크로 시세 추이",
+        "encodingFormat": "application/json",
+        "contentUrl": typeof window !== "undefined" ? window.location.href : "https://dview.co.kr"
+      }
+    };
+
+    return JSON.stringify(datasetSchema);
+  }, [macroTrendData]);
+
   const selectedAptSummary = useMemo(() => {
     if (!selectedTimelineApt || !txSummaryData) return null;
     const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping);
@@ -1616,6 +1673,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   return (
     <div className="w-full flex flex-col bg-surface relative">
+      {macroTrendJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: macroTrendJsonLd }}
+        />
+      )}
       <PageHeroHeader 
         title="D-VIEW 데이터 랩"
         compactTitle="D-VIEW 데이터 랩"
