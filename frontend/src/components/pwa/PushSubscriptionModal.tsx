@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { usePWA } from './PWAProvider';
 import { logger } from '@/lib/services/logger';
 import { X, BellRing, Sparkles, ShieldCheck } from 'lucide-react';
@@ -15,16 +16,21 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
   const { subscribeToPush, showToast, isPushSupported } = usePWA();
   const [submitting, setSubmitting] = React.useState(false);
   const [errorState, setErrorState] = React.useState<'denied' | 'unsupported' | 'failed' | null>(null);
-  const mountedRef = React.useRef(true);
+  const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    setMounted(true);
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      setMounted(false);
     };
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
     setErrorState(null);
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -34,7 +40,28 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen && mounted) {
+      setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, mounted, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSubscribe = async () => {
     if (submitting) return;
@@ -64,16 +91,48 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
     }
   };
 
-  return (
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/45 z-[9999] backdrop-blur-sm transition-opacity"
         onClick={onClose}
+        role="presentation"
       />
       
       {/* Bottom Sheet / Popover Modal */}
-      <div className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out max-w-lg mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300">
+      <div 
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="push-title"
+        aria-describedby="push-desc"
+        className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.12)] transform transition-transform duration-300 ease-out max-w-lg mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300"
+      >
         <div className="px-6 pt-6 pb-2">
           {/* Header */}
           <div className="flex justify-between items-start mb-5">
@@ -82,13 +141,15 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
                 <BellRing size={22} strokeWidth={2.5} className="animate-bounce" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-[17px] font-black text-primary truncate">{aptName} 알림 신청</h3>
-                <p className="text-[12.5px] text-tertiary mt-0.5">실거래 신고 발생 시 매일 아침 즉시 배달</p>
+                <h3 id="push-title" className="text-[17px] font-black text-primary truncate">{aptName} 알림 신청</h3>
+                <p id="push-desc" className="text-[12.5px] text-tertiary mt-0.5">실거래 신고 발생 시 매일 아침 즉시 배달</p>
               </div>
             </div>
             <button 
+              ref={closeButtonRef}
               onClick={onClose}
               className="p-2 text-tertiary hover:text-secondary hover:bg-body rounded-full transition-colors cursor-pointer"
+              aria-label="닫기"
             >
               <X size={20} />
             </button>
@@ -170,7 +231,8 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.getElementById('modal-root') || document.body
   );
 });
 

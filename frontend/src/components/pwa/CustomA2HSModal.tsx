@@ -1,21 +1,59 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { usePWA } from './PWAProvider';
 import { X, ArrowDownToLine, Share, PlusSquare } from 'lucide-react';
 
 const CustomA2HSModal = React.memo(function CustomA2HSModal() {
   const { showCustomA2HSModal, setShowCustomA2HSModal, triggerA2HSPrompt, isIOS } = usePWA();
-  const mountedRef = React.useRef(true);
+  const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    setMounted(true);
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      setMounted(false);
     };
   }, []);
 
-  if (!showCustomA2HSModal) return null;
+  // Prevent body scroll when A2HS modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!showCustomA2HSModal) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [showCustomA2HSModal]);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    if (showCustomA2HSModal && mounted) {
+      setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setShowCustomA2HSModal(false);
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [showCustomA2HSModal, mounted]);
+
+  if (!showCustomA2HSModal || !mounted) return null;
 
   const handleInstall = async () => {
     const installed = await triggerA2HSPrompt();
@@ -24,16 +62,48 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
     }
   };
 
-  return (
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-sm transition-opacity"
         onClick={() => setShowCustomA2HSModal(false)}
+        role="presentation"
       />
       
       {/* Bottom Sheet Modal */}
-      <div className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.08)] transform transition-transform duration-300 ease-out max-w-2xl mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300">
+      <div 
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="a2hs-title"
+        aria-describedby="a2hs-desc"
+        className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.08)] transform transition-transform duration-300 ease-out max-w-2xl mx-auto border-t border-border/40 pb-[calc(env(safe-area-inset-bottom)+24px)] animate-in slide-in-from-bottom duration-300"
+      >
         <div className="px-6 pt-6 pb-2">
           <div className="flex justify-between items-start mb-5">
             <div className="flex items-center gap-3">
@@ -41,13 +111,15 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
                 <ArrowDownToLine size={22} strokeWidth={2.5} />
               </div>
               <div>
-                <h3 className="text-[17px] font-black text-primary">D-VIEW 앱 설치하기</h3>
-                <p className="text-[13px] text-tertiary mt-0.5">바탕화면에서 실거래가를 더 빠르게 확인하세요.</p>
+                <h3 id="a2hs-title" className="text-[17px] font-black text-primary">D-VIEW 앱 설치하기</h3>
+                <p id="a2hs-desc" className="text-[13px] text-tertiary mt-0.5">바탕화면에서 실거래가를 더 빠르게 확인하세요.</p>
               </div>
             </div>
             <button 
+              ref={closeButtonRef}
               onClick={() => setShowCustomA2HSModal(false)}
               className="p-2 text-tertiary hover:text-secondary hover:bg-body rounded-full transition-colors"
+              aria-label="닫기"
             >
               <X size={20} />
             </button>
@@ -128,7 +200,8 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
