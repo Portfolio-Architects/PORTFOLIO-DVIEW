@@ -163,8 +163,47 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
 
   const visibleList = showAll ? chopoomaList : chopoomaList.slice(0, 6);
 
+  // Generate JSON-LD structural data for Chopooma Curation (SEO/Rich Snippets)
+  const jsonLdElements = visibleList.map((item) => {
+    const dist = item.dist || 0;
+    const walkTime = Math.ceil(dist / 80);
+    return {
+      "@type": "Accommodation",
+      "name": item.apt.name,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "화성시",
+        "addressRegion": "경기도",
+        "addressCountry": "KR"
+      },
+      "amenityFeature": [
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "초등학교 도보 통학거리",
+          "value": `${dist}m (도보 약 ${walkTime}분)`
+        }
+      ]
+    };
+  });
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": `동탄 초품아 안심 통학 단지 큐레이션 - ${DISTANCE_STEPS[selectedStepIndex].label}`,
+    "numberOfItems": jsonLdElements.length,
+    "itemListElement": jsonLdElements.map((item, idx) => ({
+      "@type": "ListItem",
+      "position": idx + 1,
+      "item": item
+    }))
+  };
+
   return (
     <div className="w-full bg-surface border border-border rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center justify-between w-full sm:w-auto">
