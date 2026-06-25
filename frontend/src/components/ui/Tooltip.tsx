@@ -17,6 +17,11 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const rafRef = useRef<number | null>(null);
+  const idRef = useRef<string>('');
+
+  useEffect(() => {
+    idRef.current = 'tooltip-' + Math.random().toString(36).substring(2, 9);
+  }, []);
 
   const updatePosition = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -82,7 +87,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, updatePosition]);
 
   const handleMouseEnter = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -92,6 +97,16 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   };
 
   const handleMouseLeave = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setIsOpen(false);
+  };
+
+  const handleFocus = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setIsOpen(true);
+  };
+
+  const handleBlur = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
     setIsOpen(false);
   };
@@ -117,6 +132,12 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
     }
   };
 
+  // Determine if children element is naturally focusable to avoid redundant tabIndex
+  const isFocusableElement = (type: any): boolean => {
+    if (typeof type !== 'string') return true;
+    return ['button', 'a', 'input', 'select', 'textarea', 'area'].includes(type);
+  };
+
   const clonedChild = React.cloneElement(children, {
     ref: setRefs,
     onMouseEnter: (e: React.MouseEvent) => {
@@ -127,11 +148,23 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
       if (children.props.onMouseLeave) children.props.onMouseLeave(e);
       handleMouseLeave();
     },
+    onFocus: (e: React.FocusEvent) => {
+      if (children.props.onFocus) children.props.onFocus(e);
+      handleFocus();
+    },
+    onBlur: (e: React.FocusEvent) => {
+      if (children.props.onBlur) children.props.onBlur(e);
+      handleBlur();
+    },
     onTouchStart: (e: React.TouchEvent) => {
       if (children.props.onTouchStart) children.props.onTouchStart(e);
       // Toggle on touch devices
       setIsOpen((prev) => !prev);
-    }
+    },
+    'aria-describedby': isOpen ? idRef.current : children.props['aria-describedby'],
+    tabIndex: children.props.tabIndex !== undefined
+      ? children.props.tabIndex
+      : (isFocusableElement(children.type) ? undefined : 0)
   });
 
   return (
@@ -140,6 +173,9 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
       {isOpen && typeof document !== 'undefined' && createPortal(
         <div
           ref={tooltipRef}
+          id={idRef.current}
+          aria-live="polite"
+          role="tooltip"
           style={{
             position: 'absolute',
             top: `${coords.top}px`,
@@ -147,7 +183,6 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
             zIndex: 20000,
           }}
           className={`pointer-events-none px-3.5 py-2 bg-[#1e293b]/95 dark:bg-[#0f172a]/95 text-white text-[11px] font-bold rounded-xl shadow-xl max-w-[280px] break-keep text-center animate-tooltip-spring transition-opacity select-none border border-white/10 ${className}`}
-          role="tooltip"
         >
           <div className="relative z-10">{content}</div>
           {/* Spring Arrow indicator */}
