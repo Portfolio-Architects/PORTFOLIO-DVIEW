@@ -2485,15 +2485,22 @@ const FieldReportModal = React.memo(function FieldReportModal({
     return (
       <div 
         className="fixed inset-0 z-[99999] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
-        onClick={() => setFullscreenImage(null)}
       >
         <button 
+          type="button"
+          onClick={() => setFullscreenImage(null)}
+          aria-label="이미지 뷰어 닫기"
+          className="absolute inset-0 bg-transparent border-none cursor-default z-0 outline-none"
+        />
+        <button 
+          type="button"
           className="absolute top-6 right-6 z-50 text-surface/50 hover:text-surface p-2 rounded-full bg-surface/10 hover:bg-surface/20 transition-colors"
           onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }}
         >
           <X size={24} />
         </button>
         <button 
+          type="button"
           className="absolute top-6 right-20 z-50 text-surface/50 hover:text-surface p-2 rounded-full bg-surface/10 hover:bg-surface/20 transition-colors"
           onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
           title="이미지 저장 (워터마크 포함)"

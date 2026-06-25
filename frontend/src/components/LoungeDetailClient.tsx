@@ -1108,8 +1108,9 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
             </h3>
             <div className="flex flex-col gap-3">
               {recommendedPosts.map((recPost) => (
-                <div
+                <button
                   key={recPost.id}
+                  type="button"
                   onClick={() => {
                     if (isModal) {
                       window.location.hash = `post=${recPost.id}`;
@@ -1117,7 +1118,8 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                       router.push(`/lounge/${recPost.id}`);
                     }
                   }}
-                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/50 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 rounded-xl cursor-pointer transition-all group"
+                  aria-label={`추천 게시글: ${recPost.title}, 카테고리: ${recPost.category} 상세 보기`}
+                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/50 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 rounded-xl cursor-pointer transition-all group text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
                 >
                   <div className="flex flex-col gap-1.5 min-w-0 flex-1 pr-4">
                     <div className="flex items-center gap-2">
@@ -1145,7 +1147,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                     <span className="flex items-center gap-0.5 text-rose-500"><Heart size={12} className="fill-current"/> {recPost.likes}</span>
                     <ChevronRight size={14} className="text-tertiary group-hover:translate-x-0.5 transition-transform" />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>

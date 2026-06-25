@@ -638,9 +638,24 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
       {/* Drag Splitter Resizer (Desktop Only) */}
       <div 
+        role="separator"
+        aria-valuenow={sidebarWidth}
+        aria-valuemin={180}
+        aria-valuemax={380}
+        tabIndex={0}
         onMouseDown={handleMouseDown}
-        className="hidden md:block w-1 hover:w-1.5 bg-border/80 hover:bg-emerald-500/30 active:bg-emerald-500/50 cursor-col-resize select-none shrink-0 transition-all z-20"
-        title="드래그하여 크기 조절"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            setSidebarWidth(prev => Math.max(180, prev - 10));
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            setSidebarWidth(prev => Math.min(380, prev + 10));
+          }
+        }}
+        className="hidden md:block w-1 hover:w-1.5 bg-border/80 hover:bg-emerald-500/30 active:bg-emerald-500/50 cursor-col-resize select-none shrink-0 transition-all z-20 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-emerald-500/50"
+        title="드래그 또는 화살표 키로 크기 조절"
+        aria-label="사이드바 크기 조절기"
       />
 
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
