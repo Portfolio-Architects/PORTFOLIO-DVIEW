@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ThumbsUp, HelpCircle, Users, Check } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 import { logger } from '@/lib/services/logger';
@@ -208,8 +208,68 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     };
   }, [hasVoted, buyPercent, waitPercent]);
 
+  const jsonLdElements = useMemo(() => {
+    if (isLoading || error || !data) return [];
+    
+    const elements = [
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "총 투표 참여자 수",
+        "value": `${totalVotes}명 참여`
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "매수 의견 (지금 사야 한다)",
+        "value": `${buyPercent}% (${buyCount}명)`
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": "관망 의견 (더 기다려야 한다)",
+        "value": `${waitPercent}% (${waitCount}명)`
+      }
+    ];
+
+    let aiDiagnosis = "";
+    if (valuationStatus === 'undervalued') {
+      aiDiagnosis = buyPercent >= 50
+        ? `저평가 상태(약 ${valuationAmount} 메리트) 및 매수 우위 심리(${buyPercent}%) 일치. 안전마진을 확보한 진입 기회`
+        : `저평가 상태(약 ${valuationAmount} 메리트)이나 대중 관망 우위 심리(${waitPercent}%). 역발상적 분할 매수 검토`;
+    } else if (valuationStatus === 'overvalued') {
+      aiDiagnosis = waitPercent >= 50
+        ? `고평가 상태(약 ${valuationAmount} 격차) 및 관망 우위 심리(${waitPercent}%) 일치. 가격 조정 대기 유리`
+        : `고평가 상태(약 ${valuationAmount} 격차)이나 대중 매수 우위 심리(${buyPercent}%). 상단 추격 매수 경계 필요`;
+    } else {
+      aiDiagnosis = `적정가 수준. 대중 의견(매수 ${buyPercent}% vs 관망 ${waitPercent}%) 및 개인 자금 계획 매칭 권장`;
+    }
+
+    elements.push({
+      "@type": "LocationFeatureSpecification",
+      "name": "AI 가치-심리 매칭 진단 결론",
+      "value": aiDiagnosis
+    });
+
+    return elements;
+  }, [buyCount, waitCount, totalVotes, buyPercent, waitPercent, valuationStatus, valuationAmount, data, isLoading, error]);
+
+  const jsonLd = useMemo(() => {
+    if (isLoading || error || !data) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${aptName} 단지 실시간 매수 심리 및 AI 가치 분석 정보`,
+      "description": `${aptName} 단지에 대한 실수요자 실시간 매수 의견(찬성/관망) 통계 및 AI의 가치-심리 매칭 분석 진단 데이터입니다.`,
+      "amenityFeature": jsonLdElements
+    };
+  }, [aptName, jsonLdElements, data, isLoading, error]);
+
   return (
     <div className="bg-body rounded-2xl p-4 sm:p-5 border border-border shadow-sm mt-6">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-1.5">
           <Users size={16} className="text-emerald-500" />
