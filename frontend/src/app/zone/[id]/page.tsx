@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
-import { ZONES, getZoneById } from '@/lib/zones';
+import { ZONES, getZoneById, getDongsForZone } from '@/lib/zones';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { getInitialData } from '@/lib/services/dashboardData';
 import ZoneDetailClient from './ZoneDetailClient';
 
 export async function generateStaticParams() {
@@ -58,6 +59,42 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
     return <ZoneDetailClient />;
   }
 
+  // Fetch initial data for SSR SEO extraction
+  const initialData = await getInitialData();
+  const dongs = getDongsForZone(zone.id);
+  
+  const apartmentsList: any[] = [];
+  const sheetApartments = initialData.sheetApartments;
+  if (sheetApartments) {
+    dongs.forEach(dong => {
+      const apts = sheetApartments[dong];
+      if (Array.isArray(apts)) {
+        apts.forEach((apt: any) => {
+          if (apt && apt.name) {
+            apartmentsList.push({
+              name: apt.name,
+              dong: dong,
+              householdCount: apt.householdCount,
+              yearBuilt: apt.yearBuilt,
+              brand: apt.brand
+            });
+          }
+        });
+      }
+    });
+  }
+
+  const txSummary = initialData.txSummary || {};
+
+  const formatPrice = (val: number) => {
+    if (!val || val === 0) return '정보 없음';
+    const eok = Math.floor(val / 10000);
+    const remainder = Math.round(val % 10000);
+    if (eok === 0) return `${remainder.toLocaleString()}만원`;
+    if (remainder === 0) return `${eok}억원`;
+    return `${eok}억 ${remainder.toLocaleString()}만원`;
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -79,7 +116,13 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
             {
               "@type": "ListItem",
               "position": 2,
-              "name": zone.name,
+              "name": "아파트 탐색",
+              "item": `${baseUrl}/explore`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": `${zone.name} 권역`,
               "item": `${baseUrl}/zone/${params.id}`
             }
           ]
@@ -113,6 +156,41 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
         <h1>동탄 {zone.name} 아파트 가치 및 학군 분석 리포트</h1>
         <p>{zone.description}</p>
         <p>행정 구역 및 해당 동: {zone.dongLabel}</p>
+
+        <h2>{zone.name} 권역 소속 아파트 단지 실거래가 및 전세가율 현황</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>단지명</th>
+              <th>행정동</th>
+              <th>연식</th>
+              <th>세대수</th>
+              <th>평균 매매가</th>
+              <th>평균 전세가</th>
+              <th>전세가율</th>
+            </tr>
+          </thead>
+          <tbody>
+            {apartmentsList.map((apt) => {
+              const summary = txSummary[apt.name] || {};
+              const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
+              const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
+              const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
+
+              return (
+                <tr key={apt.name}>
+                  <td>{apt.name}</td>
+                  <td>{apt.dong}</td>
+                  <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
+                  <td>{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
+                  <td>{formatPrice(salesPrice)}</td>
+                  <td>{formatPrice(rentPrice)}</td>
+                  <td>{ratio > 0 ? `${ratio}%` : '정보 없음'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       <ZoneDetailClient />
     </>
