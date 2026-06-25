@@ -42,11 +42,63 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
 }: InfraAnalysisSectionProps) {
   if (!report.metrics || (!report.metrics.distanceToSubway && !report.metrics.restaurantDensity)) return null;
 
+  // Generate JSON-LD structural data for Infra (SEO/Rich Snippets)
+  const jsonLdElements = [];
+  const metrics = report.metrics || {};
+
+  if (metrics.distanceToSubway > 0) {
+    jsonLdElements.push({
+      "@type": "LocationFeatureSpecification",
+      "name": `가장 가까운 지하철/SRT역 (${metrics.nearestStationName || '동탄역'})`,
+      "value": `${Math.round(metrics.distanceToSubway)}m (도보 약 ${Math.ceil(metrics.distanceToSubway / 80)}분)`
+    });
+  }
+  if (metrics.distanceToStarbucks > 0) {
+    jsonLdElements.push({
+      "@type": "LocationFeatureSpecification",
+      "name": `가장 가까운 스타벅스 (${metrics.starbucksName || '스타벅스'})`,
+      "value": `${Math.round(metrics.distanceToStarbucks)}m (도보 약 ${Math.ceil(metrics.distanceToStarbucks / 80)}분)`
+    });
+  }
+  if (metrics.distanceToOliveYoung > 0) {
+    jsonLdElements.push({
+      "@type": "LocationFeatureSpecification",
+      "name": `가장 가까운 올리브영 (${metrics.oliveYoungName || '올리브영'})`,
+      "value": `${Math.round(metrics.distanceToOliveYoung)}m (도보 약 ${Math.ceil(metrics.distanceToOliveYoung / 80)}분)`
+    });
+  }
+  if (metrics.distanceToDaiso > 0) {
+    jsonLdElements.push({
+      "@type": "LocationFeatureSpecification",
+      "name": `가장 가까운 다이소 (${metrics.daisoName || '다이소'})`,
+      "value": `${Math.round(metrics.distanceToDaiso)}m (도보 약 ${Math.ceil(metrics.distanceToDaiso / 80)}분)`
+    });
+  }
+  if (metrics.distanceToMcDonalds > 0) {
+    jsonLdElements.push({
+      "@type": "LocationFeatureSpecification",
+      "name": `가장 가까운 맥도날드 (${metrics.mcdonaldsName || '맥도날드'})`,
+      "value": `${Math.round(metrics.distanceToMcDonalds)}m (도보 약 ${Math.ceil(metrics.distanceToMcDonalds / 80)}분)`
+    });
+  }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    "name": "DVIEW 단지 주변 생활 인프라 입지 정보",
+    "description": "지하철역, 대형마트, 올리브영, 스타벅스, 다이소 등 단지 주변 핵심 생활 편의시설의 최단 보행 거리 및 접근성 정보입니다.",
+    "amenityFeature": jsonLdElements
+  };
+
   return (
     <section 
       id="sec-infra-metrics" 
       className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14 snap-start`}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
           <MapPin size={18} className="text-[#008262]"/> 단지 입지정보
