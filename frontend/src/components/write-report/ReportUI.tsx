@@ -111,8 +111,18 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = React.memo(
       )}
 
       {/* Add more photos zone */}
-      <div 
-        className={`relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center ${
+      <input 
+        ref={fileInputRef}
+        type="file" 
+        accept="image/*" 
+        multiple 
+        capture="environment"
+        onChange={onFilesAdded} 
+        className="hidden" 
+      />
+      <button 
+        type="button"
+        className={`w-full relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#008262] dark:focus-visible:ring-[#00d29d] ${
           isDragging 
             ? 'border-[#008262] dark:border-[#00d29d] bg-[#008262]/10 dark:bg-[#00d29d]/10 scale-[1.02]' 
             : 'border-toss-gray bg-body hover:bg-body hover:border-[#008262] dark:hover:border-[#00d29d]'
@@ -121,16 +131,8 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = React.memo(
         onDragLeave={handleDragLeave}
         onDrop={handleDropInternal}
         onClick={() => fileInputRef.current?.click()}
+        aria-label={previews.length > 0 ? '사진 더 추가하기' : placeholder}
       >
-        <input 
-          ref={fileInputRef}
-          type="file" 
-          accept="image/*" 
-          multiple 
-          capture="environment"
-          onChange={onFilesAdded} 
-          className="hidden" 
-        />
         <div className="w-9 h-9 bg-surface rounded-full shadow-sm flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
           {isDragging ? <ImagePlus size={18} className="text-[#008262] dark:text-[#00d29d]" /> : <Camera size={18} className="text-[#008262] dark:text-[#00d29d]" />}
         </div>
@@ -138,7 +140,7 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = React.memo(
           {previews.length > 0 ? '사진 더 추가하기' : placeholder}
         </p>
         <p className="text-[11px] text-tertiary mt-0.5">터치하여 촬영 / 여러 장 선택 가능</p>
-      </div>
+      </button>
     </div>
   );
 });

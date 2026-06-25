@@ -148,10 +148,12 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                   : (img.caption || img.locationTag || `Photo ${i + 1}`);
                   
                 return (
-                  <div
+                  <button
                     key={i}
-                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-border shadow-sm snap-start"
+                    type="button"
+                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-border shadow-sm snap-start text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
                     onClick={() => onImageClick(img.url)}
+                    aria-label={`${altText} 크게 보기`}
                   >
                     <Image
                       src={img.url}
@@ -162,30 +164,30 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                       sizes="(max-width: 768px) 240px, 280px"
                       className="object-cover bg-body"
                     />
-                  {/* Subtle Corner Watermark */}
-                  <div className="absolute right-2 bottom-2 pointer-events-none z-20">
-                    <span className="text-surface/60 font-bold text-[9px] tracking-wide select-none drop-shadow-md bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                      {img.uploaderName ? `D-VIEW x ${img.uploaderName}` : 'D-VIEW'}
-                    </span>
-                  </div>
-                  {(img.caption || img.isPremium || img.capturedAt) && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
-                      <div className="flex flex-col gap-1.5">
-                        {img.isPremium && (
-                          <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-primary px-1.5 py-0.5 rounded-md">★ PRO</span>
-                        )}
-                        {img.caption && (
-                          <p className="text-[12px] font-medium text-surface line-clamp-2 leading-snug">{img.caption}</p>
-                        )}
-                      </div>
+                    {/* Subtle Corner Watermark */}
+                    <div className="absolute right-2 bottom-2 pointer-events-none z-20">
+                      <span className="text-surface/60 font-bold text-[9px] tracking-wide select-none drop-shadow-md bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                        {img.uploaderName ? `D-VIEW x ${img.uploaderName}` : 'D-VIEW'}
+                      </span>
                     </div>
-                  )}
-                  {img.capturedAt && (
-                    <span className="absolute top-2 right-2 bg-black/60 text-surface text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                      {img.capturedAt}
-                    </span>
-                  )}
-                </div>
+                    {(img.caption || img.isPremium || img.capturedAt) && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
+                        <div className="flex flex-col gap-1.5">
+                          {img.isPremium && (
+                            <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-primary px-1.5 py-0.5 rounded-md">★ PRO</span>
+                          )}
+                          {img.caption && (
+                            <p className="text-[12px] font-medium text-surface line-clamp-2 leading-snug">{img.caption}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {img.capturedAt && (
+                      <span className="absolute top-2 right-2 bg-black/60 text-surface text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                        {img.capturedAt}
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </GalleryRow>
