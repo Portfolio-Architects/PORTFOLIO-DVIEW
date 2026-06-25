@@ -1822,7 +1822,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const content = (
     <>
       {/* ── Unified Header ── */}
-      <header className={`w-full ${inline ? 'bg-surface' : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md'} pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20`}>
+      <div className={`w-full ${inline ? 'bg-surface' : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md'} pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20`}>
         <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[450px]">
             <div className="flex items-center gap-2">
@@ -1985,7 +1985,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Hero Section — Layout: Global Filter Bar + (35% table / 65% chart) */}
       <section className={`w-full flex flex-col p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} shrink-0 md:h-[700px]`}>
@@ -2637,7 +2637,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             {displayAptName} 단지의 세부 가치평가 및 실거래 정보 요약 리포트입니다.
           </p>
 
-          <header className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
+          <div className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
             <button 
               ref={firstFocusRef}
               onClick={handleSafeClose} 
@@ -2646,7 +2646,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             >
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
-          </header>
+          </div>
           
           <div ref={modalRef} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col snap-y snap-proximity md:snap-none">
             <div id="pdf-report-content" className={`flex flex-col ${inline ? 'bg-body' : 'bg-transparent'} w-full`}>
