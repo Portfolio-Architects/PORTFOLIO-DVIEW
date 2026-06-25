@@ -34,13 +34,15 @@ export const ThumbnailSection = React.memo(function ThumbnailSection({
             e.target.value = '';
           }}
         />
-        <div
+        <button
+          type="button"
           onClick={() => thumbnailInputRef.current?.click()}
-          className="w-[200px] h-[130px] bg-body border-2 border-dashed border-toss-gray rounded-2xl flex flex-col items-center justify-center text-tertiary cursor-pointer hover:bg-body hover:text-toss-blue transition-colors overflow-hidden group relative shrink-0"
+          className="w-[200px] h-[130px] bg-body border-2 border-dashed border-toss-gray rounded-2xl flex flex-col items-center justify-center text-tertiary cursor-pointer hover:bg-body hover:text-toss-blue transition-colors overflow-hidden group relative shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+          aria-label={thumbnailPreview ? '대표 썸네일 변경하기' : '대표 썸네일 등록하기'}
         >
           {thumbnailPreview ? (
             <>
-              <img src={thumbnailPreview} alt="Thumbnail" className="w-full h-full object-cover" />
+              <img src={thumbnailPreview} alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="text-surface text-[11px] font-bold">변경하기</span>
               </div>
@@ -51,7 +53,7 @@ export const ThumbnailSection = React.memo(function ThumbnailSection({
               <span className="text-[12px] font-semibold">썸네일 등록</span>
             </>
           )}
-        </div>
+        </button>
         <div className="flex-1">
           <p className="text-[13px] text-secondary font-medium mb-2">
             메인 피드에 표시될 대표 이미지입니다.

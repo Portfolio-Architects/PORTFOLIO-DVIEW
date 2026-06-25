@@ -114,7 +114,7 @@ export const ImageUploadSection = React.memo(function ImageUploadSection() {
     withDates.forEach(item => appendImage(item));
   };
 
-  const handleDropZone = (e: React.DragEvent) => {
+  const handleDropZone = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files) handleBatchFiles(e.dataTransfer.files);
@@ -147,19 +147,21 @@ export const ImageUploadSection = React.memo(function ImageUploadSection() {
         )}
       </h3>
 
+      <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleBatchFiles(e.target.files); e.target.value = ''; }} />
       {/* Batch Drop Zone */}
-      <div
-        className={`mb-6 border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
+      <button
+        type="button"
+        className={`w-full mb-6 border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
           isDragging
             ? 'border-toss-blue bg-toss-blue-light scale-[1.01]'
             : 'border-toss-gray bg-body hover:bg-body hover:border-toss-blue'
-        }`}
+        } focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDropZone}
         onClick={() => batchInputRef.current?.click()}
+        aria-label="사진을 한번에 여러 장 추가"
       >
-        <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleBatchFiles(e.target.files); e.target.value = ''; }} />
         <div className="w-12 h-12 bg-surface rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
           <ImagePlus size={22} className="text-toss-blue" />
         </div>
@@ -167,7 +169,7 @@ export const ImageUploadSection = React.memo(function ImageUploadSection() {
           {isDragging ? '여기에 놓으세요!' : '사진을 한번에 여러 장 추가'}
         </p>
         <p className="text-[12px] text-tertiary">드래그하거나 클릭하여 여러 사진을 선택한 후 카테고리를 직접 지정해주세요</p>
-      </div>
+      </button>
 
       {/* Sort Button */}
       {imageFields.length >= 2 && (
@@ -196,13 +198,15 @@ export const ImageUploadSection = React.memo(function ImageUploadSection() {
               onChange={(e) => handleImageSelect(index, e)}
             />
 
-            <div 
-              className="w-full md:w-[150px] h-[100px] bg-body border-2 border-dashed border-toss-gray rounded-xl flex flex-col items-center justify-center text-tertiary cursor-pointer hover:bg-body hover:text-toss-blue transition-colors overflow-hidden group/img relative"
+            <button 
+              type="button"
+              className="w-full md:w-[150px] h-[100px] bg-body border-2 border-dashed border-toss-gray rounded-xl flex flex-col items-center justify-center text-tertiary cursor-pointer hover:bg-body hover:text-toss-blue transition-colors overflow-hidden group/img relative focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
               onClick={() => fileInputRefs.current[index]?.click()}
+              aria-label={field.previewUrl || field.url ? '이미지 변경하기' : '이미지 추가하기'}
             >
               {(field.previewUrl || field.url) ? (
                 <>
-                  <img src={field.previewUrl || field.url} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={field.previewUrl || field.url} alt="" className="w-full h-full object-cover" />
                   {field.capturedAt && (
                     <span className="absolute bottom-1 left-1 bg-black/60 text-surface text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
                       {field.capturedAt}
@@ -218,7 +222,7 @@ export const ImageUploadSection = React.memo(function ImageUploadSection() {
                   <span className="text-[11px] font-semibold">이미지 추가</span>
                 </>
               )}
-            </div>
+            </button>
 
             <div className="flex-1 space-y-3">
               <div className="flex gap-3">
