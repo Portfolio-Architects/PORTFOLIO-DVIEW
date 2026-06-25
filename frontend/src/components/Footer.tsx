@@ -35,7 +35,15 @@ const Footer = React.memo(function Footer() {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-full h-full object-contain"
+                  role="img"
+                  aria-label="D-VIEW 로고"
                 >
+                  <defs>
+                    <linearGradient id="dview-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#0d9488" />
+                      <stop offset="100%" stopColor="#0f766e" />
+                    </linearGradient>
+                  </defs>
                   {/* 45-degree rotated rounded rect to create diamond background */}
                   <rect
                     x="16"
@@ -58,7 +66,7 @@ const Footer = React.memo(function Footer() {
               <span className="text-[15px] font-extrabold text-tertiary tracking-tight">D-VIEW</span>
             </div>
             
-            <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+            <nav role="navigation" aria-label="하단 서비스 메뉴" className="flex flex-wrap items-center gap-4 sm:gap-5">
               <Link href="/about" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 D-VIEW 소개
               </Link>
@@ -71,12 +79,12 @@ const Footer = React.memo(function Footer() {
               <Link href="/privacy" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 개인정보처리방침
               </Link>
-            </div>
+            </nav>
           </div>
 
           {/* 우측: 정보 및 면책조항 */}
           <div className="flex flex-col items-start lg:items-end text-[12px] text-tertiary leading-relaxed font-medium w-full lg:max-w-[600px] xl:max-w-[700px]">
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-2.5 lg:justify-end">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-2.5 lg:justify-end" role="contentinfo" aria-label="사이트 사업자 및 저작권 정보">
               <span>상호: D-VIEW</span>
               <span className="text-toss-gray">|</span>
               <span>이메일: ocs5672@gmail.com</span>
@@ -85,7 +93,7 @@ const Footer = React.memo(function Footer() {
             </div>
             
             {!isAdmin && (
-              <p className="text-left lg:text-right w-full tracking-tight text-[11.5px]">
+              <p aria-label="부동산 거래 면책 조항" className="text-left lg:text-right w-full tracking-tight text-[11.5px]">
                 <strong className="text-secondary font-bold mr-1">면책 조항:</strong>
                 D-VIEW에서 제공하는 적정가 및 분석 지표는 공공데이터를 기반으로 한 통계/알고리즘적 추정치로, 실제 시장 가격과 다를 수 있습니다.<br />
                 부동산 거래에 대한 최종 판단과 책임은 사용자 본인에게 있습니다.
