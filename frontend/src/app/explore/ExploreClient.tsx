@@ -144,13 +144,13 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
   return { default: () => null };
 }), { ssr: true, loading: () => <ExploreListSkeleton /> });
 
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import(/* webpackPreload: false */ '@/components/ApartmentModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'FieldReportModal Chunk Load failure, page reload initiated', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
 }), { ssr: false, loading: () => <ApartmentModalSkeleton /> });
 
-const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
+const AdInquiryModal = dynamic(() => import(/* webpackPreload: false */ '@/components/AdInquiryModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'AdInquiryModal Chunk Load failure', undefined, err);
   safeReload('AdInquiryModal');
   return { default: () => null };
@@ -159,7 +159,7 @@ const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch
   loading: () => <CalculatorLoader text="제휴 및 광고 안내 로드 중" />
 });
 
-const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
+const B2BConsumerAdModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/B2BConsumerAdModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'B2BConsumerAdModal Chunk Load failure', undefined, err);
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
@@ -197,7 +197,7 @@ const CalculatorLoader = ({ text }: { text: string }) => (
   </div>
 );
 
-const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
+const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'AptCompareModal Chunk Load failure', undefined, err);
   safeReload('AptCompareModal');
   return { default: () => null };
@@ -206,7 +206,7 @@ const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareMo
   loading: () => <CalculatorLoader text="비교 대시보드 로드 중" />
 });
 
-const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
+const JeonseSafetyCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/JeonseSafetyCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure', undefined, err);
   safeReload('JeonseSafetyCalculator');
   return { default: () => null };
@@ -215,7 +215,7 @@ const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/Jeons
   loading: () => <CalculatorLoader text="전세 안전진단 계산기 로드 중" />
 });
 
-const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
+const MortgageCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/MortgageCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'MortgageCalculator Chunk Load failure', undefined, err);
   safeReload('MortgageCalculator');
   return { default: () => null };
@@ -224,7 +224,7 @@ const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageC
   loading: () => <CalculatorLoader text="대출 계산기 로드 중" />
 });
 
-const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
+const PropertyTaxCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/PropertyTaxCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'PropertyTaxCalculator Chunk Load failure', undefined, err);
   safeReload('PropertyTaxCalculator');
   return { default: () => null };
@@ -233,7 +233,7 @@ const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/Proper
   loading: () => <CalculatorLoader text="취득세 계산기 로드 중" />
 });
 
-const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
+const SellTimingCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/SellTimingCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'SellTimingCalculator Chunk Load failure', undefined, err);
   safeReload('SellTimingCalculator');
   return { default: () => null };

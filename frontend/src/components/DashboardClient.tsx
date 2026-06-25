@@ -110,7 +110,7 @@ const CalculatorLoader = ({ text }: { text: string }) => (
 );
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import(/* webpackPreload: false */ '@/components/ApartmentModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
@@ -118,7 +118,7 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').cat
   ssr: false,
   loading: () => <ApartmentModalSkeleton />
 });
-const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal').catch(err => {
+const WriteReviewModal = dynamic(() => import(/* webpackPreload: false */ '@/components/WriteReviewModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'WriteReviewModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('WriteReviewModal');
   return { default: () => null };
@@ -133,7 +133,7 @@ const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal').c
     </div>
   )
 });
-const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch(err => {
+const AdInquiryModal = dynamic(() => import(/* webpackPreload: false */ '@/components/AdInquiryModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AdInquiryModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AdInquiryModal');
   return { default: () => null };
@@ -141,7 +141,7 @@ const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal').catch
   ssr: false,
   loading: () => <CalculatorLoader text="제휴 및 광고 안내 로드 중" />
 });
-const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsumerAdModal').catch(err => {
+const B2BConsumerAdModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/B2BConsumerAdModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'B2BConsumerAdModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('B2BConsumerAdModal');
   return { default: () => null };
@@ -150,7 +150,7 @@ const B2BConsumerAdModal = dynamic(() => import('@/components/consumer/B2BConsum
   loading: () => <CalculatorLoader text="맞춤 컨설팅 신청 중" />
 });
 
-const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainerClient').catch(err => {
+const LoungeContainerClient = dynamic(() => import(/* webpackPreload: false */ '@/components/LoungeContainerClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeContainerClient');
   return { default: () => null };
@@ -159,7 +159,7 @@ const LoungeContainerClient = dynamic(() => import('@/components/LoungeContainer
   loading: () => <LoungeSkeleton />
 });
 
-const RegionAccordion = dynamic(() => import('@/components/curation/RegionAccordion').catch(err => {
+const RegionAccordion = dynamic(() => import(/* webpackPreload: false */ '@/components/curation/RegionAccordion').catch(err => {
   logger.warn('DashboardClient.dynamic', 'RegionAccordion Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('RegionAccordion');
   return { default: () => null };
@@ -168,7 +168,7 @@ const RegionAccordion = dynamic(() => import('@/components/curation/RegionAccord
   loading: () => <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
 });
 
-const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentExplorer').catch(err => {
+const GapInvestmentExplorer = dynamic(() => import(/* webpackPreload: false */ '@/components/GapInvestmentExplorer').catch(err => {
   logger.warn('DashboardClient.dynamic', 'GapInvestmentExplorer Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('GapInvestmentExplorer');
   return { default: () => null };
@@ -176,7 +176,7 @@ const GapInvestmentExplorer = dynamic(() => import('@/components/GapInvestmentEx
   ssr: false,
   loading: () => <GapExplorerSkeleton />
 });
-const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration').catch(err => {
+const ChopoomaCuration = dynamic(() => import(/* webpackPreload: false */ '@/components/ChopoomaCuration').catch(err => {
   logger.warn('DashboardClient.dynamic', 'ChopoomaCuration Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('ChopoomaCuration');
   return { default: () => null };
@@ -184,23 +184,21 @@ const ChopoomaCuration = dynamic(() => import('@/components/ChopoomaCuration').c
   ssr: false,
   loading: () => <div className="w-full h-48 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
 });
-const LocalEventCuration = dynamic(() => import('@/components/LocalEventCuration').catch(err => {
+const LocalEventCuration = dynamic(() => import(/* webpackPreload: false */ '@/components/LocalEventCuration').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LocalEventCuration Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LocalEventCuration');
   return { default: () => null };
-}), { 
-  ssr: false,
+}), {    ssr: false,
   loading: () => <div className="w-full h-36 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
 });
-const AIRecommendations = dynamic(() => import('@/components/consumer/AIRecommendations').catch(err => {
+const AIRecommendations = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AIRecommendations').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AIRecommendations Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AIRecommendations');
   return { default: () => null };
-}), { 
-  ssr: false,
+}), {    ssr: false,
   loading: () => <div className="w-full h-40 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
 });
-const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
+const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptCompareModal');
   return { default: () => null };
@@ -208,7 +206,7 @@ const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareMo
   ssr: false,
   loading: () => <CalculatorLoader text="비교 대시보드 로드 중" />
 });
-const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
+const JeonseSafetyCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/JeonseSafetyCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('JeonseSafetyCalculator');
   return { default: () => null };
@@ -216,7 +214,7 @@ const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/Jeons
   ssr: false,
   loading: () => <CalculatorLoader text="전세 안전진단 계산기 로드 중" />
 });
-const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
+const MortgageCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/MortgageCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'MortgageCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MortgageCalculator');
   return { default: () => null };
@@ -225,7 +223,7 @@ const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageC
   loading: () => <CalculatorLoader text="대출 계산기 로드 중" />
 });
 
-const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
+const PropertyTaxCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/PropertyTaxCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'PropertyTaxCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('PropertyTaxCalculator');
   return { default: () => null };
@@ -234,7 +232,7 @@ const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/Proper
   loading: () => <CalculatorLoader text="취득세 계산기 로드 중" />
 });
 
-const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
+const SellTimingCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/SellTimingCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'SellTimingCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('SellTimingCalculator');
   return { default: () => null };

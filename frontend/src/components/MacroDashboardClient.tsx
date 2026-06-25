@@ -16,7 +16,7 @@ const InlineLoader = ({ text }: { text: string }) => (
   </div>
 );
 
-const MacroTrendChart = dynamic(() => import("@/components/MacroTrendChart").catch(err => {
+const MacroTrendChart = dynamic(() => import(/* webpackPreload: false */ "@/components/MacroTrendChart").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'MacroTrendChart Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroTrendChart');
   return { default: () => null };
@@ -24,7 +24,7 @@ const MacroTrendChart = dynamic(() => import("@/components/MacroTrendChart").cat
   ssr: false,
   loading: () => <InlineLoader text="매크로 동향 차트 분석 중" />
 });
-const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").catch(err => {
+const AptFitFinder = dynamic(() => import(/* webpackPreload: false */ "@/components/consumer/AptFitFinder").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'AptFitFinder Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptFitFinder');
   return { default: () => null };

@@ -42,7 +42,7 @@ const CalculatorLoader = ({ text }: { text: string }) => (
   </div>
 );
 
-const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient').catch(err => {
+const LoungeDetailClient = dynamic(() => import(/* webpackPreload: false */ '@/components/LoungeDetailClient').catch(err => {
   logger.warn('LoungeFeedClient.dynamic', 'LoungeDetailClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeDetailClient');
   return { default: () => null };
@@ -50,7 +50,7 @@ const LoungeDetailClient = dynamic(() => import('@/components/LoungeDetailClient
   ssr: false,
   loading: () => <CalculatorLoader text="라운지 소통 글 읽는 중" />
 });
-const AptStoriesWidget = dynamic(() => import('@/components/AptStoriesWidget').catch(err => {
+const AptStoriesWidget = dynamic(() => import(/* webpackPreload: false */ '@/components/AptStoriesWidget').catch(err => {
   logger.warn('LoungeFeedClient.dynamic', 'AptStoriesWidget Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptStoriesWidget');
   return { default: () => null };
