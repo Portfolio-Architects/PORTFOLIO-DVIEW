@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 
 const GalleryRow = React.memo(function GalleryRow({
@@ -95,8 +95,34 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
     groupedImages[tag] = images.filter(img => (img.locationTag || '기타') === tag);
   });
 
+  const jsonLd = useMemo(() => {
+    if (!images || images.length === 0) return null;
+    const name = aptName || '아파트';
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "ImageGallery",
+      "name": `${name} 단지 전경 및 실사 이미지 갤러리`,
+      "description": `${name} 아파트 단지 전경, 조경, 커뮤니티 시설 및 주변 전경의 실사 이미지 갤러리입니다.`,
+      "image": images.map(img => img.url),
+      "associatedMedia": images.map((img, i) => ({
+        "@type": "ImageObject",
+        "contentUrl": img.url,
+        "caption": img.caption || `${name} ${img.locationTag || '단지 전경'} 사진`,
+        "name": `${name} ${img.locationTag || '단지 전경'} 이미지`,
+        "author": img.uploaderName || "D-VIEW"
+      }))
+    };
+  }, [images, aptName]);
+
   return (
     <div className="flex flex-col gap-8 mt-2">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       {categories.map(tag => {
         const categoryImages = groupedImages[tag];
         if (!categoryImages || categoryImages.length === 0) return null;
