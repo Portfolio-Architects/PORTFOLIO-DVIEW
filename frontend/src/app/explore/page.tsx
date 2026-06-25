@@ -133,7 +133,81 @@ function ExploreSkeleton() {
 
 async function ExploreDataLoader() {
   const initialData = await getInitialData();
-  return <ExploreClient initialDashboardData={initialData} />;
+  
+  // Extract all apartments for SEO injection
+  const apartmentsList: any[] = [];
+  if (initialData.sheetApartments) {
+    Object.entries(initialData.sheetApartments).forEach(([dong, apts]) => {
+      if (Array.isArray(apts)) {
+        apts.forEach((apt: any) => {
+          if (apt && apt.name) {
+            apartmentsList.push({
+              name: apt.name,
+              dong: dong,
+              householdCount: apt.householdCount,
+              yearBuilt: apt.yearBuilt,
+              brand: apt.brand
+            });
+          }
+        });
+      }
+    });
+  }
+
+  const txSummary = initialData.txSummary || {};
+
+  const formatPrice = (val: number) => {
+    if (!val || val === 0) return '정보 없음';
+    const eok = Math.floor(val / 10000);
+    const remainder = Math.round(val % 10000);
+    if (eok === 0) return `${remainder.toLocaleString()}만원`;
+    if (remainder === 0) return `${eok}억원`;
+    return `${eok}억 ${remainder.toLocaleString()}만원`;
+  };
+
+  return (
+    <>
+      {/* SSR SEO Semantic HTML Block */}
+      <div className="sr-only" aria-hidden="true">
+        <h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>
+        <p>동탄 1, 2신도시 전체 179개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
+        <table>
+          <thead>
+            <tr>
+              <th>단지명</th>
+              <th>행정동</th>
+              <th>연식</th>
+              <th>세대수</th>
+              <th>평균 매매가</th>
+              <th>평균 전세가</th>
+              <th>전세가율</th>
+            </tr>
+          </thead>
+          <tbody>
+            {apartmentsList.map((apt) => {
+              const summary = txSummary[apt.name] || {};
+              const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
+              const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
+              const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
+
+              return (
+                <tr key={apt.name}>
+                  <td>{apt.name}</td>
+                  <td>{apt.dong}</td>
+                  <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
+                  <td>{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
+                  <td>{formatPrice(salesPrice)}</td>
+                  <td>{formatPrice(rentPrice)}</td>
+                  <td>{ratio > 0 ? `${ratio}%` : '정보 없음'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <ExploreClient initialDashboardData={initialData} />
+    </>
+  );
 }
 
 export default async function ExplorePage() {

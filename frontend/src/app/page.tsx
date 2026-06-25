@@ -49,7 +49,74 @@ function DashboardSkeleton() {
 
 async function DashboardDataLoader() {
   const initialData = await getInitialData();
-  return <DashboardClient initialDashboardData={initialData} />;
+  
+  // Extract top 10 apartments by latest price for 대장 단지 랭킹
+  const txSummary = initialData.txSummary || {};
+  const allApts = Object.entries(txSummary).map(([name, sum]: [string, any]) => ({
+    name,
+    latestPrice: sum.latestPrice || 0,
+    dong: sum.dong || '',
+    avg1MPrice: sum.avg1MPrice || 0,
+    jeonseRatio: sum.avg1MPrice > 0 && sum.avg1MRentDeposit > 0 ? Math.round((sum.avg1MRentDeposit / sum.avg1MPrice) * 100) : 0
+  })).filter(a => a.latestPrice > 0);
+
+  const top10Leaderboard = [...allApts]
+    .sort((a, b) => b.latestPrice - a.latestPrice)
+    .slice(0, 10);
+
+  // Extract recent transactions (up to 15 items)
+  const recentTxs = initialData.recentTransactions || [];
+
+  const formatPrice = (val: number) => {
+    if (!val || val === 0) return '정보 없음';
+    const eok = Math.floor(val / 10000);
+    const remainder = Math.round(val % 10000);
+    if (eok === 0) return `${remainder.toLocaleString()}만원`;
+    if (remainder === 0) return `${eok}억원`;
+    return `${eok}억 ${remainder.toLocaleString()}만원`;
+  };
+
+  return (
+    <>
+      {/* SSR SEO Semantic HTML Block */}
+      <div className="sr-only" aria-hidden="true">
+        <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
+        <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 갭투자 리스크 진단 전문 분석 리포트 플랫폼</p>
+        
+        <section>
+          <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>
+          <ol>
+            {top10Leaderboard.map((apt, index) => (
+              <li key={apt.name}>
+                <strong>{index + 1}위: {apt.name}</strong> ({apt.dong}) - 
+                최근 실거래가: {formatPrice(apt.latestPrice)}
+                {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {recentTxs.length > 0 && (
+          <section style={{ marginTop: '20px' }}>
+            <h2>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h2>
+            <ul>
+              {recentTxs.slice(0, 15).map((tx: any, idx: number) => {
+                const txPrice = tx.price || 0;
+                return (
+                  <li key={idx}>
+                    <strong>{tx.apartmentName || '아파트'}</strong> ({tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) - 
+                    {tx.dealType || '매매'} {formatPrice(txPrice)} 
+                    {tx.contractYm && tx.contractDay ? ` (거래일: ${tx.contractYm}.${tx.contractDay})` : ''}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+      </div>
+      <DashboardClient initialDashboardData={initialData} />
+    </>
+  );
 }
 
 export default async function Page() {
