@@ -98,12 +98,12 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
       ref={backdropRef}
       onKeyDown={handleFocusTrap}
       className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
-      onClick={handleClose}
     >
-      <div 
-        role="presentation"
-        className="absolute inset-0 bg-transparent"
+      <button 
+        type="button"
+        className="absolute inset-0 bg-transparent cursor-default focus:outline-none border-none outline-none"
         onClick={handleClose}
+        aria-label="모달 닫기"
       />
       <article 
         role="dialog"

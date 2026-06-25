@@ -88,7 +88,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <>
-            <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+            <button 
+              type="button"
+              className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm cursor-default focus:outline-none border-none outline-none" 
+              onClick={() => setSidebarOpen(false)} 
+              aria-label="사이드바 닫기"
+            />
             <aside className="md:hidden fixed top-0 left-0 z-50 w-[280px] h-full bg-surface flex flex-col p-6 overflow-y-auto shadow-2xl animate-in slide-in-from-left duration-200">
               <div className="flex justify-end mb-2">
                 <button onClick={() => setSidebarOpen(false)} className="p-1 text-tertiary">
