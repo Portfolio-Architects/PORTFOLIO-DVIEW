@@ -1023,10 +1023,12 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {hotPosts.map((post) => (
-              <div
+              <button
                 key={post.id}
+                type="button"
+                aria-label={`${post.category} 카테고리 게시글 "${post.title}", 작성자 ${post.author || '매니저'} 상세 보기`}
                 onClick={() => { window.location.hash = `post=${post.id}`; }}
-                className="flex items-start gap-3 p-3.5 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-md"
+                className="flex items-start gap-3 p-3.5 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-md text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
               >
                 <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/30 group-hover:bg-[#008262] transition-colors">
                   <Sparkles size={14} className="text-[#008262] dark:text-[#00d29d] group-hover:text-white transition-colors" />
@@ -1049,7 +1051,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                     <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400"><MessageSquare size={11}/> {post.commentCount || 0}</span>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
