@@ -5,13 +5,38 @@ export const metadata = {
   title: '개인정보처리방침 | D-VIEW',
   description: 'D-VIEW 개인정보처리방침',
   alternates: {
-    canonical: '/privacy',
+    canonical: 'https://dongtanview.com/privacy',
   },
 };
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-body font-sans">
+      {/* Breadcrumb List JSON-LD for Search Engine Optimization */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: '홈',
+                item: 'https://dongtanview.com',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: '개인정보처리방침',
+                item: 'https://dongtanview.com/privacy',
+              },
+            ],
+          }),
+        }}
+      />
+
       <div className="bg-surface border-b border-border sticky top-0 z-50">
         <div className="max-w-[800px] mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className="font-extrabold text-primary text-lg">개인정보처리방침</h1>

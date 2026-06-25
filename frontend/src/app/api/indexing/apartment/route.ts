@@ -3,6 +3,7 @@ import { requestGoogleIndexing } from '@/lib/utils/server/googleIndexing';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { redis } from '@/lib/redis';
+import { buildInitialApartments } from '@/lib/dong-apartments';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,17 @@ export async function POST(request: NextRequest) {
     }
 
     const { apartmentName } = parsed.data;
+
+    // Validate that the apartment exists in our database
+    const apartmentsData = buildInitialApartments();
+    const allApartments = Object.values(apartmentsData).flat();
+    const isValidApartment = allApartments.some(apt => apt.name === apartmentName);
+
+    if (!isValidApartment) {
+      logger.warn('ApartmentIndexingAPI.POST', 'Attempted to index non-existent apartment', { apartmentName });
+      return NextResponse.json({ success: false, error: 'Apartment not found in database' }, { status: 404 });
+    }
+
 
     // Redis Throttling to protect daily quota (max 1 request per hour per apartment)
     const throttleKey = `dtdls:indexing:throttle:${encodeURIComponent(apartmentName)}`;
