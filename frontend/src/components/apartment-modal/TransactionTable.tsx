@@ -135,8 +135,106 @@ export const TransactionTable = React.memo(function TransactionTable({
     return dealType;
   };
 
+  const jsonLd = useMemo(() => {
+    if (sortedFilteredTransactions.length === 0) return null;
+    
+    const firstTx = sortedFilteredTransactions[0];
+    const rawAptName = firstTx?.aptName || '';
+    const aptName = normalizeAptName ? normalizeAptName(rawAptName) : rawAptName;
+    const dealTypeLabel = chartType === 'sale' ? '매매' : '전월세';
+    
+    const items = sortedFilteredTransactions.slice(0, 50).map((tx, idx) => {
+      const ym = String(tx.contractYm || '');
+      const y = ym.substring(0, 4);
+      const m = ym.length >= 6 ? ym.substring(4, 6) : '01';
+      const d = String(tx.contractDay || '01').trim().padStart(2, '0');
+      const isRent = tx.dealType === '전세' || tx.dealType === '월세';
+      const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
+      const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
+      const eok = Math.floor(displayPrice / 10000);
+      const rem = displayPrice % 10000;
+      
+      let priceText = '';
+      if (tx.dealType === '월세') {
+        const depEok = Math.floor((tx.deposit || 0) / 10000);
+        const depRem = (tx.deposit || 0) % 10000;
+        let depStr = '';
+        if (depEok > 0) {
+          depStr += `${depEok}억`;
+          if (depRem > 0) depStr += `${depRem.toLocaleString()}`;
+        } else {
+          depStr += `${depRem.toLocaleString()}`;
+        }
+        priceText = `${depStr}/${displayMonthly.toLocaleString()}`;
+      } else {
+        if (eok > 0) {
+          priceText += `${eok}억`;
+          if (rem > 0) {
+            priceText += `${rem.toLocaleString()}`;
+          }
+        } else {
+          priceText += `${rem.toLocaleString()}만`;
+        }
+      }
+      
+      const dealType = tx.dealType || '매매';
+      
+      return {
+        "@type": "ListItem",
+        "position": idx + 1,
+        "item": {
+          "@type": "Place",
+          "name": `${aptName} ${tx.dong ? tx.dong + ' ' : ''}${tx.floor}층 ${dealType} 실거래`,
+          "description": `${y}년 ${m}월 ${d}일 계약된 전용 ${tx.area}㎡ (${tx.floor}층) ${dealType} 거래 건`,
+          "additionalProperty": [
+            {
+              "@type": "PropertyValue",
+              "name": "계약일",
+              "value": `${y}-${m}-${d}`
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "전용면적",
+              "value": `${tx.area}㎡`
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "층수",
+              "value": `${tx.floor}층`
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "거래금액",
+              "value": priceText
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "거래유형",
+              "value": dealType
+            }
+          ]
+        }
+      };
+    });
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": `${aptName} ${dealTypeLabel} 실거래가 내역 목록`,
+      "description": `${aptName} 아파트 단지의 최근 ${dealTypeLabel} 실거래 계약일, 거래금액, 전용면적, 층수 정보 목록입니다.`,
+      "numberOfItems": sortedFilteredTransactions.length,
+      "itemListElement": items
+    };
+  }, [sortedFilteredTransactions, normalizeAptName, chartType]);
+
   return (
     <div className="flex flex-col bg-[#F9FAFB] dark:bg-[#1a1a1a] rounded-2xl ring-1 ring-[#e5e8eb] dark:ring-[#2d2d2d] overflow-hidden md:h-full shadow-inner">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
         <h2 className="text-[14px] font-bold text-secondary shrink-0">
           실거래가 <span className="text-[#008262] dark:text-toss-blue ml-1">{filteredTransactions.length}</span>건
