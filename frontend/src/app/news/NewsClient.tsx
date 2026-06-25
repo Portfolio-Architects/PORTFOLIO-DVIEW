@@ -371,7 +371,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                     const Icon = src.icon;
                     const hasDetails = !!item.content;
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={item.id}
                         onClick={() => {
                           if (hasDetails) {
@@ -380,7 +381,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                             window.open(item.url, '_blank', 'noopener,noreferrer');
                           }
                         }}
-                        className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-sm"
+                        className="w-full text-left group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                        aria-label={`소식: ${item.title}, 부서: ${item.dept}`}
                       >
                         <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -407,7 +409,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         <div className="flex items-center text-tertiary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] shrink-0 self-end md:self-center">
                           <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                   
