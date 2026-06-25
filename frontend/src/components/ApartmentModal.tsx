@@ -1708,6 +1708,12 @@ const FieldReportModal = React.memo(function FieldReportModal({
     const priceEok = Math.floor(price / 10000);
     const priceMan = price % 10000;
     const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
+    
+    // Calculate maximum sale price
+    const salePrices = saleTxs.map(t => t.price).filter(p => p > 0);
+    const maxPrice = salePrices.length > 0 ? Math.max(...salePrices) : 0;
+    const maxPriceEok = maxPrice > 0 ? maxPrice / 10000 : undefined;
+
     let customDesc = '';
     if (eduScoreInfo) {
       customDesc += `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n`;
@@ -1728,12 +1734,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
       ratio,
       valStatus: valuation.status,
       valAmount: valuation.amount,
-      customDesc
+      customDesc,
+      maxPrice: maxPriceEok
     });
 
     if (success) {
       if (!mountedRef.current) return;
-      showToast("🎉 단톡방용 텍스트 요약본이 클립보드에 복사되었습니다!");
+      showToast("🎉 단톡방용 요약본 복사 완료! 원하는 단톡방이나 맘카페에 붙여넣기(Ctrl+V) 하세요.");
       setCopiedStatus('summary');
       if (copiedTimeoutRef.current) {
         clearTimeout(copiedTimeoutRef.current);

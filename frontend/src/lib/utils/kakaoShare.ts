@@ -161,6 +161,7 @@ export const ShareAptParamsSchema = z.object({
   customDesc: z.string().optional(),
   valStatus: z.string().optional(),
   valAmount: z.string().optional(),
+  maxPrice: z.number().nonnegative().optional(),
 });
 
 export const SharePostParamsSchema = z.object({
@@ -265,6 +266,7 @@ export interface ShareAptParams {
   customDesc?: string;
   valStatus?: string;
   valAmount?: string;
+  maxPrice?: number;
 }
 
 export const shareAptToKakao = async (params: ShareAptParams) => {
@@ -1045,7 +1047,7 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
     });
     return false;
   }
-  const { aptName, priceEok, priceMan, ratio, valStatus, valAmount, customDesc } = validation.data;
+  const { aptName, priceEok, priceMan, ratio, valStatus, valAmount, customDesc, maxPrice } = validation.data;
 
   const priceStr =
     priceMan > 0
@@ -1063,10 +1065,17 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
     valuationLabel = `🚨 고평가 상태 (적정가 대비 약 ${valAmount} 고평가)`;
   }
 
+  // Calculate highest price drop
+  const priceNum = priceEok + (priceMan / 10000);
+  const dropPriceEok = maxPrice && maxPrice > priceNum ? maxPrice - priceNum : 0;
+  const dropStr = dropPriceEok > 0
+    ? ` (📉 최고가 대비 -${dropPriceEok.toFixed(1)}억 하락!)`
+    : '';
+
   let text = `📢 [DVIEW] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약 📊\n`;
   text += `🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"\n`;
   text += `👉 지금 매수해도 안전할까요? 호구 방지 가치분석 결과:\n\n`;
-  text += `💸 최근 실거래가: ${priceStr}\n`;
+  text += `💸 최근 실거래가: ${priceStr}${dropStr}\n`;
   text += `📊 실거래 전세가율: ${ratio.toFixed(1)}%\n`;
   text += `📈 내재가치 평가: ${valuationLabel}\n`;
   

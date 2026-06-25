@@ -149,26 +149,46 @@ function getPyeongSummaries(txs: Transaction[]): PyeongSummary[] {
   return summaries.sort((a, b) => a.pyeong - b.pyeong);
 }
 
-function generateAiBriefing(aptName: string, aptSummary: AptTxSummary | undefined, pyeongSummaries: PyeongSummary[]) {
+function generateAiBriefing(
+  aptName: string, 
+  aptSummary: AptTxSummary | undefined, 
+  pyeongSummaries: PyeongSummary[],
+  locationScore?: LocationScore | null
+) {
   const defaultBrief = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  
+  let brief = '';
+  const pyeongListStr = pyeongSummaries.map(p => `${p.pyeong}평`).join(', ');
   
   if (pyeongSummaries.length === 0) {
     if (!aptSummary) return defaultBrief;
     const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
-    return `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+    brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+  } else {
+    const majorDetails = pyeongSummaries.slice(0, 2).map(p => {
+      const saleStr = p.latestPriceStr !== '정보 없음' ? `최근 매매가 ${p.latestPriceStr}` : '';
+      const jeonseStr = p.latestDepositStr !== '정보 없음' ? `전세가 ${p.latestDepositStr}` : '';
+      const ratioStr = p.jeonseRatio > 0 ? `전세가율 ${p.jeonseRatio}%` : '';
+      const parts = [saleStr, jeonseStr, ratioStr].filter(Boolean);
+      return `${p.pyeong}평형(${parts.join(', ')})`;
+    }).join(' 및 ');
+    brief = `동탄 ${aptName} 아파트는 ${pyeongListStr} 다양한 평형대를 형성하고 있습니다. ${majorDetails} 등 평형별 정확한 실거래가 시세와 전세가율 변동 추이, 학군 정보, 대중교통 인프라 요약을 D-VIEW에서 제공합니다.`;
   }
 
-  const pyeongListStr = pyeongSummaries.map(p => `${p.pyeong}평`).join(', ');
-  
-  const majorDetails = pyeongSummaries.slice(0, 2).map(p => {
-    const saleStr = p.latestPriceStr !== '정보 없음' ? `최근 매매가 ${p.latestPriceStr}` : '';
-    const jeonseStr = p.latestDepositStr !== '정보 없음' ? `전세가 ${p.latestDepositStr}` : '';
-    const ratioStr = p.jeonseRatio > 0 ? `전세가율 ${p.jeonseRatio}%` : '';
-    const parts = [saleStr, jeonseStr, ratioStr].filter(Boolean);
-    return `${p.pyeong}평형(${parts.join(', ')})`;
-  }).join(' 및 ');
+  if (locationScore) {
+    const schools = [];
+    if (locationScore.nearestSchoolNames?.elementary) {
+      schools.push(`배정 초등학교는 ${locationScore.nearestSchoolNames.elementary}(도보 약 ${Math.round((locationScore.distanceToElementary || 0) / 70) || 1}분)`);
+    }
+    if (locationScore.nearestStationName) {
+      schools.push(`가장 가까운 역은 ${locationScore.nearestStationName}역(${locationScore.nearestStationLine || '지하철'}, 약 ${locationScore.distanceToSubway || 0}m)`);
+    }
+    if (schools.length > 0) {
+      brief += ` 입지 여건을 보면 ${schools.join(' 이며, ')}가 위치하고 있습니다.`;
+    }
+  }
 
-  return `동탄 ${aptName} 아파트는 ${pyeongListStr} 다양한 평형대를 형성하고 있습니다. ${majorDetails} 등 평형별 정확한 실거래가 시세와 전세가율 변동 추이, 학군 정보, 대중교통 인프라 요약을 D-VIEW에서 제공합니다.`;
+  return brief;
 }
 
 // --- SEO: Dynamic Metadata Generator ---
@@ -229,6 +249,14 @@ export async function generateMetadata(props: {
     const aptSummary = txSummary[decodedName];
     const txs = await getApartmentTransactions(decodedName);
     const pyeongSummaries = getPyeongSummaries(txs);
+    
+    let locationScore: LocationScore | null = null;
+    try {
+      const allScores = await readJsonFileCached<Record<string, LocationScore>>('public/data/location-scores.json', {});
+      locationScore = allScores[decodedName] || null;
+    } catch {
+      // ignore
+    }
     
     // Dynamic OG Image URL
     const ogUrl = new URL(`${baseUrl}/api/og`);
@@ -292,7 +320,7 @@ export async function generateMetadata(props: {
       seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
     }
     
-    const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
+    const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
     const pyeongKeywordsList = pyeongSummaries.map(p => `${decodedName} ${p.pyeong}평, ${decodedName} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`).join(', ');
     const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
   
@@ -597,7 +625,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     ]
   };
 
-  const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries);
+  const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
 
   return (
     <>
@@ -611,6 +639,56 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       <div className="sr-only" aria-hidden="true">
         <h1>{decodedName} 아파트 실거래가 및 학군 가치 분석 리포트</h1>
         <p>{aiBriefing}</p>
+        
+        {locationScore && (
+          <section style={{ marginTop: '20px' }}>
+            <h2>{decodedName} 학군 및 교통 입지 분석</h2>
+            <ul>
+              {locationScore.nearestSchoolNames?.elementary && (
+                <li>배정 초등학교: {locationScore.nearestSchoolNames.elementary} (단지에서 약 {locationScore.distanceToElementary || 0}m, 도보 약 {Math.round((locationScore.distanceToElementary || 0) / 70) || 1}분)</li>
+              )}
+              {locationScore.nearestSchoolNames?.middle && (
+                <li>인근 중학교: {locationScore.nearestSchoolNames.middle}</li>
+              )}
+              {locationScore.nearestSchoolNames?.high && (
+                <li>인근 고등학교: {locationScore.nearestSchoolNames.high}</li>
+              )}
+              {locationScore.nearestStationName && (
+                <li>대중교통: {locationScore.nearestStationLine || '지하철'} {locationScore.nearestStationName}역 (단지에서 약 {locationScore.distanceToSubway || 0}m, 도보 약 {Math.round((locationScore.distanceToSubway || 0) / 70) || 1}분)</li>
+              )}
+            </ul>
+          </section>
+        )}
+
+        {matchedReportData?.sections && (
+          <section style={{ marginTop: '20px' }}>
+            <h2>{decodedName} 현장 임장 및 입지 팩트체크</h2>
+            {matchedReportData.sections.assessment?.synthesis && (
+              <div>
+                <h3>종합 가치 평가</h3>
+                <p>{matchedReportData.sections.assessment.synthesis}</p>
+              </div>
+            )}
+            {matchedReportData.sections.ecosystem?.schoolText && (
+              <div>
+                <h3>학군 및 교육 환경</h3>
+                <p>{matchedReportData.sections.ecosystem.schoolText}</p>
+              </div>
+            )}
+            {matchedReportData.sections.location?.trafficText && (
+              <div>
+                <h3>교통 및 도로 인프라</h3>
+                <p>{matchedReportData.sections.location.trafficText}</p>
+              </div>
+            )}
+            {matchedReportData.sections.infra?.parkingText && (
+              <div>
+                <h3>주차 공간 및 편의 시설</h3>
+                <p>{matchedReportData.sections.infra.parkingText}</p>
+              </div>
+            )}
+          </section>
+        )}
         
         {pyeongSummaries.length > 0 ? (
           pyeongSummaries.map((p) => (

@@ -1504,7 +1504,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         const customAptName = txKeyToCustomNameMap.get(tx.txKey) || tx.aptName;
 
         groups[dateKey].items.push({
-          aptName: tx.aptName,
+          aptName: customAptName,
           displayAptName: getDisplayAptName(customAptName),
           dong: txSummaryData[tx.txKey]?.dong || "",
           priceEok: tx.priceEok,
@@ -1540,7 +1540,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       .map((group) => {
         const filteredItems = group.items.filter((item) => {
           const matchesDong = timelineDongFilter === "전체" || item.dong === timelineDongFilter;
-          const matchesApt = timelineAptFilter === "전체" || item.aptName === timelineAptFilter;
+          const matchesApt = timelineAptFilter === "전체" || 
+            item.aptName === timelineAptFilter || 
+            normalizeAptName(item.aptName) === normalizeAptName(timelineAptFilter);
           return matchesDong && matchesApt;
         });
         return {
@@ -1705,7 +1707,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 ) : (
                   ((!isMobileViewport || isTimelineExpanded) ? filteredTimelineData : filteredTimelineData.slice(0, 3)).map((group) => {
-                    const isGroupSelected = group.items.some(item => selectedTimelineApt === item.aptName);
+                    const isGroupSelected = group.items.some(item => 
+                      selectedTimelineApt ? (
+                        selectedTimelineApt === item.aptName ||
+                        normalizeAptName(selectedTimelineApt) === normalizeAptName(item.aptName)
+                      ) : false
+                    );
                     return (
                       <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 border-l-2 border-slate-100 dark:border-slate-800/80">
                         {/* Timeline Dot */}
@@ -1977,7 +1984,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                           onClick={() => onSelectApt && onSelectApt(selectedTimelineApt)}
                           onMouseEnter={() => {
                             if (selectedTimelineApt) {
-                              const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt);
+                              const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt || normalizeAptName(a.name) === normalizeAptName(selectedTimelineApt));
                               const dong = aptObj?.dong || '';
                               preloadApartmentTx?.(selectedTimelineApt, dong);
                               import('@/components/ApartmentModal').catch(() => {});
@@ -1986,7 +1993,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                           }}
                           onTouchStart={() => {
                             if (selectedTimelineApt) {
-                              const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt);
+                              const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt || normalizeAptName(a.name) === normalizeAptName(selectedTimelineApt));
                               const dong = aptObj?.dong || '';
                               preloadApartmentTx?.(selectedTimelineApt, dong);
                               import('@/components/ApartmentModal').catch(() => {});
