@@ -352,6 +352,38 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
     return { daycares, kindergartens, isOverridden: false };
   }, [dong, aptName, hash, coordinates]);
 
+  // Generate JSON-LD structural data for Childcare (SEO/Rich Snippets)
+  const jsonLdElements = useMemo(() => {
+    const elements: any[] = [];
+    if (childcareData) {
+      childcareData.daycares.forEach((item) => {
+        elements.push({
+          "@type": "LocationFeatureSpecification",
+          "name": `${item.name} (${item.type} 어린이집)`,
+          "value": `${item.distance}m (도보 약 ${Math.ceil(item.distance / 80)}분), ${item.safetyGuide}`
+        });
+      });
+      childcareData.kindergartens.forEach((item) => {
+        elements.push({
+          "@type": "LocationFeatureSpecification",
+          "name": `${item.name} (${item.type} 유치원)`,
+          "value": `${item.distance}m (도보 약 ${Math.ceil(item.distance / 80)}분), ${item.safetyGuide}`
+        });
+      });
+    }
+    return elements;
+  }, [childcareData]);
+
+  const jsonLd = useMemo(() => {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${aptName} 단지 안심 보육 & 돌봄 인프라 정보`,
+      "description": `단지 인근 어린이집 및 유치원 시설의 최단 보행 거리, 교육 기관 유형(${dong} 행정동 기반), 안전 통학로 분석 및 안심 길목 진단 정보입니다.`,
+      "amenityFeature": jsonLdElements
+    };
+  }, [aptName, dong, jsonLdElements]);
+
   const gradeStyles = {
     excellent: { text: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/40 border-teal-100/30 dark:border-teal-900/20', label: '최상' },
     good: { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100/30 dark:border-emerald-900/20', label: '우수' },
@@ -360,6 +392,10 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
 
   return (
     <div className="flex flex-col w-full gap-8 mt-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ─── 🏡 안심 보육 & 돌봄 인프라 그리드 ─── */}
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
