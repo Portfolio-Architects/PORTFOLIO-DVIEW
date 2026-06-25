@@ -44,6 +44,8 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -56,6 +58,65 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    if (isOpen) {
+      // Auto focus close button when modal opens
+      const timer = setTimeout(() => {
+        if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }, 50);
+
+      // Escape key handling
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && !isUploading) {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, onClose, isUploading]);
+
+  // Focus Trap Handler
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
 
   // Reset file, caption when modal is closed
   useEffect(() => {
@@ -179,28 +240,39 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      role="presentation"
+    >
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="photo-upload-title"
+        aria-describedby="photo-upload-desc"
+        onKeyDown={handleFocusTrap}
         className="bg-surface rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
-          <h2 className="text-[18px] font-bold text-primary flex items-center gap-2">
-            <Camera className="text-toss-blue" size={20} />
+          <h2 id="photo-upload-title" className="text-[18px] font-bold text-primary flex items-center gap-2">
+            <Camera className="text-toss-blue" size={20} aria-hidden="true" />
             우리 단지 사진 올리기
           </h2>
           <button 
+            ref={closeButtonRef}
             onClick={onClose}
             className="p-2 -mr-2 text-tertiary hover:bg-body rounded-full transition-colors"
             disabled={isUploading}
+            aria-label="닫기"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+        <div id="photo-upload-desc" className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
           {isSuccess ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <div className="w-16 h-16 bg-toss-blue-light text-toss-blue rounded-full flex items-center justify-center mb-4">
