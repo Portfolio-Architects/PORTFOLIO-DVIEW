@@ -180,9 +180,71 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
 
   const displayList = recentList.slice(0, visibleCount);
   const hasMore = recentList.length > visibleCount;
+
+  const hotComplexJsonLd = useMemo(() => {
+    if (!recentList || recentList.length === 0) return null;
+
+    const listItems = recentList.slice(0, 15).map((item, idx) => {
+      return {
+        "@type": "ListItem",
+        "position": idx + 1,
+        "url": `https://dongtanview.com/apartment/${encodeURIComponent(item.apt.name)}`,
+        "name": item.apt.name,
+        "item": {
+          "@type": "Place",
+          "name": item.apt.name,
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "화성시",
+            "addressRegion": "경기도",
+            "streetAddress": item.apt.dong,
+            "addressCountry": "KR"
+          },
+          "additionalProperty": [
+            {
+              "@type": "PropertyValue",
+              "name": "최근 실거래가",
+              "value": item.latestPriceEok
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "직전 거래일",
+              "value": item.latestDate
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "면적",
+              "value": item.areaLabel
+            },
+            ...(item.latestFloor > 0 ? [{
+              "@type": "PropertyValue",
+              "name": "층수",
+              "value": `${item.latestFloor}층`
+            }] : [])
+          ]
+        }
+      };
+    });
+
+    const itemListSchema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "동탄 아파트 최근 실거래 인기 단지 랭킹",
+      "description": "최근 거래가 신고된 동탄 지역 아파트 단지들의 실거래가 및 거래 정보 목록입니다.",
+      "itemListElement": listItems
+    };
+
+    return JSON.stringify(itemListSchema);
+  }, [recentList]);
  
   return (
     <div className="w-full bg-surface border border-border rounded-3xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
+      {hotComplexJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: hotComplexJsonLd }}
+        />
+      )}
       
       {/* Premium Underline Title */}
       <div className="flex border-b border-border/60 bg-body/25 px-5 py-3.5 shrink-0 items-center justify-between">

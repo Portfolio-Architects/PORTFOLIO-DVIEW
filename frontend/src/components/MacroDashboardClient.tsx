@@ -917,7 +917,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       "@type": "Dataset",
       "name": "동탄 아파트 부동산 매크로 시세 및 실거래 트렌드 통계",
       "description": "동탄 지역 아파트의 매매 실거래 평균가 및 전세 평균 시세의 월별 변동 추이를 집계한 부동산 매크로 통계 데이터셋입니다.",
-      "url": typeof window !== "undefined" ? window.location.href : "https://dview.co.kr",
+      "url": "https://dongtanview.com",
       "spatialCoverage": {
         "@type": "Place",
         "name": "경기도 화성시 동탄"
@@ -941,7 +941,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         "@type": "DataDownload",
         "name": "동탄 아파트 월별 매크로 시세 추이",
         "encodingFormat": "application/json",
-        "contentUrl": typeof window !== "undefined" ? window.location.href : "https://dview.co.kr"
+        "contentUrl": "https://dongtanview.com"
       }
     };
 
