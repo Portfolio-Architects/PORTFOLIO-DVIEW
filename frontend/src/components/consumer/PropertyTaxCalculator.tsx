@@ -455,7 +455,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   return createPortal(
     <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" onClick={onClose} role="presentation" />
+      <button type="button" className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md border-none cursor-default" onClick={onClose} aria-label="보유세 계산기 창 닫기" />
 
       {/* Modal Container */}
       <div

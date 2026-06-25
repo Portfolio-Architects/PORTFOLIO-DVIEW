@@ -53,12 +53,14 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
             </div>
           ) : (
             railStrategyNotices.slice(0, 2).map((item: LocalNoticeItem) => (
-              <div
+              <button
                 key={item.id}
+                type="button"
+                aria-label={`공고: ${item.title}, 날짜: ${item.date}`}
                 onClick={() => {
                   window.location.href = `/news?notice=${item.id}`;
                 }}
-                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d]/50"
               >
                 {/* Left: Icon & Title */}
                 <div className="flex items-center gap-2.5 min-w-0 mr-3">
@@ -75,7 +77,7 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                     {item.date.substring(5, 10).replace("-", "/")}
                   </span>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -95,12 +97,14 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
             </div>
           ) : (
             tramNotices.slice(0, 2).map((item: LocalNoticeItem) => (
-              <div
+              <button
                 key={item.id}
+                type="button"
+                aria-label={`공고: ${item.title}, 날짜: ${item.date}`}
                 onClick={() => {
                   window.location.href = `/news?notice=${item.id}`;
                 }}
-                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0"
+                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
                 {/* Left: Icon & Title */}
                 <div className="flex items-center gap-2.5 min-w-0 mr-3">
@@ -117,7 +121,7 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                     {item.date.substring(5, 10).replace("-", "/")}
                   </span>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>

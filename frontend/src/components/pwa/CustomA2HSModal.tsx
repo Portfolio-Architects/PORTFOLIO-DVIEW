@@ -88,10 +88,11 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
   return createPortal(
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-sm transition-opacity"
+      <button 
+        type="button"
+        className="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-sm transition-opacity border-none cursor-default"
         onClick={() => setShowCustomA2HSModal(false)}
-        role="presentation"
+        aria-label="앱 설치 유도 창 닫기"
       />
       
       {/* Bottom Sheet Modal */}

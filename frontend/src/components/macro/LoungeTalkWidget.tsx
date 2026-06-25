@@ -42,8 +42,10 @@ export function LoungeTalkWidget({ postsData }: LoungeTalkWidgetProps) {
           </div>
         ) : (
           postsData.posts.slice(0, 4).map((post: any) => (
-            <div 
+            <button 
               key={post.id}
+              type="button"
+              aria-label={`추천 토크: ${post.title}, 카테고리: ${post.category || '기타'} 상세 보기`}
               onClick={() => {
                 if (window.location.pathname === '/' || window.location.pathname === '') {
                   window.location.hash = `post=${post.id}`;
@@ -51,7 +53,7 @@ export function LoungeTalkWidget({ postsData }: LoungeTalkWidgetProps) {
                   window.location.href = `/lounge#post=${post.id}`;
                 }
               }}
-              className="flex justify-between items-center p-3 hover:bg-body/50 dark:hover:bg-zinc-950/20 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995]"
+              className="flex justify-between items-center p-3 hover:bg-body/50 dark:hover:bg-zinc-950/20 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995] w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d]/50"
             >
               <div className="flex flex-col gap-1 min-w-0 mr-3">
                 <div className="flex items-center gap-1.5">
@@ -74,7 +76,7 @@ export function LoungeTalkWidget({ postsData }: LoungeTalkWidgetProps) {
                   조회 {post.views}
                 </span>
               </div>
-            </div>
+            </button>
           ))
         )}
       </div>

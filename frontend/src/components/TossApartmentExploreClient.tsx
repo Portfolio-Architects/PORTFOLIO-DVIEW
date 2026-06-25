@@ -1007,9 +1007,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[100] flex flex-col justify-end md:hidden">
           {/* Dimmed Background */}
-          <div 
-            className="absolute inset-0 bg-black/40 transition-opacity" 
+          <button 
+            type="button"
+            className="absolute inset-0 bg-black/40 transition-opacity border-none cursor-default" 
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="메뉴 닫기"
           />
           
           {/* Sheet */}

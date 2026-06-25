@@ -312,10 +312,11 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
           onKeyDown={handleKeyDown}
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
         >
-          <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+          <button 
+            type="button"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm border-none cursor-default" 
             onClick={handleClose} 
-            role="presentation"
+            aria-label="글쓰기 창 닫기"
           />
           <article 
             ref={modalRef}

@@ -689,11 +689,14 @@ const AptFitFinder = React.memo(function AptFitFinder({
   if (!isOpen || !mounted) return null;
 
   return createPortal(
-    <div 
-      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300"
-      onClick={onClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+      {/* Sibling Backdrop Button */}
+      <button 
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md border-none cursor-default"
+        onClick={onClose}
+        aria-label="단지 맞춤 탐색 창 닫기"
+      />
       <div 
         ref={modalRef}
         onKeyDown={handleKeyDown}
@@ -702,7 +705,6 @@ const AptFitFinder = React.memo(function AptFitFinder({
         aria-labelledby="fit-title"
         aria-describedby="fit-desc"
         className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[94vh] sm:max-h-[92vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center px-5 py-3.5 sm:px-6 sm:py-4 border-b border-neutral-100 dark:border-zinc-900 shrink-0">

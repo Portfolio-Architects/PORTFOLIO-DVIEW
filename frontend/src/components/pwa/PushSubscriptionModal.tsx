@@ -117,10 +117,11 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
   return createPortal(
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/45 z-[9999] backdrop-blur-sm transition-opacity"
+      <button 
+        type="button"
+        className="fixed inset-0 bg-black/45 z-[9999] backdrop-blur-sm transition-opacity border-none cursor-default"
         onClick={onClose}
-        role="presentation"
+        aria-label="알림 구독 창 닫기"
       />
       
       {/* Bottom Sheet / Popover Modal */}

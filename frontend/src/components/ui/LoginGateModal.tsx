@@ -162,10 +162,11 @@ const LoginGateModal = React.memo(function LoginGateModal({ isOpen, onClose, mes
       className="fixed inset-0 z-[30000] flex items-center justify-center p-4"
     >
       {/* Background Overlay */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-md animate-in fade-in duration-300"
+      <button 
+        type="button"
+        className="absolute inset-0 bg-black/50 backdrop-blur-md animate-in fade-in duration-300 border-none cursor-default"
         onClick={onClose}
-        aria-hidden="true"
+        aria-label="로그인 안내 창 닫기"
       />
 
       {/* Modal Container */}

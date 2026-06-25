@@ -458,12 +458,14 @@ const CommentItem = React.memo(function CommentItem({
       </div>
       <div className="flex-1">
         <div className="flex items-baseline gap-2 mb-1">
-          <span 
+          <button 
+            type="button"
             onClick={() => onClickAuthor && onClickAuthor(comment.author)}
-            className="font-bold text-[14px] text-primary hover:text-teal-600 dark:hover:text-teal-400 hover:underline cursor-pointer transition-colors"
+            className="font-bold text-[14px] text-primary hover:text-teal-600 dark:hover:text-teal-400 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded"
+            aria-label={`@${comment.author} 멘션하기`}
           >
             {comment.author}
-          </span>
+          </button>
           <span className="text-[12px] text-tertiary">{String(comment.createdAt)}</span>
         </div>
         <p className="text-[14px] text-secondary leading-relaxed break-all whitespace-pre-wrap">

@@ -225,11 +225,14 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
   if (!mounted) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
-      onClick={onClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Sibling Backdrop Button */}
+      <button 
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm border-none cursor-default"
+        onClick={onClose}
+        aria-label="제휴 상담 신청 창 닫기"
+      />
       <div
         ref={modalRef}
         role="dialog"
@@ -238,7 +241,6 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
         aria-describedby="b2b-ad-desc"
         onKeyDown={handleFocusTrap}
         className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-border/20 animate-slide-up"
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-body">

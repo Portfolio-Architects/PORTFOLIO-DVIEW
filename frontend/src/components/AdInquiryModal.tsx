@@ -155,11 +155,14 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
   if (!mounted) return null;
 
   return createPortal(
-    <div 
-      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200" 
-      onClick={handleSafeClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      {/* Sibling Backdrop Button */}
+      <button 
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm border-none cursor-default"
+        onClick={handleSafeClose}
+        aria-label="광고 및 제휴 문의 창 닫기"
+      />
       <div
         ref={modalRef}
         role="dialog"
@@ -168,7 +171,6 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
         aria-describedby="ad-inquiry-desc"
         onKeyDown={handleKeyDown}
         className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border/20 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-body">

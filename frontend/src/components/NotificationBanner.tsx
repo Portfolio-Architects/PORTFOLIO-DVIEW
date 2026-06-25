@@ -97,11 +97,14 @@ const NotificationBanner = React.memo(function NotificationBanner() {
 
       {/* PWA Guide Modal Overlay */}
       {showPwaGuide && mounted && createPortal(
-        <div 
-          className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          role="presentation"
-          onClick={() => setShowPwaGuide(false)}
-        >
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          {/* Sibling Backdrop Button */}
+          <button 
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm border-none cursor-default"
+            onClick={() => setShowPwaGuide(false)}
+            aria-label="안내 창 닫기"
+          />
           <div 
             ref={modalRef}
             role="dialog"
@@ -110,7 +113,6 @@ const NotificationBanner = React.memo(function NotificationBanner() {
             aria-describedby="pwa-guide-desc"
             onKeyDown={handleKeyDown}
             className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 relative text-primary dark:bg-[#1e293b] dark:border-slate-700 dark:text-white shadow-2xl animate-in zoom-in duration-200"
-            onClick={e => e.stopPropagation()}
           >
             <button 
               ref={closeButtonRef}

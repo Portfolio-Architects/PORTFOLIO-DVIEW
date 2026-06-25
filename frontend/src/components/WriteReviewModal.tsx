@@ -315,11 +315,14 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
   if (!mounted) return null;
 
   return createPortal(
-    <div 
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200" 
-      onClick={handleSafeClose}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      {/* Sibling Backdrop Button */}
+      <button 
+        type="button"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm border-none cursor-default"
+        onClick={handleSafeClose}
+        aria-label="리뷰 작성 창 닫기"
+      />
       <div
         ref={modalRef}
         role="dialog"
@@ -328,7 +331,6 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
         aria-describedby="write-review-desc"
         onKeyDown={handleKeyDown}
         className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
-        onClick={e => e.stopPropagation()}
       >
         {/* WAI-ARIA Screen reader descriptive text to replace duplicate ID elements */}
         <p id="write-review-desc" className="sr-only">
