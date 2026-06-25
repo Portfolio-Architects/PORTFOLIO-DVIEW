@@ -372,8 +372,8 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
   const txSummary = await getTxSummaryData();
   const aptNames = Object.keys(txSummary || {});
-  // Pre-render the first 50 apartments to prevent long build times
-  return aptNames.slice(0, 50).map((name) => ({
+  // Pre-render all apartments (184 complexes) to guarantee 100% SSG pages for search engine indexing
+  return aptNames.map((name) => ({
     aptName: encodeURIComponent(name),
   }));
 }
