@@ -101,7 +101,6 @@ export const AptRow = memo(({
     <div className="w-full flex flex-col px-0 py-0">
       {/* Desktop View (Hidden on Mobile) */}
       <div 
-        onClick={() => handleSelectApt(item.apt.name)}
         onMouseEnter={() => {
           preloadApartmentTx?.(item.apt.name, item.apt.dong);
           import('@/components/ApartmentModal').catch(() => {});
@@ -112,7 +111,7 @@ export const AptRow = memo(({
           import('@/components/ApartmentModal').catch(() => {});
           import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
         }}
-        className="hidden md:flex items-center px-6 h-[60px] border-b border-neutral-100/70 dark:border-zinc-900/30 last:border-b-0 cursor-pointer transition-all duration-200 ease-in-out hover:bg-neutral-50/60 dark:hover:bg-zinc-900/30"
+        className="hidden md:flex items-center px-6 h-[60px] border-b border-neutral-100/70 dark:border-zinc-900/30 last:border-b-0 transition-all duration-200 ease-in-out hover:bg-neutral-50/60 dark:hover:bg-zinc-900/30"
       >
         {/* Heart */}
         <div className="w-[36px] text-center flex justify-center items-center shrink-0">
@@ -123,6 +122,14 @@ export const AptRow = memo(({
             size={18} 
           />
         </div>
+        
+        {/* Main Select Button */}
+        <button
+          type="button"
+          onClick={() => handleSelectApt(item.apt.name)}
+          className="flex-1 flex items-center h-full text-left bg-transparent border-none p-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded"
+          aria-label={`${item.apt.name} 아파트 리포트 열기`}
+        >
         
         {/* Rank */}
         <div className="w-[40px] text-center shrink-0 flex items-center justify-center">
@@ -205,66 +212,70 @@ export const AptRow = memo(({
             </span>
           )}
         </div>
-      </div>
+      </button>
+    </div>
 
       {/* Mobile View (Hidden on Desktop) - Sleek Toss-style List Tile */}
       <div 
-        onClick={() => handleSelectApt(item.apt.name)}
-        onTouchStart={() => {
-          preloadApartmentTx?.(item.apt.name, item.apt.dong);
-          import('@/components/ApartmentModal').catch(() => {});
-          import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-        }}
-        className={`flex md:hidden items-center justify-between px-4 h-[64px] cursor-pointer transition-all duration-200 ease-in-out active:bg-neutral-100/60 dark:active:bg-zinc-900/40 ${
+        className={`flex md:hidden items-center justify-between px-4 h-[64px] transition-all duration-200 ease-in-out active:bg-neutral-100/60 dark:active:bg-zinc-900/40 ${
           index % 2 === 0 ? 'bg-white dark:bg-zinc-950' : 'bg-neutral-50/20 dark:bg-zinc-900/5'
         } border-b border-neutral-100/40 dark:border-zinc-900/10`}
       >
-        {/* Left Side: Rank, Name, Subtitle */}
-        <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
-          {/* Rank Badge */}
-          <div className="shrink-0 flex items-center justify-center">
-            {index < 3 ? (
-              <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tight ${
-                index === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 text-white shadow-sm' :
-                index === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-sm' :
-                'bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white shadow-sm'
-              }`}>
-                {index + 1}
-              </span>
-            ) : (
-              <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
-                {index + 1}
-              </span>
-            )}
-          </div>
-
-          {/* Name & Subtitle */}
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[14.5px] font-extrabold text-neutral-900 dark:text-neutral-50 break-keep whitespace-normal tracking-tight">
-                {item.apt.name}
-              </span>
-              {photoCount > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1 py-0.5 rounded shrink-0">
-                  <Camera className="w-2.5 h-2.5" />{photoCount}
+        <button
+          type="button"
+          onClick={() => handleSelectApt(item.apt.name)}
+          onTouchStart={() => {
+            preloadApartmentTx?.(item.apt.name, item.apt.dong);
+            import('@/components/ApartmentModal').catch(() => {});
+            import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+          }}
+          className="flex-grow flex items-center justify-between text-left bg-transparent border-none p-0 cursor-pointer outline-none h-full min-w-0 pr-3"
+          aria-label={`${item.apt.name} 아파트 리포트 열기`}
+        >
+          {/* Left Side: Rank, Name, Subtitle */}
+          <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
+            {/* Rank Badge */}
+            <div className="shrink-0 flex items-center justify-center">
+              {index < 3 ? (
+                <span className={`w-[20px] h-[20px] rounded-full flex items-center justify-center text-[10px] font-black tracking-tight ${
+                  index === 0 ? 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 text-white shadow-sm' :
+                  index === 1 ? 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-sm' :
+                  'bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white shadow-sm'
+                }`}>
+                  {index + 1}
+                </span>
+              ) : (
+                <span className="w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-neutral-400 dark:text-neutral-500">
+                  {index + 1}
                 </span>
               )}
             </div>
-            
-            {/* Subtitle Info */}
-            <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500 font-semibold mt-0.5 truncate tracking-tight">
-              <span className="text-neutral-500 dark:text-neutral-400">{item.apt.dong}</span>
-              <span className="text-neutral-300 dark:text-zinc-800">•</span>
-              <span>{item.formattedYearBuilt}</span>
-              <span className="text-neutral-300 dark:text-zinc-800">•</span>
-              <span>{item.formattedHousehold}</span>
+
+            {/* Name & Subtitle */}
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[14.5px] font-extrabold text-neutral-900 dark:text-neutral-50 break-keep whitespace-normal tracking-tight">
+                  {item.apt.name}
+                </span>
+                {photoCount > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-500/10 px-1 py-0.5 rounded shrink-0">
+                    <Camera className="w-2.5 h-2.5" />{photoCount}
+                  </span>
+                )}
+              </div>
+              
+              {/* Subtitle Info */}
+              <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500 font-semibold mt-0.5 truncate tracking-tight">
+                <span className="text-neutral-500 dark:text-neutral-400">{item.apt.dong}</span>
+                <span className="text-neutral-300 dark:text-zinc-800">•</span>
+                <span>{item.formattedYearBuilt}</span>
+                <span className="text-neutral-300 dark:text-zinc-800">•</span>
+                <span>{item.formattedHousehold}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Side: Dynamic Metric & Favorite Heart */}
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Dynamic Metric Value */}
+          {/* Right Side Part 1: Dynamic Metric */}
           <div className="text-right flex flex-col justify-center">
             {currentCategory === 'rank-abs-price' || currentCategory === 'favorites' ? (
               <>
@@ -322,16 +333,16 @@ export const AptRow = memo(({
               </>
             )}
           </div>
+        </button>
 
-          {/* Heart Icon (Compact, without the heavy capsule) */}
-          <div className="shrink-0 flex items-center justify-center">
-            <InteractiveHeart 
-              isFavorited={isFavorited} 
-              name={item.apt.name} 
-              onToggle={onToggleFavorite} 
-              size={16} 
-            />
-          </div>
+        {/* Right Side Part 2: Favorite Heart (Sibling Button) */}
+        <div className="shrink-0 flex items-center justify-center pl-2">
+          <InteractiveHeart 
+            isFavorited={isFavorited} 
+            name={item.apt.name} 
+            onToggle={onToggleFavorite} 
+            size={16} 
+          />
         </div>
       </div>
     </div>

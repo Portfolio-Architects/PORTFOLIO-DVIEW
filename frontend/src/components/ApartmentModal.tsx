@@ -2623,10 +2623,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
         style={{ position: 'fixed' }}
         onKeyDown={handleKeyDown}
       >
-        <div 
-          className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" 
+        <button 
+          type="button"
+          className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md border-none cursor-default" 
           onClick={handleSafeClose} 
-          role="presentation"
+          aria-label="단지 리포트 닫기"
         />
         
         <div 

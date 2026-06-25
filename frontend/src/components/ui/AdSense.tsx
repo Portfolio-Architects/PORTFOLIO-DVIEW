@@ -190,22 +190,24 @@ const AdSense = React.memo(function AdSense({
     const isAnchor = adSlot.toLowerCase().includes('anchor');
     if (isAnchor) {
       return (
-        <div 
-          className="w-full bg-[#0d9488] text-white text-[12px] font-extrabold py-2.5 px-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0f766e] transition-colors"
+        <button 
+          type="button"
+          className="w-full bg-[#0d9488] text-white text-[12px] font-extrabold py-2.5 px-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0f766e] transition-colors border-none outline-none focus-visible:ring-2 focus-visible:ring-[#0f766e] text-center"
           style={style}
           onClick={handleGoToWriteReport}
         >
           <span>💚 실거주민의 리얼 임장기 보러가기</span>
           <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">바로가기 →</span>
-        </div>
+        </button>
       );
     }
 
     const isB2B = adSlot.charCodeAt(adSlot.length - 1) % 2 === 0;
 
     return (
-      <div 
-        className={`w-full bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-500/20 dark:border-emerald-500/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(13,148,136,0.1)] group cursor-pointer ${className}`}
+      <button 
+        type="button"
+        className={`w-full bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-500/20 dark:border-emerald-500/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-[0_0_20px_rgba(13,148,136,0.1)] group cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 ${className}`}
         style={{ minHeight: '120px', ...style }}
         onClick={isB2B ? handleOpenInquiry : handleGoToWriteReport}
       >
@@ -224,12 +226,12 @@ const AdSense = React.memo(function AdSense({
               : '여러분의 현장 답사기를 공유해주세요. 작성 즉시 24시간 동안 모든 프리미엄 입지 분석 자료가 무료로 잠금 해제됩니다.'}
           </p>
         </div>
-        <button 
-          className="bg-[#0d9488] hover:bg-[#0f766e] text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-all duration-300 shadow-sm shrink-0 active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+        <div 
+          className="bg-[#0d9488] group-hover:bg-[#0f766e] text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-all duration-300 shadow-sm shrink-0 select-none text-center"
         >
           {isB2B ? '제휴 문의' : '이동하기'}
-        </button>
-      </div>
+        </div>
+      </button>
     );
   }
 

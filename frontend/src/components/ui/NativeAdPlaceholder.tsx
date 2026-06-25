@@ -77,8 +77,9 @@ export const NativeAdPlaceholder = React.memo(function NativeAdPlaceholder({ loc
 
   // B2B Fallback or Local Sponsored Ad
   return (
-    <div 
-      className={`w-full ${ad.themeColor} rounded-[20px] px-5 border border-dashed flex items-center justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer ${
+    <button 
+      type="button"
+      className={`w-full ${ad.themeColor} rounded-[20px] px-5 border border-dashed flex items-center justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 ${
         isCompact 
           ? 'h-[78px] md:h-[86px] flex-row' 
           : 'min-h-[250px] md:min-h-[280px] py-8 flex-col sm:flex-row justify-center sm:justify-between gap-6'
@@ -100,14 +101,14 @@ export const NativeAdPlaceholder = React.memo(function NativeAdPlaceholder({ loc
       </div>
       
       <div className={`flex items-center gap-3 shrink-0 ${isCompact ? 'ml-4' : 'mt-4 sm:mt-0 flex-col sm:flex-row'}`}>
-        <button className="text-[11px] sm:text-[12px] font-bold px-4 py-2 bg-white dark:bg-slate-900 text-primary border border-border rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+        <div className="text-[11px] sm:text-[12px] font-bold px-4 py-2 bg-white dark:bg-slate-900 text-primary border border-border rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors select-none text-center">
           {ad.buttonText}
-        </button>
+        </div>
         <span className="text-[10px] font-bold opacity-85 uppercase tracking-widest">
           Sponsored
         </span>
       </div>
-    </div>
+    </button>
   );
 });
 

@@ -317,12 +317,12 @@ export const RegionAccordion = React.memo(function RegionAccordion({
               className="bg-surface rounded-[20px] shadow-sm border border-border transition-all duration-300 relative"
             >
               {/* Group Header */}
-              <div
-                role="button"
+              <button
+                type="button"
                 aria-expanded={isExpanded ? "true" : "false"}
                 aria-controls={`accordion-panel-${group.title.replace(/\s+/g, '-')}`}
                 id={`accordion-header-${group.title.replace(/\s+/g, '-')}`}
-                className={`px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
+                className={`px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''} w-full text-left bg-transparent border-none outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d]/50`}
                 onClick={() => toggleGroup(group.title)}
               >
                 <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
@@ -363,7 +363,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                     <ChevronDown className="w-5 h-5 text-tertiary transition-transform" />
                   )}
                 </div>
-              </div>
+              </button>
 
               {/* Group Panel (Apartments List) */}
               <div
@@ -377,15 +377,17 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                   return (
                     <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
                       {activeTier.apts.map((apt) => (
-                        <div
+                        <button
                           key={apt.name}
+                          type="button"
+                          aria-label={`${apt.name} 아파트 리포트 보기`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (onSelectApt) {
                               onSelectApt(apt.name);
                             }
                           }}
-                          className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
+                          className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#00d29d]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5 w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d]/50"
                         >
                           {/* Top Row: Name and Chevron */}
                           <div className="flex items-center justify-between w-full">
@@ -450,16 +452,17 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                               )}
                             </div>
                           </div>
-                        </div>
+                        </button>
                       ))}
 
                       {/* 커뮤니티 라운지 연결 브릿지 */}
-                      <div 
+                      <button 
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           window.location.href = `/lounge`;
                         }}
-                        className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e6f7f3] hover:text-[#008262] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2"
+                        className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e6f7f3] hover:text-[#008262] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#008262]/50"
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
                           <MessageSquare className="w-3.5 h-3.5 text-[#008262] shrink-0" />
@@ -469,7 +472,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                           대화 참여
                           <ChevronRight className="w-3.5 h-3.5 ml-0.5 transform group-hover/bridge:translate-x-0.5 transition-transform" />
                         </span>
-                      </div>
+                      </button>
                     </div>
                   );
                 })()}
