@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Star, Camera, Send } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Camera, Send } from 'lucide-react';
 import { useDashboardData, dashboardFacade } from '@/lib/DashboardFacade';
 import { logger } from '@/lib/services/logger';
 
@@ -14,28 +15,43 @@ interface ReviewContentStepProps {
   selectedApt: string;
   userUid: string;
   isSubmitting: boolean;
-  handleSubmit: (rating: number, content: string, imageFile: File | null) => Promise<void>;
+  rating: number;
+  setRating: React.Dispatch<React.SetStateAction<number>>;
+  content: string;
+  setContent: React.Dispatch<React.SetStateAction<string>>;
+  imageFile: File | null;
+  setImageFile: React.Dispatch<React.SetStateAction<File | null>>;
+  imagePreview: string | null;
+  setImagePreview: React.Dispatch<React.SetStateAction<string | null>>;
+  handleSubmit: () => Promise<void>;
   onPrev: () => void;
 }
 
 const ReviewContentStep = React.memo(function ReviewContentStep({
   selectedApt,
   isSubmitting,
+  rating,
+  setRating,
+  content,
+  setContent,
+  imageFile,
+  setImageFile,
+  imagePreview,
+  setImagePreview,
   handleSubmit,
   onPrev,
 }: ReviewContentStepProps) {
-  const [rating, setRating] = useState(0);
-  const [content, setContent] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    // Focus textarea on mount for better flow
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    // Focus textarea on mount for better flow with a slight delay
+    const timer = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 50);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +65,7 @@ const ReviewContentStep = React.memo(function ReviewContentStep({
 
   const onSubmit = () => {
     if (rating === 0 || !content.trim()) return;
-    handleSubmit(rating, content, imageFile);
+    handleSubmit();
   };
 
   const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'];
@@ -58,8 +74,8 @@ const ReviewContentStep = React.memo(function ReviewContentStep({
 
   return (
     <div>
-      {/* Selected apt badge */}
-      <div id="write-review-desc" className="bg-body rounded-xl px-4 py-2.5 mb-5 text-[13px] font-bold text-secondary truncate">
+      {/* Selected apt badge - ID removed to resolve duplicate ID issue */}
+      <div className="bg-body rounded-xl px-4 py-2.5 mb-5 text-[13px] font-bold text-secondary truncate">
         📍 {selectedApt}
       </div>
 
@@ -183,31 +199,71 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
   const [selectedDong, setSelectedDong] = useState('');
   const [selectedApt, setSelectedApt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Lifted state from ReviewContentStep to validate before close
+  const [rating, setRating] = useState(0);
+  const [content, setContent] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const mountedRef = useRef(true);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstChipRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     mountedRef.current = true;
+    setMounted(true);
+    return () => {
+      mountedRef.current = false;
+      setMounted(false);
+    };
+  }, []);
 
-    // Auto focus first chip on step 1 mount
-    if (step === 1 && firstChipRef.current) {
-      firstChipRef.current.focus();
+  // Safe close handler to prevent data loss (DLP)
+  const handleSafeClose = React.useCallback(() => {
+    if (step === 2 && (rating > 0 || content.trim().length > 0)) {
+      if (!window.confirm('작성 중인 리뷰 내용이 있습니다. 정말 닫으시겠습니까?')) {
+        return;
+      }
     }
+    onClose();
+  }, [step, rating, content, onClose]);
 
-    // Escape key handling
+  // Prevent background scroll when write review modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, []);
+
+  // Auto focus control
+  useEffect(() => {
+    if (step === 1 && firstChipRef.current) {
+      const timer = setTimeout(() => {
+        if (firstChipRef.current) {
+          firstChipRef.current.focus();
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
+  // Escape key handling
+  useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        handleSafeClose();
       }
     };
     window.addEventListener('keydown', handleEscape);
-
     return () => {
-      mountedRef.current = false;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [onClose, step]);
+  }, [handleSafeClose]);
 
   // Focus Trap Handler
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -238,7 +294,7 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
   ) as string[];
   const filteredApts = dongtanApartments.filter(apt => apt.includes(`[${selectedDong}]`));
 
-  const handleSubmit = React.useCallback(async (rating: number, content: string, imageFile: File | null) => {
+  const handleSubmit = React.useCallback(async () => {
     if (!selectedApt || rating === 0 || !content.trim()) return;
     setIsSubmitting(true);
     try {
@@ -254,12 +310,14 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
         setIsSubmitting(false);
       }
     }
-  }, [selectedApt, userUid, onClose]);
+  }, [selectedApt, rating, content, userUid, imageFile, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div 
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center" 
-      onClick={onClose}
+      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200" 
+      onClick={handleSafeClose}
       role="presentation"
     >
       <div
@@ -269,16 +327,21 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
         aria-labelledby="write-review-title"
         aria-describedby="write-review-desc"
         onKeyDown={handleKeyDown}
-        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[85vh] overflow-y-auto"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
         onClick={e => e.stopPropagation()}
       >
+        {/* WAI-ARIA Screen reader descriptive text to replace duplicate ID elements */}
+        <p id="write-review-desc" className="sr-only">
+          아파트 단지를 선택하고 평점 및 한줄평 리뷰를 작성하는 창입니다.
+        </p>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 id="write-review-title" className="text-[18px] font-extrabold text-primary">
             {step === 1 ? '어떤 단지인가요?' : '리뷰 작성'}
           </h2>
           <button 
-            onClick={onClose} 
+            onClick={handleSafeClose} 
             className="p-1.5 hover:bg-body rounded-full transition-colors"
             aria-label="리뷰 작성 창 닫기"
           >
@@ -310,7 +373,7 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
 
             {/* Apartment list */}
             {selectedDong ? (
-              <div id="write-review-desc" role="group" aria-label="아파트 단지 목록" className="bg-body border border-toss-gray rounded-xl overflow-hidden max-h-52 overflow-y-auto p-2">
+              <div role="group" aria-label="아파트 단지 목록" className="bg-body border border-toss-gray rounded-xl overflow-hidden max-h-52 overflow-y-auto p-2">
                 {filteredApts.map(apt => (
                   <button
                     key={apt}
@@ -327,7 +390,7 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
                 ))}
               </div>
             ) : (
-              <div id="write-review-desc" className="bg-body border border-dashed border-toss-gray rounded-xl p-8 text-center text-[13px] text-tertiary">
+              <div className="bg-body border border-dashed border-toss-gray rounded-xl p-8 text-center text-[13px] text-tertiary">
                 위에서 <strong>동 이름</strong>을 선택해주세요
               </div>
             )}
@@ -353,12 +416,21 @@ const WriteReviewModal = React.memo(function WriteReviewModal({ onClose, userUid
             selectedApt={selectedApt}
             userUid={userUid}
             isSubmitting={isSubmitting}
+            rating={rating}
+            setRating={setRating}
+            content={content}
+            setContent={setContent}
+            imageFile={imageFile}
+            setImageFile={setImageFile}
+            imagePreview={imagePreview}
+            setImagePreview={setImagePreview}
             handleSubmit={handleSubmit}
             onPrev={() => setStep(1)}
           />
         )}
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
