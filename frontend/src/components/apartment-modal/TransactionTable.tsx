@@ -175,8 +175,10 @@ export const TransactionTable = React.memo(function TransactionTable({
 
       <div 
       ref={scrollContainerRef}
-      className="overflow-y-auto touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px]"
+      className="overflow-y-auto touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px] focus:outline-none"
       style={{ WebkitOverflowScrolling: 'touch', scrollbarGutter: 'stable' }}
+      tabIndex={0}
+      aria-label="실거래 내역 목록"
       >
         {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => (
           <TransactionRow 

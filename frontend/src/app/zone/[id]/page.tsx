@@ -30,7 +30,7 @@ export async function generateMetadata(props: {
     title,
     description,
     alternates: {
-      canonical: `${baseUrl}/zone/${params.id}`,
+      canonical: `/zone/${params.id}`,
     },
     openGraph: {
       title,
