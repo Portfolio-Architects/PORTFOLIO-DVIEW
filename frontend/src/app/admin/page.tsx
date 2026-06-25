@@ -714,16 +714,21 @@ const AdminDashboard = React.memo(function AdminDashboard() {
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
           { label: '현장사진', value: stats.verified, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'verified' as const },
         ].map(s => (
-          <div key={s.label} onClick={() => startTransition(() => setFilter(s.fk))}
-            className={`bg-surface p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all ${
+          <button 
+            type="button"
+            key={s.label} 
+            onClick={() => startTransition(() => setFilter(s.fk))}
+            aria-label={`통계 필터: ${s.label}, 값: ${s.value}`}
+            className={`w-full text-left bg-surface p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue ${
               filter === s.fk && s.fk !== 'all' ? 'border-toss-blue ring-2 ring-toss-blue/10' : 'border-border'
-            }`}>
+            }`}
+          >
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-lg" style={{ backgroundColor: s.bg, color: s.color }}><s.icon size={14}/></div>
               <span className="text-[11px] font-bold text-tertiary">{s.label}</span>
             </div>
             <div className="text-[26px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
-          </div>
+          </button>
         ))}
       </div>
 
