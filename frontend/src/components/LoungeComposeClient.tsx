@@ -233,9 +233,9 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               </button>
             </div>
 
-            <div className="flex gap-2 mb-4 overflow-x-auto">
+            <div className="flex gap-2 mb-4 overflow-x-auto" role="tablist" aria-label="게시글 카테고리 선택">
               {['우리동네 이야기'].map((cat) => (
-                <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#008262] text-surface border-transparent shadow-sm' : 'bg-surface text-secondary border-toss-gray hover:border-[#008262]'}`}>{cat}</button>
+                <button key={cat} role="tab" aria-selected={postCategory === cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#008262] text-surface border-transparent shadow-sm' : 'bg-surface text-secondary border-toss-gray hover:border-[#008262]'}`}>{cat}</button>
               ))}
             </div>
 
@@ -247,6 +247,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                   <button 
                     type="button" 
                     onClick={() => setCustomNickname(generateMamacafeNickname())} 
+                    aria-label="활동 가명 닉네임 새로 생성"
                     className="text-[11.5px] font-extrabold text-[#008262] hover:text-[#006b50] hover:underline flex items-center gap-1"
                   >
                     새로 만들기 🔄
@@ -278,6 +279,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
+                  aria-label="이미지 파일 첨부"
                   className="flex items-center gap-1.5 text-[13px] font-bold text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] hover:bg-body transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-border"
                   title="이미지 업로드"
                 >
