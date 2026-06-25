@@ -185,6 +185,27 @@ export default async function LoungePostPage(props: Props) {
           dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
         />
       )}
+      
+      {/* Search Engine Optimization (SSR Content) */}
+      {initialPost && (
+        <div className="sr-only" aria-hidden="true">
+          <article>
+            <h1>{initialPost.title}</h1>
+            <div className="metadata">
+              <span>작성자: {initialPost.author}</span>
+              <span>작성일: {initialPost.createdAt ? new Date(initialPost.createdAt).toLocaleString() : ''}</span>
+              <span>카테고리: {initialPost.category || '일반'}</span>
+              {initialPost.verifiedApartment && <span>인증 아파트: {initialPost.verifiedApartment}</span>}
+              <span>조회수: {initialPost.views || 0}</span>
+              <span>추천수: {initialPost.likes || 0}</span>
+            </div>
+            <div className="content">
+              <p>{cleanContentText}</p>
+            </div>
+          </article>
+        </div>
+      )}
+
       <LoungeDetailClient postId={id} initialPost={initialPost} />
     </>
   );

@@ -106,6 +106,51 @@ export default async function LoungePage({
         nonce={nonce}
         dangerouslySetInnerHTML={safeJsonLd(mainSchema)}
       />
+      
+      {/* Search Engine Optimization (SSR Content) */}
+      <div className="sr-only" aria-hidden="true">
+        <h1>D-VIEW 주민 라운지 - 실시간 부동산 토크 및 지역 뉴스</h1>
+        <p>동탄 신도시 주민들이 직접 작성하는 솔직한 아파트 임장기, 거주 후기, 고민상담과 실시간 행정망 공지사항, 거시 뉴스 피드</p>
+        
+        <section>
+          <h2>주민 라운지 최신 토크 피드</h2>
+          <ul>
+            {posts.map((post: any) => (
+              <li key={post.id}>
+                <strong>{post.title}</strong> (카테고리: {post.category || '일반'}, 작성자: {post.author})
+                <p>{post.content ? post.content.substring(0, 100) : ''}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {initialNews.length > 0 && (
+          <section style={{ marginTop: '20px' }}>
+            <h2>실시간 부동산 & 금융 핵심 뉴스</h2>
+            <ul>
+              {initialNews.slice(0, 20).map((news: any, idx: number) => (
+                <li key={idx}>
+                  <strong>{news.title}</strong> (매체: {news.source || '언론사'}, 등록일: {news.pubDate || ''})
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {initialNotices.length > 0 && (
+          <section style={{ marginTop: '20px' }}>
+            <h2>동탄구 행정망 실시간 공지사항</h2>
+            <ul>
+              {initialNotices.slice(0, 20).map((notice: any, idx: number) => (
+                <li key={idx}>
+                  <strong>{notice.title}</strong> (등록부서: {notice.department || '행정부서'}, 등록일: {notice.date || ''})
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto relative pb-[100px] sm:pb-12 animate-in fade-in duration-500">
         {errorMessage && (
           <div className="bg-red-50 text-red-500 p-4 rounded-xl mb-4 text-sm font-bold border border-red-200">
