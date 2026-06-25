@@ -31,7 +31,7 @@ export async function generateMetadata(props: {
     title,
     description,
     alternates: {
-      canonical: `/zone/${params.id}`,
+      canonical: `https://dongtanview.com/zone/${params.id}`,
     },
     openGraph: {
       title,

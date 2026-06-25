@@ -200,7 +200,7 @@ function getDefaultMetadata(baseUrl: string, aptName: string = '아파트'): Met
     title,
     description,
     alternates: {
-      canonical: `/apartment/${encodeURIComponent(aptName)}`,
+      canonical: `https://dongtanview.com/apartment/${encodeURIComponent(aptName)}`,
     },
     openGraph: {
       title,
@@ -329,7 +329,7 @@ export async function generateMetadata(props: {
       description: seoDescription,
       keywords: dynamicKeywords,
       alternates: {
-        canonical: `/apartment/${encodeURIComponent(decodedName)}`,
+        canonical: `https://dongtanview.com/apartment/${encodeURIComponent(decodedName)}`,
       },
       openGraph: {
         title: seoTitle,

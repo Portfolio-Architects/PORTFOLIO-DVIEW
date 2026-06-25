@@ -8,7 +8,7 @@ export const metadata = {
   title: '문의하기 | D-VIEW 고객 지원',
   description: 'D-VIEW 부동산 분석 플랫폼에 대한 건의사항, 오류 제보, 광고 및 제휴 제안을 위한 고객 소통 및 이메일 문의 채널입니다.',
   alternates: {
-    canonical: '/contact',
+    canonical: 'https://dongtanview.com/contact',
   },
 };
 

@@ -23,7 +23,7 @@ export async function generateMetadata({
       title: `[동탄구 소식] ${title} - D-VIEW 라운지`,
       description: `${dept || '동탄구 소식'} - D-VIEW 실시간 행정망 공지사항 안내`,
       alternates: {
-        canonical: '/lounge',
+        canonical: 'https://dongtanview.com/lounge',
       },
       openGraph: {
         title: `[동탄구 소식] ${title}`,
@@ -44,7 +44,7 @@ export async function generateMetadata({
     title: 'D-VIEW 라운지 | 동탄인들의 부동산 소통 공간',
     description: '동탄 아파트 임장기, 고민상담, 청약 정보 및 실시간 동탄 소식들을 확인해보세요.',
     alternates: {
-      canonical: '/lounge',
+      canonical: 'https://dongtanview.com/lounge',
     },
   };
 }

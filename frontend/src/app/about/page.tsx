@@ -7,7 +7,7 @@ export const metadata = {
   title: 'D-VIEW 소개 | 동탄 아파트 가치분석의 새로운 기준',
   description: 'D-VIEW의 비전, 부동산 가치 평가 모델(실거주 PER, 입지 유틸리티 스코어, 3D 시그널 맵) 및 데이터 출처와 투명성에 대해 알아봅니다.',
   alternates: {
-    canonical: '/about',
+    canonical: 'https://dongtanview.com/about',
   },
 };
 

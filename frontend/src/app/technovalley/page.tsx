@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'D-VIEW 테크노밸리 | 동탄 지식산업센터 공실 매칭 & 혜택 센터',
   description: '동탄 테크노밸리 지식산업센터의 공실 해소를 위한 원스톱 솔루션. 빌딩별 공실 정보, 소형 오피스 공동임차 매칭, 입주 혜택 시뮬레이터 및 맞춤형 오피스 핏파인더를 제공합니다.',
   alternates: {
-    canonical: '/technovalley',
+    canonical: 'https://dongtanview.com/technovalley',
   },
 };
 
