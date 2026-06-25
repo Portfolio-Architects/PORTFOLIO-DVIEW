@@ -2622,7 +2622,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           role="presentation"
         />
         
-        <article 
+        <div 
           role="dialog"
           aria-modal="true"
           aria-labelledby="apartment-modal-title"
@@ -2727,7 +2727,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               </button>
             </div>
           </footer>
-        </article>
+        </div>
       </div>
       
       {/* Upload Modal */}

@@ -84,7 +84,7 @@ const Footer = React.memo(function Footer() {
 
           {/* 우측: 정보 및 면책조항 */}
           <div className="flex flex-col items-start lg:items-end text-[12px] text-tertiary leading-relaxed font-medium w-full lg:max-w-[600px] xl:max-w-[700px]">
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-2.5 lg:justify-end" role="contentinfo" aria-label="사이트 사업자 및 저작권 정보">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-2.5 lg:justify-end">
               <span>상호: D-VIEW</span>
               <span className="text-toss-gray">|</span>
               <span>이메일: ocs5672@gmail.com</span>
