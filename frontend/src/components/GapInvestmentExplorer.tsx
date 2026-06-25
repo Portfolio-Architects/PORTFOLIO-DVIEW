@@ -608,8 +608,74 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
   const visibleList = showAll ? gapList : gapList.slice(0, 6);
 
+  const jsonLd = useMemo(() => {
+    if (gapList.length === 0) return null;
+    
+    const items = gapList.slice(0, 30).map((item, idx) => {
+      const jeonseRatePercent = Math.round(item.ratio * 100);
+      const hh = item.apt.householdCount || 0;
+      
+      return {
+        "@type": "ListItem",
+        "position": idx + 1,
+        "item": {
+          "@type": "Place",
+          "name": `${item.apt.name} 갭투자 가치 분석`,
+          "description": `${item.apt.dong} 소재 아파트 단지. 필요 갭 투자금은 ${formatPrice(item.gap)}이며, 전세가율은 ${jeonseRatePercent}% (평균 매매 ${formatPrice(item.sales)} / 전세 ${formatPrice(item.jeonse)})입니다. 갭투자 적합성 지수는 ${item.gapScore}점입니다.`,
+          "additionalProperty": [
+            {
+              "@type": "PropertyValue",
+              "name": "갭투자금",
+              "value": formatPrice(item.gap)
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "전세가율",
+              "value": `${jeonseRatePercent}%`
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "평균매매가",
+              "value": formatPrice(item.sales)
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "평균전세가",
+              "value": formatPrice(item.jeonse)
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "세대수",
+              "value": `${hh}세대`
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "적합성지수",
+              "value": `${item.gapScore}점`
+            }
+          ]
+        }
+      };
+    });
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "동탄 아파트 갭투자 입지 분석 및 큐레이션 목록",
+      "description": "실거래 분석에 기반한 동탄 신도시 아파트 단지별 갭투자 필요 투자금, 전세율, 거래 회전율 및 적합성 지수 큐레이션 정보 목록입니다.",
+      "numberOfItems": gapList.length,
+      "itemListElement": items
+    };
+  }, [gapList]);
+
   return (
     <div className="w-full bg-surface border border-border rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <style>{`
         @keyframes pastelEmeraldPulse {
           0% {
