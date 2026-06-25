@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { logger } from '@/lib/services/logger';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
 import {
@@ -46,6 +46,14 @@ const getCachedTimestamp = (ymStr: string, dayStr: string) => {
     globalTsCache.set(key, ts);
   }
   return ts;
+};
+
+const formatAvgPriceEok = (avgPrice: number) => {
+  if (!avgPrice) return '-';
+  const roundedAvg = Math.round(avgPrice * 100) / 100;
+  const eok = Math.floor(roundedAvg);
+  const rem = Math.round((roundedAvg % 1) * 10000);
+  return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
 };
 
 export const TransactionChartSection = React.memo(function TransactionChartSection({
@@ -293,6 +301,45 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       return idx % step === 0;
     });
   }, [scatterData]);
+
+  const jsonLdElements = useMemo(() => {
+    if (relevantTxs.length === 0 || rawData.length === 0) return [];
+    
+    return [
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": `최근 1개월 평균 ${chartType === 'sale' ? '매매가' : '전월세가'}`,
+        "value": formatAvgPriceEok(momentum.m1)
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": `최근 3개월 평균 ${chartType === 'sale' ? '매매가' : '전월세가'}`,
+        "value": formatAvgPriceEok(momentum.m3)
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": `최근 6개월 평균 ${chartType === 'sale' ? '매매가' : '전월세가'}`,
+        "value": formatAvgPriceEok(momentum.m6)
+      },
+      {
+        "@type": "LocationFeatureSpecification",
+        "name": `최근 1년 평균 ${chartType === 'sale' ? '매매가' : '전월세가'}`,
+        "value": formatAvgPriceEok(momentum.y1)
+      }
+    ];
+  }, [momentum, chartType, relevantTxs, rawData]);
+
+  const jsonLd = useMemo(() => {
+    if (relevantTxs.length === 0 || rawData.length === 0) return null;
+    const dealTypeLabel = chartType === 'sale' ? '매매' : '전월세';
+    return {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${displayAptName} 단지 실거래 시세 추이 및 거래량 분석 정보`,
+      "description": `${displayAptName} 단지의 ${dealTypeLabel} 기간별 평균 가격 추세 및 실거래 가격대 거래량 통계 정보입니다.`,
+      "amenityFeature": jsonLdElements
+    };
+  }, [displayAptName, chartType, jsonLdElements, relevantTxs, rawData]);
   
   const getFloorColor = (dealType: string | undefined) => {
     if (dealType === '전세' || dealType === '월세') return '#f9a825'; // Orange/amber for Rent/Jeonse
@@ -443,15 +490,6 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   const currentMarketPrice = momentum.m1 || momentum.m3 || (txSummary?.avg3MPrice ? txSummary.avg3MPrice / 10000 : 0);
 
-
-  const formatAvgPriceEok = (avgPrice: number) => {
-    if (!avgPrice) return '-';
-    const roundedAvg = Math.round(avgPrice * 100) / 100;
-    const eok = Math.floor(roundedAvg);
-    const rem = Math.round((roundedAvg % 1) * 10000);
-    return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
-  };
-
   const handleCaptureChart = async () => {
     if (!chartRef.current) return;
     try {
@@ -495,6 +533,12 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   return (
     <div className="w-full flex flex-col h-full">
       <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 dark:ring-white/10 flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y">
+        {jsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        )}
         {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
         <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
           <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>
