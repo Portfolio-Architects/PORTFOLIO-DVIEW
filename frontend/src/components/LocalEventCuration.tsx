@@ -424,10 +424,12 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                   const latestJeonse = sum?.latestRentDepositEok && sum.latestRentDepositEok !== "0" ? sum.latestRentDepositEok : null;
 
                   return (
-                    <div 
+                    <button
                       key={apt.name}
+                      type="button"
+                      aria-label={`${apt.name} 추천 정보 ${apt.desc} 및 최근 가격 정보 상세 보기`}
                       onClick={() => onSelectApt(apt.name)}
-                      className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 group will-change-transform transform-gpu"
+                      className="bg-body hover:bg-surface rounded-2xl p-4 border border-border hover:border-emerald-200 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 group will-change-transform transform-gpu text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
                     >
                       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -463,7 +465,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                         <span>단지 가치분석</span>
                         <span>&rarr;</span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

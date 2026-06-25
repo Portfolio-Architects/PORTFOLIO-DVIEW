@@ -302,10 +302,12 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
               const dist = item.dist || 0;
               const walkTime = Math.ceil(dist / 80);
               return (
-                <div
+                <button
                   key={item.apt.name}
+                  type="button"
+                  aria-label={`${item.apt.name} 초등학교 도보 거리 ${dist}m, 매매 평균 ${formatPrice(item.sales)} 상세 보기`}
                   onClick={() => onSelectApt(item.apt.name)}
-                  className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#03c75a]/40 hover:shadow-md hover-tilt-card rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
+                  className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#03c75a]/40 hover:shadow-md hover-tilt-card rounded-2xl p-5 cursor-pointer transition-all duration-300 group text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
                 >
                   <div className="flex justify-between items-start gap-2 mb-4">
                     <div className="flex flex-col min-w-0 pr-1">
@@ -360,7 +362,7 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
                       전세 평균 <strong className="text-primary font-bold">{formatPrice(item.jeonse)}</strong>
                     </span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
