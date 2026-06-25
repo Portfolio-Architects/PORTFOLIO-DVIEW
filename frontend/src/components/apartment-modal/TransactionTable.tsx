@@ -240,8 +240,15 @@ export const TransactionTable = React.memo(function TransactionTable({
           실거래가 <span className="text-[#008262] dark:text-toss-blue ml-1">{filteredTransactions.length}</span>건
         </h2>
         {/* 정렬 필터 */}
-        <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
-          <button className="flex items-center gap-1 text-[12.5px] font-bold text-[#4e5968] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none">
+        <div className="relative">
+          <button 
+            type="button"
+            className="flex items-center gap-1 text-[12.5px] font-bold text-[#4e5968] dark:text-secondary hover:text-[#191f28] dark:hover:text-primary transition-colors cursor-pointer bg-transparent border-none outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue rounded-md px-1.5 py-0.5"
+            onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}
+            aria-label="실거래가 정렬 필터 선택"
+            aria-haspopup="listbox"
+            aria-expanded={activeDropdown === 'sort'}
+          >
             <span>{{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가격순', 'price_asc': '낮은가격순' }[txSort as string] || '최신순'}</span>
             <ChevronDown size={14} className={`text-tertiary transition-transform duration-200 ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
           </button>

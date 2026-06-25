@@ -280,7 +280,12 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
           </div>
           {showPriceHelp && (
             <>
-              <div className="fixed inset-0 z-[9998]" onClick={() => setShowPriceHelp(false)} />
+              <button 
+                type="button" 
+                aria-label="도움말 닫기" 
+                className="fixed inset-0 z-[9998] bg-transparent border-none outline-none cursor-default" 
+                onClick={() => setShowPriceHelp(false)} 
+              />
               <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-surface text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
                 <div className="font-bold mb-1.5">📊 기간별 평균가격이란?</div>
                 <p className="text-surface/80">각 기간 내 실거래된 모든 자료의 <span className="text-surface font-bold">산술 평균</span>입니다.</p>

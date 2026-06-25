@@ -92,9 +92,11 @@ const ContextualB2BAdBanner = React.memo(function ContextualB2BAdBanner({
   };
 
   return (
-    <div 
+    <button 
+      type="button"
       onClick={handleAdClick}
-      className={`bg-gradient-to-br ${getBgStyle()} p-5 rounded-3xl border shadow-sm hover:shadow-md hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 text-left group overflow-hidden relative`}
+      className={`w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue bg-gradient-to-br ${getBgStyle()} p-5 rounded-3xl border shadow-sm hover:shadow-md hover:scale-[1.005] active:scale-[0.995] transition-all duration-300 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 group overflow-hidden relative`}
+      aria-label={`B2B 제휴 제안 광고: ${ad.title}`}
     >
       {/* Decorative Blur Effect */}
       <div className="absolute -right-6 -bottom-6 w-20 h-20 bg-primary/5 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
@@ -124,12 +126,8 @@ const ContextualB2BAdBanner = React.memo(function ContextualB2BAdBanner({
         </div>
       </div>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleAdClick();
-        }}
-        className={`px-4.5 py-3 rounded-2xl font-black text-[12.5px] transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm active:scale-95 group-hover:translate-x-0.5 duration-200 cursor-pointer ${
+      <div
+        className={`px-4.5 py-3 rounded-2xl font-black text-[12.5px] transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-sm active:scale-95 group-hover:translate-x-0.5 duration-200 pointer-events-none ${
           ad.adType === 'insurance' ? 'bg-[#fee500] hover:bg-[#fddc00] text-[#191919]' :
           ad.adType === 'interior' ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/10' :
           ad.adType === 'academy' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/10' :
@@ -138,8 +136,8 @@ const ContextualB2BAdBanner = React.memo(function ContextualB2BAdBanner({
       >
         <span>{ad.actionText}</span>
         <ExternalLink size={12} />
-      </button>
-    </div>
+      </div>
+    </button>
   );
 });
 
