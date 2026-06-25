@@ -29,7 +29,7 @@ interface PWAContextType {
   // Web Push Notifications
   isPushSupported: boolean;
   pushSubscription: PushSubscription | null;
-  subscribeToPush: (uid?: string | null) => Promise<boolean>;
+  subscribeToPush: (uid?: string | null, aptName?: string) => Promise<boolean>;
   showToast: (message: string) => void;
   isIOS: boolean;
 }
@@ -43,7 +43,7 @@ const PWAContext = createContext<PWAContextType>({
   triggerCustomA2HSModal: () => {},
   isPushSupported: false,
   pushSubscription: null,
-  subscribeToPush: async () => false,
+  subscribeToPush: async (uid?: string | null, aptName?: string) => false,
   showToast: () => {},
   isIOS: false,
 });
@@ -402,7 +402,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     }
   };
 
-  const subscribeToPush = async (uid?: string | null) => {
+  const subscribeToPush = async (uid?: string | null, aptName?: string) => {
     if (typeof window === 'undefined') return false;
 
     if (!isPushSupported || typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
@@ -446,7 +446,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           await enqueueOfflineRequest({
             url: '/api/push/subscribe',
             method: 'POST',
-            body: { subscription: sub, uid: uid || null }
+            body: { subscription: sub, uid: uid || null, apartmentName: aptName || null }
           });
           if (mountedRef.current) {
             showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다 💚');
@@ -459,16 +459,16 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           await fetch('/api/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subscription: sub, uid: uid || null })
+            body: JSON.stringify({ subscription: sub, uid: uid || null, apartmentName: aptName || null })
           });
-          logger.info('PWAProvider', 'Push Subscribed & Saved', { subscription: JSON.stringify(sub) });
+          logger.info('PWAProvider', 'Push Subscribed & Saved', { subscription: JSON.stringify(sub), apartmentName: aptName });
         } catch (fetchErr) {
           logger.warn('PWAProvider', 'Failed to save push subscription online, queuing offline', undefined, fetchErr);
           try {
             await enqueueOfflineRequest({
               url: '/api/push/subscribe',
               method: 'POST',
-              body: { subscription: sub, uid: uid || null }
+              body: { subscription: sub, uid: uid || null, apartmentName: aptName || null }
             });
             if (mountedRef.current) {
               showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다 💚');

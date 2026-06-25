@@ -41,7 +41,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
     setSubmitting(true);
     setErrorState(null);
     try {
-      const success = await subscribeToPush();
+      const success = await subscribeToPush(null, aptName);
       if (success && mountedRef.current) {
         showToast(`🔔 ${aptName}의 실거래가 변동 알림 신청이 완료되었습니다!`);
         onClose();
