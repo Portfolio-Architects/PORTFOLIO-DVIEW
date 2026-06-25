@@ -514,7 +514,7 @@ async function main() {
     // 매매/임대 데이터가 둘 다 없으면 스킵
     if (rawSaleTxs.length === 0 && rawRentTxs.length === 0) continue;
 
-    // 롤링 윈도우 기반 시계열 이상치 필터링 (최근 11건 기준 국소적 평균/표준편차 적용)
+    // 롤링 윈도우 기반 시계열 이상치 필터링 (최근 11건 기준 국소적 평균/표준편차 적용, 현재 거래 배제)
     const filterOutliersRolling = (txs) => {
       const sortedTxs = [...txs].sort((a, b) => {
         const d1 = parseInt(a.contractYm + String(a.contractDay).padStart(2, '0'));
@@ -529,29 +529,57 @@ async function main() {
         byArea[a].push(t);
       });
 
+      const getTxPrice = (t) => {
+        return (t.dealType === '전세' || t.dealType === '월세')
+          ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
+          : t.price;
+      };
+
       const validTxs = [];
       Object.values(byArea).forEach(group => {
-        const filtered = group.filter((t, idx) => {
-          const windowTxs = group.slice(Math.max(0, idx - 5), Math.min(group.length, idx + 6));
-          const prices = windowTxs.map(wt => {
-            return (wt.dealType === '전세' || wt.dealType === '월세') 
-              ? (wt.deposit || 0) + Math.round((wt.monthlyRent || 0) * 12 / 0.055)
-              : wt.price;
-          });
-          const p = (t.dealType === '전세' || t.dealType === '월세') 
-            ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
-            : t.price;
+        const groupLen = group.length;
+        for (let idx = 0; idx < groupLen; idx++) {
+          const t = group[idx];
+          const start = Math.max(0, idx - 5);
+          const end = Math.min(groupLen, idx + 6);
           
-          if (prices.length < 4) return true;
+          let sum = 0;
+          let count = 0;
+          for (let w = start; w < end; w++) {
+            const item = group[w];
+            if (w !== idx && item) {
+              sum += getTxPrice(item);
+              count++;
+            }
+          }
           
-          const mean = prices.reduce((sum, val) => sum + val, 0) / prices.length;
-          const variance = prices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / prices.length;
+          if (count < 3) {
+            validTxs.push(t);
+            continue;
+          }
+          
+          const mean = sum / count;
+          let sumSqDiff = 0;
+          for (let w = start; w < end; w++) {
+            const item = group[w];
+            if (w !== idx && item) {
+              sumSqDiff += Math.pow(getTxPrice(item) - mean, 2);
+            }
+          }
+          const variance = sumSqDiff / count;
           const stdDev = Math.sqrt(variance);
+          const p = getTxPrice(t);
           
-          if (p >= mean) return true;
-          return (mean - p) <= 2 * Math.max(stdDev, mean * 0.05);
-        });
-        validTxs.push(...filtered);
+          if (p < mean) {
+            if ((mean - p) <= 2 * Math.max(stdDev, mean * 0.05)) {
+              validTxs.push(t);
+            }
+          } else {
+            if ((p - mean) <= 3 * Math.max(stdDev, mean * 0.05)) {
+              validTxs.push(t);
+            }
+          }
+        }
       });
       return validTxs;
     };
@@ -669,8 +697,14 @@ async function main() {
     saleTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
     const latestTx = saleTxs.length > 0 ? saleTxs[0] : null;
 
-    const oneMonthAgoSale = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const threeMonthsAgoSale = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    let saleBaseDate = now;
+    if (latestTx && latestTx.contractDate) {
+      const dt = parseYYYYMMDD(latestTx.contractDate);
+      if (dt) saleBaseDate = dt;
+    }
+
+    const oneMonthAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 1, saleBaseDate.getDate());
+    const threeMonthsAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 3, saleBaseDate.getDate());
 
     const recentMonthSale = saleTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;
@@ -726,8 +760,15 @@ async function main() {
     rentTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
     const latestRentTx = rentTxs.filter(t => t.deposit > 0)[0];
     
-    const oneMonthAgoRent = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const threeMonthsAgoRent = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    let rentBaseDate = now;
+    const latestRentForBase = rentTxs.length > 0 ? rentTxs[0] : null;
+    if (latestRentForBase && latestRentForBase.contractDate) {
+      const dt = parseYYYYMMDD(latestRentForBase.contractDate);
+      if (dt) rentBaseDate = dt;
+    }
+
+    const oneMonthAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 1, rentBaseDate.getDate());
+    const threeMonthsAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 3, rentBaseDate.getDate());
 
     const recentMonthRent = rentTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;

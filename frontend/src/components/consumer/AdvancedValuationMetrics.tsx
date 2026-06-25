@@ -255,37 +255,71 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
     };
   }, []);
 
-  // 1개월 및 3개월 기준일 계산 (가치평가 이평선)
-  const now = new Date();
-  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-
-  const isWithin1Month = (t: TxRecord) => {
-    if (!t.contractYm || t.contractYm.length < 6) return false;
-    const y = parseInt(t.contractYm.slice(0, 4));
-    const m = parseInt(t.contractYm.slice(4, 6));
-    const d = parseInt(t.contractDay || '1');
-    const txDate = new Date(y, m - 1, d);
-    return txDate >= oneMonthAgo;
-  };
-
-  const isWithin3Months = (t: TxRecord) => {
-    if (!t.contractYm || t.contractYm.length < 6) return false;
-    const y = parseInt(t.contractYm.slice(0, 4));
-    const m = parseInt(t.contractYm.slice(4, 6));
-    const d = parseInt(t.contractDay || '1');
-    const txDate = new Date(y, m - 1, d);
-    return txDate >= threeMonthsAgo;
-  };
-
   // 1. Transaction 분리
   const txList = Array.isArray(transactions) ? transactions : [];
   const sales = txList.filter(t => t && t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
   const rents = txList.filter(t => t && (t.dealType === '전세' || t.dealType === '월세')).sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
-  
-  const recent1MSales = sales.filter(isWithin1Month);
-  const recent3MSales = sales.filter(isWithin3Months);
-  const recentRents = rents.filter(isWithin3Months);
+
+  const parseTxDate = (t: TxRecord) => {
+    const dateStr = t.contractDate || `${t.contractYm || ''}${String(t.contractDay || '01').padStart(2, '0')}`;
+    if (dateStr && dateStr.length === 8) {
+      const y = parseInt(dateStr.substring(0, 4), 10);
+      const m = parseInt(dateStr.substring(4, 6), 10) - 1;
+      const d = parseInt(dateStr.substring(6, 8), 10);
+      const parsed = new Date(y, m, d);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return null;
+  };
+
+  // 1개월 및 3개월 기준일 계산 (최신 거래일 기준)
+  let saleBaseDate = new Date();
+  if (sales.length > 0) {
+    const dt = parseTxDate(sales[0]);
+    if (dt) saleBaseDate = dt;
+  }
+  let rentBaseDate = new Date();
+  if (rents.length > 0) {
+    const dt = parseTxDate(rents[0]);
+    if (dt) rentBaseDate = dt;
+  }
+
+  const oneMonthAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 1, saleBaseDate.getDate());
+  const threeMonthsAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 3, saleBaseDate.getDate());
+
+  const oneMonthAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 1, rentBaseDate.getDate());
+  const threeMonthsAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 3, rentBaseDate.getDate());
+
+  const isWithin1MonthSale = (t: TxRecord) => {
+    if (!t.contractYm || t.contractYm.length < 6) return false;
+    const y = parseInt(t.contractYm.slice(0, 4));
+    const m = parseInt(t.contractYm.slice(4, 6));
+    const d = parseInt(t.contractDay || '1');
+    const txDate = new Date(y, m - 1, d);
+    return txDate >= oneMonthAgoSale;
+  };
+
+  const isWithin3MonthsSale = (t: TxRecord) => {
+    if (!t.contractYm || t.contractYm.length < 6) return false;
+    const y = parseInt(t.contractYm.slice(0, 4));
+    const m = parseInt(t.contractYm.slice(4, 6));
+    const d = parseInt(t.contractDay || '1');
+    const txDate = new Date(y, m - 1, d);
+    return txDate >= threeMonthsAgoSale;
+  };
+
+  const isWithin3MonthsRent = (t: TxRecord) => {
+    if (!t.contractYm || t.contractYm.length < 6) return false;
+    const y = parseInt(t.contractYm.slice(0, 4));
+    const m = parseInt(t.contractYm.slice(4, 6));
+    const d = parseInt(t.contractDay || '1');
+    const txDate = new Date(y, m - 1, d);
+    return txDate >= threeMonthsAgoRent;
+  };
+
+  const recent1MSales = sales.filter(isWithin1MonthSale);
+  const recent3MSales = sales.filter(isWithin3MonthsSale);
+  const recentRents = rents.filter(isWithin3MonthsRent);
 
   // 1개월 평균 매매가 (최근 1개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
   const avg1MSale = recent1MSales.length > 0

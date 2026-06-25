@@ -1042,19 +1042,30 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const sales = sortedCombined.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
       const rents = sortedCombined.filter(t => t.dealType === '전세' || t.dealType === '월세');
 
-      const now = new Date();
-      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-      const oneMonthAgoNum = oneMonthAgo.getFullYear() * 10000 + (oneMonthAgo.getMonth() + 1) * 100 + oneMonthAgo.getDate();
-      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-      const threeMonthsAgoNum = threeMonthsAgo.getFullYear() * 10000 + (threeMonthsAgo.getMonth() + 1) * 100 + threeMonthsAgo.getDate();
+      const parseDateNum = (num: number) => {
+        const y = Math.floor(num / 10000);
+        const m = Math.floor((num % 10000) / 100) - 1;
+        const d = num % 100;
+        return new Date(y, m, d);
+      };
 
-      const isRecent1M = (t: any) => (t.contractDateNum || 0) >= oneMonthAgoNum;
-      const isRecent3M = (t: any) => (t.contractDateNum || 0) >= threeMonthsAgoNum;
+      const saleBaseDate = sales.length > 0 ? parseDateNum(sales[0].contractDateNum || 0) : new Date();
+      const rentBaseDate = rents.length > 0 ? parseDateNum(rents[0].contractDateNum || 0) : new Date();
 
-      const recentSales1M = sales.filter(isRecent1M);
-      const recentSales3M = sales.filter(isRecent3M);
-      const recentRents1M = rents.filter(isRecent1M);
-      const recentRents3M = rents.filter(isRecent3M);
+      const oneMonthAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 1, saleBaseDate.getDate());
+      const oneMonthAgoSaleNum = oneMonthAgoSale.getFullYear() * 10000 + (oneMonthAgoSale.getMonth() + 1) * 100 + oneMonthAgoSale.getDate();
+      const threeMonthsAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 3, saleBaseDate.getDate());
+      const threeMonthsAgoSaleNum = threeMonthsAgoSale.getFullYear() * 10000 + (threeMonthsAgoSale.getMonth() + 1) * 100 + threeMonthsAgoSale.getDate();
+
+      const oneMonthAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 1, rentBaseDate.getDate());
+      const oneMonthAgoRentNum = oneMonthAgoRent.getFullYear() * 10000 + (oneMonthAgoRent.getMonth() + 1) * 100 + oneMonthAgoRent.getDate();
+      const threeMonthsAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 3, rentBaseDate.getDate());
+      const threeMonthsAgoRentNum = threeMonthsAgoRent.getFullYear() * 10000 + (threeMonthsAgoRent.getMonth() + 1) * 100 + threeMonthsAgoRent.getDate();
+
+      const recentSales1M = sales.filter(t => (t.contractDateNum || 0) >= oneMonthAgoSaleNum);
+      const recentSales3M = sales.filter(t => (t.contractDateNum || 0) >= threeMonthsAgoSaleNum);
+      const recentRents1M = rents.filter(t => (t.contractDateNum || 0) >= oneMonthAgoRentNum);
+      const recentRents3M = rents.filter(t => (t.contractDateNum || 0) >= threeMonthsAgoRentNum);
 
       const avg3MSale = recentSales1M.length > 0
         ? Math.round(recentSales1M.reduce((sum, t) => sum + t.price, 0) / recentSales1M.length)
