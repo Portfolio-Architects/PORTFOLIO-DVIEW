@@ -250,11 +250,26 @@ const AdSense = React.memo(function AdSense({
     return null;
   }
 
+  // Pre-allocate minimal height to prevent Cumulative Layout Shift (CLS)
+  const hasHeight = style?.minHeight !== undefined || style?.height !== undefined;
+  const resolvedStyle: React.CSSProperties = {
+    minHeight: hasHeight ? (style.minHeight ?? style.height) : '100px',
+    ...style,
+  };
+
   return (
-    <div ref={containerRef} className={`adsense-container ${className}`} style={{ overflow: 'hidden' }}>
+    <div 
+      ref={containerRef} 
+      className={`adsense-container ${className}`} 
+      style={{ 
+        overflow: 'hidden', 
+        minHeight: resolvedStyle.minHeight,
+        height: style?.height 
+      }}
+    >
       <ins
         className="adsbygoogle"
-        style={style}
+        style={resolvedStyle}
         data-ad-client={client}
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
