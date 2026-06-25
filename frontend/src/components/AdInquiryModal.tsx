@@ -12,6 +12,7 @@ interface AdInquiryModalProps {
 }
 
 const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiryModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
   const companyNameRef = useRef<HTMLInputElement>(null);
   const contactInfoRef = useRef<HTMLInputElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
@@ -22,14 +23,53 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
 
   useEffect(() => {
     mountedRef.current = true;
+    
+    // Auto focus on mount
+    if (companyNameRef.current) {
+      companyNameRef.current.focus();
+    }
+
+    // Escape key handling
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+
     return () => {
       mountedRef.current = false;
+      window.removeEventListener('keydown', handleEscape);
       if (successTimeoutRef.current) {
         clearTimeout(successTimeoutRef.current);
         successTimeoutRef.current = null;
       }
     };
-  }, []);
+  }, [onClose]);
+
+  // Focus Trap Handler
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,9 +112,21 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
         setIsSubmitting(false);
       }
     }
-  };  return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" 
+      onClick={onClose}
+      role="presentation"
+    >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ad-inquiry-title"
+        aria-describedby="ad-inquiry-desc"
+        onKeyDown={handleKeyDown}
         className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border/20"
         onClick={e => e.stopPropagation()}
       >
@@ -82,11 +134,15 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
         <div className="flex items-center justify-between px-6 py-5 border-b border-body">
           <div className="flex items-center gap-2">
             <Building2 className="text-[#0d9488] dark:text-[#00d29d]" size={20} />
-            <h2 className="text-[18px] font-extrabold text-primary tracking-tight">
+            <h2 id="ad-inquiry-title" className="text-[18px] font-extrabold text-primary tracking-tight">
               광고 및 제휴 문의
             </h2>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-body rounded-full transition-colors">
+          <button 
+            onClick={onClose} 
+            className="p-1.5 hover:bg-body rounded-full transition-colors"
+            aria-label="문의 창 닫기"
+          >
             <X size={20} className="text-tertiary" />
           </button>
         </div>
@@ -107,7 +163,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <p className="text-[14px] text-secondary leading-relaxed mb-1">
+              <p id="ad-inquiry-desc" className="text-[14px] text-secondary leading-relaxed mb-1">
                 D-VIEW의 고효율 프롭테크 트래픽을 활용하여 귀사의 로컬 비즈니스 브랜드를 확실하게 노출해 보세요.
               </p>
 
