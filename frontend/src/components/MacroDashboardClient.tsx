@@ -1704,9 +1704,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         }
         rightSideContent={
-          <div 
+          <button 
+            type="button"
             onClick={onOpenAdModal}
-            className="flex items-center gap-4 shrink-0 w-[320px] h-[80px] px-5 bg-gradient-to-br from-teal-500/8 to-emerald-500/3 dark:from-[#0d9488]/10 dark:to-emerald-950/5 border border-[#0d9488]/20 hover:border-[#0d9488]/45 rounded-2xl shadow-[0_4px_20px_rgba(13,148,136,0.03)] hover:shadow-[0_6px_24px_rgba(13,148,136,0.08)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 group relative overflow-hidden"
+            aria-label="광고 배너: 동탄 전문 중개 파트너 제휴 모집 상세 보기"
+            className="flex items-center text-left gap-4 shrink-0 w-[320px] h-[80px] px-5 bg-gradient-to-br from-teal-500/8 to-emerald-500/3 dark:from-[#0d9488]/10 dark:to-emerald-950/5 border border-[#0d9488]/20 hover:border-[#0d9488]/45 rounded-2xl shadow-[0_4px_20px_rgba(13,148,136,0.03)] hover:shadow-[0_6px_24px_rgba(13,148,136,0.08)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/15 transition-all" />
             <div className="w-10 h-10 bg-teal-50 dark:bg-[#0d9488]/10 text-[#0d9488] dark:text-[#00d29d] rounded-xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
@@ -1721,7 +1723,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 디뷰에서 귀사의 중개소를 소개해보세요 ➔
               </span>
             </div>
-          </div>
+          </button>
         }
       />
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full">
@@ -1803,12 +1805,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                             return (
                               <div
                                 key={`${item.aptName}-${idx}`}
-                                onClick={() => {
-                                  setSelectedTimelineApt(item.aptName);
-                                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                                    setIsBottomSheetOpen(true);
-                                  }
-                                }}
                                 onMouseEnter={() => {
                                   preloadApartmentTx?.(item.aptName, item.dong);
                                   import('@/components/ApartmentModal').catch(() => {});
@@ -1819,41 +1815,51 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   import('@/components/ApartmentModal').catch(() => {});
                                   import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
                                 }}
-                                className={`flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all border ${
+                                className={`flex items-center justify-between p-3.5 rounded-xl transition-all border ${
                                   isSelected
                                     ? "border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-[0_2px_12px_rgba(16,185,129,0.08)]"
                                     : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
                                 } group gap-4`}
                               >
-                                {/* Left Column: Apt Name & Info */}
-                                <div className="flex flex-col gap-1 min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-[13px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
-                                      {item.displayAptName || item.aptName}
-                                    </span>
-                                    {item.type === 'high' && (
-                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-                                        신고가
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedTimelineApt(item.aptName);
+                                    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                                      setIsBottomSheetOpen(true);
+                                    }
+                                  }}
+                                  aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
+                                  className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-emerald-500/50 rounded-lg p-1 bg-transparent border-none min-w-0 cursor-pointer"
+                                >
+                                  {/* Left Column: Apt Name & Info */}
+                                  <div className="flex flex-col gap-1 min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span className="text-[13px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
+                                        {item.displayAptName || item.aptName}
                                       </span>
-                                    )}
+                                      {item.type === 'high' && (
+                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+                                          신고가
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden">
+                                      <span>{item.dong}</span>
+                                      <span className="opacity-30 font-normal">•</span>
+                                      <span>
+                                        {areaUnit === 'm2'
+                                          ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+                                          : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+                                      </span>
+                                      <span className="opacity-30 font-normal">•</span>
+                                      <span>{item.floor}층</span>
+                                    </div>
                                   </div>
-                                  
-                                  <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden">
-                                    <span>{item.dong}</span>
-                                    <span className="opacity-30 font-normal">•</span>
-                                    <span>
-                                      {areaUnit === 'm2'
-                                        ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-                                        : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
-                                    </span>
-                                    <span className="opacity-30 font-normal">•</span>
-                                    <span>{item.floor}층</span>
-                                  </div>
-                                </div>
 
-                                {/* Right Column: Price & Change Badges & Details Action */}
-                                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-1 sm:ml-2">
-                                  <div className="flex flex-col items-end gap-1">
+                                  {/* Right Column: Price & Change Badges */}
+                                  <div className="flex flex-col items-end gap-1 shrink-0 ml-1 sm:ml-2">
                                     {/* Price and flow */}
                                     <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
                                       {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
@@ -1890,30 +1896,31 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                           : '보합'}
                                     </span>
                                   </div>
+                                </button>
 
-                                  {/* Details Button */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (onSelectApt) {
-                                        onSelectApt(item.aptName);
-                                      }
-                                    }}
-                                    onMouseEnter={() => {
-                                      preloadApartmentTx?.(item.aptName, item.dong);
-                                      import('@/components/ApartmentModal').catch(() => {});
-                                      import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-                                    }}
-                                    onTouchStart={() => {
-                                      preloadApartmentTx?.(item.aptName, item.dong);
-                                      import('@/components/ApartmentModal').catch(() => {});
-                                      import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-                                    }}
-                                    className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
-                                  >
-                                    상세
-                                  </button>
-                                </div>
+                                {/* Details Button */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onSelectApt) {
+                                      onSelectApt(item.aptName);
+                                    }
+                                  }}
+                                  onMouseEnter={() => {
+                                    preloadApartmentTx?.(item.aptName, item.dong);
+                                    import('@/components/ApartmentModal').catch(() => {});
+                                    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                  }}
+                                  onTouchStart={() => {
+                                    preloadApartmentTx?.(item.aptName, item.dong);
+                                    import('@/components/ApartmentModal').catch(() => {});
+                                    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                  }}
+                                  className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
+                                >
+                                  상세
+                                </button>
                               </div>
                             );
                           })}
@@ -2157,9 +2164,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* 프리미엄 유틸리티 툴킷 그리드 영역 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 w-full">
           {/* Card 1: AI Quiz */}
-          <div 
+          <button 
+            type="button"
             onClick={() => setIsQuizOpen(true)}
-            className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#00d29d]/8 to-surface dark:from-[#00d29d]/4 border border-[#00d29d]/15 hover:border-[#00d29d]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+            aria-label="나만의 동탄 찰떡 아파트 찾기 Quiz 상세 보기"
+            className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#00d29d]/8 to-surface dark:from-[#00d29d]/4 border border-[#00d29d]/15 hover:border-[#00d29d]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
           >
             <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#00d29d]/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
             <div className="relative z-10 flex flex-col gap-4">
@@ -2183,21 +2192,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </div>
 
             {/* Bottom Button */}
-            <div className="mt-6 relative z-10">
-              <button 
-                className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#00d29d] dark:hover:bg-[#00d29d] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+            <div className="mt-6 relative z-10 w-full">
+              <div 
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#00d29d] dark:hover:bg-[#00d29d] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
               >
                 <span>지금 추천 받기</span>
                 <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              </div>
             </div>
-          </div>
+          </button>
 
           {/* Card 2: Jeonse Safety */}
           {onOpenJeonseSafety && (
-            <div 
+            <button 
+              type="button"
               onClick={() => onOpenJeonseSafety()}
-              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+              aria-label="전세금 안전진단 및 깡통전세 계산기 상세 보기"
+              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
@@ -2221,22 +2232,24 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               </div>
 
               {/* Bottom Button */}
-              <div className="mt-6 relative z-10">
-                <button 
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+              <div className="mt-6 relative z-10 w-full">
+                <div 
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
                 >
                   <span>보증금 진단하기</span>
                   <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                </div>
               </div>
-            </div>
+            </button>
           )}
 
           {/* Card 3: Mortgage Calculator */}
           {onOpenMortgage && (
-            <div 
+            <button 
+              type="button"
               onClick={() => onOpenMortgage()}
-              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+              aria-label="내 집 마련 대출 계산기 및 시뮬레이터 상세 보기"
+              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
@@ -2260,22 +2273,24 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               </div>
 
               {/* Bottom Button */}
-              <div className="mt-6 relative z-10">
-                <button 
-                  className="w-full py-3 bg-[#008262] hover:bg-[#00a37b] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+              <div className="mt-6 relative z-10 w-full">
+                <div 
+                  className="w-full py-3 bg-[#008262] hover:bg-[#00a37b] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
                 >
                   <span>대출 한도 조회</span>
                   <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                </div>
               </div>
-            </div>
+            </button>
           )}
 
           {/* Card 4: AI Sell Timing & Tax Diagnosis */}
           {onOpenSellTimingCalculator && (
-            <div 
+            <button 
+              type="button"
               onClick={() => onOpenSellTimingCalculator()}
-              className="flex flex-col justify-between h-full p-6 bg-gradient-to-br from-rose-500/8 to-surface dark:from-rose-500/4 border border-rose-500/15 hover:border-rose-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden"
+              aria-label="내 아파트 지금 팔면 호구일까? 자가진단 및 양도세 계산기 상세 보기"
+              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-rose-500/8 to-surface dark:from-rose-500/4 border border-rose-500/15 hover:border-rose-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-rose-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
@@ -2293,21 +2308,21 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     내 아파트 지금 팔면 호구일까?
                   </h3>
                   <p className="text-[12.5px] text-secondary font-semibold leading-relaxed break-keep">
-                    보유 단지의 낙폭, 거래 회전율, 전세 지지력을 AI 모델로 종합 분석하여 \'지금 매도하면 호구 지수\'를 평가하고 양도세 간이 세액을 산출합니다.
+                    보유 단지의 낙폭, 거래 회전율, 전세 지지력을 AI 모델로 종합 분석하여 '지금 매도하면 호구 지수'를 평가하고 양도세 간이 세액을 산출합니다.
                   </p>
                 </div>
               </div>
 
               {/* Bottom Button */}
-              <div className="mt-6 relative z-10">
-                <button 
-                  className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none cursor-pointer"
+              <div className="mt-6 relative z-10 w-full">
+                <div 
+                  className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
                 >
                   <span>매도 시기 진단</span>
                   <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                </div>
               </div>
-            </div>
+            </button>
           )}
         </div>
 
@@ -2434,9 +2449,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           {/* Sheet Box */}
           <div className="relative w-full bg-surface rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] border-t border-border flex flex-col max-h-[80vh] z-10 animate-in slide-in-from-bottom duration-300">
             {/* Drag Handle Bar */}
-            <div className="w-full flex justify-center py-3 shrink-0 cursor-pointer" onClick={() => setIsBottomSheetOpen(false)}>
+            <button 
+              type="button"
+              onClick={() => setIsBottomSheetOpen(false)}
+              aria-label="바텀시트 닫기"
+              className="w-full flex justify-center py-3 shrink-0 cursor-pointer outline-none focus:ring-2 focus:ring-emerald-500/50 bg-transparent border-none"
+            >
               <div className="w-12 h-1.5 bg-[#e5e8eb] dark:bg-slate-700 rounded-full" />
-            </div>
+            </button>
             {/* Header */}
             <div className="px-5 pb-3 flex items-center justify-between border-b border-border/50 shrink-0">
               <h3 className="text-[15px] font-extrabold text-primary truncate max-w-[80%]">
