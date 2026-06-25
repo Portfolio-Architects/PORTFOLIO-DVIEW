@@ -8,13 +8,19 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/'],
+        disallow: ['/api/', '/admin/', '/write-report'],
+      },
+      {
+        // Prioritize and welcome major search engine bots for domestic and global traffic
+        userAgent: ['Googlebot', 'Yeti', 'Daumoa', 'Bingbot'],
+        allow: '/',
+        disallow: ['/api/', '/admin/', '/write-report'],
       },
       {
         // Prioritize and welcome major AI/LLM Search scrapers for search citation indexing
         userAgent: ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-Web', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended'],
         allow: '/',
-        disallow: ['/api/', '/admin/'],
+        disallow: ['/api/', '/admin/', '/write-report'],
       }
     ],
     sitemap: [
