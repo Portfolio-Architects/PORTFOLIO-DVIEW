@@ -200,6 +200,79 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     return autoLinkApartments(String(post.content).replace(/\n{3,}/g, '\n\n'), dongtanApartments);
   }, [post?.content, dongtanApartments]);
 
+  const loungeDetailJsonLd = useMemo(() => {
+    if (!post) return null;
+
+    const formatDateStr = (dateStr: any) => {
+      if (!dateStr) return new Date().toISOString();
+      if (typeof dateStr === 'string') {
+        const clean = dateStr.replace(/\s/g, '');
+        const parts = clean.split('.');
+        if (parts.length >= 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10);
+          const day = parseInt(parts[2], 10);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            return new Date(year, month - 1, day).toISOString();
+          }
+        }
+      }
+      try {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      } catch (e) {}
+      return new Date().toISOString();
+    };
+
+    const datePublished = formatDateStr(post.createdAt);
+
+    const commentSchemas = comments.map(comment => {
+      return {
+        "@type": "Comment",
+        "text": comment.text,
+        "dateCreated": formatDateStr(comment.createdAt),
+        "author": {
+          "@type": "Person",
+          "name": comment.authorName || "익명"
+        }
+      };
+    });
+
+    const discussionSchema = {
+      "@context": "https://schema.org",
+      "@type": "DiscussionForumPosting",
+      "@id": `https://dongtanview.com/lounge/${postId}`,
+      "headline": post.title,
+      "description": String(post.content || "").slice(0, 150),
+      "articleBody": post.content || "",
+      "datePublished": datePublished,
+      "author": {
+        "@type": "Person",
+        "name": post.author || "익명"
+      },
+      "interactionStatistic": [
+        {
+          "@type": "InteractionCounter",
+          "interactionType": "https://schema.org/ViewAction",
+          "userInteractionCount": Number(post.views || 0)
+        },
+        {
+          "@type": "InteractionCounter",
+          "interactionType": "https://schema.org/LikeAction",
+          "userInteractionCount": Number(post.likes || 0)
+        },
+        {
+          "@type": "InteractionCounter",
+          "interactionType": "https://schema.org/CommentAction",
+          "userInteractionCount": comments.length
+        }
+      ],
+      "comment": commentSchemas
+    };
+
+    return JSON.stringify(discussionSchema);
+  }, [post, comments, postId]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
@@ -676,6 +749,12 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
 
   return (
     <>
+      {loungeDetailJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: loungeDetailJsonLd }}
+        />
+      )}
       <div className={`w-full ${isModal ? 'h-full bg-surface relative' : 'min-h-screen bg-body pb-[100px]'} font-sans text-left`}>
         {/* Modal Controls */}
         {isModal && (
