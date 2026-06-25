@@ -189,6 +189,18 @@ export interface LoungePostParams {
 export function getLoungePostSchema(post: LoungePostParams, baseUrl: string) {
   const { id, title, content, author, createdAt, commentsCount = 0 } = post;
   
+  let isoDate = new Date().toISOString();
+  if (createdAt) {
+    try {
+      const d = new Date(createdAt);
+      if (!isNaN(d.getTime())) {
+        isoDate = d.toISOString();
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return {
     "@context": "https://schema.org",
     "@type": "DiscussionForumPosting",
@@ -200,8 +212,8 @@ export function getLoungePostSchema(post: LoungePostParams, baseUrl: string) {
       "@type": "Person",
       "name": author
     },
-    "datePublished": new Date(createdAt).toISOString(),
-    "dateModified": new Date(createdAt).toISOString(),
+    "datePublished": isoDate,
+    "dateModified": isoDate,
     "interactionStatistic": {
       "@type": "InteractionCounter",
       "interactionType": "https://schema.org/CommentAction",
