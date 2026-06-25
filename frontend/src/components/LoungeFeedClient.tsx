@@ -241,6 +241,69 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       .map(item => item.post);
   }, [posts]);
 
+  const loungeJsonLd = useMemo(() => {
+    if (!posts || posts.length === 0) return null;
+
+    const listItems = posts.slice(0, 30).map((post, idx) => {
+      let datePublished = new Date().toISOString();
+      if (post.createdAt) {
+        try {
+          const parsedDate = new Date(post.createdAt);
+          if (!isNaN(parsedDate.getTime())) {
+            datePublished = parsedDate.toISOString();
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      return {
+        "@type": "ListItem",
+        "position": idx + 1,
+        "url": `https://dongtanview.com/lounge/${post.id}`,
+        "name": post.title,
+        "item": {
+          "@type": "DiscussionForumPosting",
+          "@id": `https://dongtanview.com/lounge/${post.id}`,
+          "headline": post.title,
+          "description": post.summary || post.title,
+          "datePublished": datePublished,
+          "author": {
+            "@type": "Person",
+            "name": post.author || "익명"
+          },
+          "interactionStatistic": [
+            {
+              "@type": "InteractionCounter",
+              "interactionType": "https://schema.org/ViewAction",
+              "userInteractionCount": post.views || 0
+            },
+            {
+              "@type": "InteractionCounter",
+              "interactionType": "https://schema.org/LikeAction",
+              "userInteractionCount": post.likes || 0
+            },
+            {
+              "@type": "InteractionCounter",
+              "interactionType": "https://schema.org/CommentAction",
+              "userInteractionCount": post.commentCount || 0
+            }
+          ]
+        }
+      };
+    });
+
+    const itemListSchema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "동탄 주민 라운지 최신 토크 목록",
+      "description": "동탄 거주 입주민들의 최신 아파트 이야기, 커뮤니티 토론 및 소통 게시글 목록입니다.",
+      "itemListElement": listItems
+    };
+
+    return JSON.stringify(itemListSchema);
+  }, [posts]);
+
   const isReachingEnd = data && (data.length === 0 || (data[data.length - 1] && data[data.length - 1].length < 20));
   const isLoadingMore = isValidating && size > 1 && data && typeof data[size - 1] === 'undefined';
   const hasMore = !isReachingEnd;
@@ -935,6 +998,12 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      {loungeJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: loungeJsonLd }}
+        />
+      )}
       {/* 실시간 아파트 이야기 한줄평 Widget */}
       {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && (
         <AptStoriesWidget />
