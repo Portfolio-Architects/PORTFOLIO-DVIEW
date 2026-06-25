@@ -754,9 +754,14 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
                   <div className="flex flex-col justify-center">
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-between h-full">
                       <div className="flex flex-col items-center justify-center pb-2">
-                        <div className="text-[11px] font-bold text-tertiary mb-0.5 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsValuationModalOpen(true)}>
+                        <button
+                          type="button"
+                          className="text-[11px] font-bold text-tertiary mb-0.5 cursor-pointer hover:text-secondary transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-toss-blue rounded"
+                          onClick={() => setIsValuationModalOpen(true)}
+                          aria-label="매매가 ÷ 전세가 배수 도움말 모달 열기"
+                        >
                           매매가 ÷ 전세가 배수
-                        </div>
+                        </button>
                         <div className="flex items-end gap-1">
                           <span className="text-[36px] font-black text-primary leading-none tracking-tighter">
                             {realEstatePER.toFixed(2)}
