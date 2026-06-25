@@ -547,14 +547,16 @@ export interface ShareMortgageParams {
   ownCapitalRequired: number; // in man-won
 }
 
-export const shareMortgageToKakao = async (params: ShareMortgageParams) => {
+export const shareMortgageToKakao = async (params: ShareMortgageParams, toastFn?: (msg: string) => void) => {
   const validation = ShareMortgageParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareMortgageToKakao', 'Invalid parameters provided for Mortgage sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { aptName, dong, marketPrice, bestProduct, maxLoanAmount, finalRate, monthlyPayment, ownCapitalRequired } = validation.data;
@@ -578,7 +580,7 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams) => {
   const fallbackUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=clipboard&utm_medium=share&utm_campaign=mortgage_share`;
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, fallbackDesc, fallbackUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, fallbackDesc, fallbackUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     const baseUrl = window.location.origin;
@@ -613,7 +615,9 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams) => {
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareMortgageToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 
@@ -630,14 +634,16 @@ export interface ShareTaxParams {
   totalCost: number; // in man-won
 }
 
-export const shareTaxToKakao = async (params: ShareTaxParams) => {
+export const shareTaxToKakao = async (params: ShareTaxParams, toastFn?: (msg: string) => void) => {
   const validation = ShareTaxParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareTaxToKakao', 'Invalid parameters provided for Tax sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { aptName, dong, marketPrice, ownedHouses, exclusiveArea, acquisitionTax, localEducationTax, ruralSpecialTax, brokerFee, totalCost } = validation.data;
@@ -667,7 +673,7 @@ export const shareTaxToKakao = async (params: ShareTaxParams) => {
   const finalImageUrl = `${baseUrl}/api/og?type=tax&title=${encodeURIComponent(aptName)}&subtitle=${encodeURIComponent(dong)}&price=${encodeURIComponent(marketPriceStr)}&ratio=${encodeURIComponent(totalCostStr)}&status=${encodeURIComponent(ownedHousesStr)}&lien=${encodeURIComponent(totalTaxStr)}&totalDebt=${encodeURIComponent(brokerFeeStr)}&bestProduct=${encodeURIComponent(areaStr)}`;
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     window.Kakao!.Share.sendDefault({
@@ -696,7 +702,9 @@ export const shareTaxToKakao = async (params: ShareTaxParams) => {
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareTaxToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 
@@ -710,14 +718,16 @@ export interface ShareLocalEventParams {
   tip: string;
 }
 
-export const shareLocalEventToKakao = async (params: ShareLocalEventParams) => {
+export const shareLocalEventToKakao = async (params: ShareLocalEventParams, toastFn?: (msg: string) => void) => {
   const validation = ShareLocalEventParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareLocalEventToKakao', 'Invalid parameters provided for Local Event sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { id, title, date, time, location, category, tip } = validation.data;
@@ -730,7 +740,7 @@ export const shareLocalEventToKakao = async (params: ShareLocalEventParams) => {
   const finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(`${date} (${time})`)}&location=${encodeURIComponent(location)}&tip=${encodeURIComponent(tip.substring(0, 80))}`;
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     window.Kakao!.Share.sendDefault({
@@ -759,7 +769,9 @@ export const shareLocalEventToKakao = async (params: ShareLocalEventParams) => {
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareLocalEventToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 
@@ -770,14 +782,16 @@ export interface ShareCompareParams {
   scoreApt2: number;
 }
 
-export const shareCompareToKakao = async (params: ShareCompareParams) => {
+export const shareCompareToKakao = async (params: ShareCompareParams, toastFn?: (msg: string) => void) => {
   const validation = ShareCompareParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareCompareToKakao', 'Invalid parameters provided for Compare sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { apt1Name, apt2Name, scoreApt1, scoreApt2 } = validation.data;
@@ -790,7 +804,7 @@ export const shareCompareToKakao = async (params: ShareCompareParams) => {
   const finalImageUrl = `${baseUrl}/api/og?type=compare&apt1=${encodeURIComponent(apt1Name)}&apt2=${encodeURIComponent(apt2Name)}&score1=${scoreApt1}&score2=${scoreApt2}`;
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     window.Kakao!.Share.sendDefault({
@@ -819,7 +833,9 @@ export const shareCompareToKakao = async (params: ShareCompareParams) => {
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareCompareToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 
@@ -831,14 +847,16 @@ export interface ShareLocalNoticeParams {
   source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
-export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams) => {
+export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams, toastFn?: (msg: string) => void) => {
   const validation = ShareLocalNoticeParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareLocalNoticeToKakao', 'Invalid parameters provided for Local Notice sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { id, title, dept, date, source } = validation.data;
@@ -882,7 +900,7 @@ export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams) =>
   }
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     window.Kakao!.Share.sendDefault({
@@ -911,7 +929,9 @@ export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams) =>
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareLocalNoticeToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 
@@ -925,14 +945,16 @@ export interface ShareRecommendationsParams {
   fallback?: boolean;
 }
 
-export const shareRecommendationsToKakao = async (params: ShareRecommendationsParams) => {
+export const shareRecommendationsToKakao = async (params: ShareRecommendationsParams, toastFn?: (msg: string) => void) => {
   const validation = ShareRecommendationsParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareRecommendationsToKakao', 'Invalid parameters provided for Recommendations sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { apt1, score1, apt2, score2, apt3, score3, fallback } = validation.data;
@@ -947,7 +969,7 @@ export const shareRecommendationsToKakao = async (params: ShareRecommendationsPa
   const shareUrl = `${window.location.origin}/?from=share_recommend&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_recommendation`;
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     window.Kakao!.Share.sendDefault({
@@ -976,7 +998,9 @@ export const shareRecommendationsToKakao = async (params: ShareRecommendationsPa
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareRecommendationsToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 
@@ -993,14 +1017,16 @@ export interface ShareSellTimingParams {
   totalTax: number; // in man-won
 }
 
-export const shareSellTimingToKakao = async (params: ShareSellTimingParams) => {
+export const shareSellTimingToKakao = async (params: ShareSellTimingParams, toastFn?: (msg: string) => void) => {
   const validation = ShareSellTimingParamsSchema.safeParse(params);
   if (!validation.success) {
     logger.warn('kakaoShare.shareSellTimingToKakao', 'Invalid parameters provided for Sell Timing sharing', {
       error: String(validation.error),
       params
     });
-    alert('공유 데이터가 올바르지 않습니다.');
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
     return;
   }
   const { aptName, dong, acquisitionPrice, transferPrice, holdingYears, resideYears, isOneHouse, verdictScore, verdictLabel, totalTax } = validation.data;
@@ -1027,7 +1053,7 @@ export const shareSellTimingToKakao = async (params: ShareSellTimingParams) => {
   const finalImageUrl = `${baseUrl}/api/og?type=sell_timing&title=${encodeURIComponent(aptName)}&score=${verdictScore}&status=${encodeURIComponent(verdictLabel)}&price=${encodeURIComponent(transferStr)}&ratio=${encodeURIComponent(taxStr)}&subtitle=${encodeURIComponent(dong)}`;
 
   try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신");
+    const sdkOk = await checkKakaoSdkAndFallback(titleText, description, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
     if (!sdkOk) return;
 
     window.Kakao!.Share.sendDefault({
@@ -1056,7 +1082,9 @@ export const shareSellTimingToKakao = async (params: ShareSellTimingParams) => {
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareSellTimingToKakao', 'Kakao Share Error', { error: errMessage });
-    alert("공유 진행 중 오류가 발생했습니다: " + errMessage);
+    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
+    if (toastFn) toastFn(msg);
+    else alert(msg);
   }
 };
 

@@ -11,6 +11,7 @@ import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apar
 import { calculateVerdictScore, calculateCapitalGainsTax, VerdictResult, TaxResult } from '@/lib/utils/sellTimingEngine';
 import { shareSellTimingToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
+import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 
@@ -62,6 +63,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   nameMapping,
   userId,
 }: SellTimingCalculatorProps) {
+  const { showToast } = usePWA();
   const allApartments = useMemo(() => {
     return Object.values(sheetApartments).flat().map(a => ({
       ...a,
@@ -405,7 +407,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
       verdictScore: calculations.verdict.score,
       verdictLabel: calculations.verdict.label,
       totalTax: calculations.tax.totalTax,
-    });
+    }, showToast);
   };
 
   const handleB2BClick = (adType: 'broker' | 'tax_expert') => {

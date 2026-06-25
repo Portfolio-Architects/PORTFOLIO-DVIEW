@@ -114,33 +114,64 @@ export default async function LoungePostPage(props: Props) {
 
   const jsonLd = initialPost ? {
     "@context": "https://schema.org",
-    "@type": "DiscussionForumPosting",
-    "@id": `${baseUrl}/lounge/${id}`,
-    "headline": initialPost.title,
-    "articleBody": cleanContentText,
-    "datePublished": initialPost.createdAt ? new Date(initialPost.createdAt).toISOString() : undefined,
-    "author": {
-      "@type": "Person",
-      "name": initialPost.author
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "D-VIEW",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${baseUrl}/logo.png`
-      }
-    },
-    "interactionStatistic": [
+    "@graph": [
       {
-        "@type": "InteractionCounter",
-        "interactionType": "https://schema.org/ViewAction",
-        "userInteractionCount": Number(initialPost.views || 0)
+        "@type": "DiscussionForumPosting",
+        "@id": `${baseUrl}/lounge/${id}#post`,
+        "url": `${baseUrl}/lounge/${id}`,
+        "headline": initialPost.title,
+        "articleBody": cleanContentText,
+        "datePublished": initialPost.createdAt ? new Date(initialPost.createdAt).toISOString() : undefined,
+        "author": {
+          "@type": "Person",
+          "name": initialPost.author
+        },
+        "publisher": {
+          "@id": `${baseUrl}/#organization`,
+          "name": "D-VIEW 부동산 데이터 랩스"
+        },
+        "interactionStatistic": [
+          {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/ViewAction",
+            "userInteractionCount": Number(initialPost.views || 0)
+          },
+          {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/LikeAction",
+            "userInteractionCount": Number(initialPost.likes || 0)
+          }
+        ]
       },
       {
-        "@type": "InteractionCounter",
-        "interactionType": "https://schema.org/LikeAction",
-        "userInteractionCount": Number(initialPost.likes || 0)
+        "@type": "WebPage",
+        "@id": `${baseUrl}/lounge/${id}#webpage`,
+        "url": `${baseUrl}/lounge/${id}`,
+        "name": `${initialPost.title} | D-VIEW 라운지`,
+        "description": cleanContentText.substring(0, 150),
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "홈",
+              "item": baseUrl
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "주민 라운지",
+              "item": `${baseUrl}/lounge`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": initialPost.title,
+              "item": `${baseUrl}/lounge/${id}`
+            }
+          ]
+        }
       }
     ]
   } : null;

@@ -9,6 +9,7 @@ import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apar
 import { shareTaxToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { usePWA } from '@/components/pwa/PWAProvider';
 import { logger } from '@/lib/services/logger';
 
 interface PropertyTaxCalculatorProps {
@@ -45,6 +46,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   txSummaryData,
   nameMapping,
 }: PropertyTaxCalculatorProps) {
+  const { showToast } = usePWA();
   const allApartments = useMemo(() => {
     return Object.values(sheetApartments).flat().map(a => ({
       ...a,
@@ -399,7 +401,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
       ruralSpecialTax: taxResults.ruralSpecialTax,
       brokerFee: taxResults.brokerFee,
       totalCost: taxResults.totalCost,
-    });
+    }, showToast);
   };
 
   if (!isOpen) return null;

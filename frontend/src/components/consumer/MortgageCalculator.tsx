@@ -9,6 +9,7 @@ import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareMortgageToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
+import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 
@@ -72,6 +73,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   nameMapping,
   fieldReportsMap,
 }: MortgageCalculatorProps) {
+  const { showToast } = usePWA();
   const allApartments = useMemo(() => {
     return Object.values(sheetApartments).flat().map(a => ({
       ...a,
@@ -567,7 +569,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
       finalRate: loanResults.finalRate,
       monthlyPayment: repaymentDetails.monthlyPayment,
       ownCapitalRequired: loanResults.ownCapitalRequired,
-    });
+    }, showToast);
   };
 
   if (!isOpen) return null;

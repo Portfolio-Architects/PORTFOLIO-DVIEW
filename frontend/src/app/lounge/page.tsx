@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import { logger } from '@/lib/services/logger';
-import { safeJsonLd } from '@/lib/utils/structuredData';
+import { safeJsonLd, getLoungeMainSchema } from '@/lib/utils/structuredData';
 import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
 
 export const dynamic = 'force-dynamic';
@@ -92,12 +92,19 @@ export default async function LoungePage({
     }))
   };
 
+  const mainSchema = getLoungeMainSchema(baseUrl);
+
   return (
     <>
       <script
         type="application/ld+json"
         nonce={nonce}
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
+      />
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={safeJsonLd(mainSchema)}
       />
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto relative pb-[100px] sm:pb-12 animate-in fade-in duration-500">
         {errorMessage && (

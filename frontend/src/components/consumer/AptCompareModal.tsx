@@ -9,6 +9,7 @@ import { FieldReportData } from '@/lib/types/report.types';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareCompareToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
+import { usePWA } from '@/components/pwa/PWAProvider';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { logger } from '@/lib/services/logger';
@@ -203,6 +204,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
   typeMap,
   locationScores = {},
 }: AptCompareModalProps) {
+  const { showToast } = usePWA();
   // Flatten list of all apartments
   const allApartments = useMemo(() => {
     return Object.values(sheetApartments).flat();
@@ -1263,7 +1265,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                           apt2Name: apt2.name,
                           scoreApt1: score.apt1,
                           scoreApt2: score.apt2
-                        });
+                        }, showToast);
                       }
                     }}
                     className="px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-[#FEE500] hover:bg-[#FEE500]/95 text-[#3A1D1D] shadow-md hover:shadow-lg active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 select-none"

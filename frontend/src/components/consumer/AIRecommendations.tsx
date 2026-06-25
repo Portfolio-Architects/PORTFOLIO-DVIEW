@@ -10,6 +10,7 @@ import { findTxKey, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
 import { logger } from '@/lib/services/logger';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface AIRecommendationsProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -250,6 +251,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
   onOpenMortgage,
   onOpenSellTimingCalculator,
 }: AIRecommendationsProps) {
+  const { showToast } = usePWA();
   const { viewedApts, quizAnswers } = useDashboardData();
   const [isCopied, setIsCopied] = useState(false);
   const copyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -639,7 +641,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
       apt3: items[2].name,
       score3: items[2].score,
       fallback: isFallback,
-    });
+    }, showToast);
   };
 
   const handleCopyLink = () => {

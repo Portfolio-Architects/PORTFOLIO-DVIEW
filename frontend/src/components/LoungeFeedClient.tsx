@@ -848,7 +848,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => shareLocalNoticeToKakao(notice)}
+                          onClick={() => shareLocalNoticeToKakao(notice, showToast)}
                           className="px-3.5 py-2 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
                         >
                           카카오톡 공유
@@ -1142,7 +1142,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   {/* 공유 행 */}
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => shareLocalNoticeToKakao(selectedNotice)}
+                      onClick={() => shareLocalNoticeToKakao(selectedNotice, showToast)}
                       className="flex-1 px-4 py-3.5 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
                     >
                       <Share2 size={16} /> 리포트 카카오톡 공유
@@ -1170,7 +1170,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                     </a>
                     <div className="flex items-center gap-2 shrink-0">
                       <button
-                        onClick={() => shareLocalNoticeToKakao(selectedNotice)}
+                        onClick={() => shareLocalNoticeToKakao(selectedNotice, showToast)}
                         className="flex-1 sm:flex-none px-4 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
                       >
                         <Share2 size={16} /> 카카오톡 공유

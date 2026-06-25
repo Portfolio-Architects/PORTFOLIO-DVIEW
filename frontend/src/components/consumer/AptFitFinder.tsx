@@ -9,6 +9,7 @@ import { findTxKey, normalizeAptName, HARDCODED_MAPPING } from '@/lib/utils/apar
 import { getBrandMultiplier } from '@/lib/utils/scoring';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
+import { usePWA } from '@/components/pwa/PWAProvider';
 import { logger } from '@/lib/services/logger';
 
 const LOADING_TEXTS = [
@@ -144,6 +145,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
   onClose,
   locationScores,
 }: AptFitFinderProps) {
+  const { showToast } = usePWA();
   const modalRef = React.useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<number>(0); // 0: Intro, 1-7: Qs, 8: Calculating, 9: Results
   const [answers, setAnswers] = useState<QuizAnswer>({
@@ -280,7 +282,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
       score2: topRecommendations[1].matchPercentage,
       apt3: topRecommendations[2].apt.name,
       score3: topRecommendations[2].matchPercentage,
-    });
+    }, showToast);
   };
 
   // Precompute static apartment metrics & price lookups to reduce CPU load when answers/step changes
