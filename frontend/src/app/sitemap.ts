@@ -21,10 +21,60 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
 
   // 1. MAIN static pages and apartment pages
   if (targetId === 0) {
+    let latestLoungeDate = new Date();
+    let latestNewsDate = new Date();
+
+    if (adminDb) {
+      try {
+        const latestPostSnap = await adminDb.collection('posts')
+          .select('createdAt')
+          .orderBy('createdAt', 'desc')
+          .limit(1)
+          .get();
+          
+        if (!latestPostSnap.empty) {
+          const doc = latestPostSnap.docs[0].data();
+          if (doc.createdAt) {
+            if (typeof doc.createdAt.toDate === 'function') {
+              latestLoungeDate = doc.createdAt.toDate();
+            } else if (doc.createdAt._seconds) {
+              latestLoungeDate = new Date(doc.createdAt._seconds * 1000);
+            }
+          }
+        }
+      } catch (err) {
+        logger.error('Sitemap.lounge', 'Failed to fetch latest post for sitemap', {}, err as Error);
+      }
+
+      try {
+        const latestNoticeSnap = await adminDb.collection('localNotices')
+          .select('createdAt')
+          .orderBy('createdAt', 'desc')
+          .limit(1)
+          .get();
+
+        if (!latestNoticeSnap.empty) {
+          const doc = latestNoticeSnap.docs[0].data();
+          if (doc.createdAt) {
+            if (typeof doc.createdAt.toDate === 'function') {
+              latestNewsDate = doc.createdAt.toDate();
+            } else if (doc.createdAt._seconds) {
+              latestNewsDate = new Date(doc.createdAt._seconds * 1000);
+            }
+          }
+        }
+      } catch (err) {
+        logger.error('Sitemap.news', 'Failed to fetch latest notice for sitemap', {}, err as Error);
+      }
+    }
+
+    const staticFixedDate = new Date('2026-06-26T00:00:00Z');
+    const homeLastModified = latestLoungeDate > latestNewsDate ? latestLoungeDate : latestNewsDate;
+
     const routes: MetadataRoute.Sitemap = [
       {
         url: baseUrl,
-        lastModified: new Date(),
+        lastModified: homeLastModified,
         changeFrequency: 'always',
         priority: 1.0,
       },
@@ -36,43 +86,43 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
       },
       {
         url: `${baseUrl}/lounge`,
-        lastModified: new Date(),
+        lastModified: latestLoungeDate,
         changeFrequency: 'hourly',
         priority: 0.9,
       },
       {
         url: `${baseUrl}/news`,
-        lastModified: new Date(),
+        lastModified: latestNewsDate,
         changeFrequency: 'daily',
         priority: 0.9,
       },
       {
         url: `${baseUrl}/technovalley`,
-        lastModified: new Date(),
+        lastModified: staticFixedDate,
         changeFrequency: 'daily',
         priority: 0.9,
       },
       {
         url: `${baseUrl}/about`,
-        lastModified: new Date(),
+        lastModified: staticFixedDate,
         changeFrequency: 'weekly',
         priority: 0.85,
       },
       {
         url: `${baseUrl}/contact`,
-        lastModified: new Date(),
+        lastModified: staticFixedDate,
         changeFrequency: 'monthly',
         priority: 0.8,
       },
       {
         url: `${baseUrl}/privacy`,
-        lastModified: new Date(),
+        lastModified: staticFixedDate,
         changeFrequency: 'monthly',
         priority: 0.5,
       },
       {
         url: `${baseUrl}/terms`,
-        lastModified: new Date(),
+        lastModified: staticFixedDate,
         changeFrequency: 'monthly',
         priority: 0.5,
       },
