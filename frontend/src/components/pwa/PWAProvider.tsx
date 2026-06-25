@@ -209,7 +209,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       process.env.NODE_ENV === 'development'
     );
 
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
     }
 
@@ -367,7 +367,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         const activeReg = registrations.find(r => r.waiting);
         if (activeReg && activeReg.waiting) {
+          logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING...');
           activeReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          // Fallback: 1000ms 경과 후에도 controllerchange 이벤트가 반응하지 않을 경우 강제 새로고침
+          setTimeout(() => {
+            logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
+            window.location.reload();
+          }, 1000);
         } else {
           window.location.reload();
         }

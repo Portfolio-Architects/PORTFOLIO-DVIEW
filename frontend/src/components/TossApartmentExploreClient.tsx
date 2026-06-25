@@ -237,7 +237,7 @@ const AptRow = memo(({
         
         {/* Name */}
         <div className="flex-1 min-w-[120px] flex items-center ml-2 flex-wrap gap-x-1.5 gap-y-1">
-          <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-100 leading-none group-hover:text-[#00d29d] transition-colors">{item.apt.name}</span>
+          <span className="text-[15.5px] font-black text-neutral-900 dark:text-neutral-100 leading-none group-hover:text-toss-blue transition-colors">{item.apt.name}</span>
           {photoCount > 0 && (
             <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold rounded-full border border-emerald-100/50 dark:border-emerald-900/30 leading-none flex items-center shrink-0 gap-0.5 shadow-sm">
               <Camera className="w-2.5 h-2.5" />
@@ -263,7 +263,7 @@ const AptRow = memo(({
         </div>
         
         {/* Pyeong */}
-        <div className="w-[90px] text-right pr-3 text-[14.5px] font-extrabold text-[#008060] dark:text-[#00d29d] shrink-0 whitespace-nowrap">
+        <div className="w-[90px] text-right pr-3 text-[14.5px] font-extrabold text-emerald-700 dark:text-toss-blue shrink-0 whitespace-nowrap">
           {item.formattedPyeong}
         </div>
 
@@ -382,7 +382,7 @@ const AptRow = memo(({
               </>
             ) : currentCategory === 'rank-jeonse' ? (
               <>
-                <span className="text-[14.5px] font-black text-[#008060] dark:text-[#00d29d] tracking-tight leading-tight">
+                <span className="text-[14.5px] font-black text-emerald-700 dark:text-toss-blue tracking-tight leading-tight">
                   {item.ratio > 0 ? item.formattedRatio : '-'}
                 </span>
                 <span className="text-[10.5px] font-bold text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-tight leading-none">
@@ -1009,7 +1009,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               }}
               role="searchbox"
               aria-label="단지명 검색"
-              className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
+              className="w-full bg-body border border-transparent focus:border-toss-blue focus:bg-surface focus:shadow-[0_0_0_2px_rgba(0,210,157,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
             />
             {searchQuery && (
               <button 
@@ -1219,7 +1219,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenCompare && (
                 <button
                   onClick={onOpenCompare}
-                  className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#00664d] dark:text-[#00d29d] text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/20 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-toss-blue text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/20 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   단지 비교분석
                 </button>
@@ -1247,59 +1247,59 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         <div className="flex-1 min-h-0 flex flex-col relative">
           <div className="w-full bg-white dark:bg-zinc-950 border border-neutral-100 dark:border-zinc-900/40 rounded-2xl shadow-sm overflow-hidden flex flex-col">
             {/* Table Header */}
-            <div className="hidden md:flex sticky top-0 z-20 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm items-center px-6 py-4 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none">
+            <div className="hidden md:flex sticky top-0 z-20 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm items-center px-6 py-4 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none">
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
-              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               <span className="w-full text-center">순위</span>
               {sortKey === 'views' && (
                 <span className="absolute -right-0.5 top-1/2 -translate-y-1/2">
-                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-2.5 h-2.5 text-[#008060] dark:text-[#00d29d]" />}
+                  {sortDirection === 'desc' ? <ArrowDown className="w-2.5 h-2.5 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-2.5 h-2.5 text-emerald-700 dark:text-toss-blue" />}
                 </span>
               )}
             </button>
             <button 
               onClick={() => handleHeaderSort('name')}
-              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
               <span>단지명</span>
-              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
             </button>
             <button 
               onClick={() => handleHeaderSort('yearBuilt')}
-              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>연식</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('totalPrice')}
-              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>매매가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('pyeongPrice')}
-              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>평당가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('ratio')}
-              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>전세가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('householdCount')}
-              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>세대수</span>
             </button>
             <button 
@@ -1471,11 +1471,11 @@ function MobileSidebarItem({ label, active, onClick }: { label: string, active: 
       role="tab"
       aria-selected={active}
       className={`text-left px-4 py-3.5 rounded-2xl text-[16px] font-bold transition-all flex items-center justify-between ${
-        active ? 'bg-[#e0fbf4] text-[#008060]' : 'text-primary hover:bg-body/50'
+        active ? 'bg-toss-blue-light text-emerald-800' : 'text-primary hover:bg-body/50'
       }`}
     >
       {label}
-      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#00b386]" />}
+      {active && <div className="w-1.5 h-1.5 rounded-full bg-toss-blue" />}
     </button>
   );
 }
