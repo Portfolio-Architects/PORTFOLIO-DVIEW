@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Building } from 'lucide-react';
 
 interface ApartmentSpecsSectionProps {
@@ -12,13 +12,69 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
   inline = false,
   displayAptName,
 }: ApartmentSpecsSectionProps) {
-  if (!report.metrics) return null;
+  const jsonLd = useMemo(() => {
+    if (!report || !report.metrics) return null;
+    
+    const amenityFeature = [];
+    if (report.metrics.brand) {
+      amenityFeature.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "시공사",
+        "value": report.metrics.brand
+      });
+    }
+    if (report.metrics.yearBuilt) {
+      amenityFeature.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "사용승인일",
+        "value": String(report.metrics.yearBuilt)
+      });
+    }
+    if (report.metrics.far) {
+      amenityFeature.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "용적률",
+        "value": `${report.metrics.far}%`
+      });
+    }
+    if (report.metrics.bcr) {
+      amenityFeature.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "건폐율",
+        "value": `${report.metrics.bcr}%`
+      });
+    }
+    if (report.metrics.parkingCount || report.metrics.parkingPerHousehold) {
+      amenityFeature.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "주차대수",
+        "value": `${report.metrics.parkingCount ? report.metrics.parkingCount + '대' : ''} ${report.metrics.parkingPerHousehold ? '(세대당 ' + report.metrics.parkingPerHousehold + '대)' : ''}`.trim()
+      });
+    }
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "ApartmentComplex",
+      "name": displayAptName,
+      "description": `${displayAptName} 단지의 기본 스펙 정보(세대수, 사용승인일, 주차대수, 용적률, 건폐율, 건설사 등)입니다.`,
+      "numberOfAccommodationUnits": report.metrics.householdCount || undefined,
+      "amenityFeature": amenityFeature
+    };
+  }, [report, displayAptName]);
+
+  if (!report || !report.metrics) return null;
 
   return (
     <section 
       id="sec-specs" 
       className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}
     >
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <h2 className="text-title-lg font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
         <Building size={18} className="text-toss-blue"/> 단지 기본정보
       </h2>
