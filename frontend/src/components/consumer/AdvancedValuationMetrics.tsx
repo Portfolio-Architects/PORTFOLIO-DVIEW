@@ -494,6 +494,57 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
     };
   }, [simBaseRate, simGrowthRate, macroConfig, avg3MRent, dynamicConversionRate, avg3MSale]);
 
+  const valuationJsonLd = useMemo(() => {
+    if (!report) return null;
+
+    const aptName = report.apartmentName;
+    const dong = report.dong || "";
+
+    const impliedValueStr = dcf.impliedValue ? `${dcf.impliedValue.toFixed(1)}억 원` : "연산 불가";
+    const perStr = realEstatePER ? `${realEstatePER.toFixed(1)}배` : "연산 불가";
+    const scoreStr = utilityScoreResult.total ? `${utilityScoreResult.total}점` : "연산 불가";
+    const spreadStr = spreadData.spread ? `${spreadData.spread > 0 ? '+' : ''}${spreadData.spread.toFixed(2)}배` : "0.00배";
+
+    const valuationSchema = {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": aptName,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "화성시",
+        "addressRegion": "경기도",
+        "streetAddress": dong,
+        "addressCountry": "KR"
+      },
+      "url": `https://dongtanview.com/apartment/${encodeURIComponent(aptName)}`,
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "입지 내재 가치 스코어 (Utility Score V2)",
+          "value": scoreStr,
+          "maxValue": utilityScoreResult.maxTotal || 150
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "DCF 모델 내재가치 평가액",
+          "value": impliedValueStr
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "실거주 PER",
+          "value": perStr
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "동탄 법정동 스프레드 대비 고평가율",
+          "value": spreadStr
+        }
+      ]
+    };
+
+    return JSON.stringify(valuationSchema);
+  }, [report, dcf.impliedValue, realEstatePER, utilityScoreResult, spreadData]);
+
   const handleCopyScenario = () => {
     const rateStatus = simBaseRate > 3.25 ? '금리 인상기' : simBaseRate < 3.25 ? '금리 인하기' : '금리 유지';
     const fairChangePercent = dcf.impliedValue > 0 ? ((simulatedDCF.impliedValue - dcf.impliedValue) / dcf.impliedValue) * 100 : 0;
@@ -602,6 +653,12 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
 
   return (
     <div className="flex flex-col gap-6">
+      {valuationJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: valuationJsonLd }}
+        />
+      )}
       {/* Header */}
       <h2 className="text-[20px] font-bold text-primary flex items-center gap-2">
         <Target size={22} className="text-toss-blue" strokeWidth={2.5} />
