@@ -78,11 +78,61 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 }: EducationAnalysisSectionProps) {
   if (!report.metrics) return null;
 
+  // Generate JSON-LD structural data for Education (SEO/Rich Snippets)
+  const jsonLdElements = React.useMemo(() => {
+    const elements: any[] = [];
+    const metrics = report.metrics || {};
+    
+    if (metrics.distanceToElementary > 0) {
+      const name = metrics.nearestSchoolNames?.elementary || '배정 초등학교';
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": `배정 초등학교 (${name})`,
+        "value": `${Math.round(metrics.distanceToElementary)}m (도보 약 ${Math.ceil(metrics.distanceToElementary / 80)}분)`
+      });
+    }
+    if (metrics.distanceToMiddle > 0) {
+      const name = metrics.nearestSchoolNames?.middle || '인근 중학교';
+      const perf = getSchoolPerformance(name);
+      const perfStr = perf ? `, 학업성취도 ${perf.achievement} (${perf.desc})` : '';
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": `인근 중학교 (${name})`,
+        "value": `${Math.round(metrics.distanceToMiddle)}m (도보 약 ${Math.ceil(metrics.distanceToMiddle / 80)}분)${perfStr}`
+      });
+    }
+    if (metrics.distanceToHigh > 0) {
+      const name = metrics.nearestSchoolNames?.high || '인근 고등학교';
+      const perf = getSchoolPerformance(name);
+      const perfStr = perf ? `, 4년제 대입 ${perf.achievement} (${perf.desc})` : '';
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": `인근 고등학교 (${name})`,
+        "value": `${Math.round(metrics.distanceToHigh)}m (도보 약 ${Math.ceil(metrics.distanceToHigh / 80)}분)${perfStr}`
+      });
+    }
+    return elements;
+  }, [report.metrics]);
+
+  const jsonLd = React.useMemo(() => {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${displayAptName} 단지 안심 학군 및 학교 배정 정보`,
+      "description": `단지 인근 초·중·고교의 최단 보행 통학 거리와 도보 소요 시간, 각 학교별 학업 성취도 및 특목고/자사고 진학 통계 분석 정보입니다.`,
+      "amenityFeature": jsonLdElements
+    };
+  }, [displayAptName, jsonLdElements]);
+
   return (
     <section 
       id="sec-education" 
       className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14 overflow-hidden w-full snap-start`}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
           <GraduationCap size={18} className="text-[#0d9488]"/> 학군/육아 분석
