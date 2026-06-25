@@ -379,6 +379,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const mountedRef = useRef(true);
   const [isAnimationFinished, setIsAnimationFinished] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
+  const firstFocusRef = useRef<HTMLButtonElement>(null);
 
   const [calculatedTransactions, setCalculatedTransactions] = useState<EnrichedTransaction[]>([]);
   const [calculatedValuation, setCalculatedValuation] = useState<CalculatedValuation>({ status: 'fair', amount: '0', ratio: 0, priceStr: '0' });
@@ -516,6 +517,73 @@ const FieldReportModal = React.memo(function FieldReportModal({
   }, [isToolDropdownOpen]);
 
   const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(undefined);
+
+  // Escape key handling with layer hierarchy
+  useEffect(() => {
+    if (inline) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (fullscreenImage) {
+          setFullscreenImage(null);
+        } else if (isUploadModalOpen) {
+          setIsUploadModalOpen(false);
+        } else if (isPushModalOpen) {
+          setIsPushModalOpen(false);
+        } else if (isToolDropdownOpen) {
+          setIsToolDropdownOpen(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [inline, fullscreenImage, isUploadModalOpen, isPushModalOpen, isToolDropdownOpen, onClose]);
+
+  // Focus trap handler
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (inline) return;
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.parentElement?.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusableElements || focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
+  // Auto focus close button or first focusable element on mount
+  useEffect(() => {
+    if (inline || !isAnimationFinished) return;
+    const timer = setTimeout(() => {
+      if (firstFocusRef.current && window.innerWidth >= 768) {
+        firstFocusRef.current.focus();
+      } else if (modalRef.current) {
+        const focusableElements = modalRef.current.parentElement?.querySelectorAll(
+          'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])'
+        );
+        if (focusableElements && focusableElements.length > 0) {
+          (focusableElements[0] as HTMLElement).focus();
+        }
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [inline, isAnimationFinished]);
 
 
   const getAutoShareTheme = (): 'value' | 'gap' | 'school' | 'deal' => {
@@ -2533,15 +2601,39 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[11000] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
-        <div className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" onClick={onClose} />
+      <div 
+        className="fixed inset-0 z-[11000] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200" 
+        style={{ position: 'fixed' }}
+        onKeyDown={handleKeyDown}
+      >
+        <div 
+          className="absolute inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-md" 
+          onClick={onClose} 
+          role="presentation"
+        />
         
         <article 
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="apartment-modal-title"
+          aria-describedby="apartment-modal-desc"
           className={`relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1275px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 dark:ring-white/10 slide-in-from-bottom overflow-hidden`}
         >
+          {/* Screen Reader Only Title and Description */}
+          <h1 id="apartment-modal-title" className="sr-only">
+            {displayAptName} 임장 보고서
+          </h1>
+          <p id="apartment-modal-desc" className="sr-only">
+            {displayAptName} 단지의 세부 가치평가 및 실거래 정보 요약 리포트입니다.
+          </p>
 
           <header className="absolute top-6 right-6 md:top-7 md:right-8 z-[100] hidden md:flex items-center gap-3">
-            <button onClick={onClose} aria-label="닫기" className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group">
+            <button 
+              ref={firstFocusRef}
+              onClick={onClose} 
+              aria-label="닫기" 
+              className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group"
+            >
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </header>
