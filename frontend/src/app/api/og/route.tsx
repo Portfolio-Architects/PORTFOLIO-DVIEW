@@ -190,11 +190,11 @@ export async function GET(req: NextRequest) {
       const s1 = parseInt(score1 || '0') || 0;
       const s2 = parseInt(score2 || '0') || 0;
       
-      let winnerText = '두 단지 팽팽한 대조 분석';
+      let winnerText = '두 단지의 팽팽한 입지 분석 대조';
       if (s1 > s2) {
-        winnerText = `${apt1} 단지가 ${s1}개 지표 우세`;
+        winnerText = `🏆 ${apt1} 단지가 ${s1}개 지표로 최종 우세`;
       } else if (s2 > s1) {
-        winnerText = `${apt2} 단지가 ${s2}개 지표 우세`;
+        winnerText = `🏆 ${apt2} 단지가 ${s2}개 지표로 최종 우세`;
       }
 
       return new ImageResponse(
@@ -207,8 +207,8 @@ export async function GET(req: NextRequest) {
               flexDirection: 'column',
               alignItems: 'flex-start',
               justifyContent: 'center',
-              backgroundColor: '#0b1329',
-              backgroundImage: 'linear-gradient(to bottom right, #1c2541, #0b1329)',
+              backgroundColor: '#0a0f1d',
+              backgroundImage: 'linear-gradient(to right, #02251d, #0b111e 35%, #0b111e 65%, #051a35)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
@@ -230,18 +230,19 @@ export async function GET(req: NextRequest) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  marginBottom: '20px',
+                  marginBottom: '28px',
                 }}
               >
                 <div
                   style={{
-                    background: '#008262',
-                    padding: '8px 16px',
+                    backgroundImage: 'linear-gradient(135deg, #00d29d, #008262)',
+                    padding: '6px 16px',
                     borderRadius: '8px',
                     color: 'white',
-                    fontWeight: 'bold',
+                    fontWeight: 900,
                     fontSize: '24px',
                     letterSpacing: '-0.5px',
+                    boxShadow: '0 4px 12px rgba(0, 210, 157, 0.2)',
                   }}
                 >
                   D-VIEW
@@ -250,24 +251,26 @@ export async function GET(req: NextRequest) {
                   style={{
                     marginLeft: '16px',
                     fontSize: '24px',
-                    color: '#93c5fd',
-                    fontWeight: 'bold',
+                    color: '#94a3b8',
+                    fontWeight: 500,
+                    letterSpacing: '-0.5px',
                   }}
                 >
-                  1:1 아파트 단지 비교 리포트
+                  1:1 아파트 단지 분석 비교기
                 </span>
               </div>
 
               {/* Title / Winner Announcement */}
               <div
                 style={{
-                  fontSize: '32px',
-                  fontWeight: 800,
-                  color: '#38bdf8',
-                  marginBottom: '30px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                  paddingBottom: '12px',
+                  fontSize: '36px',
+                  fontWeight: 900,
+                  color: '#f8fafc',
+                  marginBottom: '32px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  paddingBottom: '16px',
                   width: '100%',
+                  letterSpacing: '-1px',
                 }}
               >
                 {winnerText}
@@ -280,7 +283,7 @@ export async function GET(req: NextRequest) {
                   width: '100%',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: '20px',
+                  marginBottom: '24px',
                 }}
               >
                 {/* Left Apt */}
@@ -290,37 +293,40 @@ export async function GET(req: NextRequest) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: s1 >= s2 ? 'rgba(0, 210, 157, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-                    border: `2px solid ${s1 >= s2 ? 'rgba(0, 210, 157, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                    padding: '24px',
-                    borderRadius: '20px',
-                    width: '44%',
-                    height: '200px',
+                    background: s1 >= s2 ? 'rgba(0, 210, 157, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `2px solid ${s1 >= s2 ? 'rgba(0, 210, 157, 0.4)' : 'rgba(255, 255, 255, 0.08)'}`,
+                    padding: '28px 24px',
+                    borderRadius: '24px',
+                    width: '45%',
+                    height: '210px',
+                    boxShadow: s1 >= s2 ? '0 10px 30px rgba(0, 210, 157, 0.1)' : 'none',
                   }}
                 >
                   <span
                     style={{
-                      fontSize: '28px',
+                      fontSize: '26px',
                       fontWeight: 800,
-                      color: '#ffffff',
+                      color: s1 >= s2 ? '#ffffff' : '#cbd5e1',
                       textAlign: 'center',
-                      marginBottom: '16px',
+                      marginBottom: '18px',
                       maxWidth: '100%',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      letterSpacing: '-0.5px',
                     }}
                   >
                     {apt1}
                   </span>
                   <span
                     style={{
-                      fontSize: '48px',
+                      fontSize: '46px',
                       fontWeight: 900,
-                      color: s1 >= s2 ? '#00d29d' : '#94a3b8',
+                      color: s1 >= s2 ? '#00d29d' : '#64748b',
+                      textShadow: s1 >= s2 ? '0 0 15px rgba(0, 210, 157, 0.3)' : 'none',
                     }}
                   >
-                    {s1}개 우세
+                    {s1}개 지표 우세
                   </span>
                 </div>
 
@@ -330,14 +336,16 @@ export async function GET(req: NextRequest) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '30px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '2px solid rgba(255, 255, 255, 0.2)',
-                    fontSize: '24px',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '32px',
+                    backgroundImage: 'linear-gradient(135deg, #00d29d, #4196f7)',
+                    border: '3px solid #0b111e',
+                    fontSize: '22px',
                     fontWeight: 900,
-                    color: '#94a3b8',
+                    color: '#ffffff',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                    zIndex: 10,
                   }}
                 >
                   VS
@@ -350,37 +358,40 @@ export async function GET(req: NextRequest) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: s2 >= s1 ? 'rgba(65, 150, 247, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-                    border: `2px solid ${s2 >= s1 ? 'rgba(65, 150, 247, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
-                    padding: '24px',
-                    borderRadius: '20px',
-                    width: '44%',
-                    height: '200px',
+                    background: s2 >= s1 ? 'rgba(65, 150, 247, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `2px solid ${s2 >= s1 ? 'rgba(65, 150, 247, 0.4)' : 'rgba(255, 255, 255, 0.08)'}`,
+                    padding: '28px 24px',
+                    borderRadius: '24px',
+                    width: '45%',
+                    height: '210px',
+                    boxShadow: s2 >= s1 ? '0 10px 30px rgba(65, 150, 247, 0.1)' : 'none',
                   }}
                 >
                   <span
                     style={{
-                      fontSize: '28px',
+                      fontSize: '26px',
                       fontWeight: 800,
-                      color: '#ffffff',
+                      color: s2 >= s1 ? '#ffffff' : '#cbd5e1',
                       textAlign: 'center',
-                      marginBottom: '16px',
+                      marginBottom: '18px',
                       maxWidth: '100%',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      letterSpacing: '-0.5px',
                     }}
                   >
                     {apt2}
                   </span>
                   <span
                     style={{
-                      fontSize: '48px',
+                      fontSize: '46px',
                       fontWeight: 900,
-                      color: s2 >= s1 ? '#4196f7' : '#94a3b8',
+                      color: s2 >= s1 ? '#4196f7' : '#64748b',
+                      textShadow: s2 >= s1 ? '0 0 15px rgba(65, 150, 247, 0.3)' : 'none',
                     }}
                   >
-                    {s2}개 우세
+                    {s2}개 지표 우세
                   </span>
                 </div>
               </div>
@@ -391,9 +402,10 @@ export async function GET(req: NextRequest) {
                   marginTop: 'auto',
                   display: 'flex',
                   alignItems: 'center',
-                  color: '#38bdf8',
-                  fontSize: '24px',
+                  color: '#4196f7',
+                  fontSize: '22px',
                   fontWeight: 'bold',
+                  letterSpacing: '-0.5px',
                 }}
               >
                 dongtanview.com

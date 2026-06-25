@@ -1913,7 +1913,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                 <option value="">전체 추이 보기</option>
                                 {favoritesArray.map((fav) => (
                                   <option key={fav} value={fav}>
-                                    {fav}
+                                    {getDisplayAptName(fav)}
                                   </option>
                                 ))}
                               </select>
@@ -1970,7 +1970,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                               >
                                 {DEFAULT_TIMELINE_APTS.map((apt) => (
                                   <option key={apt} value={apt}>
-                                    {apt}
+                                    {getDisplayAptName(apt)}
                                   </option>
                                 ))}
                               </select>
@@ -2544,7 +2544,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             {/* Header */}
             <div className="px-5 pb-3 flex items-center justify-between border-b border-border/50 shrink-0">
               <h3 className="text-[15px] font-extrabold text-primary truncate max-w-[80%]">
-                {selectedTimelineApt ? `${selectedTimelineApt} 시세 추이` : "단지 가격 추이"}
+                {selectedTimelineApt ? `${getDisplayAptName(selectedTimelineApt)} 시세 추이` : "단지 가격 추이"}
               </h3>
               <button 
                 onClick={() => setIsBottomSheetOpen(false)}

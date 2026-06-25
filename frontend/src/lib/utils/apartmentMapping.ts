@@ -105,6 +105,7 @@ const DISPLAY_NAME_MAPPING: Record<string, string> = {
   '동탄역시범금강펜테리움센트럴파크3': '동탄역 시범 금강펜테리움 센트럴파크 3차',
   '호수공원금강펜테리움센트럴파크Ⅱ': '동탄호수공원 금강펜테리움 센트럴파크 2차',
   '목동금강펜테리움센트럴파크4차': '금강펜테리움 센트럴파크 4차',
+  '힐스테이트동탄역': '동탄역 힐스테이트',
 };
 
 // Validate mapping structures at startup

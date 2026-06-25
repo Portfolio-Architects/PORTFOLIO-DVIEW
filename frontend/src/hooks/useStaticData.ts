@@ -21,7 +21,12 @@ const FirestoreTransactionSchema = z.object({
   contractDate: z.string().optional(),
 });
 
-const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(r => r.json());
+const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(async (r) => {
+  if (!r.ok) {
+    throw new Error(`HTTP error! status: ${r.status}`);
+  }
+  return r.json();
+});
 
 // 1. 가격 포맷터 (sync-transactions.js 의 formatPriceEok 이식)
 function formatPriceEok(priceMan: number): string {
@@ -421,7 +426,8 @@ export function useTxData(
   );
   
   if (summaryError) {
-    logger.error('useStaticData.useTxData', 'useTxData SWR summary error', {}, summaryError as Error);
+    const errorMsg = summaryError instanceof Error ? summaryError.message : String(summaryError);
+    logger.error('useStaticData.useTxData', 'useTxData SWR summary error', { errorMsg }, summaryError as Error);
   }
 
   return {
