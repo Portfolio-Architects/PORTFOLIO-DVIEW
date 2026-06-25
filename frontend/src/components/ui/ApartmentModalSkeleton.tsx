@@ -83,7 +83,7 @@ export default function ApartmentModalSkeleton({ onClose }: ApartmentModalSkelet
           </div>
 
           {/* 4. Tab Contents mock (Comments/Reviews layout) */}
-          <div className="flex flex-col gap-4 mt-2">
+          <div className="flex flex-col gap-4 mt-2 content-visibility-auto">
             <div className="flex items-center justify-between">
               <div className="h-5 w-32 bg-neutral-300 dark:bg-zinc-800 rounded-lg animate-shimmer" />
               <div className="h-4 w-16 bg-neutral-200 dark:bg-zinc-850 rounded" />

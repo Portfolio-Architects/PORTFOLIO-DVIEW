@@ -81,7 +81,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
   return (
     <section 
       id="sec-education" 
-      className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14 overflow-hidden w-full`}
+      className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14 overflow-hidden w-full snap-start`}
     >
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
@@ -126,9 +126,38 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   
                   <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col md:flex-row items-center gap-6">
                     <div className="flex flex-col items-center justify-center shrink-0">
-                      <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center border-4 ${colors.border} ${colors.bg} shadow-sm relative group`}>
-                        <span className="text-[12px] font-extrabold text-secondary tracking-wider">GRADE</span>
-                        <span className={`text-[36px] font-black leading-none ${colors.text} -mt-0.5`}>{eduScoreInfo.grade}</span>
+                      <div className="relative w-24 h-24 flex items-center justify-center">
+                        {/* Radial Progress SVG (Toss-style Score Wheel) */}
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          {/* Background Circle */}
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            className="stroke-slate-200 dark:stroke-slate-800"
+                            strokeWidth="6"
+                            fill="transparent"
+                          />
+                          {/* Progress Circle with transition */}
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            className={`${colors.text} transition-all duration-1000 ease-out`}
+                            strokeWidth="6"
+                            fill="transparent"
+                            strokeDasharray={2 * Math.PI * 42}
+                            strokeDashoffset={2 * Math.PI * 42 * (1 - eduScoreInfo.score / 100)}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        {/* Grade display overlay */}
+                        <div className="absolute flex flex-col items-center justify-center">
+                          <span className="text-[10px] font-black text-secondary tracking-wider leading-none">GRADE</span>
+                          <span className={`text-[32px] font-black leading-none ${colors.text} -mt-0.5`}>
+                            {eduScoreInfo.grade}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     
@@ -224,7 +253,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                             {school.label}
                           </span>
                           {schoolBadge && (
-                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none shrink-0 ${schoolBadge.bg}`}>
+                            <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none shrink-0 ${schoolBadge.bg} ${schoolBadge.text.includes('초품아') ? 'animate-badge-sparkle' : ''}`}>
                               {schoolBadge.text}
                             </span>
                           )}

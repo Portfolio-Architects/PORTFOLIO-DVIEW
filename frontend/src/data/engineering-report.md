@@ -17,6 +17,7 @@
 
 | 분류 | 기술 | 비고 |
 |:---|:---|:---|
+| 2026-06-25 | **DVIEW 10대 Premium UI/UX 최적화 패치 이식 (DVIEW 10 Premium UI/UX Optimization Patches - Phase 587)** | 1) Glassmorphism 플로팅 헤더/탭바에 transition-transform과 translate-x GPU 가속 슬라이더를 적용했습니다. 2) CSS 3D Tilt Card 호버 인터랙션 구현 및 모바일 성능 누출 가드를 설정했습니다. 3) 학군 스코어 휠 SVG 애니메이션 1회 한정 제어 및 초품아 뱃지 3회 깜빡임 제한을 적용했습니다. 4) 차트 네온 그라디언트 획 및 Active Dot 1개 한정 펄스 앵커 링을 생성했습니다. 5) 10KB 미만 정적 오로라 이미지 배경 교체 및 background-position 30s compositor 구동을 완료했습니다. 6) non-passive touchmove 전역 차단을 제거하고 documentElement/body overflow:hidden 및 모달 CSS Scroll Snap snap-proximity(각 섹션 snap-start)를 융합해 터치 피직스를 브라우저에 네이티브 위임했습니다. 7) GPU translate3d pseudo-element ::after shimmer 최적화 및 skeleton offscreen content-visibility:auto를 적용했습니다. 8) 토스트 진동 API navigator.vibrate([15]) 햅틱 추가 및 timeout bar에 리플로우 없는 scaleX(0)를 적용했습니다. 9) 검색 placeholder 세로 롤링 slidePlaceholder(translate3d) 애니메이션 교환 및 가로 칩 슬라이더에 WebkitOverflowScrolling:touch 네이티브 구동을 확보했습니다. 10) 투표 시 3~4개 emoji span 노드를 dynamic spawn한 후 emoji-pop keyframes transform/opacity 조합으로 600ms 뒤 DOM 완전 수거해 GC 부담을 해결했습니다. 11) 216개 Jest 테스트 및 ESLint, production build 무결성 검증을 🟢 100% SUCCESS 통과했습니다. |
 | **Frontend** | Next.js (App Router), React | 16.2.4 / React 19 |
 | **Language** | TypeScript | strict type |
 | **Styling** | Tailwind CSS, Lucide React | 디자인 토큰 |

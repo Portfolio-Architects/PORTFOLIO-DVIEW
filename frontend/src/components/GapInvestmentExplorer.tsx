@@ -55,7 +55,7 @@ const GapComplexCard = React.memo(function GapComplexCard({
     <div
       onClick={() => onSelect(item.apt.name)}
       data-testid="complex-card"
-      className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:-translate-y-1 hover:shadow-md rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
+      className="flex flex-col bg-[#fcfdfe]/50 dark:bg-[#151b26]/30 hover:bg-[#ffffff] dark:hover:bg-[#1c2431] border border-border/40 hover:border-[#008262]/40 hover:shadow-md hover-tilt-card rounded-2xl p-5 cursor-pointer transition-all duration-300 group"
     >
       <div className="flex justify-between items-start gap-2 mb-4">
         <div className="flex flex-col min-w-0 pr-1">
@@ -923,7 +923,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 perspective-1000">
             {visibleList.map((item) => (
               <GapComplexCard
                 key={item.apt.name}

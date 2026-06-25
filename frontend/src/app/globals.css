@@ -286,28 +286,45 @@
   animation: comment-highlight-pulse 2.5s ease-out forwards;
 }
 
-/* Premium Shimmer Skeleton Animation */
-@keyframes shimmer {
+@keyframes gpu-shimmer {
   0% {
-    background-position: -200% 0;
+    transform: translate3d(-100%, 0, 0);
   }
   100% {
-    background-position: 200% 0;
+    transform: translate3d(100%, 0, 0);
   }
 }
 
 @utility animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--border-color) 25%,
-    var(--bg-body) 50%,
-    var(--border-color) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
-  will-change: background-position;
+  position: relative;
+  overflow: hidden;
   transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: gpu-shimmer 1.5s infinite linear;
+}
+
+.dark .animate-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
 /* Optimize default Tailwind animate-pulse with hardware acceleration */
@@ -328,3 +345,124 @@
 }
 
 
+/* 3D Tilt Card CSS Utilities (Pure CSS, GPU Accelerated) */
+.perspective-1000 {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+@media (hover: hover) {
+  .hover-tilt-card {
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease;
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
+  }
+  .hover-tilt-card:hover {
+    transform: rotateX(3deg) rotateY(-3deg) translateZ(6px) scale(1.025);
+    box-shadow: var(--shadow-hover);
+  }
+}
+
+/* Badge Sparkle Animation (Pure CSS) */
+@keyframes badge-sparkle {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.08);
+    filter: brightness(1.2);
+  }
+}
+.animate-badge-sparkle {
+  animation: badge-sparkle 1.2s ease-in-out 3; /* 3번만 깜빡여서 CPU 부담 방어 */
+}
+
+/* Premium Aurora Mesh Background (Pure CSS, GPU Accelerated) */
+@keyframes aurora-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.aurora-bg {
+  background: linear-gradient(135deg, #f2f4f6 0%, #e6f3f0 50%, #f2f4f6 100%) !important;
+  background-size: 200% 200% !important;
+  animation: aurora-flow 30s ease-in-out infinite !important;
+  will-change: background-position;
+  transform: translateZ(0);
+}
+
+.dark .aurora-bg {
+  background: linear-gradient(135deg, #121212 0%, #042820 50%, #121212 100%) !important;
+  background-size: 200% 200% !important;
+  animation: aurora-flow 30s ease-in-out infinite !important;
+  will-change: background-position;
+  transform: translateZ(0);
+}
+
+/* GPU Shimmer content-visibility optimization */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+/* Toast Progress Timeout Bar Animation (Pure CSS, GPU-Accelerated) */
+@keyframes toast-progress {
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+.animate-toast-progress {
+  animation: toast-progress 3s linear forwards;
+}
+
+/* CSS-based vertical rolling search placeholder animation (GPU Accelerated) */
+@keyframes placeholder-roll {
+  0%, 20% {
+    transform: translate3d(0, 0, 0);
+  }
+  25%, 45% {
+    transform: translate3d(0, -24px, 0);
+  }
+  50%, 70% {
+    transform: translate3d(0, -48px, 0);
+  }
+  75%, 95% {
+    transform: translate3d(0, -72px, 0);
+  }
+  100% {
+    transform: translate3d(0, -96px, 0);
+  }
+}
+.animate-placeholder-roll {
+  animation: placeholder-roll 16s infinite cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Emoji Confetti Pop Animation (Pure CSS, GPU-Accelerated) */
+@keyframes emoji-pop {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: translate3d(0, -10px, 0) rotate(var(--pop-rotate)) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--pop-x), var(--pop-y), 0) rotate(var(--pop-rotate)) scale(0.6);
+    opacity: 0;
+  }
+}
+.animate-emoji-pop {
+  animation: emoji-pop 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}

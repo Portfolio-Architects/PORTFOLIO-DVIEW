@@ -32,11 +32,45 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     return null;
   });
   const [hasVoted, setHasVoted] = useState<boolean>(() => userVote !== null);
+  const [reactions, setReactions] = useState<{ id: number; emoji: string; style: React.CSSProperties }[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const mountedRef = useRef(true);
   const cooldownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerConfetti = (type: 'buy' | 'wait') => {
+    const emojisList = type === 'buy' 
+      ? ['👍', '🚀', '🔥', '👏'] 
+      : ['⏳', '🤔', '👀', '💭'];
+    const newReactions = emojisList.map((emoji, index) => {
+      // Float upwards and outwards
+      const angle = -60 - index * 20 + Math.random() * 15;
+      const rad = (angle * Math.PI) / 180;
+      const distance = 50 + Math.random() * 25;
+      const x = Math.cos(rad) * distance;
+      const y = Math.sin(rad) * distance;
+      const rotate = -25 + Math.random() * 50;
+      
+      return {
+        id: Date.now() + index + Math.random(),
+        emoji,
+        style: {
+          '--pop-x': `${x}px`,
+          '--pop-y': `${y}px`,
+          '--pop-rotate': `${rotate}deg`,
+          left: `${35 + index * 10 + Math.random() * 8}%`,
+          top: '20%',
+        } as React.CSSProperties,
+      };
+    });
+    setReactions((prev) => [...prev, ...newReactions]);
+    
+    // Auto-clean reactions after animation completes to free memory
+    setTimeout(() => {
+      setReactions((prev) => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
+    }, 600);
+  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -80,12 +114,14 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     e.preventDefault();
     if (hasVoted || isSubmitting || isSubmittingRef.current) return;
     
+    triggerConfetti(type);
+    
     // 즉각적인 동기식 락 적용으로 React state batching 딜레이 동안의 중복 입력 방지
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/apartments/vote', {
+       const res = await fetch('/api/apartments/vote', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,15 +243,15 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           </button>
         </div>
       ) : !hasVoted ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 relative">
           <p className="text-[12px] text-secondary font-medium text-center mb-1">
             지금 이 가격에 매수하시겠습니까? (익명 투표)
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 relative">
             <button
               onClick={(e) => handleVote(e, 'buy')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-emerald-50 hover:bg-emerald-100 text-emerald-600 active:scale-[0.98] border border-emerald-100"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-emerald-50 hover:bg-emerald-100 text-emerald-600 active:scale-[0.98] border border-emerald-100 relative"
             >
               <ThumbsUp size={14} className="fill-emerald-600/10" />
               <span>지금 사야 한다</span>
@@ -223,12 +259,22 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             <button
               onClick={(e) => handleVote(e, 'wait')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-amber-50 hover:bg-amber-100 text-amber-600 active:scale-[0.98] border border-amber-100"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-amber-50 hover:bg-amber-100 text-amber-600 active:scale-[0.98] border border-amber-100 relative"
             >
               <HelpCircle size={14} className="fill-amber-600/10" />
               <span>더 기다려야 한다</span>
             </button>
           </div>
+          {/* Confetti Emojis Container */}
+          {reactions.map((r) => (
+            <span
+              key={r.id}
+              style={r.style}
+              className="absolute pointer-events-none select-none text-[20px] animate-emoji-pop z-50"
+            >
+              {r.emoji}
+            </span>
+          ))}
         </div>
       ) : (
         <div className="flex flex-col gap-3">

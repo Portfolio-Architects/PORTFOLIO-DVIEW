@@ -621,6 +621,16 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
                     <stop offset="95%" stopColor="#00d29d" stopOpacity={0} />
                   </linearGradient>
+                  <linearGradient id="saleLineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#00d29d" />
+                    <stop offset="50%" stopColor="#059669" />
+                    <stop offset="100%" stopColor="#00d29d" />
+                  </linearGradient>
+                  <linearGradient id="jeonseLineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#f9a825" />
+                    <stop offset="50%" stopColor="#d97706" />
+                    <stop offset="100%" stopColor="#f9a825" />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="ts" type="number" scale="time"
@@ -699,8 +709,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   animationDuration={150}
                 />
                 <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
-                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="#f9a825" strokeWidth={2} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={false} connectNulls isAnimationActive={false} />
+                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#ffffff', fill: '#00d29d', className: 'animate-badge-sparkle' }} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="url(#jeonseLineGrad)" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#ffffff', fill: '#f9a825', className: 'animate-badge-sparkle' }} connectNulls isAnimationActive={false} />
 
                 <Customized
                   component={(rechartProps: Record<string, unknown>) => {

@@ -421,6 +421,30 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'gap' | 'lounge' | 'technovalley'>('overview');
   const [isPending, startTransition] = useTransition();
 
+  const navRef = useRef<HTMLDivElement>(null);
+  const [activeTabStyle, setActiveTabStyle] = useState<React.CSSProperties>({ left: 0, width: 0, opacity: 0 });
+
+  const updateTabHighlight = useCallback(() => {
+    if (!navRef.current) return;
+    const activeBtn = navRef.current.querySelector(`[data-tab-id="${activeTab}"]`) as HTMLElement;
+    if (activeBtn) {
+      setActiveTabStyle({
+        left: activeBtn.offsetLeft,
+        width: activeBtn.offsetWidth,
+        opacity: 1
+      });
+    } else {
+      setActiveTabStyle(prev => ({ ...prev, opacity: 0 }));
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    updateTabHighlight();
+    window.addEventListener('resize', updateTabHighlight, { passive: true });
+    return () => window.removeEventListener('resize', updateTabHighlight);
+  }, [mounted, updateTabHighlight]);
+
   // Trigger lazy fetching of detailed sheets data on relevant tab switches or deep-links
   useEffect(() => {
     if (activeTab === 'gap' || activeTab === 'imjang') {
@@ -970,13 +994,20 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
             </div>
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
-            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+            <nav ref={navRef} className="relative hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+               {/* Sliding Highlight Indicator */}
+               <div 
+                 className="absolute top-2 bottom-2 rounded-[12px] bg-surface shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 ease-out z-0 pointer-events-none"
+                 style={activeTabStyle}
+               />
+
                <button
+                 data-tab-id="overview"
                  onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                 className={`relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                    activeTab === 'overview'
-                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                     ? 'text-primary'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
                  }`}
                >
                  <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
@@ -984,19 +1015,21 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
                </button>
  
                <button
+                 data-tab-id="explore"
                  onClick={() => router.push('/explore')}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5`}
+                 className="relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5"
                >
                  <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                  <span>아파트 탐색</span>
                </button>
 
                <button
+                 data-tab-id="lounge"
                  onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                 className={`relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                    activeTab === 'lounge'
-                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                     ? 'text-primary'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
                  }`}
                >
                  <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
@@ -1004,23 +1037,21 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
                </button>
                
                <button
-                  onClick={() => router.push('/technovalley')}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                    activeTab === 'technovalley'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                  }`}
+                 data-tab-id="technovalley"
+                 onClick={() => router.push('/technovalley')}
+                 className="relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5"
                >
-                  <Building2 size={18} className={activeTab === 'technovalley' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                  <span>테크노밸리</span>
+                 <Building2 size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                 <span>테크노밸리</span>
                </button>
                
                <button
+                 data-tab-id="gap"
                  onClick={() => startTransition(() => { setActiveTab('gap'); window.location.hash = 'gap'; })}
-                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
+                 className={`relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                    activeTab === 'gap'
-                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                     ? 'text-primary'
+                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
                  }`}
                >
                  <Coins size={18} className={activeTab === 'gap' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />

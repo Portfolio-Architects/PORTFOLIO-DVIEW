@@ -593,7 +593,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         {/* Sticky Filter Chips Bar */}
         <div 
           className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full scroll-smooth shrink-0"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
         >
           {categories.map((cat) => {
             const isActive = currentCategory === cat.id;
@@ -649,7 +649,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
               <input 
               type="text" 
-              placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => {
@@ -670,8 +669,20 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               }}
               role="searchbox"
               aria-label="단지명 검색"
-              className="w-full bg-body border border-transparent focus:border-toss-blue focus:bg-surface focus:shadow-[0_0_0_2px_rgba(0,210,157,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all placeholder:text-tertiary"
+              className="w-full bg-body border border-transparent focus:border-toss-blue focus:bg-surface focus:shadow-[0_0_0_2px_rgba(0,210,157,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
             />
+            {/* CSS Rolling Placeholder */}
+            {!searchQuery && !isSearchFocused && (
+              <div className="absolute left-10 top-1/2 -translate-y-1/2 h-6 overflow-hidden pointer-events-none select-none">
+                <div className="flex flex-col animate-placeholder-roll">
+                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">단지명 검색 (예: 롯데캐슬)</span>
+                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">동탄 호수공원 근처 검색</span>
+                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">초품아 안심 단지 검색</span>
+                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">역세권/갭투자 유망지 검색</span>
+                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">단지명 검색 (예: 롯데캐슬)</span>
+                </div>
+              </div>
+            )}
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
@@ -686,7 +697,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             {/* Mobile Category Chips Scrollbar (Default view below search bar) */}
             <div 
               className="flex md:hidden overflow-x-auto no-scrollbar gap-1.5 py-1.5 w-full scroll-smooth shrink-0"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {categories.map((cat) => {
                 const isActive = currentCategory === cat.id;
@@ -724,7 +735,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             
             <div 
               className="flex flex-row overflow-x-auto whitespace-nowrap gap-2 py-1 w-full md:w-auto shrink-0 -mx-4 px-4 md:mx-0 md:px-0 md:items-center md:gap-2"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
             >
               {onOpenCompare && (
                 <button

@@ -1120,29 +1120,19 @@ const FieldReportModal = React.memo(function FieldReportModal({
     
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const originalOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
     const originalPaddingRight = document.body.style.paddingRight;
 
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
-    // Prevent scrolling on background, header, footer (anything outside modalRef)
-    const handleTouchMove = (e: TouchEvent) => {
-      if (modalRef.current && modalRef.current.contains(e.target as Node)) {
-        return;
-      }
-      if (e.cancelable) {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-
     return () => {
       document.body.style.overflow = originalOverflow || '';
+      document.documentElement.style.overflow = originalHtmlOverflow || '';
       document.body.style.paddingRight = originalPaddingRight || '';
-      document.removeEventListener('touchmove', handleTouchMove);
     };
   }, [inline, isAnimationFinished]);
   const scrollToSection = (id: string) => {
@@ -2083,7 +2073,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
 
             {/* Comments Section (Moved to top) */}
-            <section id="sec-comments" className="scroll-mt-14">
+            <section id="sec-comments" className="scroll-mt-14 snap-start">
               <ErrorBoundary name="임장기 댓글">
                 <LazyRender estimatedHeight={250}>
                   <CommentSection
@@ -2101,7 +2091,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             </section>
 
             {/* 1. 단지 기본 명세 (Specs) */}
-            <div id="sec-summary" className="scroll-mt-14">
+            <div id="sec-summary" className="scroll-mt-14 snap-start">
               <ApartmentSpecsSection
                 report={report}
                 inline={inline}
@@ -2169,7 +2159,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               </div>
 
               {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
-              <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
+              <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6 snap-start">
                 <div className="relative w-full">
                   <div>
                     <ErrorBoundary name="밸류에이션 분석">
@@ -2210,7 +2200,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
               {/* 전세사기 위험도 스코어링 및 깡통전세 자동 진단 시스템 */}
               {jeonseSafetyData && (
-                <section id="sec-jeonse-safety" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14`}>
+                <section id="sec-jeonse-safety" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14 snap-start`}>
                   <div className="flex flex-col w-full">
                     <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                       <Shield size={18} className="text-[#0d9488]"/> 전세 안전성 진단 리포트
@@ -2243,7 +2233,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 };
                 const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
                 return (
-                  <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative`}>
+                  <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative snap-start`}>
                     <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
                       <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
                       <button 
@@ -2267,7 +2257,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   </section>
                 );
               })() : (
-                <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group`}>
+                <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group snap-start`}>
                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                     <Camera size={20} className="text-[#008262] dark:text-[#00d29d]"/> 우리 단지 갤러리
                   </h2>
@@ -2556,7 +2546,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             </button>
           </header>
           
-          <div ref={modalRef} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col">
+          <div ref={modalRef} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col snap-y snap-proximity md:snap-none">
             <div id="pdf-report-content" className={`flex flex-col ${inline ? 'bg-body' : 'bg-transparent'} w-full`}>
               {content}
             </div>

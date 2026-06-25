@@ -559,6 +559,16 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     if (!mountedRef.current) return;
     setToastMessage(message);
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    
+    // Add Soft Haptic vibration for mobile devices supporting it
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate([15]);
+      } catch (e) {
+        // Safe to ignore if blocked by sandbox
+      }
+    }
+
     toastTimeoutRef.current = setTimeout(() => {
       if (mountedRef.current) {
         setToastMessage((prev) => (prev === message ? null : prev));
@@ -588,14 +598,18 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       </React.Suspense>
       {children}
       {toastMessage && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none">
-          <span className="text-[12.5px] md:text-[13.5px] leading-relaxed flex-1">{toastMessage}</span>
-          <button 
-            onClick={() => setToastMessage(null)} 
-            className="hover:opacity-85 text-white/80 focus:outline-none text-[10px] font-black cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-[22px] h-[22px] flex items-center justify-center shrink-0"
-          >
-            ✕
-          </button>
+        <div key={toastMessage} className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none overflow-hidden">
+          <div className="flex items-center justify-between gap-3 w-full pr-1">
+            <span className="text-[12.5px] md:text-[13.5px] leading-relaxed flex-1">{toastMessage}</span>
+            <button 
+              onClick={() => setToastMessage(null)} 
+              className="hover:opacity-85 text-white/80 focus:outline-none text-[10px] font-black cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-[22px] h-[22px] flex items-center justify-center shrink-0"
+            >
+              ✕
+            </button>
+          </div>
+          {/* Timeout Progress Bar (Using GPU-accelerated scaleX to avoid Reflows) */}
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-emerald-500 origin-left animate-toast-progress" />
         </div>
       )}
 

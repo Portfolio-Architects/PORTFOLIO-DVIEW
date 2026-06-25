@@ -1906,9 +1906,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                 value={selectedTimelineApt || ""}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  startTransition(() => {
-                                    setSelectedTimelineApt(val === "" ? null : val);
-                                  });
+                                  setSelectedTimelineApt(val === "" ? null : val);
                                 }}
                                 className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
                               >
@@ -1964,9 +1962,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                 value={selectedTimelineApt || ""}
                                 onChange={(e) => {
                                   const val = e.target.value;
-                                  startTransition(() => {
-                                    setSelectedTimelineApt(val === "" ? null : val);
-                                  });
+                                  setSelectedTimelineApt(val === "" ? null : val);
                                 }}
                                 className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
                               >
@@ -2048,6 +2044,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     </div>
                   ) : (
                     <MacroTrendChart
+                      key={selectedTimelineApt || 'all'}
                       lineData={mainLineData}
                       xTicks={mainXTicks}
                       yTicks={mainYTicks}
@@ -2415,6 +2412,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               {/* 차트 영역 */}
               <div className="w-full h-[200px] relative mb-4 shrink-0">
                 <MacroTrendChart
+                  key={`${selectedTimelineApt || 'all'}-${timeframe}`}
                   lineData={lineData}
                   xTicks={xTicks}
                   yTicks={yTicks}
