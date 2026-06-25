@@ -474,6 +474,72 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     return filtered;
   }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, userFavorites, favoritesArray, favoriteCounts, fieldReportsMap]);
 
+  const exploreJsonLd = useMemo(() => {
+    if (!sortedApts || sortedApts.length === 0) return null;
+
+    const listItems = sortedApts.slice(0, 50).map((item, idx) => {
+      return {
+        "@type": "ListItem",
+        "position": idx + 1,
+        "url": `https://dongtanview.com/apartment/${encodeURIComponent(item.apt.name)}`,
+        "name": item.apt.name,
+        "item": {
+          "@type": "Place",
+          "name": item.apt.name,
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "화성시",
+            "addressRegion": "경기도",
+            "streetAddress": item.apt.dong,
+            "addressCountry": "KR"
+          },
+          "additionalProperty": [
+            {
+              "@type": "PropertyValue",
+              "name": "평당가",
+              "value": item.formattedPyeong
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "매매가",
+              "value": item.formattedPrice
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "전세가",
+              "value": item.formattedJeonse
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "전세가율",
+              "value": item.formattedRatio
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "세대수",
+              "value": item.formattedHousehold
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "연식",
+              "value": item.formattedYearBuilt
+            }
+          ]
+        }
+      };
+    });
+
+    const itemListSchema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "D-VIEW 아파트 탐색 리스트",
+      "description": "사용자 필터 및 검색 조건에 따라 동적으로 구성된 동탄 아파트 실거래 시세 및 입지 분석 목록입니다.",
+      "itemListElement": listItems
+    };
+
+    return JSON.stringify(itemListSchema);
+  }, [sortedApts]);
+
   const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
     const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
     if (!q) {
@@ -506,6 +572,12 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
   return (
     <div className="flex flex-col w-full bg-transparent">
+      {exploreJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: exploreJsonLd }}
+        />
+      )}
       {/* Main Content Area */}
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
