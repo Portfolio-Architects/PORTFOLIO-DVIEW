@@ -297,6 +297,7 @@ const CommentSection = React.memo(function CommentSection({
             <input
               ref={inputRef}
               type="text"
+              role="combobox"
               placeholder="임장기에 대한 생각이나 궁금한 점을 남겨주세요."
               aria-autocomplete="list"
               aria-expanded={showSuggestions && suggestions.length > 0}
