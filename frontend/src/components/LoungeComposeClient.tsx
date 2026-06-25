@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-react';
 import { storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -109,16 +110,21 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
   const [customNickname, setCustomNickname] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const uploadFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const rewardToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
+    setMounted(true);
     return () => {
       mountedRef.current = false;
+      setMounted(false);
       if (uploadFocusTimeoutRef.current) {
         clearTimeout(uploadFocusTimeoutRef.current);
         uploadFocusTimeoutRef.current = null;
@@ -136,6 +142,85 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
       setCustomNickname(generateMamacafeNickname());
     }
   }, [showCompose, isUserAdmin, customNickname]);
+
+  const handleClose = () => {
+    const hasContent = postTitle.trim() !== '' || (postContent.trim() !== '' && postContent.trim() !== MARKDOWN_TEMPLATE.trim()) || customNickname.trim() !== '';
+    if (hasContent) {
+      if (confirm('작성 중인 내용이 있습니다. 정말 글쓰기 창을 닫으시겠습니까?')) {
+        setShowCompose(false);
+      }
+    } else {
+      setShowCompose(false);
+    }
+  };
+
+  // Prevent body scroll when compose modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!showCompose) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [showCompose]);
+
+  // Escape key handling with data loss prevention
+  useEffect(() => {
+    if (!showCompose) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const hasContent = postTitle.trim() !== '' || (postContent.trim() !== '' && postContent.trim() !== MARKDOWN_TEMPLATE.trim()) || customNickname.trim() !== '';
+        if (hasContent) {
+          if (confirm('작성 중인 내용이 있습니다. 정말 글쓰기 창을 닫으시겠습니까?')) {
+            setShowCompose(false);
+          }
+        } else {
+          setShowCompose(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showCompose, postTitle, postContent, customNickname]);
+
+  // Auto focus title input on mount
+  useEffect(() => {
+    if (showCompose) {
+      const timer = setTimeout(() => {
+        if (titleInputRef.current) {
+          titleInputRef.current.focus();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showCompose]);
+
+  // Focus trap keydown handler
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -222,13 +307,34 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
         </button>
       )}
 
-      {showCompose && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
-          <div className="relative w-full sm:max-w-3xl bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
+      {showCompose && mounted && createPortal(
+        <div 
+          onKeyDown={handleKeyDown}
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
+        >
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+            onClick={handleClose} 
+            role="presentation"
+          />
+          <article 
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lounge-compose-title"
+            aria-describedby="lounge-compose-desc"
+            className="relative w-full sm:max-w-3xl bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-1 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
+          >
+            {/* Screen Reader Only Description */}
+            <p id="lounge-compose-desc" className="sr-only">주민 라운지에 새로운 소식과 정보를 작성하는 입력 창입니다.</p>
+
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[18px] font-extrabold text-primary">커뮤니티 글쓰기</h2>
-              <button onClick={() => setShowCompose(false)} aria-label="글쓰기 창 닫기" className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+              <h2 id="lounge-compose-title" className="text-[18px] font-extrabold text-primary">커뮤니티 글쓰기</h2>
+              <button 
+                onClick={handleClose} 
+                aria-label="글쓰기 창 닫기" 
+                className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] transition-colors"
+              >
                 <X size={16} className="text-secondary" />
               </button>
             </div>
@@ -263,7 +369,15 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               </div>
             )}
 
-            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" aria-label="게시글 제목 입력" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors mb-2" autoFocus />
+            <input 
+              ref={titleInputRef}
+              value={postTitle} 
+              onChange={(e) => setPostTitle(e.target.value)} 
+              placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" 
+              aria-label="게시글 제목 입력" 
+              className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors mb-2" 
+              autoFocus 
+            />
             <textarea 
               ref={textareaRef}
               value={postContent} 
@@ -465,8 +579,9 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                 {isSubmitting ? '작성 중...' : '작성 완료'}
               </button>
             </div>
-          </div>
-        </div>
+          </article>
+        </div>,
+        document.getElementById('modal-root') || document.body
       )}
     </>
   );
