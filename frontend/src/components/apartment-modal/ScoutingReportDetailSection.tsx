@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Image from 'next/image';
 import { Building, Camera, Info, ShieldAlert, Radar } from 'lucide-react';
 
@@ -12,6 +12,75 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
   inline = false,
 }: ScoutingReportDetailSectionProps) {
   const s = report.sections;
+
+  const jsonLdElements = useMemo(() => {
+    if (!s) return [];
+    const elements = [];
+    
+    if (s.infra?.gateText) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "진입로 및 정문 환경",
+        "value": s.infra.gateText
+      });
+    }
+    if (s.infra?.landscapeText) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "단지 조경 및 지형",
+        "value": s.infra.landscapeText
+      });
+    }
+    if (s.infra?.parkingText) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "지하주차장 인프라",
+        "value": s.infra.parkingText
+      });
+    }
+    if (s.ecosystem?.commerceText) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "생활 편의시설 및 동네 상권",
+        "value": s.ecosystem.commerceText
+      });
+    }
+    if (s.location?.trafficText || s.location?.developmentText) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "교통 및 개발 호재",
+        "value": `${s.location?.trafficText || ''} ${s.location?.developmentText || ''}`.trim()
+      });
+    }
+    if (s.assessment?.synthesis) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "종합 매수 타당성 평가 결론",
+        "value": s.assessment.synthesis
+      });
+    }
+    if (s.assessment?.probability) {
+      elements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "향후 가격 전망 예측",
+        "value": s.assessment.probability
+      });
+    }
+
+    return elements;
+  }, [s]);
+
+  const jsonLd = useMemo(() => {
+    if (!s) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `단지 현장 임장 및 매수 타당성 팩트체크 보고서`,
+      "description": `단지 인근의 물리적 인프라, 조경, 지하주차장 상태, 동네 상권 분석 및 교통/개발 호재를 바탕으로 한 전문가 종합 임장 보고서 및 가격 전망 데이터입니다.`,
+      "amenityFeature": jsonLdElements
+    };
+  }, [s, jsonLdElements]);
+
   if (!s) return null;
 
   const renderWatermark = () => {
@@ -26,6 +95,12 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
 
   return (
     <div className="w-full overflow-hidden flex flex-col gap-6">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       {/* 2. 단지 기본정보 (Specs) */}
       <section 
         id="sec-specs" 
