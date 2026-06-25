@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { db } from '@/lib/firebaseConfig';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { MessageSquare, Sparkles, ChevronRight, Home } from 'lucide-react';
@@ -78,12 +78,47 @@ export default function AptStoriesWidget() {
     );
   }
 
+  const jsonLd = useMemo(() => {
+    if (stories.length === 0) return null;
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "실시간 아파트 이야기 한줄평 피드 목록",
+      "description": "동탄 입주민 및 실거주 유저들이 남긴 생생한 아파트 단지별 실시간 한줄평 및 거주 후기 목록입니다.",
+      "numberOfItems": stories.length,
+      "itemListElement": stories.map((story, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "item": {
+          "@type": "Review",
+          "itemReviewed": {
+            "@type": "Place",
+            "name": story.apartmentName,
+            "description": `${story.apartmentName} 아파트 단지`
+          },
+          "reviewBody": story.text,
+          "author": {
+            "@type": "Person",
+            "name": story.authorName
+          }
+        }
+      }))
+    };
+  }, [stories]);
+
   if (stories.length === 0) {
     return null; // Don't render widget if there are no stories yet
   }
 
   return (
     <div className="w-full bg-gradient-to-br from-[#eafaf1] to-emerald-500/5 dark:from-[#05281f] dark:to-emerald-500/10 border border-emerald-500/15 rounded-3xl p-5 mb-4 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
