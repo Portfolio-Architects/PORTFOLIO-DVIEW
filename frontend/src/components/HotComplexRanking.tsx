@@ -260,10 +260,16 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
               style={{ transform: `translateY(-${rollingIndex * 20}px)` }}
             >
               {recentList.slice(0, 5).map((item, idx) => (
-                <div key={idx} className="h-5 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => onSelectApt(item.apt.name)}>
+                <button
+                  key={idx}
+                  type="button"
+                  aria-label={`${item.apt.name} 최근 실거래 ${item.latestPriceEok} 상세 정보 보기`}
+                  className="h-5 flex items-center gap-1 text-left hover:underline outline-none focus:ring-1 focus:ring-emerald-500/50 rounded px-1"
+                  onClick={() => onSelectApt(item.apt.name)}
+                >
                   <span>{item.apt.name}</span>
                   <span className="text-secondary font-extrabold">{item.latestPriceEok}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -277,10 +283,12 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
             const badgeStyle = "bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#008060] dark:text-[#00d29d] font-bold border border-transparent";
             
             return (
-              <div
+              <button
                 key={item.apt.name}
+                type="button"
+                aria-label={`${item.apt.name} 최근 실거래 ${item.latestPriceEok} 상세 정보 보기`}
                 onClick={() => onSelectApt(item.apt.name)}
-                className="flex md:flex-col items-center md:items-start justify-between p-3.5 md:p-4 md:min-h-[148px] bg-body/40 hover:bg-body hover:scale-[1.02] border border-border/30 hover:border-border/80 rounded-2xl cursor-pointer transition-all duration-300 group"
+                className="flex md:flex-col items-center md:items-start justify-between p-3.5 md:p-4 md:min-h-[148px] bg-body/40 hover:bg-body hover:scale-[1.02] border border-border/30 hover:border-border/80 rounded-2xl cursor-pointer transition-all duration-300 group text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
               >
                 {/* Left (or Top on desktop) Area */}
                 <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-2.5 min-w-0 flex-1 pr-3">
@@ -309,7 +317,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
                     {item.areaLabel}{item.latestFloor > 0 ? ` · ${item.latestFloor}층` : ''}
                   </span>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
