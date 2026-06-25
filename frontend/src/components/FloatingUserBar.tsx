@@ -30,6 +30,8 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const mountedRef = useRef(true);
+  const profileModalRef = useRef<HTMLDivElement>(null);
+  const nicknameInputRef = useRef<HTMLInputElement>(null);
 
   // Scroll optimization state
   const [isScrolled, setIsScrolled] = useState(false);
@@ -97,6 +99,54 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
     };
   }, [showProfileModal]);
 
+  // Focus and Escape key management for Profile modal
+  useEffect(() => {
+    if (showProfileModal) {
+      // Auto focus nickname input when modal opens
+      const timer = setTimeout(() => {
+        if (nicknameInputRef.current) {
+          nicknameInputRef.current.focus();
+        }
+      }, 50);
+
+      // Escape key handling
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          closeProfileModal();
+        }
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [showProfileModal]);
+
+  // Focus Trap Handler for Profile modal
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && profileModalRef.current) {
+      const focusableElements = profileModalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [role="button"]:not([disabled])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
   return (
     <>
       {/* User Bar — Embeddable */}
@@ -145,12 +195,25 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
       {/* Profile Edit Modal */}
       {showProfileModal && user && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-primary/50 backdrop-blur-sm" onClick={() => closeProfileModal()} />
-          <div className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[640px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col">
+          <div 
+            className="absolute inset-0 bg-primary/50 backdrop-blur-sm" 
+            onClick={() => closeProfileModal()} 
+            role="presentation"
+          />
+          <div 
+            ref={profileModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-title"
+            aria-describedby="profile-desc"
+            onKeyDown={handleKeyDown}
+            className="relative bg-surface rounded-3xl p-6 sm:p-8 w-full max-w-[640px] shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col"
+          >
+            <h2 id="profile-title" className="sr-only">프로필 및 소비자 설정</h2>
             <button 
               onClick={() => closeProfileModal()} 
               className="absolute top-4 right-4 sm:top-5 sm:right-5 w-9 h-9 sm:w-10 sm:h-10 bg-surface/80 backdrop-blur-md border border-border text-secondary hover:text-primary hover:bg-body flex items-center justify-center rounded-full shadow-sm hover:shadow-md transition-all z-50"
-              aria-label="닫기"
+              aria-label="프로필 설정 창 닫기"
             >
               <X size={22} strokeWidth={2.5} />
             </button>
@@ -158,7 +221,19 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
             {/* Profile Header Card */}
             <div className="bg-body border border-border rounded-2xl p-5 mb-5 flex flex-col sm:flex-row items-center sm:items-start gap-5">
               {/* Profile Photo */}
-              <div className="relative group cursor-pointer shrink-0" onClick={() => document.getElementById('floating-profile-photo-input')?.click()}>
+              <div 
+                className="relative group cursor-pointer shrink-0" 
+                onClick={() => document.getElementById('floating-profile-photo-input')?.click()}
+                role="button"
+                aria-label="프로필 사진 변경"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    document.getElementById('floating-profile-photo-input')?.click();
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center overflow-hidden ring-4 ring-[#008262]/10 dark:ring-[#00d29d]/10 shadow-sm">
                   {profilePhotoPreview ? (
                     <img src={profilePhotoPreview} alt="프로필" className="w-full h-full object-cover" />
@@ -193,16 +268,18 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div id="profile-desc" className="space-y-4">
               {/* Nickname (2~10자) */}
               <div>
-                <label className="text-[12px] font-bold text-secondary mb-1.5 flex items-center justify-between">
+                <label htmlFor="profile-nickname-input" className="text-[12px] font-bold text-secondary mb-1.5 flex items-center justify-between">
                   <span>닉네임 (2~10글자)</span>
                   <span className={`text-[11px] ${isAdmin(user.email) || (editNickname.length >= 2 && editNickname.length <= 10) ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {isAdmin(user.email) ? '3/10 (고정)' : `${editNickname.length}/10`}
                   </span>
                 </label>
                 <input
+                  id="profile-nickname-input"
+                  ref={nicknameInputRef}
                   type="text"
                   value={isAdmin(user.email) ? '매니저' : editNickname}
                   onChange={(e) => { if (e.target.value.length <= 10) setEditNickname(e.target.value); }}
@@ -216,7 +293,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
               {/* Default Avatar Selection */}
               <div>
                 <label className="text-[12px] font-bold text-secondary mb-2 block">기본 프로필 선택</label>
-                <div className="flex gap-2 flex-wrap justify-center py-2">
+                <div role="group" aria-label="기본 프로필 아바타 선택" className="flex gap-2 flex-wrap justify-center py-2">
                   {DEFAULT_AVATARS.map((avatar, idx) => (
                     <button
                       key={idx}
@@ -224,6 +301,8 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                         setProfilePhotoPreview(avatar);
                         setProfilePhotoFile(null);
                       }}
+                      aria-pressed={profilePhotoPreview === avatar}
+                      aria-label={`아바타 ${idx + 1}`}
                       className={`w-12 h-12 rounded-full shrink-0 border-2 transition-all ${
                         profilePhotoPreview === avatar ? 'border-[#008262] dark:border-[#00d29d] scale-110 shadow-md' : 'border-transparent hover:scale-105 opacity-80 hover:opacity-100'
                       }`}
@@ -241,7 +320,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                   <h3 className="text-[12px] font-bold text-secondary flex items-center gap-1.5">
                     <Sun size={14} /> 화면 모드
                   </h3>
-                  <div className="grid grid-cols-3 gap-1 bg-surface p-1 rounded-xl border border-border h-full">
+                  <div role="group" aria-label="화면 모드 선택" className="grid grid-cols-3 gap-1 bg-surface p-1 rounded-xl border border-border h-full">
                     {[
                       { id: 'light', label: '라이트', icon: Sun },
                       { id: 'dark', label: '다크', icon: Moon },
@@ -252,6 +331,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                         <button
                           key={opt.id}
                           onClick={() => setTheme(opt.id)}
+                          aria-pressed={isActive}
                           className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all duration-200 ${
                             isActive 
                               ? 'bg-[#008262] dark:bg-[#00d29d] text-white dark:text-[#191f28] shadow-sm font-bold' 
@@ -271,7 +351,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                   <h3 className="text-[12px] font-bold text-secondary flex items-center gap-1.5">
                     <Scaling size={14} /> 면적 표시 기준
                   </h3>
-                  <div className="grid grid-cols-2 gap-1 bg-surface p-1 rounded-xl border border-border h-full">
+                  <div role="group" aria-label="면적 표시 기준 선택" className="grid grid-cols-2 gap-1 bg-surface p-1 rounded-xl border border-border h-full">
                     {[
                       { id: 'm2', label: '제곱미터 (m²)' },
                       { id: 'pyeong', label: '평' },
@@ -281,6 +361,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                         <button
                           key={opt.id}
                           onClick={() => setAreaUnit(opt.id as 'm2' | 'pyeong')}
+                          aria-pressed={isActive}
                           className={`py-2 rounded-lg transition-all duration-200 text-[11px] h-full ${
                             isActive 
                               ? 'bg-[#008262] dark:bg-[#00d29d] text-white dark:text-[#191f28] shadow-sm font-bold' 
