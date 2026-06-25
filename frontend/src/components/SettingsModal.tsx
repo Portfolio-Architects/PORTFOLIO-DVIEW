@@ -115,7 +115,7 @@ const SettingsModal = React.memo(function SettingsModal() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Tab' && modalRef.current) {
       const focusableElements = modalRef.current.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), textarea:not([disabled])'
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
       );
       if (focusableElements.length === 0) return;
       const firstElement = focusableElements[0] as HTMLElement;

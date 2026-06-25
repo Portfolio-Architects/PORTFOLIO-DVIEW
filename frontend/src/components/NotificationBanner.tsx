@@ -1,12 +1,30 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Smartphone, X, ChevronRight } from 'lucide-react';
 
 const NotificationBanner = React.memo(function NotificationBanner() {
   const [showPwaGuide, setShowPwaGuide] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  // Prevent body scroll when PWA guide is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!showPwaGuide) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [showPwaGuide]);
 
   // Focus and Escape key management
   useEffect(() => {
@@ -36,7 +54,7 @@ const NotificationBanner = React.memo(function NotificationBanner() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Tab' && modalRef.current) {
       const focusableElements = modalRef.current.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), textarea:not([disabled])'
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
       );
       if (focusableElements.length === 0) return;
       const firstElement = focusableElements[0] as HTMLElement;
@@ -78,7 +96,7 @@ const NotificationBanner = React.memo(function NotificationBanner() {
       </button>
 
       {/* PWA Guide Modal Overlay */}
-      {showPwaGuide && (
+      {showPwaGuide && mounted && createPortal(
         <div 
           className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           role="presentation"
@@ -127,7 +145,8 @@ const NotificationBanner = React.memo(function NotificationBanner() {
               닫기
             </button>
           </div>
-        </div>
+        </div>,
+        document.getElementById('modal-root') || document.body
       )}
     </div>
   );
