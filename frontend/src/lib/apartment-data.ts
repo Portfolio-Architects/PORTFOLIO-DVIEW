@@ -104,7 +104,7 @@ export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {
     { name: '동탄역 삼정그린코아 더베스트', dong: '여울동', householdCount: 183, yearBuilt: '2022', brand: '삼정건설' },
     { name: '동탄역 신미주', dong: '여울동', householdCount: 538, yearBuilt: '2005', brand: '풍성주택' },
     { name: '동탄역 에일린의뜰', dong: '여울동', householdCount: 489, yearBuilt: '2016', brand: '아이에스동서' },
-    { name: '동탄역 예미지 시그너스', dong: '여울동', householdCount: 498, yearBuilt: '2021', brand: '금성백조��택' },
+    { name: '동탄역 예미지 시그너스', dong: '여울동', householdCount: 498, yearBuilt: '2021', brand: '금��백조주택' },
     { name: '동탄역 유림노르웨이숲', dong: '여울동', householdCount: 312, yearBuilt: '2021', brand: '유림이엔씨' },
     { name: '동탄역 중흥에스클래스', dong: '여울동', householdCount: 436, yearBuilt: '2019', brand: '중흥건설' },
     { name: '동탄역 파라곤', dong: '여울동', householdCount: 424, yearBuilt: '2021', brand: '동양건설산업' },

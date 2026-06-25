@@ -8,9 +8,10 @@ import { redis } from '@/lib/redis';
 import fs from 'fs';
 import path from 'path';
 import type { AptTxSummary } from '@/lib/types/transaction';
-import type { FieldReportData } from '@/lib/types/report.types';
+import type { FieldReportData, CommentData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { getComments } from '@/lib/repositories/comment.repository';
 
 export interface LocationScore {
   distanceToElementary?: number;
@@ -625,6 +626,16 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     ]
   };
 
+  // Load comments for SEO (UGC)
+  let comments: CommentData[] = [];
+  if (matchedReportData?.id) {
+    try {
+      comments = await getComments(matchedReportData.id);
+    } catch (e) {
+      logger.warn('ApartmentPage', 'Failed to fetch comments for SEO', { reportId: matchedReportData.id }, e as Error);
+    }
+  }
+
   const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
 
   return (
@@ -639,6 +650,20 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       <div className="sr-only" aria-hidden="true">
         <h1>{decodedName} 아파트 실거래가 및 학군 가치 분석 리포트</h1>
         <p>{aiBriefing}</p>
+        
+        {comments && comments.length > 0 && (
+          <section style={{ marginTop: '20px' }}>
+            <h2>{decodedName} 입주민 및 방문객 아파트 이야기 (댓글)</h2>
+            <ul>
+              {comments.map((c) => (
+                <li key={c.id} style={{ marginBottom: '10px' }}>
+                  <strong>{c.author}</strong> ({c.createdAt ? String(c.createdAt) : ''}):
+                  <p>{c.text}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         
         {locationScore && (
           <section style={{ marginTop: '20px' }}>

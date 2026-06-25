@@ -99,6 +99,17 @@ export function useComments(
         logger.warn('useComments.handleSubmitComment', 'Failed to send push notification trigger', {}, pushErr as Error);
       }
 
+      // Trigger Google Indexing API for the apartment detail page
+      if (apartmentName) {
+        fetch('/api/indexing/apartment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apartmentName }),
+        }).catch(err => {
+          logger.warn('useComments.handleSubmitComment', 'Failed to trigger real-time Google Indexing API', { apartmentName }, err);
+        });
+      }
+
       if (isMountedRef.current) {
         setCommentInput(prev => ({ ...prev, [reportId]: '' }));
       }

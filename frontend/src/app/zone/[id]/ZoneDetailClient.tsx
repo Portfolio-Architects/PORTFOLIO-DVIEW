@@ -134,6 +134,17 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     try {
       await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
       setCommentInput(prev => ({ ...prev, [reportId]: '' }));
+      
+      // Trigger Google Indexing API for the apartment detail page
+      if (apartmentName) {
+        fetch('/api/indexing/apartment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apartmentName }),
+        }).catch(err => {
+          logger.warn('zone.[id].handleSubmitComment', 'Failed to trigger real-time Google Indexing API', { apartmentName }, err);
+        });
+      }
     } catch (error) {
       logger.error('zone.[id].handleSubmitComment', 'Comment submission failed', undefined, error);
       alert("댓글 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
