@@ -528,17 +528,19 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                   {(() => {
                     const nearestApt = LECTURE_NEAREST_APT_MAP[lecture.dept] || LECTURE_NEAREST_APT_MAP[lecture.dept.replace(/동탄/g, '')];
                     return nearestApt ? (
-                      <div 
+                      <button 
+                        type="button"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           onSelectApt(nearestApt);
                         }}
-                        className="pt-2 border-t border-border/20 flex items-center justify-between text-[11.5px] text-[#0d9488] dark:text-[#00d29d] font-black hover:underline cursor-pointer"
+                        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue pt-2 border-t border-border/20 flex items-center justify-between text-[11.5px] text-[#0d9488] dark:text-[#00d29d] font-black hover:underline cursor-pointer"
+                        aria-label={`센터 인근 추천단지: ${nearestApt} 분석보기`}
                       >
                         <span>📍 센터 인근 추천단지: {nearestApt}</span>
                         <span className="shrink-0 flex items-center gap-0.5">분석보기 &rarr;</span>
-                      </div>
+                      </button>
                     ) : null;
                   })()}
 

@@ -141,24 +141,24 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
 
   if (!isOpen || !mounted) return null;
 
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragEnter = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -303,8 +303,16 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
               {/* Image Upload Area */}
               <div className="flex flex-col gap-2">
                 <label className="text-[14px] font-bold text-secondary">사진 등록 (필수)</label>
-                <div 
-                  className={`w-full aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                />
+                <button 
+                  type="button"
+                  className={`w-full aspect-video rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue
                     ${previewUrl 
                       ? 'border-transparent bg-black' 
                       : isDragging 
@@ -315,6 +323,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
+                  aria-label={previewUrl ? '사진 변경하기' : '사진 등록하기 (드래그 앤 드롭 또는 클릭)'}
                 >
                   {previewUrl ? (
                     <>
@@ -333,14 +342,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                       <p className="text-[14px] font-medium">여기를 눌러 사진을 선택하세요<br/><span className="text-[12px] text-tertiary">(최대 10MB)</span></p>
                     </div>
                   )}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                  />
-                </div>
+                </button>
               </div>
 
               {/* Category */}
