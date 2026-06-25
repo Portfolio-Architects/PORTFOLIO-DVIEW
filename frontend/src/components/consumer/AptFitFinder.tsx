@@ -1063,9 +1063,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
                       }`}
                     >
                       {/* Main Card Header (Clickable to toggle accordion) */}
-                      <div 
+                      <button 
+                        type="button"
                         onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                        className="p-4 flex items-center justify-between gap-4 cursor-pointer active:scale-[0.99] transition-all relative"
+                        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d] p-4 flex items-center justify-between gap-4 cursor-pointer active:scale-[0.99] transition-all relative"
+                        aria-expanded={isExpanded}
+                        aria-label={`${index + 1}순위: ${item.apt.name} 상세 매칭 분석 보기`}
                       >
                         {/* Background glow for rank 1 */}
                         {index === 0 && (
@@ -1145,7 +1148,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             className={`text-tertiary transition-transform duration-300 ${isExpanded ? 'rotate-90 text-[#00d29d]' : ''}`} 
                           />
                         </div>
-                      </div>
+                      </button>
 
                       {/* Accordion Detail Breakdown Panel */}
                       <div 

@@ -732,10 +732,12 @@ const AIRecommendations = React.memo(function AIRecommendations({
 
       <div className="flex flex-col gap-3">
         {recommendationResult.items.map((item, index) => (
-          <div
+          <button
             key={item.name}
+            type="button"
             onClick={() => onSelectApt && onSelectApt(item.name)}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-border/50 hover:border-[#00d29d]/30 bg-body/20 hover:bg-[#e0fbf4]/5 dark:hover:bg-emerald-950/5 cursor-pointer transition-all duration-200 gap-3 group"
+            className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d] flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-border/50 hover:border-[#00d29d]/30 bg-body/20 hover:bg-[#e0fbf4]/5 dark:hover:bg-emerald-950/5 cursor-pointer transition-all duration-200 gap-3 group"
+            aria-label={`${index + 1}위 추천 단지: ${item.name} 선택`}
           >
             <div className="flex items-start gap-3 min-w-0 flex-1">
               <div className={`w-7 h-7 rounded-lg font-black text-[12px] flex items-center justify-center shrink-0 border ${
@@ -801,12 +803,13 @@ const AIRecommendations = React.memo(function AIRecommendations({
                 </span>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
       <div className="mt-5 border-t border-border/40 pt-4">
-        <div 
+        <button 
+          type="button"
           onClick={() => {
             if (recommendationResult.isFallback) {
               if (typeof window !== 'undefined') window.location.hash = '#fit-quiz';
@@ -814,7 +817,8 @@ const AIRecommendations = React.memo(function AIRecommendations({
               onOpenMortgage(recommendationResult.items[0].name);
             }
           }}
-          className="flex items-center gap-3.5 px-4 py-3 bg-gradient-to-r from-[#00d29d]/8 to-surface dark:from-[#00d29d]/4 border border-[#00d29d]/15 hover:border-[#00d29d]/40 rounded-xl shadow-[0_2px_12px_rgba(13,148,136,0.02)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.06)] cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-200 group relative overflow-hidden"
+          className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00d29d] flex items-center gap-3.5 px-4 py-3 bg-gradient-to-r from-[#00d29d]/8 to-surface dark:from-[#00d29d]/4 border border-[#00d29d]/15 hover:border-[#00d29d]/40 rounded-xl shadow-[0_2px_12px_rgba(13,148,136,0.02)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.06)] cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-200 group relative overflow-hidden"
+          aria-label={recommendationResult.isFallback ? '나만의 라이프스타일 퀴즈 풀기' : `${recommendationResult.items[0].name} 최적 대출 한도 조회`}
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-teal-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform" />
           <div className="w-9 h-9 bg-teal-50 dark:bg-[#00d29d]/15 text-[#00d29d] dark:text-[#00d29d] rounded-lg flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
@@ -837,7 +841,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
                 : '1금융 정책자금 금리 시뮬레이션을 즉시 시작합니다'}
             </p>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );

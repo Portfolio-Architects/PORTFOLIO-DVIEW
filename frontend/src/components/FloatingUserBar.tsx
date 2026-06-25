@@ -243,18 +243,11 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
             {/* Profile Header Card */}
             <div className="bg-body border border-border rounded-2xl p-5 mb-5 flex flex-col sm:flex-row items-center sm:items-start gap-5">
               {/* Profile Photo */}
-              <div 
-                className="relative group cursor-pointer shrink-0" 
+              <button 
+                type="button"
+                className="relative group cursor-pointer shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue rounded-full" 
                 onClick={() => document.getElementById('floating-profile-photo-input')?.click()}
-                role="button"
                 aria-label="프로필 사진 변경"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    document.getElementById('floating-profile-photo-input')?.click();
-                    e.preventDefault();
-                  }
-                }}
               >
                 <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center overflow-hidden ring-4 ring-[#008262]/10 dark:ring-[#00d29d]/10 shadow-sm">
                   {profilePhotoPreview ? (
@@ -278,7 +271,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                     }
                   }}
                 />
-              </div>
+              </button>
 
               {/* Profile Info */}
               <div className="flex-1 text-center sm:text-left pt-1 flex flex-col justify-center h-20">
