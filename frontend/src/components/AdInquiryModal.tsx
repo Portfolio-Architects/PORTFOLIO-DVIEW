@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Send, Building2, User, MessageSquare } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -18,34 +19,71 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
-    
-    // Auto focus on mount
-    if (companyNameRef.current) {
-      companyNameRef.current.focus();
-    }
-
-    // Escape key handling
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
-
+    setMounted(true);
     return () => {
       mountedRef.current = false;
-      window.removeEventListener('keydown', handleEscape);
+      setMounted(false);
       if (successTimeoutRef.current) {
         clearTimeout(successTimeoutRef.current);
         successTimeoutRef.current = null;
       }
     };
-  }, [onClose]);
+  }, []);
+
+  // Safe close handler to prevent data loss (DLP)
+  const handleSafeClose = React.useCallback(() => {
+    if (!isSuccess) {
+      const companyName = companyNameRef.current?.value || '';
+      const contactInfo = contactInfoRef.current?.value || '';
+      const message = messageRef.current?.value || '';
+
+      if (companyName.trim().length > 0 || contactInfo.trim().length > 0 || message.trim().length > 0) {
+        if (!window.confirm('작성 중인 문의 내용이 있습니다. 정말 닫으시겠습니까?')) {
+          return;
+        }
+      }
+    }
+    onClose();
+  }, [isSuccess, onClose]);
+
+  // Auto focus on mount with a slight delay for hydration safety
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (companyNameRef.current) {
+        companyNameRef.current.focus();
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, []);
+
+  // Escape key handling
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleSafeClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [handleSafeClose]);
 
   // Focus Trap Handler
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -114,10 +152,12 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div 
-      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" 
-      onClick={onClose}
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200" 
+      onClick={handleSafeClose}
       role="presentation"
     >
       <div
@@ -127,7 +167,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
         aria-labelledby="ad-inquiry-title"
         aria-describedby="ad-inquiry-desc"
         onKeyDown={handleKeyDown}
-        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border/20"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border/20 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -139,7 +179,7 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
             </h2>
           </div>
           <button 
-            onClick={onClose} 
+            onClick={handleSafeClose} 
             className="p-1.5 hover:bg-body rounded-full transition-colors"
             aria-label="문의 창 닫기"
           >
@@ -229,7 +269,8 @@ const AdInquiryModal = React.memo(function AdInquiryModal({ onClose }: AdInquiry
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
