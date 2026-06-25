@@ -176,8 +176,44 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (Math.min(100, totalScore) / 100) * circumference;
 
+  // Generate JSON-LD structural data for Jeonse Safety (SEO/Rich Snippets)
+  const jsonLd = useMemo(() => {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${aptName} 단지 전세 보증금 반환 안전성 진단 리포트`,
+      "description": `단지명: ${aptName} (${dong}), 실거래 매매가 약 ${(safeLatestPrice / 10000).toFixed(1)}억, 전세가 약 ${(safeLatestDeposit / 10000).toFixed(1)}억 기준으로 분석한 전세 안전 등급(${gradeLabel}) 및 안심지수(${totalScore}점) 분석 결과입니다.`,
+      "amenityFeature": [
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "전세가율 진단",
+          "value": `전세가율 ${jeonseRatePercent.toFixed(1)}% (채점: ${ratioScore}/50점)`
+        },
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "경매 낙찰 마진",
+          "value": `예상 경매 낙찰가 ${(auctionLimit / 10000).toFixed(1)}억 대비 보증금 안전도 (채점: ${marginScore}/20점)`
+        },
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "매매 유동성 및 회전률",
+          "value": `최근 3개월 매매 거래량 ${safeVolume3M}건 (채점: ${liquidityScore}/20점)`
+        },
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "단지 규모 안정성",
+          "value": `총 ${safeHouseholdCount.toLocaleString()}세대 규모 (채점: ${scaleScore}/10점)`
+        }
+      ]
+    };
+  }, [aptName, dong, safeLatestPrice, safeLatestDeposit, gradeLabel, totalScore, jeonseRatePercent, ratioScore, auctionLimit, marginScore, safeVolume3M, liquidityScore, safeHouseholdCount, scaleScore]);
+
   return (
     <div className="flex flex-col w-full gap-8 mt-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ─── 📊 전세 안전성 스코어 대시보드 ─── */}
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
