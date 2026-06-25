@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Send, GraduationCap, Brush, Sparkles, Phone, MessageSquare, Calendar, Home, CheckCircle2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -45,14 +46,74 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
   const [isSuccess, setIsSuccess] = useState(false);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  const [mounted, setMounted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     mountedRef.current = true;
+    setMounted(true);
     return () => {
       mountedRef.current = false;
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
   }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  // Focus and Escape key management
+  useEffect(() => {
+    // Auto focus first input field when modal opens
+    const timer = setTimeout(() => {
+      if (firstInputRef.current) {
+        firstInputRef.current.focus();
+      }
+    }, 50);
+
+    // Escape key handling
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose, isSubmitting]);
+
+  // Focus Trap Handler
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length === 0) return;
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
 
   // 학원 과목 토글
   const handleSubjectToggle = (subject: string) => {
@@ -161,35 +222,48 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
 
   const theme = getThemeStyles();
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
+      role="presentation"
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="b2b-ad-title"
+        aria-describedby="b2b-ad-desc"
+        onKeyDown={handleFocusTrap}
         className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-border/20 animate-slide-up"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-body">
           <div className="flex items-center gap-2">
-            <div className="bg-white dark:bg-surface p-1.5 rounded-xl border border-border/40 shadow-sm">
+            <div className="bg-white dark:bg-surface p-1.5 rounded-xl border border-border/40 shadow-sm" aria-hidden="true">
               {theme.icon}
             </div>
             <div>
-              <h2 className="text-[17px] font-black text-primary tracking-tight">
+              <h2 id="b2b-ad-title" className="text-[17px] font-black text-primary tracking-tight">
                 {theme.title}
               </h2>
               <p className="text-[11.5px] text-tertiary font-bold tracking-tight">DVIEW 제휴 서비스</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-body rounded-full transition-colors cursor-pointer border-none bg-transparent">
+          <button 
+            onClick={onClose} 
+            className="p-1.5 hover:bg-body rounded-full transition-colors cursor-pointer border-none bg-transparent"
+            aria-label="닫기"
+          >
             <X size={20} className="text-tertiary" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto px-6 py-5 custom-scrollbar">
+        <div id="b2b-ad-desc" className="overflow-y-auto px-6 py-5 custom-scrollbar">
           {isSuccess ? (
             <div className="flex flex-col items-center justify-center py-10 text-center animate-fade-in">
               <div className="w-16 h-16 bg-[#e6f4f2] dark:bg-[#0d9488]/10 text-emerald-500 rounded-full flex items-center justify-center mb-4 shadow-inner animate-pulse">
@@ -219,9 +293,11 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
                   상담 고객명 <span className="text-red-500 font-bold">*</span>
                 </label>
                 <input
+                  ref={firstInputRef}
                   type="text"
                   required
                   placeholder="예) 홍길동"
+                  aria-label="상담 고객명"
                   value={clientName}
                   onChange={e => setClientName(e.target.value)}
                   className="w-full px-4 py-2.5 bg-body border border-border rounded-xl text-[13.5px] text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent transition-all font-medium"
@@ -409,7 +485,8 @@ const B2BConsumerAdModal = React.memo(function B2BConsumerAdModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById('modal-root') || document.body
   );
 });
 
