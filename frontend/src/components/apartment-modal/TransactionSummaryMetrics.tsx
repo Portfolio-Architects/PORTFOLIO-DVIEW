@@ -219,13 +219,50 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
     const gapPriceEok = gapPrice > 0 ? formatEok(Math.round(gapPrice)) : null;
 
-    return { typeFilters, periodData, avgSalePrice, avgJeonsePrice, gapPriceEok, jeonseRatio, isRecentFallback };
+    const jsonLdElements: any[] = [];
+    if (avgSalePrice > 0 && avgJeonsePrice > 0) {
+      jsonLdElements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "실투자금 (매매-전세 갭)",
+        "value": `${gapPriceEok || '0'} 필요 (${isRecentFallback ? '전체 평균 대체 기준' : '최근 6개월 평균 실거래 기준'})`
+      });
+      jsonLdElements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": "실거래 전세가율",
+        "value": `${jeonseRatio.toFixed(1)}% 기록 (${isRecentFallback ? '전체 평균 대체 기준 (매매 대비 전세 비율)' : '매매 대비 전세 가격 비율'})`
+      });
+    }
+
+    periodData.forEach((p) => {
+      jsonLdElements.push({
+        "@type": "LocationFeatureSpecification",
+        "name": `${p.label} 평균 가격 (${periodDealType === 'sale' ? '매매' : '전월세'})`,
+        "value": `${p.avgPriceEok} (평당 ${p.perPyeongEok}/평, 거래건수 ${p.count}건)`
+      });
+    });
+
+    const dealTypeLabel = periodDealType === 'sale' ? '매매' : '전월세';
+    const filterLabel = priceTypeFilter === 'ALL' ? '단지 전체' : `${priceTypeFilter}㎡`;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Place",
+      "name": `${apartmentName} 단지 실거래 시세 요약 정보`,
+      "description": `${apartmentName} 단지의 ${dealTypeLabel} 평균 가격, 평당 가격, 거래 건수 및 실투자금 갭투자 필요자금, 전세가율 분석 정보입니다. (필터: ${filterLabel})`,
+      "amenityFeature": jsonLdElements
+    };
+
+    return { typeFilters, periodData, avgSalePrice, avgJeonsePrice, gapPriceEok, jeonseRatio, isRecentFallback, jsonLd };
   }, [transactions, apartmentName, typeMap, areaUnit, priceTypeFilter, periodDealType]);
 
   if (transactions.length === 0 || metrics.periodData.length === 0) return null;
 
   return (
     <div className="bg-surface w-full px-4 md:px-10 pb-6 border-b border-border">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(metrics.jsonLd) }}
+      />
       <div className="pt-4">
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
           <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
