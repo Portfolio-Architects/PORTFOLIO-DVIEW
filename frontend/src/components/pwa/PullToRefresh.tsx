@@ -58,6 +58,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const element = contentRef.current;
     const getScrollTop = () => {
       if (scrollContainerId) {
         const el = document.getElementById(scrollContainerId);
@@ -66,9 +67,29 @@ const PullToRefresh = React.memo(function PullToRefresh({
       return window.scrollY;
     };
 
+    const isInsideScrollable = (target: HTMLElement | null): boolean => {
+      let current = target;
+      while (current && current !== element) {
+        const style = window.getComputedStyle(current);
+        const isScrollableType = style.overflowY === 'auto' || style.overflowY === 'scroll';
+        const hasScrollableHeight = current.scrollHeight > current.clientHeight;
+        
+        if (isScrollableType && hasScrollableHeight) {
+          if (scrollContainerId && current.id === scrollContainerId) {
+            current = current.parentElement;
+            continue;
+          }
+          return true;
+        }
+        current = current.parentElement;
+      }
+      return false;
+    };
+
     const handleTouchStart = (e: TouchEvent) => {
       // Only allow pull-to-refresh if we are at the very top of the scroll container
       if (getScrollTop() > 0) return;
+      if (isInsideScrollable(e.target as HTMLElement)) return;
       startY.current = e.touches[0].clientY;
     };
 
@@ -142,7 +163,6 @@ const PullToRefresh = React.memo(function PullToRefresh({
       startY.current = null;
     };
 
-    const element = contentRef.current;
     if (element) {
       element.addEventListener('touchstart', handleTouchStart, { passive: true });
       element.addEventListener('touchmove', handleTouchMove, { passive: false });

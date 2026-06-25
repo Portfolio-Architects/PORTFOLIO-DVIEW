@@ -20,7 +20,7 @@ const NoticeSchema = z.object({
   title: z.string().min(1),
   url: z.string().url(),
   dept: z.string().default(''),
-  date: z.string().min(4),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Invalid date format" }),
   isDongtan: z.boolean().default(true),
   source: z.enum(['bbs', 'rail', 'dong', 'gosi']),
   createdAt: z.string().datetime()
@@ -123,18 +123,28 @@ async function main() {
       const decodedHtml = decoder.decode(arrayBuffer);
       const $ = cheerio.load(decodedHtml);
       const rows = $('table').first().find('tr');
+      if (rows.length === 0) continue;
+
+      // 동적 헤더 파싱
+      const headers = [];
+      rows.first().find('th, td').each((_, el) => {
+        headers.push($(el).text().trim().replace(/\s+/g, ''));
+      });
+      const titleIdx = headers.findIndex(h => h.includes('제목'));
+      const deptIdx = headers.findIndex(h => h.includes('부서') || h.includes('작성자') || h.includes('기관'));
+      const dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('작성일') || h.includes('일자'));
 
       rows.each((idx, tr) => {
         if (idx === 0) return;
         const tds = $(tr).find('td');
-        if (tds.length < 5) return;
+        if (tds.length <= Math.max(titleIdx, deptIdx, dateIdx)) return;
 
         const originalId = $(tds[0]).text().trim();
-        const titleEl = $(tds[2]);
+        const titleEl = $(tds[titleIdx]);
         const title = titleEl.text().trim().replace(/\s+/g, ' ');
         const link = (titleEl.find('a').attr('href') || '').trim();
-        const dept = $(tds[3]).text().trim();
-        const date = $(tds[4]).text().trim();
+        const dept = $(tds[deptIdx]).text().trim();
+        const date = $(tds[dateIdx]).text().trim();
 
         if (originalId && title && link) {
           const isDongtan = checkIfDongtan(title, dept);
@@ -176,18 +186,28 @@ async function main() {
       const decodedHtml = decoder.decode(arrayBuffer);
       const $ = cheerio.load(decodedHtml);
       const rows = $('table').first().find('tr');
+      if (rows.length === 0) continue;
+
+      // 동적 헤더 파싱
+      const headers = [];
+      rows.first().find('th, td').each((_, el) => {
+        headers.push($(el).text().trim().replace(/\s+/g, ''));
+      });
+      const titleIdx = headers.findIndex(h => h.includes('제목'));
+      const deptIdx = headers.findIndex(h => h.includes('부서') || h.includes('작성자') || h.includes('기관'));
+      const dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('작성일') || h.includes('일자'));
 
       rows.each((idx, tr) => {
         if (idx === 0) return;
         const tds = $(tr).find('td');
-        if (tds.length < 5) return;
+        if (tds.length <= Math.max(titleIdx, deptIdx, dateIdx)) return;
 
         const originalId = $(tds[0]).text().trim();
-        const titleEl = $(tds[2]);
+        const titleEl = $(tds[titleIdx]);
         const title = titleEl.text().trim().replace(/\s+/g, ' ');
         const link = (titleEl.find('a').attr('href') || '').trim();
-        const dept = $(tds[3]).text().trim();
-        const date = $(tds[4]).text().trim();
+        const dept = $(tds[deptIdx]).text().trim();
+        const date = $(tds[dateIdx]).text().trim();
 
         if (originalId && title && link) {
           const isDongtan = checkIfDongtan(title, dept);
@@ -229,18 +249,28 @@ async function main() {
       const decodedHtml = decoder.decode(arrayBuffer);
       const $ = cheerio.load(decodedHtml);
       const rows = $('table').first().find('tr');
+      if (rows.length === 0) continue;
+
+      // 동적 헤더 파싱
+      const headers = [];
+      rows.first().find('th, td').each((_, el) => {
+        headers.push($(el).text().trim().replace(/\s+/g, ''));
+      });
+      const titleIdx = headers.findIndex(h => h.includes('제목'));
+      const deptIdx = headers.findIndex(h => h.includes('부서') || h.includes('작성자') || h.includes('기관'));
+      const dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('작성일') || h.includes('일자'));
 
       rows.each((idx, tr) => {
         if (idx === 0) return;
         const tds = $(tr).find('td');
-        if (tds.length < 5) return;
+        if (tds.length <= Math.max(titleIdx, deptIdx, dateIdx)) return;
 
         const originalId = $(tds[0]).text().trim();
-        const titleEl = $(tds[2]);
+        const titleEl = $(tds[titleIdx]);
         const title = titleEl.text().trim().replace(/\s+/g, ' ');
         const link = (titleEl.find('a').attr('href') || '').trim();
-        const dept = $(tds[3]).text().trim();
-        const date = $(tds[4]).text().trim();
+        const dept = $(tds[deptIdx]).text().trim();
+        const date = $(tds[dateIdx]).text().trim();
 
         if (originalId && title && link) {
           const isDongtan = checkIfDongtan(title, dept);
@@ -296,18 +326,28 @@ async function main() {
         const decodedHtml = decoder.decode(arrayBuffer);
         const $ = cheerio.load(decodedHtml);
         const rows = $('table').first().find('tr');
+        if (rows.length === 0) continue;
+
+        // 동적 헤더 파싱
+        const headers = [];
+        rows.first().find('th, td').each((_, el) => {
+          headers.push($(el).text().trim().replace(/\s+/g, ''));
+        });
+        const titleIdx = headers.findIndex(h => h.includes('제목'));
+        const deptIdx = headers.findIndex(h => h.includes('부서') || h.includes('작성자') || h.includes('기관'));
+        const dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('작성일') || h.includes('일자'));
 
         rows.each((idx, tr) => {
           if (idx === 0) return;
           const tds = $(tr).find('td');
-          if (tds.length < 5) return;
+          if (tds.length <= Math.max(titleIdx, deptIdx, dateIdx)) return;
 
           const originalId = $(tds[0]).text().trim();
-          const titleEl = $(tds[2]);
+          const titleEl = $(tds[titleIdx]);
           const title = titleEl.text().trim().replace(/\s+/g, ' ');
           const link = (titleEl.find('a').attr('href') || '').trim();
-          const dept = $(tds[3]).text().trim();
-          const date = $(tds[4]).text().trim();
+          const dept = $(tds[deptIdx]).text().trim();
+          const date = $(tds[dateIdx]).text().trim();
 
           if (originalId && title && link) {
             const isDongtan = checkIfDongtan(title, dept);

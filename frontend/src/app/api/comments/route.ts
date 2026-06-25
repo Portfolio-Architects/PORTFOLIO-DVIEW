@@ -98,12 +98,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: 'success', id: commentId });
 
     } else if (reportId) {
-      const reportRef = adminDb.collection('field_reports').doc(reportId);
+      let reportRef = adminDb.collection('field_reports').doc(reportId);
       
       const commentId = await adminDb.runTransaction(async (transaction) => {
-        const reportSnap = await transaction.get(reportRef);
+        let reportSnap = await transaction.get(reportRef);
         if (!reportSnap.exists) {
-          throw new Error('REPORT_NOT_FOUND');
+          const scoutingRef = adminDb.collection('scoutingReports').doc(reportId);
+          const scoutingSnap = await transaction.get(scoutingRef);
+          if (scoutingSnap.exists) {
+            reportRef = scoutingRef;
+            reportSnap = scoutingSnap;
+          } else {
+            throw new Error('REPORT_NOT_FOUND');
+          }
         }
 
         const reportData = reportSnap.data();

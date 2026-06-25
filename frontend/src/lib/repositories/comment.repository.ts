@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { CommentData } from '@/lib/types/report.types';
 import { commentConverter } from '@/lib/utils/firestoreConverters';
@@ -59,7 +59,12 @@ export async function addComment(
     }
 
     // Increment parent report's comment counter
-    const parentReportRef = doc(db, 'field_reports', reportId);
+    const scoutingRef = doc(db, 'scoutingReports', reportId);
+    const scoutingSnap = await getDoc(scoutingRef);
+    const parentReportRef = scoutingSnap.exists()
+      ? scoutingRef
+      : doc(db, 'field_reports', reportId);
+
     batch.update(parentReportRef, {
       commentCount: increment(1),
     });

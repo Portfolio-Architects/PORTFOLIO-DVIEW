@@ -25,9 +25,8 @@ import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
 import InAppBrowserBypass from '@/components/pwa/InAppBrowserBypass';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import NextTopLoader from 'nextjs-toploader';
 import Script from 'next/script';
-import { headers } from 'next/headers';
+import NextTopLoader from 'nextjs-toploader';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
@@ -112,13 +111,12 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const headersList = await headers();
-  const nonce = headersList.get('x-nonce') || '';
+  const nonce = undefined;
 
   return (
     <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable}`}>

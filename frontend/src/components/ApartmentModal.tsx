@@ -176,7 +176,7 @@ import PushSubscriptionModal from './pwa/PushSubscriptionModal';
 import LocalEducationAd from '@/components/LocalEducationAd';
 import ContextualB2BAdBanner from './apartment-modal/ContextualB2BAdBanner';
 
-import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
+import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, calculateInfraScore } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 
 import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
@@ -300,136 +300,6 @@ const LazyRender = React.memo(function LazyRender({
   );
 });
 
-const calculateEducationScore = (metrics: any) => {
-  if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
-  
-  let score = 0;
-  
-  // 1. Elementary Distance (max 45 points) - 선형 보간 감쇄 적용
-  const elemDist = metrics.distanceToElementary || 9999;
-  let elemScore = 0;
-  if (elemDist <= 150) elemScore = 45;
-  else if (elemDist <= 300) elemScore = 45 - ((elemDist - 150) / 150) * 5;
-  else if (elemDist <= 500) elemScore = 40 - ((elemDist - 300) / 200) * 10;
-  else if (elemDist <= 800) elemScore = 30 - ((elemDist - 500) / 300) * 15;
-  else if (elemDist <= 1500) elemScore = 15 - ((elemDist - 800) / 700) * 10;
-  else elemScore = 5;
-  score += Math.round(elemScore);
-  
-  // 2. Middle & High School Accessibility (max 20 points) - 선형 보간 감쇄 적용
-  const midDist = metrics.distanceToMiddle || 9999;
-  const highDist = metrics.distanceToHigh || 9999;
-  
-  let midScore = 0;
-  if (midDist <= 300) midScore = 10;
-  else if (midDist <= 800) midScore = 10 - ((midDist - 300) / 500) * 3;
-  else if (midDist <= 1500) midScore = 7 - ((midDist - 800) / 700) * 4;
-  else midScore = 3;
-  
-  let highScore = 0;
-  if (highDist <= 400) highScore = 10;
-  else if (highDist <= 1000) highScore = 10 - ((highDist - 400) / 600) * 3;
-  else if (highDist <= 2000) highScore = 7 - ((highDist - 1000) / 1000) * 4;
-  else highScore = 3;
-  
-  score += Math.round(midScore) + Math.round(highScore);
-  
-  // 3. Academy Density & Diversity (max 35 points) - 다양성 인센티브 가산
-  const density = metrics.academyDensity || 0;
-  let baseDensityScore = 0;
-  if (density >= 100) baseDensityScore = 30;
-  else if (density >= 50) baseDensityScore = 24;
-  else if (density >= 20) baseDensityScore = 17;
-  else if (density >= 5) baseDensityScore = 8;
-  else baseDensityScore = 2;
-  
-  const categories = metrics.academyCategories || {};
-  const categoryCount = Object.keys(categories).length;
-  let diversityBonus = 0;
-  if (categoryCount >= 6) diversityBonus = 5;
-  else if (categoryCount >= 4) diversityBonus = 3;
-  else if (categoryCount >= 2) diversityBonus = 1;
-  
-  score += baseDensityScore + diversityBonus;
-  
-  // Grade
-  let grade = 'C';
-  let desc = '보통 수준의 교육 여건';
-  if (score >= 90) {
-    grade = 'S';
-    desc = '최상급 초품아 + 대형 학원가 인접 (최고의 자녀 양육 환경)';
-  } else if (score >= 80) {
-    grade = 'A';
-    desc = '안심 도보 통학 및 우수한 학원가 인프라 완비';
-  } else if (score >= 70) {
-    grade = 'B';
-    desc = '양호한 통학 거리와 균형 잡힌 근린 교육 환경';
-  }
-  
-  return { score, grade, description: desc };
-};
-
-const calculateInfraScore = (metrics: any) => {
-  if (!metrics) return { score: 0, grade: 'C', description: '정보 부족' };
-  
-  let score = 0;
-  
-  // 1. Subway/Rail Accessibility (max 40 points)
-  const distances = [
-    metrics.distanceToSubway || 9999,
-    metrics.distanceToIndeokwon || 9999,
-    metrics.distanceToTram || 9999
-  ];
-  const minRailDist = Math.min(...distances);
-  let railScore = 0;
-  if (minRailDist <= 400) railScore = 40;
-  else if (minRailDist <= 800) railScore = 40 - ((minRailDist - 400) / 400) * 10;
-  else if (minRailDist <= 1200) railScore = 30 - ((minRailDist - 800) / 400) * 15;
-  else railScore = 10;
-  score += Math.round(railScore);
-  
-  // 2. Convenience (Anchor Tenants) (max 30 points)
-  const anchors = [
-    metrics.distanceToStarbucks || 9999,
-    metrics.distanceToOliveYoung || 9999,
-    metrics.distanceToDaiso || 9999,
-    metrics.distanceToMcDonalds || 9999
-  ];
-  let anchorScore = 0;
-  anchors.forEach(dist => {
-    if (dist <= 300) anchorScore += 7.5;
-    else if (dist <= 600) anchorScore += 6;
-    else if (dist <= 1000) anchorScore += 4.5;
-    else anchorScore += 2;
-  });
-  score += Math.round(anchorScore);
-  
-  // 3. Commercial Density (max 30 points)
-  const density = metrics.restaurantDensity || 0;
-  let densityScore = 0;
-  if (density >= 150) densityScore = 30;
-  else if (density >= 80) densityScore = 25;
-  else if (density >= 30) densityScore = 18;
-  else if (density >= 10) densityScore = 10;
-  else densityScore = 3;
-  score += densityScore;
-  
-  // Grade
-  let grade = 'C';
-  let desc = '보통 수준의 생활 인프라';
-  if (score >= 90) {
-    grade = 'S';
-    desc = '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)';
-  } else if (score >= 80) {
-    grade = 'A';
-    desc = '역세권 입지와 스타벅스 등 핵심 상권 완비';
-  } else if (score >= 70) {
-    grade = 'B';
-    desc = '안정적인 대중교통망과 풍부한 근린 상권 보유';
-  }
-  
-  return { score, grade, description: desc };
-};
 
 // Removed inline ViralPaywallGate, imported from external file.
 

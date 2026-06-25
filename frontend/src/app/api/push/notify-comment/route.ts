@@ -31,12 +31,19 @@ export async function POST(req: Request) {
     }
 
     // 1. Fetch the field report to find its author's UID
-    const reportRef = db.collection('field_reports').doc(reportId);
-    const reportSnap = await reportRef.get();
+    let reportRef = db.collection('field_reports').doc(reportId);
+    let reportSnap = await reportRef.get();
     
     if (!reportSnap.exists) {
-      logger.warn('NotifyCommentAPI.POST', 'Field report not found', { reportId });
-      return NextResponse.json({ error: 'Field report not found' }, { status: 404 });
+      const scoutingRef = db.collection('scoutingReports').doc(reportId);
+      const scoutingSnap = await scoutingRef.get();
+      if (scoutingSnap.exists) {
+        reportRef = scoutingRef;
+        reportSnap = scoutingSnap;
+      } else {
+        logger.warn('NotifyCommentAPI.POST', 'Field report not found in both collections', { reportId });
+        return NextResponse.json({ error: 'Field report not found' }, { status: 404 });
+      }
     }
 
     const reportData = reportSnap.data()!;

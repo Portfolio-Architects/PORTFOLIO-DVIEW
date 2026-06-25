@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { ZONES, getZoneById } from '@/lib/zones';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import ZoneDetailClient from './ZoneDetailClient';
@@ -52,7 +51,7 @@ export async function generateMetadata(props: {
 export default async function ZoneDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const zone = getZoneById(params.id);
-  const nonce = (await headers()).get('x-nonce') || undefined;
+  const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   if (!zone) {

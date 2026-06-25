@@ -3,7 +3,6 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
-import { headers } from 'next/headers';
 import { redis } from '@/lib/redis';
 import fs from 'fs';
 import path from 'path';
@@ -430,7 +429,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   }
 
   const initialData = await getInitialData();
-  const nonce = (await headers()).get('x-nonce') || undefined;
+  const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   // Fetch report for structured data (JSON-LD)

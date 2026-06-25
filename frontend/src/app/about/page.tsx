@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Landmark, TrendingUp, Sparkles, ShieldCheck, MapPin } from 'lucide-react';
-import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export const metadata = {
@@ -14,7 +13,7 @@ export const metadata = {
 
 export default async function AboutPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-  const nonce = (await headers()).get('x-nonce') || undefined;
+  const nonce = undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",

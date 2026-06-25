@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import LoungeDetailClient from '@/components/LoungeDetailClient';
-import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { logger } from '@/lib/services/logger';
@@ -92,7 +91,7 @@ export default async function LoungePostPage(props: Props) {
   const params = await props.params;
   const { id } = params;
   let initialPost: Record<string, any> | undefined = undefined;
-  const nonce = (await headers()).get('x-nonce') || undefined;
+  const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   if (id) {

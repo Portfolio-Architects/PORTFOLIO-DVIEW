@@ -251,7 +251,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const { user, userProfile, handleLogin } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch } = useDashboardMeta(initialDashboardData);
-  const { userFavorites, favoriteCounts, handleToggleFavorite } = useFavorites(user, initialDashboardData?.favoriteCounts);
+  const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
   // Trigger lazy fetching of detailed sheets data on mount for the Explore page
   useEffect(() => {
@@ -596,6 +596,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   onOpenMortgage={handleOpenMortgage}
                   onSearchFocus={triggerFetch}
                   preloadApartmentTx={preloadApartmentTx}
+                  updateFavoriteOrder={updateFavoriteOrder}
                 />
               </section>
             </div>

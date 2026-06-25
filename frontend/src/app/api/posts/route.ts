@@ -157,14 +157,28 @@ export async function GET(req: NextRequest) {
     const parentMap = new Map<string, string>();
     if (parentIdsToResolve.size > 0) {
       try {
+        const parentIdsArray = Array.from(parentIdsToResolve);
         const parentSnaps = await Promise.all(
-          Array.from(parentIdsToResolve).map(id => adminDb.collection('field_reports').doc(id).get())
+          parentIdsArray.map(id => adminDb.collection('field_reports').doc(id).get())
         );
-        parentSnaps.forEach(snap => {
+        const missingIds: string[] = [];
+        parentSnaps.forEach((snap, idx) => {
           if (snap.exists) {
             parentMap.set(snap.id, snap.data()?.apartmentName || '알 수 없는 단지');
+          } else {
+            missingIds.push(parentIdsArray[idx]);
           }
         });
+        if (missingIds.length > 0) {
+          const scoutingSnaps = await Promise.all(
+            missingIds.map(id => adminDb.collection('scoutingReports').doc(id).get())
+          );
+          scoutingSnaps.forEach(snap => {
+            if (snap.exists) {
+              parentMap.set(snap.id, snap.data()?.apartmentName || '알 수 없는 단지');
+            }
+          });
+        }
       } catch (err) {
         logger.error('PostsAPI.GET', 'Error resolving parent field reports', {}, err as Error);
       }

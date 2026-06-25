@@ -67,7 +67,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     areaLabelPyeong?: string;
   };
 
-  const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
+  const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('3Y');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   // Callback Ref pattern for highly reliable ResizeObserver binding

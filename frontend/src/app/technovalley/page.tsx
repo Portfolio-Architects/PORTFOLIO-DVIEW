@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import TechnoValleyClient from './TechnoValleyClient';
 
@@ -31,7 +30,7 @@ function TechnoValleySkeleton() {
 
 export default async function TechnoValleyPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-  const nonce = (await headers()).get('x-nonce') || undefined;
+  const nonce = undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",

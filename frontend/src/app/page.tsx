@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import Script from 'next/script';
-import { headers } from 'next/headers';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
@@ -54,8 +53,7 @@ async function DashboardDataLoader() {
 }
 
 export default async function Page() {
-  const headersList = await headers();
-  const nonce = headersList.get('x-nonce') || undefined;
+  const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   const jsonLd = getMainPageSchema(baseUrl);

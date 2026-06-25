@@ -294,17 +294,39 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
         const { adminDb } = await import('@/lib/firebaseAdmin');
         if (adminDb) {
           const snaps = await Promise.all(parentIds.map(id => adminDb.collection('field_reports').doc(id).get()));
-          snaps.forEach(s => {
-            if (s.exists) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+          const missingIds: string[] = [];
+          snaps.forEach((s, idx) => {
+            if (s.exists) {
+              parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+            } else {
+              missingIds.push(parentIds[idx]);
+            }
           });
+          if (missingIds.length > 0) {
+            const scoutingSnaps = await Promise.all(missingIds.map(id => adminDb.collection('scoutingReports').doc(id).get()));
+            scoutingSnaps.forEach(s => {
+              if (s.exists) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+            });
+          }
         }
       } catch (_) {}
     } else {
       try {
         const snaps = await Promise.all(parentIds.map(id => getDoc(doc(db, 'field_reports', id))));
-        snaps.forEach(s => {
-          if (s.exists()) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+        const missingIds: string[] = [];
+        snaps.forEach((s, idx) => {
+          if (s.exists()) {
+            parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+          } else {
+            missingIds.push(parentIds[idx]);
+          }
         });
+        if (missingIds.length > 0) {
+          const scoutingSnaps = await Promise.all(missingIds.map(id => getDoc(doc(db, 'scoutingReports', id))));
+          scoutingSnaps.forEach(s => {
+            if (s.exists()) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
+          });
+        }
       } catch (_) {}
     }
   }

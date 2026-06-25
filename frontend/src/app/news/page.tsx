@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import NewsClient from './NewsClient';
 import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';

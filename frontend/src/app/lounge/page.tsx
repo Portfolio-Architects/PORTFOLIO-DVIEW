@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
-import { headers } from 'next/headers';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import { logger } from '@/lib/services/logger';
 import { safeJsonLd } from '@/lib/utils/structuredData';
@@ -75,7 +74,7 @@ export default async function LoungePage({
     errorMessage = 'Failed to load posts. Please try again later.';
   }
 
-  const nonce = (await headers()).get('x-nonce') || undefined;
+  const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   const jsonLd = {

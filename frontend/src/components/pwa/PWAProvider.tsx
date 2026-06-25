@@ -70,9 +70,34 @@ function urlBase64ToUint8Array(base64String: string) {
 
 
 
-export const PWAProvider = React.memo(function PWAProvider({ children }: { children: ReactNode }) {
+function NProgressCleaner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const cleanNProgress = () => {
+      try {
+        const globalNProgress = (window as any).NProgress;
+        if (globalNProgress) {
+          globalNProgress.done();
+        }
+        const elements = document.querySelectorAll('#nprogress');
+        elements.forEach(el => el.remove());
+      } catch (err) {
+        // Ignored
+      }
+    };
+
+    cleanNProgress();
+    const timer = setTimeout(cleanNProgress, 150);
+    return () => clearTimeout(timer);
+  }, [pathname, searchParams]);
+
+  return null;
+}
+
+export const PWAProvider = React.memo(function PWAProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
 
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
@@ -107,25 +132,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     };
   }, []);
 
-  // 🔧 Nextjs-Toploader 진행바 잔존 DOM 노드 강제 청소 (router.events 소거 가드 보강)
-  useEffect(() => {
-    const cleanNProgress = () => {
-      try {
-        const globalNProgress = (window as any).NProgress;
-        if (globalNProgress) {
-          globalNProgress.done();
-        }
-        const elements = document.querySelectorAll('#nprogress');
-        elements.forEach(el => el.remove());
-      } catch (err) {
-        // Ignored
-      }
-    };
-
-    cleanNProgress();
-    const timer = setTimeout(cleanNProgress, 150);
-    return () => clearTimeout(timer);
-  }, [pathname, searchParams]);
+  // 🔧 Nextjs-Toploader progress bar cleanup is handled by NProgressCleaner
 
   // 🔧 모바일 웹 뷰 내 차트 툴팁 호버 잔존 방지 전역 터치 가드
   useEffect(() => {
@@ -576,6 +583,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         isIOS,
       }}
     >
+      <React.Suspense fallback={null}>
+        <NProgressCleaner />
+      </React.Suspense>
       {children}
       {toastMessage && (
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none">

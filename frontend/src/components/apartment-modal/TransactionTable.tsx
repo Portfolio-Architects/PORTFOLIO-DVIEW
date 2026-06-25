@@ -166,7 +166,7 @@ export const TransactionTable = React.memo(function TransactionTable({
       </div>
 
       {/* 테이블 컬럼 헤더 추가 */}
-      <div className="flex items-center justify-between px-4 py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#4e5968] dark:text-[#cbd5e1] select-none shrink-0 w-full gap-2">
+      <div className="flex items-center justify-between pl-4 pr-[22px] py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#4e5968] dark:text-[#cbd5e1] select-none shrink-0 w-full gap-2">
         <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
         <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
         <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>
@@ -175,8 +175,8 @@ export const TransactionTable = React.memo(function TransactionTable({
 
       <div 
       ref={scrollContainerRef}
-      className={`${visibleCount > defaultCount ? 'overflow-y-auto' : 'overflow-y-hidden'} touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px]`}
-      style={{ WebkitOverflowScrolling: 'touch' }}
+      className="overflow-y-auto touch-pan-y overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-[280px] md:h-[420px]"
+      style={{ WebkitOverflowScrolling: 'touch', scrollbarGutter: 'stable' }}
       >
         {sortedFilteredTransactions.slice(0, visibleCount).map((tx, i) => (
           <TransactionRow 

@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { headers } from 'next/headers';
 import { getInitialData } from '@/lib/services/dashboardData';
 import ExploreClient from './ExploreClient';
 import PageHeroHeader from '@/components/PageHeroHeader';
@@ -138,8 +137,7 @@ async function ExploreDataLoader() {
 }
 
 export default async function ExplorePage() {
-  const headersList = await headers();
-  const nonce = headersList.get('x-nonce') || undefined;
+  const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   const jsonLd = getExploreSchema(baseUrl);
