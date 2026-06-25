@@ -95,6 +95,9 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
       const apts = buildInitialApartments();
       const allApts = Object.values(apts).flat();
       
+      const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
+      const txSummary = await readJsonFileCached<Record<string, any>>('public/data/tx-summary.json', {});
+      
       // Fetch all scouting reports to get image URLs for SEO
       const reportsMap = new Map<string, string[]>();
       if (adminDb) {
@@ -114,10 +117,24 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
       
       allApts.forEach((apt) => {
         const images = reportsMap.get(apt.name);
+        const aptSummary = txSummary[apt.name];
+        
+        let lastModified = new Date();
+        if (aptSummary && aptSummary.latestDate) {
+          const dateStr = String(aptSummary.latestDate).trim();
+          if (dateStr.length === 8) {
+            const y = parseInt(dateStr.substring(0, 4), 10);
+            const m = parseInt(dateStr.substring(4, 6), 10) - 1; // 0-indexed month
+            const d = parseInt(dateStr.substring(6, 8), 10);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+              lastModified = new Date(Date.UTC(y, m, d));
+            }
+          }
+        }
         
         const routeData: any = {
           url: `${baseUrl}/apartment/${encodeURIComponent(apt.name)}`,
-          lastModified: new Date(),
+          lastModified,
           changeFrequency: 'weekly',
           priority: 0.95,
         };
