@@ -50,6 +50,16 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     let unmounted = false;
     if (user) {
       setIsFavoritesLoading(true);
+      // E2E Mock Auth Bypass to prevent 401 Unauthorized API fetch errors
+      if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
+        setTimeout(() => {
+          if (!unmounted) {
+            setUserFavorites(new Set());
+            setIsFavoritesLoading(false);
+          }
+        }, 50);
+        return;
+      }
       user.getIdToken().then(idToken => {
         fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } })
           .then(r => r.json())
@@ -103,6 +113,11 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     });
     setFavoriteCounts(prev => ({ ...prev, [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1)) }));
     
+    // E2E Mock Auth Bypass
+    if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
+      return;
+    }
+
     try {
       const idToken = await user.getIdToken();
       const res = await fetch('/api/favorite', {
@@ -131,6 +146,11 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     if (!isMountedRef.current) return;
 
     setUserFavorites(new Set(newOrder));
+
+    // E2E Mock Auth Bypass
+    if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
+      return;
+    }
 
     try {
       const idToken = await user.getIdToken();

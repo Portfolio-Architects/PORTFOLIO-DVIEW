@@ -8,13 +8,15 @@ const pretendard = localFont({
   src: '../../public/fonts/PretendardVariable.woff2',
   display: 'swap',
   weight: '45 920',
-  variable: '--font-sans',
+  variable: '--font-pretendard',
+  preload: false,
 });
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+  preload: false,
 });
 import OfflineBanner from '@/components/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
