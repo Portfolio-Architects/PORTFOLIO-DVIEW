@@ -170,8 +170,51 @@ const CommentSection = React.memo(function CommentSection({
     }
   };
 
+  // Generate JSON-LD structural data for CommentSection UGC (DiscussionForumPosting)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    "name": "DVIEW 아파트 입주민 소통 라운지",
+    "headline": "DVIEW 단지별 입주민 거주 후기 및 이야기",
+    "description": "실제 입주민들이 작성한 단지 특징, 교통 편의성, 학군 및 거주 만족도 관련 소통 공간입니다.",
+    "commentCount": comments.length,
+    "comment": comments.map((c) => {
+      let isoDate = new Date().toISOString();
+      if (c.createdAt) {
+        try {
+          const timeVal = c.createdAt as any;
+          if (timeVal && typeof timeVal === 'object') {
+            if ('seconds' in timeVal) {
+              isoDate = new Date(timeVal.seconds * 1000).toISOString();
+            } else if ('toDate' in timeVal && typeof timeVal.toDate === 'function') {
+              isoDate = timeVal.toDate().toISOString();
+            }
+          } else {
+            const parsed = new Date(timeVal);
+            if (!isNaN(parsed.getTime())) {
+              isoDate = parsed.toISOString();
+            }
+          }
+        } catch {}
+      }
+      return {
+        "@type": "Comment",
+        "text": c.text,
+        "author": {
+          "@type": "Person",
+          "name": c.author
+        },
+        "dateCreated": isoDate
+      };
+    })
+  };
+
   return (
     <div id="sec-comments" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <h2 className="text-[19px] md:text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
         <MessageSquare size={20} className="text-[#008262] dark:text-[#00d29d]"/> 
         아파트 이야기
