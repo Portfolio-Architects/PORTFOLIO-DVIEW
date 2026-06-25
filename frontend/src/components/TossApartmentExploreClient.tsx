@@ -186,11 +186,36 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, []);
 
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('search') || params.get('q') || '';
+    }
+    return '';
+  });
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [visibleCount, setVisibleCount] = useState(15);
   const searchFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+
+  // Sync URL search query parameters dynamically with state to support Sitelinks Searchbox
+  useEffect(() => {
+    if (!mounted) return;
+    const params = new URLSearchParams(window.location.search);
+    const currentQuery = params.get('search') || params.get('q') || '';
+    if (searchQuery !== currentQuery) {
+      if (searchQuery) {
+        params.set('search', searchQuery);
+        params.delete('q'); // Clean up old 'q' parameters
+      } else {
+        params.delete('search');
+        params.delete('q');
+      }
+      const newSearch = params.toString();
+      const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '') + window.location.hash;
+      window.history.replaceState(null, '', newUrl);
+    }
+  }, [searchQuery, mounted]);
 
   useEffect(() => {
     mountedRef.current = true;

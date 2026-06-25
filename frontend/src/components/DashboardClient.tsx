@@ -487,10 +487,18 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
+      const searchParam = params.get('search') || params.get('q');
       const hasCurationParams = params.has('chopoomaStep') || params.has('maxGap');
 
-      if (window.location.hash.startsWith('#imjang') || tabParam === 'imjang') {
-        setActiveTab('imjang');
+      if (tabParam === 'imjang' || searchParam) {
+        const destUrl = `/explore` + (searchParam ? `?search=${encodeURIComponent(searchParam)}` : '');
+        router.replace(destUrl);
+        return;
+      }
+
+      if (window.location.hash.startsWith('#imjang')) {
+        router.replace('/explore');
+        return;
       } else if (window.location.hash.startsWith('#gap') || tabParam === 'gap' || hasCurationParams) {
         setActiveTab('gap');
       } else if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || tabParam === 'lounge' || tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
