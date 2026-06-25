@@ -290,8 +290,76 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
     .filter(n => n.source === 'culture' && n.title.includes('[강좌]'))
     .slice(0, 4);
 
+  // Generate JSON-LD structural data for hyperlocal events and lectures (SEO/Rich Snippets)
+  const jsonLdElements = [
+    ...curations.map((c) => {
+      let startDate = '2026-05-01';
+      if (c.id === 'luna') {
+        const nextLuna = allNotices.find(n => n.source === 'culture' && n.title.includes('[루나쇼]'));
+        if (nextLuna) startDate = nextLuna.date;
+      } else if (c.id === 'waterpark') {
+        const nextWater = allNotices.find(n => n.source === 'culture' && n.title.includes('물놀이장'));
+        if (nextWater) startDate = nextWater.date;
+      } else if (c.id === 'gtx') {
+        startDate = '2024-03-30'; // 개통일
+      }
+
+      return {
+        "@type": "Event",
+        "name": c.title,
+        "description": c.desc,
+        "startDate": startDate,
+        "eventStatus": "https://schema.org/EventScheduled",
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+        "location": {
+          "@type": "Place",
+          "name": c.id === 'luna' ? '동탄호수공원' : c.id === 'gtx' ? '동탄역' : '동탄 어린이 공원',
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "화성시",
+            "addressRegion": "경기도",
+            "addressCountry": "KR"
+          }
+        }
+      };
+    }),
+    ...activeLectures.map((l) => ({
+      "@type": "Event",
+      "name": `[주민센터 강좌] ${l.title.replace(/\[강좌\]\s*/, '')}`,
+      "description": `${l.dept} 주민자치센터 추천 교육 강좌 선착순 접수 중.`,
+      "startDate": l.date,
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": `${l.dept} 주민자치센터`,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "화성시",
+          "addressRegion": "경기도",
+          "addressCountry": "KR"
+        }
+      }
+    }))
+  ];
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "numberOfItems": jsonLdElements.length,
+    "itemListElement": jsonLdElements.map((item, idx) => ({
+      "@type": "ListItem",
+      "position": idx + 1,
+      "item": item
+    }))
+  };
+
   return (
     <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
