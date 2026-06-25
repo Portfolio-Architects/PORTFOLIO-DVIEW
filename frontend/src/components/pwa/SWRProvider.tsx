@@ -67,7 +67,15 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
         if (rawCache) {
           const parsed = JSON.parse(rawCache);
           if (Array.isArray(parsed) && parsed.every(entry => Array.isArray(entry) && entry.length === 2)) {
-            initialEntries = parsed;
+            // Clean up any legacy or empty error objects from cached SWR states
+            initialEntries = parsed.map(([key, val]) => {
+              if (val && typeof val === 'object' && 'error' in val) {
+                const cleaned = { ...val };
+                delete cleaned.error;
+                return [key, cleaned];
+              }
+              return [key, val];
+            });
           } else {
             logger.warn('SWRProvider.getCache', 'Invalid cache structure inside localStorage');
           }
@@ -104,6 +112,17 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
             // Avoid serializing error objects or non-serializable entities
             if (value instanceof Error) return false;
             return true;
+          })
+          .map(([key, value]) => {
+            // Remove error properties to avoid serializing `{}` empty objects
+            if (value && typeof value === 'object') {
+              const copy = { ...value };
+              if ('error' in copy) {
+                delete copy.error;
+              }
+              return [key, copy];
+            }
+            return [key, value];
           });
         localStorage.setItem('app-swr-cache', JSON.stringify(appCache));
       } catch (err) {

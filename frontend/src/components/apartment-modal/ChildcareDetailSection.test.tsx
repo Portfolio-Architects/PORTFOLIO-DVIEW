@@ -50,12 +50,12 @@ describe('ChildcareDetailSection', () => {
     expect(screen.getByText('더 정확하고 유용한 통학 안전 진단 서비스 준비 중')).toBeInTheDocument();
   });
 
-  it('renders overridden childcare data for specific apartments (e.g. 힐스테이트 동탄역)', () => {
+  it('renders overridden childcare data for specific apartments (e.g. 동탄역 힐스테이트)', () => {
     render(
       <ChildcareDetailSection 
         dong="영천동" 
         distanceToElementary={100} 
-        aptName="힐스테이트 동탄역" 
+        aptName="동탄역 힐스테이트" 
       />
     );
     

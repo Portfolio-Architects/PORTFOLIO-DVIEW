@@ -116,12 +116,12 @@ describe('ApartmentMapping Unit Tests', () => {
 
   describe('getAreaType()', () => {
     it('should return correct type for known area size', () => {
-      expect(getAreaType('힐스테이트 동탄역', '54.5533')).toBe('78A');
+      expect(getAreaType('동탄역 힐스테이트', '54.5533')).toBe('78A');
       expect(getAreaType('[오산동]힐스테이트동탄역', '54.4202')).toBe('78B');
     });
 
     it('should return null for unknown apt or area', () => {
-      expect(getAreaType('힐스테이트 동탄역', '99.9999')).toBe(null);
+      expect(getAreaType('동탄역 힐스테이트', '99.9999')).toBe(null);
       expect(getAreaType('동탄역 자이', '54.5533')).toBe(null);
     });
   });

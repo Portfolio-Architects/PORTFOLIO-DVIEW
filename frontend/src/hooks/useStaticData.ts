@@ -426,8 +426,25 @@ export function useTxData(
   );
   
   if (summaryError) {
-    const errorMsg = summaryError instanceof Error ? summaryError.message : String(summaryError);
-    logger.error('useStaticData.useTxData', 'useTxData SWR summary error', { errorMsg }, summaryError as Error);
+    const errorMsg = (summaryError && typeof summaryError === 'object' && 'message' in summaryError)
+      ? (summaryError as any).message
+      : String(summaryError);
+    
+    const errorDebug: Record<string, any> = {};
+    if (summaryError && typeof summaryError === 'object') {
+      try {
+        Object.getOwnPropertyNames(summaryError).forEach(key => {
+          const val = (summaryError as any)[key];
+          errorDebug[key] = (val && typeof val === 'object') ? String(val) : val;
+        });
+      } catch (e) {}
+    }
+    
+    logger.error('useStaticData.useTxData', 'useTxData SWR summary error', { 
+      errorMsg, 
+      errorDebug,
+      isErrorInstance: String(summaryError instanceof Error)
+    }, summaryError as any);
   }
 
   return {

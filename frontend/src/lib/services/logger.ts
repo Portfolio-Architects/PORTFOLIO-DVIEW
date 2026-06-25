@@ -41,11 +41,12 @@ function log(level: LogLevel, context: string, message: string, data?: Record<st
 
   if (data) entry.data = data;
 
-  if (error instanceof Error) {
+  if (error && typeof error === 'object') {
+    const errObj = error as any;
     entry.error = {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
+      name: errObj.name || (error instanceof Error ? error.name : 'Error'),
+      message: errObj.message || String(error),
+      stack: errObj.stack || undefined,
     };
   } else if (error) {
     entry.error = { message: String(error) };

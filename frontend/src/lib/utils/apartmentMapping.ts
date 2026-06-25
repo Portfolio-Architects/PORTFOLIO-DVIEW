@@ -579,6 +579,12 @@ const AREA_TYPE_MAP: Record<string, Record<string, string>> = {
     '54.5508': '77C',
     '54.9749': '78D',
   },
+  '동탄역힐스테이트': {
+    '54.5533': '78A',
+    '54.4202': '78B',
+    '54.5508': '77C',
+    '54.9749': '78D',
+  },
 };
 
 const validatedAreaTypeMap = AreaTypeMapSchema.safeParse(AREA_TYPE_MAP);

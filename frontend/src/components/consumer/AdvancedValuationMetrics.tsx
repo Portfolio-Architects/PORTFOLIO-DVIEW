@@ -310,6 +310,52 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
   const realEstatePER = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MSale / avg3MRent) : 0;
   const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
 
+  // 1년 전 갭 분석을 위한 과거 데이터 산출
+  const { gap1YearAgo, gapDelta } = useMemo(() => {
+    if (sales.length === 0 || rents.length === 0) {
+      return { gap1YearAgo: null, gapDelta: null };
+    }
+    
+    // 1년 전 기준일
+    const targetDate = new Date();
+    targetDate.setFullYear(targetDate.getFullYear() - 1);
+    
+    // 전후 90일(총 6개월) 범위로 데이터 모수 확보
+    const rangeStart = new Date(targetDate.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const rangeEnd = new Date(targetDate.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+    const checkDateRange = (t: TxRecord) => {
+      if (!t.contractYm || t.contractYm.length < 6) return false;
+      const y = parseInt(t.contractYm.slice(0, 4));
+      const m = parseInt(t.contractYm.slice(4, 6));
+      const d = parseInt(t.contractDay || '1');
+      const txDate = new Date(y, m - 1, d);
+      return txDate >= rangeStart && txDate <= rangeEnd;
+    };
+
+    const pastSales = sales.filter(checkDateRange);
+    const pastRents = rents.filter(checkDateRange);
+
+    const pastAvgSale = pastSales.length > 0
+      ? Math.round(pastSales.reduce((sum, t) => sum + t.price, 0) / pastSales.length)
+      : 0;
+
+    const pastAvgRent = pastRents.length > 0
+      ? Math.round(pastRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / pastRents.length)
+      : 0;
+
+    if (pastAvgSale > 0 && pastAvgRent > 0) {
+      const pastGap = pastAvgSale - pastAvgRent;
+      const currentGap = avg3MSale - avg3MRent;
+      return {
+        gap1YearAgo: pastGap,
+        gapDelta: currentGap - pastGap
+      };
+    }
+
+    return { gap1YearAgo: null, gapDelta: null };
+  }, [sales, rents, avg3MSale, avg3MRent]);
+
   // --- 동태적 가치평가 및 거시/상대평가 모델 적용 ---
   const dongName = report.apartmentName.includes('동탄') ? '동탄2신도시' : '화성시';
   const pipeline = MACRO_CONFIG.supplyPipelines[dongName] || MACRO_CONFIG.supplyPipelines['화성시'];
@@ -549,51 +595,108 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
                   <span className="w-1.5 h-3.5 bg-toss-blue rounded-full inline-block" />
                   1. 실거래 배수 분석 (PER)
                 </h4>
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Left: Data Components */}
-                  <div className="flex-1 flex flex-col justify-center">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* 1단 (왼쪽): 기준 실거래 데이터 */}
+                  <div className="flex flex-col justify-center">
                     <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-4 h-full">
-                      <h5 className="text-[13px] md:text-[13.5px] font-extrabold text-secondary">기준 실거래 데이터</h5>
+                      <h5 className="text-[13.5px] font-extrabold text-secondary">기준 실거래 데이터</h5>
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <span className="text-[12.5px] md:text-[13px] text-secondary font-bold">3개월 평균 매매가</span>
-                          <span className="text-[14.5px] md:text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
+                          <span className="text-[14px] md:text-[14.5px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-[12.5px] md:text-[13px] text-secondary font-bold">3개월 평균 전세가</span>
-                          <span className="text-[14.5px] md:text-[15px] font-extrabold text-emerald-700 dark:text-toss-blue">{formatPrice(avg3MRent)}</span>
+                          <span className="text-[14px] md:text-[14.5px] font-extrabold text-emerald-700 dark:text-toss-blue">{formatPrice(avg3MRent)}</span>
                         </div>
                         <div className="h-px w-full bg-border/60 my-0.5" />
                         <div className="flex items-center justify-between">
                           <span className="text-[12.5px] md:text-[13px] text-secondary font-bold">도출된 전세가율</span>
-                          <span className="text-[14.5px] md:text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
+                          <span className="text-[13.5px] md:text-[14px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
                             {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  {/* Right: Main PER Metric Box */}
-                  <div className="flex-1 flex flex-col justify-center">
-                    <div className="flex flex-col items-center justify-center pb-4">
-                      <div className="text-[12px] font-bold text-tertiary mb-1 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsValuationModalOpen(true)}>
-                        매매가 ÷ 전세가 배수
-                      </div>
-                      <div className="flex items-end gap-1.5">
-                        <span className="text-[44px] font-black text-primary leading-none tracking-tighter">
-                          {realEstatePER.toFixed(2)}
-                        </span>
-                        <span className="text-[16px] font-extrabold text-tertiary mb-1">배</span>
+
+                  {/* 2단 (중앙): 신설 갭투자 분석 */}
+                  <div className="flex flex-col justify-center">
+                    <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-4 h-full">
+                      <h5 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5">
+                        <TrendingUp size={15} className="text-toss-blue" />
+                        갭투자(GAP) 분석
+                      </h5>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12.5px] md:text-[13px] text-secondary font-bold">현재 갭 투자금</span>
+                          <span className="text-[14px] md:text-[14.5px] font-extrabold text-primary">{formatPrice(avg3MSale - avg3MRent)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12.5px] md:text-[13px] text-secondary font-bold">1년 전 평균 갭</span>
+                          <span className="text-[14px] md:text-[14.5px] font-bold text-tertiary">
+                            {gap1YearAgo !== null ? formatPrice(gap1YearAgo) : '데이터 부족'}
+                          </span>
+                        </div>
+                        <div className="h-px w-full bg-border/60 my-0.5" />
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12.5px] md:text-[13px] text-secondary font-bold">갭 변동 트렌드</span>
+                          {gapDelta !== null ? (
+                            <span className={`text-[11px] md:text-[11.5px] font-extrabold px-2 py-0.5 rounded shadow-sm border ${
+                              gapDelta < 0 
+                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
+                                : gapDelta > 0 
+                                  ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' 
+                                  : 'bg-zinc-500/10 text-zinc-600 border-zinc-500/20'
+                            }`}>
+                              {gapDelta < 0 ? `📉 ${formatPrice(Math.abs(gapDelta))} 축소` : gapDelta > 0 ? `📈 ${formatPrice(gapDelta)} 확대` : '변동 없음'}
+                            </span>
+                          ) : (
+                            <span className="text-[11.5px] text-tertiary">-</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {/* Status Alert */}
-                    <div className={`p-4 rounded-xl border flex gap-3 items-start ${statusBg}`}>
-                      <StatusIcon size={20} className={`${statusColor} shrink-0 mt-0.5`} />
-                      <div className="flex flex-col gap-1.5">
-                        <h5 className={`text-[14px] font-extrabold ${statusColor}`}>{statusText}</h5>
-                        <p className="text-[12.5px] text-secondary leading-relaxed font-medium whitespace-pre-line">
-                          {descriptionText}
-                        </p>
+                  </div>
+
+                  {/* 3단 (오른쪽): PER 지표 및 AI 진단 */}
+                  <div className="flex flex-col justify-center">
+                    <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-between h-full">
+                      <div className="flex flex-col items-center justify-center pb-2">
+                        <div className="text-[11px] font-bold text-tertiary mb-0.5 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsValuationModalOpen(true)}>
+                          매매가 ÷ 전세가 배수
+                        </div>
+                        <div className="flex items-end gap-1">
+                          <span className="text-[36px] font-black text-primary leading-none tracking-tighter">
+                            {realEstatePER.toFixed(2)}
+                          </span>
+                          <span className="text-[14px] font-extrabold text-tertiary mb-0.5">배</span>
+                        </div>
+                      </div>
+                      
+                      {/* Status Alert */}
+                      <div className={`p-3 rounded-xl border flex gap-2 items-start mb-2 ${statusBg}`}>
+                        <StatusIcon size={16} className={`${statusColor} shrink-0 mt-0.5`} />
+                        <div className="flex flex-col gap-0.5">
+                          <h5 className={`text-[12.5px] font-extrabold ${statusColor}`}>{statusText}</h5>
+                          <p className="text-[11.5px] text-secondary leading-normal font-medium whitespace-pre-line">
+                            {descriptionText}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* AI 갭투자 추천도 및 깡통전세 예방 코멘트 */}
+                      <div className="text-[11px] font-bold text-secondary bg-body p-2.5 rounded-xl border border-border/40 leading-relaxed break-keep">
+                        <span className="text-[#0d9488] font-extrabold mr-1">💡 D-VIEW AI 진단:</span>
+                        {jeonseRatio >= 75 ? (
+                          "갭이 매우 좁아 소액 투자가 용이하나, 깡통전세 및 역전세 발생 리스크가 큰 단지입니다. 임차 시 보증보험 확인이 반드시 필요합니다."
+                        ) : jeonseRatio >= 65 ? (
+                          "실수요 가격 지지층이 튼튼하여 안정적인 갭투자 매력도를 갖춘 단지입니다."
+                        ) : jeonseRatio >= 55 ? (
+                          "보편적인 수준의 갭 비율이며, 단기 시세 투자보다는 실거주 선호도에 기반한 장기 보유를 권장합니다."
+                        ) : (
+                          "매매가에 미래 기대 가치가 크게 선반영되어 갭투자 비용 대비 단기 투자 수익 효율이 낮을 수 있습니다."
+                        )}
                       </div>
                     </div>
                   </div>

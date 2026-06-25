@@ -160,7 +160,7 @@ const APARTMENT_CHILDCARE_OVERRIDES: Record<
     kindergartens: (Omit<ChildcareInfo, 'distance' | 'grade'> & { coordinates?: string })[];
   }
 > = {
-  '힐스테이트 동탄역': {
+  '동탄역 힐스테이트': {
     daycares: [
       { name: '동탄역힐스 어린이집', type: '국공립', safetyGuide: '단지 내 관리동 위치 (도보 1분)', coordinates: '37.212796, 127.092593' },
       { name: '근로복지공단 화성어린이집', type: '국공립', safetyGuide: '단지 맞은편 도보 안심 통학', coordinates: '37.2125, 127.0932' }
@@ -253,7 +253,7 @@ const APARTMENT_CHILDCARE_OVERRIDES: Record<
 };
 
 const OVERRIDE_APT_COORDINATES: Record<string, string> = {
-  '힐스테이트 동탄역': '37.212796, 127.092593',
+  '동탄역 힐스테이트': '37.212796, 127.092593',
   '동탄역 시범 더샵 센트럴시티': '37.199120, 127.101150',
   '동탄역 롯데캐슬': '37.201452, 127.096841',
   '동탄역 시범 한화꿈에그린 프레스티지': '37.198520, 127.104250',

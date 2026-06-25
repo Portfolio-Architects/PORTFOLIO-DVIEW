@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import useSWR from 'swr';
 import PageHeroHeader from './PageHeroHeader';
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
@@ -171,6 +172,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const searchParamsHook = useSearchParams();
+  const pathname = usePathname();
   
   const activeTab = searchParamsHook.get('tab') || 'talk';
   const noticeId = searchParamsHook.get('notice');
@@ -179,15 +181,44 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   const [visibleNewsCount, setVisibleNewsCount] = useState(12);
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(12);
 
+  // Client-side fetch fallback when initial data is not passed (e.g. when rendered on the main page)
+  const { data: clientNoticesData } = useSWR<{ notices: NoticeItem[]; lastUpdated?: string }>('/api/local-notices', (url: string) => fetch(url).then(res => res.json()), {
+    fallbackData: (initialNotices && initialNotices.length > 0) ? { notices: initialNotices } : undefined,
+    revalidateOnFocus: false,
+    dedupingInterval: 300000
+  });
+
+  const { data: clientNewsData } = useSWR<any>('/api/macro/news', (url: string) => fetch(url).then(res => res.json()), {
+    fallbackData: (initialNews && initialNews.length > 0) ? initialNews : undefined,
+    revalidateOnFocus: false,
+    dedupingInterval: 300000
+  });
+
+  const notices = clientNoticesData?.notices || initialNotices || [];
+  const news = useMemo(() => {
+    if (Array.isArray(clientNewsData)) {
+      return clientNewsData;
+    }
+    if (clientNewsData && typeof clientNewsData === 'object') {
+      if ('data' in clientNewsData && Array.isArray(clientNewsData.data)) {
+        return clientNewsData.data;
+      }
+      if ('news' in clientNewsData && Array.isArray(clientNewsData.news)) {
+        return clientNewsData.news;
+      }
+    }
+    return initialNews || [];
+  }, [clientNewsData, initialNews]);
+
   // Auto-open notice modal when noticeId query param is present
   useEffect(() => {
-    if (noticeId && initialNotices.length > 0) {
-      const found = initialNotices.find((n) => n.id === noticeId);
+    if (noticeId && notices.length > 0) {
+      const found = notices.find((n) => n.id === noticeId);
       if (found) {
         setSelectedNotice(found);
       }
     }
-  }, [noticeId, initialNotices]);
+  }, [noticeId, notices]);
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -248,7 +279,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
             return (
               <button
                 key={tab.id}
-                onClick={() => router.push(`/lounge?tab=${tab.id}`, { scroll: false })}
+                onClick={() => router.push(`${pathname}?tab=${tab.id}`, { scroll: false })}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                   isActive 
                     ? 'bg-surface text-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -272,13 +303,13 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
 
         {activeTab === 'news' && (
           <div className="flex flex-col gap-2.5">
-            {initialNews.length === 0 ? (
+            {news.length === 0 ? (
               <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
                 등록된 동탄 부동산 뉴스가 없습니다.
               </div>
             ) : (
               <>
-                {initialNews.slice(0, visibleNewsCount).map((item: NewsItem) => {
+                {news.slice(0, visibleNewsCount).map((item: NewsItem) => {
                   const cat = getNewsCategoryDetails(item.category);
                   return (
                     <a
@@ -311,14 +342,14 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                   );
                 })}
                 
-                {initialNews.length > visibleNewsCount && (
+                {news.length > visibleNewsCount && (
                   <button
                     onClick={() => setVisibleNewsCount(prev => prev + 12)}
                     className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-surface/60 border border-border/60 hover:bg-body/60 dark:hover:bg-body/40 rounded-2xl hover:border-emerald-500/20 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
                   >
                     <span>더보기</span>
                     <span className="text-[11px] font-bold text-tertiary">
-                      ({visibleNewsCount} / {initialNews.length})
+                      ({visibleNewsCount} / {news.length})
                     </span>
                     <ChevronDown size={14} className="text-secondary" />
                   </button>
@@ -330,13 +361,13 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
 
         {activeTab === 'notices' && (
           <div className="flex flex-col gap-2.5">
-            {initialNotices.length === 0 ? (
+            {notices.length === 0 ? (
               <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
                 등록된 동탄 구정 소식이 없습니다.
               </div>
             ) : (
               <>
-                {initialNotices.slice(0, visibleNoticesCount).map((item: NoticeItem) => {
+                {notices.slice(0, visibleNoticesCount).map((item: NoticeItem) => {
                   const src = getNoticeSourceDetails(item.source);
                   const Icon = src.icon;
                   const hasDetails = !!item.content;
@@ -381,14 +412,14 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                   );
                 })}
                 
-                {initialNotices.length > visibleNoticesCount && (
+                {notices.length > visibleNoticesCount && (
                   <button
                     onClick={() => setVisibleNoticesCount(prev => prev + 12)}
                     className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-surface/60 border border-border/60 hover:bg-body/60 dark:hover:bg-body/40 rounded-2xl hover:border-emerald-500/20 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
                   >
                     <span>더보기</span>
                     <span className="text-[11px] font-bold text-tertiary">
-                      ({visibleNoticesCount} / {initialNotices.length})
+                      ({visibleNoticesCount} / {notices.length})
                     </span>
                     <ChevronDown size={14} className="text-secondary" />
                   </button>

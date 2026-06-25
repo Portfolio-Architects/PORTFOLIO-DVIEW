@@ -469,7 +469,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         setActiveTab('imjang');
       } else if (window.location.hash.startsWith('#gap') || tabParam === 'gap' || hasCurationParams) {
         setActiveTab('gap');
-      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || tabParam === 'lounge') {
+      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || tabParam === 'lounge' || tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
         setActiveTab('lounge');
       }
 
