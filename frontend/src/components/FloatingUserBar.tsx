@@ -212,10 +212,11 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
       {/* Profile Edit Modal */}
       {showProfileModal && user && mounted && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div 
-            className="absolute inset-0 bg-primary/50 backdrop-blur-sm" 
+          <button 
+            type="button"
+            className="absolute inset-0 bg-primary/50 backdrop-blur-sm cursor-default focus:outline-none border-none outline-none" 
             onClick={handleSafeClose} 
-            role="presentation"
+            aria-label="프로필 설정 모달 닫기"
           />
           <div 
             ref={profileModalRef}
