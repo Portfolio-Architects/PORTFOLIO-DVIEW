@@ -7,6 +7,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
+import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareCompareToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
@@ -91,7 +92,7 @@ function getEffectiveMetrics(
   const parkingPerHousehold = 1.25; // default fallback
 
   // Find exact coordinate scores if locationScores is provided
-  let locScore: any = null;
+  let locScore: Record<string, any> | null = null;
   if (locationScores) {
     const matchKey = findTxKey(apt.name, locationScores, nameMapping || {});
     if (matchKey) {
@@ -757,32 +758,32 @@ const AptCompareModal = React.memo(function AptCompareModal({
   const radarChartData = useMemo(() => {
     if (!metrics1 || !metrics2 || !apt1 || !apt2) return [];
 
-    const getSubwayScore = (m: any) => {
+    const getSubwayScore = (m: Partial<ObjectiveMetrics>) => {
       const distSubway = m.distanceToSubway || 2000;
       const distTram = m.distanceToTram || 1000;
       return Math.min(100, Math.max(10, Math.round(100 - (distSubway / 25 + distTram / 15))));
     };
 
-    const getSchoolScore = (m: any) => {
+    const getSchoolScore = (m: Partial<ObjectiveMetrics>) => {
       const distElem = m.distanceToElementary || 350;
       const distMiddle = m.distanceToMiddle || 600;
       const acadDensity = m.academyDensity || 30;
       return Math.min(100, Math.max(10, Math.round(100 - (distElem / 6 + distMiddle / 12) + Math.min(20, acadDensity / 3))));
     };
 
-    const getConvenienceScore = (m: any) => {
+    const getConvenienceScore = (m: Partial<ObjectiveMetrics>) => {
       const distSb = m.distanceToStarbucks || 800;
       const distOy = m.distanceToOliveYoung || 600;
       return Math.min(100, Math.max(10, Math.round(100 - (distSb / 15 + distOy / 12))));
     };
 
-    const getScaleScore = (m: any) => {
+    const getScaleScore = (m: Partial<ObjectiveMetrics>) => {
       const hh = m.householdCount || 800;
       const pkg = m.parkingPerHousehold || 1.25;
       return Math.min(100, Math.max(15, Math.round(Math.min(60, hh / 25) + Math.min(40, pkg * 30))));
     };
 
-    const getAgeScore = (m: any) => {
+    const getAgeScore = (m: Partial<ObjectiveMetrics>) => {
       const yb = m.yearBuilt || 2018;
       return Math.min(100, Math.max(10, Math.round((yb - 2005) * 5)));
     };
@@ -964,7 +965,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
     return `${man.toLocaleString()}`;
   };
 
-  const formatYearBuilt = (rawYb: any, yb: number) => {
+  const formatYearBuilt = (rawYb: string | number | undefined, yb: number) => {
     if (!rawYb) return '-';
     const ybStr = String(rawYb);
     const currentYear = new Date().getFullYear();
@@ -1071,7 +1072,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
   const jsonLd = useMemo(() => {
     if (!isOpen) return null;
     
-    const elements: any[] = [];
+    const elements: Array<Record<string, any>> = [];
     if (apt1 && metrics1) {
       elements.push({
         "@type": "Place",
@@ -1909,14 +1910,15 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                             }}
                             labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}
                             itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                            labelFormatter={(value: any) => {
-                              if (typeof value === 'string' && /^\d{2}\.\d{2}$/.test(value)) {
-                                const parts = value.split('.');
+                            labelFormatter={(value: React.ReactNode) => {
+                              const valStr = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+                              if (/^\d{2}\.\d{2}$/.test(valStr)) {
+                                const parts = valStr.split('.');
                                 return `${parts[0]}년 ${parts[1]}월`;
                               }
                               return value;
                             }}
-                            formatter={(value: any) => [priceMetric === 'perPyeong' ? `${value.toLocaleString()}만 원` : `${value}억원`]}
+                            formatter={(value: unknown) => [priceMetric === 'perPyeong' ? `${Number(value).toLocaleString()}만 원` : `${value}억원`]}
                             useTranslate3d={true}
                             animationDuration={150}
                           />
