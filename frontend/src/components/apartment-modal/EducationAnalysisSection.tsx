@@ -3,8 +3,10 @@ import Image from 'next/image';
 import { GraduationCap, Check, Share, MapPin } from 'lucide-react';
 import { calculateEducationScore } from '@/lib/utils/scoring';
 import ChildcareDetailSection from './ChildcareDetailSection';
+import { FieldReportData } from '@/lib/DashboardFacade';
+
 interface EducationAnalysisSectionProps {
-  report: any;
+  report: FieldReportData;
   inline?: boolean;
   copiedStatus: string | null;
   handleShareSection: (section: 'childcare' | 'infra') => void;
@@ -79,8 +81,9 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
   // Generate JSON-LD structural data for Education (SEO/Rich Snippets)
   const jsonLdElements = React.useMemo(() => {
-    const elements: any[] = [];
-    const metrics = report.metrics || {};
+    const elements: Array<{ "@type": string; name: string; value: string }> = [];
+    const metrics = report.metrics;
+    if (!metrics) return [];
     
     if (metrics.distanceToElementary > 0) {
       const name = metrics.nearestSchoolNames?.elementary || '배정 초등학교';

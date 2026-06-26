@@ -27,8 +27,10 @@ const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenan
   loading: () => <AnchorTenantSkeleton />
 });
 
+import { FieldReportData } from '@/lib/DashboardFacade';
+
 interface InfraAnalysisSectionProps {
-  report: any;
+  report: FieldReportData;
   inline?: boolean;
   copiedStatus: string | null;
   handleShareSection: (section: 'childcare' | 'infra') => void;
@@ -44,7 +46,8 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
 
   // Generate JSON-LD structural data for Infra (SEO/Rich Snippets)
   const jsonLdElements = [];
-  const metrics = report.metrics || {};
+  const metrics = report.metrics;
+  if (!metrics) return null;
 
   if (metrics.distanceToSubway > 0) {
     jsonLdElements.push({
@@ -53,32 +56,32 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
       "value": `${Math.round(metrics.distanceToSubway)}m (도보 약 ${Math.ceil(metrics.distanceToSubway / 80)}분)`
     });
   }
-  if (metrics.distanceToStarbucks > 0) {
+  if (metrics.distanceToStarbucks !== undefined && metrics.distanceToStarbucks > 0) {
     jsonLdElements.push({
       "@type": "LocationFeatureSpecification",
       "name": `가장 가까운 스타벅스 (${metrics.starbucksName || '스타벅스'})`,
-      "value": `${Math.round(metrics.distanceToStarbucks)}m (도보 약 ${Math.ceil(metrics.distanceToStarbucks / 80)}분)`
+      "value": `${Math.round(metrics.distanceToStarbucks!)}m (도보 약 ${Math.ceil(metrics.distanceToStarbucks! / 80)}분)`
     });
   }
-  if (metrics.distanceToOliveYoung > 0) {
+  if (metrics.distanceToOliveYoung !== undefined && metrics.distanceToOliveYoung > 0) {
     jsonLdElements.push({
       "@type": "LocationFeatureSpecification",
       "name": `가장 가까운 올리브영 (${metrics.oliveYoungName || '올리브영'})`,
-      "value": `${Math.round(metrics.distanceToOliveYoung)}m (도보 약 ${Math.ceil(metrics.distanceToOliveYoung / 80)}분)`
+      "value": `${Math.round(metrics.distanceToOliveYoung!)}m (도보 약 ${Math.ceil(metrics.distanceToOliveYoung! / 80)}분)`
     });
   }
-  if (metrics.distanceToDaiso > 0) {
+  if (metrics.distanceToDaiso !== undefined && metrics.distanceToDaiso > 0) {
     jsonLdElements.push({
       "@type": "LocationFeatureSpecification",
       "name": `가장 가까운 다이소 (${metrics.daisoName || '다이소'})`,
-      "value": `${Math.round(metrics.distanceToDaiso)}m (도보 약 ${Math.ceil(metrics.distanceToDaiso / 80)}분)`
+      "value": `${Math.round(metrics.distanceToDaiso!)}m (도보 약 ${Math.ceil(metrics.distanceToDaiso! / 80)}분)`
     });
   }
-  if (metrics.distanceToMcDonalds > 0) {
+  if (metrics.distanceToMcDonalds !== undefined && metrics.distanceToMcDonalds > 0) {
     jsonLdElements.push({
       "@type": "LocationFeatureSpecification",
       "name": `가장 가까운 맥도날드 (${metrics.mcdonaldsName || '맥도날드'})`,
-      "value": `${Math.round(metrics.distanceToMcDonalds)}m (도보 약 ${Math.ceil(metrics.distanceToMcDonalds / 80)}분)`
+      "value": `${Math.round(metrics.distanceToMcDonalds!)}m (도보 약 ${Math.ceil(metrics.distanceToMcDonalds! / 80)}분)`
     });
   }
 
