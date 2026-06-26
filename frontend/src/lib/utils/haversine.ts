@@ -27,15 +27,16 @@ export type Coord = z.infer<typeof CoordSchema>;
  * Calculates the Haversine distance between two coordinates.
  * @returns Distance in meters (rounded to nearest integer)
  */
-export function haversineDistance(a: any, b: any): number {
+export function haversineDistance(a: unknown, b: unknown): number {
   if (!a || !b) return 0;
 
   let latA: number, lngA: number;
   let latB: number, lngB: number;
 
-  if (a && typeof a.lat === 'number' && typeof a.lng === 'number' && !isNaN(a.lat) && !isNaN(a.lng)) {
-    latA = a.lat;
-    lngA = a.lng;
+  const objA = a as Record<string, unknown>;
+  if (a && typeof a === 'object' && typeof objA.lat === 'number' && typeof objA.lng === 'number' && !isNaN(objA.lat) && !isNaN(objA.lng)) {
+    latA = objA.lat;
+    lngA = objA.lng;
   } else {
     const parsedA = CoordSchema.safeParse(a);
     if (!parsedA.success) return 0;
@@ -43,9 +44,10 @@ export function haversineDistance(a: any, b: any): number {
     lngA = parsedA.data.lng;
   }
 
-  if (b && typeof b.lat === 'number' && typeof b.lng === 'number' && !isNaN(b.lat) && !isNaN(b.lng)) {
-    latB = b.lat;
-    lngB = b.lng;
+  const objB = b as Record<string, unknown>;
+  if (b && typeof b === 'object' && typeof objB.lat === 'number' && typeof objB.lng === 'number' && !isNaN(objB.lat) && !isNaN(objB.lng)) {
+    latB = objB.lat;
+    lngB = objB.lng;
   } else {
     const parsedB = CoordSchema.safeParse(b);
     if (!parsedB.success) return 0;

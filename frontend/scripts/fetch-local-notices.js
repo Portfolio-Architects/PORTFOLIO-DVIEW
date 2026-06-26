@@ -64,7 +64,6 @@ async function main() {
   console.log('📡 행정망 고시공고 및 철도교통 소식 수집 중...');
 
   // 1. Initialize Firebase Admin
-  const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
   let serviceAccount;
 
   const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
@@ -72,15 +71,38 @@ async function main() {
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
 
-  if (fs.existsSync(serviceAccountPath)) {
-    serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-  } else if (envKey) {
+  // Paths to check for serviceAccountKey.json
+  const pathsToCheck = [
+    path.resolve(__dirname, '../../serviceAccountKey.json'), // Workspace Root
+    path.resolve(__dirname, '../serviceAccountKey.json'),   // frontend/
+    path.resolve(process.cwd(), 'serviceAccountKey.json'),
+    path.resolve(process.cwd(), 'frontend/serviceAccountKey.json'),
+  ];
+
+  let resolvedPath = null;
+  for (const p of pathsToCheck) {
+    if (fs.existsSync(p)) {
+      resolvedPath = p;
+      break;
+    }
+  }
+
+  if (resolvedPath) {
+    try {
+      console.log(`Found serviceAccountKey.json at: ${resolvedPath}`);
+      serviceAccount = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+    } catch (err) {
+      console.error(`❌ Failed to parse serviceAccountKey.json at ${resolvedPath}:`, err.message);
+    }
+  }
+
+  if (!serviceAccount && envKey) {
     try {
       serviceAccount = JSON.parse(envKey);
     } catch (e) {
       console.error('❌ FIREBASE_SERVICE_ACCOUNT 환경 변수 파싱 실패', e);
     }
-  } else if (privateKey && clientEmail) {
+  } else if (!serviceAccount && privateKey && clientEmail) {
     serviceAccount = {
       projectId,
       clientEmail,
