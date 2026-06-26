@@ -243,8 +243,8 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
       import('@/components/LoungeComposeClient').catch(() => {});
     };
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
+      if (window.requestIdleCallback) {
+        idleId = window.requestIdleCallback(preloadLoungeChunks, { timeout: 3000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadLoungeChunks, 2000);
       }
@@ -252,8 +252,8 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
 
     return () => {
       isMounted = false;
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
     };

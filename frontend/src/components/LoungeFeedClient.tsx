@@ -373,8 +373,8 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       import('@/components/LoungeDetailClient').catch(() => {});
     };
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadDetail, { timeout: 3000 });
+      if (window.requestIdleCallback) {
+        idleId = window.requestIdleCallback(preloadDetail, { timeout: 3000 });
       } else {
         preloadTimeoutRef.current = setTimeout(preloadDetail, 2000);
       }
@@ -382,8 +382,8 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
     return () => {
       isMounted = false;
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       window.removeEventListener('hashchange', checkParams);
       if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
@@ -745,17 +745,17 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
         {/* 1단계 대분류 필터 칩 */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
-          {[
+          {([
             { id: 'all', label: '전체' },
             { id: 'city', label: '시정공고' },
             { id: 'rail', label: '교통·철도' },
             { id: 'town', label: '동네행정' },
             { id: 'culture', label: '문화·행사' }
-          ].map(tab => (
+          ] as const).map(tab => (
             <button
               key={tab.id}
               onClick={() => {
-                setActiveSubCategory(tab.id as any);
+                setActiveSubCategory(tab.id);
                 setActiveDongFilter('all');
               }}
               className={`px-4 py-2 text-[13px] font-extrabold rounded-full transition-all shrink-0 cursor-pointer ${
