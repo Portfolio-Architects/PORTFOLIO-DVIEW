@@ -46,9 +46,9 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
           { id: 'overview' as const, label: '데이터 랩', icon: LayoutDashboard, href: '/' },
+          { id: 'technovalley' as const, label: '테크노밸리', icon: Building2, href: '/technovalley' },
           { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/explore' },
           { id: 'lounge' as const, label: '동탄 라운지', icon: MessageSquare, href: '/lounge' },
-          { id: 'technovalley' as const, label: '테크노밸리', icon: Building2, href: '/technovalley' },
           { id: 'gap' as const, label: '큐레이션', icon: Coins, href: '/#gap' },
         ].map(tab => {
           const isActive = activeTab === tab.id;

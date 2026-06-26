@@ -373,22 +373,34 @@ export class DashboardFacade {
     return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null;
   }
   
-  public async updateNickname(uid: string, nickname: string) {
+  public async updateNickname(uid: string, nickname: string): Promise<boolean> {
     const validation = UpdateNicknameInputSchema.safeParse({ uid, nickname });
     if (!validation.success) {
       logger.warn('DashboardFacade.updateNickname', 'Validation failed', { error: validation.error.format() });
-      return;
+      return false;
     }
-    await UserRepo.updateNickname(uid, nickname);
+    try {
+      await UserRepo.updateNickname(uid, nickname);
+      return true;
+    } catch (error) {
+      logger.error('DashboardFacade.updateNickname', 'Failed to update nickname due to network/timeout', { uid, nickname }, error);
+      throw error;
+    }
   }
   
-  public async updatePhotoURL(uid: string, photoURL: string) {
+  public async updatePhotoURL(uid: string, photoURL: string): Promise<boolean> {
     const validation = UpdatePhotoURLInputSchema.safeParse({ uid, photoURL });
     if (!validation.success) {
       logger.warn('DashboardFacade.updatePhotoURL', 'Validation failed', { error: validation.error.format() });
-      return;
+      return false;
     }
-    await UserRepo.updatePhotoURL(uid, photoURL);
+    try {
+      await UserRepo.updatePhotoURL(uid, photoURL);
+      return true;
+    } catch (error) {
+      logger.error('DashboardFacade.updatePhotoURL', 'Failed to update photoURL due to network/timeout', { uid }, error);
+      throw error;
+    }
   }
   
   public async incrementLike(postId: string) {

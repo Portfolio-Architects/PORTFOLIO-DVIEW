@@ -46,8 +46,8 @@ export class FirestoreThrottle {
     let timeoutId: NodeJS.Timeout | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
-        reject(new Error('Firestore operation timeout (10s)'));
-      }, 10000);
+        reject(new Error('Firestore operation timeout (20s)'));
+      }, 20000);
     });
 
     try {

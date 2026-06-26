@@ -965,6 +965,15 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
                  <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                  <span>데이터 랩</span>
                </button>
+
+               <button
+                 data-tab-id="technovalley"
+                 onClick={() => router.push('/technovalley')}
+                 className="relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5"
+               >
+                 <Building2 size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
+                 <span>테크노밸리</span>
+               </button>
  
                <button
                  data-tab-id="explore"
@@ -986,15 +995,6 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
                >
                  <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                  <span>동탄 라운지</span>
-               </button>
-               
-               <button
-                 data-tab-id="technovalley"
-                 onClick={() => router.push('/technovalley')}
-                 className="relative z-10 flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5"
-               >
-                 <Building2 size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                 <span>테크노밸리</span>
                </button>
                
                <button

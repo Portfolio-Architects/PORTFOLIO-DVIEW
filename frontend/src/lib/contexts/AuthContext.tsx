@@ -133,13 +133,17 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
 
             if (isAdmin(currentUser.email)) {
               if (normalizedProfile.nickname !== '매니저') {
-                dashboardFacade.updateNickname(currentUser.uid, '매니저');
+                dashboardFacade.updateNickname(currentUser.uid, '매니저').catch((err) => {
+                  logger.error('AuthProvider.onAuthStateChanged', 'Failed to update admin nickname asynchronously', { uid: currentUser.uid }, err);
+                });
               }
               normalizedProfile.nickname = '매니저';
             }
             if (normalizedProfile.photoURL && normalizedProfile.photoURL.includes('api.dicebear.com')) {
               normalizedProfile.photoURL = DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)];
-              dashboardFacade.updatePhotoURL(currentUser.uid, normalizedProfile.photoURL);
+              dashboardFacade.updatePhotoURL(currentUser.uid, normalizedProfile.photoURL).catch((err) => {
+                logger.error('AuthProvider.onAuthStateChanged', 'Failed to update photoURL asynchronously', { uid: currentUser.uid }, err);
+              });
             }
           }
           setAnonProfile(normalizedProfile);

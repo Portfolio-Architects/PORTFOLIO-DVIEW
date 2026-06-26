@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, MessageSquare, Sparkles, TrendingDown, Coins, ShieldAlert, ExternalLink } from 'lucide-react';
+import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, MessageSquare, Sparkles, TrendingUp, Coins, ShieldAlert, ExternalLink } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { throttle } from '@/lib/utils/firestoreThrottle';
@@ -410,13 +410,13 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
     const taxRes = calculations.tax;
     const verdictRes = calculations.verdict;
 
-    const text = `[D-VIEW AI 매도 타이밍 및 세무 보고서]
+    const text = `[D-VIEW AI 주거 자산 안정성 및 세무 보고서]
 단지명: ${aptLabel} (${selectedApt.dong})
-취득가격: ${formatEokMan(acquisitionPrice)} | 매도가격: ${formatEokMan(transferPrice)}
+취득가격: ${formatEokMan(acquisitionPrice)} | 예상 매도가격: ${formatEokMan(transferPrice)}
 보유기간: ${holdingYears}년 (실거주 ${resideYears}년) | 1주택 여부: ${isOneHouse ? '예' : '아니오'}
 
 📊 진단 결과
-- 지금 팔면 호구 지수: ${verdictRes.score}% (${verdictRes.label})
+- 자산 안정성 스코어: ${verdictRes.score}% (${verdictRes.label})
 - 판단 근거: ${verdictRes.reason}
 - 간이 세액 계산:
   * 양도차익: ${formatEokMan(taxRes.transferProfit)}
@@ -424,7 +424,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   * 납부할 총 세액(지방세 포함): ${formatEokMan(taxRes.totalTax)}
   * 비과세 여부: ${taxRes.isTaxFree ? '대상' : '과세'} (${taxRes.taxFreeReason})
 
-💡 동탄 전문 B2B 중개사 매물접수 및 양도세 1:1 세무사 상담은 D-VIEW에서 바로 확인해 보세요!`;
+💡 동탄 전문 안심 자문 부동산 상담 및 양도세 1:1 공익 전문 세무 자문은 D-VIEW에서 바로 확인해 보세요!`;
 
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
@@ -489,7 +489,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   return createPortal(
     <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
       {/* Backdrop */}
-      <button type="button" className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md border-none cursor-default" onClick={onClose} aria-label="매도 적정기 계산기 창 닫기" />
+      <button type="button" className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md border-none cursor-default" onClick={onClose} aria-label="자산 안정성 진단기 창 닫기" />
 
       {/* Modal Container */}
       <div
@@ -505,10 +505,10 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
           <div className="flex flex-col gap-0.5">
             <h2 id="sell-title" className="text-[17px] font-black text-primary flex items-center gap-1.5">
-              <span>AI 매도 타이밍 및 세무 진단기</span>
+              <span>AI 주거 자산 안정성 및 세무 진단기</span>
             </h2>
             <p id="sell-desc" className="text-[12px] font-medium text-tertiary">
-              "지금 팔면 호구일까?" 3대 매칭 메트릭 및 양도세 요율을 시각화 분석합니다.
+              3대 자산 안정성 메트릭 및 양도세 요율을 종합 분석하여 주거 자산 가치를 평가합니다.
             </p>
           </div>
           <button
@@ -716,7 +716,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       </>
                     ) : (
                       <>
-                        <span>AI 매도 적합성 & 양도세 진단하기</span>
+                        <span>AI 자산 적정 가치 & 안정성 진단하기</span>
                       </>
                     )}
                   </button>
@@ -769,13 +769,13 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         {calculations.verdict.score}%
                       </text>
                       <text x="100" y="105" textAnchor="middle" className="text-[11.5px] font-bold fill-tertiary">
-                        지금 팔면 호구 지수
+                        자산 안정성 스코어
                       </text>
                     </svg>
                   </div>
 
                   <h3 className="text-[16px] font-black text-primary mt-1 flex items-center gap-1.5 justify-center">
-                    <TrendingDown size={18} style={{ color: calculations.verdict.color }} />
+                    <TrendingUp size={18} style={{ color: calculations.verdict.color }} />
                     <span>진단: <span style={{ color: calculations.verdict.color }}>{calculations.verdict.label}</span></span>
                   </h3>
                   <p className="text-[11.5px] text-tertiary font-bold mt-1">
@@ -845,19 +845,19 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
                 {/* B2B 제휴 광고 배너 (CPA) */}
                 <div className="space-y-2.5">
-                  <h4 className="text-[12px] font-extrabold text-primary">💡 D-VIEW 제휴 B2B 매칭 및 리드 연계</h4>
+                  <h4 className="text-[12px] font-extrabold text-primary">💡 D-VIEW 추천 전문 상담 및 세무 연계</h4>
                   
                   {/* Banner 1: Real Estate Broker */}
                   <button 
                     type="button"
                     onClick={() => handleB2BClick('broker')}
                     className="w-full text-left p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-teal-50/20 dark:from-emerald-950/10 dark:to-teal-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
-                    aria-label="동탄 제휴 공인중개사에 매물 즉시 등록"
+                    aria-label="동탄 전문 안심 자문 공인중개사 연계"
                   >
                     <div className="space-y-1 text-left min-w-0 pr-4">
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-black uppercase tracking-wider">부동산 제휴</span>
-                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-[#ea6100] transition-colors leading-tight">동탄 제휴 공인중개사에 매물 즉시 등록</h5>
-                      <p className="text-[11.5px] text-tertiary font-semibold truncate">D-VIEW 추천 파트너쉽 등록 시 중개보수 10% 추가 특별 할인</p>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-black uppercase tracking-wider">주거 안심 연계</span>
+                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-[#ea6100] transition-colors leading-tight">동탄 전문 안심 자문 공인중개사 연계</h5>
+                      <p className="text-[11.5px] text-tertiary font-semibold truncate">화성시 거주 실수요자 대상 주거 안심 부동산 상담 서비스 지원</p>
                     </div>
                     <div className="p-2 rounded-xl bg-white/80 dark:bg-surface/80 text-secondary hover:text-primary shrink-0 border border-border/40 shadow-sm active:scale-95 transition-all pointer-events-none">
                       <ExternalLink size={14} />
@@ -869,12 +869,12 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                     type="button"
                     onClick={() => handleB2BClick('tax_expert')}
                     className="w-full text-left p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-teal-50/20 dark:from-emerald-950/10 dark:to-teal-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
-                    aria-label="양도소득세 절세 1:1 세무사 상담받기"
+                    aria-label="양도소득세 1:1 공익 전문 세무사 연계 상담"
                   >
                     <div className="space-y-1 text-left min-w-0 pr-4">
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-black uppercase tracking-wider">세무 절세 연계</span>
-                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-emerald-600 transition-colors leading-tight">양도소득세 절세 1:1 세무사 상담받기</h5>
-                      <p className="text-[11.5px] text-tertiary font-semibold truncate">비과세 조건 검토 및 양도소득세 절약 맞춤 세무 조언 연계</p>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-black uppercase tracking-wider">세무 자문 연계</span>
+                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-emerald-600 transition-colors leading-tight">양도소득세 1:1 공익 전문 세무사 연계 상담</h5>
+                      <p className="text-[11.5px] text-tertiary font-semibold truncate">1세대 1주택 비과세 요건 검토 및 세무 행정 자문 연계</p>
                     </div>
                     <div className="p-2 rounded-xl bg-white/80 dark:bg-surface/80 text-secondary hover:text-primary shrink-0 border border-border/40 shadow-sm active:scale-95 transition-all pointer-events-none">
                       <ExternalLink size={14} />
