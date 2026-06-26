@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const timeoutMs = isDev ? 1000 : 3000;
 
     const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-      let timeoutId: any;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
       const timeoutPromise = new Promise<T>((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
       });
@@ -89,8 +89,9 @@ export async function GET(request: NextRequest) {
       buyCount: data.buyCount || 0,
       waitCount: data.waitCount || 0,
     });
-  } catch (error: any) {
-    logger.warn('ApartmentVoteAPI.GET', 'Error fetching votes, using fallback', {}, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.warn('ApartmentVoteAPI.GET', 'Error fetching votes, using fallback', {}, err);
     return NextResponse.json({ buyCount: 0, waitCount: 0 });
   }
 }
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let body: any;
+    let body: unknown;
     try {
       body = await request.json();
     } catch (jsonErr) {
@@ -165,8 +166,9 @@ export async function POST(request: NextRequest) {
       buyCount: updatedData.buyCount,
       waitCount: updatedData.waitCount,
     });
-  } catch (error: any) {
-    logger.error('ApartmentVoteAPI.POST', 'Error recording vote', {}, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('ApartmentVoteAPI.POST', 'Error recording vote', {}, err);
     return NextResponse.json({ error: 'Failed to record vote' }, { status: 500 });
   }
 }
