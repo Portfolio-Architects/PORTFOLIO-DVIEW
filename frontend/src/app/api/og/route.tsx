@@ -2321,8 +2321,8 @@ export async function GET(req: NextRequest) {
         height: 630,
       }
     );
-  } catch (e: any) {
-    logger.error('OGImageAPI.GET', 'OG Image Generation Error', {}, e);
+  } catch (e: unknown) {
+    logger.error('OGImageAPI.GET', 'OG Image Generation Error', {}, e as Error);
     try {
       return new ImageResponse(
         (

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
+import * as admin from 'firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,13 +42,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin DB not initialized' }, { status: 500 });
     }
 
-    let query: any = adminDb.collection('scoutingReports');
+    let query: admin.firestore.Query<admin.firestore.DocumentData> = adminDb.collection('scoutingReports');
     if (limit) {
       query = query.limit(limit);
     }
     const snapshot = await query.get();
 
-    const reports = snapshot.docs.map((doc: any) => ({
+    const reports = snapshot.docs.map((doc: admin.firestore.QueryDocumentSnapshot<admin.firestore.DocumentData>) => ({
       id: doc.id,
       apartmentName: doc.data().apartmentName,
       apartmentNameHex: Buffer.from(doc.data().apartmentName || '').toString('hex'),
