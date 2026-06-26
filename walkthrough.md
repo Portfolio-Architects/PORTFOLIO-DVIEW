@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 743)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 744)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -70,6 +70,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **API Routes Body Parsing Type Safety Optimization (Phase 743)**:
   - [api/report-view/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/report-view/route.ts) 및 [api/subscribe/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/subscribe/route.ts) 내에서 HTTP POST payload 데이터를 JSON 파싱하여 할당하는 임시 변수 `rawBody: any` 타입을 `rawBody: unknown`으로 변경하여 runtime injection 위험성을 완화하고 Zod parse 안전성을 극대화했습니다.
   - [api/subscribe/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/subscribe/route.ts) 내 전체 예외 포착 블록의 `catch (error: any)` 선언을 `catch (error: unknown)` 타입으로 마이그레이션하여, API 예외 흐름 상의 implicit any 캐스팅 구조를 완전히 정형화했습니다.
+- **New High Push Notifications Type Safety Optimization (Phase 744)**:
+  - [api/push/notify-new-high/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/push/notify-new-high/route.ts) 내에서 최근 신고가 거래 내역을 적적 및 정렬하는 `newHighs: any[]` 배열을 구체적인 `NewHighItem[]` 타입으로 선언하여 dynamic any를 배제했습니다.
+  - webpush 알림 전송 오류를 잡아 처리하는 catch 절의 `err: any` 및 API 핸들러의 catch 절 `error: any` 구문을 `unknown` 타입으로 일관되게 격상하고, statusCode 속성 추출 시 가딩(`err as { statusCode?: number }`) 처리를 추가하여 컴파일 무결성을 확보했습니다.
 
 ---
 
