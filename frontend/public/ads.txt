@@ -1,4 +1,0 @@
-# D-VIEW Google AdSense ads.txt
-# Replace pub-XXXXXXXXXXXXXXXX with your actual Google AdSense Publisher ID.
-# For example: google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0
-google.com, pub-1103228112872356, DIRECT, f08c47fec0942fa0

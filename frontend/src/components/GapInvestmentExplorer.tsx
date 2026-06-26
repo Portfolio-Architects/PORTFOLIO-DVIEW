@@ -21,7 +21,7 @@ import {
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
-import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface GapComplexCardProps {
@@ -1010,10 +1010,8 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           </div>
 
           <div className="my-2">
-            <NativeAdPlaceholder 
+            <HwaseongInsightBanner 
               location="갭투자 탐색기 하단" 
-              onClick={onOpenAdModal} 
-              adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_GAP_EXPLORER || "test-gap-explorer-slot"}
               isCompact={true}
             />
           </div>

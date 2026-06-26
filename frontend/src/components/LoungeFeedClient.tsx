@@ -63,7 +63,7 @@ const AptStoriesWidget = dynamic(() => import(/* webpackPreload: false */ '@/com
   )
 });
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
-import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { shareLocalNoticeToKakao } from '@/lib/utils/kakaoShare';
 
@@ -1072,9 +1072,8 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           <Fragment key={news.id}>
             {renderAd && (
               <div onClick={(e) => e.stopPropagation()} className="w-full py-2">
-                <NativeAdPlaceholder 
-                  location={`라운지 피드 중간 광고 ${Math.floor(index / 4)}`} 
-                  adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_FEED || "test-lounge-feed-slot"} 
+                <HwaseongInsightBanner 
+                  location={`라운지 피드 중간 정보 ${Math.floor(index / 4)}`} 
                   isCompact={true}
                 />
               </div>

@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import GapInvestmentExplorer from './GapInvestmentExplorer';
 
-jest.mock('@/components/ui/NativeAdPlaceholder', () => ({
-  NativeAdPlaceholder: () => <div data-testid="native-ad-placeholder">Ad</div>
+jest.mock('@/components/ui/HwaseongInsightBanner', () => ({
+  HwaseongInsightBanner: () => <div data-testid="hwaseong-insight-banner">Insight</div>
 }));
 
 describe('GapInvestmentExplorer', () => {

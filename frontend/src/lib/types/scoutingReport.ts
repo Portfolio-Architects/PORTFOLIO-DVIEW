@@ -23,6 +23,7 @@ export interface ObjectiveMetrics {
   far: number; // 용적률
   bcr: number; // 건폐율
   parkingCount?: number; // 총 주차대수
+  jeonseRate?: number; // 전세가율 (보증금/매매가 비율)
   parkingPerHousehold: number; // 세대당 주차대수
   yearBuilt: number; // 준공연도
   minFloor?: number; // 최저 조망층 (가장 낮은 탑층 동 기준)

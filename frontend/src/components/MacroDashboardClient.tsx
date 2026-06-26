@@ -74,7 +74,7 @@ import {
   X,
   Calendar,
 } from "lucide-react";
-import { NativeAdPlaceholder } from "@/components/ui/NativeAdPlaceholder";
+
 
 export interface TimelineItem {
   aptName: string;

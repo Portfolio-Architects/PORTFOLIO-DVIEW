@@ -174,7 +174,7 @@ import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import PushSubscriptionModal from './pwa/PushSubscriptionModal';
 import LocalEducationAd from '@/components/LocalEducationAd';
-import ContextualB2BAdBanner from './apartment-modal/ContextualB2BAdBanner';
+
 
 import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, calculateInfraScore } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
@@ -221,7 +221,7 @@ const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenan
   ssr: false,
   loading: () => <AnchorTenantSkeleton />
 });
-import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 
 interface TransactionRecord {
   dong: string;
@@ -2177,21 +2177,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               />
             </div>
 
-              {/* 🎯 아파트별 1:1 컨텍스트 타겟팅 B2B CPA 광고 배너 연동 (105차) */}
-              {report.metrics && (
-                <div className="mb-2">
-                  <ContextualB2BAdBanner
-                    apartmentName={report.apartmentName}
-                    dong={report.dong || '오산동'}
-                    yearBuilt={report.metrics.yearBuilt}
-                    distanceToElementary={report.metrics.distanceToElementary}
-                    jeonseRate={jeonseSafetyData?.ratio}
-                    userId={user?.uid}
-                    onOpenAdModal={onOpenAdModal}
-                    onOpenConsumerAdModal={onOpenConsumerAdModal}
-                  />
-                </div>
-              )}
+
 
             {/* ── PAYWALL GATE — 비활성화 (프리미엄 콘텐츠 전면 공개 중) ──
              * TODO: 유료 모델 전환 시 이 블록 복원
@@ -2225,13 +2211,11 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 />
               </LazyRender>
 
-              {/* 모달 중간 네이티브/AdSense 광고 삽입 (수익화 채널 2배 강화) */}
+              {/* 화성시 공익 정책 AI 인사이트 배너 */}
               <div className="px-3 md:px-4 py-1.5 md:py-1 w-full my-2">
-                <NativeAdPlaceholder 
+                <HwaseongInsightBanner 
                   location="단지 리포트 모달 중간" 
-                  onClick={onOpenAdModal} 
                   metrics={report.metrics} 
-                  adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL_MID || "test-apt-modal-mid-slot"} 
                   isCompact={true}
                 />
               </div>
@@ -2398,12 +2382,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   </div>
                 </button>
 
-                <NativeAdPlaceholder 
+                <HwaseongInsightBanner 
                   location="단지 리포트 모달" 
-                  onClick={onOpenAdModal} 
                   metrics={report.metrics} 
-                  adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL || "test-apt-modal-slot"} 
-                  isCompact={true}
+                  isCompact={false}
                 />
               </div>
 

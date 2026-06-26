@@ -29,7 +29,7 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
 import { logger } from '@/lib/services/logger';
-import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 
 import { sharePostToKakao } from '@/lib/utils/kakaoShare';
 
@@ -1055,11 +1055,11 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           </div>
         </div>
 
-        {/* AdSense Placement in Lounge Details */}
+        {/* 화성시 공익 정책 AI 인사이트 배너 */}
         <div className="my-2">
-          <NativeAdPlaceholder 
+          <HwaseongInsightBanner 
             location="라운지 게시글 상세 하단" 
-            adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL || "test-lounge-detail-slot"} 
+            isCompact={false}
           />
         </div>
 

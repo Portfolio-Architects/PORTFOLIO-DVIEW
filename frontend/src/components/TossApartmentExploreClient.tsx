@@ -11,7 +11,7 @@ import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
-import { NativeAdPlaceholder } from '@/components/ui/NativeAdPlaceholder';
+import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 import { trackEvent } from '@/lib/utils/analytics';
 
 // subcomponents
@@ -976,7 +976,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     />
                     {index === 14 && sortedApts.length > 15 && (
                       <div className="px-6 py-3 w-full border-b border-neutral-100/70 dark:border-zinc-900/30">
-                        <NativeAdPlaceholder location="아파트 탐색 리스트 중간" isCompact={true} />
+                        <HwaseongInsightBanner location="아파트 탐색 리스트 중간" isCompact={true} />
                       </div>
                     )}
                   </React.Fragment>

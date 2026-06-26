@@ -46,11 +46,6 @@ const CANDIDATE_POOL = [
     taskText: 'LoungeComposeClient.tsx 내 게시글 작성 텍스트 영역(textarea) 및 버튼 컴포넌트에 스크린 리더용 aria-label 보강'
   },
   {
-    targetFile: 'src/components/ui/AdSense.tsx',
-    check: (content) => content && !content.includes('try-catch'),
-    taskText: 'AdSense.tsx 컴포넌트 내의 window.adsbygoogle.push 호출 시 광고 차단 프로그램 활성화 환경을 고려한 try-catch 예외 방어 가드 강화'
-  },
-  {
     targetFile: 'src/components/pwa/MobileDock.tsx',
     check: (content) => content.includes('Link') && !content.includes('prefetch={false}'),
     taskText: 'MobileDock.tsx 모바일 하단 네비게이션 내 잦은 호버/터치로 인한 Next.js Link 백그라운드 프리패치 부하 경감을 위해 prefetch={false} 명시적 최적화'

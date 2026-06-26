@@ -31,7 +31,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { SettingsProvider } from '@/lib/contexts/SettingsContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import Footer from '@/components/Footer';
-import MobileBottomAd from '@/components/pwa/MobileBottomAd';
+
 import dynamic from 'next/dynamic';
 import WelcomeModal from '@/components/ui/WelcomeModal';
 import { safeReload } from '@/lib/utils/safeReload';
@@ -170,20 +170,7 @@ export default function RootLayout({
                   <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} nonce={nonce} />
                 )}
                 
-                {/* Google AdSense Script (Only renders if NEXT_PUBLIC_ADSENSE_CLIENT_ID exists) */}
-                 {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
-                  <script
-                    async
-                    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
-                    crossOrigin="anonymous"
-                    nonce={nonce}
-                  />
-                )}
 
-                {/* Mobile Bottom Sticky Anchor Ad (Renders in production if AdSense client ID exists, or in dev mode for preview) */}
-                {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'development') && (
-                  <MobileBottomAd adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR || "test-anchor-slot"} />
-                )}
               </AuthProvider>
             </SettingsProvider>
           </SWRProvider>
