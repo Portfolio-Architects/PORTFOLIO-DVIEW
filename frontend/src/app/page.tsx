@@ -3,6 +3,22 @@ import Script from 'next/script';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
+interface HomeTransactionRecord {
+  apartmentName?: string;
+  price?: number;
+  areaPyeong?: number;
+  floor?: number | string;
+  dealType?: string;
+  contractYm?: string | number;
+  contractDay?: string | number;
+}
+
+interface TxSummaryItem {
+  latestPrice?: number;
+  dong?: string;
+  avg1MPrice?: number;
+  avg1MRentDeposit?: number;
+}
 
 // Use Incremental Static Regeneration (ISR) to eliminate TTFB bottlenecks
 export const revalidate = 3600;
@@ -52,13 +68,18 @@ async function DashboardDataLoader() {
   
   // Extract top 10 apartments by latest price for 대장 단지 랭킹
   const txSummary = initialData.txSummary || {};
-  const allApts = Object.entries(txSummary).map(([name, sum]: [string, any]) => ({
-    name,
-    latestPrice: sum.latestPrice || 0,
-    dong: sum.dong || '',
-    avg1MPrice: sum.avg1MPrice || 0,
-    jeonseRatio: sum.avg1MPrice > 0 && sum.avg1MRentDeposit > 0 ? Math.round((sum.avg1MRentDeposit / sum.avg1MPrice) * 100) : 0
-  })).filter(a => a.latestPrice > 0);
+  const allApts = Object.entries(txSummary).map(([name, sum]) => {
+    const s = sum as TxSummaryItem;
+    return {
+      name,
+      latestPrice: s.latestPrice || 0,
+      dong: s.dong || '',
+      avg1MPrice: s.avg1MPrice || 0,
+      jeonseRatio: s.avg1MPrice && s.avg1MPrice > 0 && s.avg1MRentDeposit && s.avg1MRentDeposit > 0 
+        ? Math.round((s.avg1MRentDeposit / s.avg1MPrice) * 100) 
+        : 0
+    };
+  }).filter(a => a.latestPrice > 0);
 
   const top10Leaderboard = [...allApts]
     .sort((a, b) => b.latestPrice - a.latestPrice)
@@ -100,7 +121,7 @@ async function DashboardDataLoader() {
           <section style={{ marginTop: '20px' }}>
             <h2>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h2>
             <ul>
-              {recentTxs.slice(0, 15).map((tx: any, idx: number) => {
+              {(recentTxs as HomeTransactionRecord[]).slice(0, 15).map((tx, idx: number) => {
                 const txPrice = tx.price || 0;
                 return (
                   <li key={idx}>
