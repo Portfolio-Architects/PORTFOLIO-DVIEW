@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       </html>`,
       { headers: { 'Content-Type': 'text/html; charset=utf-8' }, status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('UnsubscribeAPI.GET', 'Unsubscribe API Error', {}, error as Error);
     return new NextResponse(
       `<html>

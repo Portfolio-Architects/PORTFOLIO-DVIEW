@@ -52,8 +52,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    logger.error('PushUnsubscribeAPI.POST', 'Push Unsubscribe Error', {}, error);
+  } catch (error: unknown) {
+    logger.error('PushUnsubscribeAPI.POST', 'Push Unsubscribe Error', {}, error as Error);
     return NextResponse.json({ error: 'Failed to unsubscribe' }, { status: 500 });
   }
 }
