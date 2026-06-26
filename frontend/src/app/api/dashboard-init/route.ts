@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
   };
 
   const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<T>((_, reject) => {
       timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
     });
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
       result.typeMap = parsed.data;
     } else {
       logger.warn('DashboardInitAPI.GET', 'Static typeMap schema mismatch', { errors: parsed.error.format() });
-      result.typeMap = typeMapStatic as any; // Fallback
+      result.typeMap = typeMapStatic as unknown as { aptName: string; area: string; typeM2: string; typePyeong: string }[]; // Fallback
     }
   } catch (e) {
     logger.warn('DashboardInitAPI.GET', 'typeMap error', {}, e as Error);
