@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 731)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 732)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -33,6 +33,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx) 파일 내의 2개 훅 위치에서 쓰이던 `(window as any)` 캐스팅을 Window 인터페이스 확장에 의거해 타입 안전한 형태로 전면 리팩토링했습니다.
 - **Dashboard Client Type Safety Optimization (Phase 731)**:
   - [DashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/DashboardClient.tsx) 내에 잔존하던 `(window as any)` 유휴 콜백 캐스팅 제거 및 `as any[]` 등의 flat 배열 캐스팅, `metrics as any` 구문을 구체적인 타입 가드 및 정의로 수정해 타입 안전성을 충족시켰습니다.
+- **Lounge Components Type Safety Optimization (Phase 732)**:
+  - [LoungeContainerClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeContainerClient.tsx) 및 [LoungeFeedClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeFeedClient.tsx) 내의 `(window as any)` 캐스팅을 전역 `Window` 선언 확장을 기반으로 한 타입 안전한 형태로 리팩토링했습니다.
+  - [LoungeFeedClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeFeedClient.tsx) 내 카테고리 탭 리스트 매핑에서 `tab.id as any` 캐스팅을 제거하기 위해 배열 리터럴에 `as const` 단언을 추가하여 타입 안전성을 한층 더 강화했습니다.
 
 ---
 
