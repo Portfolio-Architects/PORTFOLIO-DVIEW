@@ -41,15 +41,23 @@ function log(level: LogLevel, context: string, message: string, data?: Record<st
 
   if (data) entry.data = data;
 
-  if (error && typeof error === 'object') {
-    const errObj = error as any;
-    entry.error = {
-      name: errObj.name || (error instanceof Error ? error.name : 'Error'),
-      message: errObj.message || String(error),
-      stack: errObj.stack || undefined,
-    };
-  } else if (error) {
-    entry.error = { message: String(error) };
+  if (error) {
+    if (error instanceof Error) {
+      entry.error = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+    } else if (typeof error === 'object' && error !== null) {
+      const errObj = error as Record<string, unknown>;
+      entry.error = {
+        name: typeof errObj.name === 'string' ? errObj.name : 'Error',
+        message: typeof errObj.message === 'string' ? errObj.message : String(error),
+        stack: typeof errObj.stack === 'string' ? errObj.stack : undefined,
+      };
+    } else {
+      entry.error = { message: String(error) };
+    }
   }
 
   const output = JSON.stringify(entry);

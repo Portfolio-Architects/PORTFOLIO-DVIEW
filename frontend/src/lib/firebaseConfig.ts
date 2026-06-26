@@ -6,6 +6,12 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
+declare global {
+  interface Window {
+    FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
+  }
+}
+
 // Zod schemas for Firebase config and App Check config validation
 export const FirebaseConfigSchema = z.object({
   apiKey: z.string().min(1, 'NEXT_PUBLIC_FIREBASE_API_KEY is missing'),
@@ -61,7 +67,7 @@ if (typeof window !== 'undefined' && app) {
   if (isDev) {
     if (debugToken) {
       // Enable debug token for local testing in development mode
-      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken === 'true' ? true : debugToken;
+      window.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken === 'true' ? true : debugToken;
     } else {
       // By default in dev, we don't force App Check unless a debug token is configured.
       logger.info('firebaseConfig.appCheck', 'Local development: App Check token exchange skipped since NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN is not configured.');
@@ -82,8 +88,8 @@ if (typeof window !== 'undefined' && app) {
         ),
         isTokenAutoRefreshEnabled: true
       });
-    } catch (err) {
-      logger.warn('firebaseConfig.appCheck', 'Failed to initialize App Check', {}, err);
+    } catch (err: unknown) {
+      logger.warn('firebaseConfig.appCheck', 'Failed to initialize App Check', {}, err instanceof Error ? err : new Error(String(err)));
     }
   } else {
     if (!isDev) {
