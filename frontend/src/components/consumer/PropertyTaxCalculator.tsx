@@ -731,7 +731,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                               ))}
                             </Pie>
                             <Tooltip
-                              formatter={(value: any) => [formatEokMan(Number(value) || 0), '']}
+                              formatter={(value: unknown) => [formatEokMan(Number(value) || 0), '']}
                               contentStyle={{
                                 background: 'rgba(255, 255, 255, 0.95)',
                                 border: '1px solid #ddd',

@@ -6,6 +6,7 @@ import type { DongApartment } from '@/lib/dong-apartments';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
+import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { findTxKey, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { shareRecommendationsToKakao } from '@/lib/utils/kakaoShare';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
@@ -25,76 +26,80 @@ interface AIRecommendationsProps {
   onOpenSellTimingCalculator?: (aptName: string) => void;
 }
 
-function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undefined) {
-  if (report?.metrics) {
-    return report.metrics;
-  }
+function getEffectiveMetrics(apt: DongApartment, report: FieldReportData | undefined): ObjectiveMetrics {
+  const baseMetrics = report?.metrics;
   
-  const brand = apt.brand || '';
-  const householdCount = apt.householdCount || 800;
-  const yearBuiltStr = apt.yearBuilt || '2018';
+  const brand = apt.brand || baseMetrics?.brand || '';
+  const householdCount = apt.householdCount || baseMetrics?.householdCount || 800;
+  const yearBuiltStr = apt.yearBuilt || (baseMetrics?.yearBuilt ? String(baseMetrics.yearBuilt) : '2018');
   const yearBuilt = parseInt(yearBuiltStr.substring(0, 4)) || 2018;
-  const parkingPerHousehold = 1.25;
+  const parkingPerHousehold = baseMetrics?.parkingPerHousehold || 1.25;
   
-  let distanceToSubway = 2000;
-  let distanceToElementary = 350;
-  let distanceToPark = 500;
-  let academyDensity = 15;
-  const distanceToIndeokwon = 2000;
-  const distanceToTram = 500;
-  let distanceToStarbucks = 800;
+  let distanceToSubway = baseMetrics?.distanceToSubway ?? 2000;
+  let distanceToElementary = baseMetrics?.distanceToElementary ?? 350;
+  let distanceToPark = baseMetrics?.distanceToPark ?? 500;
+  let academyDensity = baseMetrics?.academyDensity ?? 15;
+  const distanceToIndeokwon = baseMetrics?.distanceToIndeokwon ?? 2000;
+  const distanceToTram = baseMetrics?.distanceToTram ?? 500;
+  let distanceToStarbucks = baseMetrics?.distanceToStarbucks ?? 800;
   
-  const dong = apt.dong || '';
-  if (dong.includes('오산동')) {
-    distanceToSubway = 500;
-    distanceToPark = 400;
-    academyDensity = 25;
-    distanceToStarbucks = 400;
-    distanceToElementary = 300;
-  } else if (dong.includes('송동') || dong.includes('산척동')) {
-    distanceToSubway = 2500;
-    distanceToPark = 250;
-    academyDensity = 30;
-    distanceToStarbucks = 450;
-    distanceToElementary = 400;
-  } else if (dong.includes('청계동')) {
-    distanceToSubway = 1200;
-    distanceToPark = 350;
-    academyDensity = 75;
-    distanceToStarbucks = 300;
-    distanceToElementary = 200;
-  } else if (dong.includes('영천동')) {
-    distanceToSubway = 1800;
-    distanceToPark = 500;
-    academyDensity = 45;
-    distanceToStarbucks = 500;
-    distanceToElementary = 300;
-  } else if (dong.includes('목동')) {
-    distanceToSubway = 2800;
-    distanceToPark = 400;
-    academyDensity = 55;
-    distanceToStarbucks = 600;
-    distanceToElementary = 250;
-  } else if (dong.includes('방교동') || dong.includes('금곡동')) {
-    distanceToSubway = 3000;
-    distanceToPark = 800;
-    academyDensity = 5;
-    distanceToStarbucks = 1200;
-    distanceToElementary = 600;
+  if (!baseMetrics) {
+    const dong = apt.dong || '';
+    if (dong.includes('오산동')) {
+      distanceToSubway = 500;
+      distanceToPark = 400;
+      academyDensity = 25;
+      distanceToStarbucks = 400;
+      distanceToElementary = 300;
+    } else if (dong.includes('송동') || dong.includes('산척동')) {
+      distanceToSubway = 2500;
+      distanceToPark = 250;
+      academyDensity = 30;
+      distanceToStarbucks = 450;
+      distanceToElementary = 400;
+    } else if (dong.includes('청계동')) {
+      distanceToSubway = 1200;
+      distanceToPark = 350;
+      academyDensity = 75;
+      distanceToStarbucks = 300;
+      distanceToElementary = 200;
+    } else if (dong.includes('영천동')) {
+      distanceToSubway = 1800;
+      distanceToPark = 500;
+      academyDensity = 45;
+      distanceToStarbucks = 500;
+      distanceToElementary = 300;
+    } else if (dong.includes('목동')) {
+      distanceToSubway = 2800;
+      distanceToPark = 400;
+      academyDensity = 55;
+      distanceToStarbucks = 600;
+      distanceToElementary = 250;
+    } else if (dong.includes('방교동') || dong.includes('금곡동')) {
+      distanceToSubway = 3000;
+      distanceToPark = 800;
+      academyDensity = 5;
+      distanceToStarbucks = 1200;
+      distanceToElementary = 600;
+    }
   }
   
   return {
     brand,
     householdCount,
+    far: baseMetrics?.far ?? 230,
+    bcr: baseMetrics?.bcr ?? 18,
     parkingPerHousehold,
     yearBuilt,
     distanceToElementary,
+    distanceToMiddle: baseMetrics?.distanceToMiddle ?? 600,
+    distanceToHigh: baseMetrics?.distanceToHigh ?? 800,
     distanceToSubway,
     academyDensity,
     distanceToPark,
+    distanceToStarbucks,
     distanceToIndeokwon,
-    distanceToTram,
-    distanceToStarbucks
+    distanceToTram
   };
 }
 
@@ -110,7 +115,7 @@ interface QuizAnswer {
 
 function calculateQuizScore(
   apt: DongApartment,
-  m: any,
+  m: ObjectiveMetrics,
   jeonseRatio: number,
   salesPrice: number,
   answers: QuizAnswer

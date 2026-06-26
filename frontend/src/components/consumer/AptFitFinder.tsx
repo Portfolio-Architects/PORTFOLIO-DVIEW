@@ -62,7 +62,7 @@ function getEffectiveMetrics(
   const parkingPerHousehold = 1.25; // default fallback
   
   // Find exact coordinate scores if locationScores is provided
-  let locScore: any = null;
+  let locScore: Record<string, any> | null = null;
   if (locationScores) {
     const matchKey = findTxKey(name, locationScores, nameMapping || {});
     if (matchKey) {
