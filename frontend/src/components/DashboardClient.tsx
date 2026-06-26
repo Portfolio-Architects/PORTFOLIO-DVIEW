@@ -411,7 +411,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   }, [activeTab, triggerFetch]);
 
   const fieldReportsMap = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, FieldReportData>();
     if (!fieldReports || !sheetApartments) return map;
     const allApts = Object.values(sheetApartments).flat();
     allApts.forEach(apt => {
@@ -421,11 +421,16 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     return map;
   }, [fieldReports, sheetApartments, nameMapping]);
 
-  const hashStateRef = useRef<{ mounted: boolean; sheetApartments: any; fieldReportsMap: any; nameMapping: any }>({
+  const hashStateRef = useRef<{
+    mounted: boolean;
+    sheetApartments: Record<string, DongApartment[]> | undefined;
+    fieldReportsMap: Map<string, FieldReportData> | null;
+    nameMapping: Record<string, string> | undefined;
+  }>({
     mounted: false,
-    sheetApartments: null,
+    sheetApartments: undefined,
     fieldReportsMap: null,
-    nameMapping: null
+    nameMapping: undefined
   });
   useEffect(() => {
     hashStateRef.current = { mounted, sheetApartments, fieldReportsMap, nameMapping };
@@ -551,7 +556,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     if (typeof window === 'undefined') return;
     const checkHashForApt = () => {
       const { mounted: m, sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
-      if (!m || !apartments) return;
+      if (!m || !apartments || !reportsMap) return;
       
       const match = window.location.hash.match(/[#&]apt=([^&]+)/);
       if (match) {
