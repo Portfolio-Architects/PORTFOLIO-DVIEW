@@ -221,22 +221,22 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   async incrementLike(postId: string) {
     try { await PostRepo.incrementPostLike(postId); }
-    catch (e) { logger.error('DashboardFacade.incrementLike', 'Like failed', { postId }, e); }
+    catch (e: unknown) { logger.error('DashboardFacade.incrementLike', 'Like failed', { postId }, e); }
   }
 
   async incrementPostView(postId: string, title?: string) {
     try { await PostRepo.incrementPostView(postId, title); }
-    catch (e) { logger.error('DashboardFacade.incrementPostView', 'View update failed', { postId }, e); }
+    catch (e: unknown) { logger.error('DashboardFacade.incrementPostView', 'View update failed', { postId }, e); }
   }
 
   async incrementFieldReportView(reportId: string, title?: string) {
     try { await ReportRepo.incrementReportView(reportId, title); }
-    catch (e) { logger.error('DashboardFacade.incrementFieldReportView', 'View update failed', { reportId }, e); }
+    catch (e: unknown) { logger.error('DashboardFacade.incrementFieldReportView', 'View update failed', { reportId }, e); }
   }
 
   async incrementFieldReportLike(reportId: string) {
     try { await ReportRepo.incrementReportLike(reportId); }
-    catch (e) { logger.error('DashboardFacade.incrementFieldReportLike', 'Like failed', { reportId }, e); }
+    catch (e: unknown) { logger.error('DashboardFacade.incrementFieldReportLike', 'Like failed', { reportId }, e); }
   }
 
   async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
@@ -255,17 +255,17 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   async incrementReviewLike(reviewId: string) {
     try { await ReviewRepo.incrementReviewLike(reviewId); }
-    catch (e) { logger.error('DashboardFacade.incrementReviewLike', 'Like failed', { reviewId }, e); }
+    catch (e: unknown) { logger.error('DashboardFacade.incrementReviewLike', 'Like failed', { reviewId }, e); }
   }
 
   async deleteReview(reviewId: string) {
     try { await ReviewRepo.deleteReview(reviewId); }
-    catch (e) { logger.error('DashboardFacade.deleteReview', 'Delete failed', { reviewId }, e); throw e; }
+    catch (e: unknown) { logger.error('DashboardFacade.deleteReview', 'Delete failed', { reviewId }, e); throw e; }
   }
 
   async deletePost(postId: string) {
     try { await PostRepo.deletePost(postId); }
-    catch (e) { logger.error('DashboardFacade.deletePost', 'Delete failed', { postId }, e); throw e; }
+    catch (e: unknown) { logger.error('DashboardFacade.deletePost', 'Delete failed', { postId }, e); throw e; }
   }
 
   isAdmin(email: string | null | undefined): boolean {
@@ -382,7 +382,7 @@ export class DashboardFacade {
     try {
       await UserRepo.updateNickname(uid, nickname);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('DashboardFacade.updateNickname', 'Failed to update nickname due to network/timeout', { uid, nickname }, error);
       throw error;
     }
@@ -397,7 +397,7 @@ export class DashboardFacade {
     try {
       await UserRepo.updatePhotoURL(uid, photoURL);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('DashboardFacade.updatePhotoURL', 'Failed to update photoURL due to network/timeout', { uid }, error);
       throw error;
     }
