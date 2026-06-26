@@ -61,17 +61,17 @@ describe('Firestore Concurrency Throttle Utility', () => {
     expect(queuedTask).toHaveBeenCalledTimes(1);
   });
 
-  it('should timeout tasks that take more than 10 seconds', async () => {
+  it('should timeout tasks that take more than 20 seconds', async () => {
     const slowTask = jest.fn(() => new Promise((resolve) => {
       // Never resolves
     }));
 
     const promise = throttleInstance.run(slowTask);
 
-    // Fast forward by 10 seconds
-    jest.advanceTimersByTime(10000);
+    // Fast forward by 20 seconds
+    jest.advanceTimersByTime(20000);
 
-    await expect(promise).rejects.toThrow('Firestore operation timeout (10s)');
+    await expect(promise).rejects.toThrow('Firestore operation timeout (20s)');
   });
 
   it('should continue executing queued tasks even if a prior task fails/rejects', async () => {

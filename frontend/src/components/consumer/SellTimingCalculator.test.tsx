@@ -137,7 +137,7 @@ describe('SellTimingCalculator Component', () => {
       />
     );
 
-    expect(screen.getByText('AI 매도 타이밍 및 세무 진단기')).toBeInTheDocument();
+    expect(screen.getByText('AI 주거 자산 안정성 및 세무 진단기')).toBeInTheDocument();
   });
 
   it('pre-fills states based on quiz answers (e.g. investmentStyle=residence)', () => {
@@ -196,7 +196,7 @@ describe('SellTimingCalculator Component', () => {
     });
 
     // Verification of results panels
-    expect(screen.getByText('지금 팔면 호구 지수')).toBeInTheDocument();
+    expect(screen.getByText('자산 안정성 스코어')).toBeInTheDocument();
     expect(screen.getByText('세무 전략 및 양도소득세 리포트')).toBeInTheDocument();
     expect(screen.getByText('납부할 총 세액 합계')).toBeInTheDocument();
   });
