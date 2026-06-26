@@ -43,13 +43,13 @@ export type FirebaseAdminCredentials = {
 
 // Helper to properly extract credentials across different environments (Local, Vercel JSON, Vercel split keys)
 function getAdminCredentials(): FirebaseAdminCredentials | null {
-  let credentials: any = null;
+  let credentials: Record<string, unknown> | null = null;
 
   // 1. Local Development (serviceAccountKey.json) 
   try {
     const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
     if (fs.existsSync(serviceAccountPath)) {
-      credentials = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+      credentials = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8')) as Record<string, unknown>;
     }
   } catch {
     // Ignore and fallback
@@ -58,8 +58,8 @@ function getAdminCredentials(): FirebaseAdminCredentials | null {
   // 2. Vercel Single JSON Object String
   if (!credentials && process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     try {
-      credentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    } catch (e) {
+      credentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON) as Record<string, unknown>;
+    } catch (e: unknown) {
       logger.error('FirebaseAdmin', 'Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Is it valid JSON?', {}, e);
     }
   }
@@ -143,7 +143,7 @@ if (adminDb && !globalContext.__FIREBASE_REST_CONFIGURED) {
       adminDb.settings({ preferRest: true });
     }
     logger.info('FirebaseAdmin', 'Configured Firestore to use REST API protocol (preferRest: true)');
-  } catch (e) {
+  } catch (e: unknown) {
     logger.error('FirebaseAdmin', 'Failed to configure Firestore Rest settings', {}, e);
   }
 }
