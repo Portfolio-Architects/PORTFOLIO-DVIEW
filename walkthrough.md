@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 737)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 738)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -52,6 +52,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Firestore Timestamps Type Safety Optimization (Phase 737)**:
   - [admin/inquiries/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/inquiries/page.tsx), [admin/pending-photos/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/pending-photos/page.tsx), [AptStoriesWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/AptStoriesWidget.tsx) 내의 거래/알림/구독 데이터의 createdAt 및 updatedAt 속성 타입을 기존 `: any`에서 Firestore SDK의 `Timestamp | null` 정형 타입으로 전환하여 dynamic any 타입을 제거했습니다.
   - [AptStoriesWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/AptStoriesWidget.tsx) 내의 toDate 파싱 조건부를 `typeof story.createdAt.toDate === 'function'` 조건 체크 및 fallback 생성자로 감싸 타입 호환성 에러(TS2769)를 해결하고 안정성을 다졌습니다.
+- **Image Uploader & Chart Domain Type Safety Optimization (Phase 738)**:
+  - [ImageUploader.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/admin/apartment-editor/ImageUploader.tsx)의 `batchInputRef` 속성에 대해 `as any` 캐스팅을 제거하여 올바른 타입 정의를 적용했습니다.
+  - [AptCompareModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptCompareModal.tsx)의 차트 YAxis `domain` 속성의 형식을 `[number | string, number | string]` 튜플 타입으로 명시적으로 선언함으로써, 컴파일 시 요구되는 AxisDomain 타입과의 충돌을 방지하고 YAxis domain 에 부여되던 `as any` 단언을 전면 배제했습니다.
 
 ---
 
