@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { AptTxSummary } from '@/lib/types/transaction';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { ZONES } from '@/lib/zones';
@@ -146,7 +147,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
       const allApts = Object.values(apts).flat();
       
       const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
-      const txSummary = await readJsonFileCached<Record<string, any>>('public/data/tx-summary.json', {});
+      const txSummary = await readJsonFileCached<Record<string, AptTxSummary>>('public/data/tx-summary.json', {});
       
       // Fetch all scouting reports to get image URLs for SEO
       const reportsMap = new Map<string, string[]>();
@@ -157,7 +158,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
           reportsSnap.forEach(doc => {
             const data = doc.data();
             if (data.apartmentName && data.images && Array.isArray(data.images) && data.images.length > 0) {
-              reportsMap.set(data.apartmentName, data.images.map((img: any) => img.url).filter(Boolean));
+              reportsMap.set(data.apartmentName, (data.images as { url?: string }[]).map((img) => img?.url || '').filter(Boolean));
             }
           });
         } catch (err) {
@@ -182,7 +183,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
           }
         }
         
-        const routeData: any = {
+        const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
           url: `${baseUrl}/apartment/${encodeURIComponent(apt.name)}`,
           lastModified,
           changeFrequency: 'weekly',
