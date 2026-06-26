@@ -14,24 +14,29 @@ function formatDateString(date: Date): string {
  * @param ts - Firestore Timestamp, Date, string, or number
  * @param fallback - Fallback string if value is missing/invalid
  */
-export function formatTimestamp(ts: any, fallback: string = '방금 전'): string {
+export function formatTimestamp(ts: unknown, fallback: string = '방금 전'): string {
   if (!ts) return fallback;
   try {
-    if (typeof ts.toDate === 'function') {
-      return formatDateString(ts.toDate());
+    if (typeof ts === 'object') {
+      const obj = ts as Record<string, unknown>;
+      if (typeof obj.toDate === 'function') {
+        return formatDateString((obj.toDate as () => Date)());
+      }
+      // Handle pending serverTimestamp / offline objects
+      if (typeof obj.seconds === 'number') {
+        return formatDateString(new Date(obj.seconds * 1000));
+      }
+      if (typeof obj._seconds === 'number') {
+        return formatDateString(new Date(obj._seconds * 1000));
+      }
     }
-    // Handle pending serverTimestamp / offline objects
-    if (ts.seconds !== undefined && typeof ts.seconds === 'number') {
-      return formatDateString(new Date(ts.seconds * 1000));
+    if (typeof ts === 'string' || typeof ts === 'number' || ts instanceof Date) {
+      const parsed = new Date(ts);
+      if (!isNaN(parsed.getTime())) {
+        return formatDateString(parsed);
+      }
     }
-    if (ts._seconds !== undefined && typeof ts._seconds === 'number') {
-      return formatDateString(new Date(ts._seconds * 1000));
-    }
-    const parsed = new Date(ts);
-    if (!isNaN(parsed.getTime())) {
-      return formatDateString(parsed);
-    }
-  } catch (e) {
+  } catch (e: unknown) {
     // Silent fail and return fallback
   }
   return fallback;
@@ -42,27 +47,32 @@ export function formatTimestamp(ts: any, fallback: string = '방금 전'): strin
  * @param ts - Firestore Timestamp, Date, string, or number
  * @param fallback - Fallback timestamp in ms
  */
-export function parseTimestampToMillis(ts: any, fallback: number = 0): number {
+export function parseTimestampToMillis(ts: unknown, fallback: number = 0): number {
   if (!ts) return fallback;
   try {
-    if (typeof ts.toMillis === 'function') {
-      return ts.toMillis();
+    if (typeof ts === 'object') {
+      const obj = ts as Record<string, unknown>;
+      if (typeof obj.toMillis === 'function') {
+        return (obj.toMillis as () => number)();
+      }
+      if (typeof obj.toDate === 'function') {
+        return (obj.toDate as () => Date)().getTime();
+      }
+      // Handle pending serverTimestamp / offline objects
+      if (typeof obj.seconds === 'number') {
+        return obj.seconds * 1000;
+      }
+      if (typeof obj._seconds === 'number') {
+        return obj._seconds * 1000;
+      }
     }
-    if (typeof ts.toDate === 'function') {
-      return ts.toDate().getTime();
+    if (typeof ts === 'string' || typeof ts === 'number' || ts instanceof Date) {
+      const parsed = new Date(ts);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.getTime();
+      }
     }
-    // Handle pending serverTimestamp / offline objects
-    if (ts.seconds !== undefined && typeof ts.seconds === 'number') {
-      return ts.seconds * 1000;
-    }
-    if (ts._seconds !== undefined && typeof ts._seconds === 'number') {
-      return ts._seconds * 1000;
-    }
-    const parsed = new Date(ts);
-    if (!isNaN(parsed.getTime())) {
-      return parsed.getTime();
-    }
-  } catch (e) {
+  } catch (e: unknown) {
     // Silent fail
   }
   return fallback;
@@ -87,7 +97,7 @@ export function getKSTDateString(date: Date = new Date()): string {
     if (year && month && day) {
       return `${year}-${month}-${day}`;
     }
-  } catch (e) {
+  } catch (e: unknown) {
     // Fallback to UTC representation if Intl formatter fails
   }
   return date.toISOString().slice(0, 10);

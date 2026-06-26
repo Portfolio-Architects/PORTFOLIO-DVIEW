@@ -11,7 +11,7 @@ import { logger } from '@/lib/services/logger';
  * @param eventName The event name (e.g., 'search_apartment', 'view_apartment')
  * @param params Custom event parameters
  */
-export function trackEvent(eventName: string, params?: Record<string, any>) {
+export function trackEvent(eventName: string, params?: Record<string, unknown>) {
   if (typeof window === 'undefined') return;
 
   try {
@@ -19,7 +19,7 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
     if (localStorage.getItem('dview_is_admin') === 'true') {
       return;
     }
-  } catch (e) {
+  } catch (e: unknown) {
     // Ignore localStorage errors
   }
 
