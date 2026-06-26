@@ -37,7 +37,12 @@ export async function POST(req: Request) {
     // Save to Firestore. Document ID is a base64 encoded endpoint to prevent duplicates.
     const endpointHash = Buffer.from(subscription.endpoint).toString('base64').replace(/=/g, '').replace(/\//g, '_');
     
-    const updateData: any = {
+    const updateData: {
+      subscription: z.infer<typeof PushSubscriptionSchema>;
+      uid: string | null;
+      updatedAt: string;
+      apts?: admin.firestore.FieldValue;
+    } = {
       subscription,
       uid: uid || null,
       updatedAt: new Date().toISOString()
@@ -51,8 +56,8 @@ export async function POST(req: Request) {
 
     logger.info('PushSubscribeAPI.POST', 'Push subscription registered successfully', { uid, endpointHash, apartmentName });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    logger.error('PushSubscribeAPI.POST', 'Push Subscribe Error', {}, error);
+  } catch (error: unknown) {
+    logger.error('PushSubscribeAPI.POST', 'Push Subscribe Error', {}, error as Error);
     return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 });
   }
 }
@@ -82,8 +87,8 @@ export async function GET(req: Request) {
 
     const data = docSnap.data();
     return NextResponse.json({ apts: data?.apts || [] });
-  } catch (error: any) {
-    logger.error('PushSubscribeAPI.GET', 'Failed to retrieve push subscriptions', {}, error);
+  } catch (error: unknown) {
+    logger.error('PushSubscribeAPI.GET', 'Failed to retrieve push subscriptions', {}, error as Error);
     return NextResponse.json({ error: 'Failed to retrieve subscriptions' }, { status: 500 });
   }
 }
