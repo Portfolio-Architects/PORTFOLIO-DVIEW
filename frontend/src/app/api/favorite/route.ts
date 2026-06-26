@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
     }
 
     const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-      let timeoutId: any;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
       const timeoutPromise = new Promise<T>((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
       });
