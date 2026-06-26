@@ -16,6 +16,78 @@ import { throttle } from '@/lib/utils/firestoreThrottle';
 import { PostDataSchema } from '@/lib/validation/facade.schemas';
 import { executeIsomorphicQuery } from './isomorphicHelper';
 import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
+import type { Redis } from '@upstash/redis';
+
+export interface PostDetailData {
+  id: string;
+  title: string;
+  category: string;
+  content: string;
+  author: string;
+  likes: number;
+  views: number;
+  authorUid: string | null;
+  verifiedApartment: string | null;
+  verificationLevel: string | null;
+  createdAt: number | null;
+}
+
+export interface RecentLoungeItem {
+  id: string;
+  title: string;
+  summary: string;
+  imageUrl: string | null;
+  category: string;
+  author: string;
+  meta: string;
+  views: number;
+  likes: number;
+  commentCount: number;
+  createdAt: number | null;
+  authorUid: string | null;
+  verifiedApartment?: string | null;
+  verificationLevel?: string | null;
+  apartmentName?: string;
+  [key: string]: any;
+}
+
+// Module-level cache for dynamic imports
+let cachedRedis: Redis | null = null;
+let isRedisLoaded = false;
+let cachedAdminDb: any = null;
+let isAdminDbLoaded = false;
+
+async function getRedis(): Promise<Redis | null> {
+  if (typeof window === 'undefined') {
+    if (isRedisLoaded) return cachedRedis;
+    try {
+      const { redis } = await import('@/lib/redis');
+      cachedRedis = (redis as unknown as Redis) || null;
+    } catch (err) {
+      logger.warn('PostRepository.getRedis', 'Failed to dynamically import @/lib/redis', {}, err as Error);
+      cachedRedis = null;
+    }
+    isRedisLoaded = true;
+    return cachedRedis;
+  }
+  return null;
+}
+
+async function getAdminDb(): Promise<any> {
+  if (typeof window === 'undefined') {
+    if (isAdminDbLoaded) return cachedAdminDb;
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      cachedAdminDb = adminDb || null;
+    } catch (err) {
+      logger.warn('PostRepository.getAdminDb', 'Failed to dynamically import @/lib/firebaseAdmin', {}, err as Error);
+      cachedAdminDb = null;
+    }
+    isAdminDbLoaded = true;
+    return cachedAdminDb;
+  }
+  return null;
+}
 
 
 /**
@@ -104,7 +176,7 @@ export async function createPost(data: {
 async function invalidatePostCache(postId: string): Promise<void> {
   if (typeof window === 'undefined') {
     try {
-      const { redis } = await import('@/lib/redis');
+      const redis = await getRedis();
       if (redis) {
         await redis.del(`DTDLS:cache:loungePost:${postId}`).catch(() => {});
       }
@@ -180,16 +252,16 @@ export async function deletePost(postId: string): Promise<void> {
 /**
  * Fetches a single post. Supporting server-side (adminDb) and client-side (db) fetches.
  */
-export async function getPost(postId: string): Promise<any | null> {
+export async function getPost(postId: string): Promise<PostDetailData | null> {
   const cacheKey = `DTDLS:cache:loungePost:${postId}`;
 
-  const docData = await executeIsomorphicQuery<any>({
+  const docData = await executeIsomorphicQuery<unknown>({
     cacheKey,
     cacheEx: 15,
     serverQuery: async () => {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (!adminDb) return null;
-      const snap = await throttle(() => adminDb.collection('posts').doc(postId).get());
+      const snap = await throttle<any>(() => adminDb.collection('posts').doc(postId).get());
       if (snap.exists) {
         return { id: snap.id, ...snap.data() };
       }
@@ -212,11 +284,12 @@ export async function getPost(postId: string): Promise<any | null> {
     logger.warn('PostRepository.getPost', 'Zod validation failed, using fallback/raw', { postId }, parsed.error);
   }
 
-  const data = parsed.success ? parsed.data : docData;
-  const createdAtMillis = parseTimestampToMillis(docData.createdAt, null as any);
+  const rawData = docData as Record<string, any>;
+  const data = parsed.success ? parsed.data : rawData;
+  const createdAtMillis = parseTimestampToMillis(rawData.createdAt, 0);
 
   return {
-    id: docData.id,
+    id: rawData.id,
     title: data.title || '',
     category: data.category || '',
     content: data.content || '',
@@ -226,32 +299,32 @@ export async function getPost(postId: string): Promise<any | null> {
     authorUid: data.authorUid || null,
     verifiedApartment: data.verifiedApartment || null,
     verificationLevel: data.verificationLevel || null,
-    createdAt: createdAtMillis,
+    createdAt: createdAtMillis || null,
   };
 }
 
-export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
+export async function getRecentPosts(limitCount: number = 30): Promise<RecentLoungeItem[]> {
   const cacheKey = `DTDLS:cache:loungeRecentPosts:${limitCount}`;
 
-  const result = await executeIsomorphicQuery<any[]>({
+  const result = await executeIsomorphicQuery<RecentLoungeItem[]>({
     cacheKey,
     cacheEx: 30,
     serverQuery: async () => {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (!adminDb) return null;
       
-      const [postsSnap, commentsSnap] = await Promise.all([
-        throttle(() => adminDb.collection('posts')
+      const [postsSnap, commentsSnap] = (await Promise.all([
+        throttle<any>(() => adminDb.collection('posts')
           .orderBy('createdAt', 'desc')
           .limit(limitCount)
           .get()),
-        throttle(() => adminDb.collectionGroup('comments')
+        throttle<any>(() => adminDb.collectionGroup('comments')
           .orderBy('createdAt', 'desc')
           .limit(100)
           .get())
-      ]);
-      const rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
+      ])) as [any, any];
+      const rawPosts = postsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+      const rawComments = commentsSnap.docs.map((d: any) => ({ id: d.id, ref: d.ref, ...d.data() }));
       
       return processCombinedPosts(rawPosts, rawComments, limitCount);
     },
@@ -268,8 +341,8 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
           limit(100)
         )))
       ]);
-      const rawPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const rawComments = commentsSnap.docs.map(d => ({ id: d.id, ref: d.ref, ...d.data() }));
+      const rawPosts = postsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+      const rawComments = commentsSnap.docs.map((d: any) => ({ id: d.id, ref: d.ref, ...d.data() }));
       
       return processCombinedPosts(rawPosts, rawComments, limitCount);
     }
@@ -278,7 +351,11 @@ export async function getRecentPosts(limitCount: number = 30): Promise<any[]> {
   return result || [];
 }
 
-async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCount: number): Promise<any[]> {
+async function processCombinedPosts(
+  rawPosts: Record<string, any>[],
+  rawComments: Record<string, any>[],
+  limitCount: number
+): Promise<RecentLoungeItem[]> {
   // Filter comments to only include those under field_reports
   const filteredComments = rawComments.filter(c => {
     const parentRef = c.ref?.parent?.parent;
@@ -291,11 +368,11 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
   if (parentIds.length > 0) {
     if (typeof window === 'undefined') {
       try {
-        const { adminDb } = await import('@/lib/firebaseAdmin');
+        const adminDb = await getAdminDb();
         if (adminDb) {
           const snaps = await Promise.all(parentIds.map(id => adminDb.collection('field_reports').doc(id).get()));
           const missingIds: string[] = [];
-          snaps.forEach((s, idx) => {
+          snaps.forEach((s: any, idx: number) => {
             if (s.exists) {
               parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
             } else {
@@ -304,7 +381,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
           });
           if (missingIds.length > 0) {
             const scoutingSnaps = await Promise.all(missingIds.map(id => adminDb.collection('scoutingReports').doc(id).get()));
-            scoutingSnaps.forEach(s => {
+            scoutingSnaps.forEach((s: any) => {
               if (s.exists) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
             });
           }
@@ -334,7 +411,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
   const postsList = rawPosts.map(docData => {
     const parsed = PostDataSchema.safeParse(docData);
     const data = parsed.success ? parsed.data : docData;
-    const createdAtMillis = parseTimestampToMillis(docData.createdAt, null as any);
+    const createdAtMillis = parseTimestampToMillis(docData.createdAt, 0);
 
     const rawContent = data.content || '';
     const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
@@ -359,7 +436,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
       views: data.views || 0,
       likes: data.likes || 0,
       commentCount: data.commentCount || 0,
-      createdAt: createdAtMillis,
+      createdAt: createdAtMillis || null,
       authorUid: data.authorUid || null,
       verifiedApartment: data.verifiedApartment || null,
       verificationLevel: data.verificationLevel || null,
@@ -369,7 +446,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
   const commentsList = filteredComments.map(c => {
     const parentId = c.ref.parent.parent.id;
     const apartmentName = parentMap.get(parentId) || '알 수 없는 단지';
-    const createdAtMillis = parseTimestampToMillis(c.createdAt, null as any);
+    const createdAtMillis = parseTimestampToMillis(c.createdAt, 0);
 
     const dateStr = createdAtMillis ? new Date(createdAtMillis).toLocaleDateString('ko-KR') : '방금 전';
 
@@ -384,7 +461,7 @@ async function processCombinedPosts(rawPosts: any[], rawComments: any[], limitCo
       views: 0,
       likes: 0,
       commentCount: 0,
-      createdAt: createdAtMillis,
+      createdAt: createdAtMillis || null,
       authorUid: c.authorUid || null,
       apartmentName
     };
