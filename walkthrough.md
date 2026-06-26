@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 754)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 755)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -107,6 +107,10 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - `formatYearBuilt` 내 `rawYb: any` 인자 타입을 `string | number | undefined`로 격상했습니다.
   - JSON-LD 생성용 임시 배열 `elements: any[]`를 `elements: Array<Record<string, any>>`로 변경했습니다.
   - Recharts Tooltip 콜백 함수 `labelFormatter` 및 `formatter` 내 `value: any` 인자를 각각 `React.ReactNode` 및 `unknown` 타입으로 리팩토링하고 `Number(value)` 형변환 가드를 씌워 라이브러리 타입 호환성을 확보했습니다.
+- **Explicit any Refactoring in Consumer Calculator and Recommendation Components (Phase 755)**:
+  - [components/consumer/AptFitFinder.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptFitFinder.tsx) 내에서 사용되던 좌표 스코어 탐색용 임시 변수 `locScore: any` 타입을 `Record<string, any> | null` 정형 타입으로 구체화했습니다.
+  - [components/consumer/AIRecommendations.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AIRecommendations.tsx) 내에서 `getEffectiveMetrics` 함수가 항상 필수 지표들을 완벽히 갖춘 `ObjectiveMetrics` 타입을 반환하도록 보완하고, `calculateQuizScore` 의 `m: any` 인자 타입을 `ObjectiveMetrics` 타입으로 격상하여 `undefined` 잠재에러(TS18048)를 해소했습니다.
+  - [components/consumer/PropertyTaxCalculator.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/PropertyTaxCalculator.tsx) 내 PieChart Tooltip formatter of `value: any` 인자 타입을 `value: unknown` 타입으로 격상하여 explicit any를 완전히 제거했습니다.
 
 ---
 
