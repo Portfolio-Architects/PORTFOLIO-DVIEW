@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 735)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 736)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -46,6 +46,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [AdvancedValuationMetrics.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AdvancedValuationMetrics.tsx)에 `ObjectiveMetrics` 타입을 임포트하여 `report.metrics` 캐스팅의 `as any`를 제거하였고, 출퇴근 가치 탭 리스트 매핑 배열에 `as const`를 적용하여 `dest.id as any` 캐스팅을 제거했습니다.
 - **TechnoValley State Setters Type Safety Optimization (Phase 735)**:
   - [TechnoValleyClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/technovalley/TechnoValleyClient.tsx) 내의 예산(`budget`), 상주인원(`employees`), 상담입주규모(`consultingBizSize`) 옵션 매핑 배열에 `as const`를 지정하여 string 리터럴 유니온 타입 싱크를 맞춤으로써, state setter 호출 시 dynamic `item.id as any` 캐스팅을 완벽하게 제거했습니다.
+- **Manifest & Admin Error Blocks Type Safety Optimization (Phase 736)**:
+  - [manifest.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/manifest.ts) 내 icons의 `purpose` 속성을 `as any` 대신 specific string literal `as 'any'` 단언으로 리팩토링했습니다.
+  - [admin/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/page.tsx) 내에 잔존하던 4군데의 `catch (e: any)` 구문을 `catch (e)` 및 `e instanceof Error` 타입 체크 가드로 전환하여 explicit any 타입을 완전히 배제했습니다.
 
 ---
 
