@@ -905,7 +905,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
   }, [txData1, txData2, chartType, priceMetric, apt1, apt2]);
 
   // Dynamic Y-axis domain based on min and max of combined chart data
-  const yAxisDomain = useMemo(() => {
+  const yAxisDomain: [number | string, number | string] = useMemo(() => {
     if (combinedChartData.length === 0 || (!apt1 && !apt2)) return [0, 'auto'];
 
     const label1 = apt1 ? getDisplayAptName(apt1.name) : '단지 1';
@@ -1897,7 +1897,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                             tickLine={false}
                             axisLine={false}
                             tickFormatter={(value) => priceMetric === 'perPyeong' ? `${value.toLocaleString()}만` : `${value}억`}
-                            domain={yAxisDomain as any}
+                            domain={yAxisDomain}
                             allowDataOverflow={true}
                           />
                           <Tooltip

@@ -60,7 +60,7 @@ export const ImageUploader = React.memo(function ImageUploader({
         onDrop={e => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files) handleBatchFiles(e.dataTransfer.files); }}
         onClick={() => batchInputRef.current?.click()}
       >
-        <input ref={batchInputRef as any} type="file" accept="image/*" multiple className="hidden"
+        <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden"
           onChange={e => { if (e.target.files) handleBatchFiles(e.target.files); e.target.value = ''; }} />
         <div className="w-12 h-12 bg-surface rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
           <ImagePlus size={22} className="text-toss-blue" />
