@@ -41,9 +41,13 @@ export interface LocationScore {
   distanceToSubway?: number;
 }
 
-async function getTxSummaryData(): Promise<Record<string, any>> {
-  const parsed = await readJsonFileCached<{ summary: Record<string, any> }>('public/data/tx-summary.json', { summary: {} });
-  return parsed?.summary || parsed || {};
+async function getTxSummaryData(): Promise<Record<string, AptTxSummary>> {
+  const parsed = await readJsonFileCached<Record<string, unknown>>('public/data/tx-summary.json', {});
+  if (!parsed) return {};
+  if ('summary' in parsed && parsed.summary && typeof parsed.summary === 'object') {
+    return parsed.summary as Record<string, AptTxSummary>;
+  }
+  return parsed as Record<string, AptTxSummary>;
 }
 
 interface Transaction {
@@ -251,8 +255,10 @@ export async function generateMetadata(props: {
       if (reportData) {
         if (reportData.images && reportData.images.length > 0) {
           imageUrl = reportData.images[0].url;
-        } else if ((reportData as any).thumbnailUrl) {
-          imageUrl = (reportData as any).thumbnailUrl;
+        } else if (reportData.thumbnailUrl) {
+          imageUrl = reportData.thumbnailUrl;
+        } else if (reportData.thumbnail) {
+          imageUrl = reportData.thumbnail;
         }
       }
     } catch (e) {
@@ -488,8 +494,22 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   }
 
   // Dynamic Geo Coordinates Resolution
-  const lat = (matchedReportData as any)?.lat || (matchedReportData as any)?.latitude || (matchedReportData as any)?.metrics?.lat || locationScore?.nearestStationCoords?.split(',')[0]?.trim() || 37.2005;
-  const lng = (matchedReportData as any)?.lng || (matchedReportData as any)?.longitude || (matchedReportData as any)?.metrics?.lng || locationScore?.nearestStationCoords?.split(',')[1]?.trim() || 127.0985;
+  const rawReport = matchedReportData as Record<string, unknown> | null;
+  const rawMetrics = rawReport?.metrics as Record<string, unknown> | undefined;
+
+  const lat = 
+    rawReport?.lat || 
+    rawReport?.latitude || 
+    rawMetrics?.lat || 
+    locationScore?.nearestStationCoords?.split(',')[0]?.trim() || 
+    37.2005;
+
+  const lng = 
+    rawReport?.lng || 
+    rawReport?.longitude || 
+    rawMetrics?.lng || 
+    locationScore?.nearestStationCoords?.split(',')[1]?.trim() || 
+    127.0985;
 
   const geo = lat && lng ? {
     "@type": "GeoCoordinates",
@@ -500,7 +520,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const aiBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
 
   // Build School instances for containedInPlace SEO property
-  const schools: Record<string, any>[] = [];
+  const schools: Record<string, unknown>[] = [];
   if (locationScore?.nearestSchoolNames?.elementary) {
     schools.push({
       "@type": "School",
@@ -542,7 +562,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   }
 
   // Combine Schools and Transit Stations under containedInPlace
-  const containedPlaces: Record<string, any>[] = [...schools];
+  const containedPlaces: Record<string, unknown>[] = [...schools];
   if (locationScore?.nearestStationName && locationScore?.nearestStationCoords) {
     const coords = locationScore.nearestStationCoords.split(',');
     if (coords.length === 2) {
