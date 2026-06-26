@@ -149,7 +149,7 @@ export const checkKakaoSdkAndFallback = async (
 };
 
 // Zod custom schema for File check, safe for SSR (Node environments)
-const IsomorphicFileSchema = z.custom<any>((val) => {
+const IsomorphicFileSchema = z.custom<unknown>((val) => {
   if (typeof File === 'undefined') return true;
   return val instanceof File;
 }, 'Must be a valid File object').optional();
@@ -341,7 +341,7 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
     if (imageFile) {
       logger.info('kakaoShare.shareAptToKakao', 'Uploading generated share card image to Kakao');
       const uploadRes = await window.Kakao!.Share.uploadImage({
-        file: [imageFile],
+        file: [imageFile as File],
       });
       if (uploadRes && uploadRes.infos && uploadRes.infos.original && uploadRes.infos.original.url) {
         finalImageUrl = uploadRes.infos.original.url;

@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
 // Isomorphic Zod custom guards for browser-only types
-const IsomorphicHTMLElementSchema = z.custom<any>((val) => {
+const IsomorphicHTMLElementSchema = z.custom<unknown>((val) => {
   if (typeof window === 'undefined' || typeof HTMLElement === 'undefined') return true;
   return val instanceof HTMLElement;
 }, 'Must be a valid HTMLElement');
 
-const IsomorphicDocumentSchema = z.custom<any>((val) => {
+const IsomorphicDocumentSchema = z.custom<unknown>((val) => {
   if (typeof window === 'undefined' || typeof Document === 'undefined') return true;
   return val instanceof Document;
 }, 'Must be a valid Document');
@@ -29,7 +29,7 @@ export const Html2CanvasOptionsSchema = z.object({
   imageTimeout: z.number().nonnegative().optional(),
   removeContainer: z.boolean().optional(),
   ignoreElements: z.function().optional(),
-}).catchall(z.any());
+}).catchall(z.unknown());
 
 const replaceNestedFunction = (str: string, funcName: string, fallbackValue: string) => {
   let index = 0;
@@ -73,7 +73,7 @@ function proxyStyleDeclaration(style: CSSStyleDeclaration): CSSStyleDeclaration 
         }
       }
       if (typeof val === 'function') {
-        return function(this: any, ...args: any[]) {
+        return function(this: unknown, ...args: unknown[]) {
           const res = val.apply(target, args);
           if (typeof res === 'string') {
             if (hasUnsupported(res)) {
@@ -211,7 +211,7 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
 
 export async function safeHtml2canvas(
   element: HTMLElement,
-  options: any = {}
+  options: Record<string, unknown> = {}
 ): Promise<HTMLCanvasElement> {
   const elementVal = IsomorphicHTMLElementSchema.safeParse(element);
   const optionsVal = Html2CanvasOptionsSchema.safeParse(options);
@@ -233,7 +233,7 @@ export async function safeHtml2canvas(
     };
   }
 
-  const originalOnclone = validatedOptions.onclone;
+  const originalOnclone = validatedOptions.onclone as ((doc: Document) => void) | undefined;
   validatedOptions.onclone = (clonedDoc: Document) => {
     patchClonedDocumentForHtml2canvas(clonedDoc);
     if (originalOnclone) {
@@ -251,9 +251,9 @@ export async function safeHtml2canvas(
 }
 
 export async function safeHtml2canvasPro(
-  html2canvasProInstance: any,
+  html2canvasProInstance: (element: HTMLElement, options?: Record<string, unknown>) => Promise<HTMLCanvasElement>,
   element: HTMLElement,
-  options: any = {}
+  options: Record<string, unknown> = {}
 ): Promise<HTMLCanvasElement> {
   const elementVal = IsomorphicHTMLElementSchema.safeParse(element);
   const optionsVal = Html2CanvasOptionsSchema.safeParse(options);
@@ -274,7 +274,7 @@ export async function safeHtml2canvasPro(
     };
   }
 
-  const originalOnclone = validatedOptions.onclone;
+  const originalOnclone = validatedOptions.onclone as ((doc: Document) => void) | undefined;
   validatedOptions.onclone = (clonedDoc: Document) => {
     patchClonedDocumentForHtml2canvas(clonedDoc);
     if (originalOnclone) {
@@ -283,10 +283,10 @@ export async function safeHtml2canvasPro(
   };
 
   try {
-    const initialScale = validatedOptions.scale || 1.0;
+    const initialScale = (validatedOptions.scale as number | undefined) || 1.0;
     // Attempt progressive scale reductions (initial -> 1.5 -> 1.0 -> 0.8) to handle canvas OOM issues on low-end devices
     const scalesToTry = [initialScale, 1.5, 1.0, 0.8].filter((s, idx, arr) => s <= initialScale && arr.indexOf(s) === idx);
-    let lastError: any = null;
+    let lastError: unknown = null;
 
     for (const scale of scalesToTry) {
       try {
