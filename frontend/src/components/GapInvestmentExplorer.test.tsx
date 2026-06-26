@@ -1,10 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import GapInvestmentExplorer from './GapInvestmentExplorer';
 
-jest.mock('@/components/ui/HwaseongInsightBanner', () => ({
-  HwaseongInsightBanner: () => <div data-testid="hwaseong-insight-banner">Insight</div>
-}));
-
 describe('GapInvestmentExplorer', () => {
   const mockSheetApartments = {
     '청계동': [
@@ -73,7 +69,7 @@ describe('GapInvestmentExplorer', () => {
     );
 
     // Check header
-    expect(screen.getByText('갭투자 큐레이션')).toBeInTheDocument();
+    expect(screen.getByText('주거 안심 & 전세가율 큐레이션')).toBeInTheDocument();
 
     // Check Analytics board stats
     // Average Jeonse Rate: (70+60+75+84)/4 = 72%

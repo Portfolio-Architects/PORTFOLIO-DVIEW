@@ -1158,7 +1158,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     
     const rentRate = saleVal > 0 ? Math.round((rentVal / saleVal) * 100) : 0;
     
-    return `${prefix}${aptName}은 최근 30일 동안 ${txCount}건의 실거래가 발생했습니다. 평균 매매 ${priceStr}, 평균 전세 ${rentStr}선이며, 예상 갭투자금은 약 ${gapStr} (전세가율 ${rentRate}%) 수준입니다.`;
+    return `${prefix}${aptName}은 최근 30일 동안 ${txCount}건의 실거래가 발생했습니다. 평균 매매 ${priceStr}, 평균 전세 ${rentStr}선이며, 예상 매매-전세 차액은 약 ${gapStr} (전세가율 ${rentRate}%) 수준입니다.`;
   }, [userFavorites]);
 
   const lineData = useMemo(() => {
@@ -1397,7 +1397,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       .filter((item): item is NonNullable<typeof item> => item !== null);
   }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
 
-  // 동탄 갭투자 1위 (최고 전세가율 단지) 계산
+  // 동탄 전세 안심 1위 (최고 전세가율 단지) 계산
   const gapInvestment1st = useMemo(() => {
     let bestAptName = "-";
     let maxJeonseRate = 0;
@@ -1410,7 +1410,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         bestAptName = apt.name;
         const fmtGap = formatEokWithUnit(apt.gapVal);
         const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
-        bestGapText = `갭 ${fmtGap.value}${gapUnitStr}`;
+        bestGapText = `차액 ${fmtGap.value}${gapUnitStr}`;
         bestJeonseRateText = `전세율 ${apt.rate.toFixed(1)}%`;
       }
     });
@@ -1419,7 +1419,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       return {
         name: "동탄역 시범 한화꿈에그린",
         jeonseRateText: "전세율 72.4%",
-        gapText: "갭 2.3억",
+        gapText: "차액 2.3억",
       };
     }
 
@@ -1430,7 +1430,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     };
   }, [enrichedAptList]);
 
-  // 동탄 갭투자 Top 5 계산 (필터링 및 리스크 포함)
+  // 동탄 주거 안심 Top 5 계산 (필터링 및 리스크 포함)
   const gapInvestmentTop5 = useMemo(() => {
     const result: Array<{
       name: string;
@@ -1695,28 +1695,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           <div className="hidden sm:flex items-center gap-2">
           </div>
         }
-        rightSideContent={
-          <button 
-            type="button"
-            onClick={() => window.open('https://yeyak.hscity.go.kr/', '_blank', 'noopener,noreferrer')}
-            aria-label="화성시 2026년 시민공무원 AI 공모전 공고 바로가기"
-            className="flex items-center text-left gap-4 shrink-0 w-[320px] h-[80px] px-5 bg-gradient-to-br from-emerald-500/8 to-teal-500/3 dark:from-emerald-950/10 dark:to-teal-950/5 border border-emerald-500/20 hover:border-emerald-500/45 rounded-2xl shadow-[0_4px_20px_rgba(16,185,129,0.03)] hover:shadow-[0_6px_24px_rgba(16,185,129,0.08)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all" />
-            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-[#00d29d] rounded-xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-              <Sparkles size={20} />
-            </div>
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-extrabold text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-[6px] tracking-wider uppercase">공모전 공고</span>
-                <span className="text-[13px] font-extrabold text-primary tracking-tight truncate">2026 시민·공무원 AI 공모전</span>
-              </div>
-              <span className="text-[11px] text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-[#00d29d] transition-colors leading-snug">
-                시민 편익을 위한 AI 솔루션 공고 ➔
-              </span>
-            </div>
-          </button>
-        }
+        rightSideContent={null}
       />
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full">
 
@@ -2550,7 +2529,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         </span>
                       </div>
                       <div className="flex flex-col gap-1 pl-1">
-                        <span className="text-[11px] font-bold text-tertiary">예상 갭투자금</span>
+                        <span className="text-[11px] font-bold text-tertiary">매매-전세 차액</span>
                         <span className="text-[13.5px] font-extrabold text-teal-600 dark:text-teal-400 truncate">
                           {hasValues ? gapText : "-"}
                           {hasValues && <span className="text-[10.5px] font-bold text-secondary ml-1">({jeonseRateText})</span>}

@@ -324,7 +324,7 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
     if (!finalImageUrl) {
       if (priceEok > 0) {
         const baseUrl = window.location.origin;
-        const status = ratio >= 65 ? "갭투자추천" : "인기단지";
+        const status = ratio >= 65 ? "실수요안심" : "인기단지";
         let url = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(aptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}`;
         if (valStatus) {
           url += `&valStatus=${valStatus}`;

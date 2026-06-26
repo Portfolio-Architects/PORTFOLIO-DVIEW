@@ -133,22 +133,7 @@ const WriteReviewModal = dynamic(() => import(/* webpackPreload: false */ '@/com
     </div>
   )
 });
-const AdInquiryModal = dynamic(() => import(/* webpackPreload: false */ '@/components/AdInquiryModal').catch(err => {
-  logger.warn('DashboardClient.dynamic', 'AdInquiryModal Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('AdInquiryModal');
-  return { default: () => null };
-}), {
-  ssr: false,
-  loading: () => <CalculatorLoader text="제휴 및 광고 안내 로드 중" />
-});
-const B2BConsumerAdModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/B2BConsumerAdModal').catch(err => {
-  logger.warn('DashboardClient.dynamic', 'B2BConsumerAdModal Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('B2BConsumerAdModal');
-  return { default: () => null };
-}), {
-  ssr: false,
-  loading: () => <CalculatorLoader text="맞춤 컨설팅 신청 중" />
-});
+
 
 const LoungeContainerClient = dynamic(() => import(/* webpackPreload: false */ '@/components/LoungeContainerClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
@@ -253,7 +238,6 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
-import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import LoginGateModal from '@/components/ui/LoginGateModal';
 import * as UserRepo from '@/lib/repositories/user.repository';
@@ -278,39 +262,6 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
   const [mounted, setMounted] = useState(false);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
-  
-
-  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
-  const [isConsumerAdModalOpen, setIsConsumerAdModalOpen] = useState(false);
-  const [consumerAdInfo, setConsumerAdInfo] = useState<{ adType: 'insurance' | 'interior' | 'academy' | 'cleaning'; adTitle: string } | null>(null);
-
-  const handleOpenConsumerAdModal = useCallback((adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => {
-    setConsumerAdInfo({ adType, adTitle });
-    setIsConsumerAdModalOpen(true);
-    trackEvent('ad_modal_open', { ad_type: adType, ad_title: adTitle });
-  }, []);
-  const [showAdBlockBanner, setShowAdBlockBanner] = useState(false);
-  const { isAdBlockActive } = useAdBlockDetector();
-
-  useEffect(() => {
-    if (!isAdBlockActive || !mounted) return;
-    
-    const dismissedTime = localStorage.getItem('dview-adblock-banner-dismissed');
-    if (dismissedTime) {
-      const parsedTime = parseInt(dismissedTime, 10);
-      const now = Date.now();
-      const sevenDays = 7 * 24 * 60 * 60 * 1000;
-      if (now - parsedTime < sevenDays) {
-        return;
-      }
-    }
-    setShowAdBlockBanner(true);
-  }, [isAdBlockActive, mounted]);
-
-  const handleAdBlockBannerClose = () => {
-    localStorage.setItem('dview-adblock-banner-dismissed', Date.now().toString());
-    setShowAdBlockBanner(false);
-  };
   
   // Nickname restriction modal state
   const [newNickname, setNewNickname] = useState('');
@@ -573,12 +524,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       };
       window.addEventListener('scroll', handleScroll, { passive: true });
 
-      const handleOpenAdInquiry = () => {
-        if (isMounted) {
-          setIsAdModalOpen(true);
-        }
-      };
-      window.addEventListener('open-ad-inquiry', handleOpenAdInquiry, { passive: true });
+
 
       return () => {
         isMounted = false;
@@ -589,7 +535,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         window.removeEventListener('hashchange', handleHashChange);
         window.removeEventListener('scroll', handleScroll);
         if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
-        window.removeEventListener('open-ad-inquiry', handleOpenAdInquiry);
+
         if (preloadTimeoutRef.current) {
           clearTimeout(preloadTimeoutRef.current);
           preloadTimeoutRef.current = null;
@@ -775,9 +721,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
-  const handleOpenAdModal = useCallback(() => {
-    setIsAdModalOpen(true);
-  }, []);
+  const handleOpenAdModal = useCallback(() => {}, []);
 
   const handleOpenCompare = useCallback((aptName?: string) => {
     setCompareInitialApt(aptName);
@@ -1105,8 +1049,6 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
             loadAllTransactions={loadAllTransactions}
             isAdmin={dashboardFacade.isAdmin(user?.email)}
             txSummary={aptTxSummary}
-            onOpenAdModal={handleOpenAdModal}
-            onOpenConsumerAdModal={handleOpenConsumerAdModal}
             onRequestLogin={handleRequestLogin}
             onOpenCompare={handleOpenCompare}
             onOpenJeonseSafety={handleOpenJeonseSafety}
@@ -1126,30 +1068,6 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       </div>
     </PullToRefresh>
 
-    {!mobileModalOpen && showAdBlockBanner && (
-      <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[480px] bg-slate-900/95 dark:bg-slate-950/95 text-white border border-emerald-500/30 rounded-2xl px-4 py-3.5 shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 backdrop-blur-md">
-        <div className="flex-1 flex items-start gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 mt-2 select-none" />
-          <div className="flex flex-col gap-0.5">
-            <p className="text-[13px] font-black tracking-tight text-emerald-400">
-              광고 차단기를 사용 중이신가요?
-            </p>
-            <p className="text-[11.5px] text-slate-300 leading-normal font-medium">
-              DVIEW는 독립적인 연구와 광고 수익으로 운영됩니다. 차단기 예외 등록(화이트리스트)을 해주시면 더 좋은 입지 분석 정보를 제공하는 데 큰 도움이 됩니다.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center shrink-0 ml-1">
-          <button 
-            onClick={handleAdBlockBannerClose}
-            className="text-[11px] font-extrabold text-emerald-400 hover:text-emerald-300 px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/20 hover:border-emerald-500/40 active:scale-95 transition-all focus:outline-none"
-          >
-            7일간 닫기
-          </button>
-        </div>
-      </div>
-    )}
-
     {!mobileModalOpen && (
       <MobileDock 
         activeTab={activeTab} 
@@ -1161,23 +1079,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       />
     )}
 
-    {isAdModalOpen && (
-      <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
-    )}
 
-    {isConsumerAdModalOpen && consumerAdInfo && selectedReport && (
-      <B2BConsumerAdModal
-        onClose={() => {
-          setIsConsumerAdModalOpen(false);
-          setConsumerAdInfo(null);
-        }}
-        adType={consumerAdInfo.adType}
-        adTitle={consumerAdInfo.adTitle}
-        apartmentName={selectedReport.apartmentName}
-        dong={selectedReport.dong || '오산동'}
-        yearBuilt={selectedReport.metrics?.yearBuilt}
-      />
-    )}
 
     {showNicknameModal && (
       <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 backdrop-blur-md bg-white/70 dark:bg-black/70 animate-in fade-in duration-300">

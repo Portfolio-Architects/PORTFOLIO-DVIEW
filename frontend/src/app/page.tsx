@@ -81,7 +81,7 @@ async function DashboardDataLoader() {
       {/* SSR SEO Semantic HTML Block */}
       <div className="sr-only" aria-hidden="true">
         <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
-        <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 갭투자 리스크 진단 전문 분석 리포트 플랫폼</p>
+        <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 및 전세 사기 안심 진단 전문 분석 리포트 플랫폼</p>
         
         <section>
           <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>

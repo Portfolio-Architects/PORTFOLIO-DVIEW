@@ -199,7 +199,7 @@ function generateAIReports(txSummary: Record<string, AptTxSummary>): NoticeItem[
   const nowStr = new Date().toISOString();
   const todayDateStr = new Date().toISOString().substring(0, 10);
 
-  // 1. 소액 갭투자 최적 단지 TOP 3 추출 연산
+  // 1. 주거 안심 & 전세가율 안정 단지 TOP 3 추출 연산
   const candidates: { name: string; gap: number; jeonseRatio: number; price: number; rent: number; dong: string }[] = [];
   
   for (const [rawAptName, sum] of Object.entries(txSummary)) {
@@ -224,29 +224,29 @@ function generateAIReports(txSummary: Record<string, AptTxSummary>): NoticeItem[
 
   const top3 = candidates.slice(0, 3);
   
-  // 1-1. 갭투자 리포트 본문 작성
-  let gapMarkdown = `### 📊 동탄2신도시 실거래 기반 소액 갭투자 단지 분석\n\n`;
-  gapMarkdown += `D-VIEW AI 데이터 랩에서 최근 3개월 실거래가 정보를 정밀 분석한 결과, 전세가율이 높고 소액 갭투자가 용이한 최적의 단지 **TOP 3**는 다음과 같습니다.\n\n`;
+  // 1-1. 주거 안심 및 전세율 분석 리포트 본문 작성
+  let gapMarkdown = `### 📊 동탄2신도시 실거래 기반 전세가율 안정 단지 분석\n\n`;
+  gapMarkdown += `D-VIEW AI 데이터 랩에서 최근 3개월 실거래가 정보를 정밀 분석한 결과, 매매가 대비 전세가가 안정적으로 형성되어 실수요자의 실구매 차액 부담이 적은 **주거 안심 단지 TOP 3**는 다음과 같습니다.\n\n`;
   
   top3.forEach((item, idx) => {
     const gapEok = (item.gap / 10000).toFixed(1);
     const priceEok = (item.price / 10000).toFixed(1);
     const rentEok = (item.rent / 10000).toFixed(1);
     gapMarkdown += `#### **${idx + 1}위. ${item.name} (${item.dong})**\n`;
-    gapMarkdown += `- **예상 필요 투자금(GAP)**: **약 ${gapEok}억 원**\n`;
+    gapMarkdown += `- **예상 매매-전세 차액(GAP)**: **약 ${gapEok}억 원**\n`;
     gapMarkdown += `- **평균 전세가율**: **${item.jeonseRatio}%** (매매 ${priceEok}억 / 전세 ${rentEok}억)\n`;
-    gapMarkdown += `- **AI 진단**: 본 단지는 전세 지지선이 매우 탄탄하여 자금 운용의 변동성 리스크가 낮고, 주변 학군 도보 통학이 편리하여 전세 세입자 대기 수요가 풍부한 안정적인 실투자성 단지입니다.\n\n`;
+    gapMarkdown += `- **AI 진단**: 본 단지는 전세 가격의 하방 지지선이 튼튼하여 매매 가격 변동에 따른 리스크가 낮고, 주변의 안심 학군 도보 통학이 편리해 실수요자 선호도가 높게 형성되어 있습니다.\n\n`;
   });
   
   gapMarkdown += `---\n\n`;
-  gapMarkdown += `> 💡 **투자 주의 사항**\n`;
-  gapMarkdown += `> 전세가율이 높은 단지는 소액 투자가 가능하나, 매매 상승폭이 더디거나 향후 입주 물량이 몰릴 시 역전세 위험이 존재할 수 있으므로, 반드시 D-VIEW의 **[3대 핵심 리스크 진단]** 기능을 활용해 안전성을 검증하시기 바랍니다.\n\n`;
-  gapMarkdown += `[➔ 동탄 갭투자 랭킹 대시보드에서 전체 순위 보기](/#lounge-notices-culture)`;
+  gapMarkdown += `> 💡 **주거 안전 주의 사항**\n`;
+  gapMarkdown += `> 전세가율이 높은 단지는 실구매 차액이 적은 반면, 향후 인근 지역의 신규 입주 물량이 몰릴 시 일시적 역전세 우려가 존재할 수 있으므로, 세입자께서는 계약 전에 반드시 D-VIEW의 **[전세 안전 진단]** 및 보증보험 가입 요건을 검증하시기 바랍니다.\n\n`;
+  gapMarkdown += `[➔ 동탄 주거 안정 & 전세율 대시보드 바로가기](/#lounge-notices-culture)`;
 
   events.push({
     id: `ai_report_gap_analysis_${todayDateStr.replace(/-/g, '')}`,
     originalId: `ai_gap_${todayDateStr.replace(/-/g, '')}`,
-    title: `[AI 시황] 동탄2신도시 갭투자 초저 복합단지 실시간 TOP 3 분석`,
+    title: `[AI 주거시황] 동탄2신도시 전세가율 안정 단지 및 안심 주거 TOP 3 분석`,
     url: 'https://dongtanview.com/',
     dept: 'AI 데이터 랩',
     date: todayDateStr,
@@ -259,7 +259,7 @@ function generateAIReports(txSummary: Record<string, AptTxSummary>): NoticeItem[
   // 2. 고비율 전세가율 역전세 리스크 진단 리포트
   const riskCandidates = candidates.filter(c => c.jeonseRatio >= 80).slice(0, 3);
   let riskMarkdown = `### 🚨 동탄 아파트 전세가율 80% 돌파 단지 역전세 위험 진단\n\n`;
-  riskMarkdown += `최근 전세 지지선이 강해진 반면 매매 가격 조정으로 인해 전세가율이 **80% 이상**으로 진입한 단지가 나타나고 있습니다. 전세금 미반환 리스크를 최소화하기 위해 세입자 및 갭투자자가 확인해야 할 리포트입니다.\n\n`;
+  riskMarkdown += `최근 전세 가격 하방 지지력이 튼튼한 반면 매매 가격 조정으로 인해 전세가율이 **80% 이상**으로 높게 형성된 단지가 일부 나타나고 있습니다. 전세보증금 미반환 리스크를 최소화하기 위해 세입자 및 임차인이 반드시 확인해야 할 주택 리포트입니다.\n\n`;
   
   if (riskCandidates.length > 0) {
     riskCandidates.forEach((item) => {
@@ -775,7 +775,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // --- Source 7: AI 부동산 시황 & 갭투자 리포트 생성 및 적재 ---
+    // --- Source 7: AI 부동산 시황 & 주거 안심 리포트 생성 및 적재 ---
     const aiReports = generateAIReports(TX_SUMMARY);
     aiReports.forEach((item) => {
       const parsedItem = noticeItemSchema.safeParse(item);

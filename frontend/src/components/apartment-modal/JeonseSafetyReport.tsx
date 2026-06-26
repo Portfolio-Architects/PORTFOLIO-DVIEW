@@ -354,7 +354,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
         </div>
       </div>
 
-      {/* ─── 🏦 B2B 제휴 광고 / 반환보증 진단 안내 배너 (Monetization A/B) ─── */}
+      {/* ─── 🏦 HUG 반환보증 공식 가이드 안내 배너 ─── */}
       {(grade === 'caution' || grade === 'danger') && (
         <div className="border border-orange-500/20 bg-orange-500/5 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex-1 text-center sm:text-left min-w-0">
@@ -362,14 +362,14 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
               ⚠️ 임차인 필수: 전세보증금 반환보증보험 가입 요건 확인
             </p>
             <p className="text-[12px] font-bold text-secondary">
-              전세가율 {jeonseRatePercent.toFixed(1)}%로 HUG 보증보험 가입이 거절되거나 특별 보증이 필요할 수 있습니다. 
+              전세가율 {jeonseRatePercent.toFixed(1)}%로 HUG 보증보험 가입이 거절되거나 특별 보증이 필요할 수 있습니다. HUG 주택도시보증공사의 공식 가입 기준을 확인하세요.
             </p>
           </div>
           <button
-            onClick={onOpenAdModal}
+            onClick={() => window.open('https://www.khug.or.kr/web/ig/dr/igdr000001.jsp', '_blank', 'noopener,noreferrer')}
             className="shrink-0 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold text-[12px] px-4 py-2.5 rounded-xl flex items-center gap-1 active:scale-[0.97] transition-all cursor-pointer border-none shadow-md"
           >
-            <span>무료 가입 진단받기</span>
+            <span>HUG 공식 기준 확인</span>
             <ChevronRight size={14} strokeWidth={2.5} />
           </button>
         </div>

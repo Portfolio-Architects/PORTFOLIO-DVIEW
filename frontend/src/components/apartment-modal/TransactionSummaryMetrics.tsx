@@ -188,7 +188,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       };
     }).filter(p => p.count > 0 || p.avgPrice > 0);
 
-    // 3) 갭투자 필요자금 및 전세가율 계산 (최근 6개월 평균 기준, 거래 부족시 전체 기준)
+    // 3) 실구매 필요자금 및 전세가율 계산 (최근 6개월 평균 기준, 거래 부족시 전체 기준)
     const filteredSales = baseTx.filter(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
     const filteredJeonses = baseTx.filter(tx => tx.dealType === '전세');
 
@@ -248,7 +248,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       "@context": "https://schema.org",
       "@type": "Place",
       "name": `${apartmentName} 단지 실거래 시세 요약 정보`,
-      "description": `${apartmentName} 단지의 ${dealTypeLabel} 평균 가격, 평당 가격, 거래 건수 및 실투자금 갭투자 필요자금, 전세가율 분석 정보입니다. (필터: ${filterLabel})`,
+      "description": `${apartmentName} 단지의 ${dealTypeLabel} 평균 가격, 평당 가격, 거래 건수 및 실투자금 및 실구매 필요자금(매매-전세 갭), 전세가율 분석 정보입니다. (필터: ${filterLabel})`,
       "amenityFeature": jsonLdElements
     };
 
@@ -310,12 +310,12 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
           })}
         </div>
 
-        {/* 갭투자 및 전세가율 요약 카드 (선택된 평형 필터 대응) */}
+        {/* 주거 안정 및 전세가율 요약 카드 (선택된 평형 필터 대응) */}
         {metrics.avgSalePrice > 0 && metrics.avgJeonsePrice > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5 mt-3">
             <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[12px] font-bold text-tertiary">실투자금 (매매-전세 갭)</span>
+                <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
                 <span className="text-[11px] text-tertiary font-medium">
                   {metrics.isRecentFallback ? '전체 평균 대체 기준' : '최근 6개월 평균 실거래 기준'}
                 </span>

@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { ChevronRight, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 import { haversineDistance } from "@/lib/utils/haversine";
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
-import { HwaseongInsightBanner } from "@/components/ui/HwaseongInsightBanner";
 import { formatEokWithUnit, formatGapPrice } from '../MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -480,12 +479,6 @@ export const RegionAccordion = React.memo(function RegionAccordion({
             </div>
           );
         })}
-
-        {/* 화성시 공익 정책 AI 인사이트 배너 */}
-        <HwaseongInsightBanner 
-          location="매크로 대시보드 하단" 
-          isCompact={false}
-        />
       </div>
     </div>
   );

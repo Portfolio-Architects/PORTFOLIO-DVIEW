@@ -9,7 +9,7 @@ export const revalidate = 600; // Revalidate every 10 minutes (ISR)
 
 export const metadata: Metadata = {
   title: 'D-VIEW 아파트 탐색 | 동탄 전역 아파트 실거래가 및 입지 가치 비교',
-  description: '동탄 179개 아파트 단지의 실거래가 변동 추이, 평단가 순위, 전세가율 갭투자 리스크 및 입지 가치 분석 표 제공.',
+  description: '동탄 179개 아파트 단지의 실거래가 변동 추이, 평단가 순위, 전세가율 및 전세 사기 안심 진단, 입지 가치 분석 표 제공.',
   alternates: {
     canonical: 'https://dongtanview.com/explore',
   },

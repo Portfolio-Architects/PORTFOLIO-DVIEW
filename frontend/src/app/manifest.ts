@@ -34,9 +34,9 @@ export default function manifest(): MetadataRoute.Manifest {
         icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
       },
       {
-        name: '갭투자 탐색기',
-        short_name: '갭투자',
-        description: '동탄 소액 갭투자 최적 단지 분석',
+        name: '주거안심 분석기',
+        short_name: '주거안심',
+        description: '동탄 주거 안심 및 전세가율 분석',
         url: '/explore',
         icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
       },

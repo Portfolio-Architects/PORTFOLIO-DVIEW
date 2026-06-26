@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { GraduationCap, Check, Share, MapPin } from 'lucide-react';
 import { calculateEducationScore } from '@/lib/utils/scoring';
 import ChildcareDetailSection from './ChildcareDetailSection';
-import LocalEducationAd from '@/components/LocalEducationAd';
 interface EducationAnalysisSectionProps {
   report: any;
   inline?: boolean;
@@ -549,15 +548,6 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
               aptName={report.apartmentName} 
               coordinates={report.metrics.coordinates}
             />
-
-            {/* 🎯 학군/육아 인프라 스코어 연동 로컬 학원 및 교육 광고 */}
-            <div className="mt-8 border-t border-border/40 pt-8">
-              <LocalEducationAd 
-                dong={report.dong} 
-                educationGrade={calculateEducationScore(report.metrics).grade} 
-                apartmentName={report.apartmentName} 
-              />
-            </div>
           </div>
         </div>
       </div>

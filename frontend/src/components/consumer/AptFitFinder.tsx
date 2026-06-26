@@ -764,7 +764,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
               </h3>
               <div className="flex flex-col gap-2 mt-1.5">
                 {[
-                  { value: '3eok', label: '3억 원 이하', desc: '남동탄·능동의 실속형 가성비 단지 및 소형 갭투자' },
+                  { value: '3eok', label: '3억 원 이하', desc: '남동탄·능동의 실속형 가성비 단지 및 소액 매매-전세 차액' },
                   { value: '5eok', label: '3억 ~ 6억 원', desc: '대중적인 인기의 신도시 준신축 및 남동탄 실속 대표 단지' },
                   { value: '8eok', label: '6억 ~ 9억 원', desc: '동탄역 접근성이 우수한 준신축 및 호수공원 인기 단지' },
                   { value: '12eok', label: '9억 ~ 14억 원', desc: '동탄역 시범단지 등 우수한 입지의 핵심 대장 단지' },
@@ -989,16 +989,16 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {step === 7 && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q7. 투자/자금 성향</span>
+                <span className="text-[11px] font-black text-[#00d29d] px-2 py-0.5 bg-[#00d29d]/10 rounded-md">Q7. 실수요 및 자금 성향</span>
                 <span className="text-[12.5px] text-tertiary font-bold">7 / 7</span>
               </div>
               <h3 className="text-[16.5px] sm:text-[18px] font-black text-primary leading-tight">
-                자산 가치 증식 및 투자 자금 운용 스타일은?
+                실주거 선택 및 자금 부담 설계 스타일은?
               </h3>
               <div className="flex flex-col gap-2 mt-1.5">
                 {[
                   { value: 'residence', label: '실거주 편의성 최우선 (교통/학군)', desc: '생활 밀착형 인프라와 주거 안정성에 초점을 둔 실사용 가치', icon: Heart },
-                  { value: 'gap', label: '소액 갭투자 및 전세가율 가성비 우선', desc: '전세가율이 높고 실투자금이 상대적으로 작게 묶이는 소액 투자', icon: Coins },
+                  { value: 'gap', label: '매매-전세 안심 차액 및 전세가율 우선', desc: '전세가율이 높고 매매-전세 차액이 적어 내 집 마련 부담이 적은 단지', icon: Coins },
                   { value: 'value', label: '교통망 추가 예정 호재 (미래 가치)', desc: '인덕원선·트램 예정역 반경 인접 등 중장기 시세 분출 기대', icon: Train },
                 ].map(opt => {
                   const Icon = opt.icon;

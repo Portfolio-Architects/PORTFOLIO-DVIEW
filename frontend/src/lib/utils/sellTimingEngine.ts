@@ -100,7 +100,7 @@ export function calculateVerdictScore(params: VerdictParams): VerdictResult {
   }
 
   // 1-3. 전세가율 점수 (최대 25점)
-  // 전세가율이 높을수록 실수요 지지 및 갭투자 대기 수요가 탄탄하므로 버틸 수 있는데도 싸게 팔면 손해 -> 호구 지수 상승
+  // 전세가율이 높을수록 실수요 지지 및 실수요·전세 안심 수요가 탄탄하므로 버틸 수 있는데도 싸게 팔면 손해 -> 호구 지수 상승
   let jeonseScore = 0;
   if (jeonseRatio >= 80) {
     jeonseScore = 25;

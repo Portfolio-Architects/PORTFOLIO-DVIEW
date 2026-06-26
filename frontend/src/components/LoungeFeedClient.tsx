@@ -63,7 +63,6 @@ const AptStoriesWidget = dynamic(() => import(/* webpackPreload: false */ '@/com
   )
 });
 import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
-import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { shareLocalNoticeToKakao } from '@/lib/utils/kakaoShare';
 
@@ -1067,17 +1066,8 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       )}
 
       {filteredPosts.map((news, index) => {
-        const renderAd = index > 0 && index % 4 === 0;
         return (
           <Fragment key={news.id}>
-            {renderAd && (
-              <div onClick={(e) => e.stopPropagation()} className="w-full py-2">
-                <HwaseongInsightBanner 
-                  location={`라운지 피드 중간 정보 ${Math.floor(index / 4)}`} 
-                  isCompact={true}
-                />
-              </div>
-            )}
             <button 
               type="button"
               aria-label={`${news.category === '임장기' ? '동탄 임장/분석' : news.category === '부동산 기초' ? '부동산 고민상담' : news.category === '정책자금 대출' ? '동탄 청약/대출' : news.category === '인프라' ? '동탄 교통/상권' : (news.category || '기타')} 카테고리 게시글 "${news.title}", 작성자 ${news.author || '익명'} 상세 보기`}
@@ -1209,7 +1199,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                       href="/?tab=gap" 
                       className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all cursor-pointer active:scale-[0.98] text-[13.5px]"
                     >
-                      동탄 갭투자 랭킹 대시보드 바로가기
+                      동탄 주거 안정/전세율 대시보드 바로가기
                     </Link>
                   </div>
 

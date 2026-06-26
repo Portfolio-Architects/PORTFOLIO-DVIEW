@@ -173,7 +173,6 @@ const BuyOrWaitVote = dynamic(() => import('@/components/apartment-modal/BuyOrWa
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import PushSubscriptionModal from './pwa/PushSubscriptionModal';
-import LocalEducationAd from '@/components/LocalEducationAd';
 
 
 import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, calculateInfraScore } from '@/lib/utils/scoring';
@@ -221,7 +220,6 @@ const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenan
   ssr: false,
   loading: () => <AnchorTenantSkeleton />
 });
-import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 
 interface TransactionRecord {
   dong: string;
@@ -336,8 +334,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
   isAdmin,
   inline,
   txSummary,
-  onOpenAdModal,
-  onOpenConsumerAdModal,
   loadAllTransactions,
   onRequestLogin,
   onOpenCompare,
@@ -360,8 +356,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
   isAdmin?: boolean;
   inline?: boolean;
   txSummary?: any;
-  onOpenAdModal?: () => void;
-  onOpenConsumerAdModal?: (adType: 'insurance' | 'interior' | 'academy' | 'cleaning', adTitle: string) => void;
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
   onOpenCompare?: (aptName: string) => void;
@@ -653,8 +647,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
     switch (theme) {
       case 'gap':
         return {
-          title: `💸 실투자금 얼마? ${aptName} 갭투자 가치분석`,
-          desc: `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%! 내 예산 맞춤 소액 갭투자 진단 결과를 D-VIEW에서 1초 만에 조회해보세요.`
+          title: `🛡️ 전세 사기 예방 및 ${aptName} 안심 주거 분석`,
+          desc: `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%! 내 예산 맞춤 주거 안심 진단 결과를 D-VIEW에서 1초 만에 조회해보세요.`
         };
       case 'school':
         return {
@@ -1402,7 +1396,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       const shareTheme = getAutoShareTheme();
       const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio, valuation.status, valuation.amount);
-      const status = ratio >= 65 ? "갭투자추천" : "인기단지";
+      const status = ratio >= 65 ? "실수요안심" : "인기단지";
 
       // html2canvas 연산 없이, 서버 사이드 Dynamic OG Image API(/api/og) URL을 직접 빌드하여 즉각 공유 창 연결 (캐시 방지 타임스탬프 탑재)
       let imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status || ''}&valAmount=${encodeURIComponent(valuation.amount || '')}&t=${Date.now()}`;
@@ -2211,15 +2205,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 />
               </LazyRender>
 
-              {/* 화성시 공익 정책 AI 인사이트 배너 */}
-              <div className="px-3 md:px-4 py-1.5 md:py-1 w-full my-2">
-                <HwaseongInsightBanner 
-                  location="단지 리포트 모달 중간" 
-                  metrics={report.metrics} 
-                  isCompact={true}
-                />
-              </div>
-
               {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
               <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6 snap-start">
                 <div className="relative w-full">
@@ -2278,7 +2263,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                             latestDeposit={jeonseSafetyData.latestDeposit}
                             volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
                             householdCount={report.metrics?.householdCount || 0}
-                            onOpenAdModal={onOpenAdModal}
                           />
                         </LazyRender>
                       </div>
@@ -2381,12 +2365,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
                     )}
                   </div>
                 </button>
-
-                <HwaseongInsightBanner 
-                  location="단지 리포트 모달" 
-                  metrics={report.metrics} 
-                  isCompact={false}
-                />
               </div>
 
 
@@ -2843,7 +2821,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clipRule="evenodd" />
                 </svg>
-                갭투자 필요자금
+                실구매 필요자금
               </span>
               <span className="text-[30px] font-black text-[#00d29d] tracking-tight">
                 {(() => {
@@ -2882,7 +2860,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         {/* Bottom Footer */}
         <div className="flex justify-between items-center w-full border-t border-slate-800/80 pt-6">
           <div className="flex items-center gap-2 text-slate-400 text-[14px] font-bold">
-            <span>지금 D-VIEW 모바일 앱/웹에서 실시간 동탄 갭투자 분석 지표를 확인하세요.</span>
+            <span>지금 D-VIEW 모바일 앱/웹에서 실시간 동탄 주거 안심 분석 지표를 확인하세요.</span>
           </div>
           <div className="text-[#00d29d] text-[16px] font-black tracking-wider uppercase">
             DONGTANVIEW.COM

@@ -307,7 +307,7 @@ export async function generateMetadata(props: {
     const maxPriceVal = aptSummary?.maxPrice || 0;
     const latestPriceVal = aptSummary?.latestPrice || 0;
     const isHigh = latestPriceVal > 0 && maxPriceVal > 0 && latestPriceVal >= maxPriceVal - 500;
-    const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 ? '갭투자추천' : '인기단지');
+    const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 ? '실수요안심' : '인기단지');
     ogUrl.searchParams.set('status', statusStr);
     
     let seoTitle = '';

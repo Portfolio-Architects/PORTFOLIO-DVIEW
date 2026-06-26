@@ -29,7 +29,6 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
 import { logger } from '@/lib/services/logger';
-import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 
 import { sharePostToKakao } from '@/lib/utils/kakaoShare';
 
@@ -1053,14 +1052,6 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
               </button>
             </div>
           </div>
-        </div>
-
-        {/* 화성시 공익 정책 AI 인사이트 배너 */}
-        <div className="my-2">
-          <HwaseongInsightBanner 
-            location="라운지 게시글 상세 하단" 
-            isCompact={false}
-          />
         </div>
 
         {/* Comments Section */}

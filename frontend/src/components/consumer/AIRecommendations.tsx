@@ -520,8 +520,8 @@ const AIRecommendations = React.memo(function AIRecommendations({
           reason = '도보 거리 내 호수공원 및 대형 조경 녹지가 인접해 쾌적한 웰빙 입지입니다.';
           tag = '공세권';
         } else if (deferredQuizAnswers.investmentStyle === 'gap' && jeonseRatio >= 70) {
-          reason = '높은 전세가율로 예상 필요 갭이 최소화되는 실투자성 우수 단지입니다.';
-          tag = '갭투자';
+          reason = '높은 전세가율 지지로 주택 가치 보존과 안정적인 주거 적합도가 우수한 단지입니다.';
+          tag = '실수요안심';
         } else if (deferredQuizAnswers.yearBuilt === 'new' && (m.yearBuilt ?? 2018) >= 2021) {
           reason = '신축 5년 이내의 준공 연식으로 커뮤니티와 주차 인프라가 우수한 단지입니다.';
           tag = '최신축';
@@ -553,8 +553,8 @@ const AIRecommendations = React.memo(function AIRecommendations({
           reason = '동탄역 및 대중교통 노선이 가까워 강남권 출퇴근이 용이한 추천 단지입니다.';
           tag = '역세권';
         } else if (jeonseRatio >= 70) {
-          reason = '높은 전세가율로 갭투자가 용이하며 매매 가격 하방 지지력이 탄탄한 단지입니다.';
-          tag = '투자우수';
+          reason = '높은 전세가율 지지로 실수요자 매매가격 방어선이 튼튼하고 안전성이 뛰어난 단지입니다.';
+          tag = '안심전세';
         } else if ((m.yearBuilt ?? 2018) >= 2021) {
           reason = '연식이 매우 짧고 스마트 인프라가 완비된 쾌적한 최신축 아파트 단지입니다.';
           tag = '최신축';
@@ -591,7 +591,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
           reasonBreakdown.push('숲/공세권');
         }
         if (deferredQuizAnswers.investmentStyle === 'gap' && jeonseRatio >= 70) {
-          reasonBreakdown.push('갭투자 유리');
+          reasonBreakdown.push('전세율 안정');
         }
         if (deferredQuizAnswers.yearBuilt === 'new' && (m.yearBuilt ?? 2018) >= 2021) {
           reasonBreakdown.push('신축 선호');

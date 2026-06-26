@@ -11,7 +11,6 @@ import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { FieldReportData } from '@/lib/types/report.types';
-import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 import { trackEvent } from '@/lib/utils/analytics';
 
 // subcomponents
@@ -794,7 +793,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                   <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">단지명 검색 (예: 롯데캐슬)</span>
                   <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">동탄 호수공원 근처 검색</span>
                   <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">초품아 안심 단지 검색</span>
-                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">역세권/갭투자 유망지 검색</span>
+                  <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">역세권/주거 안심 단지 검색</span>
                   <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">단지명 검색 (예: 롯데캐슬)</span>
                 </div>
               </div>
@@ -974,11 +973,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
                       preloadApartmentTx={preloadApartmentTx}
                     />
-                    {index === 14 && sortedApts.length > 15 && (
-                      <div className="px-6 py-3 w-full border-b border-neutral-100/70 dark:border-zinc-900/30">
-                        <HwaseongInsightBanner location="아파트 탐색 리스트 중간" isCompact={true} />
-                      </div>
-                    )}
                   </React.Fragment>
                 ))}
               </div>

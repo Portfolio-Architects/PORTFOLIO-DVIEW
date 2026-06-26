@@ -21,7 +21,6 @@ import {
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
-import { HwaseongInsightBanner } from '@/components/ui/HwaseongInsightBanner';
 import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface GapComplexCardProps {
@@ -309,7 +308,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           shareTimeoutRef.current = null;
         }
       }, 2000);
-      showToast('갭투자 큐레이션 필터 링크가 클립보드에 복사되었습니다! 💚');
+      showToast('주거 안심 큐레이션 필터 링크가 클립보드에 복사되었습니다! 💚');
     }).catch(err => {
       logger.error('GapInvestmentExplorer', 'Failed to copy URL', undefined, err);
       showToast('링크 복사에 실패했습니다.');
@@ -475,7 +474,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       const rawRatio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
       const ratio = isNaN(rawRatio) || !isFinite(rawRatio) ? 0 : rawRatio;
 
-      // 갭투자 적합성 지수(Gap Score) 연산 도입 - 4차원 공식 개편
+      // 주거 안심도 점수(Stability Score) 연산 도입 - 4차원 공식 개편
       // 1) 전세가율 점수 (45%): 50%일 때 0점, 80% 이상일 때 100점
       const ratioScore = Math.max(0, Math.min(100, ((ratio - 0.5) / 0.3) * 100));
 
@@ -627,12 +626,12 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
         "position": idx + 1,
         "item": {
           "@type": "Place",
-          "name": `${item.apt.name} 갭투자 가치 분석`,
-          "description": `${item.apt.dong} 소재 아파트 단지. 필요 갭 투자금은 ${formatPrice(item.gap)}이며, 전세가율은 ${jeonseRatePercent}% (평균 매매 ${formatPrice(item.sales)} / 전세 ${formatPrice(item.jeonse)})입니다. 갭투자 적합성 지수는 ${item.gapScore}점입니다.`,
+          "name": `${item.apt.name} 주거 안심 및 가치 분석`,
+          "description": `${item.apt.dong} 소재 아파트 단지. 매매-전세 실구매 차액은 ${formatPrice(item.gap)}이며, 전세가율은 ${jeonseRatePercent}% (평균 매매 ${formatPrice(item.sales)} / 전세 ${formatPrice(item.jeonse)})입니다. 주거 안심 지수는 ${item.gapScore}점입니다.`,
           "additionalProperty": [
             {
               "@type": "PropertyValue",
-              "name": "갭투자금",
+              "name": "실구매 차액",
               "value": formatPrice(item.gap)
             },
             {
@@ -657,7 +656,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
             },
             {
               "@type": "PropertyValue",
-              "name": "적합성지수",
+              "name": "주거안심도",
               "value": `${item.gapScore}점`
             }
           ]
@@ -668,8 +667,8 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
     return {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      "name": "동탄 아파트 갭투자 입지 분석 및 큐레이션 목록",
-      "description": "실거래 분석에 기반한 동탄 신도시 아파트 단지별 갭투자 필요 투자금, 전세율, 거래 회전율 및 적합성 지수 큐레이션 정보 목록입니다.",
+      "name": "동탄 아파트 주거 안심 입지 분석 및 큐레이션 목록",
+      "description": "실거래 분석에 기반한 동탄 신도시 아파트 단지별 실구매 차액, 전세율, 거래 회전율 및 주거 안심 지수 큐레이션 정보 목록입니다.",
       "numberOfItems": gapList.length,
       "itemListElement": items
     };
@@ -708,10 +707,10 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
             </div>
             <div>
               <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight">
-                갭투자 큐레이션
+                주거 안심 & 전세가율 큐레이션
               </h3>
               <p className="text-[12px] md:text-[13px] font-medium text-tertiary">
-                실거래가 기준 투자금 및 리스크 다차원 분석 대시보드
+                실거래가 기준 실구매 차액 및 주거 안심 다차원 분석 대시보드
               </p>
             </div>
           </div>
@@ -749,7 +748,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
         </button>
       </div>
 
-      {/* 갭투자 종합 현황판 (Analytics Board) */}
+      {/* 주거 안심 종합 현황판 (Analytics Board) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-body/35 dark:bg-[#121824]/10 border border-border/40 rounded-2xl p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
           <span className="text-[11.5px] font-extrabold text-tertiary flex items-center gap-1.5">
@@ -763,7 +762,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
               avgJeonseRate >= 70 ? 'bg-[#fffbeb] text-[#d97706] dark:bg-[#d97706]/10' : 'bg-[#e6f3f0] text-[#008262] dark:bg-[#042820] dark:text-[#00d29d]'
             }`}>
-              {avgJeonseRate >= 70 ? '안정성 관망' : '갭투자 용이'}
+              {avgJeonseRate >= 70 ? '보증보험 점검' : '실구매 부담 적음'}
             </span>
           </div>
         </div>
@@ -771,7 +770,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
         <div className="bg-body/35 dark:bg-[#121824]/10 border border-border/40 rounded-2xl p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
           <span className="text-[11.5px] font-extrabold text-tertiary flex items-center gap-1.5">
             <Coins className="w-3.5 h-3.5 text-emerald-500" />
-            소액 갭투자 단지
+            실구매 안심 단지
           </span>
           <div className="flex items-baseline gap-1 mt-2.5">
             <span className="text-[20px] font-black text-primary tracking-tight">
@@ -968,8 +967,8 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
               }}
               className="w-full bg-surface border border-border/80 hover:border-emerald-500/30 text-primary rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
             >
-              <option value="gapScore">🔥 갭투자 지수 순</option>
-              <option value="gapAsc">💸 투자금 낮은 순</option>
+              <option value="gapScore">🛡️ 주거 안심 지수 순</option>
+              <option value="gapAsc">💸 구매차액 낮은 순</option>
               <option value="ratioDesc">📈 전세가율 높은 순</option>
               <option value="pyeongPriceAsc">📉 평당가 낮은 순</option>
               <option value="householdCountDesc">🏢 세대수 많은 순</option>
@@ -1007,13 +1006,6 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 formatPrice={formatPrice}
               />
             ))}
-          </div>
-
-          <div className="my-2">
-            <HwaseongInsightBanner 
-              location="갭투자 탐색기 하단" 
-              isCompact={true}
-            />
           </div>
 
           {/* Show more Button */}

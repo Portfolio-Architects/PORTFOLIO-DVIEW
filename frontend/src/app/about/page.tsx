@@ -125,7 +125,7 @@ export default async function AboutPage() {
                 </div>
                 <h4 className="text-[15px] sm:text-[16px] font-extrabold text-primary tracking-tight">부동산 실거주 PER (가치 분석)</h4>
                 <p className="mt-2 text-[12px] sm:text-[13px] text-secondary leading-relaxed font-medium">
-                  주식의 주가수익비율(PER) 방법론을 아파트에 투사합니다. 해당 아파트의 <strong>전세가</strong>를 실거주 가치(주당 순이익)로, <strong>매매가</strong>를 가격(주가)으로 설정하여 그 비율을 측정합니다. 전세가 대비 매매가가 지나치게 높은 단지는 거품 가능성(고평가)을, 전세가율이 높은 단지는 실거주 가치 대비 저평가(갭투자 유망) 상태임을 즉각 판별할 수 있습니다.
+                  주식의 주가수익비율(PER) 방법론을 아파트에 투사합니다. 해당 아파트의 <strong>전세가</strong>를 실거주 가치(주당 순이익)로, <strong>매매가</strong>를 가격(주가)으로 설정하여 그 비율을 측정합니다. 전세가 대비 매매가가 지나치게 높은 단지는 거품 가능성(고평가)을, 전세가율이 높은 단지는 실거주 가치 대비 저평가되어 있어 실수요자의 실구매 차액 부담이 적고 시장 가격 지지력이 튼튼함을 즉각 판별할 수 있습니다.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/50 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">

@@ -50,7 +50,7 @@ export function getMainPageSchema(baseUrl: string) {
           "width": 192,
           "height": 192
         },
-        "description": "동탄 전역 아파트 실거래가 추이, 전세가율 갭투자 리스크, 안심 보육 학군 지도 시각화 전문 기관"
+        "description": "동탄 전역 아파트 실거래가 추이, 전세가율 및 깡통전세 리스크, 안심 보육 학군 지도 시각화 전문 기관"
       }
     ]
   };
