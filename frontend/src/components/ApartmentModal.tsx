@@ -1173,8 +1173,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
     setMounted(true);
     
     // Preload critical dynamic components immediately on modal mount
-    (TransactionChartSection as any).preload?.();
-    (CommentSection as any).preload?.();
+    (TransactionChartSection as unknown as { preload?: () => void }).preload?.();
+    (CommentSection as unknown as { preload?: () => void }).preload?.();
     
     return () => {
       mountedRef.current = false;
@@ -1286,7 +1286,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           ctx.shadowOffsetY = 2;
           
           if ('letterSpacing' in ctx) {
-            (ctx as any).letterSpacing = '0.1em';
+            ctx.letterSpacing = '0.1em';
           }
           
           ctx.fillText(watermarkText, canvas.width - textMargin - bgPaddingX, canvas.height - textMargin - bgPaddingY);

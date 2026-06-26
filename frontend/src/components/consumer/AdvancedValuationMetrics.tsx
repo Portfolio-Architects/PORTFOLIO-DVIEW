@@ -9,6 +9,7 @@ import { MACRO_CONFIG } from '@/lib/macro-summary';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
+import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 
 interface TxRecord {
   dealType?: string;
@@ -152,9 +153,9 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
       };
     }
 
-    const m = report.metrics as any;
-    const distSubway = typeof m.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
-    const distTram = typeof m.distanceToTram === 'number' ? m.distanceToTram : 1000;
+    const m = report.metrics as ObjectiveMetrics | undefined;
+    const distSubway = typeof m?.distanceToSubway === 'number' ? m.distanceToSubway : 2000;
+    const distTram = typeof m?.distanceToTram === 'number' ? m.distanceToTram : 1000;
 
     // 동탄역까지의 최적 연계 시간 (분)
     const walkToSubway = distSubway / 80; // 분 (도보 80m/min)
@@ -816,15 +817,15 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
                   {/* Left: Destination tabs & Simulator details */}
                   <div className="flex-1 flex flex-col gap-4">
                     <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10">
-                      {[
+                      {([
                         { id: 'gangnam', label: '강남역' },
                         { id: 'pangyo', label: '판교역' },
                         { id: 'samseong', label: '삼성역' }
-                      ].map(dest => (
+                      ] as const).map(dest => (
                         <button
                           key={dest.id}
                           type="button"
-                          onClick={() => setCommuteDest(dest.id as any)}
+                          onClick={() => setCommuteDest(dest.id)}
                           className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-all cursor-pointer border-none ${
                             commuteDest === dest.id
                               ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm'

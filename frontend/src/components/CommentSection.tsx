@@ -182,14 +182,14 @@ const CommentSection = React.memo(function CommentSection({
       let isoDate = new Date().toISOString();
       if (c.createdAt) {
         try {
-          const timeVal = c.createdAt as any;
+          const timeVal = c.createdAt as unknown;
           if (timeVal && typeof timeVal === 'object') {
-            if ('seconds' in timeVal) {
-              isoDate = new Date(timeVal.seconds * 1000).toISOString();
-            } else if ('toDate' in timeVal && typeof timeVal.toDate === 'function') {
-              isoDate = timeVal.toDate().toISOString();
+            if ('seconds' in timeVal && typeof (timeVal as { seconds: number }).seconds === 'number') {
+              isoDate = new Date((timeVal as { seconds: number }).seconds * 1000).toISOString();
+            } else if ('toDate' in timeVal && typeof (timeVal as { toDate: () => Date }).toDate === 'function') {
+              isoDate = (timeVal as { toDate: () => Date }).toDate().toISOString();
             }
-          } else {
+          } else if (typeof timeVal === 'string' || typeof timeVal === 'number') {
             const parsed = new Date(timeVal);
             if (!isNaN(parsed.getTime())) {
               isoDate = parsed.toISOString();
