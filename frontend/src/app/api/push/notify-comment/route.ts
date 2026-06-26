@@ -94,10 +94,11 @@ export async function POST(req: Request) {
       try {
         await webpush.sendNotification(sub, notificationPayload);
         sentCount++;
-      } catch (err: any) {
-        logger.error('NotifyCommentAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: err.statusCode }, err);
+      } catch (err: unknown) {
+        const webPushError = err as { statusCode?: number };
+        logger.error('NotifyCommentAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: webPushError.statusCode }, err as Error);
         // If subscription is expired or invalid, remove it
-        if (err.statusCode === 410 || err.statusCode === 404) {
+        if (webPushError.statusCode === 410 || webPushError.statusCode === 404) {
           await doc.ref.delete();
           logger.info('NotifyCommentAPI.POST', 'Deleted expired subscription', { docId: doc.id });
         }
@@ -108,8 +109,8 @@ export async function POST(req: Request) {
 
     logger.info('NotifyCommentAPI.POST', 'Push notifications process completed', { sentCount, reportAuthorUid });
     return NextResponse.json({ success: true, sentCount });
-  } catch (error: any) {
-    logger.error('NotifyCommentAPI.POST', 'Notify Comment Error', {}, error);
+  } catch (error: unknown) {
+    logger.error('NotifyCommentAPI.POST', 'Notify Comment Error', {}, error as Error);
     return NextResponse.json({ error: 'Failed to process push notification' }, { status: 500 });
   }
 }

@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
     logger.info('ApartmentIndexingAPI.POST', 'Successfully requested Google Indexing for apartment UGC', { apartmentName, targetUrl, result });
     
     return NextResponse.json(result, { status: 200 });
-  } catch (error: any) {
-    logger.error('ApartmentIndexingAPI.POST', 'Error during Google Indexing request', {}, error);
+  } catch (error: unknown) {
+    logger.error('ApartmentIndexingAPI.POST', 'Error during Google Indexing request', {}, error as Error);
     return NextResponse.json(
       { success: false, error: 'Failed to request indexing' },
       { status: 500 }
