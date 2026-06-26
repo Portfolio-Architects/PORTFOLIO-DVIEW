@@ -246,10 +246,10 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       } else {
         throw new Error(data.error || 'Unknown error');
       }
-    } catch (e: any) {
+    } catch (e) {
       if (mountedRef.current) {
         logger.error('AdminPage', 'Sync error', undefined, e);
-        alert('동기화 중 오류가 발생했습니다: ' + e.message);
+        alert('동기화 중 오류가 발생했습니다: ' + (e instanceof Error ? e.message : String(e)));
       }
     } finally {
       if (mountedRef.current) {
@@ -272,10 +272,10 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       } else {
         throw new Error(data.error || 'Unknown error');
       }
-    } catch (e: any) {
+    } catch (e) {
       if (mountedRef.current) {
         logger.error('AdminPage', 'Notice sync error', undefined, e);
-        alert('소식 동기화 중 오류가 발생했습니다: ' + e.message);
+        alert('소식 동기화 중 오류가 발생했습니다: ' + (e instanceof Error ? e.message : String(e)));
       }
     } finally {
       if (mountedRef.current) {
@@ -316,10 +316,10 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       }
       
       alert(`리포트 동기화 완료!\n- 동기화된 리포트: ${totalUpdated}건`);
-    } catch (e: any) {
+    } catch (e) {
       if (mountedRef.current) {
         logger.error('AdminPage', 'Reports sync error', undefined, e);
-        alert('리포트 동기화 중 오류가 발생했습니다: ' + e.message);
+        alert('리포트 동기화 중 오류가 발생했습니다: ' + (e instanceof Error ? e.message : String(e)));
       }
     } finally {
       if (mountedRef.current) {
@@ -368,10 +368,10 @@ const AdminDashboard = React.memo(function AdminDashboard() {
         return next;
       });
       alert('Google Sheets 데이터를 성공적으로 가져왔습니다!\n변경 사항을 저장하려면 하단의 "저장하기" 버튼을 눌러주세요.');
-    } catch (e: any) {
+    } catch (e) {
       if (mountedRef.current) {
         logger.error('AdminPage', 'Sheets sync error', undefined, e);
-        alert('동기화 중 오류가 발생했습니다: ' + e.message);
+        alert('동기화 중 오류가 발생했습니다: ' + (e instanceof Error ? e.message : String(e)));
       }
     } finally {
       if (mountedRef.current) {
