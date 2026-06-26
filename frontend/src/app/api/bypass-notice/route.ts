@@ -132,8 +132,9 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       },
     });
-  } catch (error: any) {
-    logger.error('BypassNoticeAPI.GET', 'Bypass redirect error', {}, error as Error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('BypassNoticeAPI.GET', 'Bypass redirect error', {}, err);
     return new NextResponse('Bypass redirect error occurred', { status: 500 });
   }
 }

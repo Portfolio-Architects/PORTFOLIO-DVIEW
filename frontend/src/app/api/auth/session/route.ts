@@ -12,7 +12,7 @@ const SessionInputSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    let rawBody: any;
+    let rawBody: unknown;
     try {
       const text = await request.text();
       if (!text.trim()) {
@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
 
     logger.info('SessionAPI.POST', 'Session cookie created successfully');
     return response;
-  } catch (error) {
-    logger.error('SessionAPI.POST', 'Cookie creation failed', {}, error as Error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('SessionAPI.POST', 'Cookie creation failed', {}, err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

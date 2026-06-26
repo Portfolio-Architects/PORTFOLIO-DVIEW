@@ -12,7 +12,7 @@ const ApartmentsSyncInputSchema = z.object({
   updates: z.array(z.object({
     ticker: z.string().optional(),
     name: z.string().optional(),
-    updates: z.record(z.string(), z.any()),
+    updates: z.record(z.string(), z.unknown()),
   })).optional().default([]),
   adds: z.array(z.object({
     name: z.string(),
@@ -42,9 +42,10 @@ async function runWithRetry<T>(
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       logger.warn('ApartmentsSyncAPI.runWithRetry', `Attempt ${i + 1}/${retries} failed for action: ${actionName}`, {
-        error: err?.message || String(err)
+        error: errMsg
       });
       if (i === retries - 1) throw err;
       
@@ -220,12 +221,13 @@ export async function POST(req: NextRequest) {
       }),
       timeoutPromise,
     ]);
-  } catch (error: any) {
-    logger.error('ApartmentsSyncAPI.POST', 'Google Sheets Sync Error', {}, error as Error);
-    if (error?.message === 'Apartment sync execution timed out') {
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('ApartmentsSyncAPI.POST', 'Google Sheets Sync Error', {}, err);
+    if (err.message === 'Apartment sync execution timed out') {
       return NextResponse.json({ error: 'Gateway Timeout: Google Sheets sync took too long' }, { status: 504 });
     }
-    return NextResponse.json({ error: 'Failed to sync apartments data', message: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to sync apartments data', message: err.message }, { status: 500 });
   }
 }
 // Force Turbopack recompile
