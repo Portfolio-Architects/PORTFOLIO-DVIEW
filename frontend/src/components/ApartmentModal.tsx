@@ -467,8 +467,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
     };
 
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadAptModalChunks, { timeout: 2000 });
+      if (window.requestIdleCallback) {
+        idleId = window.requestIdleCallback(preloadAptModalChunks, { timeout: 2000 });
       } else {
         timerId = setTimeout(preloadAptModalChunks, 1000);
       }
@@ -476,8 +476,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
     return () => {
       active = false;
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       if (timerId !== null) {
         clearTimeout(timerId);
@@ -1135,16 +1135,16 @@ const FieldReportModal = React.memo(function FieldReportModal({
     let idleId: number | null = null;
     let timerId: NodeJS.Timeout | null = null;
 
-    if ('requestIdleCallback' in window) {
-      idleId = (window as any).requestIdleCallback(runCalculation);
+    if (window.requestIdleCallback) {
+      idleId = window.requestIdleCallback(runCalculation);
     } else {
       timerId = setTimeout(runCalculation, 50);
     }
 
     return () => {
       active = false;
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       if (timerId !== null) {
         clearTimeout(timerId);

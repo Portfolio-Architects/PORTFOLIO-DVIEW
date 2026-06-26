@@ -43,8 +43,8 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     };
 
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
+      if (window.requestIdleCallback) {
+        idleId = window.requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
       } else {
         if (preloadTimeoutRef.current) {
           clearTimeout(preloadTimeoutRef.current);
@@ -59,8 +59,8 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
 
     return () => {
       isMounted = false;
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       if (preloadTimeoutRef.current) {
         clearTimeout(preloadTimeoutRef.current);
