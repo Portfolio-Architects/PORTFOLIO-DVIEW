@@ -63,7 +63,6 @@ import {
   ChevronRight,
   ChevronLeft,
   MessageSquare,
-  Building2,
   Compass,
   Shield,
   Calculator,
@@ -1694,37 +1693,26 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         subtitleLight="실시간 실거래 분석과 입지 점수로 보는 동탄의 오늘"
         rightContent={
           <div className="hidden sm:flex items-center gap-2">
-
-
-            {onOpenAdModal && (
-              <button
-                onClick={onOpenAdModal}
-                className="hidden md:flex px-3 py-1.5 bg-body hover:bg-body/80 text-secondary text-[13px] font-bold rounded-[8px] transition-colors items-center gap-1.5"
-              >
-                <MessageSquare size={14} />
-                광고/제휴 문의
-              </button>
-            )}
           </div>
         }
         rightSideContent={
           <button 
             type="button"
-            onClick={onOpenAdModal}
-            aria-label="광고 배너: 동탄 전문 중개 파트너 제휴 모집 상세 보기"
-            className="flex items-center text-left gap-4 shrink-0 w-[320px] h-[80px] px-5 bg-gradient-to-br from-teal-500/8 to-emerald-500/3 dark:from-[#0d9488]/10 dark:to-emerald-950/5 border border-[#0d9488]/20 hover:border-[#0d9488]/45 rounded-2xl shadow-[0_4px_20px_rgba(13,148,136,0.03)] hover:shadow-[0_6px_24px_rgba(13,148,136,0.08)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+            onClick={() => window.open('https://yeyak.hscity.go.kr/', '_blank', 'noopener,noreferrer')}
+            aria-label="화성시 2026년 시민공무원 AI 공모전 공고 바로가기"
+            className="flex items-center text-left gap-4 shrink-0 w-[320px] h-[80px] px-5 bg-gradient-to-br from-emerald-500/8 to-teal-500/3 dark:from-emerald-950/10 dark:to-teal-950/5 border border-emerald-500/20 hover:border-emerald-500/45 rounded-2xl shadow-[0_4px_20px_rgba(16,185,129,0.03)] hover:shadow-[0_6px_24px_rgba(16,185,129,0.08)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/15 transition-all" />
-            <div className="w-10 h-10 bg-teal-50 dark:bg-[#0d9488]/10 text-[#0d9488] dark:text-[#00d29d] rounded-xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-              <Building2 size={20} />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all" />
+            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-[#00d29d] rounded-xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
+              <Sparkles size={20} />
             </div>
             <div className="flex flex-col gap-0.5 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-extrabold text-[#0d9488] dark:text-[#00d29d] bg-teal-500/10 px-2 py-0.5 rounded-[6px] tracking-wider uppercase">제휴 모집</span>
-                <span className="text-[13px] font-extrabold text-primary tracking-tight truncate">동탄 전문 중개 파트너</span>
+                <span className="text-[10px] font-extrabold text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-[6px] tracking-wider uppercase">공모전 공고</span>
+                <span className="text-[13px] font-extrabold text-primary tracking-tight truncate">2026 시민·공무원 AI 공모전</span>
               </div>
-              <span className="text-[11.5px] text-secondary font-bold group-hover:text-[#0d9488] dark:group-hover:text-[#00d29d] transition-colors leading-snug">
-                디뷰에서 귀사의 중개소를 소개해보세요 ➔
+              <span className="text-[11px] text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-[#00d29d] transition-colors leading-snug">
+                시민 편익을 위한 AI 솔루션 공고 ➔
               </span>
             </div>
           </button>
