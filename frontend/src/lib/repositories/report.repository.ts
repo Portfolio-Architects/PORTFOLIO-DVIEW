@@ -18,6 +18,25 @@ const ReportSpecsSchema = z.object({
 }).passthrough();
 import { throttle } from '@/lib/utils/firestoreThrottle';
 
+// Module-level cache for dynamic firebaseAdmin import
+let cachedAdminDb: any = null;
+let isAdminDbLoaded = false;
+
+async function getAdminDb(): Promise<any> {
+  if (typeof window === 'undefined') {
+    if (isAdminDbLoaded) return cachedAdminDb;
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      cachedAdminDb = adminDb || null;
+    } catch (err) {
+      logger.warn('ReportRepository.getAdminDb', 'Failed to dynamically import @/lib/firebaseAdmin', {}, err as Error);
+      cachedAdminDb = null;
+    }
+    isAdminDbLoaded = true;
+    return cachedAdminDb;
+  }
+  return null;
+}
 const ReportInfraSchema = z.object({
   gateText: z.string().default(''),
   gateImgs: z.array(z.string()).optional(),
@@ -159,14 +178,14 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
 }
 
 export async function getFullReport(reportId: string): Promise<FieldReportData | null> {
-  let rawReport: any = null;
+  let rawReport: Record<string, any> | null = null;
 
   if (typeof window === 'undefined') {
     try {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (adminDb) {
         const docRef = adminDb.collection('scoutingReports').doc(reportId);
-        const docSnap = await throttle(() => docRef.get());
+        const docSnap = await throttle<any>(() => docRef.get());
         if (!docSnap.exists) return null;
 
         const data = docSnap.data();
@@ -223,10 +242,10 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     return {
       ...rawReport,
       ...parsed.data
-    };
+    } as FieldReportData;
   } else {
     logger.warn('ReportRepository.getFullReport', 'Zod validation failed, using raw fallback', { reportId }, parsed.error);
-    return rawReport;
+    return rawReport as FieldReportData;
   }
 }
 
@@ -235,13 +254,13 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
  * Used to resolve stub reports when the user clicks an apartment that isn't in the top 30 recent reports.
  */
 export async function getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
-  let rawReport: any = null;
+  let rawReport: Record<string, any> | null = null;
 
   if (typeof window === 'undefined') {
     try {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (adminDb) {
-        const querySnapshot = await throttle(() => adminDb.collection('scoutingReports')
+        const querySnapshot = await throttle<any>(() => adminDb.collection('scoutingReports')
           .where('apartmentName', '==', apartmentName)
           .limit(1)
           .get());
@@ -302,10 +321,10 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
     return {
       ...rawReport,
       ...parsed.data
-    };
+    } as FieldReportData;
   } else {
     logger.warn('ReportRepository.getFullReportByApartmentName', 'Zod validation failed, using raw fallback', { apartmentName }, parsed.error);
-    return rawReport;
+    return rawReport as FieldReportData;
   }
 }
 
