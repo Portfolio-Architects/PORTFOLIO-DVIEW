@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 742)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 743)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -67,6 +67,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [sitemap.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/sitemap.ts) 내에서 아파트 시 요약 데이터를 역직렬화하는 `readJsonFileCached`의 제네릭 매개변수를 `Record<string, AptTxSummary>` 정형 타입으로 구체화하여 dynamic any를 배제했습니다.
   - 임장 보고서의 썸네일/이미지 리스트 파싱 루프 내의 `img: any` 타입을 `{ url?: string }[]` 구조적 타입 단정으로 격상하여 dynamic any 타입을 제거했습니다.
   - 사이트맵 개별 엔트리를 구성하는 `routeData`의 형식을 `MetadataRoute.Sitemap[number] & { images?: string[] }` intersection 타입으로 명시적으로 선언함으로써, Next.js sitemap 기본 명세에 `images` 필드를 유연하게 통합하고 `as any` 캐스팅을 전면 걷어냈습니다.
+- **API Routes Body Parsing Type Safety Optimization (Phase 743)**:
+  - [api/report-view/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/report-view/route.ts) 및 [api/subscribe/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/subscribe/route.ts) 내에서 HTTP POST payload 데이터를 JSON 파싱하여 할당하는 임시 변수 `rawBody: any` 타입을 `rawBody: unknown`으로 변경하여 runtime injection 위험성을 완화하고 Zod parse 안전성을 극대화했습니다.
+  - [api/subscribe/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/subscribe/route.ts) 내 전체 예외 포착 블록의 `catch (error: any)` 선언을 `catch (error: unknown)` 타입으로 마이그레이션하여, API 예외 흐름 상의 implicit any 캐스팅 구조를 완전히 정형화했습니다.
 
 ---
 
