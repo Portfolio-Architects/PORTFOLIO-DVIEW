@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 744)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 745)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -73,6 +73,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **New High Push Notifications Type Safety Optimization (Phase 744)**:
   - [api/push/notify-new-high/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/push/notify-new-high/route.ts) 내에서 최근 신고가 거래 내역을 적적 및 정렬하는 `newHighs: any[]` 배열을 구체적인 `NewHighItem[]` 타입으로 선언하여 dynamic any를 배제했습니다.
   - webpush 알림 전송 오류를 잡아 처리하는 catch 절의 `err: any` 및 API 핸들러의 catch 절 `error: any` 구문을 `unknown` 타입으로 일관되게 격상하고, statusCode 속성 추출 시 가딩(`err as { statusCode?: number }`) 처리를 추가하여 컴파일 무결성을 확보했습니다.
+- **Push Subscription Route Type Safety Optimization (Phase 745)**:
+  - [api/push/subscribe/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/push/subscribe/route.ts) 내에서 Firestore 저장을 위한 `updateData: any` 임시 객체를 Zod 스키마 스펙 및 firebase-admin 타입에 부합하도록 구조화된 `updateData: { subscription: z.infer<typeof PushSubscriptionSchema>; uid: string | null; updatedAt: string; apts?: admin.firestore.FieldValue }` 정형 타입으로 구체화하여 dynamic any를 제거했습니다.
+  - POST 및 GET 핸들러의 예외 처리 catch 블록 내 `catch (error: any)` 구문을 `catch (error: unknown)`으로 변경하고, 로거로 에러 기록 시 `error as Error` 타입 단정을 통해 안전하게 출력하도록 보강하여 타입 무결성을 극대화했습니다.
 
 ---
 
