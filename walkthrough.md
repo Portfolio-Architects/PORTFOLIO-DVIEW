@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 752)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 753)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -97,6 +97,10 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **report Prop Type Safety in InfraAnalysisSection & EducationAnalysisSection (Phase 752)**:
   - [components/apartment-modal/InfraAnalysisSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/InfraAnalysisSection.tsx) 내 props `report: any`를 `FieldReportData` 정형 타입으로 마이그레이션했습니다.
   - [components/apartment-modal/EducationAnalysisSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/EducationAnalysisSection.tsx) 내 props `report: any` 및 로컬 variables `elements: any[]`를 각각 `FieldReportData` 및 `Array<{ "@type": string; name: string; value: string }>` 정형 타입으로 교체했습니다.
+- **Explicit any Refactoring in Modal Subsections (Phase 753)**:
+  - [components/apartment-modal/ChildcareDetailSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/ChildcareDetailSection.tsx) 내에서 사용되던 JSON-LD용 임시 배열 `elements: any[]`를 `Array<{ "@type": string; name: string; value: string }>` 정형 타입 배열로 변경했습니다.
+  - [components/apartment-modal/TransactionChartSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/TransactionChartSection.tsx) 내 `getEokPrice`의 `tx: any` 인자 타입을 `TransactionRecord` 타입으로 구체화했습니다.
+  - [components/apartment-modal/TransactionSummaryMetrics.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx) 내 JSON-LD용 배열 `jsonLdElements: any[]`를 `Array<{ "@type": string; name: string; value: string }>` 타입으로 리팩토링했습니다.
 
 ---
 
