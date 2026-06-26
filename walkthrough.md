@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 751)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 752)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -94,6 +94,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **report Prop Type Safety in ScoutingReportDetailSection & ApartmentSpecsSection (Phase 751)**:
   - [components/apartment-modal/ScoutingReportDetailSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/ScoutingReportDetailSection.tsx) 내에서 단지 임장 상세 정보를 렌더링하는 `report` prop 타입을 기존 `any`에서 `FieldReportData` 정형 타입으로 변경하여 dynamic any를 제거했습니다.
   - [components/apartment-modal/ApartmentSpecsSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/ApartmentSpecsSection.tsx) 내 단지 기본 스펙 정보를 렌더링하는 `report` prop 타입 또한 `FieldReportData` 타입으로 변경하여 타입 무결성을 다졌습니다.
+- **report Prop Type Safety in InfraAnalysisSection & EducationAnalysisSection (Phase 752)**:
+  - [components/apartment-modal/InfraAnalysisSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/InfraAnalysisSection.tsx) 내 props `report: any`를 `FieldReportData` 정형 타입으로 마이그레이션했습니다.
+  - [components/apartment-modal/EducationAnalysisSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/EducationAnalysisSection.tsx) 내 props `report: any` 및 로컬 variables `elements: any[]`를 각각 `FieldReportData` 및 `Array<{ "@type": string; name: string; value: string }>` 정형 타입으로 교체했습니다.
 
 ---
 
