@@ -4,8 +4,8 @@
 ---
 
 ## 1. Executive Summary (프로젝트 요약)
-- **비즈니스 목적 함수 (Core KPI)**: 30~40대 동탄 실수요자 및 매수 대기자에게 특정 아파트 단지의 합리적인 매매가(적정 가치 평가) 정보와 **전세 사기 예방을 위한 안전 진단 데이터**를 제공하고, 화성시 공공데이터와 AI 분석을 결합하여 **시민 주거 안정 및 재산 보호 편익을 극대화**하는 순수 공익 서비스로서의 가치를 구현.
-- **디자인 목적 함수 (Design Concept)**: 무겁고 딱딱할 수 있는 부동산/금융 데이터를 사용자가 거부감 없이 친근하게 탐색할 수 있도록, 플랫폼 전반의 UI/UX 시각적 언어를 **'파스텔톤 기반의 귀여운(Cute) 컨셉'**으로 선언하고 이를 설계 지표로 삼음. 또한, 시각적 피로를 방지하기 위해 상업 광고는 물론 공익 배너 영역까지 배제한 **'배너리스(Bannerless) & 제로클러터(Zero-Clutter) UX'**를 구현함.
+- **비즈니스 목적 함수 (Core KPI)**: 30~40대 동탄 실수요자 및 매수 대기자에게 특정 아파트 단지의 합리적인 매매가(적정 가치 평가) 정보를 제공하고, 화성시 공공데이터와 AI 분석 기반의 **시민 밀착형 공익 정책 팁을 연계하여 시민 편익을 극대화**하는 공익 서비스로서의 가치를 구현.
+- **디자인 목적 함수 (Design Concept)**: 무겁고 딱딱할 수 있는 부동산/금융 데이터를 사용자가 거부감 없이 친근하게 탐색할 수 있도록, 플랫폼 전반의 UI/UX 시각적 언어를 **'파스텔톤 기반의 귀여운(Cute) 컨셉'**으로 선언하고 이를 설계 지표로 삼음.
 - **부동산 임장 및 밸류에이션 리포팅 허브**: 동탄 지역을 중심으로 실거래가, 아파트 단지 정보, 유저의 현장 검증(임장) 데이터를 통합하는 종합 부동산 인텔리전스 플랫폼.
 - **실시간 데이터 동기화 파이프라인**: Google Sheets(마스터 데이터) 및 Firebase Firestore 이중 사용.
 - **Facade 및 Repository 패턴**: Data Layer, Service Layer, 비즈니스 로직(Facade) 분리 아키텍처.
@@ -232,7 +232,7 @@ Golden ratio established from Splash Screen parameters on a standard `200x200` v
 - [ ] **3단계: 성숙기 (콘텍스트 타겟팅 및 B2B CPA 광고 가동)**: 조회하는 아파트의 연식/학군 정보에 맞춰 학원, 소아과, 인테리어 등 지역 소상공인 광고를 1:1 매칭하고 상담/결제 전환 수수료를 쉐어하는 CPA/CPS 비즈니스 검증.
 
 #### 🚀 1. 콜드 스타트 극복 및 B2C 트래픽 생성 전략 (Growth Hacking Action Plan)
-- [ ] **하이퍼 로컬 커뮤니티 침투**: DTDLS의 데이터 인사이트(전세가율 급변동, 갭투자 분석 등)를 캡처하여 네이버 부동산 카페 및 동탄 지역 커뮤니티에 정보성 콘텐츠 배포 (유입 링크 포함).
+- [ ] **하이퍼 로컬 커뮤니티 침투**: DTDLS의 데이터 인사이트(전세가율 급변동, 매매-전세 차액 분석 등)를 캡처하여 네이버 부동산 카페 및 동탄 지역 커뮤니티에 정보성 콘텐츠 배포 (유입 링크 포함).
 - [x] **프로그래매틱 SEO (Programmatic SEO) 구축**: 아파트 단지별 고유 동적 라우팅 페이지(`/apartment/[id]`) 생성 및 Next.js SSR/SSG 기반의 동적 `<title>`, `<meta>` 태그, `sitemap.xml` 연동.
 - [ ] **카카오톡 공유 최적화 (Dynamic OG Images)**: Vercel의 `@vercel/og`를 활용해 카카오톡 공유 시 '아파트명 + 현재가 + 저/고평가 배지'가 그려진 맞춤형 썸네일 자동 생성 및 공유 버튼 배치.
 - [ ] **AI 자동화 콘텐츠 생산 파이프라인**: 매일 아침 Portfolio AI가 전날 거래 데이터를 바탕으로 부동산 시황 브리핑을 자동 작성하고, 트위터/블로그 등에 자동 포스팅하는 Cron 작업 구축.
@@ -258,6 +258,8 @@ Golden ratio established from Splash Screen parameters on a standard `200x200` v
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-06-26 | **실시간 한줄평 피드 위젯 React Hook 순서 규칙 위반 해결 (AptStoriesWidget Rules of Hooks Order Fix - Phase 680)** | 1) [AptStoriesWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/AptStoriesWidget.tsx) 컴포넌트 내에서 `if (loading)` 조기 리턴 분기문 아래에 선언되어 있어 렌더 상태에 따라 훅의 개수/순서가 달라지던 `useMemo` 훅을 모든 조기 리턴 분기문보다 물리적으로 위에 배치하도록 선언 위치를 교정했습니다. 2) 이를 통해 Next.js Turbopack HMR 및 런타임 상황에서 발생하던 React 훅 순서 예외(`Rendered more hooks than during the previous render`)를 완벽히 격리 해결했습니다. |
+| 2026-06-26 | **DVIEW 100% 공익 솔루션 피벗 및 전면 리브랜딩 (DVIEW 100% Civic Public Rebranding - Phase 679)** | 1) 기존 '갭투자' 관련 사적 지향적 투자 어휘를 화성시 2026 시민공무원 AI 공모전 공익 목적에 부합하도록 '주거 안심 및 전세가율', '실구매 부담(매매-전세 차액)' 등으로 전면 치환했습니다. 2) 이 치환은 [manifest.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/manifest.ts), [page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/page.tsx), [AdvancedValuationMetrics.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AdvancedValuationMetrics.tsx), [AptFitFinder.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptFitFinder.tsx) 소스 코드 전반 및 테스트 스위트 전반에 정밀하게 수행되었습니다. 3) `GapInvestmentExplorer.test.tsx` 내 UI 텍스트 어설션을 안심 큐레이션 헤더에 맞추어 개편하여 Jest 유닛 테스트와 컴파일 무결성을 복구 및 100% 완료했습니다. |
 | 2026-06-26 | **관리자 CMS 사이드바 및 라운지 모달 백드롭 웹 접근성(WAI-ARIA) 강화 (Admin Sidebar & Lounge Modal Backdrop Accessibility Refactoring - Phase 678)** | 1) [layout.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/layout.tsx) 내 모바일 관리자 사이드바 배경 `div onClick` 영역을 네이티브 `<button type="button">` 태그로 리팩토링하고, `aria-label="사이드바 닫기"` 속성과 초점 차단 스타일(`focus:outline-none`)을 적용했습니다. 2) [LoungeModalBackdrop.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeModalBackdrop.tsx) 내 최외각 래퍼의 비표준 `onClick` 속성을 제거하고, 내부 투명 백드롭 `div` 클릭 영역을 네이티브 `<button type="button">` 태그로 리팩토링 및 `aria-label="모달 닫기"`를 부여하여 중첩 interactive 표준 오류를 완벽히 해결했습니다. |
 | 2026-06-26 | **비교 분석 모달 및 플로팅 사용자 프로필 모달 백드롭 웹 접근성(WAI-ARIA) 강화 (AptCompareModal & FloatingUserBar Backdrops Accessibility Refactoring - Phase 677)** | 1) [AptCompareModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptCompareModal.tsx) 내 비교 모달 배경부 `div` 클릭 영역을 네이티브 `<button type="button">` 태그로 리팩토링하고, `aria-label="비교 모달 닫기"` 속성과 초점 방해 차단 스타일(`focus:outline-none`)을 주입했습니다. 2) [FloatingUserBar.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/FloatingUserBar.tsx) 내 프로필 설정 모달 배경부 `div` 클릭 영역을 네이티브 `<button type="button">` 태그로 리팩토링하고, `aria-label="프로필 설정 모달 닫기"` 속성을 부여하여 모달 닫기 접근성 및 Axe-Core 웹 규격 무결성을 달성했습니다. |
 | 2026-06-26 | **매크로 대시보드 화면 내 지표 카드 및 모바일 바텀시트 백드롭 웹 접근성(WAI-ARIA) 강화 (MacroDashboardClient Cards & Backdrop Accessibility Refactoring - Phase 676)** | 1) [MacroDashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/MacroDashboardClient.tsx) 내 `InfoBox` 컴포넌트의 최외각 래퍼를 동적 `button`/`div` 태그로 리팩토링하고, 클릭이 가능한 경우에는 키보드 초점 스타일(`focus-visible:ring-2 focus-visible:ring-toss-blue`) 및 `aria-label` 상세 낭독 명세를 동적 생성하도록 처리했습니다. 2) 동일 파일 내 모바일 바텀시트 모달 백드롭 `div` 클릭 영역을 네이티브 `<button type="button">` 태그로 리팩토링하고, `aria-label="바텀시트 닫기"` 속성과 초점 방해 차단 스타일(`focus:outline-none`)을 결합하여 Axe-Core 기준 웹 접근성 무결성을 달성했습니다. |

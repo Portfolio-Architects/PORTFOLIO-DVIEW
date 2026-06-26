@@ -59,25 +59,6 @@ export default function AptStoriesWidget() {
     };
   }, []);
 
-  const handleCardClick = (aptName: string) => {
-    if (!aptName) return;
-    // Redirect to home page with apt hash to open detail modal
-    window.location.assign(`/#apt=${encodeURIComponent(aptName)}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="w-full bg-surface border border-border/60 rounded-3xl p-5 mb-4 animate-pulse">
-        <div className="h-4 bg-body/40 rounded w-1/4 mb-4"></div>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="min-w-[280px] w-[280px] h-[100px] bg-body/20 rounded-2xl shrink-0"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const jsonLd = useMemo(() => {
     if (stories.length === 0) return null;
     
@@ -106,6 +87,25 @@ export default function AptStoriesWidget() {
       }))
     };
   }, [stories]);
+
+  const handleCardClick = (aptName: string) => {
+    if (!aptName) return;
+    // Redirect to home page with apt hash to open detail modal
+    window.location.assign(`/#apt=${encodeURIComponent(aptName)}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full bg-surface border border-border/60 rounded-3xl p-5 mb-4 animate-pulse">
+        <div className="h-4 bg-body/40 rounded w-1/4 mb-4"></div>
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="min-w-[280px] w-[280px] h-[100px] bg-body/20 rounded-2xl shrink-0"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (stories.length === 0) {
     return null; // Don't render widget if there are no stories yet
