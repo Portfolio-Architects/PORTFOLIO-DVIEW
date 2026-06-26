@@ -7,7 +7,7 @@ import { serverLruCache } from "@/lib/utils/server/lruCache";
  * Simple in-memory fallback cache when Redis is unavailable or timeouts occur.
  */
 class MemoryCacheFallback {
-  private cache = new Map<string, { value: any; expiry: number }>();
+  private cache = new Map<string, { value: unknown; expiry: number }>();
 
   async get<T>(key: string): Promise<T | null> {
     const item = this.cache.get(key);
@@ -19,7 +19,7 @@ class MemoryCacheFallback {
     return item.value as T;
   }
 
-  async set(key: string, value: any, options?: { ex?: number; px?: number }): Promise<string> {
+  async set(key: string, value: unknown, options?: { ex?: number; px?: number }): Promise<string> {
     let ttlMs = 24 * 60 * 60 * 1000; // default 1 day TTL
     if (options?.ex) ttlMs = options.ex * 1000;
     if (options?.px) ttlMs = options.px;
@@ -49,12 +49,12 @@ class MemoryCacheFallback {
     return deletedCount;
   }
 
-  async hgetall<T extends Record<string, any>>(key: string): Promise<T | null> {
+  async hgetall<T extends Record<string, unknown>>(key: string): Promise<T | null> {
     return this.get<T>(key);
   }
 
-  async hset(key: string, value: Record<string, any>): Promise<number> {
-    const current = (await this.get<Record<string, any>>(key)) || {};
+  async hset(key: string, value: Record<string, unknown>): Promise<number> {
+    const current = (await this.get<Record<string, unknown>>(key)) || {};
     const nextVal = { ...current, ...value };
     await this.set(key, nextVal);
     return Object.keys(value).length;
@@ -72,7 +72,7 @@ class MemoryCacheFallback {
 const REDIS_TIMEOUT_MS = 1500;
 
 function withTimeout<T>(promise: Promise<T>, ms: number = REDIS_TIMEOUT_MS): Promise<T> {
-  let timeoutId: any;
+  let timeoutId: ReturnType<typeof setTimeout>;
   const timeoutPromise = new Promise<T>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error(`Upstash Redis operation timed out after ${ms}ms`)), ms);
   });
@@ -106,8 +106,9 @@ export class ResilientRedisWrapper {
       if (cached !== null && cached !== undefined) {
         return cached as T;
       }
-    } catch (e: any) {
-      logger.warn("ResilientRedis.get.L1", "L1 cache read failed", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.get.L1", "L1 cache read failed", { key, error: msg });
     }
 
     if (!this.client) return this.fallback.get<T>(key);
@@ -117,26 +118,33 @@ export class ResilientRedisWrapper {
         serverLruCache.set(key, val, 10000);
       }
       return val;
-    } catch (e: any) {
-      logger.warn("ResilientRedis.get", "Upstash Redis get failed or timed out, falling back to Memory Cache", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.get", "Upstash Redis get failed or timed out, falling back to Memory Cache", { key, error: msg });
       return this.fallback.get<T>(key);
     }
   }
 
-  async set(key: string, value: any, options?: any): Promise<any> {
+  async set(
+    key: string, 
+    value: unknown, 
+    options?: { ex?: number; px?: number; nx?: boolean; xx?: boolean }
+  ): Promise<string | null> {
     try {
       serverLruCache.delete(key);
-    } catch (e: any) {
-      logger.warn("ResilientRedis.set.L1", "L1 cache delete failed", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.set.L1", "L1 cache delete failed", { key, error: msg });
     }
 
     if (!this.client) return this.fallback.set(key, value, options);
     try {
-      const res = await withTimeout(this.client.set(key, value, options));
+      const res = await withTimeout(this.client.set(key, value as any, options as any));
       serverLruCache.set(key, value, 10000);
-      return res;
-    } catch (e: any) {
-      logger.warn("ResilientRedis.set", "Upstash Redis set failed or timed out, falling back to Memory Cache", { key, error: e.message });
+      return res as string | null;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.set", "Upstash Redis set failed or timed out, falling back to Memory Cache", { key, error: msg });
       return this.fallback.set(key, value, options);
     }
   }
@@ -144,15 +152,17 @@ export class ResilientRedisWrapper {
   async incr(key: string): Promise<number> {
     try {
       serverLruCache.delete(key);
-    } catch (e: any) {
-      logger.warn("ResilientRedis.incr.L1", "L1 cache delete failed", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.incr.L1", "L1 cache delete failed", { key, error: msg });
     }
 
     if (!this.client) return this.fallback.incr(key);
     try {
       return await withTimeout(this.client.incr(key));
-    } catch (e: any) {
-      logger.warn("ResilientRedis.incr", "Upstash Redis incr failed or timed out, falling back to Memory Cache", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.incr", "Upstash Redis incr failed or timed out, falling back to Memory Cache", { key, error: msg });
       return this.fallback.incr(key);
     }
   }
@@ -160,27 +170,30 @@ export class ResilientRedisWrapper {
   async del(...keys: string[]): Promise<number> {
     try {
       keys.forEach((k) => serverLruCache.delete(k));
-    } catch (e: any) {
-      logger.warn("ResilientRedis.del.L1", "L1 cache delete failed", { keys, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.del.L1", "L1 cache delete failed", { keys, error: msg });
     }
 
     if (!this.client) return this.fallback.del(...keys);
     try {
       return await withTimeout(this.client.del(...keys));
-    } catch (e: any) {
-      logger.warn("ResilientRedis.del", "Upstash Redis del failed or timed out, falling back to Memory Cache", { keys, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.del", "Upstash Redis del failed or timed out, falling back to Memory Cache", { keys, error: msg });
       return this.fallback.del(...keys);
     }
   }
 
-  async hgetall<T extends Record<string, any>>(key: string): Promise<T | null> {
+  async hgetall<T extends Record<string, unknown>>(key: string): Promise<T | null> {
     try {
       const cached = serverLruCache.get(key);
       if (cached !== null && cached !== undefined) {
         return cached as T;
       }
-    } catch (e: any) {
-      logger.warn("ResilientRedis.hgetall.L1", "L1 cache read failed", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.hgetall.L1", "L1 cache read failed", { key, error: msg });
     }
 
     if (!this.client) return this.fallback.hgetall<T>(key);
@@ -190,24 +203,27 @@ export class ResilientRedisWrapper {
         serverLruCache.set(key, val, 10000);
       }
       return val;
-    } catch (e: any) {
-      logger.warn("ResilientRedis.hgetall", "Upstash Redis hgetall failed or timed out, falling back to Memory Cache", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.hgetall", "Upstash Redis hgetall failed or timed out, falling back to Memory Cache", { key, error: msg });
       return this.fallback.hgetall<T>(key);
     }
   }
 
-  async hset(key: string, value: Record<string, any>): Promise<any> {
+  async hset(key: string, value: Record<string, unknown>): Promise<number> {
     try {
       serverLruCache.delete(key);
-    } catch (e: any) {
-      logger.warn("ResilientRedis.hset.L1", "L1 cache delete failed", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.hset.L1", "L1 cache delete failed", { key, error: msg });
     }
 
     if (!this.client) return this.fallback.hset(key, value);
     try {
       return await withTimeout(this.client.hset(key, value));
-    } catch (e: any) {
-      logger.warn("ResilientRedis.hset", "Upstash Redis hset failed or timed out, falling back to Memory Cache", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.hset", "Upstash Redis hset failed or timed out, falling back to Memory Cache", { key, error: msg });
       return this.fallback.hset(key, value);
     }
   }
@@ -215,20 +231,22 @@ export class ResilientRedisWrapper {
   async hincrby(key: string, field: string, increment: number): Promise<number> {
     try {
       serverLruCache.delete(key);
-    } catch (e: any) {
-      logger.warn("ResilientRedis.hincrby.L1", "L1 cache delete failed", { key, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.hincrby.L1", "L1 cache delete failed", { key, error: msg });
     }
 
     if (!this.client) return this.fallback.hincrby(key, field, increment);
     try {
       return await withTimeout(this.client.hincrby(key, field, increment));
-    } catch (e: any) {
-      logger.warn("ResilientRedis.hincrby", "Upstash Redis hincrby failed or timed out, falling back to Memory Cache", { key, field, error: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn("ResilientRedis.hincrby", "Upstash Redis hincrby failed or timed out, falling back to Memory Cache", { key, field, error: msg });
       return this.fallback.hincrby(key, field, increment);
     }
   }
 
-  async hmset(key: string, value: Record<string, any>): Promise<any> {
+  async hmset(key: string, value: Record<string, unknown>): Promise<number> {
     return this.hset(key, value);
   }
 
@@ -238,16 +256,17 @@ export class ResilientRedisWrapper {
         const rawPipeline = this.client.pipeline();
         const originalExec = rawPipeline.exec.bind(rawPipeline);
         
-        (rawPipeline as any).exec = async () => {
+        (rawPipeline as unknown as { exec: () => Promise<unknown[]> }).exec = async () => {
           try {
             return await withTimeout(originalExec(), REDIS_TIMEOUT_MS);
-          } catch (e: any) {
+          } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
             logger.warn(
               "ResilientRedis.pipeline.exec",
               "Upstash Redis pipeline execution failed or timed out, returning null fallbacks",
-              { error: e.message }
+              { error: msg }
             );
-            return [null, null, null, null, null, null, null, null, null, null] as any;
+            return [null, null, null, null, null, null, null, null, null, null] as unknown[];
           }
         };
         return rawPipeline;
@@ -256,13 +275,13 @@ export class ResilientRedisWrapper {
       }
     }
     // Fallback Mock Pipeline
-    const commands: (() => Promise<any>)[] = [];
+    const commands: (() => Promise<unknown>)[] = [];
     const mockPipeline = {
       get: (key: string) => {
         commands.push(() => this.get(key));
         return mockPipeline;
       },
-      set: (key: string, value: any, options?: any) => {
+      set: (key: string, value: unknown, options?: { ex?: number; px?: number }) => {
         commands.push(() => this.set(key, value, options));
         return mockPipeline;
       },
@@ -270,11 +289,11 @@ export class ResilientRedisWrapper {
         commands.push(() => this.hgetall(key));
         return mockPipeline;
       },
-      hset: (key: string, value: Record<string, any>) => {
+      hset: (key: string, value: Record<string, unknown>) => {
         commands.push(() => this.hset(key, value));
         return mockPipeline;
       },
-      hmset: (key: string, value: Record<string, any>) => {
+      hmset: (key: string, value: Record<string, unknown>) => {
         commands.push(() => this.hmset(key, value));
         return mockPipeline;
       },
