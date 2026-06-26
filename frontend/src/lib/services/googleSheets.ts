@@ -10,6 +10,10 @@ import apartmentsByDongStatic from '../../../public/data/apartments-by-dong.json
 import { FULL_DONG_DATA } from '../dong-apartments';
 import { normalizeAptName, isSameApartment } from '../utils/apartmentMapping';
 
+declare global {
+  var _sheetsMemoryCache: Record<string, { data: unknown; timestamp: number }> | undefined;
+}
+
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
   const parts = s.split(',').map(p => parseFloat(p.trim().replace(/"/g, '')));
@@ -59,9 +63,9 @@ export const SheetApartmentSchema = z.object({
 export type SheetApartment = z.infer<typeof SheetApartmentSchema>;
 
 // In-memory cache to bypass Redis roundtrips in local/serverless environments
-const sheetsMemoryCache = (globalThis as any)._sheetsMemoryCache || {};
-if (!(globalThis as any)._sheetsMemoryCache) {
-  (globalThis as any)._sheetsMemoryCache = sheetsMemoryCache;
+const sheetsMemoryCache = globalThis._sheetsMemoryCache || {};
+if (!globalThis._sheetsMemoryCache) {
+  globalThis._sheetsMemoryCache = sheetsMemoryCache;
 }
 
 const SHEETS_CACHE_TTL = 3600; // 1 hour
@@ -77,7 +81,7 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
   if (memCached) {
     const isStale = (now - memCached.timestamp) > SHEETS_CACHE_TTL * 1000;
     if (!isStale) {
-      return memCached.data;
+      return memCached.data as string[][];
     }
   }
 
@@ -98,19 +102,19 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
                 fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
               }
               fs.writeFileSync(localCachePath, JSON.stringify({ data: freshData, timestamp: Date.now() }), 'utf-8');
-            } catch (err) {
-              logger.error('fetchCsv', `Local file cache write failed on background refresh: ${sheetName}`, undefined, err);
+            } catch (err: unknown) {
+              logger.error('fetchCsv', `Local file cache write failed on background refresh: ${sheetName}`, undefined, err instanceof Error ? err : new Error(String(err)));
             }
-          }).catch(err => {
-            logger.error('fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err);
+          }).catch((err: unknown) => {
+            logger.error('fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err instanceof Error ? err : new Error(String(err)));
           });
         }
         // Write to memory cache
         sheetsMemoryCache[cacheKey] = { data: cached.data, timestamp: cached.timestamp };
         return cached.data;
       }
-    } catch (e) {
-      logger.error('fetchCsv', `Redis read failed for sheet: ${sheetName}`, undefined, e);
+    } catch (e: unknown) {
+      logger.error('fetchCsv', `Redis read failed for sheet: ${sheetName}`, undefined, e instanceof Error ? e : new Error(String(e)));
     }
   }
 
@@ -125,25 +129,26 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
         fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
       }
       fs.writeFileSync(localCachePath, JSON.stringify({ data: freshData, timestamp: now }), 'utf-8');
-    } catch (e) {
-      logger.error('fetchCsv', `Local file cache write failed for sheet: ${sheetName}`, undefined, e);
+    } catch (e: unknown) {
+      logger.error('fetchCsv', `Local file cache write failed for sheet: ${sheetName}`, undefined, e instanceof Error ? e : new Error(String(e)));
     }
 
     if (redis) {
       try {
         await redis.set(cacheKey, { data: freshData, timestamp: now });
-      } catch (e) {
-        logger.error('fetchCsv', `Redis write failed for sheet: ${sheetName}`, undefined, e);
+      } catch (e: unknown) {
+        logger.error('fetchCsv', `Redis write failed for sheet: ${sheetName}`, undefined, e instanceof Error ? e : new Error(String(e)));
       }
     }
     return freshData;
-  } catch (error) {
-    logger.error('fetchCsv', `Live fetch failed for sheet: ${sheetName}, attempting fallback cache`, undefined, error as Error);
+  } catch (error: unknown) {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    logger.error('fetchCsv', `Live fetch failed for sheet: ${sheetName}, attempting fallback cache`, undefined, errorObj);
 
     // Fallback 1: Stale memory cache
     if (sheetsMemoryCache[cacheKey]) {
       logger.warn('fetchCsv', `Falling back to stale memory cache for sheet: ${sheetName}`);
-      return sheetsMemoryCache[cacheKey].data;
+      return sheetsMemoryCache[cacheKey].data as string[][];
     }
 
     // Fallback 2: Local file cache
@@ -153,11 +158,11 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
         const cached = JSON.parse(fileContent);
         if (cached && cached.data) {
           logger.warn('fetchCsv', `Falling back to local file cache for sheet: ${sheetName}`);
-          return cached.data;
+          return cached.data as string[][];
         }
       }
-    } catch (fileError) {
-      logger.error('fetchCsv', `Local file cache read fallback failed for sheet: ${sheetName}`, undefined, fileError as Error);
+    } catch (fileError: unknown) {
+      logger.error('fetchCsv', `Local file cache read fallback failed for sheet: ${sheetName}`, undefined, fileError instanceof Error ? fileError : new Error(String(fileError)));
     }
 
     // Fallback 3: Stale Redis cache
@@ -168,13 +173,13 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
           logger.warn('fetchCsv', `Falling back to stale Redis cache for sheet: ${sheetName}`);
           return cached.data;
         }
-      } catch (redisError) {
-        logger.error('fetchCsv', `Redis read fallback failed for sheet: ${sheetName}`, undefined, redisError as Error);
+      } catch (redisError: unknown) {
+        logger.error('fetchCsv', `Redis read fallback failed for sheet: ${sheetName}`, undefined, redisError instanceof Error ? redisError : new Error(String(redisError)));
       }
     }
 
     // Fallback 4: Return empty array
-    logger.error('fetchCsv', `No cache available for sheet: ${sheetName}. Returning empty array.`, undefined, error as Error);
+    logger.error('fetchCsv', `No cache available for sheet: ${sheetName}. Returning empty array.`, undefined, errorObj);
     return [];
   }
 }
@@ -198,11 +203,12 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
       }
       
       logger.warn('fetchWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} returned status ${response.status}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearTimeout(id);
-      const isTimeout = err?.name === 'AbortError';
+      const errorObject = err instanceof Error ? err : new Error(String(err));
+      const isTimeout = errorObject.name === 'AbortError';
       logger.warn('fetchWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} ${isTimeout ? 'TIMED OUT' : 'FAILED'}`, {
-        error: err?.message || String(err)
+        error: errorObject.message
       });
     }
     
@@ -222,8 +228,8 @@ async function fetchCsvFromGoogle(sheetName: string): Promise<string[][]> {
     const res = await fetchWithRetry(csvUrl, { next: { revalidate: 3600 } });
     const text = await res.text();
     return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
-  } catch (e) {
-    logger.error('fetchCsvFromGoogle', `Exponential Backoff retry failed fetching sheet: ${sheetName}`, undefined, e);
+  } catch (e: unknown) {
+    logger.error('fetchCsvFromGoogle', `Exponential Backoff retry failed fetching sheet: ${sheetName}`, undefined, e instanceof Error ? e : new Error(String(e)));
     throw e;
   }
 }
@@ -244,7 +250,7 @@ export async function fetchSheetTypeMap(bypassLocalCache: boolean = false): Prom
   const now = Date.now();
   const memCached = sheetsMemoryCache[cacheKey];
   if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
-    return memCached.data;
+    return memCached.data as TypeMapItem[];
   }
 
   const rows = await fetchCsv(SHEET_TABS.TYPE_MAP);
@@ -285,7 +291,11 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
   
   const memCached = sheetsMemoryCache[cacheKey];
   if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
-    return memCached.data;
+    return memCached.data as {
+      total: number;
+      dongCount: number;
+      byDong: Record<string, SheetApartment[]>;
+    };
   }
 
   const [aptRows, sboydsRows, restRows] = await Promise.all([
@@ -353,8 +363,9 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
     };
 
     // Apply coordinate corrections if specified in corrections database
-    if (coordCorrections && (coordCorrections as any)[name]) {
-      const correction = (coordCorrections as any)[name];
+    const corrections = coordCorrections as Record<string, { lat: number; lng: number }>;
+    if (corrections && corrections[name]) {
+      const correction = corrections[name];
       rawApt.lat = correction.lat;
       rawApt.lng = correction.lng;
     }
