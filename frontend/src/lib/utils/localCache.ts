@@ -20,8 +20,8 @@ export const localCache = {
       const expiry = ttlSeconds ? Date.now() + ttlSeconds * 1000 : 0;
       const item: CacheItem<T> = { value, expiry };
       localStorage.setItem(key, JSON.stringify(item));
-    } catch (e) {
-      logger.error('localCache.set', `Failed to write to localStorage for key: ${key}`, { key }, e);
+    } catch (e: unknown) {
+      logger.error('localCache.set', `Failed to write to localStorage for key: ${key}`, { key }, e instanceof Error ? e : new Error(String(e)));
     }
   },
 
@@ -34,10 +34,10 @@ export const localCache = {
       const raw = localStorage.getItem(key);
       if (!raw) return fallback;
 
-      let parsed: any;
+      let parsed: unknown;
       try {
         parsed = JSON.parse(raw);
-      } catch (e) {
+      } catch (e: unknown) {
         // Fallback for legacy format: try parsing as a direct value (not wrapped in CacheItem)
         try {
           const directParsed = JSON.parse(raw);
@@ -52,7 +52,7 @@ export const localCache = {
             this.set(key, directParsed);
             return directParsed as T;
           }
-        } catch {}
+        } catch (innerError: unknown) {}
 
         logger.warn('localCache.get', `Corrupted JSON for key: ${key}. Clearing cache.`, { key });
         localStorage.removeItem(key);
@@ -95,8 +95,8 @@ export const localCache = {
         localStorage.removeItem(key);
         return fallback;
       }
-    } catch (e) {
-      logger.error('localCache.get', `Failed to read or parse localStorage for key: ${key}`, { key }, e);
+    } catch (e: unknown) {
+      logger.error('localCache.get', `Failed to read or parse localStorage for key: ${key}`, { key }, e instanceof Error ? e : new Error(String(e)));
       return fallback;
     }
   },
@@ -108,8 +108,8 @@ export const localCache = {
     if (typeof window === 'undefined') return;
     try {
       localStorage.removeItem(key);
-    } catch (e) {
-      logger.error('localCache.remove', `Failed to remove key: ${key}`, { key }, e);
+    } catch (e: unknown) {
+      logger.error('localCache.remove', `Failed to remove key: ${key}`, { key }, e instanceof Error ? e : new Error(String(e)));
     }
   }
 };
