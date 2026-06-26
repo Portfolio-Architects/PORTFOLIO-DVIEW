@@ -85,11 +85,11 @@ export async function exportToPDF(elementId: string, filename: string = 'DVIEW_R
       filename: validated.filename
     });
     return true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('pdfExport.exportToPDF', 'Error generating PDF', {
       elementId: validated.elementId,
       filename: validated.filename,
-      error: error.message || String(error)
+      error: error instanceof Error ? error.message : String(error)
     });
     throw error;
   }

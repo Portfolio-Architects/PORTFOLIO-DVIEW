@@ -5,7 +5,7 @@
  */
 
 // XSS Defense: escape special HTML characters in JSON-LD script blocks
-export function safeJsonLd(data: Record<string, any>): { __html: string } {
+export function safeJsonLd(data: Record<string, unknown>): { __html: string } {
   const jsonString = JSON.stringify(data);
   // Prevent injection of script closing tags or other HTML breakages
   const sanitized = jsonString
