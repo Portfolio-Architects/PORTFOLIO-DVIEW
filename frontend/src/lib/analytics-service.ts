@@ -3,6 +3,11 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { redis } from '@/lib/redis';
 import { logger } from '@/lib/services/logger';
 
+interface GAReportRow {
+  dimensionValues?: { value?: string | null }[] | null;
+  metricValues?: { value?: string | null }[] | null;
+}
+
 // Keys for Redis caching
 const PUBLIC_ANALYTICS_CACHE_KEY = 'dtdls:analytics:public:lkg';
 const ADMIN_ANALYTICS_CACHE_KEY = 'dtdls:analytics:admin:lkg';
@@ -120,7 +125,7 @@ export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
             fetchPublicAnalyticsFromGA().then(freshData => {
               memoryPublicLKG = freshData;
               redis?.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
-            }).catch(err => {
+            }).catch((err: unknown) => {
               logger.error('analytics-service.getPublicAnalyticsLKG', 'Background fetch failed', {}, err);
             });
           }
@@ -139,7 +144,7 @@ export async function getPublicAnalyticsLKG(): Promise<PublicAnalyticsData> {
       await redis.set(PUBLIC_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
     }
     return freshData;
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('analytics-service.getPublicAnalyticsLKG', 'Error, serving memory fallback', {}, error);
     if (memoryPublicLKG) {
       return memoryPublicLKG; // Bypass Google API quota exhaustion under failure
@@ -237,7 +242,7 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
     ]);
 
     const dailyRows = dailyReport[0]?.rows || [];
-    const daily: AdminAnalyticsRow[] = dailyRows.map((row: any) => {
+    const daily: AdminAnalyticsRow[] = dailyRows.map((row: GAReportRow) => {
       const rawDate = row.dimensionValues?.[0]?.value || '';
       const formattedDate = rawDate.length === 8 
         ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}` 
@@ -252,7 +257,7 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
     // Process Average DAU per month
     const monthlyDauMap: Record<string, { sum: number; count: number }> = {};
     const dauRows = monthlyDauReport[0]?.rows || [];
-    dauRows.forEach((row: any) => {
+    dauRows.forEach((row: GAReportRow) => {
       const rawDate = row.dimensionValues?.[0]?.value || '';
       if (rawDate.length === 8) {
         const month = `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}`;
@@ -267,7 +272,7 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
 
     // Build Monthly Trend
     const mauRows = monthlyMauReport[0]?.rows || [];
-    const monthly = mauRows.map((row: any) => {
+    const monthly = mauRows.map((row: GAReportRow) => {
       const rawMonth = row.dimensionValues?.[0]?.value || '';
       const monthFormatted = rawMonth.length === 6 
         ? `${rawMonth.slice(0, 4)}-${rawMonth.slice(4, 6)}` 
@@ -298,7 +303,7 @@ async function fetchAdminAnalyticsFromGA(): Promise<AdminAnalyticsData> {
       logger.error('analytics-service.fetchAdminAnalyticsFromGA', 'Fetched data validation failed', { error: String(validation.error) });
       return generateMockAdminAnalytics();
     }
-  } catch (err) {
+  } catch (err: unknown) {
     logger.warn('analytics-service.fetchAdminAnalyticsFromGA', 'Failed to query GA4 reports, falling back to mock data', {}, err);
     return generateMockAdminAnalytics();
   }
@@ -321,7 +326,7 @@ export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
             fetchAdminAnalyticsFromGA().then(freshData => {
               memoryAdminLKG = freshData;
               redis?.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
-            }).catch(err => {
+            }).catch((err: unknown) => {
               logger.error('analytics-service.getAdminAnalyticsLKG', 'Background fetch failed', {}, err);
             });
           }
@@ -338,7 +343,7 @@ export async function getAdminAnalyticsLKG(): Promise<AdminAnalyticsData> {
       await redis.set(ADMIN_ANALYTICS_CACHE_KEY, { data: freshData, timestamp: Date.now() });
     }
     return freshData;
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('analytics-service.getAdminAnalyticsLKG', 'Error, serving memory fallback', {}, error);
     if (memoryAdminLKG) {
       return memoryAdminLKG; // Bypass Google API quota exhaustion under failure
