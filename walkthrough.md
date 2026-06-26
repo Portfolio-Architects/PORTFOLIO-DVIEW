@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 732)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 733)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -36,6 +36,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Lounge Components Type Safety Optimization (Phase 732)**:
   - [LoungeContainerClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeContainerClient.tsx) 및 [LoungeFeedClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeFeedClient.tsx) 내의 `(window as any)` 캐스팅을 전역 `Window` 선언 확장을 기반으로 한 타입 안전한 형태로 리팩토링했습니다.
   - [LoungeFeedClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeFeedClient.tsx) 내 카테고리 탭 리스트 매핑에서 `tab.id as any` 캐스팅을 제거하기 위해 배열 리터럴에 `as const` 단언을 추가하여 타입 안전성을 한층 더 강화했습니다.
+- **Transaction Summary Metrics Type Safety Optimization (Phase 733)**:
+  - [TransactionSummaryMetrics.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx) 내의 거래 기록 매칭 인터페이스 `TransactionRecord`에 `contractDateNum?: number;` 필드를 추가하여 불필요한 `as any` 캐스팅을 구조적으로 제거했습니다.
+  - 이를 통해 `(tx as any).contractDateNum`, `(a as any).contractDateNum` 및 `transactions[i] as any` 등 파일 내에 분산되어 있던 any 캐스팅 구문들을 안전한 정형 타입 접근 구조로 리팩토링했습니다.
 
 ---
 
