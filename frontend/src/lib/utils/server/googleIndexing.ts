@@ -46,7 +46,7 @@ export async function requestGoogleIndexing(url: string, type: 'URL_UPDATED' | '
     let keyData;
     try {
       keyData = JSON.parse(serviceAccountKey);
-    } catch (parseErr) {
+    } catch (parseErr: unknown) {
       // Handle base64 encoded keys if applicable
       const decoded = Buffer.from(serviceAccountKey, 'base64').toString('utf8');
       keyData = JSON.parse(decoded);
@@ -82,12 +82,13 @@ export async function requestGoogleIndexing(url: string, type: 'URL_UPDATED' | '
       status: response.status
     });
     return { success: true, status: response.status, data: response.data };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('googleIndexing.requestGoogleIndexing', 'Failed indexing request', {
       url: validatedParams.url,
-      error: error.message || String(error)
+      error: errorMessage
     });
     // Graceful error fallback to avoid breaking parent workflow
-    return { success: false, error: error.message || String(error) };
+    return { success: false, error: errorMessage };
   }
 }
