@@ -436,8 +436,8 @@ export function findTxKey<T>(
       const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
       const keyDeepAlt = deepNormalize(keyStripped);
 
-      const keyObj = txMap[key] as any;
-      const keyDong = (keyObj && typeof keyObj === 'object' && 'dong' in keyObj && keyObj.dong)
+      const keyObj = txMap[key] as Record<string, unknown> | undefined | null;
+      const keyDong = (keyObj && typeof keyObj === 'object' && typeof keyObj.dong === 'string' && keyObj.dong)
         ? keyObj.dong
         : extractDong(key);
 
@@ -493,8 +493,8 @@ export function findTxKey<T>(
       // isSameApartment를 활용한 역방향 매핑 키 탐색 시도
       const matchedKey = Object.keys(vManualMapping).find(k => {
         const mappedTarget = vManualMapping![k];
-        const targetObj = txMap[mappedTarget] as any;
-        const targetDong = (targetObj && typeof targetObj === 'object' && 'dong' in targetObj && targetObj.dong)
+        const targetObj = txMap[mappedTarget] as Record<string, unknown> | undefined | null;
+        const targetDong = (targetObj && typeof targetObj === 'object' && typeof targetObj.dong === 'string' && targetObj.dong)
           ? targetObj.dong
           : undefined;
         return isSameApartment(k, vAptName, vManualMapping, targetDong, vAptDongInput);
@@ -523,8 +523,8 @@ export function findTxKey<T>(
 
   if (stripped !== norm && stripped in normalizedTxMap) {
     const res = normalizedTxMap[stripped];
-    const resObj = txMap[res] as any;
-    const keyDong = (resObj && typeof resObj === 'object' && 'dong' in resObj && resObj.dong)
+    const resObj = txMap[res] as Record<string, unknown> | undefined | null;
+    const keyDong = (resObj && typeof resObj === 'object' && typeof resObj.dong === 'string' && resObj.dong)
       ? resObj.dong
       : extractDong(res);
     if (!aptDong || !keyDong || aptDong === keyDong) {
