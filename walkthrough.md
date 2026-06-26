@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 741)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 742)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -63,6 +63,10 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **HomePage Data Loader Type Safety Optimization (Phase 741)**:
   - [app/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/page.tsx) 내에서 실거래 데이터를 추출하는 과정 중의 `recentTxs.slice(0, 15).map((tx: any, ...)`를 Zod 명세 기반 DTO에 대응하는 `HomeTransactionRecord[]` 정형 타입으로 격상하여 dynamic any 타입을 제거했습니다.
   - 대장 아파트 리스트 랭킹을 추출하기 위해 `txSummary`를 매핑하는 과정에서 임의의 any로 방치되어 있던 `sum: any` 변수를 `TxSummaryItem` 정형 인터페이스로 안전하게 다운캐스팅(sum as TxSummaryItem)하여 형식 검증 무결성을 달성했습니다.
+- **Sitemap Generator Type Safety Optimization (Phase 742)**:
+  - [sitemap.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/sitemap.ts) 내에서 아파트 시 요약 데이터를 역직렬화하는 `readJsonFileCached`의 제네릭 매개변수를 `Record<string, AptTxSummary>` 정형 타입으로 구체화하여 dynamic any를 배제했습니다.
+  - 임장 보고서의 썸네일/이미지 리스트 파싱 루프 내의 `img: any` 타입을 `{ url?: string }[]` 구조적 타입 단정으로 격상하여 dynamic any 타입을 제거했습니다.
+  - 사이트맵 개별 엔트리를 구성하는 `routeData`의 형식을 `MetadataRoute.Sitemap[number] & { images?: string[] }` intersection 타입으로 명시적으로 선언함으로써, Next.js sitemap 기본 명세에 `images` 필드를 유연하게 통합하고 `as any` 캐스팅을 전면 걷어냈습니다.
 
 ---
 
