@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
 // Zod schemas for file and date validation
-const FileSchema = typeof window !== 'undefined' ? z.instanceof(File) : z.any();
+const FileSchema = typeof window !== 'undefined' ? z.instanceof(File) : z.unknown();
 
 export const DateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (must be YYYY-MM-DD)');
 

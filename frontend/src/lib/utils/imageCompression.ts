@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
 // Isomorphic Zod Schema for File instance check to prevent ReferenceError during SSR
-export const ImageFileSchema = z.custom<any>((val) => {
+export const ImageFileSchema = z.custom<unknown>((val) => {
   if (typeof File === 'undefined') return true; // Safe fallback during Node SSR
   return val instanceof File;
 }, 'Input must be a valid File object');
@@ -64,11 +64,11 @@ export async function compressImage(file: File): Promise<File> {
   try {
     const compressed = await imageCompression(file, validatedOptions);
     return compressed;
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.warn('imageCompression.compressImage', 'Compression failed, using original file', {
       fileName: file.name,
       fileSize: file.size,
-      error: error.message || String(error)
+      error: error instanceof Error ? error.message : String(error)
     });
     return file;
   }
