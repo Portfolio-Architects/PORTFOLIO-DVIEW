@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 733)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 734)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -39,6 +39,11 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Transaction Summary Metrics Type Safety Optimization (Phase 733)**:
   - [TransactionSummaryMetrics.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx) 내의 거래 기록 매칭 인터페이스 `TransactionRecord`에 `contractDateNum?: number;` 필드를 추가하여 불필요한 `as any` 캐스팅을 구조적으로 제거했습니다.
   - 이를 통해 `(tx as any).contractDateNum`, `(a as any).contractDateNum` 및 `transactions[i] as any` 등 파일 내에 분산되어 있던 any 캐스팅 구문들을 안전한 정형 타입 접근 구조로 리팩토링했습니다.
+- **Canvas & Multi-Component Type Safety Optimization (Phase 734)**:
+  - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일에 `CanvasRenderingContext2D` 인터페이스의 `letterSpacing` 속성을 타입 정의 확장하여, [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx) 내에서 사용되던 `(ctx as any).letterSpacing` 캐스팅을 제거했습니다.
+  - [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx)의 dynamic components 프리로드 호출부의 `as any` 캐스팅을 구체적인 `{ preload?: () => void }` 타입 캐스팅으로 개선했습니다.
+  - [CommentSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/CommentSection.tsx) 내의 createdAt dynamic 날짜 변환 코드를 `as unknown` 캐스팅 및 narrow type 체크 분기로 리팩토링했습니다.
+  - [AdvancedValuationMetrics.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AdvancedValuationMetrics.tsx)에 `ObjectiveMetrics` 타입을 임포트하여 `report.metrics` 캐스팅의 `as any`를 제거하였고, 출퇴근 가치 탭 리스트 매핑 배열에 `as const`를 적용하여 `dest.id as any` 캐스팅을 제거했습니다.
 
 ---
 
