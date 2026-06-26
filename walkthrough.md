@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 736)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 737)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -49,6 +49,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Manifest & Admin Error Blocks Type Safety Optimization (Phase 736)**:
   - [manifest.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/manifest.ts) 내 icons의 `purpose` 속성을 `as any` 대신 specific string literal `as 'any'` 단언으로 리팩토링했습니다.
   - [admin/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/page.tsx) 내에 잔존하던 4군데의 `catch (e: any)` 구문을 `catch (e)` 및 `e instanceof Error` 타입 체크 가드로 전환하여 explicit any 타입을 완전히 배제했습니다.
+- **Firestore Timestamps Type Safety Optimization (Phase 737)**:
+  - [admin/inquiries/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/inquiries/page.tsx), [admin/pending-photos/page.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/admin/pending-photos/page.tsx), [AptStoriesWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/AptStoriesWidget.tsx) 내의 거래/알림/구독 데이터의 createdAt 및 updatedAt 속성 타입을 기존 `: any`에서 Firestore SDK의 `Timestamp | null` 정형 타입으로 전환하여 dynamic any 타입을 제거했습니다.
+  - [AptStoriesWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/AptStoriesWidget.tsx) 내의 toDate 파싱 조건부를 `typeof story.createdAt.toDate === 'function'` 조건 체크 및 fallback 생성자로 감싸 타입 호환성 에러(TS2769)를 해결하고 안정성을 다졌습니다.
 
 ---
 
