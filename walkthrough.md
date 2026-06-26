@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 750)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 751)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -91,6 +91,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **hashStateRef Type Safety in Explore & Dashboard Clients (Phase 750)**:
   - [explore/ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 내에서 URL 해시 변경 상태를 안전하게 싱크하는 `hashStateRef` 객체 내 `sheetApartments`, `nameMapping` 필드를 각각 `Record<string, DongApartment[]> | undefined`, `Record<string, string> | undefined` 정형 타입으로 정의하여 dynamic any를 배제했습니다. 또한 `fieldReportsMap` 인스턴스 타입을 `Map<string, FieldReportData>`로 명시하고, 해시 추출 시 reportsMap 널 가드를 추가하여 타입 컴파일 무결성을 확보했습니다.
   - [components/DashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/DashboardClient.tsx) 내에서 Kakao Share 등의 아파트 해시 라우팅을 처리하는 `hashStateRef` 및 `fieldReportsMap` 또한 마찬가지 방식으로 정형 타입으로 전환하고 널 가드 처리를 추가하여 타입 안전성을 극대화했습니다.
+- **report Prop Type Safety in ScoutingReportDetailSection & ApartmentSpecsSection (Phase 751)**:
+  - [components/apartment-modal/ScoutingReportDetailSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/ScoutingReportDetailSection.tsx) 내에서 단지 임장 상세 정보를 렌더링하는 `report` prop 타입을 기존 `any`에서 `FieldReportData` 정형 타입으로 변경하여 dynamic any를 제거했습니다.
+  - [components/apartment-modal/ApartmentSpecsSection.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/apartment-modal/ApartmentSpecsSection.tsx) 내 단지 기본 스펙 정보를 렌더링하는 `report` prop 타입 또한 `FieldReportData` 타입으로 변경하여 타입 무결성을 다졌습니다.
 
 ---
 
