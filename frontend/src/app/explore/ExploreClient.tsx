@@ -19,6 +19,8 @@ import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
+import { type DongApartment } from '@/lib/dong-apartments';
+import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -244,7 +246,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const fieldReportsMap = useMemo(() => {
     const map = new Map<string, any>();
     if (!fieldReports || !sheetApartments) return map;
-    const allApts = Object.values(sheetApartments).flat() as any[];
+    const allApts = Object.values(sheetApartments).flat() as DongApartment[];
     allApts.forEach(apt => {
       const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
       if (report) map.set(apt.name, report);
@@ -370,8 +372,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     };
 
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      if ('requestIdleCallback' in window) {
-        idleId = (window as any).requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
+      if (window.requestIdleCallback) {
+        idleId = window.requestIdleCallback(preloadHeavyChunks, { timeout: 3000 });
       } else {
         if (preloadTimeoutRef.current) {
           clearTimeout(preloadTimeoutRef.current);
@@ -387,8 +389,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     // Memory leak prevention: cancel active idle callbacks and timeouts on unmount
     return () => {
       isMounted = false;
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       if (preloadTimeoutRef.current) {
         clearTimeout(preloadTimeoutRef.current);
@@ -407,7 +409,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       const match = window.location.hash.match(/[#&]apt=([^&]+)/);
       if (match) {
         const aptName = decodeURIComponent(match[1]);
-        const allApts = Object.values(apartments).flat() as any[];
+        const allApts = Object.values(apartments).flat() as DongApartment[];
         const targetApt = allApts.find(a => isSameApartment(a.name, aptName, mapping));
 
         if (targetApt) {
@@ -423,7 +425,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
               likes: 0,
               commentCount: 0,
               createdAt: null,
-              metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as any,
+              metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as ObjectiveMetrics,
             });
           }
           setMobileModalOpen(true);
@@ -467,7 +469,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         likes: 0,
         commentCount: 0,
         createdAt: null,
-        metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as any,
+        metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as unknown as ObjectiveMetrics,
       });
     }
 
