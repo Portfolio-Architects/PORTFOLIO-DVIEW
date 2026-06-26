@@ -354,7 +354,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
 
   // Generate JSON-LD structural data for Childcare (SEO/Rich Snippets)
   const jsonLdElements = useMemo(() => {
-    const elements: any[] = [];
+    const elements: Array<{ "@type": string; name: string; value: string }> = [];
     if (childcareData) {
       childcareData.daycares.forEach((item) => {
         elements.push({

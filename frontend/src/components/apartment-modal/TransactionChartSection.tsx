@@ -427,7 +427,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   // Compute global stable minP/maxP across BOTH sale and jeonse to keep Y-axis identical - Cached to prevent freeze on mousemove
   const { domainMin, domainMax, prices } = React.useMemo(() => {
-    const getEokPrice = (tx: any, isJeonse: boolean) => {
+    const getEokPrice = (tx: TransactionRecord, isJeonse: boolean) => {
       let rawPrice = tx.price;
       if (isJeonse) rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
       let priceEokNum = rawPrice / 10000;

@@ -220,7 +220,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
     const gapPriceEok = gapPrice > 0 ? formatEok(Math.round(gapPrice)) : null;
 
-    const jsonLdElements: any[] = [];
+    const jsonLdElements: Array<{ "@type": string; name: string; value: string }> = [];
     if (avgSalePrice > 0 && avgJeonsePrice > 0) {
       jsonLdElements.push({
         "@type": "LocationFeatureSpecification",
