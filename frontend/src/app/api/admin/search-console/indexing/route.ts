@@ -32,8 +32,9 @@ export async function POST(request: NextRequest) {
     const result = await requestGoogleIndexing(url, action);
     logger.info('IndexingAPI.POST', 'Successfully requested Google Indexing', { url, action, result });
     return NextResponse.json(result, { status: 200 });
-  } catch (error: any) {
-    logger.error('IndexingAPI.POST', 'Error during Google Indexing request', {}, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('IndexingAPI.POST', 'Error during Google Indexing request', {}, err);
     return NextResponse.json(
       { success: false, error: 'Failed to request indexing' },
       { status: 500 }

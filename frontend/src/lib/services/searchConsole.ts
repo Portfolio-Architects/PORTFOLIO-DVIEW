@@ -197,7 +197,7 @@ async function fetchSearchConsoleStatusFromGoogle(): Promise<SearchConsoleStatus
     }
 
     return parsed.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.warn('SearchConsole', 'Error while calling Google Search Console API. Falling back to Mock.', {}, error);
     return generateMockStatus();
   }
@@ -215,7 +215,7 @@ export async function getSearchConsoleStatus(): Promise<SearchConsoleStatus> {
             // Stale-while-revalidate: Fetch in background
             fetchSearchConsoleStatusFromGoogle().then(freshData => {
               redis?.set(SEARCH_CONSOLE_CACHE_KEY, { data: freshData, timestamp: Date.now() });
-            }).catch(error => {
+            }).catch((error: unknown) => {
               logger.error('SearchConsole', 'Background fetch failed.', {}, error);
             });
           }

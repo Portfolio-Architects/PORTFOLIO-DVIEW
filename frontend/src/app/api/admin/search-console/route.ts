@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'no-store, max-age=0',
       },
     });
-  } catch (error: any) {
-    logger.error('SearchConsoleAPI.GET', 'Failed to fetch Search Console status', {}, error as Error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('SearchConsoleAPI.GET', 'Failed to fetch Search Console status', {}, err);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch search console status' },
       { status: 500 }
