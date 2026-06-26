@@ -40,14 +40,23 @@ export async function fetchApartmentNames(): Promise<string[]> {
     if (typeof window === 'undefined' || process.env.NODE_ENV === 'test') {
       // Server-side: read directly from the static file to avoid relative URL fetch failures
       try {
-        const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
-        const rawResult = await readJsonFileCached<any>('public/data/apartments-by-dong.json', {});
-        const parsed = ApartmentsByDongSchema.safeParse(rawResult);
-        if (parsed.success) {
-          byDong = parsed.data.byDong;
-        } else {
-          logger.warn('ApartmentRepository.fetch', 'Zod validation failed for apartments-by-dong.json. Falling back to raw.', undefined, parsed.error);
-          byDong = rawResult.byDong || {};
+        // Isolate dynamic import caching inside the server-only block using globalThis to prevent bundling issues
+        if (!(globalThis as any)._cachedFileReader) {
+          const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
+          (globalThis as any)._cachedFileReader = readJsonFileCached;
+        }
+        const readJsonFileCached = (globalThis as any)._cachedFileReader;
+
+        if (readJsonFileCached) {
+          const rawResult = await readJsonFileCached('public/data/apartments-by-dong.json', {});
+          const parsed = ApartmentsByDongSchema.safeParse(rawResult);
+          if (parsed.success) {
+            byDong = parsed.data.byDong;
+          } else {
+            logger.warn('ApartmentRepository.fetch', 'Zod validation failed for apartments-by-dong.json. Falling back to raw.', undefined, parsed.error);
+            const rawObj = rawResult as Record<string, unknown>;
+            byDong = (rawObj && typeof rawObj === 'object' && rawObj.byDong) ? (rawObj.byDong as Record<string, { name: string }[]>) : {};
+          }
         }
       } catch (fsError) {
         logger.warn('ApartmentRepository.fetch', 'Failed to read apartments-by-dong.json from filesystem', undefined, fsError);
@@ -72,7 +81,8 @@ export async function fetchApartmentNames(): Promise<string[]> {
           byDong = parsed.data.byDong;
         } else {
           logger.warn('ApartmentRepository.fetch', 'Zod validation failed for /api/apartments-by-dong API. Falling back to raw.', undefined, parsed.error);
-          byDong = rawResult.byDong || {};
+          const rawObj = rawResult as Record<string, unknown>;
+          byDong = (rawObj && typeof rawObj === 'object' && rawObj.byDong) ? (rawObj.byDong as Record<string, { name: string }[]>) : {};
         }
       } catch (fetchErr) {
         clearTimeout(timeoutId);
