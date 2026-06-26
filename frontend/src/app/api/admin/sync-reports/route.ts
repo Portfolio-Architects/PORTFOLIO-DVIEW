@@ -149,14 +149,14 @@ export async function GET(request: NextRequest) {
         const premiumScores = calculatePremiumScores(mergedMetrics);
 
         // Firestore does not accept undefined values. Deep clean the object to remove undefined fields.
-        const cleanUndefined = (obj: any): any => {
+        const cleanUndefined = (obj: unknown): unknown => {
           if (obj === undefined) return null; // Convert to null or just delete
           if (obj === null || typeof obj !== 'object') return obj;
           if (Array.isArray(obj)) return obj.map(cleanUndefined).filter(v => v !== undefined);
           return Object.entries(obj).reduce((acc, [key, val]) => {
             if (val !== undefined) acc[key] = cleanUndefined(val);
             return acc;
-          }, {} as any);
+          }, {} as Record<string, unknown>);
         };
 
         const cleanMetrics = cleanUndefined(mergedMetrics);
@@ -175,8 +175,9 @@ export async function GET(request: NextRequest) {
         
         updatedCount++;
         results.push(`Success: ${aptName}`);
-      } catch (err: any) {
-        results.push(`Error on ${aptName}: ${err.message}`);
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        results.push(`Error on ${aptName}: ${errMsg}`);
       }
     }
     
@@ -188,8 +189,9 @@ export async function GET(request: NextRequest) {
       nextOffset: offset + limit,
       results
     });
-  } catch (err: any) {
-    logger.error('SyncReportsAPI.GET', 'Failed to execute reports sync', {}, err as Error);
+  } catch (err: unknown) {
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    logger.error('SyncReportsAPI.GET', 'Failed to execute reports sync', {}, errorObj);
     return NextResponse.json({ error: 'Failed to sync reports' }, { status: 500 });
   }
 }
