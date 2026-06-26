@@ -12,6 +12,20 @@ import { logger } from '@/lib/services/logger';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { getComments } from '@/lib/repositories/comment.repository';
 
+function decodeAptName(name: string): string {
+  try {
+    let decoded = name;
+    while (decoded.includes('%')) {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    }
+    return decoded;
+  } catch {
+    return name;
+  }
+}
+
 export interface LocationScore {
   distanceToElementary?: number;
   distanceToMiddle?: number;
@@ -229,7 +243,7 @@ export async function generateMetadata(props: {
       return getDefaultMetadata(baseUrl);
     }
     
-    const decodedName = decodeURIComponent(params.aptName);
+    const decodedName = decodeAptName(params.aptName);
     
     let imageUrl = '';
     try {
@@ -358,7 +372,7 @@ export async function generateMetadata(props: {
     logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to generate metadata, returning default', {}, err as Error);
     try {
       const params = props.params ? (await props.params) : null;
-      return getDefaultMetadata(baseUrl, params?.aptName ? decodeURIComponent(params.aptName) : undefined);
+      return getDefaultMetadata(baseUrl, params?.aptName ? decodeAptName(params.aptName) : undefined);
     } catch {
       return getDefaultMetadata(baseUrl);
     }
@@ -374,7 +388,7 @@ export async function generateStaticParams() {
   const aptNames = Object.keys(txSummary || {});
   // Pre-render all apartments (184 complexes) to guarantee 100% SSG pages for search engine indexing
   return aptNames.map((name) => ({
-    aptName: encodeURIComponent(name),
+    aptName: name,
   }));
 }
 
@@ -422,7 +436,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   try {
     params = props.params ? (await props.params) : null;
     if (params?.aptName) {
-      decodedName = decodeURIComponent(params.aptName);
+      decodedName = decodeAptName(params.aptName);
     }
   } catch (e) {
     logger.warn('ApartmentPage', 'ApartmentPage params resolution failure', {}, e as Error);

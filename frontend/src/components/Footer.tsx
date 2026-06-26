@@ -40,7 +40,7 @@ const Footer = React.memo(function Footer() {
                 >
                   <defs>
                     <linearGradient id="dview-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#0d9488" />
+                      <stop offset="0%" stopColor="#ea6100" />
                       <stop offset="100%" stopColor="#0f766e" />
                     </linearGradient>
                   </defs>

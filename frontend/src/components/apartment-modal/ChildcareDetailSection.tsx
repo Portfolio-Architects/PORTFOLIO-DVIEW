@@ -398,7 +398,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
       />
       {/* ─── 🏡 안심 보육 & 돌봄 인프라 그리드 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 보육 & 돌봄 시설</span>
           {!childcareData && (
             <span className="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 ml-1">
@@ -518,7 +518,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
 
       {/* ─── 🛡️ 초등 등하교 안심 길목 진단 스코어보드 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">초등 통학로 안심 길목 진단</span>
           <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/30">
             준비 중
@@ -529,7 +529,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-400/30 via-teal-400/40 to-emerald-400/30 animate-pulse" />
           
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 max-w-[450px]">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-[#0d9488] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-[#ea6100] flex items-center justify-center">
               <Clock size={22} className="animate-spin" style={{ animationDuration: '6s' }} />
             </div>
             <div className="flex flex-col gap-1.5">

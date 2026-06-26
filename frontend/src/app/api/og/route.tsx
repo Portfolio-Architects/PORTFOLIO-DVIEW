@@ -422,7 +422,7 @@ export async function GET(req: NextRequest) {
 
     if (type === 'event') {
       let categoryBg = 'rgba(13, 148, 136, 0.1)';
-      let categoryText = '#0d9488';
+      let categoryText = '#ea6100';
       let categoryBorder = 'rgba(13, 148, 136, 0.3)';
       
       if (category === '공연/축제') {
@@ -477,7 +477,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#0d9488',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',

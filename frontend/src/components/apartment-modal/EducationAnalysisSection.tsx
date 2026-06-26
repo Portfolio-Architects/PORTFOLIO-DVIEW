@@ -134,7 +134,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
       />
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <GraduationCap size={18} className="text-[#0d9488]"/> 학군/육아 분석
+          <GraduationCap size={18} className="text-[#ea6100]"/> 학군/육아 분석
         </h2>
 
         <div className="relative w-full">
@@ -153,7 +153,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
               
               return (
                 <div className="mb-8">
-                  <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                  <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
                     <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
                     <button
                       onClick={() => handleShareSection('childcare')}
@@ -219,7 +219,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                         </div>
                       </div>
                       
-                      <div className={`p-4 rounded-xl ${colors.descBg} border border-[#0d9488]/10 text-left`}>
+                      <div className={`p-4 rounded-xl ${colors.descBg} border border-[#ea6100]/10 text-left`}>
                         <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 자녀양육 환경 리포트</p>
                         <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
                           {eduScoreInfo.description} (초등학교까지의 실제 도보 안심 통학 요건, 인근 중고교 접근성 및 500m 반경 내 교육 학원 인프라 밀집도를 종합 연산한 지표입니다.)
@@ -234,7 +234,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 🏫 배정 학교 정보 (Assigned Schools) ─── */}
             {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
               <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
                   <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 학군 배정 정보</span>
                 </div>
                 <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
@@ -382,7 +382,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 📝 전문가 학군 및 통학로 분석 (Expert School/Route Review) ─── */}
             {(report.sections?.ecosystem?.schoolText || report.sections?.ecosystem?.schoolImg) && (
               <div className="mb-8 bg-body rounded-2xl p-5 md:p-6 border border-border">
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
                   <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">전문가 임장 분석 및 통학로 리포트</span>
                 </div>
                 <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -407,7 +407,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 📚 주변 학원가 분석 (Academy Density) ─── */}
             {report.metrics.academyDensity > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
                   <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">주변 학원가 구성 (500m 반경)</span>
                 </div>
                 
@@ -428,8 +428,8 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   {(() => {
                     const academyData = Object.entries(report.metrics.academyCategories || {}).map(([cat, cnt]) => {
                       let tag = '일반학원';
-                      let color = '#0d9488'; // teal-600
-                      let bg = 'bg-[#0d9488]';
+                      let color = '#ea6100'; // teal-600
+                      let bg = 'bg-[#ea6100]';
                       if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
                         tag = '예체능';
                         color = '#db2777'; // pink-600
@@ -502,7 +502,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
                         {/* AI 진단 코멘트 박스 */}
                         <div className="mt-2.5 p-3.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl">
-                          <p className="text-[11.5px] font-extrabold text-[#0d9488] dark:text-[#00d29d] leading-relaxed break-keep">
+                          <p className="text-[11.5px] font-extrabold text-[#ea6100] dark:text-[#00d29d] leading-relaxed break-keep">
                             💡 <strong>AI 학원가 진단:</strong> {aiComment}
                           </p>
                         </div>

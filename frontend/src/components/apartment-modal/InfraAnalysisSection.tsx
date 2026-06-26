@@ -285,8 +285,8 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                     bg = 'bg-[#7c3aed]';
                   } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
                     tag = '분식/간식';
-                    color = '#0d9488'; // teal-600
-                    bg = 'bg-[#0d9488]';
+                    color = '#ea6100'; // teal-600
+                    bg = 'bg-[#ea6100]';
                   } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
                     tag = '치킨/주점';
                     color = '#f59e0b'; // amber-500

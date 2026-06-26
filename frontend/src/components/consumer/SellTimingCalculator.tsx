@@ -856,7 +856,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                   >
                     <div className="space-y-1 text-left min-w-0 pr-4">
                       <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9.5px] font-black uppercase tracking-wider">부동산 제휴</span>
-                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-[#0d9488] transition-colors leading-tight">동탄 제휴 공인중개사에 매물 즉시 등록</h5>
+                      <h5 className="text-[13.5px] font-black text-primary group-hover:text-[#ea6100] transition-colors leading-tight">동탄 제휴 공인중개사에 매물 즉시 등록</h5>
                       <p className="text-[11.5px] text-tertiary font-semibold truncate">D-VIEW 추천 파트너쉽 등록 시 중개보수 10% 추가 특별 할인</p>
                     </div>
                     <div className="p-2 rounded-xl bg-white/80 dark:bg-surface/80 text-secondary hover:text-primary shrink-0 border border-border/40 shadow-sm active:scale-95 transition-all pointer-events-none">

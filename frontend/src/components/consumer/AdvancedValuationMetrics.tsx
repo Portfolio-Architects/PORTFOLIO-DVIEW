@@ -783,7 +783,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
 
                       {/* AI 주거 안심도 및 깡통전세 예방 코멘트 */}
                       <div className="text-[11px] font-bold text-secondary bg-body p-2.5 rounded-xl border border-border/40 leading-relaxed break-keep">
-                        <span className="text-[#0d9488] font-extrabold mr-1">💡 D-VIEW AI 진단:</span>
+                        <span className="text-[#ea6100] font-extrabold mr-1">💡 D-VIEW AI 진단:</span>
                         {jeonseRatio >= 75 ? (
                           "매매가와 전세가 차이가 매우 좁아 실구매 부담은 적으나, 깡통전세 및 역전세 발생 리스크가 큰 단지입니다. 임차 시 보증보험 확인이 반드시 필요합니다."
                         ) : jeonseRatio >= 65 ? (

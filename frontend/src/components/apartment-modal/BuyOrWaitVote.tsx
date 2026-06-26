@@ -372,9 +372,9 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           </div>
 
           {/* AI 가치-심리 매칭 진단 패널 */}
-          <div className="mt-2.5 p-4 rounded-xl border border-border bg-[#0d9488]/5 dark:bg-[#0d9488]/10 text-left">
+          <div className="mt-2.5 p-4 rounded-xl border border-border bg-[#ea6100]/5 dark:bg-[#ea6100]/10 text-left">
             <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-[11px] font-black text-[#0d9488] bg-[#0d9488]/10 px-2 py-0.5 rounded">
+              <span className="text-[11px] font-black text-[#ea6100] bg-[#ea6100]/10 px-2 py-0.5 rounded">
                 AI 진단
               </span>
               <span className="text-[12.5px] font-black text-primary tracking-tight">

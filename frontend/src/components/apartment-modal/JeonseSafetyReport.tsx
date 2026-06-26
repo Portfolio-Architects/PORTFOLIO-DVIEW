@@ -135,7 +135,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
   const styles = {
     safe: {
-      themeColor: '#0d9488', // Teal-600
+      themeColor: '#ea6100', // Teal-600
       bgClass: 'bg-teal-50 dark:bg-teal-950/20 border-teal-100 dark:border-teal-900/30',
       textClass: 'text-teal-700 dark:text-teal-400 font-extrabold',
       gaugeClass: 'stroke-teal-500',
@@ -216,7 +216,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
       />
       {/* ─── 📊 전세 안전성 스코어 대시보드 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">보증금 반환 안전성 진단</span>
         </div>
 
@@ -280,7 +280,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
       {/* ─── 📋 4대 안전 진단 영역 리스트 ─── */}
       <div>
-        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#0d9488] pl-2.5">
+        <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">진단 부문별 채점 상세</span>
         </div>
 

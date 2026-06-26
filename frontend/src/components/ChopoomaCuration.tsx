@@ -224,12 +224,12 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
           {/* Mobile Share Button */}
           <button
             onClick={handleShare}
-            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-secondary hover:text-[#0d9488] active:scale-95 transition-all duration-300 relative focus:outline-none"
+            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-secondary hover:text-[#ea6100] active:scale-95 transition-all duration-300 relative focus:outline-none"
             title="현재 큐레이션 조건 공유하기"
           >
             <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
               {isCopied ? (
-                <Check size={14} className="text-[#0d9488] animate-in zoom-in duration-200" />
+                <Check size={14} className="text-[#ea6100] animate-in zoom-in duration-200" />
               ) : (
                 <Share2 size={14} className="animate-in zoom-in duration-200" />
               )}
@@ -242,12 +242,12 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
           {/* Desktop Share Button */}
           <button
             onClick={handleShare}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-secondary hover:text-[#0d9488] active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-secondary hover:text-[#ea6100] active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
             title="현재 큐레이션 조건 공유하기"
           >
             <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
               {isCopied ? (
-                <Check size={14} className="text-[#0d9488] animate-in zoom-in duration-200" />
+                <Check size={14} className="text-[#ea6100] animate-in zoom-in duration-200" />
               ) : (
                 <Share2 size={14} className="animate-in zoom-in duration-200" />
               )}
