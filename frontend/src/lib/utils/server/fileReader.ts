@@ -7,11 +7,15 @@ interface StaticDataCacheEntry<T> {
   mtimeMs: number;
 }
 
-const getGlobalStaticDataCache = (): Record<string, StaticDataCacheEntry<any>> => {
-  if (!(globalThis as any)._globalStaticDataCache) {
-    (globalThis as any)._globalStaticDataCache = {};
+declare global {
+  var _globalStaticDataCache: Record<string, StaticDataCacheEntry<unknown>> | undefined;
+}
+
+const getGlobalStaticDataCache = (): Record<string, StaticDataCacheEntry<unknown>> => {
+  if (!globalThis._globalStaticDataCache) {
+    globalThis._globalStaticDataCache = {};
   }
-  return (globalThis as any)._globalStaticDataCache;
+  return globalThis._globalStaticDataCache;
 };
 
 export async function readJsonFileCached<T>(relativePath: string, fallback: T): Promise<T> {
@@ -22,15 +26,15 @@ export async function readJsonFileCached<T>(relativePath: string, fallback: T): 
     const cache = getGlobalStaticDataCache();
     
     if (cache[relativePath] && cache[relativePath].mtimeMs === mtimeMs) {
-      return cache[relativePath].data;
+      return cache[relativePath].data as T;
     }
     
     const fileContent = await fs.promises.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(fileContent);
+    const parsed = JSON.parse(fileContent) as T;
     cache[relativePath] = { data: parsed, mtimeMs };
     return parsed;
-  } catch (e) {
-    logger.warn('FileReader', `Failed to read or parse cached JSON file: ${relativePath}`, {}, e as Error);
+  } catch (e: unknown) {
+    logger.warn('FileReader', `Failed to read or parse cached JSON file: ${relativePath}`, {}, e instanceof Error ? e : new Error(String(e)));
     return fallback;
   }
 }
