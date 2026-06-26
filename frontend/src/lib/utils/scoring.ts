@@ -104,16 +104,16 @@ export const ScoringMetricsSchema = z.object({
 
 export type ScoringMetrics = z.infer<typeof ScoringMetricsSchema>;
 
-export function getSafeMetrics(metrics: any): ScoringMetrics {
-  const fallback = (val: any, def: number = 0): number => {
+export function getSafeMetrics(metrics: unknown): ScoringMetrics {
+  const fallback = (val: unknown, def = 0): number => {
     if (val === null || val === undefined) return def;
     const num = Number(val);
     return isNaN(num) ? def : num;
   };
   
-  const m = metrics || {};
+  const m = (metrics && typeof metrics === 'object' ? metrics : {}) as Record<string, unknown>;
   return {
-    brand: m.brand || '',
+    brand: typeof m.brand === 'string' ? m.brand : '',
     householdCount: fallback(m.householdCount),
     far: fallback(m.far),
     bcr: fallback(m.bcr),
@@ -129,21 +129,21 @@ export function getSafeMetrics(metrics: any): ScoringMetrics {
           return isNaN(num) ? new Date().getFullYear() : num;
         }
         return new Date().getFullYear();
-      } catch (e) {
+      } catch (e: unknown) {
         return new Date().getFullYear();
       }
     })(),
     minFloor: fallback(m.minFloor),
     maxFloor: fallback(m.maxFloor),
-    coordinates: m.coordinates || '',
+    coordinates: typeof m.coordinates === 'string' ? m.coordinates : '',
     distanceToElementary: fallback(m.distanceToElementary),
     distanceToMiddle: fallback(m.distanceToMiddle),
     distanceToHigh: fallback(m.distanceToHigh),
     distanceToSubway: fallback(m.distanceToSubway),
     academyDensity: fallback(m.academyDensity),
-    academyCategories: m.academyCategories || {},
+    academyCategories: (m.academyCategories && typeof m.academyCategories === 'object' ? m.academyCategories : {}) as Record<string, number>,
     restaurantDensity: fallback(m.restaurantDensity),
-    restaurantCategories: m.restaurantCategories || {},
+    restaurantCategories: (m.restaurantCategories && typeof m.restaurantCategories === 'object' ? m.restaurantCategories : {}) as Record<string, number>,
     distanceToIndeokwon: fallback(m.distanceToIndeokwon),
     distanceToTram: fallback(m.distanceToTram),
     distanceToStarbucks: fallback(m.distanceToStarbucks),
@@ -152,7 +152,7 @@ export function getSafeMetrics(metrics: any): ScoringMetrics {
     distanceToOliveYoung: fallback(m.distanceToOliveYoung),
     distanceToDaiso: fallback(m.distanceToDaiso),
     distanceToMcDonalds: fallback(m.distanceToMcDonalds),
-    name: m.name || '',
+    name: typeof m.name === 'string' ? m.name : '',
   };
 }
 
@@ -335,7 +335,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   else if (hh >= 500) scaleLabel = `${hh.toLocaleString()}세대 중형단지`;
   else if (hh > 0) scaleLabel = `${hh.toLocaleString()}세대 소형단지`;
 
-  const aptName = (validatedMetrics as unknown as Record<string, string>).name || '';
+  const aptName = validatedMetrics.name || '';
   const brandVal = `${validatedMetrics.brand || ''} ${aptName}`;
   const mu = getBrandMultiplier(brandVal);
   let brandScore = 1; let brandLabel = '기본 브랜드 / 기타 시공사';
@@ -415,7 +415,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   return outputParsed.data;
 }
 
-export const calculateEducationScore = (metrics: any): SubScoreResult => {
+export const calculateEducationScore = (metrics: unknown): SubScoreResult => {
   const fallbackResult: SubScoreResult = { score: 0, grade: 'C', description: '정보 부족' };
   if (!metrics) return fallbackResult;
   
@@ -498,7 +498,7 @@ export const calculateEducationScore = (metrics: any): SubScoreResult => {
   return outputParsed.data;
 };
 
-export const calculateInfraScore = (metrics: any): SubScoreResult => {
+export const calculateInfraScore = (metrics: unknown): SubScoreResult => {
   const fallbackResult: SubScoreResult = { score: 0, grade: 'C', description: '정보 부족' };
   if (!metrics) return fallbackResult;
   
