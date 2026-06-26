@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
-import * as PostRepo from '@/lib/repositories/post.repository';
+import { getRecentPosts, type RecentLoungeItem } from '@/lib/repositories/post.repository';
 import { logger } from '@/lib/services/logger';
 import { safeJsonLd, getLoungeMainSchema } from '@/lib/utils/structuredData';
-import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
+import { getMacroNews, getLocalNotices, type NewsItem, type NoticeData } from '@/lib/services/newsData';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,14 +55,14 @@ export default async function LoungePage({
   searchParams: Promise<{ notice?: string; title?: string; dept?: string }>;
 }) {
   const resolvedParams = await searchParams;
-  let posts: Record<string, unknown>[] = [];
-  let initialNews: any[] = [];
-  let initialNotices: any[] = [];
+  let posts: RecentLoungeItem[] = [];
+  let initialNews: NewsItem[] = [];
+  let initialNotices: NoticeData[] = [];
   let errorMessage: string | null = null;
   
   try {
     const [fetchedPosts, fetchedNews, fetchedNoticesData] = await Promise.all([
-      PostRepo.getRecentPosts(50).catch(() => []),
+      getRecentPosts(50).catch(() => []),
       getMacroNews(40).catch(() => []),
       getLocalNotices(true).catch(() => ({ notices: [], lastUpdated: null }))
     ]);
@@ -84,7 +84,7 @@ export default async function LoungePage({
     "description": "동탄 아파트 임장기, 고민상담, 청약 정보 및 실시간 동탄 소식들을 확인해보세요.",
     "url": `${baseUrl}/lounge`,
     "numberOfItems": posts.length,
-    "itemListElement": posts.map((post: any, idx: number) => ({
+    "itemListElement": posts.map((post: RecentLoungeItem, idx: number) => ({
       "@type": "ListItem",
       "position": idx + 1,
       "url": `${baseUrl}/lounge/${post.id}`,
@@ -115,7 +115,7 @@ export default async function LoungePage({
         <section>
           <h2>주민 라운지 최신 토크 피드</h2>
           <ul>
-            {posts.map((post: any) => (
+            {posts.map((post: RecentLoungeItem) => (
               <li key={post.id}>
                 <strong>{post.title}</strong> (카테고리: {post.category || '일반'}, 작성자: {post.author})
                 <p>{post.content ? post.content.substring(0, 100) : ''}</p>
@@ -128,9 +128,9 @@ export default async function LoungePage({
           <section style={{ marginTop: '20px' }}>
             <h2>실시간 부동산 & 금융 핵심 뉴스</h2>
             <ul>
-              {initialNews.slice(0, 20).map((news: any, idx: number) => (
+              {initialNews.slice(0, 20).map((news: NewsItem, idx: number) => (
                 <li key={idx}>
-                  <strong>{news.title}</strong> (매체: {news.source || '언론사'}, 등록일: {news.pubDate || ''})
+                  <strong>{news.title}</strong> (매체: {news.sub || '언론사'}, 등록일: {news.pubDate || ''})
                 </li>
               ))}
             </ul>
@@ -141,9 +141,9 @@ export default async function LoungePage({
           <section style={{ marginTop: '20px' }}>
             <h2>동탄구 행정망 실시간 공지사항</h2>
             <ul>
-              {initialNotices.slice(0, 20).map((notice: any, idx: number) => (
+              {initialNotices.slice(0, 20).map((notice: NoticeData, idx: number) => (
                 <li key={idx}>
-                  <strong>{notice.title}</strong> (등록부서: {notice.department || '행정부서'}, 등록일: {notice.date || ''})
+                  <strong>{notice.title}</strong> (등록부서: {notice.dept || '행정부서'}, 등록일: {notice.date || ''})
                 </li>
               ))}
             </ul>
@@ -158,7 +158,7 @@ export default async function LoungePage({
           </div>
         )}
         <LoungeContainerClient 
-          initialPosts={posts as any} 
+          initialPosts={posts} 
           initialNews={initialNews}
           initialNotices={initialNotices}
           searchParams={resolvedParams} 

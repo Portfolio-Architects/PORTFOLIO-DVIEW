@@ -77,7 +77,7 @@ interface Post {
   views: number;
   likes: number;
   commentCount: number;
-  createdAt: number;
+  createdAt: number | null;
   apartmentName?: string;
 }
 
@@ -115,7 +115,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
   '동탄 벼룩/나눔': ['동탄 벼룩/나눔', '나눔/벼룩', '공동구매']
 };
 
-export function formatRelativeTime(dateInput: number | string | Date | undefined): string {
+export function formatRelativeTime(dateInput: number | string | Date | null | undefined): string {
   if (!dateInput) return '방금 전';
   
   const nowMs = Date.now();

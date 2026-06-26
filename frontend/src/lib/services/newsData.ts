@@ -163,7 +163,7 @@ const noticeSchema = z.object({
   createdAt: z.string().optional(),
 });
 
-type NoticeData = z.infer<typeof noticeSchema>;
+export type NoticeData = z.infer<typeof noticeSchema>;
 
 export interface LocalNoticesResult {
   notices: NoticeData[];

@@ -67,17 +67,18 @@ interface Post {
   views: number;
   likes: number;
   commentCount: number;
-  createdAt: number;
+  createdAt: number | null;
+  apartmentName?: string;
 }
 
 interface NoticeItem {
   id: string;
-  title: string;
-  url: string;
-  dept: string;
+  title?: string;
+  url?: string;
+  dept?: string;
   date: string;
   isDongtan: boolean;
-  source: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
   createdAt?: string;
   content?: string;
 }
@@ -93,8 +94,8 @@ interface NewsItem {
 
 interface LoungeContainerClientProps {
   initialPosts: Post[];
-  initialNews?: any[];
-  initialNotices?: any[];
+  initialNews?: NewsItem[];
+  initialNotices?: NoticeItem[];
   searchParams?: { notice?: string; tab?: string };
   onRequestLogin?: (message: string) => void;
 }
@@ -111,7 +112,7 @@ const formatDate = (dateStr: string) => {
 };
 
 // Get source badge styling and icon for local notices
-const getNoticeSourceDetails = (source: string) => {
+const getNoticeSourceDetails = (source: string | undefined) => {
   switch (source) {
     case 'gosi':
       return {
