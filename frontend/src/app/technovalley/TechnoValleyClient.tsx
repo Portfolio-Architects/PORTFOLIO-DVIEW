@@ -453,14 +453,14 @@ export default function TechnoValleyClient() {
                   <div className="flex flex-col gap-2">
                     <label className="text-[12.5px] font-bold text-secondary">월 가용 예산 (임대료 기준)</label>
                     <div className="grid grid-cols-3 gap-2">
-                      {[
+                      {([
                         { id: 'under100', label: '100만원 미만' },
                         { id: '100to200', label: '100 ~ 200만' },
                         { id: 'above200', label: '200만원 초과' }
-                      ].map(item => (
+                      ] as const).map(item => (
                         <button
                           key={item.id}
-                          onClick={() => setBudget(item.id as any)}
+                          onClick={() => setBudget(item.id)}
                           className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                             budget === item.id 
                               ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
@@ -477,14 +477,14 @@ export default function TechnoValleyClient() {
                   <div className="flex flex-col gap-2">
                     <label className="text-[12.5px] font-bold text-secondary">상주 근무 인원수 (규모)</label>
                     <div className="grid grid-cols-3 gap-2">
-                      {[
+                      {([
                         { id: 'under5', label: '5인 미만 소형' },
                         { id: '5to15', label: '5인 ~ 15인 중형' },
                         { id: 'above15', label: '15인 이상 대형' }
-                      ].map(item => (
+                      ] as const).map(item => (
                         <button
                           key={item.id}
-                          onClick={() => setEmployees(item.id as any)}
+                          onClick={() => setEmployees(item.id)}
                           className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                             employees === item.id 
                               ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
@@ -1181,15 +1181,15 @@ export default function TechnoValleyClient() {
               <div className="flex flex-col gap-1.5 mb-2">
                 <label className="text-[12px] font-bold text-secondary">예상 상주 인원</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[
+                  {([
                     { id: 'under5', label: '5인 미만' },
                     { id: '5to15', label: '5 ~ 15인' },
                     { id: 'above15', label: '15인 이상' }
-                  ].map(item => (
+                  ] as const).map(item => (
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setConsultingBizSize(item.id as any)}
+                      onClick={() => setConsultingBizSize(item.id)}
                       className={`py-2 rounded-xl text-[12px] font-extrabold transition-all border ${
                         consultingBizSize === item.id 
                           ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
