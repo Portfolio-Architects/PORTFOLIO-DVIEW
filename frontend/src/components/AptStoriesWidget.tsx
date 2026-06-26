@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { db } from '@/lib/firebaseConfig';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, Timestamp } from 'firebase/firestore';
 import { MessageSquare, Sparkles, ChevronRight, Home } from 'lucide-react';
 import { formatRelativeTime } from '@/components/LoungeFeedClient'; // Re-use relative time helper if needed, or implement locally
 import { logger } from '@/lib/services/logger';
@@ -14,7 +14,7 @@ interface AptStory {
   authorUid: string;
   apartmentName: string;
   reportId: string;
-  createdAt: any;
+  createdAt: Timestamp | null;
 }
 
 export default function AptStoriesWidget() {
@@ -141,7 +141,7 @@ export default function AptStoriesWidget() {
           // Convert firestore timestamp to string safely
           let timeText = '방금 전';
           if (story.createdAt) {
-            const date = story.createdAt.toDate ? story.createdAt.toDate() : new Date(story.createdAt);
+            const date = typeof story.createdAt.toDate === 'function' ? story.createdAt.toDate() : new Date(story.createdAt as unknown as string | number | Date);
             const now = Date.now();
             const diffMs = now - date.getTime();
             const diffMin = Math.floor(diffMs / (1000 * 60));

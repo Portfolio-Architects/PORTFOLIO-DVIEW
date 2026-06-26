@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition, useRef } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { logger } from '@/lib/services/logger';
 import { Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -12,7 +12,7 @@ export interface AdInquiry {
   contactInfo: string;
   message: string;
   status: 'pending' | 'reviewed';
-  createdAt: any;
+  createdAt: Timestamp | null;
 }
 
 export interface SubscriptionItem {
@@ -21,8 +21,8 @@ export interface SubscriptionItem {
   realtime: boolean;
   weekly: boolean;
   status: 'active' | 'unsubscribed';
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
 }
 
 const InquiriesPage = React.memo(function InquiriesPage() {

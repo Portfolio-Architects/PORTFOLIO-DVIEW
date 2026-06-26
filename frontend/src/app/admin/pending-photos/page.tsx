@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '@/lib/firebaseConfig';
 import { logger } from '@/lib/services/logger';
-import { collection, query, where, getDocs, doc, updateDoc, getDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc, orderBy, Timestamp } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { Camera, Check, X, Loader2, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -19,7 +19,7 @@ interface PendingPhoto {
   locationTagId: string;
   caption: string;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: any;
+  createdAt: Timestamp | null;
   uploaderName?: string;
   uploaderUid?: string;
 }
