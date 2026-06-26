@@ -10,9 +10,9 @@ type Task<T> = () => Promise<T>;
 export class FirestoreThrottle {
   private activeRequests = 0;
   private pendingQueue: Array<{
-    task: Task<any>;
-    resolve: (value: any) => void;
-    reject: (reason?: any) => void;
+    task: Task<unknown>;
+    resolve: (value: unknown) => void;
+    reject: (reason?: unknown) => void;
   }> = [];
 
   // Limit on concurrent Firestore active requests (reads/writes)
@@ -37,7 +37,11 @@ export class FirestoreThrottle {
     });
 
     return new Promise<T>((resolve, reject) => {
-      this.pendingQueue.push({ task, resolve, reject });
+      this.pendingQueue.push({
+        task: task as Task<unknown>,
+        resolve: resolve as (value: unknown) => void,
+        reject
+      });
     });
   }
 

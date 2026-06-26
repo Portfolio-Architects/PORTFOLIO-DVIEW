@@ -1,4 +1,4 @@
-import { FirestoreDataConverter, DocumentData, QueryDocumentSnapshot, SnapshotOptions } from 'firebase/firestore';
+import { FirestoreDataConverter, DocumentData, QueryDocumentSnapshot, SnapshotOptions, Timestamp } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types/user.types';
 import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
 import { z } from 'zod';
@@ -11,7 +11,7 @@ export const UserProfileSchema = z.object({
   photoURL: z.string().optional(),
   verifiedApartment: z.string().optional(),
   verificationLevel: z.enum(['none', 'self_declared', 'registry_verified']).catch('none'),
-  createdAt: z.any().optional(),
+  createdAt: z.unknown().optional(),
   uploaderPoints: z.number().int().catch(0),
   uploaderTier: z.string().catch('초보 임장러'),
 });
@@ -21,7 +21,7 @@ export const CommentDocumentSchema = z.object({
   text: z.string().catch(''),
   authorName: z.string().catch('익명'),
   authorUid: z.string().catch(''),
-  createdAt: z.any(),
+  createdAt: z.unknown(),
 });
 
 export const PostDocumentSchema = z.object({
@@ -36,7 +36,7 @@ export const PostDocumentSchema = z.object({
   verificationLevel: z.string().optional(),
   likes: z.number().int().catch(0),
   views: z.number().int().catch(0),
-  createdAt: z.any(),
+  createdAt: z.unknown(),
 });
 
 /**
@@ -88,7 +88,7 @@ export interface CommentDocument {
   text: string;
   authorName: string;
   authorUid: string;
-  createdAt: any;
+  createdAt: Timestamp | null | undefined;
 }
 
 /**
@@ -140,7 +140,7 @@ export interface PostDocument {
   verificationLevel?: string;
   likes: number;
   views: number;
-  createdAt: any;
+  createdAt: Timestamp | null | undefined;
 }
 
 /**
