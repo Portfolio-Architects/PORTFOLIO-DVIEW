@@ -13,6 +13,20 @@ import { userProfileConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 
+let cachedAdminDb: any = null;
+
+async function getAdminDb() {
+  if (cachedAdminDb) return cachedAdminDb;
+  try {
+    const { adminDb } = await import('@/lib/firebaseAdmin');
+    cachedAdminDb = adminDb;
+    return cachedAdminDb;
+  } catch (error) {
+    logger.error('UserRepository', 'Failed to import adminDb', {}, error);
+    return null;
+  }
+}
+
 const UserProfileSchema = z.object({
   nickname: z.string().default(DEFAULT_NICKNAME),
   hasSetNickname: z.boolean().default(false),
@@ -31,20 +45,20 @@ const UserProfileSchema = z.object({
  * @returns The user's profile
  */
 export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
-  let docData: any = null;
+  let docData: UserProfile | Record<string, any> | null = null;
 
   if (typeof window === 'undefined') {
     try {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (adminDb) {
         const userRef = adminDb.collection('users').doc(uid);
-        const userSnap = await throttle(() => userRef.get());
+        const userSnap = await throttle<any>(() => userRef.get());
         if (userSnap.exists) {
-          docData = userSnap.data();
+          docData = userSnap.data() as Record<string, any>;
           if (docData && !docData.photoURL) {
             const randomAvatar = getRandomDefaultAvatar();
             // Non-blocking background update with catch block
-            userRef.update({ photoURL: randomAvatar }).catch((err) => {
+            userRef.update({ photoURL: randomAvatar }).catch((err: any) => {
               logger.error('UserRepository.getOrCreateProfile', 'Failed to update photoURL in adminDb asynchronously', { uid }, err);
             });
             docData.photoURL = randomAvatar;
@@ -58,7 +72,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
             uploaderPoints: 0,
             uploaderTier: '초보 임장러',
           };
-          await throttle(() => userRef.set(newProfile));
+          await throttle<any>(() => userRef.set(newProfile));
           logger.info('UserRepository.getOrCreateProfile', 'New user profile created via Admin DB', { uid, nickname: newProfile.nickname });
           docData = newProfile;
         }
