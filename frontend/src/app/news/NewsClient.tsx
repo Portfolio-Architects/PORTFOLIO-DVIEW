@@ -45,19 +45,19 @@ interface NewsItem {
 
 interface NoticeItem {
   id: string;
-  title: string;
-  url: string;
-  dept: string;
+  title?: string;
+  url?: string;
+  dept?: string;
   date: string;
   isDongtan: boolean;
-  source: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
+  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
   createdAt?: string;
   content?: string;
 }
 
 interface NewsClientProps {
-  initialNews?: any[];
-  initialNotices?: any[];
+  initialNews?: NewsItem[];
+  initialNotices?: NoticeItem[];
 }
 
 const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices }: NewsClientProps) {
@@ -367,7 +367,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               ) : (
                 <>
                   {noticesList.slice(0, visibleNoticesCount).map((item) => {
-                    const src = getNoticeSourceDetails(item.source);
+                    const src = getNoticeSourceDetails(item.source || 'bbs');
                     const Icon = src.icon;
                     const hasDetails = !!item.content;
                     return (

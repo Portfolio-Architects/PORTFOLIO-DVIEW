@@ -4,6 +4,7 @@ import { getInitialData } from '@/lib/services/dashboardData';
 import ExploreClient from './ExploreClient';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
+import { DongApartment } from '@/lib/dong-apartments';
 
 export const revalidate = 600; // Revalidate every 10 minutes (ISR)
 
@@ -135,11 +136,11 @@ async function ExploreDataLoader() {
   const initialData = await getInitialData();
   
   // Extract all apartments for SEO injection
-  const apartmentsList: any[] = [];
+  const apartmentsList: DongApartment[] = [];
   if (initialData.sheetApartments) {
     Object.entries(initialData.sheetApartments).forEach(([dong, apts]) => {
       if (Array.isArray(apts)) {
-        apts.forEach((apt: any) => {
+        apts.forEach((apt: DongApartment) => {
           if (apt && apt.name) {
             apartmentsList.push({
               name: apt.name,
