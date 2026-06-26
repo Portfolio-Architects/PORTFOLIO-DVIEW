@@ -134,13 +134,15 @@ export async function GET(req: Request) {
           try {
             await webpush.sendNotification(subscription, payload);
             totalNotificationsSent++;
-          } catch (err: any) {
+          } catch (err: unknown) {
             // If subscription has expired or is no longer active (410 Gone or 404 Not Found), clean it up
-            if (err.statusCode === 410 || err.statusCode === 404) {
+            const hasStatusCode = err && typeof err === 'object' && 'statusCode' in err;
+            const statusCode = hasStatusCode ? (err as Record<string, unknown>).statusCode : undefined;
+            if (statusCode === 410 || statusCode === 404) {
               await db.collection('push_subscriptions').doc(doc.id).delete();
               expiredCleanedCount++;
             } else {
-              logger.warn('SendTxNotificationsAPI.GET', 'Web Push trigger encountered warning', { docId: doc.id, statusCode: err.statusCode }, err);
+              logger.warn('SendTxNotificationsAPI.GET', 'Web Push trigger encountered warning', { docId: doc.id, statusCode }, err);
             }
           }
         }
@@ -160,8 +162,9 @@ export async function GET(req: Request) {
       cleanedSubscriptionsCount: expiredCleanedCount
     });
 
-  } catch (error: any) {
-    logger.error('SendTxNotificationsAPI.GET', 'Fatal error during notification cron job', {}, error);
-    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('SendTxNotificationsAPI.GET', 'Fatal error during notification cron job', {}, err);
+    return NextResponse.json({ error: 'Internal Server Error', details: err.message }, { status: 500 });
   }
 }

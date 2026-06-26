@@ -148,14 +148,15 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  } catch (error: any) {
-    if (error?.message === 'POST_NOT_FOUND') {
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    if (err.message === 'POST_NOT_FOUND') {
       return NextResponse.json({ error: 'Target post not found' }, { status: 404 });
     }
-    if (error?.message === 'REPORT_NOT_FOUND') {
+    if (err.message === 'REPORT_NOT_FOUND') {
       return NextResponse.json({ error: 'Target report not found' }, { status: 404 });
     }
-    logger.error('CommentsAPI.POST', 'Create comment api error', {}, error);
+    logger.error('CommentsAPI.POST', 'Create comment api error', {}, err);
     return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 });
   }
 }
