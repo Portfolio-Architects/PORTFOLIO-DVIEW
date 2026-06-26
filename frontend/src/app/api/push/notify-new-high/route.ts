@@ -4,6 +4,14 @@ import webpush from 'web-push';
 import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
+interface NewHighItem {
+  aptName: string;
+  pyeong: number;
+  price: number;
+  delta: number;
+  floor: number | string;
+  area: number;
+}
 
 export async function POST(req: Request) {
   try {
@@ -43,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     const recentTxs = txSnap.docs.map(doc => doc.data());
-    const newHighs: any[] = [];
+    const newHighs: NewHighItem[] = [];
 
     // 3. Determine if each transaction is a "New High" (historically highest price for its specific size)
     for (const tx of recentTxs) {
@@ -144,10 +152,11 @@ export async function POST(req: Request) {
       try {
         await webpush.sendNotification(sub, notificationPayload);
         sentCount++;
-      } catch (err: any) {
-        logger.error('NotifyNewHighAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: err.statusCode }, err);
+      } catch (err: unknown) {
+        const errorObj = err as { statusCode?: number };
+        logger.error('NotifyNewHighAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: errorObj.statusCode }, err as Error);
         // Clean up invalid or expired subscriptions
-        if (err.statusCode === 410 || err.statusCode === 404) {
+        if (errorObj.statusCode === 410 || errorObj.statusCode === 404) {
           await doc.ref.delete();
           logger.info('NotifyNewHighAPI.POST', 'Deleted expired subscription', { docId: doc.id });
         }
@@ -163,8 +172,8 @@ export async function POST(req: Request) {
       newHighsDetected: newHighs.length,
       notifiedApt: mainHigh.aptName
     });
-  } catch (error: any) {
-    logger.error('NotifyNewHighAPI.POST', 'Notify New High Error', {}, error);
+  } catch (error: unknown) {
+    logger.error('NotifyNewHighAPI.POST', 'Notify New High Error', {}, error as Error);
     return NextResponse.json({ error: 'Failed to process new high notification' }, { status: 500 });
   }
 }
