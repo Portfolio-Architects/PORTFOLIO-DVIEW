@@ -16,6 +16,8 @@ import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent } from '@/lib/utils/analytics';
 import { logger } from '@/lib/services/logger';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
+import { type DongApartment } from '@/lib/dong-apartments';
+import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -478,8 +480,8 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         import('@/components/consumer/AnchorTenantCard').catch(() => {});
       };
       if (process.env.NODE_ENV === 'production') {
-        if ('requestIdleCallback' in window) {
-          idleId = (window as any).requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
+        if (window.requestIdleCallback) {
+          idleId = window.requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
         } else {
           if (preloadTimeoutRef.current) {
             clearTimeout(preloadTimeoutRef.current);
@@ -529,8 +531,8 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       return () => {
         isMounted = false;
         mountedRef.current = false;
-        if (idleId !== null && 'cancelIdleCallback' in window) {
-          (window as any).cancelIdleCallback(idleId);
+        if (idleId !== null && window.cancelIdleCallback) {
+          window.cancelIdleCallback(idleId);
         }
         window.removeEventListener('hashchange', handleHashChange);
         window.removeEventListener('scroll', handleScroll);
@@ -554,7 +556,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       const match = window.location.hash.match(/[#&]apt=([^&]+)/);
       if (match) {
         const aptName = decodeURIComponent(match[1]);
-        const allApts = Object.values(apartments).flat() as any[];
+        const allApts = Object.values(apartments).flat() as DongApartment[];
         const targetApt = allApts.find(a => isSameApartment(a.name, aptName, mapping));
         
         if (targetApt) {
@@ -571,7 +573,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
               likes: 0,
               commentCount: 0,
               createdAt: null,
-              metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as any,
+              metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as ObjectiveMetrics,
             });
           }
           setMobileModalOpen(true);
@@ -674,7 +676,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
         .then(res => res.json())
         .then(data => {
           if (data && data.byDong) {
-            const allApts = Object.values(data.byDong).flat() as any[];
+            const allApts = Object.values(data.byDong).flat() as DongApartment[];
             const targetApt = allApts.find(a => isSameApartment(a.name, apt.name, nameMapping, a.dong, apt.dong));
             if (targetApt && targetApt.householdCount) {
               setSelectedReport(prev => {

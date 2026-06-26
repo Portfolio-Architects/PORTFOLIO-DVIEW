@@ -22,6 +22,16 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 730)
+- **Explore Client & Global Types Optimization (Phase 729)**:
+  - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
+  - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
+  - 2곳에 흩어져있던 `Object.values(...).flat() as any[]` 배열 캐스팅을 `@/lib/dong-apartments`의 `DongApartment[]` 정형 타입 캐스팅으로 리팩토링했습니다.
+  - stub metrics 객체의 `as any` 캐스팅을 `as unknown as ObjectiveMetrics` 더블 캐스팅 기법으로 안전하게 대체하여 형식 안전성을 다졌습니다.
+- **Component Idle Callbacks Optimization (Phase 730)**:
+  - [ZoneDetailClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/zone/[id]/ZoneDetailClient.tsx) 파일 내에서 `(window as any)` 형태로 쓰이던 `requestIdleCallback` 및 `cancelIdleCallback` 캐스팅을 전역 Window 인터페이스 확장에 기반하여 `window.requestIdleCallback` 및 `window.cancelIdleCallback` 형태의 정적 바인딩 호출로 리팩토링했습니다.
+  - [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx) 파일 내의 2개 훅 위치에서 쓰이던 `(window as any)` 캐스팅을 Window 인터페이스 확장에 의거해 타입 안전한 형태로 전면 리팩토링했습니다.
+
 ---
 
 ## 🟢 Verification Results
