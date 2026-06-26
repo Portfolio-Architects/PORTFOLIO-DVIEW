@@ -22,6 +22,7 @@ interface TransactionRecord {
   isOutlier?: boolean;
   areaLabelM2?: string;
   areaLabelPyeong?: string;
+  contractDateNum?: number;
 }
 
 interface TransactionSummaryMetricsProps {
@@ -43,7 +44,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
     let maxDateNum = 0;
     for (let i = 0; i < transactions.length; i++) {
-      const tx = transactions[i] as any;
+      const tx = transactions[i];
       const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
       if (dateNum <= todayDateNum && dateNum > maxDateNum) {
         maxDateNum = dateNum;
@@ -101,7 +102,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       if (periodDealType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
       
       // 방어적 미래 일자 필터링 (numeric 비교로 최적화)
-      const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
       if (dateNum > todayDateNum) return false;
       
       return true;
@@ -145,8 +146,8 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
     const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + getTxPrice(t), 0) / baseTx.length : 0;
     const sortedBaseTx = [...baseTx].sort((a, b) => {
-      const dateNumA = (a as any).contractDateNum || (a.contractYm ? parseInt(a.contractYm + String(a.contractDay || '15').padStart(2, '0')) : 20260615);
-      const dateNumB = (b as any).contractDateNum || (b.contractYm ? parseInt(b.contractYm + String(b.contractDay || '15').padStart(2, '0')) : 20260615);
+      const dateNumA = a.contractDateNum || (a.contractYm ? parseInt(a.contractYm + String(a.contractDay || '15').padStart(2, '0')) : 20260615);
+      const dateNumB = b.contractDateNum || (b.contractYm ? parseInt(b.contractYm + String(b.contractDay || '15').padStart(2, '0')) : 20260615);
       return dateNumB - dateNumA;
     });
     const fallbackTx = sortedBaseTx.length > 0 ? sortedBaseTx[0] : null;
@@ -155,7 +156,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       const cutoffDate = new Date(now.getFullYear(), now.getMonth() - p.months, now.getDate());
       const cutoffNum = cutoffDate.getFullYear() * 10000 + (cutoffDate.getMonth() + 1) * 100 + cutoffDate.getDate();
       const filtered = baseTx.filter(tx => {
-        const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+        const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
         return p.months >= 9999 || dateNum >= cutoffNum;
       });
       
@@ -196,11 +197,11 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
     const sixMonthsAgoNum = sixMonthsAgo.getFullYear() * 10000 + (sixMonthsAgo.getMonth() + 1) * 100 + sixMonthsAgo.getDate();
     
     const recentSales = filteredSales.filter(tx => {
-      const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
       return dateNum >= sixMonthsAgoNum;
     });
     const recentJeonses = filteredJeonses.filter(tx => {
-      const dateNum = (tx as any).contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
+      const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
       return dateNum >= sixMonthsAgoNum;
     });
 
