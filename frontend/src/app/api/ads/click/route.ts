@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. JSON 파싱 방어 가드
-    let rawBody: any;
+    let rawBody: unknown;
     try {
       const text = await request.text();
       if (!text.trim()) {
@@ -63,16 +63,18 @@ export async function POST(request: NextRequest) {
         serverTimestamp: new Date(),
       }).then(() => {
         logger.info('AdClick.POST', `Persisted ad click successfully to Firestore: ${adId}`);
-      }).catch((writeErr) => {
-        logger.error('AdClick.POST', 'Failed to persist ad click to Firestore', { adId }, writeErr as Error);
+      }).catch((writeErr: unknown) => {
+        const err = writeErr instanceof Error ? writeErr : new Error(String(writeErr));
+        logger.error('AdClick.POST', 'Failed to persist ad click to Firestore', { adId }, err);
       });
     } else {
       logger.warn('AdClick.POST', 'adminDb is not configured. Click logged only to console.', { adId, apartmentName });
     }
 
     return NextResponse.json({ success: true, message: 'Click logged successfully' }, { status: 200 });
-  } catch (error) {
-    logger.error('AdClick.POST', 'Unexpected error during ad click logging', {}, error as Error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('AdClick.POST', 'Unexpected error during ad click logging', {}, err);
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
