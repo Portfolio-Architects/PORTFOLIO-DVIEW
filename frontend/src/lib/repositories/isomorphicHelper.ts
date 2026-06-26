@@ -1,4 +1,5 @@
 import { logger } from '@/lib/services/logger';
+import type { Redis } from '@upstash/redis';
 
 interface IsomorphicQueryParams<T> {
   cacheKey: string;
@@ -6,6 +7,23 @@ interface IsomorphicQueryParams<T> {
   serverQuery: () => Promise<T | null>;
   clientQuery: () => Promise<T | null>;
   fallbackValue?: T | null;
+}
+
+// Module-level cache for dynamic redis import
+let cachedRedis: Redis | null = null;
+let isRedisLoaded = false;
+
+async function getRedis(): Promise<Redis | null> {
+  if (isRedisLoaded) return cachedRedis;
+  try {
+    const { redis } = await import('@/lib/redis');
+    cachedRedis = (redis as unknown as Redis) || null;
+  } catch (err) {
+    logger.warn('isomorphicHelper.getRedis', 'Failed to dynamically import @/lib/redis', {}, err as Error);
+    cachedRedis = null;
+  }
+  isRedisLoaded = true;
+  return cachedRedis;
 }
 
 /**
@@ -27,9 +45,9 @@ export async function executeIsomorphicQuery<T>({
   // 1. Check Redis cache (Server-side only)
   if (isServer) {
     try {
-      const { redis } = await import('@/lib/redis');
+      const redis = await getRedis();
       if (redis) {
-        const cached = await redis.get<any>(cacheKey);
+        const cached = await redis.get<unknown>(cacheKey);
         if (cached !== null) {
           if (cached === 'null') return null;
           return cached as T;
@@ -61,7 +79,7 @@ export async function executeIsomorphicQuery<T>({
       // Cache the failure key to prevent spamming DB on subsequent requests
       if (isServer) {
         try {
-          const { redis } = await import('@/lib/redis');
+          const redis = await getRedis();
           if (redis) {
             await redis.set(cacheKey, 'null', { ex: cacheEx }).catch(() => {});
           }
@@ -74,7 +92,7 @@ export async function executeIsomorphicQuery<T>({
   // 4. Cache in Redis (Server-side only)
   if (isServer && data) {
     try {
-      const { redis } = await import('@/lib/redis');
+      const redis = await getRedis();
       if (redis) {
         await redis.set(cacheKey, data, { ex: cacheEx }).catch(() => {});
       }
