@@ -214,7 +214,7 @@ export async function GET(request: NextRequest) {
     // 3. Fetch from 국토부 API for each month
     let totalNew = 0;
     const syncLog: string[] = [];
-    const allNewTransactions: any[] = [];
+    const allNewTransactions: z.infer<typeof transactionRecordSchema>[] = [];
     
     const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
 
@@ -229,12 +229,13 @@ export async function GET(request: NextRequest) {
         existingSnap.docs.forEach(doc => {
           existingMap.set(doc.id, doc.data().cancelDate || '');
         });
-      } catch (err: any) {
-        logger.warn('SyncTransactionsAPI.GET', `[${ym}] 기존 데이터 조회 실패`, { message: err.message });
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        logger.warn('SyncTransactionsAPI.GET', `[${ym}] 기존 데이터 조회 실패`, { message: errMsg });
       }
 
-      const monthRecords: any[] = [];
-      const newTransactionsOfMonth: any[] = [];
+      const monthRecords: z.infer<typeof transactionRecordSchema>[] = [];
+      const newTransactionsOfMonth: z.infer<typeof transactionRecordSchema>[] = [];
 
       // 매매 데이터 수집
       for (const currentLawd of LAWD_CDS) {
@@ -652,9 +653,10 @@ export async function GET(request: NextRequest) {
             logger.info('SyncTransactionsAPI.GET', `Sent notification emails to ${subscribers.length} active subscribers`, { count: subscribers.length });
           }
         }
-      } catch (mailErr: any) {
-        logger.error('SyncTransactionsAPI.GET', 'Failed to send notification email during sync', {}, mailErr as Error);
-        syncLog.push(`Mail Notification Error: ${mailErr.message}`);
+      } catch (mailErr: unknown) {
+        const err = mailErr instanceof Error ? mailErr : new Error(String(mailErr));
+        logger.error('SyncTransactionsAPI.GET', 'Failed to send notification email during sync', {}, err);
+        syncLog.push(`Mail Notification Error: ${err.message}`);
       }
     }
 
