@@ -9,7 +9,7 @@ interface CacheEntry<T> {
   expiry: number;
 }
 
-export class LRUCache<T = any> {
+export class LRUCache<T = unknown> {
   private capacity: number;
   private cache: Map<string, CacheEntry<T>>;
 
@@ -18,7 +18,7 @@ export class LRUCache<T = any> {
     this.cache = new Map();
   }
 
-  public get(key: string): T | null {
+  public get<R = T>(key: string): R | null {
     if (!this.cache.has(key)) return null;
 
     const entry = this.cache.get(key)!;
@@ -30,7 +30,7 @@ export class LRUCache<T = any> {
     // Refresh position for LRU strategy
     this.cache.delete(key);
     this.cache.set(key, entry);
-    return entry.value;
+    return entry.value as unknown as R;
   }
 
   public set(key: string, value: T, ttlMs: number): void {
@@ -59,10 +59,13 @@ export class LRUCache<T = any> {
   }
 }
 
-// Bind to globalThis to preserve cache across hot reloads in next dev
-const globalKey = '_lruCacheInstance';
-if (!(globalThis as any)[globalKey]) {
-  (globalThis as any)[globalKey] = new LRUCache(100);
+declare global {
+  var _lruCacheInstance: LRUCache<unknown> | undefined;
 }
 
-export const serverLruCache = (globalThis as any)[globalKey] as LRUCache;
+// Bind to globalThis to preserve cache across hot reloads in next dev
+if (!globalThis._lruCacheInstance) {
+  globalThis._lruCacheInstance = new LRUCache<unknown>(100);
+}
+
+export const serverLruCache = globalThis._lruCacheInstance;

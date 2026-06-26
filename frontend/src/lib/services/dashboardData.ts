@@ -178,7 +178,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchFavCounts = async () => {
-    const l1Cache = serverLruCache.get('favCounts');
+    const l1Cache = serverLruCache.get<Record<string, number>>('favCounts');
     if (l1Cache) {
       result.favoriteCounts = l1Cache;
       return;
@@ -209,7 +209,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchMeta = async () => {
-    const l1Cache = serverLruCache.get('apartmentMeta');
+    const l1Cache = serverLruCache.get<z.infer<typeof ApartmentMetaSchema>>('apartmentMeta');
     if (l1Cache) {
       result.apartmentMeta = l1Cache;
       return;
@@ -238,7 +238,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
   };
 
   const fetchReports = async () => {
-    const l1Cache = serverLruCache.get('fieldReports');
+    const l1Cache = serverLruCache.get<z.infer<typeof FieldReportSchema>[]>('fieldReports');
     if (l1Cache) {
       result.fieldReports = l1Cache;
       return;
