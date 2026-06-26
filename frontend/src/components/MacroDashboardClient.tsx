@@ -1687,10 +1687,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         compactTitle="D-VIEW 데이터 랩"
         subtitleStrong={
           <>
-            실수요자 중심 <span className="text-[#ea6100] font-extrabold px-0.5">동탄 아파트</span> 주거 안심 진단
+            실수요자 중심 <span className="text-[#ea6100] font-extrabold px-0.5">동탄 아파트</span> 주거 안심 및 정주 여건 진단
           </>
         }
-        subtitleLight="전세 사기 예방 및 전세가율 안정화를 위한 공익 데이터 리포트"
+        subtitleLight="역전세 리스크 진단 및 생활 밀착형 인프라(돌봄·교통) 연계 공익 데이터 리포트"
         rightContent={
           <div className="hidden sm:flex items-center gap-2">
           </div>
