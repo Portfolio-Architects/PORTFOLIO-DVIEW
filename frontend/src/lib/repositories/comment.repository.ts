@@ -17,6 +17,32 @@ const CommentDataSchema = z.object({
   authorName: z.string().default('익명')
 }).passthrough();
 
+interface RawCommentDoc {
+  id: string;
+  data: {
+    text?: string;
+    authorName?: string;
+    createdAt?: unknown;
+  };
+}
+
+// Module-level cache for dynamic firebaseAdmin import
+let cachedAdminDb: any = null;
+let isAdminDbLoaded = false;
+
+async function getAdminDb(): Promise<any> {
+  if (isAdminDbLoaded) return cachedAdminDb;
+  try {
+    const { adminDb } = await import('@/lib/firebaseAdmin');
+    cachedAdminDb = adminDb || null;
+  } catch (err) {
+    logger.warn('CommentRepository.getAdminDb', 'Failed to dynamically import @/lib/firebaseAdmin', {}, err as Error);
+    cachedAdminDb = null;
+  }
+  isAdminDbLoaded = true;
+  return cachedAdminDb;
+}
+
 /**
  * Adds a comment to a field report's subcollection and increments the comment count.
  * @param reportId - Parent report document ID
@@ -97,7 +123,7 @@ export function listenToComments(
     const comments: CommentData[] = [];
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const mapped: any = {
+      const mapped = {
         id: docSnap.id,
         text: data.text || '',
         authorName: data.authorName || '익명',
@@ -134,16 +160,16 @@ export function listenToComments(
  * Fetches comments for a specific report. Supporting server-side (adminDb) and client-side (db) fetches.
  */
 export async function getComments(reportId: string): Promise<CommentData[]> {
-  let rawDocs: any[] = [];
+  let rawDocs: RawCommentDoc[] = [];
 
   if (typeof window === 'undefined') {
     try {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (adminDb) {
-        const snap = await throttle(() => adminDb.collection(`field_reports/${reportId}/comments`)
+        const snap = await throttle<any>(() => adminDb.collection(`field_reports/${reportId}/comments`)
           .orderBy('createdAt', 'asc')
           .get());
-        rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+        rawDocs = snap.docs.map((d: any) => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
       logger.warn('CommentRepository.getComments', 'Admin SDK fetch failed, falling back', { reportId }, adminError);
@@ -166,7 +192,7 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
 
   return rawDocs.map(item => {
     const data = item.data;
-    const mapped: any = {
+    const mapped = {
       id: item.id,
       text: data.text || '',
       authorName: data.authorName || '익명',
