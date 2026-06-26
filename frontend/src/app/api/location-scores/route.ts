@@ -211,7 +211,11 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'no-store' },
+      headers: {
+        'Cache-Control': forceRefresh
+          ? 'no-store, no-cache, must-revalidate, max-age=0'
+          : 'public, s-maxage=3600, stale-while-revalidate=600',
+      },
     });
   } catch (error: unknown) {
     logger.error('LocationScoresAPI.GET', 'Failed to calculate location scores', {}, error as Error);

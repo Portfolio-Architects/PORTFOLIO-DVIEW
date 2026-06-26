@@ -119,6 +119,10 @@ export default function TechnoValleyClient() {
   const [activeSubTab, setActiveSubTab] = useState<'fitfinder' | 'board' | 'calculator'>('fitfinder');
   const [isPending, startTransition] = useTransition();
 
+  // 실거래가 API 동적 연동 상태
+  const [fetchedTransactions, setFetchedTransactions] = useState<any[]>([]);
+  const [isLoadingTx, setIsLoadingTx] = useState<boolean>(true);
+
   // 핏파인더 상태
   const [budget, setBudget] = useState<'under100' | '100to200' | 'above200'>('100to200');
   const [employees, setEmployees] = useState<'under5' | '5to15' | 'above15'>('5to15');
@@ -135,6 +139,37 @@ export default function TechnoValleyClient() {
       }
     };
   }, []);
+
+  // 동탄 테크노밸리 오피스 실거래가 동적 로드
+  useEffect(() => {
+    let active = true;
+    const loadTx = async () => {
+      try {
+        setIsLoadingTx(true);
+        const res = await fetch('/api/technovalley/transactions?lawdCd=41590&dealYmd=202605');
+        if (res.ok) {
+          const data = await res.json();
+          if (active) {
+            setFetchedTransactions(data);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load office transactions', err);
+      } finally {
+        if (active) setIsLoadingTx(false);
+      }
+    };
+    loadTx();
+    return () => { active = false; };
+  }, []);
+
+  const matchedTransactions = useMemo(() => {
+    if (!searchResult) return [];
+    return fetchedTransactions.filter(tx => 
+      tx.buildingName.replace(/\s/g, '').includes(searchResult.name.replace(/\s/g, '')) ||
+      searchResult.name.replace(/\s/g, '').includes(tx.buildingName.replace(/\s/g, ''))
+    );
+  }, [fetchedTransactions, searchResult]);
 
   // 세제 혜택 계산기 상태
   const [currentTax, setCurrentTax] = useState<string>('3000'); // 연간 법인세 (만원 단위)
@@ -611,42 +646,56 @@ export default function TechnoValleyClient() {
                       <div className="flex flex-col gap-2.5">
                         <span className="text-[12.5px] font-bold text-secondary flex items-center gap-1.5">
                           <Coins size={16} className="text-[#c44d00] dark:text-[#ea6100]" />
-                          해당 지식산업센터 최근 실거래 정보 (매매/임대)
+                          해당 지식산업센터 최근 실거래 정보 (국토교통부 연동)
                         </span>
                         <div className="overflow-x-auto border border-border/40 rounded-2xl bg-body/10">
-                          <table className="w-full text-left border-collapse text-[11.5px]">
-                            <thead>
-                              <tr className="bg-body/30 border-b border-border/30 text-tertiary">
-                                <th className="p-3 font-bold">계약일</th>
-                                <th className="p-3 font-bold">구분</th>
-                                <th className="p-3 font-bold">전용면적</th>
-                                <th className="p-3 font-bold text-center">층</th>
-                                <th className="p-3 font-bold text-right">거래 금액</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {searchResult.recentTransactions.map((tx, idx) => {
-                                const sizeInPy = Math.round(tx.sizeSqM / 3.3057 * 10) / 10;
-                                return (
-                                  <tr key={idx} className="border-b border-border/20 last:border-0 hover:bg-body/25 transition-colors">
-                                    <td className="p-3 text-secondary font-medium">{tx.date}</td>
-                                    <td className="p-3">
-                                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
-                                        tx.type === '매매' 
-                                          ? 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20' 
-                                          : 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
-                                      }`}>
-                                        {tx.type}
-                                      </span>
-                                    </td>
-                                    <td className="p-3 text-secondary font-medium">{tx.sizeSqM}㎡ ({sizeInPy}평)</td>
-                                    <td className="p-3 text-secondary font-medium text-center">{tx.floor}F</td>
-                                    <td className="p-3 text-primary font-bold text-right">{tx.price}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                          {isLoadingTx ? (
+                            <div className="p-4 space-y-3.5 animate-pulse">
+                              <div className="flex justify-between items-center">
+                                <div className="h-4 bg-body/30 rounded w-1/4"></div>
+                                <div className="h-4 bg-body/30 rounded w-1/6"></div>
+                              </div>
+                              <div className="space-y-2.5">
+                                <div className="h-3 bg-body/20 rounded w-full"></div>
+                                <div className="h-3 bg-body/20 rounded w-11/12"></div>
+                                <div className="h-3 bg-body/20 rounded w-10/12"></div>
+                              </div>
+                            </div>
+                          ) : (
+                            <table className="w-full text-left border-collapse text-[11.5px]">
+                              <thead>
+                                <tr className="bg-body/30 border-b border-border/30 text-tertiary">
+                                  <th className="p-3 font-bold">계약일</th>
+                                  <th className="p-3 font-bold">구분</th>
+                                  <th className="p-3 font-bold">전용면적</th>
+                                  <th className="p-3 font-bold text-center">층</th>
+                                  <th className="p-3 font-bold text-right">거래 금액</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(matchedTransactions.length > 0 ? matchedTransactions : searchResult.recentTransactions).map((tx, idx) => {
+                                  const sizeInPy = Math.round(tx.sizeSqM / 3.3057 * 10) / 10;
+                                  return (
+                                    <tr key={idx} className="border-b border-border/20 last:border-0 hover:bg-body/25 transition-colors">
+                                      <td className="p-3 text-secondary font-medium">{tx.date}</td>
+                                      <td className="p-3">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
+                                          tx.type === '매매' 
+                                            ? 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20' 
+                                            : 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
+                                        }`}>
+                                          {tx.type}
+                                        </span>
+                                      </td>
+                                      <td className="p-3 text-secondary font-medium">{tx.sizeSqM}㎡ ({sizeInPy}평)</td>
+                                      <td className="p-3 text-secondary font-medium text-center">{tx.floor}F</td>
+                                      <td className="p-3 text-primary font-bold text-right">{tx.price}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          )}
                         </div>
                       </div>
 

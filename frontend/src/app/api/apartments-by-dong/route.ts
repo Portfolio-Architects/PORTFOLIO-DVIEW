@@ -34,7 +34,13 @@ export async function GET(request: NextRequest) {
 
     const { bypassCache } = queryParse.data;
     const result = await fetchSheetApartmentsByDong(bypassCache);
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': bypassCache
+          ? 'no-store, no-cache, must-revalidate, max-age=0'
+          : 'public, s-maxage=3600, stale-while-revalidate=600',
+      },
+    });
   } catch (err: unknown) {
     logger.error('ApartmentsByDongAPI.GET', 'Error loading apartments', {}, err as Error);
     return NextResponse.json({ error: 'Failed to load apartments' }, { status: 500 });

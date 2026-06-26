@@ -398,12 +398,34 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     };
 
     // Start loop
-    isLoopRunning.current = true;
-    render();
+    isLoopRunning.current = false;
+
+    // IntersectionObserver to detect if the element is visible in the viewport
+    let observer: IntersectionObserver | null = null;
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          const isDocVisible = typeof document !== 'undefined' ? document.visibilityState === 'visible' : true;
+          isVisible.current = entry.isIntersecting && isDocVisible;
+          if (isVisible.current && !isLoopRunning.current) {
+            isLoopRunning.current = true;
+            animationFrameId = requestAnimationFrame(render);
+          }
+        },
+        { threshold: 0.1 }
+      );
+      if (containerRef.current) {
+        observer.observe(containerRef.current);
+      }
+    } else {
+      isLoopRunning.current = true;
+      render();
+    }
 
     const handleVisibilityChange = () => {
       if (typeof document === 'undefined') return;
-      isVisible.current = document.visibilityState === 'visible';
+      const isIntersecting = observer ? isVisible.current : true;
+      isVisible.current = document.visibilityState === 'visible' && isIntersecting;
       if (isVisible.current && !isLoopRunning.current) {
         isLoopRunning.current = true;
         animationFrameId = requestAnimationFrame(render);
@@ -441,6 +463,9 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
       canvas.removeEventListener('wheel', handleWheel);
       if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+      if (observer) {
+        observer.disconnect();
       }
       if (zoomHintTimeout.current) {
         clearTimeout(zoomHintTimeout.current);

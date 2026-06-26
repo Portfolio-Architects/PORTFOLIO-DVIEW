@@ -48,6 +48,10 @@ export async function GET(request: NextRequest) {
 
     const { apartment } = parsedQuery.data;
 
+    const cacheHeaders = {
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
+    };
+
     if (apartment) {
       const filtered = TX_SUMMARY[apartment] || null;
       if (!filtered) {
@@ -56,10 +60,10 @@ export async function GET(request: NextRequest) {
         });
         return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
       }
-      return NextResponse.json(filtered);
+      return NextResponse.json(filtered, { headers: cacheHeaders });
     }
 
-    return NextResponse.json(TX_SUMMARY);
+    return NextResponse.json(TX_SUMMARY, { headers: cacheHeaders });
   } catch (error) {
     logger.error('TransactionSummaryAPI.GET', 'Error fetching transaction summary', {}, error as Error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
