@@ -59,7 +59,7 @@ export async function verifyAuthHeader(request: NextRequest): Promise<DecodedTok
       }
       sessionCache.set(sessionCookie, { claims: parsed.data, lastChecked: now });
       return parsed.data;
-    } catch (cookieErr) {
+    } catch (cookieErr: unknown) {
       logger.warn('authUtils.verifyAuthHeader', 'Cookie verification failed, falling back to header', {}, cookieErr);
       sessionCache.delete(sessionCookie); // Invalidate cache on failure
     }
@@ -99,7 +99,7 @@ export async function verifyAdmin(request: NextRequest): Promise<boolean> {
     }
 
     return decodedToken.admin === true;
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('authUtils.verifyAdmin', 'Admin Verification Error', {}, error);
     return false;
   }
