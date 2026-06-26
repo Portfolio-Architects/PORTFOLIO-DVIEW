@@ -173,14 +173,14 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         </button>
 
         {/* Decorative Brand Emblem */}
-        <div className="w-16 h-16 rounded-[22px] bg-[#008262]/10 dark:bg-[#00d29d]/10 flex items-center justify-center mb-6 shadow-inner border border-[#008262]/15 dark:border-[#00d29d]/15">
-          <Compass size={32} className="text-[#008262] dark:text-[#00d29d] animate-pulse" />
+        <div className="w-16 h-16 rounded-[22px] bg-[#c44d00]/10 dark:bg-[#ea6100]/10 flex items-center justify-center mb-6 shadow-inner border border-[#c44d00]/15 dark:border-[#ea6100]/15">
+          <Compass size={32} className="text-[#c44d00] dark:text-[#ea6100] animate-pulse" />
         </div>
 
         {/* Title */}
         <h2 id="welcome-modal-title" className="text-[19px] sm:text-[21px] font-black text-primary leading-snug tracking-tight mb-3">
           동탄 아파트 가치분석 포털<br />
-          <span className="text-[#008262] dark:text-[#00d29d] font-black">D-VIEW</span>에 오신 것을 환영합니다
+          <span className="text-[#c44d00] dark:text-[#ea6100] font-black">D-VIEW</span>에 오신 것을 환영합니다
         </h2>
 
         {/* Description */}
@@ -191,8 +191,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         {/* Feature List */}
         <ul className="w-full flex flex-col gap-3.5 text-left bg-body/40 dark:bg-body/20 rounded-2xl p-4.5 mb-7 border border-border/30">
           <li className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-md bg-[#008262]/10 dark:bg-[#00d29d]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#008262]/10 dark:border-[#00d29d]/10">
-              <ShieldCheck size={12} className="text-[#008262] dark:text-[#00d29d]" />
+            <div className="w-5 h-5 rounded-md bg-[#c44d00]/10 dark:bg-[#ea6100]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#c44d00]/10 dark:border-[#ea6100]/10">
+              <ShieldCheck size={12} className="text-[#c44d00] dark:text-[#ea6100]" />
             </div>
             <div>
               <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">실시간 실거래 트렌드 진단</h4>
@@ -200,8 +200,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-md bg-[#008262]/10 dark:bg-[#00d29d]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#008262]/10 dark:border-[#00d29d]/10">
-              <ShieldCheck size={12} className="text-[#008262] dark:text-[#00d29d]" />
+            <div className="w-5 h-5 rounded-md bg-[#c44d00]/10 dark:bg-[#ea6100]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#c44d00]/10 dark:border-[#ea6100]/10">
+              <ShieldCheck size={12} className="text-[#c44d00] dark:text-[#ea6100]" />
             </div>
             <div>
               <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">초품아 안심 통학 학군 스코어</h4>
@@ -209,8 +209,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-md bg-[#008262]/10 dark:bg-[#00d29d]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#008262]/10 dark:border-[#00d29d]/10">
-              <ShieldCheck size={12} className="text-[#008262] dark:text-[#00d29d]" />
+            <div className="w-5 h-5 rounded-md bg-[#c44d00]/10 dark:bg-[#ea6100]/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#c44d00]/10 dark:border-[#ea6100]/10">
+              <ShieldCheck size={12} className="text-[#c44d00] dark:text-[#ea6100]" />
             </div>
             <div>
               <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">3D 매수 심리 시그널 맵</h4>
@@ -222,7 +222,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         {/* CTA Button */}
         <button
           onClick={handleClose}
-          className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-[#008262] hover:bg-[#006950] dark:bg-[#00b386] dark:hover:bg-[#008262] text-white text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.96] shadow-md shadow-[#00d29d]/15"
+          className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-[#c44d00] hover:bg-[#9e3c00] dark:bg-[#ff8f00] dark:hover:bg-[#c44d00] text-white text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.96] shadow-md shadow-[#ea6100]/15"
         >
           <span>D-VIEW 탐색 시작하기</span>
           <ArrowRight size={16} strokeWidth={2.5} />

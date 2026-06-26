@@ -638,12 +638,12 @@ const AdminDashboard = React.memo(function AdminDashboard() {
             {isSheetsSyncing ? '동기화 중...' : 'Google Sheets 동기화'}
           </button>
           <button onClick={handleSync} disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#00b386] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#ff8f00] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
             <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> 
             {isSyncing ? '동기화 중...' : '실거래가 수동 동기화'}
           </button>
           <button onClick={handleNoticeSync} disabled={isNoticeSyncing}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#00d29d] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#ea6100] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
             <RefreshCw size={16} className={isNoticeSyncing ? "animate-spin" : ""} /> 
             {isNoticeSyncing ? '동기화 중...' : '소식 수동 동기화'}
           </button>
@@ -709,7 +709,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
         {[
-          { label: '전체 단지', value: stats.total, color: '#00d29d', bg: '#e0fbf4', icon: Building, fk: 'all' as const },
+          { label: '전체 단지', value: stats.total, color: '#ea6100', bg: '#fff3e0', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
           { label: '현장사진', value: stats.verified, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'verified' as const },
@@ -829,7 +829,7 @@ const AdminDashboard = React.memo(function AdminDashboard() {
         <span className="text-[13px] text-tertiary font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📸 {stats.totalVerifiedReports} 현장사진</span>
         <button onClick={handleSave} disabled={saving}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-            saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#00d29d]/20'
+            saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#ea6100]/20'
           } disabled:opacity-60`}>
           <Save size={16}/>
           {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}

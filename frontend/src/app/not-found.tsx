@@ -8,8 +8,8 @@ export default function NotFound() {
         <div className="text-[100px] font-black text-[#e5e8eb] leading-none mb-4 select-none">
           404
         </div>
-        <div className="w-14 h-14 rounded-2xl bg-[#008262]/10 dark:bg-[#00d29d]/10 flex items-center justify-center mx-auto mb-6">
-          <Search size={28} className="text-[#008262] dark:text-[#00d29d]" />
+        <div className="w-14 h-14 rounded-2xl bg-[#c44d00]/10 dark:bg-[#ea6100]/10 flex items-center justify-center mx-auto mb-6">
+          <Search size={28} className="text-[#c44d00] dark:text-[#ea6100]" />
         </div>
         <h2 className="text-xl font-extrabold text-primary mb-2">
           페이지를 찾을 수 없어요
@@ -20,7 +20,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#008262] dark:bg-[#00b386] text-surface rounded-xl font-bold text-[14px] hover:bg-[#006950] dark:hover:bg-[#008262] transition-colors shadow-lg shadow-[#00d29d]/20"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#c44d00] dark:bg-[#ff8f00] text-surface rounded-xl font-bold text-[14px] hover:bg-[#9e3c00] dark:hover:bg-[#c44d00] transition-colors shadow-lg shadow-[#ea6100]/20"
         >
           <Home size={16} />
           홈으로 돌아가기

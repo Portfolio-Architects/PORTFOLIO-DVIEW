@@ -181,7 +181,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
               className="flex items-center hover:opacity-85 transition-opacity"
               aria-label="프로필 수정"
             >
-              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#e6f3f0] dark:bg-[#042820] flex items-center justify-center text-[#008262] dark:text-[#00d29d] overflow-hidden border border-[#008262]/20 shadow-sm relative transition-all duration-300 ${isScrolled ? 'ring-2 ring-[#008262]/30 scale-95 shadow-md' : ''}`}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#e6f3f0] dark:bg-[#042820] flex items-center justify-center text-[#c44d00] dark:text-[#ea6100] overflow-hidden border border-[#c44d00]/20 shadow-sm relative transition-all duration-300 ${isScrolled ? 'ring-2 ring-[#c44d00]/30 scale-95 shadow-md' : ''}`}>
                 {(anonProfile?.photoURL || user.photoURL) ? (
                   <Image src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" fill sizes="40px" className="object-cover" priority={true} />
                 ) : (
@@ -200,7 +200,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
             </button>
             <button 
               onClick={() => setIsSettingsModalOpen(true)}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-surface rounded-full border border-border flex items-center justify-center text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] hover:shadow-sm transition-all duration-200"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-surface rounded-full border border-border flex items-center justify-center text-secondary hover:text-[#c44d00] dark:hover:text-[#ea6100] hover:shadow-sm transition-all duration-200"
               aria-label="설정"
             >
               <Settings size={18} className="transition-transform duration-300 hover:rotate-45" />
@@ -250,11 +250,11 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                 onClick={() => document.getElementById('floating-profile-photo-input')?.click()}
                 aria-label="프로필 사진 변경"
               >
-                <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center overflow-hidden ring-4 ring-[#008262]/10 dark:ring-[#00d29d]/10 shadow-sm">
+                <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center overflow-hidden ring-4 ring-[#c44d00]/10 dark:ring-[#ea6100]/10 shadow-sm">
                   {profilePhotoPreview ? (
                     <img src={profilePhotoPreview} alt="프로필" className="w-full h-full object-cover" />
                   ) : (
-                    <UserCircle size={40} className="text-[#008262] dark:text-[#00d29d]" />
+                    <UserCircle size={40} className="text-[#c44d00] dark:text-[#ea6100]" />
                   )}
                 </div>
                 <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -300,7 +300,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                   value={isAdmin(user.email) ? '매니저' : editNickname}
                   onChange={(e) => { if (e.target.value.length <= 10) setEditNickname(e.target.value); }}
                   disabled={isAdmin(user.email)}
-                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] font-bold text-primary focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] outline-none text-center tracking-widest disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] font-bold text-primary focus:ring-2 focus:ring-[#c44d00]/20 focus:border-[#c44d00] dark:focus:ring-[#ea6100]/20 dark:focus:border-[#ea6100] outline-none text-center tracking-widest disabled:opacity-70 disabled:cursor-not-allowed"
                   placeholder="매니저"
                   maxLength={10}
                 />
@@ -320,7 +320,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                       aria-pressed={profilePhotoPreview === avatar}
                       aria-label={`아바타 ${idx + 1}`}
                       className={`w-12 h-12 rounded-full shrink-0 border-2 transition-all ${
-                        profilePhotoPreview === avatar ? 'border-[#008262] dark:border-[#00d29d] scale-110 shadow-md' : 'border-transparent hover:scale-105 opacity-80 hover:opacity-100'
+                        profilePhotoPreview === avatar ? 'border-[#c44d00] dark:border-[#ea6100] scale-110 shadow-md' : 'border-transparent hover:scale-105 opacity-80 hover:opacity-100'
                       }`}
                     >
                       <img src={avatar} alt={`기본 프로필 ${idx + 1}`} className="w-full h-full rounded-full" />
@@ -350,7 +350,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                           aria-pressed={isActive}
                           className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all duration-200 ${
                             isActive 
-                              ? 'bg-[#008262] dark:bg-[#00d29d] text-white dark:text-[#191f28] shadow-sm font-bold' 
+                              ? 'bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-[#191f28] shadow-sm font-bold' 
                               : 'text-tertiary hover:text-secondary font-medium'
                           }`}
                         >
@@ -380,7 +380,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                           aria-pressed={isActive}
                           className={`py-2 rounded-lg transition-all duration-200 text-[11px] h-full ${
                             isActive 
-                              ? 'bg-[#008262] dark:bg-[#00d29d] text-white dark:text-[#191f28] shadow-sm font-bold' 
+                              ? 'bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-[#191f28] shadow-sm font-bold' 
                               : 'text-tertiary hover:text-secondary font-medium'
                           }`}
                         >
@@ -423,7 +423,7 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
                     }
                   }}
                   disabled={isSavingProfile || editNickname.length < 2 || editNickname.length > 10}
-                  className="flex-1 py-3 bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] text-surface dark:text-[#191f28] font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-[#c44d00] hover:bg-[#006b50] dark:bg-[#ea6100] dark:hover:bg-[#ff8f00] text-surface dark:text-[#191f28] font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSavingProfile ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

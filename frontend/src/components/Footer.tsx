@@ -29,39 +29,12 @@ const Footer = React.memo(function Footer() {
           {/* 좌측: 로고 및 링크 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8 lg:gap-10 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-[26px] h-[26px] rounded-[6px] grayscale opacity-70">
-                <svg
-                  viewBox="0 0 100 100"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+              <div className="w-[26px] h-[26px] rounded-[6px] grayscale opacity-70 overflow-hidden">
+                <img
+                  src="/hwaseong-symbol.png"
+                  alt="화성시 심볼"
                   className="w-full h-full object-contain"
-                  role="img"
-                  aria-label="D-VIEW 로고"
-                >
-                  <defs>
-                    <linearGradient id="dview-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#ea6100" />
-                      <stop offset="100%" stopColor="#0f766e" />
-                    </linearGradient>
-                  </defs>
-                  {/* 45-degree rotated rounded rect to create diamond background */}
-                  <rect
-                    x="16"
-                    y="16"
-                    width="68"
-                    height="68"
-                    rx="18"
-                    transform="rotate(45 50 50)"
-                    fill="url(#dview-logo-grad)"
-                  />
-                  {/* House icon centered and scaled inside the diamond */}
-                  <g transform="translate(50 51.5) scale(0.8) translate(-50 -50)">
-                    <path
-                      d="M50 20L22 42.4V74C22 77.3 24.7 80 28 80H42V58H58V80H72C75.3 80 78 77.3 78 74V42.4L50 20Z"
-                      fill="#FFFFFF"
-                    />
-                  </g>
-                </svg>
+                />
               </div>
               <span className="text-[15px] font-extrabold text-tertiary tracking-tight">D-VIEW</span>
             </div>

@@ -58,7 +58,7 @@ const AreaM2Schema = z.union([z.string(), z.number()]).transform(val => Number(v
 
 const AREA_CONFIG = [
   { key: 'education', name: '학군', weight: 0.25, color: '#03c75a' },
-  { key: 'transport', name: '교통', weight: 0.25, color: '#00d29d' },
+  { key: 'transport', name: '교통', weight: 0.25, color: '#ea6100' },
   { key: 'livingComfort', name: '주거쾌적', weight: 0.20, color: '#f59e0b' },
   { key: 'complex', name: '단지경쟁력', weight: 0.15, color: '#8b5cf6' },
   { key: 'lifestyle', name: '생활인프라', weight: 0.15, color: '#ef4444' },
@@ -72,7 +72,7 @@ const AREA_CONFIG = [
 function getPurGrade(pur: number): { grade: string; color: string } {
   if (pur <= 60) return { grade: 'S', color: '#03c75a' };
   if (pur <= 80) return { grade: 'A', color: '#36b37e' };
-  if (pur <= 100) return { grade: 'B+', color: '#00d29d' };
+  if (pur <= 100) return { grade: 'B+', color: '#ea6100' };
   if (pur <= 130) return { grade: 'B', color: '#f59e0b' };
   if (pur <= 160) return { grade: 'C', color: '#ff8b3d' };
   return { grade: 'D', color: '#f04452' };
@@ -81,7 +81,7 @@ function getPurGrade(pur: number): { grade: string; color: string } {
 function getYieldGrade(y: number): { grade: string; color: string } {
   if (y >= 5.0) return { grade: 'S', color: '#03c75a' };
   if (y >= 4.0) return { grade: 'A', color: '#36b37e' };
-  if (y >= 3.0) return { grade: 'B+', color: '#00d29d' };
+  if (y >= 3.0) return { grade: 'B+', color: '#ea6100' };
   if (y >= 2.0) return { grade: 'B', color: '#f59e0b' };
   if (y >= 1.5) return { grade: 'C', color: '#ff8b3d' };
   return { grade: 'D', color: '#f04452' };
@@ -98,7 +98,7 @@ function getInvestmentGrade(purGradeScore: number, yieldScore: number, gapPct: n
   const composite = (purGradeScore * 0.4) + (yieldScore * 0.3) + (gapBonus + 2.5) * 0.3;
   if (composite >= 4.0) return { grade: 'S', color: '#03c75a' };
   if (composite >= 3.2) return { grade: 'A', color: '#36b37e' };
-  if (composite >= 2.4) return { grade: 'B+', color: '#00d29d' };
+  if (composite >= 2.4) return { grade: 'B+', color: '#ea6100' };
   if (composite >= 1.6) return { grade: 'B', color: '#f59e0b' };
   if (composite >= 0.8) return { grade: 'C', color: '#ff8b3d' };
   return { grade: 'D', color: '#f04452' };

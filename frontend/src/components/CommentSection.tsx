@@ -216,20 +216,20 @@ const CommentSection = React.memo(function CommentSection({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <h2 className="text-[19px] md:text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-        <MessageSquare size={20} className="text-[#008262] dark:text-[#00d29d]"/> 
+        <MessageSquare size={20} className="text-[#c44d00] dark:text-[#ea6100]"/> 
         아파트 이야기
-        <span className="bg-[#e8f8f5] dark:bg-[#042820] text-[#008262] dark:text-[#00d29d] text-[11.5px] font-bold px-2 py-0.5 rounded-full ml-1 shadow-sm border border-[#008262]/10 select-none">
+        <span className="bg-[#e8f8f5] dark:bg-[#042820] text-[#c44d00] dark:text-[#ea6100] text-[11.5px] font-bold px-2 py-0.5 rounded-full ml-1 shadow-sm border border-[#c44d00]/10 select-none">
           {comments.length}
         </span>
       </h2>
       
       {/* 라운지 활성화 유도 배너 */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#e8f8f5] to-[#f4fcfb] dark:from-[#03231c] dark:to-[#042a22] border border-[#008262]/20 rounded-2xl p-4.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-[#00d29d]/10 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#e8f8f5] to-[#f4fcfb] dark:from-[#03231c] dark:to-[#042a22] border border-[#c44d00]/20 rounded-2xl p-4.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-[#ea6100]/10 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
         
         <div className="flex flex-col relative z-10">
-          <span className="text-[13px] font-extrabold text-[#008262] dark:text-[#00d29d] flex items-center gap-1.5">
-            <span className="flex items-center justify-center w-5 h-5 rounded-lg bg-[#008262]/15 dark:bg-[#00d29d]/15 text-[11px] animate-pulse">📢</span>
+          <span className="text-[13px] font-extrabold text-[#c44d00] dark:text-[#ea6100] flex items-center gap-1.5">
+            <span className="flex items-center justify-center w-5 h-5 rounded-lg bg-[#c44d00]/15 dark:bg-[#ea6100]/15 text-[11px] animate-pulse">📢</span>
             D-VIEW 동탄 라운지 오픈!
           </span>
           <span className="text-[12px] font-bold text-secondary mt-1 leading-relaxed break-keep">
@@ -244,7 +244,7 @@ const CommentSection = React.memo(function CommentSection({
               closeBtn.click();
             }
           }}
-          className="relative z-10 shrink-0 text-[12px] font-black text-surface bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] dark:text-[#191f28] px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 text-center w-full sm:w-auto hover:shadow-md cursor-pointer border-none"
+          className="relative z-10 shrink-0 text-[12px] font-black text-surface bg-[#c44d00] hover:bg-[#006b50] dark:bg-[#ea6100] dark:hover:bg-[#ff8f00] dark:text-[#191f28] px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 text-center w-full sm:w-auto hover:shadow-md cursor-pointer border-none"
         >
           라운지 구경 가기 ➔
         </Link>
@@ -258,9 +258,9 @@ const CommentSection = React.memo(function CommentSection({
           {showSuggestions && suggestions.length > 0 && (
             <div 
               ref={popoverRef}
-              className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-white/95 dark:bg-zinc-950/95 border border-[#00d29d]/30 dark:border-emerald-500/30 rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200"
+              className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-white/95 dark:bg-zinc-950/95 border border-[#ea6100]/30 dark:border-emerald-500/30 rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200"
             >
-              <div className="text-[10px] font-extrabold text-[#00d29d] dark:text-emerald-400 px-3.5 py-2 border-b border-border/40 dark:border-zinc-800/40 uppercase tracking-widest bg-body/50 dark:bg-zinc-950/30">
+              <div className="text-[10px] font-extrabold text-[#ea6100] dark:text-emerald-400 px-3.5 py-2 border-b border-border/40 dark:border-zinc-800/40 uppercase tracking-widest bg-body/50 dark:bg-zinc-950/30">
                 멘션할 대상을 선택하세요
               </div>
               <ul 
@@ -279,13 +279,13 @@ const CommentSection = React.memo(function CommentSection({
                     onClick={() => selectSuggestion(nickname)}
                     className={`px-3.5 py-2.5 text-[13px] font-bold cursor-pointer transition-colors flex items-center justify-between ${
                       suggestionIndex === idx 
-                        ? 'bg-[#00d29d]/15 text-[#00a06c] dark:bg-emerald-500/20 dark:text-emerald-300' 
+                        ? 'bg-[#ea6100]/15 text-[#00a06c] dark:bg-emerald-500/20 dark:text-emerald-300' 
                         : 'text-secondary dark:text-zinc-300 hover:bg-body dark:hover:bg-zinc-900/50 hover:text-primary dark:hover:text-zinc-100'
                     }`}
                   >
                     <span>@{nickname}</span>
                     {suggestionIndex === idx && (
-                      <span className="text-[9px] bg-[#00d29d]/20 dark:bg-emerald-500/30 text-[#00a06c] dark:text-emerald-300 px-1.5 py-0.5 rounded font-black tracking-wider">ENTER</span>
+                      <span className="text-[9px] bg-[#ea6100]/20 dark:bg-emerald-500/30 text-[#00a06c] dark:text-emerald-300 px-1.5 py-0.5 rounded font-black tracking-wider">ENTER</span>
                     )}
                   </li>
                 ))}
@@ -303,7 +303,7 @@ const CommentSection = React.memo(function CommentSection({
               aria-expanded={showSuggestions && suggestions.length > 0}
               aria-controls={showSuggestions && suggestions.length > 0 ? "mention-listbox" : undefined}
               aria-activedescendant={showSuggestions && suggestions.length > 0 ? `mention-option-${suggestionIndex}` : undefined}
-              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 transition-shadow"
+              className="flex-1 border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c44d00]/20 focus:border-[#c44d00] dark:focus:ring-[#ea6100]/20 dark:focus:border-[#ea6100] focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 transition-shadow"
               value={commentInput}
               onChange={(e) => {
                 if (!user) {
@@ -334,16 +334,16 @@ const CommentSection = React.memo(function CommentSection({
                 handleAction();
               }}
               disabled={!commentInput.trim()}
-              className="bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] text-surface dark:text-[#191f28] px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+              className="bg-[#c44d00] hover:bg-[#006b50] dark:bg-[#ea6100] dark:hover:bg-[#ff8f00] text-surface dark:text-[#191f28] px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
             >
               등록
             </button>
           </div>
           {user && (
             <div className="bg-body/50 dark:bg-zinc-900/30 border border-border/30 rounded-xl p-3 flex items-start gap-2.5 select-none mt-1 animate-in fade-in duration-200">
-              <span className="inline-flex items-center justify-center text-[10px] bg-[#008262]/10 dark:bg-[#00d29d]/15 text-[#008262] dark:text-[#00d29d] px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">TIP</span>
+              <span className="inline-flex items-center justify-center text-[10px] bg-[#c44d00]/10 dark:bg-[#ea6100]/15 text-[#c44d00] dark:text-[#ea6100] px-1.5 py-0.5 rounded font-black tracking-wider uppercase shrink-0">TIP</span>
               <p className="text-[11.5px] text-tertiary leading-relaxed break-keep font-semibold">
-                댓글에 <strong className="text-[#008262] dark:text-[#00d29d] font-extrabold">@작성자명</strong>을 입력하거나 댓글의 작성자 닉네임을 클릭하여 즉시 멘션할 수 있습니다.
+                댓글에 <strong className="text-[#c44d00] dark:text-[#ea6100] font-extrabold">@작성자명</strong>을 입력하거나 댓글의 작성자 닉네임을 클릭하여 즉시 멘션할 수 있습니다.
               </p>
             </div>
           )}
@@ -402,7 +402,7 @@ const CommentSection = React.memo(function CommentSection({
           ) : (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-border/80 dark:border-zinc-800/80 rounded-2xl bg-body/30 dark:bg-zinc-900/10 mt-2 select-none animate-in fade-in duration-300">
               <div className="w-12 h-12 rounded-full bg-body dark:bg-zinc-900 border border-border/50 flex items-center justify-center mb-3.5 shadow-sm text-tertiary">
-                <MessageSquare size={20} className="opacity-75 text-[#008262] dark:text-[#00d29d]" />
+                <MessageSquare size={20} className="opacity-75 text-[#c44d00] dark:text-[#ea6100]" />
               </div>
               <p className="text-[13.5px] font-extrabold text-secondary mb-1">아직 등록된 이야기가 없습니다</p>
               <p className="text-[11.5px] text-tertiary break-keep max-w-[240px]">이 단지에 대한 첫 번째 주민 이야기를 나누어 소통해 보세요!</p>
@@ -449,7 +449,7 @@ const CommentItem = React.memo(function CommentItem({
       id={`comment-${comment.id}`}
       className={`flex gap-3 bg-body p-4 rounded-2xl border transition-all duration-300 ${
         isHighlighted 
-          ? 'comment-highlight border-[#008262] dark:border-[#00d29d]' 
+          ? 'comment-highlight border-[#c44d00] dark:border-[#ea6100]' 
           : 'border-border'
       }`}
     >

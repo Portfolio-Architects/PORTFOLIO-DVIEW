@@ -312,13 +312,13 @@ export default function TechnoValleyClient() {
           {/* 상단 통합 통계 위젯 */}
           <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
             <div className="bg-surface/75 border border-border/40 backdrop-blur-md p-5 rounded-3xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-[#008262] dark:text-[#00d29d] shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-[#c44d00] dark:text-[#ea6100] shrink-0">
                 <Building2 size={24} />
               </div>
               <div>
                 <p className="text-[12px] text-tertiary font-bold">테크노밸리 전체 면적</p>
                 <p className="text-[18px] font-black text-primary mt-0.5">약 1,550,000 ㎡</p>
-                <p className="text-[10.5px] text-[#008262] dark:text-[#00d29d] font-bold mt-0.5">판교테크노밸리의 2.3배</p>
+                <p className="text-[10.5px] text-[#c44d00] dark:text-[#ea6100] font-bold mt-0.5">판교테크노밸리의 2.3배</p>
               </div>
             </div>
             <div className="bg-surface/75 border border-border/40 backdrop-blur-md p-5 rounded-3xl shadow-sm flex items-center gap-4">
@@ -379,7 +379,7 @@ export default function TechnoValleyClient() {
                 <div className="lg:col-span-5 bg-surface/70 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6">
                   <div>
                     <h3 className="text-[17px] font-black text-primary flex items-center gap-2">
-                      <Sparkles size={18} className="text-[#008262] dark:text-[#00d29d]" />
+                      <Sparkles size={18} className="text-[#c44d00] dark:text-[#ea6100]" />
                       사무실 조건 매칭 조건 입력
                     </h3>
                     <p className="text-[12.5px] text-secondary mt-1">기업에 꼭 필요한 기본 요건을 체크해 주세요.</p>
@@ -399,7 +399,7 @@ export default function TechnoValleyClient() {
                           onClick={() => setBudget(item.id as any)}
                           className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                             budget === item.id 
-                              ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                              ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                               : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                           }`}
                         >
@@ -423,7 +423,7 @@ export default function TechnoValleyClient() {
                           onClick={() => setEmployees(item.id as any)}
                           className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                             employees === item.id 
-                              ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                              ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                               : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                           }`}
                         >
@@ -441,7 +441,7 @@ export default function TechnoValleyClient() {
                         onClick={() => setNeedDriveIn(true)}
                         className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                           needDriveIn === true 
-                            ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                            ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                             : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                         }`}
                       >
@@ -451,7 +451,7 @@ export default function TechnoValleyClient() {
                         onClick={() => setNeedDriveIn(false)}
                         className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                           needDriveIn === false 
-                            ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                            ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                             : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                         }`}
                       >
@@ -468,7 +468,7 @@ export default function TechnoValleyClient() {
                         onClick={() => setStationImportance('high')}
                         className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                           stationImportance === 'high' 
-                            ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                            ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                             : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                         }`}
                       >
@@ -478,7 +478,7 @@ export default function TechnoValleyClient() {
                         onClick={() => setStationImportance('low')}
                         className={`py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all border ${
                           stationImportance === 'low' 
-                            ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                            ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                             : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                         }`}
                       >
@@ -490,7 +490,7 @@ export default function TechnoValleyClient() {
                   <button
                     onClick={handleFindOffice}
                     disabled={isSearching}
-                    className="w-full mt-4 py-4 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[14.5px] disabled:opacity-50 cursor-pointer active:scale-[0.99] shadow-md shadow-emerald-500/5"
+                    className="w-full mt-4 py-4 bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-black font-extrabold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[14.5px] disabled:opacity-50 cursor-pointer active:scale-[0.99] shadow-md shadow-emerald-500/5"
                   >
                     {isSearching ? (
                       <>
@@ -539,7 +539,7 @@ export default function TechnoValleyClient() {
                     <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                          <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md bg-[#008262]/10 text-[#008262] dark:bg-[#00d29d]/10 dark:text-[#00d29d] border border-[#008262]/15">
+                          <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md bg-[#c44d00]/10 text-[#c44d00] dark:bg-[#ea6100]/10 dark:text-[#ea6100] border border-[#c44d00]/15">
                             AI 최적 추천 매칭률 98%
                           </span>
                           <h4 className="text-[20px] font-black text-primary mt-2">{searchResult.name}</h4>
@@ -563,7 +563,7 @@ export default function TechnoValleyClient() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           {searchResult.features.map((feat, idx) => (
                             <div key={idx} className="flex items-start gap-2 bg-body/20 p-3 rounded-xl border border-border/30">
-                              <CheckCircle2 size={15} className="text-[#008262] dark:text-[#00d29d] shrink-0 mt-0.5" />
+                              <CheckCircle2 size={15} className="text-[#c44d00] dark:text-[#ea6100] shrink-0 mt-0.5" />
                               <span className="text-[12px] font-medium text-secondary leading-snug">{feat}</span>
                             </div>
                           ))}
@@ -623,7 +623,7 @@ export default function TechnoValleyClient() {
                       setSelectedPost(null);
                       setIsApplyModalOpen(true);
                     }}
-                    className="px-5 py-3 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black text-[13px] font-extrabold rounded-2xl hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-[0.98] shrink-0"
+                    className="px-5 py-3 bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-black text-[13px] font-extrabold rounded-2xl hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-[0.98] shrink-0"
                   >
                     <Users size={15} />
                     <span>공동 임차 등록하기</span>
@@ -643,14 +643,14 @@ export default function TechnoValleyClient() {
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                             post.status === '매칭 완료' 
                               ? 'bg-gray-100 text-gray-500 dark:bg-zinc-800' 
-                              : 'bg-emerald-500/10 text-emerald-600 dark:text-[#00d29d]'
+                              : 'bg-emerald-500/10 text-emerald-600 dark:text-[#ea6100]'
                           }`}>
                             {post.status}
                           </span>
                           <span className="text-[11px] text-tertiary font-medium">{post.bizType}</span>
                         </div>
 
-                        <h5 className="text-[14px] sm:text-[15px] font-black text-primary mt-3 group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors leading-snug tracking-tight">
+                        <h5 className="text-[14px] sm:text-[15px] font-black text-primary mt-3 group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors leading-snug tracking-tight">
                           {post.title}
                         </h5>
 
@@ -661,7 +661,7 @@ export default function TechnoValleyClient() {
                           </div>
                           <div className="flex items-center gap-1.5">
                             <span className="text-tertiary">시세:</span>
-                            <span className="font-extrabold text-[#008262] dark:text-[#00d29d]">{post.rent}</span>
+                            <span className="font-extrabold text-[#c44d00] dark:text-[#ea6100]">{post.rent}</span>
                           </div>
                         </div>
 
@@ -683,7 +683,7 @@ export default function TechnoValleyClient() {
                               setSelectedPost(post);
                               setIsApplyModalOpen(true);
                             }}
-                            className="text-[11px] font-extrabold text-[#008262] dark:text-[#00d29d] hover:underline flex items-center gap-0.5"
+                            className="text-[11px] font-extrabold text-[#c44d00] dark:text-[#ea6100] hover:underline flex items-center gap-0.5"
                           >
                             <span>매칭 제안</span>
                             <ChevronRight size={12} />
@@ -705,7 +705,7 @@ export default function TechnoValleyClient() {
                 <div className="lg:col-span-5 bg-surface/70 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6">
                   <div>
                     <h3 className="text-[17px] font-black text-primary flex items-center gap-2">
-                      <Calculator size={18} className="text-[#008262] dark:text-[#00d29d]" />
+                      <Calculator size={18} className="text-[#c44d00] dark:text-[#ea6100]" />
                       법인 세제 혜택 시뮬레이션
                     </h3>
                     <p className="text-[12.5px] text-secondary mt-1">기업의 현재 법인세 정보를 바탕으로 혜택을 예측합니다.</p>
@@ -723,7 +723,7 @@ export default function TechnoValleyClient() {
                         value={currentTax}
                         onChange={(e) => setCurrentTax(e.target.value)}
                         placeholder="예: 3000"
-                        className="w-full bg-body/30 border border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d] rounded-2xl py-3 px-4 text-[14px] font-extrabold outline-none text-primary"
+                        className="w-full bg-body/30 border border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-2xl py-3 px-4 text-[14px] font-extrabold outline-none text-primary"
                       />
                       <span className="absolute right-4 text-[12.5px] font-extrabold text-secondary">만원</span>
                     </div>
@@ -743,14 +743,14 @@ export default function TechnoValleyClient() {
                         type="checkbox"
                         checked={isOvercrowded}
                         onChange={(e) => setIsOvercrowded(e.target.checked)}
-                        className="w-5 h-5 accent-[#008262] dark:accent-[#00d29d] cursor-pointer"
+                        className="w-5 h-5 accent-[#c44d00] dark:accent-[#ea6100] cursor-pointer"
                       />
                     </div>
                   </div>
 
                   <button
                     onClick={handleCalculateTax}
-                    className="w-full mt-2 py-4 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[14.5px] cursor-pointer active:scale-[0.99] shadow-md shadow-emerald-500/5"
+                    className="w-full mt-2 py-4 bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-black font-extrabold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[14.5px] cursor-pointer active:scale-[0.99] shadow-md shadow-emerald-500/5"
                   >
                     <Calculator size={18} />
                     <span>혜택 예측 결과 산출</span>
@@ -762,7 +762,7 @@ export default function TechnoValleyClient() {
                   {calculatedSavings ? (
                     <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
                       <div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#008262]/10 text-[#008262] dark:bg-[#00d29d]/10 dark:text-[#00d29d] border border-[#008262]/15">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#c44d00]/10 text-[#c44d00] dark:bg-[#ea6100]/10 dark:text-[#ea6100] border border-[#c44d00]/15">
                           예상 절세 시뮬레이션 리포트
                         </span>
                         <h4 className="text-[19px] font-black text-primary mt-2">동탄 테크노밸리 이전 시 예상 세무 혜택</h4>
@@ -773,7 +773,7 @@ export default function TechnoValleyClient() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-body/20 p-5 rounded-2xl border border-border/30">
                           <p className="text-[11px] text-tertiary font-bold">초기 4개년 누적 절세액 (100% 감면)</p>
-                          <p className="text-[22px] font-black text-[#008262] dark:text-[#00d29d] mt-1">
+                          <p className="text-[22px] font-black text-[#c44d00] dark:text-[#ea6100] mt-1">
                             {(calculatedSavings.fourYears).toLocaleString()} <span className="text-[14px] font-bold">만원</span>
                           </p>
                           <p className="text-[9.5px] text-tertiary mt-1">매년 법인세 전액 면제 (4년간)</p>
@@ -792,7 +792,7 @@ export default function TechnoValleyClient() {
                         <h5 className="text-[12.5px] font-bold text-primary">추가 취득세 & 재산세 혜택</h5>
                         
                         <div className="flex items-start gap-2 bg-body/20 p-3.5 rounded-xl border border-border/30">
-                          <CheckCircle2 size={15} className="text-[#008262] dark:text-[#00d29d] shrink-0 mt-0.5" />
+                          <CheckCircle2 size={15} className="text-[#c44d00] dark:text-[#ea6100] shrink-0 mt-0.5" />
                           <div>
                             <span className="text-[12px] font-bold text-secondary">본점 부동산 취득세 감면</span>
                             <span className="text-[11.5px] text-tertiary block mt-0.5 leading-relaxed">{calculatedSavings.acquisitionDiscount}</span>
@@ -800,7 +800,7 @@ export default function TechnoValleyClient() {
                         </div>
 
                         <div className="flex items-start gap-2 bg-body/20 p-3.5 rounded-xl border border-border/30">
-                          <CheckCircle2 size={15} className="text-[#008262] dark:text-[#00d29d] shrink-0 mt-0.5" />
+                          <CheckCircle2 size={15} className="text-[#c44d00] dark:text-[#ea6100] shrink-0 mt-0.5" />
                           <div>
                             <span className="text-[12px] font-bold text-secondary">지방세법 규정 재산세 감면</span>
                             <span className="text-[11.5px] text-tertiary block mt-0.5 leading-relaxed">{calculatedSavings.propertyDiscount}</span>
@@ -880,7 +880,7 @@ export default function TechnoValleyClient() {
                   className={`w-full bg-body/30 border ${
                     applyErrors.name 
                       ? 'border-rose-500 focus:border-rose-500' 
-                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                      : 'border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100]'
                   } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
                 {applyErrors.name && (
@@ -905,7 +905,7 @@ export default function TechnoValleyClient() {
                   className={`w-full bg-body/30 border ${
                     applyErrors.phone 
                       ? 'border-rose-500 focus:border-rose-500' 
-                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                      : 'border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100]'
                   } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
                 {applyErrors.phone && (
@@ -930,7 +930,7 @@ export default function TechnoValleyClient() {
                   className={`w-full bg-body/30 border ${
                     applyErrors.bizType 
                       ? 'border-rose-500 focus:border-rose-500' 
-                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                      : 'border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100]'
                   } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
                 {applyErrors.bizType && (
@@ -943,7 +943,7 @@ export default function TechnoValleyClient() {
 
               <button
                 type="submit"
-                className="w-full mt-4 py-3 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px] cursor-pointer active:scale-[0.98]"
+                className="w-full mt-4 py-3 bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px] cursor-pointer active:scale-[0.98]"
               >
                 {selectedPost ? '매이트 매칭 신청 제안' : '공동 임차 모집글 게시'}
               </button>
@@ -972,8 +972,8 @@ export default function TechnoValleyClient() {
             </div>
             
             <form onSubmit={handleConsultingSubmit} noValidate className="p-5 flex flex-col gap-2">
-              <div className="bg-[#008262]/5 dark:bg-[#00d29d]/5 p-3.5 rounded-2xl border border-[#008262]/10 dark:border-[#00d29d]/10 text-[12px] text-secondary font-medium mb-2">
-                <p className="font-extrabold text-[#008262] dark:text-[#00d29d] flex items-center gap-1.5">
+              <div className="bg-[#c44d00]/5 dark:bg-[#ea6100]/5 p-3.5 rounded-2xl border border-[#c44d00]/10 dark:border-[#ea6100]/10 text-[12px] text-secondary font-medium mb-2">
+                <p className="font-extrabold text-[#c44d00] dark:text-[#ea6100] flex items-center gap-1.5">
                   <Sparkles size={14} />
                   <span>AI 매칭 추천 빌딩: {searchResult?.name}</span>
                 </p>
@@ -996,7 +996,7 @@ export default function TechnoValleyClient() {
                   className={`w-full bg-body/30 border ${
                     consultingErrors.name 
                       ? 'border-rose-500 focus:border-rose-500' 
-                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                      : 'border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100]'
                   } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
                 {consultingErrors.name && (
@@ -1021,7 +1021,7 @@ export default function TechnoValleyClient() {
                   className={`w-full bg-body/30 border ${
                     consultingErrors.phone 
                       ? 'border-rose-500 focus:border-rose-500' 
-                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                      : 'border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100]'
                   } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
                 {consultingErrors.phone && (
@@ -1045,7 +1045,7 @@ export default function TechnoValleyClient() {
                   className={`w-full bg-body/30 border ${
                     consultingErrors.date 
                       ? 'border-rose-500 focus:border-rose-500' 
-                      : 'border-border/40 focus:border-[#008262] dark:focus:border-[#00d29d]'
+                      : 'border-border/40 focus:border-[#c44d00] dark:focus:border-[#ea6100]'
                   } rounded-xl py-2.5 px-3 text-[13px] outline-none text-primary font-bold transition-all`}
                 />
                 {consultingErrors.date && (
@@ -1071,7 +1071,7 @@ export default function TechnoValleyClient() {
                       onClick={() => setConsultingBizSize(item.id as any)}
                       className={`py-2 rounded-xl text-[12px] font-extrabold transition-all border ${
                         consultingBizSize === item.id 
-                          ? 'bg-[#008262]/10 border-[#008262] text-[#008262] dark:bg-[#00d29d]/10 dark:border-[#00d29d] dark:text-[#00d29d]' 
+                          ? 'bg-[#c44d00]/10 border-[#c44d00] text-[#c44d00] dark:bg-[#ea6100]/10 dark:border-[#ea6100] dark:text-[#ea6100]' 
                           : 'bg-body/20 border-border/40 text-secondary hover:bg-body/40'
                       }`}
                     >
@@ -1083,7 +1083,7 @@ export default function TechnoValleyClient() {
 
               <button
                 type="submit"
-                className="w-full mt-4 py-3 bg-[#008262] dark:bg-[#00d29d] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px] cursor-pointer shadow-sm active:scale-[0.98]"
+                className="w-full mt-4 py-3 bg-[#c44d00] dark:bg-[#ea6100] text-white dark:text-black font-extrabold rounded-xl hover:opacity-90 transition-all text-[13.5px] cursor-pointer shadow-sm active:scale-[0.98]"
               >
                 상담 및 투어 일정 신청 완료
               </button>

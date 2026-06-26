@@ -108,7 +108,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
         <div className="px-6 pt-6 pb-2">
           <div className="flex justify-between items-start mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-emerald-50 dark:bg-[#003829]/50 rounded-[18px] flex items-center justify-center text-emerald-600 dark:text-[#00d29d]">
+              <div className="w-12 h-12 bg-emerald-50 dark:bg-[#003829]/50 rounded-[18px] flex items-center justify-center text-emerald-600 dark:text-[#ea6100]">
                 <ArrowDownToLine size={22} strokeWidth={2.5} />
               </div>
               <div>
@@ -127,8 +127,8 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           </div>
 
           {isIOS ? (
-            <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-[#00d29d]/15 text-left mb-6">
-              <div className="flex items-center gap-2 mb-3 bg-[#e0fbf4] dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-[#008262] dark:text-[#00d29d] border border-[#00d29d]/15">
+            <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-[#ea6100]/15 text-left mb-6">
+              <div className="flex items-center gap-2 mb-3 bg-[#fff3e0] dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-[#c44d00] dark:text-[#ea6100] border border-[#ea6100]/15">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -159,7 +159,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           ) : (
             <div className="bg-body rounded-2xl p-4.5 mb-6 border border-border/40">
               {/* 리워드 그로스 배지 */}
-              <div className="flex items-center gap-2 mb-3 bg-[#e0fbf4] dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-[#008262] dark:text-[#00d29d] border border-[#00d29d]/15">
+              <div className="flex items-center gap-2 mb-3 bg-[#fff3e0] dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-[#c44d00] dark:text-[#ea6100] border border-[#ea6100]/15">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -168,15 +168,15 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
               </div>
               <ul className="space-y-2.5 text-[13px] text-secondary font-bold">
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[#008262] dark:bg-[#00d29d] rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-[#c44d00] dark:bg-[#ea6100] rounded-full"></span>
                   브라우저 주소창 없이 전체화면으로 넓게 보기
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[#008262] dark:bg-[#00d29d] rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-[#c44d00] dark:bg-[#ea6100] rounded-full"></span>
                   클릭 한 번으로 관심 아파트 실시간 접속
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[#008262] dark:bg-[#00d29d] rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-[#c44d00] dark:bg-[#ea6100] rounded-full"></span>
                   네이티브 앱 수준의 빠르고 부드러운 속도
                 </li>
               </ul>
@@ -193,7 +193,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
             {!isIOS && (
               <button
                 onClick={handleInstall}
-                className="flex-1 py-3.5 px-4 bg-[#008262] dark:bg-[#00b386] text-surface font-bold rounded-2xl hover:bg-[#006950] dark:hover:bg-[#008262] active:scale-[0.98] transition-all shadow-md text-[13.5px]"
+                className="flex-1 py-3.5 px-4 bg-[#c44d00] dark:bg-[#ff8f00] text-surface font-bold rounded-2xl hover:bg-[#9e3c00] dark:hover:bg-[#c44d00] active:scale-[0.98] transition-all shadow-md text-[13.5px]"
               >
                 지금 추가하기
               </button>

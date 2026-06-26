@@ -110,7 +110,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
       <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 animate-in fade-in duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-[#f2f4f6] dark:border-zinc-800">
           <h2 className="text-[17px] font-black text-primary flex items-center gap-2">
-            <BarChart3 className="text-[#008262]" size={20} />
+            <BarChart3 className="text-[#c44d00]" size={20} />
             실시간 서비스 트래픽 (GA4)
           </h2>
           {gaData && (
@@ -153,7 +153,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                   <UserCheck className="text-emerald-600 dark:text-emerald-400" size={14} />
                   <span className="text-[11.5px] font-bold text-emerald-600">DAU</span>
                 </div>
-                <div className="text-[22px] font-extrabold text-[#008262] dark:text-emerald-400 font-mono">
+                <div className="text-[22px] font-extrabold text-[#c44d00] dark:text-emerald-400 font-mono">
                   {gaData.daily && gaData.daily.length > 0 
                     ? gaData.daily[gaData.daily.length - 1].activeUsers.toLocaleString() 
                     : '0'}명
@@ -205,8 +205,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                     <AreaChart data={gaData.daily} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorDau" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00d29d" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#00d29d" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#ea6100" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#ea6100" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
@@ -218,7 +218,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                       <YAxis tickLine={false} axisLine={false} />
                       <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
                       <Legend iconSize={8} iconType="circle" />
-                      <Area type="monotone" name="활성 사용자 (DAU)" dataKey="activeUsers" stroke="#00d29d" strokeWidth={2} fillOpacity={1} fill="url(#colorDau)" />
+                      <Area type="monotone" name="활성 사용자 (DAU)" dataKey="activeUsers" stroke="#ea6100" strokeWidth={2} fillOpacity={1} fill="url(#colorDau)" />
                       <Area type="monotone" name="페이지 뷰" dataKey="pageViews" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -236,8 +236,8 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                     <ComposedChart data={gaData.monthly} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <defs>
                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#00d29d" stopOpacity={0.4}/>
-                          <stop offset="100%" stopColor="#00b386" stopOpacity={0.15}/>
+                          <stop offset="0%" stopColor="#ea6100" stopOpacity={0.4}/>
+                          <stop offset="100%" stopColor="#ff8f00" stopOpacity={0.15}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
@@ -277,7 +277,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
 
         {!scData ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-5 h-5 border-2 border-[#008262] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#c44d00] border-t-transparent rounded-full animate-spin" />
             <span className="text-[13px] text-tertiary font-bold ml-2">서치콘솔 정보 로드 중...</span>
           </div>
         ) : (
@@ -299,7 +299,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                   <div className="h-full bg-rose-400" style={{ width: `${Math.round((scData.indexStatus.notIndexed / (scData.indexStatus.totalIndexed + scData.indexStatus.notIndexed)) * 100)}%` }} />
                 </div>
                 <div className="flex justify-between items-center text-[9.5px] font-bold mt-1.5">
-                  <span className="text-[#008262] dark:text-emerald-400">색인 {scData.indexStatus.totalIndexed}개</span>
+                  <span className="text-[#c44d00] dark:text-emerald-400">색인 {scData.indexStatus.totalIndexed}개</span>
                   <span className="text-rose-500">미색인 {scData.indexStatus.notIndexed}개</span>
                 </div>
               </div>
@@ -308,10 +308,10 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
             {/* 2. Clicks */}
             <div className="bg-body p-3.5 rounded-xl border border-transparent hover:border-border transition-all">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <MousePointerClick className="text-[#008262] dark:text-emerald-400" size={14} />
+                <MousePointerClick className="text-[#c44d00] dark:text-emerald-400" size={14} />
                 <span className="text-[11.5px] font-bold text-tertiary">클릭 수 (최근 30일)</span>
               </div>
-              <div className="text-[20px] font-extrabold text-[#008262] dark:text-emerald-400 font-mono">
+              <div className="text-[20px] font-extrabold text-[#c44d00] dark:text-emerald-400 font-mono">
                 {scData.searchMetrics.clicks.toLocaleString()}건
               </div>
               <div className="text-[10.5px] text-secondary font-medium mt-1">

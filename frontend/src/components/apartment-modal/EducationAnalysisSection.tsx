@@ -502,7 +502,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
                         {/* AI 진단 코멘트 박스 */}
                         <div className="mt-2.5 p-3.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl">
-                          <p className="text-[11.5px] font-extrabold text-[#ea6100] dark:text-[#00d29d] leading-relaxed break-keep">
+                          <p className="text-[11.5px] font-extrabold text-[#ea6100] dark:text-[#ea6100] leading-relaxed break-keep">
                             💡 <strong>AI 학원가 진단:</strong> {aiComment}
                           </p>
                         </div>

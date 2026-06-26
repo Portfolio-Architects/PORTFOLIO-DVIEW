@@ -22,7 +22,7 @@ export const ZONES: ZoneInfo[] = [
     name: '커뮤니티시범단지',
     dongLabel: '동탄 4동',
     description: '살기 좋은 주거 핵심 지역. 학교·공원·편의시설이 가까워 실거주 만족도가 높은 곳.',
-    color: '#00d29d',
+    color: '#ea6100',
   },
   {
     id: 'gbcx',

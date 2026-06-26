@@ -669,16 +669,16 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   href={isPlaceholder ? undefined : news.link}
                   target={isPlaceholder ? undefined : "_blank"}
                   rel={isPlaceholder ? undefined : "noopener noreferrer"}
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-[#008262]/30 dark:hover:border-[#00d29d]/30 transition-all cursor-pointer group w-full text-left"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-[#c44d00]/30 dark:hover:border-[#ea6100]/30 transition-all cursor-pointer group w-full text-left"
                 >
                   <div className="flex items-center gap-3 sm:gap-0 shrink-0">
-                    <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#ea6100] font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-[#ea6100] group-hover:text-white transition-colors">
                       {news.id}
                     </div>
                     
                     {/* Mobile Meta */}
                     <div className="flex sm:hidden items-center gap-2">
-                      <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">{news.category}</span>
+                      <span className="text-[11px] font-extrabold text-[#ea6100] tracking-wide">{news.category}</span>
                       <span className="text-[11px] text-gray-300">|</span>
                       <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{news.sub}</span>
                     </div>
@@ -692,7 +692,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors truncate">
+                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors truncate">
                         {news.title}
                       </p>
                       {news.summary && (
@@ -1031,19 +1031,19 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 onClick={() => { window.location.hash = `post=${post.id}`; }}
                 className="flex items-start gap-3 p-3.5 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-md text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
               >
-                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/30 group-hover:bg-[#008262] transition-colors">
-                  <Sparkles size={14} className="text-[#008262] dark:text-[#00d29d] group-hover:text-white transition-colors" />
+                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/30 group-hover:bg-[#c44d00] transition-colors">
+                  <Sparkles size={14} className="text-[#c44d00] dark:text-[#ea6100] group-hover:text-white transition-colors" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-[#008262] dark:text-[#00d29d] rounded-md">
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-[#c44d00] dark:text-[#ea6100] rounded-md">
                       {post.category}
                     </span>
                     <span className="text-[11px] font-semibold text-tertiary font-sans">
                       {post.author || '매니저'}
                     </span>
                   </div>
-                  <h4 className="text-[13.5px] sm:text-[14px] font-bold text-primary truncate group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors">
+                  <h4 className="text-[13.5px] sm:text-[14px] font-bold text-primary truncate group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors">
                     {post.title}
                   </h4>
                   <div className="flex items-center gap-2 mt-1 text-[11px] text-tertiary">
@@ -1097,7 +1097,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
                 {/* Title & Comment Count */}
                 <div className="flex items-start gap-2">
-                  <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors line-clamp-1 flex-1">
+                  <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 flex-1">
                     {news.title}
                   </h3>
                   {news.commentCount > 0 && (

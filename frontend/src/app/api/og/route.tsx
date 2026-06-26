@@ -235,7 +235,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    backgroundImage: 'linear-gradient(135deg, #00d29d, #008262)',
+                    backgroundImage: 'linear-gradient(135deg, #ea6100, #c44d00)',
                     padding: '6px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -322,7 +322,7 @@ export async function GET(req: NextRequest) {
                     style={{
                       fontSize: '46px',
                       fontWeight: 900,
-                      color: s1 >= s2 ? '#00d29d' : '#64748b',
+                      color: s1 >= s2 ? '#ea6100' : '#64748b',
                       textShadow: s1 >= s2 ? '0 0 15px rgba(0, 210, 157, 0.3)' : 'none',
                     }}
                   >
@@ -339,7 +339,7 @@ export async function GET(req: NextRequest) {
                     width: '64px',
                     height: '64px',
                     borderRadius: '32px',
-                    backgroundImage: 'linear-gradient(135deg, #00d29d, #4196f7)',
+                    backgroundImage: 'linear-gradient(135deg, #ea6100, #4196f7)',
                     border: '3px solid #0b111e',
                     fontSize: '22px',
                     fontWeight: 900,
@@ -641,7 +641,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -816,7 +816,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#008262',
+                    background: '#c44d00',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -977,7 +977,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1032,7 +1032,7 @@ export async function GET(req: NextRequest) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
                       <span style={{ fontSize: '18px', color: '#a7f3d0', fontWeight: 'bold', width: '110px' }}>예상 세액 합계</span>
-                      <span style={{ fontSize: '22px', color: ratio?.includes('0') || ratio?.includes('비과세') ? '#00d29d' : '#ff8a9a', fontWeight: 800 }}>
+                      <span style={{ fontSize: '22px', color: ratio?.includes('0') || ratio?.includes('비과세') ? '#ea6100' : '#ff8a9a', fontWeight: 800 }}>
                         {ratio || '계산 오류'}
                       </span>
                     </div>
@@ -1160,7 +1160,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1262,7 +1262,7 @@ export async function GET(req: NextRequest) {
 
     if (shareType === 'infra') {
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {
-        S: { bg: '#008262', border: '#a7f3d0', glow: 'rgba(0, 130, 98, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
+        S: { bg: '#c44d00', border: '#a7f3d0', glow: 'rgba(0, 130, 98, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
         A: { bg: '#0284c7', border: '#bae6fd', glow: 'rgba(2, 132, 199, 0.4)', desc: '역세권 입지와 스타벅스 등 핵심 상권 완비' },
         B: { bg: '#4f46e5', border: '#c7d2fe', glow: 'rgba(79, 70, 229, 0.4)', desc: '안정적인 대중교통망과 풍부한 근린 상권 보유' },
         C: { bg: '#475569', border: '#e2e8f0', glow: 'rgba(71, 85, 105, 0.4)', desc: '보통 수준의 생활 인프라' }
@@ -1305,7 +1305,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#008262',
+                    background: '#c44d00',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1443,7 +1443,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1575,7 +1575,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1624,7 +1624,7 @@ export async function GET(req: NextRequest) {
                     marginLeft: '40px',
                   }}
                 >
-                  <span style={{ fontSize: '20px', fontWeight: 900, color: '#00d29d' }}>
+                  <span style={{ fontSize: '20px', fontWeight: 900, color: '#ea6100' }}>
                     {status || '1주택'} | {bestProduct || '85㎡ 이하'}
                   </span>
                 </div>
@@ -1760,7 +1760,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '6px 14px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1783,7 +1783,7 @@ export async function GET(req: NextRequest) {
                     height="24"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#00d29d"
+                    stroke="#ea6100"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1852,7 +1852,7 @@ export async function GET(req: NextRequest) {
                           width: '32px',
                           height: '32px',
                           borderRadius: '16px',
-                          backgroundColor: item.rank === 1 ? '#00d29d' : 'rgba(255, 255, 255, 0.2)',
+                          backgroundColor: item.rank === 1 ? '#ea6100' : 'rgba(255, 255, 255, 0.2)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1885,7 +1885,7 @@ export async function GET(req: NextRequest) {
                       }}
                     >
                       <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 'bold' }}>매칭률</span>
-                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#00d29d' }}>{item.score}%</span>
+                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#ea6100' }}>{item.score}%</span>
                     </div>
                   </div>
                 ))}
@@ -1985,7 +1985,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#00d29d',
+                    background: '#ea6100',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -2100,7 +2100,7 @@ export async function GET(req: NextRequest) {
                     <span style={{ fontSize: '18px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '8px' }}>
                       전세가율
                     </span>
-                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#00d29d' }}>
+                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#ea6100' }}>
                       {ratio}%
                     </span>
                   </div>
@@ -2196,7 +2196,7 @@ export async function GET(req: NextRequest) {
             >
               <div
                 style={{
-                  background: '#00d29d',
+                  background: '#ea6100',
                   padding: '8px 16px',
                   borderRadius: '8px',
                   color: 'white',
@@ -2260,7 +2260,7 @@ export async function GET(req: NextRequest) {
                 {ratio && (
                   <div
                     style={{
-                      background: '#008262',
+                      background: '#c44d00',
                       color: 'white',
                       padding: '8px 20px',
                       borderRadius: '30px',
@@ -2275,9 +2275,9 @@ export async function GET(req: NextRequest) {
                 {status && (
                   <div
                     style={{
-                      background: status === '신고가' ? '#ffebed' : '#e0fbf4',
-                      color: status === '신고가' ? '#ff4b5c' : '#00b386',
-                      border: `2px solid ${status === '신고가' ? '#ff4b5c' : '#00b386'}`,
+                      background: status === '신고가' ? '#ffebed' : '#fff3e0',
+                      color: status === '신고가' ? '#ff4b5c' : '#ff8f00',
+                      border: `2px solid ${status === '신고가' ? '#ff4b5c' : '#ff8f00'}`,
                       padding: '6px 18px',
                       borderRadius: '30px',
                       fontSize: '22px',
@@ -2340,7 +2340,7 @@ export async function GET(req: NextRequest) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-              <div style={{ background: '#00d29d', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '24px' }}>
+              <div style={{ background: '#ea6100', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '24px' }}>
                 D-VIEW
               </div>
             </div>

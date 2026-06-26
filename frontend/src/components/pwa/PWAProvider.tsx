@@ -623,7 +623,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           <div className="flex gap-2">
             <button 
               onClick={handleApplyUpdate}
-              className="flex-1 bg-[#00d29d] hover:bg-[#00b083] text-neutral-950 text-[12.5px] font-black py-2.5 rounded-xl transition-colors cursor-pointer shadow-md"
+              className="flex-1 bg-[#ea6100] hover:bg-[#00b083] text-neutral-950 text-[12.5px] font-black py-2.5 rounded-xl transition-colors cursor-pointer shadow-md"
             >
               업데이트 적용
             </button>
@@ -661,7 +661,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
                     alert('여전히 오프라인 상태입니다. 네트워크 연결을 다시 확인해 주세요.');
                   }
                 }}
-                className="w-full bg-[#008262] hover:bg-[#00694f] text-white text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer shadow-md"
+                className="w-full bg-[#c44d00] hover:bg-[#00694f] text-white text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer shadow-md"
               >
                 네트워크 재연결 시도
               </button>

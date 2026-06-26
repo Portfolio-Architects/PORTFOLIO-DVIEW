@@ -70,7 +70,7 @@ const ReviewContentStep = React.memo(function ReviewContentStep({
 
   const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'];
   const RATING_LABELS = ['별로', '아쉬움', '보통', '좋음', '최고'];
-  const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#00d29d'];
+  const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#ea6100'];
 
   return (
     <div>

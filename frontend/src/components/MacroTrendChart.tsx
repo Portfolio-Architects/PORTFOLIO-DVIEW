@@ -83,7 +83,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                   <span className="text-[12px] font-bold text-tertiary">
                     예상 갭차이
                   </span>
-                  <span className="text-[13.5px] font-black text-[#00b386]">
+                  <span className="text-[13.5px] font-black text-[#ff8f00]">
                     {gapPriceStr}
                   </span>
                 </div>
@@ -242,8 +242,8 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         >
           <defs>
             <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00d29d" stopOpacity={0.22} />
-              <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0} />
+              <stop offset="5%" stopColor="#ea6100" stopOpacity={0.22} />
+              <stop offset="95%" stopColor="#ea6100" stopOpacity={0.0} />
             </linearGradient>
             <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#f9a825" stopOpacity={0.18} />
@@ -292,7 +292,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             type="monotone"
             name="평균 매매가"
             dataKey="동탄 아파트 전체"
-            stroke="#00d29d"
+            stroke="#ea6100"
             strokeWidth={isBottomSheet ? 1.5 : 1.8}
             fill="url(#colorSale)"
             isAnimationActive={false}
@@ -307,7 +307,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
               r: isBottomSheet ? 4.5 : 5,
               strokeWidth: isBottomSheet ? 1.5 : 2,
               stroke: "var(--bg-surface)",
-              fill: "#00d29d"
+              fill: "#ea6100"
             }}
           />
           <Area

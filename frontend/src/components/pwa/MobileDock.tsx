@@ -68,7 +68,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                    }
                  }}
                  className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
-                   isActive ? 'text-[#008262] dark:text-[#00d29d]' : 'text-tertiary hover:text-secondary'
+                   isActive ? 'text-[#c44d00] dark:text-[#ea6100]' : 'text-tertiary hover:text-secondary'
                  }`}
                >
                  {isActive && (
@@ -87,7 +87,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
               href={tab.href}
               prefetch={false}
               className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
-                isActive ? 'text-[#008262] dark:text-[#00d29d]' : 'text-tertiary hover:text-secondary'
+                isActive ? 'text-[#c44d00] dark:text-[#ea6100]' : 'text-tertiary hover:text-secondary'
               }`}
             >
               {isActive && (

@@ -115,7 +115,7 @@ export function FavoriteOrderEditor({ favoritesArray, updateFavoriteOrder }: Fav
       <button
         onClick={() => setShowOrderEditor(!showOrderEditor)}
         title="관심 단지 정렬 순서 편집"
-        className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-extrabold bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-lg transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+        className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-extrabold bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-lg transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#ea6100] shadow-sm shrink-0"
       >
         <Settings size={12} className="text-secondary" />
         <span>순서 편집</span>

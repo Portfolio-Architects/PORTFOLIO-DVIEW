@@ -173,7 +173,7 @@ const InquiriesPage = React.memo(function InquiriesPage() {
                         {inquiry.status === 'pending' ? (
                           <span className="px-2 py-0.5 rounded-md bg-[#fff0f1] text-toss-red text-[11px] font-bold flex items-center gap-1"><AlertCircle size={10} /> 확인 요망</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md bg-[#e8fbf6] text-[#00d29d] text-[11px] font-bold flex items-center gap-1"><CheckCircle2 size={10} /> 확인 완료</span>
+                          <span className="px-2 py-0.5 rounded-md bg-[#fff3e0] text-[#ea6100] text-[11px] font-bold flex items-center gap-1"><CheckCircle2 size={10} /> 확인 완료</span>
                         )}
                         <h3 className="text-[16px] font-extrabold text-primary">{inquiry.companyName}</h3>
                       </div>
@@ -235,7 +235,7 @@ const InquiriesPage = React.memo(function InquiriesPage() {
                         </td>
                         <td className="p-4 sm:p-5 text-center">
                           {sub.weekly ? (
-                            <span className="px-2 py-1 rounded-md bg-[#e8fbf6] text-[#00d29d] text-[11px] font-extrabold">알림 받음</span>
+                            <span className="px-2 py-1 rounded-md bg-[#fff3e0] text-[#ea6100] text-[11px] font-extrabold">알림 받음</span>
                           ) : (
                             <span className="px-2 py-1 rounded-md bg-[#f3f4f5] text-tertiary text-[11px] font-bold">미선택</span>
                           )}

@@ -297,7 +297,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           </p>
           <button
             onClick={(e) => { e.preventDefault(); mutateVote(); }}
-            className="px-3.5 py-1.5 bg-[#00d29d]/10 hover:bg-[#00d29d]/20 text-[#00d29d] border border-[#00d29d]/25 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
+            className="px-3.5 py-1.5 bg-[#ea6100]/10 hover:bg-[#ea6100]/20 text-[#ea6100] border border-[#ea6100]/25 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
           >
             다시 시도
           </button>

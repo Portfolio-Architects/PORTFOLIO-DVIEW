@@ -1920,7 +1920,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                       onClick={() => { onOpenCompare(report.apartmentName); setIsToolDropdownOpen(false); }}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
-                      <Radar size={15} className="text-[#008262]" />
+                      <Radar size={15} className="text-[#c44d00]" />
                       <div className="flex flex-col">
                         <span>단지 1:1 비교</span>
                       </div>
@@ -1932,7 +1932,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                       onClick={() => { onOpenJeonseSafety(report.apartmentName); setIsToolDropdownOpen(false); }}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
-                      <Shield size={15} className="text-[#00b386]" />
+                      <Shield size={15} className="text-[#ff8f00]" />
                       <div className="flex flex-col">
                         <span>전세 안전진단</span>
                       </div>
@@ -1944,7 +1944,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                       onClick={() => { onOpenMortgage(report.apartmentName); setIsToolDropdownOpen(false); }}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
-                      <Calculator size={15} className="text-[#008262]" />
+                      <Calculator size={15} className="text-[#c44d00]" />
                       <div className="flex flex-col">
                         <span>대출 계산기</span>
                       </div>
@@ -1956,7 +1956,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                       onClick={() => { onOpenTaxCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
-                      <GraduationCap size={15} className="text-[#00b386]" />
+                      <GraduationCap size={15} className="text-[#ff8f00]" />
                       <div className="flex flex-col">
                         <span>취득세 계산기</span>
                       </div>
@@ -2037,7 +2037,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               <button
                 onClick={handleToggleFilter}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                  filterOutliers ? 'bg-[#008262] dark:bg-[#00d29d]' : 'bg-secondary/20'
+                  filterOutliers ? 'bg-[#c44d00] dark:bg-[#ea6100]' : 'bg-secondary/20'
                 }`}
                 role="switch"
                 aria-checked={filterOutliers}
@@ -2288,14 +2288,14 @@ const FieldReportModal = React.memo(function FieldReportModal({
                           e.stopPropagation();
                           setIsUploadModalOpen(true);
                         }}
-                        className="text-[13px] font-bold text-[#008262] dark:text-[#00d29d] bg-[#e6f3f0] dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-[#ccebe3] dark:hover:bg-[#063b2f] transition-colors"
+                        className="text-[13px] font-bold text-[#c44d00] dark:text-[#ea6100] bg-[#e6f3f0] dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-[#ccebe3] dark:hover:bg-[#063b2f] transition-colors"
                       >
                         + 사진 추가
                       </button>
                     </div>
                     <details className="w-full overflow-hidden" open>
                       <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                        <Camera size={20} className="text-[#008262] dark:text-[#00d29d]"/>
+                        <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/>
                         우리 단지 갤러리
                       </summary>
                       <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
@@ -2305,20 +2305,20 @@ const FieldReportModal = React.memo(function FieldReportModal({
               })() : (
                 <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group snap-start`}>
                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                    <Camera size={20} className="text-[#008262] dark:text-[#00d29d]"/> 우리 단지 갤러리
+                    <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/> 우리 단지 갤러리
                   </h2>
                   <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#008262] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#c44d00] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
                     <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
-                      <Camera className="text-[#008262] dark:text-[#00d29d]" size={32} strokeWidth={1.5} />
+                      <Camera className="text-[#c44d00] dark:text-[#ea6100]" size={32} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
                       데이터가 담지 못하는 우리 단지의 진정한 가치
                     </h3>
                     <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
                       매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                      입주민의 시선으로 <strong className="text-[#008262] dark:text-[#00d29d]">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                      입주민의 시선으로 <strong className="text-[#c44d00] dark:text-[#ea6100]">우리 단지의 품격</strong>을 직접 완성해 주세요.
                     </p>
                     <button 
                       onClick={(e) => {
@@ -2326,10 +2326,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#008262] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#c44d00] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
                     >
                       <span>우리 단지 첫 번째 앰배서더 되기</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#008262] dark:bg-[#00d29d] group-hover:bg-surface animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#c44d00] dark:bg-[#ea6100] group-hover:bg-surface animate-pulse" />
                     </button>
                     <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
                       * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
@@ -2470,7 +2470,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
         {isAdmin && (
           <button 
-            className="absolute top-6 right-36 z-50 text-white hover:text-[#00d29d] dark:hover:text-[#00d29d] p-2 rounded-full bg-surface/10 hover:bg-surface/30 transition-colors flex items-center gap-2 px-4 border border-white/20"
+            className="absolute top-6 right-36 z-50 text-white hover:text-[#ea6100] dark:hover:text-[#ea6100] p-2 rounded-full bg-surface/10 hover:bg-surface/30 transition-colors flex items-center gap-2 px-4 border border-white/20"
             onClick={async (e) => { 
               e.stopPropagation(); 
               if (!currentImgData?.url || !report?.id) return;
@@ -2683,7 +2683,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 className={`flex-1 h-[56px] text-white font-extrabold text-[14px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] break-keep text-center px-2 ${
                   copiedStatus === 'all-link'
                     ? 'bg-emerald-600 shadow-[0_8px_16px_rgba(16,185,129,0.2)] hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)]'
-                    : 'bg-[#008262] active:bg-[#006b50] shadow-[0_8px_16px_rgba(0,130,98,0.2)] hover:shadow-[0_10px_20px_rgba(0,130,98,0.3)] hover:-translate-y-0.5'
+                    : 'bg-[#c44d00] active:bg-[#006b50] shadow-[0_8px_16px_rgba(0,130,98,0.2)] hover:shadow-[0_10px_20px_rgba(0,130,98,0.3)] hover:-translate-y-0.5'
                 }`}
               >
                 {copiedStatus === 'all-link' ? (
@@ -2727,13 +2727,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
         {/* Top Header */}
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#00d29d] flex items-center justify-center shadow-lg shadow-[#00d29d]/20">
+            <div className="w-10 h-10 rounded-xl bg-[#ea6100] flex items-center justify-center shadow-lg shadow-[#ea6100]/20">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-5 h-5 text-white">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
             <div>
-              <span className="text-[#00d29d] text-[20px] font-black tracking-wider uppercase block leading-none">D-VIEW</span>
+              <span className="text-[#ea6100] text-[20px] font-black tracking-wider uppercase block leading-none">D-VIEW</span>
               <span className="text-slate-400 text-[13px] font-bold block leading-none mt-1">동탄 부동산 가치분석 플랫폼</span>
             </div>
           </div>
@@ -2747,7 +2747,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {/* Left: Apt Name & Info */}
           <div className="col-span-6 flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <span className="bg-[#00d29d]/15 text-[#00d29d] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-[#00d29d]/30">
+              <span className="bg-[#ea6100]/15 text-[#ea6100] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-[#ea6100]/30">
                 {report.dong || '동탄'}
               </span>
               {report.metrics?.yearBuilt && (
@@ -2756,7 +2756,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 </span>
               )}
               {calculatedValuation?.status === 'undervalued' && (
-                <span className="bg-emerald-500/20 text-[#00d29d] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-emerald-500/30">
+                <span className="bg-emerald-500/20 text-[#ea6100] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-emerald-500/30">
                   저평가 메리트 🟢
                 </span>
               )}
@@ -2775,7 +2775,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               {displayAptName}
             </h1>
             <div className="flex items-center gap-2 text-slate-400 text-[15px] font-semibold">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[#00d29d]">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[#ea6100]">
                 <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm11.378-3.917c-.08-.417-.507-.65-.913-.485a4.5 4.5 0 00-2.836 2.836c-.166.406.067.833.485.913a.75.75 0 01.614.93L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182a.75.75 0 111.46.388L9.61 16.57a.75.75 0 11-1.46-.388l1.378-5.182z" clipRule="evenodd" />
               </svg>
               입지평점: {report.premiumScores?.totalPremiumScore ? `${report.premiumScores.totalPremiumScore.toFixed(1)} / 100` : '90.0 / 100'}
@@ -2815,15 +2815,15 @@ const FieldReportModal = React.memo(function FieldReportModal({
             </div>
 
             {/* Metric 3: Gap Investment */}
-            <div className="bg-[#00d29d]/10 border border-[#00d29d]/20 rounded-3xl p-6 flex flex-col gap-1.5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#00d29d]/5 rounded-full blur-xl -mr-6 -mt-6"></div>
-              <span className="text-[#00d29d] text-[14px] font-extrabold flex items-center gap-1">
+            <div className="bg-[#ea6100]/10 border border-[#ea6100]/20 rounded-3xl p-6 flex flex-col gap-1.5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#ea6100]/5 rounded-full blur-xl -mr-6 -mt-6"></div>
+              <span className="text-[#ea6100] text-[14px] font-extrabold flex items-center gap-1">
                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clipRule="evenodd" />
                 </svg>
                 실구매 필요자금
               </span>
-              <span className="text-[30px] font-black text-[#00d29d] tracking-tight">
+              <span className="text-[30px] font-black text-[#ea6100] tracking-tight">
                 {(() => {
                   const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
                   const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -2862,7 +2862,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           <div className="flex items-center gap-2 text-slate-400 text-[14px] font-bold">
             <span>지금 D-VIEW 모바일 앱/웹에서 실시간 동탄 주거 안심 분석 지표를 확인하세요.</span>
           </div>
-          <div className="text-[#00d29d] text-[16px] font-black tracking-wider uppercase">
+          <div className="text-[#ea6100] text-[16px] font-black tracking-wider uppercase">
             DONGTANVIEW.COM
           </div>
         </div>

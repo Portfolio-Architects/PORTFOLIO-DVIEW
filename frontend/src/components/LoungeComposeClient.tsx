@@ -300,7 +300,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
             }
           }}
           aria-label="글쓰기 모달 열기"
-          className="fixed right-4 sm:right-6 w-14 h-14 bg-[#008262] hover:bg-[#006b50] text-surface rounded-full shadow-lg shadow-[#008262]/20 flex items-center justify-center transition-all active:scale-95 z-40"
+          className="fixed right-4 sm:right-6 w-14 h-14 bg-[#c44d00] hover:bg-[#006b50] text-surface rounded-full shadow-lg shadow-[#c44d00]/20 flex items-center justify-center transition-all active:scale-95 z-40"
           style={{ bottom: `${isMobile ? 96 + footerOffset : 24 + footerOffset}px` }}
         >
           <PenLine size={22} />
@@ -342,7 +342,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
 
             <div className="flex gap-2 mb-4 overflow-x-auto" role="tablist" aria-label="게시글 카테고리 선택">
               {['우리동네 이야기'].map((cat) => (
-                <button key={cat} role="tab" aria-selected={postCategory === cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#008262] text-surface border-transparent shadow-sm' : 'bg-surface text-secondary border-toss-gray hover:border-[#008262]'}`}>{cat}</button>
+                <button key={cat} role="tab" aria-selected={postCategory === cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#c44d00] text-surface border-transparent shadow-sm' : 'bg-surface text-secondary border-toss-gray hover:border-[#c44d00]'}`}>{cat}</button>
               ))}
             </div>
 
@@ -355,7 +355,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                     type="button" 
                     onClick={() => setCustomNickname(generateMamacafeNickname())} 
                     aria-label="활동 가명 닉네임 새로 생성"
-                    className="text-[11.5px] font-extrabold text-[#008262] hover:text-[#006b50] hover:underline flex items-center gap-1"
+                    className="text-[11.5px] font-extrabold text-[#c44d00] hover:text-[#006b50] hover:underline flex items-center gap-1"
                   >
                     새로 만들기 🔄
                   </button>
@@ -365,7 +365,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                   onChange={(e) => setCustomNickname(e.target.value)} 
                   placeholder="활동 가명을 입력해 주세요" 
                   aria-label="활동 가명 입력"
-                  className="w-full bg-surface border border-toss-gray rounded-lg px-3 py-2 text-[14px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] transition-colors"
+                  className="w-full bg-surface border border-toss-gray rounded-lg px-3 py-2 text-[14px] font-bold outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] transition-colors"
                 />
               </div>
             )}
@@ -376,7 +376,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               onChange={(e) => setPostTitle(e.target.value)} 
               placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" 
               aria-label="게시글 제목 입력" 
-              className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors mb-2" 
+              className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors mb-2" 
               autoFocus 
             />
             <textarea 
@@ -386,7 +386,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 줄바꿈을 활용해 자유롭게 내용을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
               aria-label="게시글 내용 입력"
               rows={12} 
-              className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10 mb-4" 
+              className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#c44d00]/10 dark:focus:ring-[#ea6100]/10 mb-4" 
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-4">
@@ -395,10 +395,10 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
                   aria-label="이미지 파일 첨부"
-                  className="flex items-center gap-1.5 text-[13px] font-bold text-secondary hover:text-[#008262] dark:hover:text-[#00d29d] hover:bg-body transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-border"
+                  className="flex items-center gap-1.5 text-[13px] font-bold text-secondary hover:text-[#c44d00] dark:hover:text-[#ea6100] hover:bg-body transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-border"
                   title="이미지 업로드"
                 >
-                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#008262] dark:text-[#00d29d]" /> : <ImagePlus size={16} />}
+                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#c44d00] dark:text-[#ea6100]" /> : <ImagePlus size={16} />}
                   <span>사진 첨부</span>
                 </button>
                 <input 
@@ -575,7 +575,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                   }
                 }}
                 disabled={isSubmitting || !postTitle.trim() || !postContent.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-[#008262] hover:bg-[#006b50] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95 shadow-sm shadow-[#008262]/10"
+                className="flex items-center gap-2 px-6 py-3 bg-[#c44d00] hover:bg-[#006b50] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95 shadow-sm shadow-[#c44d00]/10"
               >
                 {isSubmitting ? '작성 중...' : '작성 완료'}
               </button>

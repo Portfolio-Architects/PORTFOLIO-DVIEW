@@ -33,7 +33,7 @@ function computeAutoGrade(sections: ReportSections): { grade: string; score: num
   const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
   const score = Math.round(avg * 20); // 0~100
 
-  if (avg >= 4.5) return { grade: 'S', score, label: '프리미엄 최상급', color: '#00d29d' };
+  if (avg >= 4.5) return { grade: 'S', score, label: '프리미엄 최상급', color: '#ea6100' };
   if (avg >= 3.5) return { grade: 'A', score, label: '우수 단지', color: '#36b37e' };
   if (avg >= 2.5) return { grade: 'B', score, label: '평균 수준', color: '#ffc233' };
   if (avg >= 1.5) return { grade: 'C', score, label: '개선 필요', color: '#ff6b35' };

@@ -41,7 +41,7 @@ const OfflineBanner = React.memo(function OfflineBanner() {
       aria-live={isOnline ? 'polite' : 'assertive'}
       className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 px-4 text-[13px] md:text-[13.5px] font-extrabold shadow-sm border-b backdrop-blur-md transition-all duration-300 animate-in slide-in-from-top ${
         isOnline
-          ? 'bg-[#e0fbf4]/90 dark:bg-[#003829]/80 text-[#00b386] dark:text-[#00d29d] border-[#00d29d]/15 dark:border-[#00d29d]/25'
+          ? 'bg-[#fff3e0]/90 dark:bg-[#003829]/80 text-[#ff8f00] dark:text-[#ea6100] border-[#ea6100]/15 dark:border-[#ea6100]/25'
           : 'bg-rose-50/95 dark:bg-rose-950/85 text-[#df223b] dark:text-[#f87171] border-rose-100 dark:border-rose-900/30'
       }`}
     >

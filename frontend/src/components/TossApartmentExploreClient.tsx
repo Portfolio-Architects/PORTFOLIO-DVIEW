@@ -940,9 +940,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </button>
             <button 
               onClick={() => handleHeaderSort('volume3M')}
-              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#008060] dark:text-[#00d29d] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#008060] dark:text-[#ea6100] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#00d29d]" />)}
+              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#ea6100]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#ea6100]" />)}
               <span>거래량</span>
             </button>
           </div>

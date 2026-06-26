@@ -98,12 +98,12 @@ const CommentInput = memo(({ user, isSending, onSubmit }: CommentInputProps) => 
             }
           }}
           placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
-          className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#008262]/20 focus:border-[#008262] dark:focus:ring-[#00d29d]/20 dark:focus:border-[#00d29d] transition-all duration-300"
+          className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#c44d00]/20 focus:border-[#c44d00] dark:focus:ring-[#ea6100]/20 dark:focus:border-[#ea6100] transition-all duration-300"
         />
         <button
           onClick={handleSubmit}
           disabled={isSending || !text.trim()}
-          className="w-[46px] h-[46px] bg-[#008262] hover:bg-[#006b50] dark:bg-[#00d29d] dark:hover:bg-[#00b386] dark:text-[#191f28] disabled:bg-toss-gray disabled:dark:text-tertiary rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#008262]/10"
+          className="w-[46px] h-[46px] bg-[#c44d00] hover:bg-[#006b50] dark:bg-[#ea6100] dark:hover:bg-[#ff8f00] dark:text-[#191f28] disabled:bg-toss-gray disabled:dark:text-tertiary rounded-xl flex items-center justify-center text-surface transition-all active:scale-95 shadow-md shadow-[#c44d00]/10"
         >
           <Send size={18} className="ml-1" />
         </button>
@@ -795,7 +795,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                   setEditCategory((post?.category as string) || '동탄 임장/분석');
                   setIsEditing(true);
                 }}
-                className="p-2 rounded-full hover:bg-body text-[#adb5bd] hover:text-[#008262] dark:hover:text-[#00d29d] transition-colors"
+                className="p-2 rounded-full hover:bg-body text-[#adb5bd] hover:text-[#c44d00] dark:hover:text-[#ea6100] transition-colors"
                 title="수정"
               >
                 <Edit2 size={18} />
@@ -873,7 +873,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setIsEditing(false)} className="px-5 py-2.5 bg-body hover:bg-[#e5e8eb] text-secondary rounded-xl text-[14px] font-bold transition-colors">취소</button>
-                  <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-toss-blue hover:bg-[#00b386] text-surface rounded-xl text-[14px] font-bold transition-colors shadow-md shadow-[#00d29d]/20">저장</button>
+                  <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-toss-blue hover:bg-[#ff8f00] text-surface rounded-xl text-[14px] font-bold transition-colors shadow-md shadow-[#ea6100]/20">저장</button>
                 </div>
               </div>
             </div>
@@ -960,12 +960,12 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                             // Bypass Next.js router for instant hash update and modal rendering
                             window.location.hash = `post=${postId}&apt=${encodeURIComponent(shortName)}`;
                           }}
-                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20"
+                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-[#c44d00]/20 dark:hover:border-[#ea6100]/20"
                         >
                           <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0 shadow-sm border border-border">
-                            <Building2 size={15} className="text-[#008262] dark:text-[#00d29d]" />
+                            <Building2 size={15} className="text-[#c44d00] dark:text-[#ea6100]" />
                           </div>
-                          <span className="text-[14px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors whitespace-nowrap">{shortName}</span>
+                          <span className="text-[14px] font-bold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors whitespace-nowrap">{shortName}</span>
                         </button>
                       ))}
                     </div>
@@ -1057,7 +1057,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         {/* Comments Section */}
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-body flex items-center gap-2">
-            <MessageSquare size={18} className="text-[#008262] dark:text-[#00d29d]" />
+            <MessageSquare size={18} className="text-[#c44d00] dark:text-[#ea6100]" />
             <span className="text-[16px] font-bold text-primary">댓글 {comments.length}</span>
           </div>
 
@@ -1110,7 +1110,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                     }
                   }}
                   aria-label={`추천 게시글: ${recPost.title}, 카테고리: ${recPost.category} 상세 보기`}
-                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/50 hover:border-[#008262]/20 dark:hover:border-[#00d29d]/20 rounded-xl cursor-pointer transition-all group text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/50 hover:border-[#c44d00]/20 dark:hover:border-[#ea6100]/20 rounded-xl cursor-pointer transition-all group text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
                 >
                   <div className="flex flex-col gap-1.5 min-w-0 flex-1 pr-4">
                     <div className="flex items-center gap-2">
@@ -1129,7 +1129,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                         {recPost.authorName}
                       </span>
                     </div>
-                    <h4 className="text-[14px] font-bold text-primary group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors truncate">
+                    <h4 className="text-[14px] font-bold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors truncate">
                       {recPost.title}
                     </h4>
                   </div>

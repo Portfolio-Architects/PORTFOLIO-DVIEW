@@ -253,8 +253,8 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
           <span className="text-[14.5px] font-black text-primary">최근 실거래 단지</span>
         </div>
         {recentList.length > 0 && (
-          <div className="hidden sm:flex items-center gap-1.5 text-[12px] text-[#008060] dark:text-[#00d29d] font-bold h-5 overflow-hidden relative">
-            <span className="text-[10px] bg-[#e0fbf4] dark:bg-[#00d29d]/10 px-1 py-0.5 rounded mr-1">HOT</span>
+          <div className="hidden sm:flex items-center gap-1.5 text-[12px] text-[#008060] dark:text-[#ea6100] font-bold h-5 overflow-hidden relative">
+            <span className="text-[10px] bg-[#fff3e0] dark:bg-[#ea6100]/10 px-1 py-0.5 rounded mr-1">HOT</span>
             <div 
               className="flex flex-col transition-transform duration-500 ease-in-out"
               style={{ transform: `translateY(-${rollingIndex * 20}px)` }}
@@ -280,7 +280,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
       <div className="p-4 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
           {displayList.map((item, index) => {
-            const badgeStyle = "bg-[#e0fbf4] dark:bg-[#00d29d]/10 text-[#008060] dark:text-[#00d29d] font-bold border border-transparent";
+            const badgeStyle = "bg-[#fff3e0] dark:bg-[#ea6100]/10 text-[#008060] dark:text-[#ea6100] font-bold border border-transparent";
             
             return (
               <button
@@ -299,7 +299,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
                   </div>
  
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors">
+                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors">
                       {item.apt.name}
                     </span>
                     <span className="text-[11px] md:text-[12px] font-semibold text-tertiary mt-0.5">
@@ -310,7 +310,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
  
                 {/* Right (or Bottom on desktop) Area */}
                 <div className="flex md:flex-row items-end md:items-center md:justify-between w-auto md:w-full mt-0 md:mt-3.5 px-0 shrink-0 gap-1.5 md:gap-0 flex-col md:flex-row text-right">
-                  <span className="text-[14.5px] md:text-[15.5px] text-[#008262] dark:text-[#00d29d] font-extrabold leading-none">
+                  <span className="text-[14.5px] md:text-[15.5px] text-[#c44d00] dark:text-[#ea6100] font-extrabold leading-none">
                     {item.latestPriceEok}
                   </span>
                   <span className="text-tertiary font-semibold text-[10.5px] md:text-[11.5px] leading-none mt-1 md:mt-0">
@@ -329,7 +329,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
           {hasMore ? (
             <button
               onClick={() => setVisibleCount(prev => Math.min(prev + 15, recentList.length))}
-              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-[#008060] dark:text-[#00d29d] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-[#008060] dark:text-[#ea6100] hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
             >
               실거래 이력 더보기 ({Math.min(15, recentList.length - visibleCount)}개 더보기, {visibleCount}/{recentList.length}) <ChevronDown className="w-4 h-4" />
             </button>

@@ -125,12 +125,12 @@ export default function AptStoriesWidget() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a06c] opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00a06c]"></span>
           </span>
-          <span className="text-[13.5px] font-black text-[#008262] dark:text-[#00d29d] flex items-center gap-1.5">
-            <Sparkles size={13} className="text-[#00a06c] dark:text-[#00d29d] animate-pulse" />
+          <span className="text-[13.5px] font-black text-[#c44d00] dark:text-[#ea6100] flex items-center gap-1.5">
+            <Sparkles size={13} className="text-[#00a06c] dark:text-[#ea6100] animate-pulse" />
             실시간 아파트 이야기 한줄평
           </span>
         </div>
-        <span className="text-[11px] text-[#008262]/70 dark:text-[#00d29d]/70 font-semibold flex items-center">
+        <span className="text-[11px] text-[#c44d00]/70 dark:text-[#ea6100]/70 font-semibold flex items-center">
           실시간 피드
         </span>
       </div>
@@ -163,10 +163,10 @@ export default function AptStoriesWidget() {
               <div>
                 {/* Header: Apartment Name & Icon */}
                 <div className="flex items-center gap-1.5 mb-2.5">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100/50 dark:border-emerald-900/20 group-hover:bg-[#008262] transition-colors">
-                    <Home size={12} className="text-[#008262] dark:text-[#00d29d] group-hover:text-white transition-colors" />
+                  <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100/50 dark:border-emerald-900/20 group-hover:bg-[#c44d00] transition-colors">
+                    <Home size={12} className="text-[#c44d00] dark:text-[#ea6100] group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-[12.5px] font-extrabold text-primary truncate flex-1 group-hover:text-[#008262] dark:group-hover:text-[#00d29d] transition-colors">
+                  <span className="text-[12.5px] font-extrabold text-primary truncate flex-1 group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors">
                     {story.apartmentName}
                   </span>
                   <ChevronRight size={14} className="text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />

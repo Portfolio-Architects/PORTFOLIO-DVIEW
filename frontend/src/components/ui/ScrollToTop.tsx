@@ -56,7 +56,7 @@ export default function ScrollToTop() {
       onClick={scrollToTop}
       className={`fixed right-5 bottom-24 z-40 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 border border-border/40 cursor-pointer active:scale-90 md:hidden ${
         isVisible 
-          ? 'opacity-100 translate-y-0 scale-100 bg-[#008262] text-white dark:bg-[#00d29d] dark:text-[#191f28]' 
+          ? 'opacity-100 translate-y-0 scale-100 bg-[#c44d00] text-white dark:bg-[#ea6100] dark:text-[#191f28]' 
           : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
       }`}
       aria-label="최상단으로 스크롤"

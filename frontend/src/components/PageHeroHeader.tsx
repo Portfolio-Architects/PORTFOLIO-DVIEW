@@ -90,33 +90,11 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
-                  <div className="relative w-full h-full">
-                    {/* SVG Inline Logo to achieve 0ms RTT & Perfect LCP */}
-                    <svg
-                      viewBox="0 0 100 100"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-full h-full object-contain"
-                    >
-                       {/* 45-degree rotated rounded rect to create diamond background */}
-                      <rect
-                        x="16"
-                        y="16"
-                        width="68"
-                        height="68"
-                        rx="18"
-                        transform="rotate(45 50 50)"
-                        fill="url(#dview-logo-grad)"
-                      />
-                      {/* House icon centered and scaled inside the diamond */}
-                      <g transform="translate(50 51.5) scale(0.8) translate(-50 -50)">
-                        <path
-                          d="M50 20L22 42.4V74C22 77.3 24.7 80 28 80H42V58H58V80H72C75.3 80 78 77.3 78 74V42.4L50 20Z"
-                          fill="#FFFFFF"
-                        />
-                      </g>
-                    </svg>
-                  </div>
+                  <img
+                    src="/hwaseong-symbol.png"
+                    alt="화성시 심볼"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
                   {title}
@@ -132,7 +110,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
             {/* Subtitle */}
             <div className="flex flex-col justify-end mb-0 sm:mb-0">
               <div className="flex w-full">
-                <div className="w-[2px] rounded-full mr-4 shrink-0 bg-[#00d29d]" />
+                <div className="w-[2px] rounded-full mr-4 shrink-0 bg-[#ea6100]" />
                 <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2">
                   <strong className="text-primary text-[14px] sm:text-[16px] whitespace-nowrap">
                     {subtitleStrong}

@@ -3,7 +3,7 @@ import { Camera, ImagePlus, X } from 'lucide-react';
 
 const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'] as const;
 const RATING_LABELS = ['매우 나쁨', '나쁨', '보통', '좋음', '매우 좋음'] as const;
-const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#00d29d'] as const;
+const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#ea6100'] as const;
 
 export interface EmojiRatingProps {
   label: string;
@@ -122,10 +122,10 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = React.memo(
       />
       <button 
         type="button"
-        className={`w-full relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#008262] dark:focus-visible:ring-[#00d29d] ${
+        className={`w-full relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c44d00] dark:focus-visible:ring-[#ea6100] ${
           isDragging 
-            ? 'border-[#008262] dark:border-[#00d29d] bg-[#008262]/10 dark:bg-[#00d29d]/10 scale-[1.02]' 
-            : 'border-toss-gray bg-body hover:bg-body hover:border-[#008262] dark:hover:border-[#00d29d]'
+            ? 'border-[#c44d00] dark:border-[#ea6100] bg-[#c44d00]/10 dark:bg-[#ea6100]/10 scale-[1.02]' 
+            : 'border-toss-gray bg-body hover:bg-body hover:border-[#c44d00] dark:hover:border-[#ea6100]'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -134,7 +134,7 @@ export const MultiPhotoDropzone: React.FC<MultiPhotoDropzoneProps> = React.memo(
         aria-label={previews.length > 0 ? '사진 더 추가하기' : placeholder}
       >
         <div className="w-9 h-9 bg-surface rounded-full shadow-sm flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
-          {isDragging ? <ImagePlus size={18} className="text-[#008262] dark:text-[#00d29d]" /> : <Camera size={18} className="text-[#008262] dark:text-[#00d29d]" />}
+          {isDragging ? <ImagePlus size={18} className="text-[#c44d00] dark:text-[#ea6100]" /> : <Camera size={18} className="text-[#c44d00] dark:text-[#ea6100]" />}
         </div>
         <p className="text-[13px] font-bold text-primary">
           {previews.length > 0 ? '사진 더 추가하기' : placeholder}
@@ -165,7 +165,7 @@ export const TextInput: React.FC<TextInputProps> = React.memo(({ label, placehol
           value={value} 
           onChange={(e) => onChange(e.target.value)} 
           rows={2}
-          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10" 
+          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#c44d00]/10 dark:focus:ring-[#ea6100]/10" 
         />
       ) : (
         <input 
@@ -173,7 +173,7 @@ export const TextInput: React.FC<TextInputProps> = React.memo(({ label, placehol
           placeholder={placeholder} 
           value={value} 
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors focus:ring-4 focus:ring-[#008262]/10 dark:focus:ring-[#00d29d]/10" 
+          className="w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors focus:ring-4 focus:ring-[#c44d00]/10 dark:focus:ring-[#ea6100]/10" 
         />
       )}
     </div>
@@ -196,7 +196,7 @@ export const SelectInput: React.FC<SelectInputProps> = React.memo(({ label, opti
       <select 
         value={value} 
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#008262] dark:focus:border-[#00d29d] focus:bg-surface transition-colors cursor-pointer appearance-none ${value ? 'text-primary font-medium' : 'text-tertiary'}`}
+        className={`w-full bg-body border border-toss-gray rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors cursor-pointer appearance-none ${value ? 'text-primary font-medium' : 'text-tertiary'}`}
       >
         <option value="" disabled>선택해주세요</option>
         {options.map(opt => (

@@ -274,7 +274,7 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
             ))}
           </div>
 
-          <div className="bg-[#e0fbf4] text-[#00b386] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#00b386]/10 shrink-0 self-start sm:self-auto">
+          <div className="bg-[#fff3e0] text-[#ff8f00] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#ff8f00]/10 shrink-0 self-start sm:self-auto">
             총 {chopoomaList.length}개 매칭
           </div>
         </div>
@@ -320,7 +320,7 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
                     </div>
                     <div className="flex flex-col gap-1 items-end shrink-0">
                       {dist <= 150 ? (
-                        <span className="px-2 py-0.5 bg-[#e0fbf4] dark:bg-[#03c75a]/10 text-[#03c75a] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#03c75a]/20">
+                        <span className="px-2 py-0.5 bg-[#fff3e0] dark:bg-[#03c75a]/10 text-[#03c75a] text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border border-[#03c75a]/20">
                           초인접 학군
                         </span>
                       ) : (

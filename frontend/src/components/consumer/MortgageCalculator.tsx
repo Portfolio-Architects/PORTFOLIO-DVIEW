@@ -676,7 +676,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       if (selectedApt) setSelectedApt(null);
                     }}
                     onFocus={() => setIsFocused(true)}
-                    className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                    className="w-full bg-body border border-transparent focus:border-[#ea6100] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                   />
                   {searchQuery && (
                     <button
@@ -727,7 +727,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={handleNextStep}
-                      className="w-full bg-[#00d29d] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1 mt-2"
+                      className="w-full bg-[#ea6100] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1 mt-2"
                     >
                       <span>다음 단계 (가구 요건)</span>
                     </button>
@@ -743,9 +743,9 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                           }, 1200);
                         }}
                         disabled={isCalculating}
-                        className="w-full bg-zinc-900/95 dark:bg-emerald-950/20 hover:bg-zinc-800 dark:hover:bg-emerald-950/45 text-[#00d29d] border border-[#00d29d]/40 py-3.5 rounded-xl text-[14px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        className="w-full bg-zinc-900/95 dark:bg-emerald-950/20 hover:bg-zinc-800 dark:hover:bg-emerald-950/45 text-[#ea6100] border border-[#ea6100]/40 py-3.5 rounded-xl text-[14px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        <Sparkles size={14} className="fill-[#00d29d]/30 text-[#00d29d]" />
+                        <Sparkles size={14} className="fill-[#ea6100]/30 text-[#ea6100]" />
                         <span>{isCalculating ? '퀴즈 기반 자동 진단 중...' : '퀴즈 결과로 바로 진단하기 (원클릭)'}</span>
                       </button>
                     )}
@@ -763,7 +763,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   2. 귀하의 현재 가구 상황을 선택해 주세요
                 </label>
                 {hasQuizAnswers && (
-                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#ea6100] bg-emerald-500/10 px-2 py-0.5 rounded-md">
                     <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
                     <span>퀴즈 답변 반영됨</span>
                   </span>
@@ -782,13 +782,13 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     onClick={() => setHouseholdType(type.id as any)}
                     className={`w-full text-left p-4 rounded-2xl border text-secondary transition-all cursor-pointer flex flex-col gap-1.5 ${
                       householdType === type.id
-                        ? 'border-[#00d29d] bg-emerald-50/40 dark:bg-emerald-950/10 shadow-sm'
+                        ? 'border-[#ea6100] bg-emerald-50/40 dark:bg-emerald-950/10 shadow-sm'
                         : 'border-border/30 bg-body/60 hover:bg-body'
                     }`}
                   >
                     <span className="text-[13.5px] font-black text-primary flex items-center justify-between w-full">
                       <span>{type.label}</span>
-                      {householdType === type.id && <span className="w-5 h-5 rounded-full bg-[#00d29d] text-white flex items-center justify-center text-[10px]"><Check size={12} strokeWidth={3} /></span>}
+                      {householdType === type.id && <span className="w-5 h-5 rounded-full bg-[#ea6100] text-white flex items-center justify-center text-[10px]"><Check size={12} strokeWidth={3} /></span>}
                     </span>
                     <span className="text-[11.5px] text-tertiary font-medium">{type.desc}</span>
                   </button>
@@ -805,7 +805,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 </button>
                 <button
                   onClick={handleNextStep}
-                  className="flex-[2] bg-[#00d29d] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
+                  className="flex-[2] bg-[#ea6100] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
                 >
                   <span>다음 단계 (소득/자산)</span>
                 </button>
@@ -821,7 +821,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   3. 부부 소득 및 순자산을 입력해 주세요
                 </label>
                 {hasQuizAnswers && (
-                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#ea6100] bg-emerald-500/10 px-2 py-0.5 rounded-md">
                     <Sparkles size={11} className="fill-emerald-500/30 text-emerald-500" />
                     <span>퀴즈 답변 반영됨</span>
                   </span>
@@ -833,7 +833,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] font-bold text-secondary">부부합산 연소득 (세전)</span>
                   {hasQuizAnswers && (
-                    <span className="text-[10px] text-emerald-600 dark:text-[#00d29d] font-black flex items-center gap-0.5">
+                    <span className="text-[10px] text-emerald-600 dark:text-[#ea6100] font-black flex items-center gap-0.5">
                       <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
                     </span>
                   )}
@@ -846,13 +846,13 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     placeholder="예: 7,500"
                     value={annualIncomeInputValue}
                     onChange={handleAnnualIncomeChange}
-                    className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
+                    className="w-full bg-body border border-transparent focus:border-[#ea6100] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-tertiary">만원/년</span>
                 </div>
                 {annualIncome ? (
                   <div className="mt-1 flex items-center justify-end pr-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#ea6100] bg-emerald-500/10 px-2 py-0.5 rounded-md">
                       <Calculator size={10} className="text-emerald-500" />
                       <span>한글 읽기: {formatEokMan(parseInt(annualIncome.replace(/,/g, ''), 10) || 0)}/년</span>
                     </span>
@@ -868,7 +868,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] font-bold text-secondary">가구보유 순자산 규모 (총자산 - 대출채무)</span>
                   {hasQuizAnswers && (
-                    <span className="text-[10px] text-emerald-600 dark:text-[#00d29d] font-black flex items-center gap-0.5">
+                    <span className="text-[10px] text-emerald-600 dark:text-[#ea6100] font-black flex items-center gap-0.5">
                       <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
                     </span>
                   )}
@@ -880,13 +880,13 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     placeholder="예: 3.5"
                     value={netAssetsInputValue}
                     onChange={handleNetAssetsChange}
-                    className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-10"
+                    className="w-full bg-body border border-transparent focus:border-[#ea6100] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-10"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-tertiary">억원</span>
                 </div>
                 {netAssets ? (
                   <div className="mt-1 flex items-center justify-end pr-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#ea6100] bg-emerald-500/10 px-2 py-0.5 rounded-md">
                       <Calculator size={10} className="text-emerald-500" />
                       <span>한글 읽기: {formatEokMan(Math.round((parseFloat(netAssets.replace(/,/g, '')) || 0) * 10000))}</span>
                     </span>
@@ -902,7 +902,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] font-bold text-secondary">미성년 자녀 수 (자녀 수에 따른 금리 우대)</span>
                   {hasQuizAnswers && (
-                    <span className="text-[10px] text-emerald-600 dark:text-[#00d29d] font-black flex items-center gap-0.5">
+                    <span className="text-[10px] text-emerald-600 dark:text-[#ea6100] font-black flex items-center gap-0.5">
                       <Sparkles size={9} className="fill-emerald-500/30 text-emerald-500" /> 설문 기반 자동 입력됨
                     </span>
                   )}
@@ -914,7 +914,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       onClick={() => setChildrenCount(count)}
                       className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                         childrenCount === count
-                          ? 'border-[#00d29d] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                          ? 'border-[#ea6100] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
                           : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                       }`}
                     >
@@ -935,7 +935,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 <button
                   onClick={handleStartSimulate}
                   disabled={isCalculating || !annualIncome}
-                  className="flex-[2] bg-[#00d29d] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-[2] bg-[#ea6100] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   {isCalculating ? (
                     <>
@@ -959,7 +959,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
               {/* Product Badge Area */}
               <div className="bg-body/70 border border-border/40 p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
-                <span className="text-[10px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md self-start">
+                <span className="text-[10px] font-black text-emerald-600 dark:text-[#ea6100] bg-emerald-500/10 px-2 py-0.5 rounded-md self-start">
                   최적 정책금융 상품 매칭 완료
                 </span>
                 <h3 className="text-[16px] font-black text-primary mt-1">
@@ -984,7 +984,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
               {/* Capital breakdown detail */}
               <div className="space-y-3">
                 <h4 className="text-[12.5px] font-extrabold text-primary flex items-center gap-1.5">
-                  <Calculator size={14} className="text-[#00d29d]" /> 총 매수 자금 조달 내역
+                  <Calculator size={14} className="text-[#ea6100]" /> 총 매수 자금 조달 내역
                 </h4>
 
                 <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-secondary bg-body/30 p-4 rounded-xl border border-border/20">
@@ -1050,7 +1050,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 {/* Recharts Area Chart */}
                 <div className="w-full h-36 bg-body/20 rounded-xl border border-border/20 p-2.5 relative">
                   <div className="absolute top-2 left-3 text-[10px] font-bold text-tertiary flex gap-3">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00d29d] rounded" />남은 대출 원금</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#ea6100] rounded" />남은 대출 원금</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#f43f5e]/70 rounded" />납부 누적이자</span>
                   </div>
                   {mounted ? (
@@ -1061,8 +1061,8 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       >
                         <defs>
                           <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#00d29d" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#00d29d" stopOpacity={0.0}/>
+                            <stop offset="5%" stopColor="#ea6100" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#ea6100" stopOpacity={0.0}/>
                           </linearGradient>
                           <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
@@ -1080,7 +1080,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                             fontWeight: 'bold'
                           }} 
                         />
-                        <Area type="monotone" dataKey="남은 대출 원금" stroke="#00d29d" fillOpacity={1} fill="url(#colorPrincipal)" />
+                        <Area type="monotone" dataKey="남은 대출 원금" stroke="#ea6100" fillOpacity={1} fill="url(#colorPrincipal)" />
                         <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" />
                       </AreaChart>
                     </ResponsiveContainer>

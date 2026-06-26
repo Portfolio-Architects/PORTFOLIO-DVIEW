@@ -102,7 +102,7 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
             </div>
           </div>
 
-          <article className="prose prose-sm sm:prose-base max-w-none prose-headings:font-black prose-h1:text-[24px] prose-h2:text-[20px] prose-h3:text-[18px] prose-h4:text-[16px] prose-p:text-[#4e5968] prose-p:leading-relaxed prose-a:text-[#008262] prose-a:no-underline hover:prose-a:underline prose-li:text-[#4e5968] prose-strong:text-[#191f28] prose-img:rounded-xl">
+          <article className="prose prose-sm sm:prose-base max-w-none prose-headings:font-black prose-h1:text-[24px] prose-h2:text-[20px] prose-h3:text-[18px] prose-h4:text-[16px] prose-p:text-[#4e5968] prose-p:leading-relaxed prose-a:text-[#c44d00] prose-a:no-underline hover:prose-a:underline prose-li:text-[#4e5968] prose-strong:text-[#191f28] prose-img:rounded-xl">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {markdownContent}
             </ReactMarkdown>

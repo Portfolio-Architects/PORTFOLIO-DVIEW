@@ -84,7 +84,7 @@ const NotificationBanner = React.memo(function NotificationBanner() {
         className="w-full flex items-center justify-between bg-surface border border-border dark:bg-slate-900/60 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm hover:opacity-95 transition-all text-primary dark:text-white"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-[#00d29d]/10 flex items-center justify-center text-[#00d29d] shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#ea6100]/10 flex items-center justify-center text-[#ea6100] shrink-0">
             <Smartphone className="w-5 h-5" />
           </div>
           <div className="flex flex-col text-left min-w-0">
@@ -124,7 +124,7 @@ const NotificationBanner = React.memo(function NotificationBanner() {
             </button>
             
             <div className="flex items-center gap-2 mb-4">
-              <Smartphone className="w-5 h-5 text-[#00d29d]" />
+              <Smartphone className="w-5 h-5 text-[#ea6100]" />
               <h4 id="pwa-guide-title" className="text-[16px] font-black">홈 화면에 D-VIEW 추가하기</h4>
             </div>
 

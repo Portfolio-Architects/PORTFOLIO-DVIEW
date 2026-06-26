@@ -68,7 +68,7 @@ export function createInitialKPIs(): KPIData[] {
       description: '자세히 보기 →',
       icon: 'Users',
       gradientBackground: 'from-[#ffffff] to-[#f4f8ff]',
-      borderColor: 'border-[#e0fbf4]',
+      borderColor: 'border-[#fff3e0]',
       titleColor: 'text-toss-blue',
     },
     {

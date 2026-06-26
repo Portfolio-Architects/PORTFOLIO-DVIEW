@@ -541,7 +541,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       if (selectedApt) setSelectedApt(null);
                     }}
                     onFocus={() => setIsFocused(true)}
-                    className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                    className="w-full bg-body border border-transparent focus:border-[#ea6100] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                   />
                   {searchQuery && (
                     <button
@@ -592,11 +592,11 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                           placeholder="0"
                           value={acquisitionInput}
                           onChange={handleAcquisitionChange}
-                          className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
+                          className="w-full bg-body border border-transparent focus:border-[#ea6100] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">만원</span>
                       </div>
-                      <div className="text-right text-[10px] font-bold text-emerald-600 dark:text-[#00d29d]">
+                      <div className="text-right text-[10px] font-bold text-emerald-600 dark:text-[#ea6100]">
                         {formatEokMan(acquisitionPrice)}
                       </div>
                     </div>
@@ -611,11 +611,11 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                           placeholder="0"
                           value={transferInput}
                           onChange={handleTransferChange}
-                          className="w-full bg-body border border-transparent focus:border-[#00d29d] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
+                          className="w-full bg-body border border-transparent focus:border-[#ea6100] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">만원</span>
                       </div>
-                      <div className="text-right text-[10px] font-bold text-emerald-600 dark:text-[#00d29d]">
+                      <div className="text-right text-[10px] font-bold text-emerald-600 dark:text-[#ea6100]">
                         {formatEokMan(transferPrice)}
                       </div>
                     </div>
@@ -634,7 +634,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       step="1"
                       value={holdingYears}
                       onChange={(e) => setHoldingYears(parseInt(e.target.value))}
-                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#00d29d]"
+                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#ea6100]"
                     />
                     <div className="flex justify-between text-[9px] text-tertiary font-bold px-1">
                       <span>0년 (신규취득)</span>
@@ -658,7 +658,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       step="1"
                       value={resideYears}
                       onChange={(e) => setResideYears(parseInt(e.target.value))}
-                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#00d29d]"
+                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#ea6100]"
                     />
                     <div className="flex justify-between text-[9px] text-tertiary font-bold px-1">
                       <span>0년 (미거주)</span>
@@ -672,7 +672,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                     <div className="flex justify-between items-center text-[12.5px] font-extrabold text-secondary">
                       <span>6. 보유 주택 수 (1세대 기준)</span>
                       {hasQuizAnswers && (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#00d29d] bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-600 dark:text-[#ea6100] bg-emerald-500/10 px-2 py-0.5 rounded-md">
                           <Sparkles size={11} className="text-emerald-500 fill-emerald-500/30" />
                           <span>퀴즈 성향 연동됨</span>
                         </span>
@@ -684,7 +684,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         onClick={() => setIsOneHouse(true)}
                         className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                           isOneHouse
-                            ? 'border-[#00d29d] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                            ? 'border-[#ea6100] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
                             : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                         }`}
                       >
@@ -695,7 +695,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         onClick={() => setIsOneHouse(false)}
                         className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                           !isOneHouse
-                            ? 'border-[#00d29d] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                            ? 'border-[#ea6100] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
                             : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                         }`}
                       >
@@ -707,7 +707,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                   <button
                     onClick={handleStartSimulate}
                     disabled={isCalculating || transferPrice <= 0}
-                    className="w-full bg-[#00d29d] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
+                    className="w-full bg-[#ea6100] hover:bg-[#00b585] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
                   >
                     {isCalculating ? (
                       <>

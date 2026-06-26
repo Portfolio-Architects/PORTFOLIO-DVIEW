@@ -25,7 +25,7 @@ export function trackEvent(eventName: string, params?: Record<string, any>) {
 
   // In development, log to developer console
   if (process.env.NODE_ENV === 'development') {
-    console.log(`%c[Analytics Event] ${eventName}`, 'color: #00d29d; font-weight: bold;', params);
+    console.log(`%c[Analytics Event] ${eventName}`, 'color: #ea6100; font-weight: bold;', params);
   }
 
   // Send to GA4 via @next/third-parties/google only when initialized (production & GA_ID provided)

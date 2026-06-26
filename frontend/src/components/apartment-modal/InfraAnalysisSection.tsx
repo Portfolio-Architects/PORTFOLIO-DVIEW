@@ -101,14 +101,14 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
       />
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <MapPin size={18} className="text-[#008262]"/> 단지 입지정보
+          <MapPin size={18} className="text-[#c44d00]"/> 단지 입지정보
         </h2>
 
         {/* ─── 🚇 생활 인프라 종합 지수 (Infra Index) ─── */}
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-            S: { bg: 'bg-[#e6f7f3]', text: 'text-[#008262]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#008262]/5', scoreText: 'text-[#008262]' },
+            S: { bg: 'bg-[#e6f7f3]', text: 'text-[#c44d00]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#c44d00]/5', scoreText: 'text-[#c44d00]' },
             A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
             B: { bg: 'bg-[#f5f3ff]', text: 'text-[#4f46e5]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#4f46e5]/5', scoreText: 'text-[#4f46e5]' },
             C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
@@ -169,12 +169,12 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
         {/* ─── 🚇 교통 Section ─── */}
         {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#00d29d] pl-2.5">
+            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
               <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">교통망 정보</span>
             </div>
             <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
               {[
-                { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#00d29d', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
+                { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#ea6100', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                 { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                 { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
               ].filter(s => s.dist != null && s.dist > 0).map(station => {

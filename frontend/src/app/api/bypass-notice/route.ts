@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     }
     .spinner {
       border: 3.5px solid #e2e8f0;
-      border-top: 3.5px solid #00d29d;
+      border-top: 3.5px solid #ea6100;
       border-radius: 50%;
       width: 32px;
       height: 32px;

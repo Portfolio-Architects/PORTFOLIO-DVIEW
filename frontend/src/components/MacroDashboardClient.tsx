@@ -143,13 +143,13 @@ interface MacroDashboardProps {
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const COLORS = [
-  "#00d29d",
+  "#ea6100",
   "#4196f7",
   "#f9a825",
   "#f04452",
   "#b0b8c1",
 ];
-const LINE_COLORS = ["#b0b8c1", "#00d29d", "#f04452", "#00a261", "#f9a825"];
+const LINE_COLORS = ["#b0b8c1", "#ea6100", "#f04452", "#00a261", "#f9a825"];
 
 const hexToRgba = (hex: string, alpha: number) => {
   let cleanHex = hex.replace("#", "");
@@ -179,7 +179,7 @@ const InfoBox = ({
   value,
   unit,
   badge,
-  color = "#00d29d",
+  color = "#ea6100",
   description,
   onClick,
   className,
@@ -1687,7 +1687,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         compactTitle="D-VIEW 데이터 랩"
         subtitleStrong={
           <>
-            데이터 기반 <span className="text-[#00d29d] font-extrabold px-0.5">동탄 아파트</span> 가치 분석
+            데이터 기반 <span className="text-[#ea6100] font-extrabold px-0.5">동탄 아파트</span> 가치 분석
           </>
         }
         subtitleLight="실시간 실거래 분석과 입지 점수로 보는 동탄의 오늘"
@@ -1714,7 +1714,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineDongFilter}
                     onChange={(e) => setTimelineDongFilter(e.target.value)}
-                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm shrink-0"
+                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0"
                   >
                     <option value="전체">전체 동</option>
                     {availableDongs.map((dong) => (
@@ -1726,7 +1726,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineAptFilter}
                     onChange={(e) => setTimelineAptFilter(e.target.value)}
-                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[110px] sm:w-[130px] truncate shrink-0"
+                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[110px] sm:w-[130px] truncate shrink-0"
                   >
                     <option value="전체">전체 단지</option>
                     {availableApts.map((apt) => (
@@ -1949,7 +1949,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   const val = e.target.value;
                                   setSelectedTimelineApt(val === "" ? null : val);
                                 }}
-                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
+                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
                               >
                                 <option value="">전체 추이 보기</option>
                                 {favoritesArray.map((fav) => (
@@ -1964,7 +1964,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                 <button
                                   onClick={() => setShowOrderEditor(!showOrderEditor)}
                                   title="관심 단지 정렬 순서 편집"
-                                  className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#00d29d] shadow-sm shrink-0"
+                                  className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#ea6100] shadow-sm shrink-0"
                                 >
                                   <Settings size={13} />
                                 </button>
@@ -1985,7 +1985,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                           onDragOver={(e) => handleDragOver(e, index)}
                                           onDragEnd={handleDragEnd}
                                           className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
-                                            draggedIndex === index ? "opacity-40 border-dashed border-[#00d29d]" : ""
+                                            draggedIndex === index ? "opacity-40 border-dashed border-[#ea6100]" : ""
                                           }`}
                                         >
                                           <span className="truncate pr-2">{getDisplayAptName(fav)}</span>
@@ -2005,7 +2005,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   const val = e.target.value;
                                   setSelectedTimelineApt(val === "" ? null : val);
                                 }}
-                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#00d29d] focus:border-[#00d29d] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
+                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
                               >
                                 {DEFAULT_TIMELINE_APTS.map((apt) => (
                                   <option key={apt} value={apt}>
@@ -2039,7 +2039,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                               import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
                             }
                           }}
-                          className="px-2.5 py-1 bg-[#e0fbf4] hover:bg-[#e0fbf4]/80 text-[#00d29d] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-sm"
+                          className="px-2.5 py-1 bg-[#fff3e0] hover:bg-[#fff3e0]/80 text-[#ea6100] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-sm"
                         >
                           상세 리포트 보기 ➔
                         </button>
@@ -2067,14 +2067,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   {isDefaultAptSettingUp ? (
                     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                       {/* 백그라운드 블러 글로우 효과 */}
-                      <div className="absolute w-[180px] h-[180px] rounded-full bg-[#00d29d]/4 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
+                      <div className="absolute w-[180px] h-[180px] rounded-full bg-[#ea6100]/4 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
                       <div className="absolute w-[180px] h-[180px] rounded-full bg-[#f9a825]/4 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
                       
                       {/* 고급스러운 로딩 스피너 및 차트 실루엣 플레이스홀더 */}
                       <div className="flex items-center gap-1.5 mb-3.5 flex-none">
-                        <div className="w-1.5 h-6 bg-[#00d29d]/30 rounded-full animate-bounce duration-500 delay-100" />
-                        <div className="w-1.5 h-10 bg-[#00d29d]/40 rounded-full animate-bounce duration-500 delay-200" />
-                        <div className="w-1.5 h-14 bg-[#00d29d]/60 rounded-full animate-bounce duration-500 delay-300" />
+                        <div className="w-1.5 h-6 bg-[#ea6100]/30 rounded-full animate-bounce duration-500 delay-100" />
+                        <div className="w-1.5 h-10 bg-[#ea6100]/40 rounded-full animate-bounce duration-500 delay-200" />
+                        <div className="w-1.5 h-14 bg-[#ea6100]/60 rounded-full animate-bounce duration-500 delay-300" />
                         <div className="w-1.5 h-10 bg-[#f9a825]/50 rounded-full animate-bounce duration-500 delay-400" />
                         <div className="w-1.5 h-12 bg-[#f9a825]/60 rounded-full animate-bounce duration-500 delay-500" />
                         <div className="w-1.5 h-8 bg-[#f9a825]/40 rounded-full animate-bounce duration-500 delay-600" />
@@ -2102,8 +2102,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-3 mt-1.5 flex-none">
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 dark:bg-[#00d29d]/15 text-[#00d29d] rounded-full text-[11px] font-extrabold border border-[#00d29d]/15 shadow-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#ea6100]/8 dark:bg-[#ea6100]/15 text-[#ea6100] rounded-full text-[11px] font-extrabold border border-[#ea6100]/15 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#ea6100]" />
                       <span>평균 매매가</span>
                     </div>
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 dark:bg-[#f9a825]/15 text-[#f9a825] rounded-full text-[11px] font-extrabold border border-[#f9a825]/15 shadow-sm">
@@ -2139,13 +2139,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             type="button"
             onClick={() => setIsQuizOpen(true)}
             aria-label="나만의 동탄 찰떡 아파트 찾기 Quiz 상세 보기"
-            className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#00d29d]/8 to-surface dark:from-[#00d29d]/4 border border-[#00d29d]/15 hover:border-[#00d29d]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+            className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#ea6100]/8 to-surface dark:from-[#ea6100]/4 border border-[#ea6100]/15 hover:border-[#ea6100]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
           >
-            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#00d29d]/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#ea6100]/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
             <div className="relative z-10 flex flex-col gap-4">
               {/* Icon & Badge Row */}
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 bg-[#00d29d]/10 dark:bg-[#00d29d]/15 text-[#00b386] dark:text-[#00d29d] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <div className="w-10 h-10 bg-[#ea6100]/10 dark:bg-[#ea6100]/15 text-[#ff8f00] dark:text-[#ea6100] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                   <Compass size={18} />
                 </div>
                 <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">New 콘텐츠</span>
@@ -2165,7 +2165,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             {/* Bottom Button */}
             <div className="mt-6 relative z-10 w-full">
               <div 
-                className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#00d29d] dark:hover:bg-[#00d29d] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#ea6100] dark:hover:bg-[#ea6100] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
               >
                 <span>지금 추천 받기</span>
                 <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -2246,7 +2246,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               {/* Bottom Button */}
               <div className="mt-6 relative z-10 w-full">
                 <div 
-                  className="w-full py-3 bg-[#008262] hover:bg-[#00a37b] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
+                  className="w-full py-3 bg-[#c44d00] hover:bg-[#00a37b] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none"
                 >
                   <span>대출 한도 조회</span>
                   <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -2335,7 +2335,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
               {/* Title & Badge */}
               <div className="flex items-center gap-1.5 justify-center mb-2.5">
-                <span className="bg-[#00d29d]/10 text-[#00b386] font-black text-[9.5px] px-2 py-0.5 rounded-[6px]">
+                <span className="bg-[#ea6100]/10 text-[#ff8f00] font-black text-[9.5px] px-2 py-0.5 rounded-[6px]">
                   리텐션 케어
                 </span>
                 <h3 className="text-[17px] font-black text-primary tracking-tight">
@@ -2378,7 +2378,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       }
                     }
                   }}
-                  className="w-full py-3 bg-[#00d29d] hover:bg-[#00d29d]/90 text-white border-none rounded-2xl text-[13.5px] font-extrabold cursor-pointer transition-colors shadow-sm text-center active:scale-[0.985] outline-none"
+                  className="w-full py-3 bg-[#ea6100] hover:bg-[#ea6100]/90 text-white border-none rounded-2xl text-[13.5px] font-extrabold cursor-pointer transition-colors shadow-sm text-center active:scale-[0.985] outline-none"
                 >
                   {user ? "지금 관심 단지 등록하기 ➔" : "3초 간편 로그인하고 시작하기 ➔"}
                 </button>
@@ -2479,8 +2479,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
               {/* 커스텀 범례 */}
               <div className="flex items-center justify-center gap-3 mb-5 shrink-0">
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00d29d]/8 text-[#00d29d] rounded-full text-[10px] font-bold border border-[#00d29d]/15">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00d29d]" />
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#ea6100]/8 text-[#ea6100] rounded-full text-[10px] font-bold border border-[#ea6100]/15">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ea6100]" />
                   <span>평균 매매가</span>
                 </div>
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 text-[#f9a825] rounded-full text-[10px] font-bold border border-[#f9a825]/15">

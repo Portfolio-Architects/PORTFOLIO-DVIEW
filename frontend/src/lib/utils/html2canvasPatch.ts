@@ -107,8 +107,8 @@ export function patchClonedDocumentForHtml2canvas(clonedDoc: Document) {
       htmlEl.style.setProperty('--bg-surface', '#ffffff');
       htmlEl.style.setProperty('--text-primary', '#191f28');
       htmlEl.style.setProperty('--text-secondary', '#4e5968');
-      htmlEl.style.setProperty('--toss-blue', '#00d29d');
-      htmlEl.style.setProperty('--toss-blue-light', '#e0fbf4');
+      htmlEl.style.setProperty('--toss-blue', '#ea6100');
+      htmlEl.style.setProperty('--toss-blue-light', '#fff3e0');
     }
     if (bodyEl) {
       bodyEl.classList.remove('dark');

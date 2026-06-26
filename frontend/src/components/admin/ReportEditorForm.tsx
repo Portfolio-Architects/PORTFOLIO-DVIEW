@@ -311,7 +311,7 @@ const ReportEditorForm = React.memo(function ReportEditorForm({ initialData = nu
           <button 
             type="submit" 
             disabled={isSubmitting}
-            className="px-8 py-3 font-bold text-surface bg-toss-blue hover:bg-[#2b72d6] active:bg-[#00b386] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
+            className="px-8 py-3 font-bold text-surface bg-toss-blue hover:bg-[#2b72d6] active:bg-[#ff8f00] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
           >
             {isSubmitting ? (
               <>

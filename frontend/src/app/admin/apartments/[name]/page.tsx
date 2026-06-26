@@ -1075,7 +1075,7 @@ const ApartmentInfoPage = React.memo(function ApartmentInfoPage() {
               </button>
               <button onClick={handleSave} disabled={saving}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-                  saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#00d29d]/20'
+                  saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#ea6100]/20'
                 } disabled:opacity-60`}>
                 <Save size={16}/>
                 {saving ? '저장 중...' : saved ? '저장 완료!' : '통합 저장'}
