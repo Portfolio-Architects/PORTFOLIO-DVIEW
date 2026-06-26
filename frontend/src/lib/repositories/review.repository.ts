@@ -14,6 +14,26 @@ import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { formatTimestamp } from '@/lib/utils/date';
 
+// Module-level cache for dynamic firebaseAdmin import
+let cachedAdminDb: any = null;
+let isAdminDbLoaded = false;
+
+async function getAdminDb(): Promise<any> {
+  if (typeof window === 'undefined') {
+    if (isAdminDbLoaded) return cachedAdminDb;
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      cachedAdminDb = adminDb || null;
+    } catch (err) {
+      logger.warn('ReviewRepository.getAdminDb', 'Failed to dynamically import @/lib/firebaseAdmin', {}, err as Error);
+      cachedAdminDb = null;
+    }
+    isAdminDbLoaded = true;
+    return cachedAdminDb;
+  }
+  return null;
+}
+
 const COLLECTION = 'user_reviews';
 
 const UserReviewSchema = z.object({
@@ -38,7 +58,7 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
     const reviews: UserReview[] = snapshot.docs.map(d => {
       const data = d.data();
       const dongMatch = data.apartmentName?.match(/\[(.*?)\]/);
-      const mapped: any = {
+      const mapped: Record<string, any> = {
         id: d.id,
         apartmentName: data.apartmentName || '',
         dong: dongMatch?.[1] || data.dong || '',
@@ -76,17 +96,17 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
  * Fetches recent reviews. Supporting server-side (adminDb) and client-side (db) fetches.
  */
 export async function getRecentReviews(limitCount: number = 30): Promise<UserReview[]> {
-  let rawDocs: any[] = [];
+  let rawDocs: { id: string; data: any }[] = [];
 
   if (typeof window === 'undefined') {
     try {
-      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const adminDb = await getAdminDb();
       if (adminDb) {
-        const snap = await throttle(() => adminDb.collection(COLLECTION)
+        const snap = await throttle<any>(() => adminDb.collection(COLLECTION)
           .orderBy('createdAt', 'desc')
           .limit(limitCount)
           .get());
-        rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+        rawDocs = snap.docs.map((d: any) => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
       logger.warn('ReviewRepository.getRecentReviews', 'Admin SDK fetch failed, falling back', undefined, adminError);
@@ -107,7 +127,7 @@ export async function getRecentReviews(limitCount: number = 30): Promise<UserRev
   return rawDocs.map(item => {
     const data = item.data;
     const dongMatch = data.apartmentName?.match(/\[(.*?)\]/);
-    const mapped: any = {
+    const mapped: Record<string, any> = {
       id: item.id,
       apartmentName: data.apartmentName || '',
       dong: dongMatch?.[1] || data.dong || '',
