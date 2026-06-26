@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 747)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 748)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -82,6 +82,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Indexing & Comment Push API Routes Type Safety Optimization (Phase 747)**:
   - [api/indexing/apartment/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/indexing/apartment/route.ts) 내 POST 핸들러의 예외 처리 catch 블록 내 `catch (error: any)` 구문을 `catch (error: unknown)`으로 마이그레이션하고 로거 출력 시 `error as Error` 캐스팅을 적용하여 타입 안전성을 확보했습니다.
   - [api/push/notify-comment/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/push/notify-comment/route.ts) 내 webpush 알림 루프의 예외 처리 catch 블록 내 `catch (err: any)`를 `catch (err: unknown)`으로 변경하여 statusCode 추출용 가드(`err as { statusCode?: number }`)를 구현했으며, 핸들러 전체 catch 블록의 `catch (error: any)` 역시 `catch (error: unknown)`으로 격상했습니다.
+- **Timeout Handler Type Safety in Favorite API Routes (Phase 748)**:
+  - [api/favorite-counts/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/favorite-counts/route.ts) 내 `withTimeout` 함수에서 타이머 제어를 위해 사용되던 `let timeoutId: any` 변수를 `let timeoutId: ReturnType<typeof setTimeout> | undefined` 정형 타입으로 구체화하여 dynamic any를 배제했습니다.
+  - [api/favorite/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/favorite/route.ts) 내 `withTimeout` 함수에서도 마찬가지로 `let timeoutId: any` 타입을 `let timeoutId: ReturnType<typeof setTimeout> | undefined` 정형 타입으로 전환하여 dynamic any를 완벽히 배제했습니다.
 
 ---
 
