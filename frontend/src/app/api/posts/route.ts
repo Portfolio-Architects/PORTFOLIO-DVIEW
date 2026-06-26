@@ -27,6 +27,21 @@ const postsResponseSchema = z.object({
   posts: z.array(postItemSchema)
 });
 
+interface CombinedPostItem {
+  id: string;
+  title: string;
+  category: string;
+  author: string;
+  imageUrl: string | null;
+  likes: number;
+  views: number;
+  commentCount: number;
+  createdAt: number;
+  meta: string;
+  summary: string;
+  apartmentName?: string;
+}
+
 const PostsQuerySchema = z.object({
   lastCreatedAt: z.string().nullable().optional(),
   limit: z.preprocess(
@@ -46,7 +61,7 @@ const PostCreateSchema = z.object({
   imageUrl: z.string().nullable().optional().default(null),
 });
 
-let cachedData: any = null;
+let cachedData: z.infer<typeof postsResponseSchema> | null = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 15000; // 15 seconds
 
@@ -112,7 +127,7 @@ export async function GET(req: NextRequest) {
       commentQ.get()
     ]);
     
-    const postsList: any[] = [];
+    const postsList: CombinedPostItem[] = [];
     postSnapshot.docs.forEach(doc => {
       try {
         const data = doc.data();
@@ -145,7 +160,7 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const commentsList: any[] = [];
+    const commentsList: CombinedPostItem[] = [];
     const parentIdsToResolve = new Set<string>();
     commentSnapshot.docs.forEach(doc => {
       const parentRef = doc.ref.parent.parent;
@@ -251,8 +266,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(responseData);
-  } catch (error: any) {
-    logger.error('PostsAPI.GET', 'Fetch posts api error', {}, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('PostsAPI.GET', 'Fetch posts api error', {}, err);
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
   }
 }
@@ -329,8 +345,9 @@ export async function POST(req: NextRequest) {
 
     logger.info('PostsAPI.POST', 'Post created via background sync API', { id: docRef.id });
     return NextResponse.json({ status: 'success', id: docRef.id });
-  } catch (error: any) {
-    logger.error('PostsAPI.POST', 'Create post api error', {}, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error('PostsAPI.POST', 'Create post api error', {}, err);
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
 }
