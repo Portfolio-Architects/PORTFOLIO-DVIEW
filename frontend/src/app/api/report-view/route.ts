@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let rawBody: any;
+    let rawBody: unknown;
     try {
       const text = await request.text();
       if (!text.trim()) {

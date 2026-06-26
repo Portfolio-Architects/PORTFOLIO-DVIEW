@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. JSON 파싱 방어 가드
-    let rawBody: any;
+    let rawBody: unknown;
     try {
       const text = await request.text();
       if (!text.trim()) {
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('SubscribeAPI.POST', 'Subscription API Error', {}, error as Error);
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
