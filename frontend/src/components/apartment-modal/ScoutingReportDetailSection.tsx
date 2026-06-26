@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import Image from 'next/image';
 import { Building, Camera, Info, ShieldAlert, Radar } from 'lucide-react';
+import { FieldReportData } from '@/lib/DashboardFacade';
 
 interface ScoutingReportDetailSectionProps {
-  report: any;
+  report: FieldReportData;
   inline?: boolean;
 }
 

@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import { Building } from 'lucide-react';
+import { FieldReportData } from '@/lib/DashboardFacade';
 
 interface ApartmentSpecsSectionProps {
-  report: any;
+  report: FieldReportData;
   inline?: boolean;
   displayAptName: string;
 }
