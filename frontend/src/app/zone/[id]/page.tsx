@@ -3,6 +3,7 @@ import { ZONES, getZoneById, getDongsForZone } from '@/lib/zones';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { getInitialData } from '@/lib/services/dashboardData';
 import ZoneDetailClient from './ZoneDetailClient';
+import { DongApartment } from '@/lib/dong-apartments';
 
 export async function generateStaticParams() {
   return ZONES.map((zone) => ({
@@ -63,13 +64,13 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
   const initialData = await getInitialData();
   const dongs = getDongsForZone(zone.id);
   
-  const apartmentsList: any[] = [];
+  const apartmentsList: DongApartment[] = [];
   const sheetApartments = initialData.sheetApartments;
   if (sheetApartments) {
     dongs.forEach(dong => {
       const apts = sheetApartments[dong];
       if (Array.isArray(apts)) {
-        apts.forEach((apt: any) => {
+        apts.forEach((apt: DongApartment) => {
           if (apt && apt.name) {
             apartmentsList.push({
               name: apt.name,
