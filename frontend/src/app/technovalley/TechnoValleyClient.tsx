@@ -26,6 +26,14 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 
+interface OfficeTransaction {
+  readonly date: string;
+  readonly type: '매매' | '임대';
+  readonly sizeSqM: number;
+  readonly floor: number;
+  readonly price: string;
+}
+
 interface OfficeBuilding {
   name: string;
   type: string;
@@ -36,6 +44,7 @@ interface OfficeBuilding {
   desc: string;
   imgPlaceholder: string;
   score: number;
+  recentTransactions: OfficeTransaction[];
 }
 
 const BUILDINGS_DB: OfficeBuilding[] = [
@@ -48,7 +57,12 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     stationDistance: 'close',
     desc: '대규모 입주 기업 네트워킹과 드라이브인 물류 동선이 최적화된 초대형 랜드마크 지산입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600',
-    score: 95
+    score: 95,
+    recentTransactions: [
+      { date: '2026-05-12', type: '임대', sizeSqM: 45.2, floor: 15, price: '보증금 1,000만 / 월세 90만' },
+      { date: '2026-05-03', type: '임대', sizeSqM: 88.9, floor: 3, price: '보증금 1,500만 / 월세 150만' },
+      { date: '2026-04-18', type: '매매', sizeSqM: 108.5, floor: 7, price: '4억 1,000만원' }
+    ]
   },
   {
     name: '현대 실리콘앨리 동탄',
@@ -59,7 +73,12 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     stationDistance: 'close',
     desc: '세련된 오피스 인테리어와 업무 편의 시설, 다채로운 먹거리 상권이 융합된 문화형 복합 지산입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600',
-    score: 92
+    score: 92,
+    recentTransactions: [
+      { date: '2026-05-20', type: '임대', sizeSqM: 51.6, floor: 8, price: '보증금 1,000만 / 월세 110만' },
+      { date: '2026-04-11', type: '임대', sizeSqM: 102.3, floor: 4, price: '보증금 2,000만 / 월세 210만' },
+      { date: '2026-03-29', type: '매매', sizeSqM: 72.4, floor: 12, price: '2억 9,500만원' }
+    ]
   },
   {
     name: '동탄 IT타워',
@@ -70,7 +89,12 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     stationDistance: 'very-close',
     desc: '동탄역과의 지리적 접근성이 가장 뛰어나며, 소자본 스타트업이나 소형 오피스에 안성맞춤입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600',
-    score: 89
+    score: 89,
+    recentTransactions: [
+      { date: '2026-05-24', type: '임대', sizeSqM: 33.1, floor: 9, price: '보증금 500만 / 월세 65만' },
+      { date: '2026-04-15', type: '임대', sizeSqM: 66.2, floor: 11, price: '보증금 1,000만 / 월세 115만' },
+      { date: '2026-02-28', type: '매매', sizeSqM: 33.1, floor: 5, price: '1억 2,000만원' }
+    ]
   },
   {
     name: 'SH타임스퀘어',
@@ -81,7 +105,12 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     stationDistance: 'moderate',
     desc: '하역 동선과 중장비 설비 안착이 필요한 고부하 제조 및 물류 적재 업종에 최적화된 맞춤형 센터입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-rose-500/20 to-pink-500/20 text-rose-600',
-    score: 87
+    score: 87,
+    recentTransactions: [
+      { date: '2026-05-18', type: '임대', sizeSqM: 132.2, floor: 3, price: '보증금 2,000만 / 월세 240만' },
+      { date: '2026-04-05', type: '임대', sizeSqM: 198.3, floor: 1, price: '보증금 3,000만 / 월세 360만' },
+      { date: '2026-03-14', type: '매매', sizeSqM: 198.3, floor: 2, price: '6억 2,000만원' }
+    ]
   }
 ];
 
@@ -307,7 +336,7 @@ export default function TechnoValleyClient() {
           subtitleLight="수도권 최대 규모 산업 클러스터 활성화를 위한 솔루션"
         />
 
-        <div className="max-w-[1200px] mx-auto w-full px-4 sm:px-6 pt-6 pb-16">
+        <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-16">
           
           {/* 상단 통합 통계 위젯 */}
           <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
@@ -575,6 +604,49 @@ export default function TechnoValleyClient() {
                         <div>
                           <span className="text-[12px] font-bold text-primary block">분석 소견</span>
                           <span className="text-[11.5px] text-secondary font-medium mt-1 block leading-relaxed">{searchResult.desc}</span>
+                        </div>
+                      </div>
+
+                      {/* 실거래가 연동 테이블 */}
+                      <div className="flex flex-col gap-2.5">
+                        <span className="text-[12.5px] font-bold text-secondary flex items-center gap-1.5">
+                          <Coins size={16} className="text-[#c44d00] dark:text-[#ea6100]" />
+                          해당 지식산업센터 최근 실거래 정보 (매매/임대)
+                        </span>
+                        <div className="overflow-x-auto border border-border/40 rounded-2xl bg-body/10">
+                          <table className="w-full text-left border-collapse text-[11.5px]">
+                            <thead>
+                              <tr className="bg-body/30 border-b border-border/30 text-tertiary">
+                                <th className="p-3 font-bold">계약일</th>
+                                <th className="p-3 font-bold">구분</th>
+                                <th className="p-3 font-bold">전용면적</th>
+                                <th className="p-3 font-bold text-center">층</th>
+                                <th className="p-3 font-bold text-right">거래 금액</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {searchResult.recentTransactions.map((tx, idx) => {
+                                const sizeInPy = Math.round(tx.sizeSqM / 3.3057 * 10) / 10;
+                                return (
+                                  <tr key={idx} className="border-b border-border/20 last:border-0 hover:bg-body/25 transition-colors">
+                                    <td className="p-3 text-secondary font-medium">{tx.date}</td>
+                                    <td className="p-3">
+                                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
+                                        tx.type === '매매' 
+                                          ? 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20' 
+                                          : 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
+                                      }`}>
+                                        {tx.type}
+                                      </span>
+                                    </td>
+                                    <td className="p-3 text-secondary font-medium">{tx.sizeSqM}㎡ ({sizeInPy}평)</td>
+                                    <td className="p-3 text-secondary font-medium text-center">{tx.floor}F</td>
+                                    <td className="p-3 text-primary font-bold text-right">{tx.price}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
 
