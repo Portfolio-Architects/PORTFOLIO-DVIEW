@@ -7,13 +7,14 @@ import {
   Tooltip as RechartsTooltip,
   CartesianGrid,
 } from "recharts";
+import type { DongtanMacroTrendPoint } from "@/lib/types/transaction";
 
 interface TooltipPayloadEntry {
   dataKey?: string | number;
   name?: string;
   value: number;
   color?: string;
-  payload?: any;
+  payload?: unknown;
 }
 
 interface CustomTooltipProps {
@@ -105,8 +106,15 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
+interface MacroTrendPoint {
+  name: string;
+  "동탄 아파트 전체": number | null;
+  "동탄 아파트 전세 평균": number | null;
+  [key: string]: unknown;
+}
+
 interface MacroTrendChartProps {
-  lineData: any[];
+  lineData: MacroTrendPoint[];
   xTicks: string[];
   yTicks: number[];
   timeframe: string;
@@ -217,8 +225,9 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   const desktopEventHandlers = (isTouchDevice && !isBottomSheet)
     ? {
         onTouchStart: () => setIsTooltipActive(true),
-        onTouchMove: (e: any) => {
-          if (e && e.activePayload) {
+        onTouchMove: (e: unknown) => {
+          const chartEvent = e as { activePayload?: unknown[] } | null;
+          if (chartEvent && chartEvent.activePayload) {
             setIsTooltipActive(true);
           }
         },

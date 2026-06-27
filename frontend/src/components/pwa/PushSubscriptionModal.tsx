@@ -73,12 +73,13 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
         showToast(`🔔 ${aptName}의 실거래가 변동 알림 신청이 완료되었습니다!`);
         onClose();
       }
-    } catch (err: any) {
-      logger.error('PushSubscriptionModal.handleSubscribe', 'Subscription error in modal', undefined, err);
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      logger.error('PushSubscriptionModal.handleSubscribe', 'Subscription error in modal', undefined, err as Error);
       if (mountedRef.current) {
-        if (err.message === 'PERMISSION_DENIED') {
+        if (errorMsg === 'PERMISSION_DENIED') {
           setErrorState('denied');
-        } else if (err.message === 'UNSUPPORTED_BROWSER') {
+        } else if (errorMsg === 'UNSUPPORTED_BROWSER') {
           setErrorState('unsupported');
         } else {
           setErrorState('failed');

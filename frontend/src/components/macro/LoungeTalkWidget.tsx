@@ -1,15 +1,17 @@
 import React from "react";
 
+interface LoungeTalkPostItem {
+  id: string | number;
+  category?: string;
+  title: string;
+  summary?: string;
+  commentCount: number;
+  views: number;
+}
+
 interface LoungeTalkWidgetProps {
   postsData?: {
-    posts: Array<{
-      id: string | number;
-      category?: string;
-      title: string;
-      summary?: string;
-      commentCount: number;
-      views: number;
-    }>;
+    posts: LoungeTalkPostItem[];
   };
 }
 
@@ -41,7 +43,7 @@ export function LoungeTalkWidget({ postsData }: LoungeTalkWidgetProps) {
             아직 라운지 이야기가 등록되지 않았습니다.
           </div>
         ) : (
-          postsData.posts.slice(0, 4).map((post: any) => (
+          postsData.posts.slice(0, 4).map((post: LoungeTalkPostItem) => (
             <button 
               key={post.id}
               type="button"
