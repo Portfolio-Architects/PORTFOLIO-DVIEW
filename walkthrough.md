@@ -1,4 +1,4 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 758)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 759)
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
 
@@ -124,6 +124,10 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Explicit Any Type Refactoring in Review and Traffic Repositories (Phase 758)**:
   - [review.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/review.repository.ts) 내 `cachedAdminDb: any` 및 `getAdminDb(): Promise<any>` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, `throttle<any>`를 `throttle<admin.firestore.QuerySnapshot>` 형태로 구체화하고 `mapped` 변수의 Record<string, any> 캐스팅 제거 및 `RawReviewDoc` 타입 설정을 통해 any를 배제했습니다.
   - [traffic.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/traffic.repository.ts) 내 `cachedAdminDb: any` 및 `getAdminDb(): Promise<any>` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, `throttle<any>`를 `throttle<admin.firestore.QuerySnapshot>` 형태로 리팩토링하고 `RawTrafficDoc` 명세를 기반으로 dynamic snapshot data mapping 시 explicit `any`를 완전히 걷어냈습니다.
+- **Explicit Any Type Refactoring in DashboardData Service (Phase 759)**:
+  - [dashboardData.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/services/dashboardData.ts) 내 Zod 스키마들에서 `z.any()` 타입 검증을 모두 제거하고 각각의 데이터에 적합한 구체적인 Zod 스키마(`PremiumScoresSchema`, `FieldReportImageSchema`, `ObjectiveMetricsSchema`, `DongApartmentSchema`, `KPIDataSchema`, `AptTxSummarySchema`, `Recent7DaysVolumeSchema`, `RecentTransactionSchema`)로 리팩토링했습니다.
+  - 파일 최상단에 `declare global`을 선언하여 캐시를 위한 `_initialPageDataCache` 및 `_activeFreshDataPromise`에 형식을 바인딩하여 `globalThis as any` 캐스팅을 완전히 걷어냈습니다.
+  - `pipelineResults` 및 타이머 `timeoutId` 변수들을 각각 `unknown[]` 및 `ReturnType<typeof setTimeout> | undefined` 형식으로 안전하게 타이핑하였고, JSON parsing read fallback 부분의 generic parameters를 Union Type 및 정형 레코드로 구체화했습니다.
 
 ---
 
