@@ -355,7 +355,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   isLoadingDetail?: boolean;
   isAdmin?: boolean;
   inline?: boolean;
-  txSummary?: any;
+  txSummary?: import('@/lib/types/transaction').AptTxSummary;
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
   onOpenCompare?: (aptName: string) => void;
@@ -1015,7 +1015,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           ? Math.round(recentSales3M.reduce((sum, t) => sum + t.price, 0) / recentSales3M.length)
           : (sales.length > 0 ? sales[0].price : 0));
 
-      const getJeonseEq = (t: any) => t.calculatedPrice || t.price || 0;
+      const getJeonseEq = (t: EnrichedTransaction) => t.calculatedPrice || t.price || 0;
 
       const avg3MRent = recentRents1M.length > 0
         ? Math.round(recentRents1M.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents1M.length)
