@@ -1,4 +1,4 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 757)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 758)
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
 
@@ -120,6 +120,10 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [comment.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/comment.repository.ts) 내 `cachedAdminDb: any` 및 `getAdminDb(): Promise<any>` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, `throttle<any>`를 `throttle<admin.firestore.QuerySnapshot>` 형태로 구체화했습니다.
   - [post.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/post.repository.ts) 내 `RecentLoungeItem` 인터페이스의 `[key: string]: any;` 시그니처를 `[key: string]: unknown;`로 격상하고, `ProcessablePost` 및 `ProcessableComment` DTO용 타입 정의를 통해 dynamic payload의 explicit any 구조를 완전 제거했습니다.
   - [MortgageCalculator.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/MortgageCalculator.tsx)의 `HOUSEHOLD_TYPES` 배열 및 map 가이드를 컴포넌트 외부로 선언/구조화하여 TSX 파싱 이슈를 해결하고, newlyweds 가구 타입의 `as any` 캐스팅을 배제했습니다.
+
+- **Explicit Any Type Refactoring in Review and Traffic Repositories (Phase 758)**:
+  - [review.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/review.repository.ts) 내 `cachedAdminDb: any` 및 `getAdminDb(): Promise<any>` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, `throttle<any>`를 `throttle<admin.firestore.QuerySnapshot>` 형태로 구체화하고 `mapped` 변수의 Record<string, any> 캐스팅 제거 및 `RawReviewDoc` 타입 설정을 통해 any를 배제했습니다.
+  - [traffic.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/traffic.repository.ts) 내 `cachedAdminDb: any` 및 `getAdminDb(): Promise<any>` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, `throttle<any>`를 `throttle<admin.firestore.QuerySnapshot>` 형태로 리팩토링하고 `RawTrafficDoc` 명세를 기반으로 dynamic snapshot data mapping 시 explicit `any`를 완전히 걷어냈습니다.
 
 ---
 
