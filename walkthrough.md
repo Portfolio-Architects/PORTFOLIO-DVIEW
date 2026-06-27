@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 761)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 762)
+
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
 
@@ -135,6 +136,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [ChopoomaCuration.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ChopoomaCuration.tsx) 내 props 명세의 `locationScores: Record<string, any>`를 `Record<string, { distanceToElementary?: number; [key: string]: unknown }>` 정형 타입으로 변환하여 형식 안전성을 다졌습니다.
   - [DashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/DashboardClient.tsx) 내의 empty fallback 상수인 `EMPTY_OBJECT` 및 `EMPTY_ARRAY`를 각각 bottom type인 `Record<string, never>` 및 `never[]`로 안전하게 리팩토링하여 type narrowing 및 assignability를 만족시켰습니다. 또한 거래 필터링 lambda 매개변수 `tx: any`를 `{ txKey?: string }` 구조적 타입 가드로 전환했습니다.
   - [TossApartmentExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/TossApartmentExploreClient.tsx) 내 Zod 명세 기반 props validation 스키마 내의 `z.any()` 구문들을 `z.unknown()`으로 마이그레이션하여 dynamic any 타입을 완전히 제거했습니다.
+- **Explicit Any Type Refactoring in GapExplorer and Lounge Components (Phase 762)**:
+  - [GapInvestmentExplorer.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/GapInvestmentExplorer.tsx) 내에서 사용되던 갭 통계용 변수 `minGapObj` 및 `minGapItem`에 대해 명시적 타입 캐스팅(`as { apt: DongApartment; sales: number; ... } | null`)을 적용하여 `never` 타입 추론 오류를 차단하고, `Object.values(sheetApartments).flat()` 호출부에 `as DongApartment[]` 캐스팅을 보강하여 explicit `any`를 완전히 제거했습니다.
+  - [LoungeContainerClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeContainerClient.tsx) 내 SWR 데이터 패칭(`useSWR`)의 제네릭 매개변수로 명세되어 있던 `<any>` 캐스팅을 제거하고 구체적인 `NewsItem[]` 및 가변형 데이터 구조로 선언하여 타입 컴파일 안전성을 강화했습니다.
+  - [LoungeDetailClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeDetailClient.tsx) 내 날짜 포맷팅 함수 `formatDateStr` 의 매개변수를 `dateStr: unknown`으로 변경하고 타입 체크 가드를 신설했으며, 추천 포스트 저장용 상태인 `recommendedPosts` 배열 내 `any[]` 명세를 `RecommendedPostItem[]`으로 격상했습니다.
+  - [LoungeFeedClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeFeedClient.tsx) 내 로컬 이벤트 및 행정 고시 API JSON 수신부의 `any` 및 `any[]` 배열 바인딩을 `unknown` 형변환 후 구조 가드(`e as Record<string, unknown>`) 및 `LocalNoticeItem[]` 정형 타입 할당으로 전면 개선했습니다.
+
 
 ---
 
