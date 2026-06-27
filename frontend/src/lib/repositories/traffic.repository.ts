@@ -8,12 +8,24 @@ import { collection, getDocs } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import type * as admin from 'firebase-admin';
+
+export interface RawTrafficDoc {
+  id: string;
+  data: {
+    websiteVisits?: number;
+    title?: string;
+    type?: string;
+    views?: number;
+    [key: string]: unknown;
+  };
+}
 
 // Module-level cache for dynamic firebaseAdmin import
-let cachedAdminDb: any = null;
+let cachedAdminDb: admin.firestore.Firestore | null = null;
 let isAdminDbLoaded = false;
 
-async function getAdminDb(): Promise<any> {
+async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
   if (typeof window === 'undefined') {
     if (isAdminDbLoaded) return cachedAdminDb;
     try {
@@ -78,14 +90,14 @@ export interface ContentView {
 }
 
 export async function getDailyVisitStats(): Promise<DailyStat[]> {
-  let rawDocs: { id: string; data: any }[] = [];
+  let rawDocs: RawTrafficDoc[] = [];
 
   if (typeof window === 'undefined') {
     try {
       const adminDb = await getAdminDb();
       if (adminDb) {
-        const snap = await throttle<any>(() => adminDb.collection('daily_stats').get());
-        rawDocs = snap.docs.map((d: any) => ({ id: d.id, data: d.data() }));
+        const snap = await throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection('daily_stats').get());
+        rawDocs = snap.docs.map((d) => ({ id: d.id, data: d.data() as RawTrafficDoc['data'] }));
       }
     } catch (adminError) {
       logger.warn('TrafficRepository.getDailyVisitStats', 'Admin SDK fetch failed, falling back', undefined, adminError);
@@ -95,7 +107,7 @@ export async function getDailyVisitStats(): Promise<DailyStat[]> {
   if (rawDocs.length === 0) {
     try {
       const snap = await throttle(() => getDocs(collection(db, 'daily_stats')));
-      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() as RawTrafficDoc['data'] }));
     } catch (e) {
       logger.error('TrafficRepository.getDailyVisitStats', 'Fetch failed', undefined, e);
       return [];
@@ -119,14 +131,14 @@ export async function getDailyVisitStats(): Promise<DailyStat[]> {
  * Fetches content views for a specific date.
  */
 export async function getDailyContentViews(dateStr: string): Promise<ContentView[]> {
-  let rawDocs: { id: string; data: any }[] = [];
+  let rawDocs: RawTrafficDoc[] = [];
 
   if (typeof window === 'undefined') {
     try {
       const adminDb = await getAdminDb();
       if (adminDb) {
-        const snap = await throttle<any>(() => adminDb.collection(`daily_stats/${dateStr}/content_views`).get());
-        rawDocs = snap.docs.map((d: any) => ({ id: d.id, data: d.data() }));
+        const snap = await throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection(`daily_stats/${dateStr}/content_views`).get());
+        rawDocs = snap.docs.map((d) => ({ id: d.id, data: d.data() as RawTrafficDoc['data'] }));
       }
     } catch (adminError) {
       logger.warn('TrafficRepository.getDailyContentViews', 'Admin SDK fetch failed, falling back', { dateStr }, adminError);
@@ -136,7 +148,7 @@ export async function getDailyContentViews(dateStr: string): Promise<ContentView
   if (rawDocs.length === 0) {
     try {
       const snap = await throttle(() => getDocs(collection(db, `daily_stats/${dateStr}/content_views`)));
-      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+      rawDocs = snap.docs.map(d => ({ id: d.id, data: d.data() as RawTrafficDoc['data'] }));
     } catch (e) {
       logger.error('TrafficRepository.getDailyContentViews', 'Fetch failed', { dateStr }, e);
       return [];
