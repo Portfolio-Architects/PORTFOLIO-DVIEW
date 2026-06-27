@@ -133,7 +133,7 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
   };
 
   // Determine if children element is naturally focusable to avoid redundant tabIndex
-  const isFocusableElement = (type: any): boolean => {
+  const isFocusableElement = (type: unknown): boolean => {
     if (typeof type !== 'string') return true;
     return ['button', 'a', 'input', 'select', 'textarea', 'area'].includes(type);
   };

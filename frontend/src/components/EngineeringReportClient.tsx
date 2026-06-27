@@ -9,7 +9,7 @@ import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import jsPDF from 'jspdf';
 import { logger } from '@/lib/services/logger';
 
-interface ReportMetadata {
+export interface ReportMetadata {
   date: string;
   grade: string;
   branch: string;

@@ -7,11 +7,11 @@ import jsPDF from 'jspdf';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { getEngineeringReport } from '@/app/actions/getEngineeringReport';
 import { logger } from '@/lib/services/logger';
-import EngineeringReportClient from './EngineeringReportClient';
+import EngineeringReportClient, { ReportMetadata } from './EngineeringReportClient';
 
 const ReportClient = React.memo(function ReportClient() {
   const [mounted, setMounted] = useState(false);
-  const [engReportData, setEngReportData] = useState<{metadata: any, markdownContent: string} | null>(null);
+  const [engReportData, setEngReportData] = useState<{metadata: ReportMetadata, markdownContent: string} | null>(null);
 
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);

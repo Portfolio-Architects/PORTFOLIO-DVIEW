@@ -117,9 +117,10 @@ export const ValuationTuner = React.memo(function ValuationTuner() {
       if (!mountedRef.current) return;
       alert(`"${s.aptName}" 아파트에 ${s.suggestedAdjustment > 0 ? '+' : ''}${s.suggestedAdjustment}점 가치 보정이 반영되었습니다.`);
       await loadData();
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (mountedRef.current) {
-        alert('오류가 발생했습니다: ' + e.message);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        alert('오류가 발생했습니다: ' + errorMsg);
       }
     } finally {
       if (mountedRef.current) {
@@ -138,9 +139,10 @@ export const ValuationTuner = React.memo(function ValuationTuner() {
       if (!mountedRef.current) return;
       alert('초기화가 완료되었습니다.');
       await loadData();
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (mountedRef.current) {
-        alert('오류가 발생했습니다: ' + e.message);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        alert('오류가 발생했습니다: ' + errorMsg);
       }
     } finally {
       if (mountedRef.current) {
