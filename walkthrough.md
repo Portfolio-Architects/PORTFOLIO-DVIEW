@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 765)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 766)
+
 
 
 
@@ -158,6 +159,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [ReportClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ReportClient.tsx) 내 중복 정의되어 컴파일러 에러(TS2719)를 유발하던 로컬 `ReportMetadata` 인터페이스를 제거하고 `EngineeringReportClient` 로부터 공유 인터페이스를 임포트하여 타입 충돌을 완벽히 해결했습니다.
   - [Tooltip.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ui/Tooltip.tsx) 내 children 태그 자연 포커스 유무 판별 헬퍼인 `isFocusableElement` 의 매개변수 타입을 `unknown` 으로 마이그레이션하여, Recharts의 동적 JSXElementConstructor 타입 주입 시 발생하던 시그니처 불일치(TS2345)를 차단했습니다.
   - [ValuationTuner.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/admin/ValuationTuner.tsx) 내 보정치 반영 및 초기화 관련 DB 처리 비동기 catch 블록의 `catch (e: any)` 구문 2곳을 `catch (e: unknown)` 으로 격상하고, 에러 인스턴스 가딩을 적용해 문자열 출력 안전성을 확보했습니다.
+- **Explicit Any Type Refactoring in AptCompareModal (Phase 766)**:
+  - [AptCompareModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptCompareModal.tsx) 내 props 인터페이스와 가치 평가 예측용 매개변수의 `locationScores: Record<string, any>` 및 로컬 변수 `locScore`를 전용 인터페이스 구조인 `LocationScoreItem` 정형 레코드로 마이그레이션했습니다.
+  - 퀴즈 응답 저장용 로컬 상태 `quizAnswers` 의 제네릭 선언인 `useState<any>(null)`을 `useState<QuizAnswers | null>(null)`로 격상해 타입 안정성을 확보했습니다.
+  - 단지 비교용 wins 가중 헬퍼 함수 `compare` 의 매개변수 `(val1: any, val2: any)`의 타입을 `string | number | undefined | null` 로 변경하고 안전하게 문자열 형변환 및 파싱하도록 처리했습니다.
+  - SEO용 JSON-LD 객체 수집기인 `elements` 배열 내 `Record<string, any>[]` 캐스팅을 `Record<string, unknown>[]`으로 격상하여 explicit `any` 타입을 완벽히 걷어냈습니다.
+
 
 
 
