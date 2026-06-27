@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 762)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 763)
+
 
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
@@ -141,6 +142,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [LoungeContainerClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeContainerClient.tsx) 내 SWR 데이터 패칭(`useSWR`)의 제네릭 매개변수로 명세되어 있던 `<any>` 캐스팅을 제거하고 구체적인 `NewsItem[]` 및 가변형 데이터 구조로 선언하여 타입 컴파일 안전성을 강화했습니다.
   - [LoungeDetailClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeDetailClient.tsx) 내 날짜 포맷팅 함수 `formatDateStr` 의 매개변수를 `dateStr: unknown`으로 변경하고 타입 체크 가드를 신설했으며, 추천 포스트 저장용 상태인 `recommendedPosts` 배열 내 `any[]` 명세를 `RecommendedPostItem[]`으로 격상했습니다.
   - [LoungeFeedClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeFeedClient.tsx) 내 로컬 이벤트 및 행정 고시 API JSON 수신부의 `any` 및 `any[]` 배열 바인딩을 `unknown` 형변환 후 구조 가드(`e as Record<string, unknown>`) 및 `LocalNoticeItem[]` 정형 타입 할당으로 전면 개선했습니다.
+- **Explicit Any Type Refactoring in MacroDashboardClient (Phase 763)**:
+  - [MacroDashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/MacroDashboardClient.tsx) 내 props 명세의 `recentTransactions: any[]`를 Zod 역직렬화 스키마에 정렬된 `RecentTransaction[]` 정형 타입으로 구체화하여 dynamic any를 완전히 제거했습니다.
+  - `useSWR`을 이용해 아파트 개별 실거래 내역을 가져오는 데이터 스토어 fetcher의 제네릭 매개변수를 `useSWR<AptTransactionRecord[]>`로 수정하고, 실거래 등락 비중 연산용 임시 맵 `aptAreaGroups`의 구조를 `Record<string, RecentTransaction[]>` 정형 타입으로 선언하여 dynamic any 배열 캐스팅을 배제했습니다.
+  - 공지사항/행정고시 데이터 페칭용 `useSWR` 반환 타입 제네릭 명세를 `<{ notices: LocalNoticeItem[]; lastUpdated?: string }>`로 구성하여 notices 배열의 타입 세이프티를 확보하고, filter 및 map loop의 콜백 파라미터 `(n: any)`를 `(n: LocalNoticeItem)` 및 구조화된 타입들로 강제 타이핑하여 타입 오류 가능성을 완전히 불식시켰습니다.
+  - 일자별 신고가 타임라인 렌더링에 사용되는 `floor` 필드를 `typeof tx.floor === 'string' ? (parseInt(tx.floor, 10) || 0) : tx.floor` 로 안전하게 파싱하여 `number` 타입으로 정밀 변환했고, optional로 정의된 `tx.delta` 에 대해 `(tx.priceVal - (tx.delta || 0))` 과 같이 폴백을 제공하여 컴파일러의 undefined 방지 경고를 해결했습니다.
+
 
 
 ---
