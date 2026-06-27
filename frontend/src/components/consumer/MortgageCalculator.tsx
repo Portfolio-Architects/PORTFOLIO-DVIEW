@@ -771,15 +771,15 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
               </div>
 
               <div className="grid grid-cols-1 gap-2.5">
-                {[
+                {([
                   { id: 'newborn', label: '신생아 출산 가구', desc: '최근 2년 이내 출산(입양) 가구 (가장 이율이 낮음)' },
-                  { id: 'newweds', label: '신혼부부 가구', desc: '혼인 신고 7년 이내인 부부' },
+                  { id: 'newlyweds', label: '신혼부부 가구', desc: '혼인 신고 7년 이내인 부부' },
                   { id: 'firsttime', label: '생애최초 무주택 가구', desc: '세대원 전원이 주택을 소유한 적이 없는 가구' },
                   { id: 'normal', label: '일반 무주택 가구', desc: '현재 주택이 없는 무주택 세대주' },
-                ].map(type => (
+                ] as const).map(type => (
                   <button
                     key={type.id}
-                    onClick={() => setHouseholdType(type.id as any)}
+                    onClick={() => setHouseholdType(type.id)}
                     className={`w-full text-left p-4 rounded-2xl border text-secondary transition-all cursor-pointer flex flex-col gap-1.5 ${
                       householdType === type.id
                         ? 'border-[#ea6100] bg-emerald-50/40 dark:bg-emerald-950/10 shadow-sm'
