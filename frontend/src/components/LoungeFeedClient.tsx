@@ -424,18 +424,21 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       fetch("/data/local-events.json", { signal: controller.signal })
         .then(res => res.json())
         .catch(() => [])
-        .then((eventsJson: any[]) => {
-          if (!active) return;
-          const mappedEvents: LocalNoticeItem[] = eventsJson.map((event: any) => ({
-            id: event.id,
-            title: `[${event.category}] ${event.title} (${event.time})`,
-            url: event.link || '#',
-            dept: event.location,
-            date: event.date,
-            isDongtan: true,
-            source: 'culture',
-            content: `### 📅 행사 시간\n${event.time}\n\n### 📍 개최 장소\n${event.location}\n\n### 💡 D-VIEW 추천 꿀팁\n${event.tip}`
-          }));
+        .then((eventsJson: unknown) => {
+          if (!active || !Array.isArray(eventsJson)) return;
+          const mappedEvents: LocalNoticeItem[] = eventsJson.map((e: unknown) => {
+            const event = e as Record<string, unknown>;
+            return {
+              id: String(event.id || ''),
+              title: `[${event.category || ''}] ${event.title || ''} (${event.time || ''})`,
+              url: String(event.link || '#'),
+              dept: String(event.location || ''),
+              date: String(event.date || ''),
+              isDongtan: true,
+              source: 'culture' as const,
+              content: `### 📅 행사 시간\n${event.time || ''}\n\n### 📍 개최 장소\n${event.location || ''}\n\n### 💡 D-VIEW 추천 꿀팁\n${event.tip || ''}`
+            };
+          });
 
           setNoticesData(prev => {
             const existingIds = new Set(prev.map(p => p.id));
@@ -452,11 +455,12 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       fetch("/api/local-notices", { signal: controller.signal })
         .then(res => res.json())
         .catch(() => ({ notices: [] }))
-        .then((noticesJson: any) => {
+        .then((noticesJson: unknown) => {
           if (!active) return;
+          const data = noticesJson as { notices?: LocalNoticeItem[]; lastUpdated?: string } | null | undefined;
           let mergedNotices: LocalNoticeItem[] = [];
-          if (noticesJson && noticesJson.notices) {
-            mergedNotices = [...noticesJson.notices];
+          if (data && data.notices) {
+            mergedNotices = [...data.notices];
           }
 
           setNoticesData(prev => {
@@ -465,8 +469,8 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             return [...nonNoticeItems, ...mergedNotices].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           });
 
-          if (noticesJson && noticesJson.lastUpdated) {
-            setLastUpdatedTime(noticesJson.lastUpdated);
+          if (data && data.lastUpdated) {
+            setLastUpdatedTime(data.lastUpdated);
           }
         })
         .catch(err => {

@@ -189,7 +189,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
     dedupingInterval: 300000
   });
 
-  const { data: clientNewsData } = useSWR<any>('/api/macro/news', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: clientNewsData } = useSWR<NewsItem[] | { data: NewsItem[] } | { news: NewsItem[] }>('/api/macro/news', (url: string) => fetch(url).then(res => res.json()), {
     fallbackData: (initialNews && initialNews.length > 0) ? initialNews : undefined,
     revalidateOnFocus: false,
     dedupingInterval: 300000

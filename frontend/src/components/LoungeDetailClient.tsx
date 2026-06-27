@@ -43,6 +43,16 @@ interface PostComment {
   createdAt: string;
 }
 
+interface RecommendedPostItem {
+  id: string;
+  title: string;
+  category: string;
+  authorName: string;
+  views: number;
+  likes: number;
+  createdAt: unknown;
+}
+
 // Memory caches to eliminate blank screen flickers on modal transition
 const postLocalCache: Record<string, Record<string, unknown>> = {};
 const commentsLocalCache: Record<string, PostComment[]> = {};
@@ -175,7 +185,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const [comments, setComments] = useState<PostComment[]>(() => {
     return postId ? (commentsLocalCache[postId] || []) : [];
   });
-  const [recommendedPosts, setRecommendedPosts] = useState<any[]>([]);
+  const [recommendedPosts, setRecommendedPosts] = useState<RecommendedPostItem[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(() => {
     if (postId && postLocalCache[postId]) return false;
@@ -202,7 +212,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const loungeDetailJsonLd = useMemo(() => {
     if (!post) return null;
 
-    const formatDateStr = (dateStr: any) => {
+    const formatDateStr = (dateStr: unknown) => {
       if (!dateStr) return new Date().toISOString();
       if (typeof dateStr === 'string') {
         const clean = dateStr.replace(/\s/g, '');
@@ -217,9 +227,11 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         }
       }
       try {
-        const d = new Date(dateStr);
-        if (!isNaN(d.getTime())) return d.toISOString();
-      } catch (e) {}
+        if (typeof dateStr === 'string' || typeof dateStr === 'number' || dateStr instanceof Date) {
+          const d = new Date(dateStr);
+          if (!isNaN(d.getTime())) return d.toISOString();
+        }
+      } catch {}
       return new Date().toISOString();
     };
 
@@ -369,7 +381,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         );
         const snap = await getDocs(q);
         if (!active) return;
-        const list: any[] = [];
+        const list: RecommendedPostItem[] = [];
         snap.forEach((docSnap) => {
           const data = docSnap.data();
           if (docSnap.id !== postId) {

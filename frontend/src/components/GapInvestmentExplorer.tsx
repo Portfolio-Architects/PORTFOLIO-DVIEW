@@ -454,7 +454,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
   // Find all complexes, compute their gap info, and collect overall stats in a single pass
   const gapData = useMemo(() => {
-    const allApts = Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name));
+    const allApts = (Object.values(sheetApartments).flat() as DongApartment[]).filter(a => !publicRentalSet.has(a.name));
     
     const items = allApts.map(apt => {
       const rawKey = apt.txKey || apt.name;
@@ -519,7 +519,16 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
     let lowGap = 0;
     let highRatioCount = 0;
     let minGapVal = Infinity;
-    let minGapObj: any = null;
+    let minGapObj: {
+      apt: DongApartment;
+      sales: number;
+      jeonse: number;
+      gap: number;
+      ratio: number;
+      gapScore: number;
+      txCount: number;
+      pyeongPrice: number;
+    } | null = null;
     const dongSet = new Set<string>();
 
     items.forEach(item => {
@@ -556,7 +565,16 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       avgJeonseRate: avgJeonseRateVal,
       lowGapCount: lowGap,
       highJeonseRatio: highJeonseRatioVal,
-      minGapItem: minGapObj,
+      minGapItem: minGapObj as {
+        apt: DongApartment;
+        sales: number;
+        jeonse: number;
+        gap: number;
+        ratio: number;
+        gapScore: number;
+        txCount: number;
+        pyeongPrice: number;
+      } | null,
       dongsList: sortedDongs
     };
   }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
