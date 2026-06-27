@@ -32,6 +32,11 @@ export const UserProfileSchema = z.object({
   uploaderTier: z.string().optional(),
 }).passthrough();
 
+interface E2EMockAuth {
+  onAuthStateChanged: (callback: (user: User | null) => void) => () => void;
+  signIn: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
 
 export interface AuthContextType {
   user: User | null;
@@ -55,9 +60,9 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
     let mounted = true;
 
     // 🚀 Playwright E2E Integration / Mock Auth Bridge
-    if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
-      const mockAuth = (window as any).__E2E_MOCK_AUTH__;
-      const unsubscribeMock = mockAuth.onAuthStateChanged(async (currentUser: any) => {
+    if (typeof window !== 'undefined' && (window as Window & { __E2E_MOCK_AUTH__?: E2EMockAuth }).__E2E_MOCK_AUTH__) {
+      const mockAuth = (window as Window & { __E2E_MOCK_AUTH__?: E2EMockAuth }).__E2E_MOCK_AUTH__!;
+      const unsubscribeMock = mockAuth.onAuthStateChanged(async (currentUser: User | null) => {
         if (!mounted) return;
         setUser(currentUser);
         if (currentUser) {
@@ -68,7 +73,7 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
             if (!mounted) return;
             const mockProfile = {
               nickname: currentUser.displayName || '테스터',
-              photoURL: currentUser.photoURL || null
+              photoURL: currentUser.photoURL || undefined
             };
             setAnonProfile(mockProfile);
             // TypeScript Audit Fix: Set only allowed properties for UserProfile to prevent compilation failure
@@ -193,8 +198,8 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
   const handleLogin = async () => {
     try {
       // 🚀 Playwright E2E Integration / Mock Auth Bridge
-      if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
-        await (window as any).__E2E_MOCK_AUTH__.signIn();
+      if (typeof window !== 'undefined' && (window as Window & { __E2E_MOCK_AUTH__?: E2EMockAuth }).__E2E_MOCK_AUTH__) {
+        await (window as Window & { __E2E_MOCK_AUTH__?: E2EMockAuth }).__E2E_MOCK_AUTH__!.signIn();
         return;
       }
 
@@ -216,8 +221,8 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
   const handleLogout = async () => {
     try {
       // 🚀 Playwright E2E Integration / Mock Auth Bridge
-      if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
-        await (window as any).__E2E_MOCK_AUTH__.signOut();
+      if (typeof window !== 'undefined' && (window as Window & { __E2E_MOCK_AUTH__?: E2EMockAuth }).__E2E_MOCK_AUTH__) {
+        await (window as Window & { __E2E_MOCK_AUTH__?: E2EMockAuth }).__E2E_MOCK_AUTH__!.signOut();
         return;
       }
 

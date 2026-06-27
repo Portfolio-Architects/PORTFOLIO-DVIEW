@@ -11,6 +11,7 @@ import { commentConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { formatTimestamp } from '@/lib/utils/date';
+import type * as admin from 'firebase-admin';
 
 const CommentDataSchema = z.object({
   text: z.string().default(''),
@@ -27,10 +28,10 @@ interface RawCommentDoc {
 }
 
 // Module-level cache for dynamic firebaseAdmin import
-let cachedAdminDb: any = null;
+let cachedAdminDb: admin.firestore.Firestore | null = null;
 let isAdminDbLoaded = false;
 
-async function getAdminDb(): Promise<any> {
+async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
   if (isAdminDbLoaded) return cachedAdminDb;
   try {
     const { adminDb } = await import('@/lib/firebaseAdmin');
@@ -166,10 +167,10 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
     try {
       const adminDb = await getAdminDb();
       if (adminDb) {
-        const snap = await throttle<any>(() => adminDb.collection(`field_reports/${reportId}/comments`)
+        const snap = await throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection(`field_reports/${reportId}/comments`)
           .orderBy('createdAt', 'asc')
           .get());
-        rawDocs = snap.docs.map((d: any) => ({ id: d.id, data: d.data() }));
+        rawDocs = snap.docs.map((d) => ({ id: d.id, data: d.data() }));
       }
     } catch (adminError) {
       logger.warn('CommentRepository.getComments', 'Admin SDK fetch failed, falling back', { reportId }, adminError);

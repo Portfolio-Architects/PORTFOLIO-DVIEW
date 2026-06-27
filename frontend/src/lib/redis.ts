@@ -3,6 +3,15 @@ import { z } from "zod";
 import { logger } from "@/lib/services/logger";
 import { serverLruCache } from "@/lib/utils/server/lruCache";
 
+export interface ResilientPipeline {
+  get(key: string): this;
+  set(key: string, value: unknown, options?: { ex?: number; px?: number }): this;
+  hgetall(key: string): this;
+  hset(key: string, value: Record<string, unknown>): this;
+  hmset(key: string, value: Record<string, unknown>): this;
+  exec(): Promise<unknown[]>;
+}
+
 /**
  * Simple in-memory fallback cache when Redis is unavailable or timeouts occur.
  */
@@ -250,7 +259,7 @@ export class ResilientRedisWrapper {
     return this.hset(key, value);
   }
 
-  pipeline(): any {
+  pipeline(): ResilientPipeline {
     if (this.client) {
       try {
         const rawPipeline = this.client.pipeline();

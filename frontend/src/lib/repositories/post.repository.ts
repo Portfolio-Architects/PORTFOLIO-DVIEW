@@ -17,6 +17,7 @@ import { PostDataSchema } from '@/lib/validation/facade.schemas';
 import { executeIsomorphicQuery } from './isomorphicHelper';
 import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
 import type { Redis } from '@upstash/redis';
+import type * as admin from 'firebase-admin';
 
 export interface PostDetailData {
   id: string;
@@ -48,13 +49,67 @@ export interface RecentLoungeItem {
   verifiedApartment?: string | null;
   verificationLevel?: string | null;
   apartmentName?: string;
-  [key: string]: any;
+  content?: string;
+  [key: string]: unknown;
+}
+
+export interface DbPostDoc {
+  id: string;
+  title?: string;
+  category?: string;
+  content?: string;
+  authorName?: string;
+  likes?: number;
+  views?: number;
+  authorUid?: string | null;
+  verifiedApartment?: string | null;
+  verificationLevel?: string | null;
+  createdAt?: unknown;
+  imageUrl?: string | null;
+  commentCount?: number;
+  [key: string]: unknown;
+}
+
+export interface ProcessablePost {
+  id: string;
+  title?: string;
+  category?: string;
+  content?: string;
+  authorName?: string;
+  likes?: number;
+  views?: number;
+  commentCount?: number;
+  authorUid?: string | null;
+  verifiedApartment?: string | null;
+  verificationLevel?: string | null;
+  createdAt?: unknown;
+  imageUrl?: string | null;
+  [key: string]: unknown;
+}
+
+export interface ProcessableComment {
+  id: string;
+  ref: {
+    parent: {
+      parent: {
+        id: string;
+        parent: {
+          id: string;
+        } | null;
+      } | null;
+    };
+  };
+  createdAt?: unknown;
+  text?: string;
+  authorName?: string;
+  authorUid?: string | null;
+  [key: string]: unknown;
 }
 
 // Module-level cache for dynamic imports
 let cachedRedis: Redis | null = null;
 let isRedisLoaded = false;
-let cachedAdminDb: any = null;
+let cachedAdminDb: admin.firestore.Firestore | null = null;
 let isAdminDbLoaded = false;
 
 async function getRedis(): Promise<Redis | null> {
@@ -73,7 +128,7 @@ async function getRedis(): Promise<Redis | null> {
   return null;
 }
 
-async function getAdminDb(): Promise<any> {
+async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
   if (typeof window === 'undefined') {
     if (isAdminDbLoaded) return cachedAdminDb;
     try {
@@ -261,7 +316,7 @@ export async function getPost(postId: string): Promise<PostDetailData | null> {
     serverQuery: async () => {
       const adminDb = await getAdminDb();
       if (!adminDb) return null;
-      const snap = await throttle<any>(() => adminDb.collection('posts').doc(postId).get());
+      const snap = await throttle<admin.firestore.DocumentSnapshot>(() => adminDb.collection('posts').doc(postId).get());
       if (snap.exists) {
         return { id: snap.id, ...snap.data() };
       }
@@ -284,7 +339,7 @@ export async function getPost(postId: string): Promise<PostDetailData | null> {
     logger.warn('PostRepository.getPost', 'Zod validation failed, using fallback/raw', { postId }, parsed.error);
   }
 
-  const rawData = docData as Record<string, any>;
+  const rawData = docData as DbPostDoc;
   const data = parsed.success ? parsed.data : rawData;
   const createdAtMillis = parseTimestampToMillis(rawData.createdAt, 0);
 
@@ -313,18 +368,22 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
       const adminDb = await getAdminDb();
       if (!adminDb) return null;
       
-      const [postsSnap, commentsSnap] = (await Promise.all([
-        throttle<any>(() => adminDb.collection('posts')
+      const [postsSnap, commentsSnap] = await Promise.all([
+        throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection('posts')
           .orderBy('createdAt', 'desc')
           .limit(limitCount)
           .get()),
-        throttle<any>(() => adminDb.collectionGroup('comments')
+        throttle<admin.firestore.QuerySnapshot>(() => adminDb.collectionGroup('comments')
           .orderBy('createdAt', 'desc')
           .limit(100)
           .get())
-      ])) as [any, any];
-      const rawPosts = postsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
-      const rawComments = commentsSnap.docs.map((d: any) => ({ id: d.id, ref: d.ref, ...d.data() }));
+      ]);
+      const rawPosts: ProcessablePost[] = postsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const rawComments: ProcessableComment[] = commentsSnap.docs.map((d) => ({
+        id: d.id,
+        ref: d.ref as unknown as ProcessableComment["ref"],
+        ...d.data()
+      }));
       
       return processCombinedPosts(rawPosts, rawComments, limitCount);
     },
@@ -341,8 +400,12 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
           limit(100)
         )))
       ]);
-      const rawPosts = postsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
-      const rawComments = commentsSnap.docs.map((d: any) => ({ id: d.id, ref: d.ref, ...d.data() }));
+      const rawPosts: ProcessablePost[] = postsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const rawComments: ProcessableComment[] = commentsSnap.docs.map((d) => ({
+        id: d.id,
+        ref: d.ref as unknown as ProcessableComment["ref"],
+        ...d.data()
+      }));
       
       return processCombinedPosts(rawPosts, rawComments, limitCount);
     }
@@ -352,8 +415,8 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
 }
 
 async function processCombinedPosts(
-  rawPosts: Record<string, any>[],
-  rawComments: Record<string, any>[],
+  rawPosts: ProcessablePost[],
+  rawComments: ProcessableComment[],
   limitCount: number
 ): Promise<RecentLoungeItem[]> {
   // Filter comments to only include those under field_reports
@@ -363,7 +426,7 @@ async function processCombinedPosts(
   });
 
   // Resolve parent report names
-  const parentIds = Array.from(new Set(filteredComments.map(c => c.ref.parent.parent.id)));
+  const parentIds = Array.from(new Set(filteredComments.map(c => c.ref.parent.parent!.id)));
   const parentMap = new Map<string, string>();
   if (parentIds.length > 0) {
     if (typeof window === 'undefined') {
@@ -372,7 +435,7 @@ async function processCombinedPosts(
         if (adminDb) {
           const snaps = await Promise.all(parentIds.map(id => adminDb.collection('field_reports').doc(id).get()));
           const missingIds: string[] = [];
-          snaps.forEach((s: any, idx: number) => {
+          snaps.forEach((s: admin.firestore.DocumentSnapshot, idx: number) => {
             if (s.exists) {
               parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
             } else {
@@ -381,7 +444,7 @@ async function processCombinedPosts(
           });
           if (missingIds.length > 0) {
             const scoutingSnaps = await Promise.all(missingIds.map(id => adminDb.collection('scoutingReports').doc(id).get()));
-            scoutingSnaps.forEach((s: any) => {
+            scoutingSnaps.forEach((s: admin.firestore.DocumentSnapshot) => {
               if (s.exists) parentMap.set(s.id, s.data()?.apartmentName || '알 수 없는 단지');
             });
           }
@@ -444,7 +507,7 @@ async function processCombinedPosts(
   });
 
   const commentsList = filteredComments.map(c => {
-    const parentId = c.ref.parent.parent.id;
+    const parentId = c.ref.parent.parent!.id;
     const apartmentName = parentMap.get(parentId) || '알 수 없는 단지';
     const createdAtMillis = parseTimestampToMillis(c.createdAt, 0);
 
