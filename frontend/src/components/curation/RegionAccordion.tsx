@@ -87,6 +87,7 @@ interface GroupedCategory {
   apartments: GroupedApartment[];
   avgPrice?: number;
   avgPyeongPrice?: number;
+  recentTxCount?: number;
 }
 
 export const RegionAccordion = React.memo(function RegionAccordion({
@@ -250,7 +251,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
         g.avgPrice = g.totalValue / g.count;
         g.avgPyeongPrice = g.totalPyeongValue / g.count;
         g.apartments.sort((a, b) => b.latestPrice - a.latestPrice);
-        (g as any).recentTxCount = g.apartments.reduce((sum, apt) => sum + (apt.liquid || 0), 0);
+        g.recentTxCount = g.apartments.reduce((sum, apt) => sum + (apt.liquid || 0), 0);
         return g;
       })
       .sort((a, b) => {
@@ -337,7 +338,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                 <div className="flex items-center gap-3 shrink-0">
                   {/* volume info */}
                   <span className="hidden sm:inline-flex text-[11px] font-bold text-[#ff8f00] bg-[#fff3e0] px-2 py-[3.5px] rounded-[6px]">
-                    90일 거래 {(group as any).recentTxCount || 0}건
+                    90일 거래 {group.recentTxCount || 0}건
                   </span>
 
                   <div className="flex flex-col items-end gap-0.5 text-right">
