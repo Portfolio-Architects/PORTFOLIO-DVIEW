@@ -27,28 +27,28 @@ test.describe('Routing Bug Diagnosis', () => {
 
     console.log('Current URL on News page:', page.url());
 
-    // Locate the "큐레이션" tab in the MobileDock
-    const curationNav = page.locator('nav.fixed.bottom-0 a, nav.fixed.bottom-0 button').filter({ hasText: '큐레이션' }).first();
-    await expect(curationNav).toBeVisible();
+    // Locate the "아파트 랩" tab in the MobileDock
+    const overviewNav = page.locator('nav.fixed.bottom-0 a, nav.fixed.bottom-0 button').filter({ hasText: '아파트 랩' }).first();
+    await expect(overviewNav).toBeVisible();
 
-    console.log('Clicking Curation tab in MobileDock...');
-    await curationNav.click();
+    console.log('Clicking Apartment Lab tab in MobileDock...');
+    await overviewNav.click();
 
     // Wait for navigation and hydration
     await page.waitForTimeout(3000);
-    console.log('URL after clicking Curation:', page.url());
+    console.log('URL after clicking Apartment Lab:', page.url());
 
-    // Let's check which section is visible on the home page.
-    const curationHeader = page.locator('h1', { hasText: 'D-VIEW 단지 큐레이션' }).or(page.locator('h2', { hasText: '초품아 큐레이션' })).first();
+    // Let's check which section is visible on the overview page.
+    const overviewHeader = page.locator('h1', { hasText: 'D-VIEW 데이터 랩' }).or(page.locator('h1', { hasText: 'D-VIEW 아파트 랩' })).first();
     const loungeHeader = page.locator('h1', { hasText: 'D-VIEW 라운지' }).first();
 
-    const isCurationVisible = await curationHeader.isVisible();
+    const isOverviewVisible = await overviewHeader.isVisible();
     const isLoungeVisible = await loungeHeader.isVisible();
 
-    console.log('Is Curation visible?', isCurationVisible);
+    console.log('Is Overview visible?', isOverviewVisible);
     console.log('Is Lounge visible?', isLoungeVisible);
 
-    expect(isCurationVisible).toBe(true);
+    expect(isOverviewVisible).toBe(true);
     expect(isLoungeVisible).toBe(false);
   });
 
@@ -71,28 +71,28 @@ test.describe('Routing Bug Diagnosis', () => {
 
     console.log('Current URL on News page:', page.url());
 
-    // Locate the "큐레이션" tab in the MobileDock
-    const curationNav = page.locator('nav.fixed.bottom-0 a, nav.fixed.bottom-0 button').filter({ hasText: '큐레이션' }).first();
-    await expect(curationNav).toBeVisible();
+    // Locate the "아파트 랩" tab in the MobileDock
+    const overviewNav = page.locator('nav.fixed.bottom-0 a, nav.fixed.bottom-0 button').filter({ hasText: '아파트 랩' }).first();
+    await expect(overviewNav).toBeVisible();
 
-    console.log('Clicking Curation tab in MobileDock...');
-    await curationNav.click();
+    console.log('Clicking Apartment Lab tab in MobileDock...');
+    await overviewNav.click();
 
     // Wait for navigation and hydration
     await page.waitForTimeout(3000);
-    console.log('URL after clicking Curation:', page.url());
+    console.log('URL after clicking Apartment Lab:', page.url());
 
-    // Let's check which section is visible on the home page.
-    const curationHeader = page.locator('h1', { hasText: 'D-VIEW 단지 큐레이션' }).or(page.locator('h2', { hasText: '초품아 큐레이션' })).first();
+    // Let's check which section is visible on the overview page.
+    const overviewHeader = page.locator('h1', { hasText: 'D-VIEW 데이터 랩' }).or(page.locator('h1', { hasText: 'D-VIEW 아파트 랩' })).first();
     const loungeHeader = page.locator('h1', { hasText: 'D-VIEW 라운지' }).first();
 
-    const isCurationVisible = await curationHeader.isVisible();
+    const isOverviewVisible = await overviewHeader.isVisible();
     const isLoungeVisible = await loungeHeader.isVisible();
 
-    console.log('Is Curation visible?', isCurationVisible);
+    console.log('Is Overview visible?', isOverviewVisible);
     console.log('Is Lounge visible?', isLoungeVisible);
 
-    expect(isCurationVisible).toBe(true);
+    expect(isOverviewVisible).toBe(true);
     expect(isLoungeVisible).toBe(false);
   });
 });

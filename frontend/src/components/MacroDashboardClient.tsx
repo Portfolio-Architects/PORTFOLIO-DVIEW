@@ -1710,7 +1710,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const mainYTicks = yTicks;
 
   return (
-    <div className="w-full flex flex-col bg-surface relative">
+    <div className="w-full flex flex-col bg-transparent relative">
       {macroTrendJsonLd && (
         <script
           type="application/ld+json"
@@ -1718,8 +1718,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         />
       )}
       <PageHeroHeader 
-        title="D-VIEW 데이터 랩"
-        compactTitle="D-VIEW 데이터 랩"
+        title="D-VIEW 아파트 랩"
+        compactTitle="D-VIEW 아파트 랩"
         subtitleStrong={
           <>
             실수요자 중심 <span className="text-[#ea6100] font-extrabold px-0.5">동탄 아파트</span> 주거 안심 및 정주 여건 진단

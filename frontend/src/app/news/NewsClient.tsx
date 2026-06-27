@@ -196,7 +196,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
       {/* Main Header — Logo + Nav integrated */}
       <header className="hidden md:block shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-xl border-b border-border sticky top-0 z-50" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between h-[68px] gap-4 md:gap-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between h-[80px] gap-4 md:gap-0">
             
             {/* Mobile: Top Bar */}
             <div className="md:hidden flex items-center justify-end w-full">

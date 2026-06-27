@@ -1,163 +1,172 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import Script from 'next/script';
-import DashboardClient from '@/components/DashboardClient';
-import { getInitialData } from '@/lib/services/dashboardData';
-import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
-interface HomeTransactionRecord {
-  apartmentName?: string;
-  price?: number;
-  areaPyeong?: number;
-  floor?: number | string;
-  dealType?: string;
-  contractYm?: string | number;
-  contractDay?: string | number;
-}
+import TechnoValleyClient from '@/app/technovalley/TechnoValleyClient';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
-interface TxSummaryItem {
-  latestPrice?: number;
-  dong?: string;
-  avg1MPrice?: number;
-  avg1MRentDeposit?: number;
-}
-
-// Use Incremental Static Regeneration (ISR) to eliminate TTFB bottlenecks
-export const revalidate = 3600;
-
-
-function DashboardSkeleton() {
+function TechnoValleySkeleton() {
   return (
-    <div className="min-h-screen bg-body">
-      <header className="bg-surface/90 border-b border-border sticky top-0 z-40">
-        <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-32 h-8 bg-body rounded-full animate-pulse" />
-            <div className="w-16 h-8 bg-body rounded-full animate-pulse" />
-          </div>
-          <div className="w-8 h-8 bg-body rounded-full animate-pulse" />
-        </div>
-      </header>
-      <main className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-3 sm:py-5 md:py-8">
-        <div className="mb-6 flex gap-3 items-center">
-           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
-           <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-lg animate-pulse" />
-        </div>
-        <div className="flex flex-col md:flex-row md:bg-surface md:rounded-2xl md:border md:border-border md:shadow-sm gap-4 md:gap-0">
-           <div className="w-full md:w-[380px] h-[600px] bg-surface rounded-2xl md:bg-transparent md:border-r md:border-border flex flex-col">
-             <div className="p-4 border-b border-border">
-               <div className="w-full h-10 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
-             </div>
-             <div className="p-4 flex flex-col gap-4">
-               {[1, 2, 3, 4, 5, 6].map(i => (
-                 <div key={i} className="w-full h-[72px] bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
-               ))}
-             </div>
-           </div>
-           <div className="hidden md:block flex-1 h-[600px] bg-body rounded-tr-2xl rounded-br-2xl p-8">
-             <div className="w-48 h-10 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse mb-8" />
-             <div className="w-full h-64 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse mb-4" />
-             <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
-           </div>
-        </div>
-      </main>
+    <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-16 flex flex-col gap-8">
+      {/* 2 columns layout skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-6 h-[400px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
+        <div className="lg:col-span-6 h-[400px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
+      </div>
+      {/* Cards grid skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="w-full h-[220px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
+        <div className="w-full h-[220px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
+      </div>
     </div>
   );
 }
 
-async function DashboardDataLoader() {
-  const initialData = await getInitialData();
-  
-  // Extract top 10 apartments by latest price for 대장 단지 랭킹
-  const txSummary = initialData.txSummary || {};
-  const allApts = Object.entries(txSummary).map(([name, sum]) => {
-    const s = sum as TxSummaryItem;
-    return {
-      name,
-      latestPrice: s.latestPrice || 0,
-      dong: s.dong || '',
-      avg1MPrice: s.avg1MPrice || 0,
-      jeonseRatio: s.avg1MPrice && s.avg1MPrice > 0 && s.avg1MRentDeposit && s.avg1MRentDeposit > 0 
-        ? Math.round((s.avg1MRentDeposit / s.avg1MPrice) * 100) 
-        : 0
-    };
-  }).filter(a => a.latestPrice > 0);
+export const metadata: Metadata = {
+  title: 'D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터',
+  description: '동탄 테크노밸리 지식산업센터의 공실 해소를 위한 원스톱 솔루션. 빌딩별 공실 정보, 소형 오피스 공동임차 매칭, 입주 혜택 시뮬레이터 및 맞춤형 오피스 핏파인더를 제공합니다.',
+  alternates: {
+    canonical: 'https://dongtanview.com',
+  },
+};
 
-  const top10Leaderboard = [...allApts]
-    .sort((a, b) => b.latestPrice - a.latestPrice)
-    .slice(0, 10);
+export default async function HomePage() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+  const nonce = undefined;
 
-  // Extract recent transactions (up to 15 items)
-  const recentTxs = initialData.recentTransactions || [];
-
-  const formatPrice = (val: number) => {
-    if (!val || val === 0) return '정보 없음';
-    const eok = Math.floor(val / 10000);
-    const remainder = Math.round(val % 10000);
-    if (eok === 0) return `${remainder.toLocaleString()}만원`;
-    if (remainder === 0) return `${eok}억원`;
-    return `${eok}억 ${remainder.toLocaleString()}만원`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${baseUrl}#webpage`,
+        "url": baseUrl,
+        "name": "D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터",
+        "description": "동탄 테크노밸리 지식산업센터의 공실 해소를 위한 원스톱 솔루션. 빌딩별 공실 정보, 소형 오피스 공동임차 매칭, 입주 혜택 시뮬레이터 및 맞춤형 오피스 핏파인더를 제공합니다.",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "홈",
+              "item": baseUrl
+            }
+          ]
+        }
+      },
+      {
+        "@type": "RealEstateAgent",
+        "@id": `${baseUrl}/#agent`,
+        "name": "D-VIEW 부동산 데이터 랩스",
+        "description": "동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼",
+        "url": baseUrl,
+        "telephone": "+82-2-000-0000",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "KR",
+          "addressRegion": "경기도",
+          "addressLocality": "화성시 동탄역로"
+        }
+      }
+    ]
   };
 
   return (
     <>
-      {/* SSR SEO Semantic HTML Block */}
-      <div className="sr-only" aria-hidden="true">
-        <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
-        <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 및 전세 사기 안심 진단 전문 분석 리포트 플랫폼</p>
-        
-        <section>
-          <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>
-          <ol>
-            {top10Leaderboard.map((apt, index) => (
-              <li key={apt.name}>
-                <strong>{index + 1}위: {apt.name}</strong> ({apt.dong}) - 
-                최근 실거래가: {formatPrice(apt.latestPrice)}
-                {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {recentTxs.length > 0 && (
-          <section style={{ marginTop: '20px' }}>
-            <h2>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h2>
-            <ul>
-              {(recentTxs as HomeTransactionRecord[]).slice(0, 15).map((tx, idx: number) => {
-                const txPrice = tx.price || 0;
-                return (
-                  <li key={idx}>
-                    <strong>{tx.apartmentName || '아파트'}</strong> ({tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) - 
-                    {tx.dealType || '매매'} {formatPrice(txPrice)} 
-                    {tx.contractYm && tx.contractDay ? ` (거래일: ${tx.contractYm}.${tx.contractDay})` : ''}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
-      </div>
-      <DashboardClient initialDashboardData={initialData} />
-    </>
-  );
-}
-
-export default async function Page() {
-  const nonce = undefined;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-
-  const jsonLd = getMainPageSchema(baseUrl);
-
-  return (
-    <>
       <Script
-        id="jsonld-main-schema"
+        id="jsonld-technovalley-schema"
         type="application/ld+json"
         nonce={nonce}
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardDataLoader />
-      </Suspense>
+      {/* Search Engine Optimization (SSR Content) */}
+      <div className="sr-only" aria-hidden="true">
+        <h1>동탄 테크노 랩 지식산업센터 공실 매칭 & 혜택 센터</h1>
+        <p>동탄 테크노밸리 지식산업센터의 공실 해소를 위한 원스톱 솔루션. 빌딩별 공실 정보, 소형 오피스 공동임차 매칭, 입주 혜택 시뮬레이터 및 맞춤형 오피스 핏파인더를 제공합니다.</p>
+        
+        <section>
+          <h2>동탄 테크노밸리 대표 지식산업센터 정보</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>센터명</th>
+                <th>구분</th>
+                <th>평당 임대료</th>
+                <th>주요 특장점</th>
+                <th>드라이브인 여부</th>
+                <th>상세 설명</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>금강펜테리움 IX타워</td>
+                <td>초대형 지식산업센터</td>
+                <td>3.5만 ~ 4.2만원</td>
+                <td>드라이브인 (지하 2층 ~ 지상 7층), 동탄역 셔틀버스 상시 운행, 최대 층고 5.8m 제조 특화, 피트니스 & 옥상정원 인프라</td>
+                <td>가능 (지하2층~지상7층)</td>
+                <td>대규모 입주 기업 네트워킹과 드라이브인 물류 동선이 최적화된 초대형 랜드마크 지산입니다.</td>
+              </tr>
+              <tr>
+                <td>현대 실리콘앨리 동탄</td>
+                <td>문화복합형 지식산업센터</td>
+                <td>3.8만 ~ 4.5만원</td>
+                <td>뉴욕 스트리트형 대형 상권 연계, 섹션 오피스 레이아웃 최적화, 공유 라운지 & 세미나실 제공, 친환경 태양광 발전 및 에너지 절감</td>
+                <td>불가능</td>
+                <td>세련된 오피스 인테리어와 업무 편의 시설, 다채로운 먹거리 상권이 융합된 문화형 복합 지산입니다.</td>
+              </tr>
+              <tr>
+                <td>동탄 IT타워</td>
+                <td>도보 역세권 지식산업센터</td>
+                <td>3.2만 ~ 3.7만원</td>
+                <td>동탄역 도보 10분권, 소형 사무실(10~15평) 섹션 특화, 합리적인 가성비 임대료, 개별 냉난방 및 조용한 환경</td>
+                <td>불가능</td>
+                <td>동탄역과의 지리적 접근성이 가장 뛰어나며, 소자본 스타트업이나 소형 오피스에 안성맞춤입니다.</td>
+              </tr>
+              <tr>
+                <td>SH타임스퀘어</td>
+                <td>제조/도어투도어 지식산업센터</td>
+                <td>3.0만 ~ 3.5만원</td>
+                <td>도어투도어 (호실 앞 주차 가능), 하중 설계 평당 4톤 이상, 화물용 엘리베이터 인접, 소형 공장 등록 가능</td>
+                <td>가능</td>
+                <td>하역 동선과 중장비 설비 안착이 필요한 고부하 제조 및 물류 적재 업종에 최적화된 맞춤형 센터입니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section style={{ marginTop: '20px' }}>
+          <h2>실시간 공동 임차 메이트 구인 보드</h2>
+          <ul>
+            <li>
+              <strong>금강 IX타워 실평 20평 분할 메이트 구합니다.</strong>
+              <p>작성자: 웹디자인 에이전시 (IT 서비스) | 조건: 전체 40평 중 20평 사용 (보증금 500만원 / 월세 45만원) | 특징: 회의실 공유, 인터넷 무상제공, 여유로운 주차</p>
+            </li>
+            <li>
+              <strong>실리콘앨리 소형 섹션오피스 쉐어할 1인 작가님 계신가요?</strong>
+              <p>작성자: 독립 출판 크리에이터 (디자인/미디어) | 조건: 전체 12평 중 책상 1개 구역 분할 (보증금 100만원 / 월세 18만원) | 특징: 조용한 환경, 커피 머신 구비, 단기 가능</p>
+            </li>
+            <li>
+              <strong>제조형 SH타임스퀘어 반 공간 쉐어 임차 구함</strong>
+              <p>작성자: (주)하이테크 정밀 (정밀 제조/3D 프린팅) | 조건: 전체 60평 중 적재 창고구역 25평 분할 (보증금 800만원 / 월세 65만원) | 특징: 드라이브인 가능, 지게차 공동 사용, 하역 수월</p>
+            </li>
+          </ul>
+        </section>
+
+        <section style={{ marginTop: '20px' }}>
+          <h2>동탄 테크노밸리 과밀억제권역 이전 시 법인세/소득세 감면 세제 혜택 안내</h2>
+          <p>서울 및 수도권 과밀억제권역에서 동탄 테크노밸리로 법인 본사 또는 공장 이전 시 다음과 같은 강력한 세제 혜택을 지원합니다.</p>
+          <ul>
+            <li><strong>소득세 / 법인세 감면</strong>: 이전 후 최초 소득 발생 과세연도부터 4년간 법인세 100% 감면, 이후 2년간 50% 감면 혜택 제공</li>
+            <li><strong>취득세 감면</strong>: 본사 또는 공장용 부동산 취득 시 취득세 최대 75%~50% 지방세 특례 감면 지원</li>
+            <li><strong>재산세 감면</strong>: 이전 자산에 대해 재산세 최초 5년간 100% 감면, 이후 3년간 50% 감면 (수도권 외 지역은 37.5% 감면 지원)</li>
+          </ul>
+        </section>
+      </div>
+      <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto relative pb-[100px] sm:pb-12 animate-in fade-in duration-500">
+        <Suspense fallback={<TechnoValleySkeleton />}>
+          <TechnoValleyClient />
+        </Suspense>
+      </main>
     </>
   );
 }
-

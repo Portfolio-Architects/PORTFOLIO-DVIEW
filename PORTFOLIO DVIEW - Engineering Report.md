@@ -4,12 +4,12 @@
 ---
 
 ## 1. Executive Summary (프로젝트 요약)
-- **비즈니스 목적 함수 (Core KPI)**: 30~40대 동탄 실수요자 및 매수 대기자에게 특정 아파트 단지의 합리적인 매매가(적정 가치 평가) 정보를 제공하고, 화성시 공공데이터와 AI 분석 기반의 **시민 밀착형 공익 정책 팁을 연계하여 시민 편익을 극대화**하는 공익 서비스로서의 가치를 구현.
-- **디자인 목적 함수 (Design Concept)**: 무겁고 딱딱할 수 있는 부동산/금융 데이터를 사용자가 거부감 없이 친근하게 탐색할 수 있도록, 플랫폼 전반의 UI/UX 시각적 언어를 **'파스텔톤 기반의 귀여운(Cute) 컨셉'**으로 선언하고 이를 설계 지표로 삼음.
-- **부동산 임장 및 밸류에이션 리포팅 허브**: 동탄 지역을 중심으로 실거래가, 아파트 단지 정보, 유저의 현장 검증(임장) 데이터를 통합하는 종합 부동산 인텔리전스 플랫폼.
+- **비즈니스 목적 함수 (Core KPI)**: 서울 및 수도권 과밀억제권역에서 동탄 테크노밸리로 이전을 검토하는 기업(중소기업, 스타트업) 및 청년 창업자들에게 **지식산업센터 공실 해소를 위한 비즈니스 매칭 및 실시간 세제 혜택 시뮬레이션**을 제공하고, 배후 아파트 단지 주거 안심 정보(전세가율, 학군)를 유기적으로 결합하여 **기업 유치와 시민 안착 편익을 극대화**하는 공익 가치를 구현.
+- **디자인 목적 함수 (Design Concept)**: 복잡한 공실률 정보와 난해한 지방세 세제 법률 데이터를 사용자가 피로감 없이 탐색할 수 있도록, 기존 글래스모피즘의 렌더링 부하를 배제한 **'고성능 플랫 모던 디자인(High-Performance Flat Design)'**과 화성특례시의 브랜드 컬러인 **'HS Blue & HS Orange'**를 설계 지표로 선언함.
+- **테크노밸리 공실 매칭 & 주거 임장 리포팅 허브**: 동탄 지식산업센터별 임대료/공실 추세, 소형 오피스 쉐어링 구인 매이트 보드, 국토부 상업업무용 실거래 API 연동 및 주변 주거 단지 큐레이션을 통합하는 하이브리드 부동산 테크 플랫폼.
 - **실시간 데이터 동기화 파이프라인**: Google Sheets(마스터 데이터) 및 Firebase Firestore 이중 사용.
 - **Facade 및 Repository 패턴**: Data Layer, Service Layer, 비즈니스 로직(Facade) 분리 아키텍처.
-- **고도화된 시각화 및 UX**: 3D 지식 그래프, Recharts 인터랙티브 차트, 반응형 모달 시스템.
+- **고도화된 시각화 및 UX**: 빌딩별 공실 분포 도넛 차트, 공실/임대 추이 멀티라인 차트, Recharts 인터랙티브 차트.
 
 ---
 
@@ -92,20 +92,20 @@ src/
 ## 5. Feature Inventory
 
 | 도메인 | 기능 | 라우트/DB | 설명 |
-|:---|:---|:---|
-| **Property** | 아파트 검색 | /api/apartments-by-dong | 동 단위 필터링 |
-| **Market** | 실거래가 | /api/transaction-summary | 신고가, 차트 |
-| **Valuation**| 상대가치 평가 | /components/consumer | Utility Score 및 실거주 PER 대시보드 |
-| **Curation** | 초품아 큐레이션 | location-scores | 초등학교 도보 통학거리(300m) 필터 및 테마별 큐레이션 |
-| **Validation** | 임장 리포트 | scoutingReports | 현장 팩트체크 |
-| **Community** | 댓글/리뷰 | comments, reviews | 유저 피드백 |
-| **Growth** | 카카오톡 공유 | kakaoShare | 동적 OG 이미지 및 커스텀 공유 템플릿(Viral/바이럴) 연동 |
-| **Admin** | Sheets 동기화 | /api/admin/* | 일괄 업데이트 |
-| **Admin** | 종합 보고서 | /admin/report | SSOT 리포트 |
-| **Admin** | 트래픽 분석 및 제외 | scoutingReports | 방문자 트래픽 집계 및 Admin(개발자) 제외 로직 |
-| **Admin** | 입지분석 현황 관리 | Admin Dashboard | 매장 위치 메타데이터 수집이 완료된 단지 통합 추적 탭 |
-| **Inspection** | Raw 인프라 메트릭스 | scoutingReports | 반경 500m 실측 거리 데이터 전수 공개 |
-| **Analytics** | Signal Map | MindMap3D | 3D 지식 그래프 |
+|:---|:---|:---|:---|
+| **Techno Valley**| 밸리 소개 & 현황 | /technovalley | 동탄 테크노밸리 주요 기업 현황, 공실 세부 분석, 상권 평가 정보 제공 |
+| **Techno Valley**| 공실 배분 도넛 차트 | /components/macro | 빌딩별 공실 분포 시각화 및 평균 공실률 표출 |
+| **Techno Valley**| 공실/임대 추이 차트 | /components/macro | 국토교통부 API 기반 장기 시세/공실률 변동 라인 차트 |
+| **Techno Valley**| 오피스 핏파인더 | /technovalley | 기업 규모, 예산, 필수 조건별 최적 사무실 매칭 필터 |
+| **Techno Valley**| 공동임차 메이트 보드 | /technovalley | 1인 소호 창업자용 오피스 쉐어링 구인 피드 |
+| **Techno Valley**| 세제 혜택 계산기 | /technovalley | 과밀억제권역 이전 시 법인세/취득세/재산세 감면 시뮬레이터 |
+| **Housing** | 배후 단지 검색 | /api/apartments-by-dong | 입주사 직원의 안착을 돕는 주거 단지 탐색 |
+| **Housing** | 전세 안전 진단 | /components/consumer | 역전세 방지 및 임차 보증금 안정성 계산기 |
+| **Housing** | 초품아 큐레이션 | location-scores | 어린이집 및 초등학교 도보 통학거리 연계 큐레이션 |
+| **Community** | 주민/임직원 라운지 | comments, reviews | 유저 피드백 및 로컬 정보 소통 채널 |
+| **Admin** | 지산/공실 시트 동기화 | /api/admin/* | 구글 시트 마스터 데이터 및 공실률 동기화 |
+| **Admin** | 트래픽 분석 및 제외 | scoutingReports | 임직원 트래픽 수집 필터 및 개발자 제외 |
+| **Analytics** | Signal Map | MindMap3D | 3D 지식 그래프를 활용한 산업 생태계 매핑 |
 
 ---
 

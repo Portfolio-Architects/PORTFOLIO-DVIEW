@@ -25,6 +25,7 @@ import { usePWA } from '@/components/pwa/PWAProvider';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
+import TechnoValleyDashboard from '@/components/macro/TechnoValleyDashboard';
 
 interface OfficeTransaction {
   readonly date: string;
@@ -116,12 +117,38 @@ const BUILDINGS_DB: OfficeBuilding[] = [
 
 export default function TechnoValleyClient() {
   const { showToast } = usePWA();
-  const [activeSubTab, setActiveSubTab] = useState<'fitfinder' | 'board' | 'calculator'>('fitfinder');
+  const [activeSubTab, setActiveSubTab] = useState<'intro' | 'fitfinder' | 'board' | 'calculator'>('intro');
   const [isPending, startTransition] = useTransition();
 
   // 실거래가 API 동적 연동 상태
   const [fetchedTransactions, setFetchedTransactions] = useState<any[]>([]);
   const [isLoadingTx, setIsLoadingTx] = useState<boolean>(true);
+
+  // 지식산업센터 공식 제원 API 동적 연동 상태
+  const [centerSpecs, setCenterSpecs] = useState<Record<string, any>>({});
+  const [isLoadingSpecs, setIsLoadingSpecs] = useState<boolean>(true);
+
+  useEffect(() => {
+    let active = true;
+    const loadSpecs = async () => {
+      try {
+        setIsLoadingSpecs(true);
+        const res = await fetch('/api/technovalley/center-specs');
+        if (res.ok) {
+          const data = await res.json();
+          if (active && data.success && data.centers) {
+            setCenterSpecs(data.centers);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load center specs from KICOX API', err);
+      } finally {
+        if (active) setIsLoadingSpecs(false);
+      }
+    };
+    loadSpecs();
+    return () => { active = false; };
+  }, []);
 
   // 핏파인더 상태
   const [budget, setBudget] = useState<'under100' | '100to200' | 'above200'>('100to200');
@@ -366,50 +393,20 @@ export default function TechnoValleyClient() {
       <div className="flex flex-col w-full bg-transparent">
         {/* Hero Header */}
         <PageHeroHeader 
-          title="D-VIEW 테크노밸리"
-          subtitleStrong="지식산업센터 공실 매칭 & 혜택 센터"
-          subtitleLight="수도권 최대 규모 산업 클러스터 활성화를 위한 솔루션"
+          title="D-VIEW 테크노 랩"
+          subtitleStrong="화성시 동탄구 테크노밸리 연구소"
+          subtitleLight="데이터 기반 첨단 산업 단지 활성화 솔루션"
         />
 
         <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-16">
           
-          {/* 상단 통합 통계 위젯 */}
-          <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-            <div className="bg-surface/75 border border-border/40 backdrop-blur-md p-5 rounded-3xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-[#c44d00] dark:text-[#ea6100] shrink-0">
-                <Building2 size={24} />
-              </div>
-              <div>
-                <p className="text-[12px] text-tertiary font-bold">테크노밸리 전체 면적</p>
-                <p className="text-[18px] font-black text-primary mt-0.5">약 1,550,000 ㎡</p>
-                <p className="text-[10.5px] text-[#c44d00] dark:text-[#ea6100] font-bold mt-0.5">판교테크노밸리의 2.3배</p>
-              </div>
-            </div>
-            <div className="bg-surface/75 border border-border/40 backdrop-blur-md p-5 rounded-3xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                <Users size={24} />
-              </div>
-              <div>
-                <p className="text-[12px] text-tertiary font-bold">상주 기업 및 임직원</p>
-                <p className="text-[18px] font-black text-primary mt-0.5">4,500+ 개사 / 6.7만명</p>
-                <p className="text-[10.5px] text-blue-600 dark:text-blue-400 font-bold mt-0.5">지속적인 유관 기업 입주 유입</p>
-              </div>
-            </div>
-            <div className="bg-surface/75 border border-border/40 backdrop-blur-md p-5 rounded-3xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 dark:text-rose-400 shrink-0">
-                <TrendingDown size={24} />
-              </div>
-              <div>
-                <p className="text-[12px] text-tertiary font-bold">임대 공급 과잉 공실률</p>
-                <p className="text-[18px] font-black text-primary mt-0.5">평균 약 18.2 %</p>
-                <p className="text-[10.5px] text-rose-500 dark:text-rose-400 font-bold mt-0.5">소호 쉐어 & 혜택 매칭으로 대안 제시</p>
-              </div>
-            </div>
-          </section>
+          {/* 상단 통합 통계 대시보드 */}
+          <TechnoValleyDashboard />
 
           {/* 서브 탭 Segmented Control */}
-          <div className="flex bg-body/80 p-1.5 rounded-[20px] w-full max-w-[540px] border border-border/40 mx-auto mb-8 shadow-sm backdrop-blur-md">
+          <div className="flex items-center bg-body p-1.5 rounded-[20px] w-full max-w-[680px] border border-border/60 mx-auto mb-8 shadow-sm overflow-x-auto no-scrollbar flex-nowrap">
             {[
+              { id: 'intro', label: '밸리 소개 & 현황', icon: Building },
               { id: 'fitfinder', label: '오피스 핏파인더', icon: Search },
               { id: 'board', label: '공동 임차 매칭', icon: Users },
               { id: 'calculator', label: '세제 혜택 시뮬레이션', icon: Calculator }
@@ -418,8 +415,8 @@ export default function TechnoValleyClient() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => startTransition(() => setActiveSubTab(tab.id as 'fitfinder' | 'board' | 'calculator'))}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
+                  onClick={() => startTransition(() => setActiveSubTab(tab.id as 'intro' | 'fitfinder' | 'board' | 'calculator'))}
+                  className={`shrink-0 flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[14px] text-[12.5px] sm:text-[13px] font-extrabold whitespace-nowrap transition-all duration-300 active:scale-[0.98] ${
                     isActive 
                       ? 'bg-surface text-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
@@ -435,12 +432,234 @@ export default function TechnoValleyClient() {
           {/* 탭 콘텐츠 영역 */}
           <div className="w-full min-h-[580px] sm:min-h-[640px]">
             
+            {/* 0. 밸리 소개 & 현황 */}
+            {activeSubTab === 'intro' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                {/* ═══ LEFT PANEL: 입주 기업 & 상권 현황 (lg:col-span-6) ═══ */}
+                <div className="lg:col-span-6 flex flex-col gap-6">
+                  {/* 1. 입주 기업 현황 */}
+                  <div className="bg-surface border border-border/80 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-5">
+                    <div>
+                      <h4 className="text-[16px] font-black text-primary flex items-center gap-2">
+                        <Users size={18} className="text-hs-orange" />
+                        주요 입주 기업 및 R&D 생태계
+                      </h4>
+                      <p className="text-[12px] text-tertiary mt-1">대기업 연구센터와 글로벌 테크 기업들이 밀집한 고부가가치 클러스터입니다.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <div className="bg-body/20 p-4 rounded-2xl border border-border/30 flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#ea580c]/10 flex items-center justify-center text-[#ea580c] shrink-0">
+                          <Building2 size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] font-extrabold text-primary">ASML 동탄 뉴캠퍼스 (예정)</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#ea580c]/10 text-[#ea580c] border border-[#ea580c]/10">글로벌 반도체</span>
+                          </div>
+                          <p className="text-[11.5px] text-secondary mt-1.5 leading-relaxed">
+                            약 2,400억 원 규모 투자. 극자외선(EUV) 및 심자외선(DUV) 트레이닝 센터와 재제조 센터 건립 추진으로 반도체 장비 전문 엔지니어 허브 구축.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-body/20 p-4 rounded-2xl border border-border/30 flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#f97316]/10 flex items-center justify-center text-[#f97316] shrink-0">
+                          <Building2 size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] font-extrabold text-primary">한미약품 연구센터</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#f97316]/10 text-[#f97316] border border-[#f97316]/10">바이오·R&D</span>
+                          </div>
+                          <p className="text-[11.5px] text-secondary mt-1.5 leading-relaxed">
+                            동탄 영천동 테크노밸리 내 최대 규모 신약 연구 핵심 기지. 바이오신약, 합성신약 및 제제기술 고도화 연구를 위한 고급 석박사 인력 상주.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-body/20 p-4 rounded-2xl border border-border/30 flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-hs-orange/10 flex items-center justify-center text-hs-orange shrink-0">
+                          <Building2 size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] font-extrabold text-primary">현대자동차 협력사 R&D 센터</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-hs-orange/10 text-hs-orange border border-hs-orange/10">미래 모빌리티</span>
+                          </div>
+                          <p className="text-[11.5px] text-secondary mt-1.5 leading-relaxed">
+                            자율주행, 전동화 부품 설계 및 배터리 시스템 엔지니어링 파트너 기업 대거 입주. 남양연구소(화성)와의 직주근접 시너지 극대화.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. 상권 & 교통 인프라 */}
+                  <div className="bg-surface border border-border/80 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-5">
+                    <div>
+                      <h4 className="text-[16px] font-black text-primary flex items-center gap-2">
+                        <MapPin size={18} className="text-hs-orange" />
+                        상권 특징 및 인프라 매핑
+                      </h4>
+                      <p className="text-[12px] text-tertiary mt-1">상주 직장인 약 4만 명의 두터운 소비력과 동탄역 광역 대중교통망을 보유하고 있습니다.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="bg-body/20 p-4 rounded-2xl border border-border/30 flex flex-col justify-between min-h-[140px]">
+                        <div>
+                          <span className="text-[12.5px] font-bold text-primary block">영천 F&B 상권</span>
+                          <span className="text-[10.5px] text-tertiary block mt-0.5">영천동 먹거리 타운</span>
+                        </div>
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between text-[11px] text-secondary font-medium">
+                            <span>집객력</span>
+                            <span className="font-extrabold text-hs-orange">4.8 / 5.0</span>
+                          </div>
+                          <div className="w-full bg-body/30 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div className="bg-hs-orange h-full rounded-full" style={{ width: '96%' }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-body/20 p-4 rounded-2xl border border-border/30 flex flex-col justify-between min-h-[140px]">
+                        <div>
+                          <span className="text-[12.5px] font-bold text-primary block">실리콘앨리 스트리트몰</span>
+                          <span className="text-[10.5px] text-tertiary block mt-0.5">뉴욕 테마 문화 복합몰</span>
+                        </div>
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between text-[11px] text-secondary font-medium">
+                            <span>집객력</span>
+                            <span className="font-extrabold text-[#f97316]">4.2 / 5.0</span>
+                          </div>
+                          <div className="w-full bg-body/30 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div className="bg-[#f97316] h-full rounded-full" style={{ width: '84%' }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-body/20 p-4 rounded-2xl border border-border/30 flex flex-col justify-between min-h-[140px]">
+                        <div>
+                          <span className="text-[12.5px] font-bold text-primary block">교통 커넥티비티</span>
+                          <span className="text-[10.5px] text-tertiary block mt-0.5">동탄역 셔틀 & 버스</span>
+                        </div>
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between text-[11px] text-secondary font-medium">
+                            <span>연계율</span>
+                            <span className="font-extrabold text-hs-orange">4.5 / 5.0</span>
+                          </div>
+                          <div className="w-full bg-body/30 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div className="bg-hs-orange h-full rounded-full" style={{ width: '90%' }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ═══ RIGHT PANEL: 지식산업센터 단지별 세부 공실 분석 (lg:col-span-6) ═══ */}
+                <div className="lg:col-span-6 bg-surface border border-border/80 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-5">
+                  <div>
+                    <h4 className="text-[16px] font-black text-primary flex items-center gap-2">
+                      <Building size={18} className="text-hs-orange" />
+                      주요 단지별 스펙 및 공실률 분석
+                    </h4>
+                    <p className="text-[12px] text-tertiary mt-1">동탄 영천동 테크노밸리를 대표하는 4대 지식산업센터의 세부 특성과 실시간 현황 정보입니다.</p>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    {BUILDINGS_DB.map((b, idx) => (
+                      <div key={idx} className="bg-body/20 p-4 sm:p-5 rounded-2xl border border-border/30 flex flex-col gap-3.5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <span className="text-[14px] font-black text-primary">{b.name}</span>
+                            <span className="text-[11.5px] text-tertiary block mt-0.5">{b.type}</span>
+                          </div>
+                          <div className="flex flex-col items-end shrink-0">
+                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                              b.driveIn 
+                                ? 'bg-orange-500/10 text-[#dc6e2d] dark:bg-orange-950/20' 
+                                : 'bg-orange-100 text-secondary border border-border/30'
+                            }`}>
+                              {b.driveIn ? '드라이브인 물류 가능' : '섹션오피스 전용'}
+                            </span>
+                            <span className="text-[12px] font-bold text-hs-orange mt-1.5">임대 시세: {b.rentPerPy}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1.5">
+                          {b.features.slice(0, 3).map((f, fIdx) => (
+                            <span key={fIdx} className="text-[10.5px] font-bold px-2 py-0.5 bg-body/40 rounded-lg text-secondary border border-border/10">
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* KICOX Public API Spec Data */}
+                        {centerSpecs[b.name] && (
+                          <div className="bg-body/30 p-3 rounded-xl border border-border/20 grid grid-cols-2 gap-y-2 gap-x-4 text-[10.5px]">
+                            <div>
+                              <span className="text-tertiary block text-[9.5px]">용지면적</span>
+                              <span className="font-bold text-secondary">{centerSpecs[b.name].landArea}</span>
+                            </div>
+                            <div>
+                              <span className="text-tertiary block text-[9.5px]">연면적</span>
+                              <span className="font-bold text-secondary">{centerSpecs[b.name].totalFloorArea}</span>
+                            </div>
+                            <div>
+                              <span className="text-tertiary block text-[9.5px]">설치 주체</span>
+                              <span className="font-bold text-secondary truncate block" title={centerSpecs[b.name].developer}>
+                                {centerSpecs[b.name].developer}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-tertiary block text-[9.5px]">건축 상태</span>
+                              <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                                {centerSpecs[b.name].status}
+                              </span>
+                            </div>
+                            <div className="col-span-2 pt-1.5 border-t border-border/10 text-[9.5px] text-tertiary truncate">
+                              📍 {centerSpecs[b.name].address}
+                            </div>
+                            {centerSpecs[b.name].tenants && centerSpecs[b.name].tenants.length > 0 && (
+                              <div className="col-span-2 pt-1.5 border-t border-border/10">
+                                <span className="text-[9.5px] text-tertiary font-extrabold block mb-1">🏢 주요 입주 등록 기업 ({centerSpecs[b.name].tenants.length}개사)</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {centerSpecs[b.name].tenants.slice(0, 4).map((tenant: string, tIdx: number) => (
+                                    <span key={tIdx} className="text-[9px] px-1.5 py-0.5 bg-orange-500/5 text-[#dc6e2d] border border-[#dc6e2d]/10 rounded font-semibold truncate max-w-[120px]" title={tenant}>
+                                      {tenant}
+                                    </span>
+                                  ))}
+                                  {centerSpecs[b.name].tenants.length > 4 && (
+                                    <span className="text-[9px] px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 rounded font-bold shrink-0">
+                                      +{centerSpecs[b.name].tenants.length - 4}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="pt-3 border-t border-border/30 flex items-center justify-between text-[11px] text-tertiary">
+                          <span className="truncate max-w-[280px]">{b.desc}</span>
+                          <span className="font-black text-secondary flex items-center gap-0.5">
+                            적합도 점수 <strong className="text-primary text-[12px] font-extrabold">{b.score}점</strong>
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 1. 오피스 핏파인더 */}
             {activeSubTab === 'fitfinder' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {/* 조건 설정 영역 */}
-                <div className="lg:col-span-5 bg-surface/70 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6">
+                <div className="lg:col-span-5 bg-surface border border-border/60 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6">
                   <div>
                     <h3 className="text-[17px] font-black text-primary flex items-center gap-2">
                       <Sparkles size={18} className="text-[#c44d00] dark:text-[#ea6100]" />
@@ -573,7 +792,7 @@ export default function TechnoValleyClient() {
                 {/* 결과 시각화 영역 */}
                 <div className="lg:col-span-7 flex flex-col gap-6">
                   {isSearching ? (
-                    <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-pulse min-h-[580px] justify-between">
+                    <div className="bg-surface border border-border/60 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6 animate-pulse min-h-[580px] justify-between">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="w-full">
                           <div className="h-4 bg-body/20 dark:bg-surface/5 rounded w-32 mb-2" />
@@ -600,7 +819,7 @@ export default function TechnoValleyClient() {
                       <div className="h-12 bg-body/20 dark:bg-surface/5 rounded-xl w-full" />
                     </div>
                   ) : searchResult ? (
-                    <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
+                    <div className="bg-surface border border-border/60 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                           <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md bg-[#c44d00]/10 text-[#c44d00] dark:bg-[#ea6100]/10 dark:text-[#ea6100] border border-[#c44d00]/15">
@@ -732,7 +951,7 @@ export default function TechnoValleyClient() {
               <div className="flex flex-col gap-6">
                 
                 {/* 보드 소개 및 공동임차 신청 버튼 */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface/75 border border-border/40 p-6 rounded-3xl backdrop-blur-md shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-surface border border-border/60 p-6 rounded-3xl shadow-sm">
                   <div>
                     <h4 className="text-[16px] font-black text-primary">스타트업 & 1인 기업 공동 임차 매칭 보드</h4>
                     <p className="text-[12.5px] text-secondary mt-1 max-w-[620px] leading-relaxed">
@@ -823,7 +1042,7 @@ export default function TechnoValleyClient() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {/* 입력 제어 카드 */}
-                <div className="lg:col-span-5 bg-surface/70 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6">
+                <div className="lg:col-span-5 bg-surface border border-border/60 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6">
                   <div>
                     <h3 className="text-[17px] font-black text-primary flex items-center gap-2">
                       <Calculator size={18} className="text-[#c44d00] dark:text-[#ea6100]" />
@@ -881,12 +1100,12 @@ export default function TechnoValleyClient() {
                 {/* 결과 분석 카드 */}
                 <div className="lg:col-span-7 flex flex-col gap-6">
                   {calculatedSavings ? (
-                    <div className="bg-surface/75 border border-border/50 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
+                    <div className="bg-surface border border-border/60 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
                       <div>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#c44d00]/10 text-[#c44d00] dark:bg-[#ea6100]/10 dark:text-[#ea6100] border border-[#c44d00]/15">
                           예상 절세 시뮬레이션 리포트
                         </span>
-                        <h4 className="text-[19px] font-black text-primary mt-2">동탄 테크노밸리 이전 시 예상 세무 혜택</h4>
+                        <h4 className="text-[19px] font-black text-primary mt-2">동탄 영천동 테크노밸리 이전 시 예상 세무 혜택</h4>
                         <p className="text-[12.5px] text-secondary mt-1">조세특례제한법 및 화성시 시조례 감면 가이드라인을 준용했습니다.</p>
                       </div>
 
@@ -961,7 +1180,7 @@ export default function TechnoValleyClient() {
 
       {/* 공동 임차 메칭 신청 모달 */}
       {isApplyModalOpen && (
-        <div className="fixed inset-0 z-[20000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[20000] bg-black/50 flex items-center justify-center p-4">
           <div className="bg-surface border border-border/80 w-full max-w-[480px] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-5 border-b border-border/60">
               <h3 className="text-[16px] font-black text-primary">
@@ -1075,7 +1294,7 @@ export default function TechnoValleyClient() {
 
       {/* 입주 컨설팅 신청 모달 */}
       {isConsultingModalOpen && (
-        <div className="fixed inset-0 z-[20000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[20000] bg-black/50 flex items-center justify-center p-4">
           <div className="bg-surface border border-border/80 w-full max-w-[480px] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-5 border-b border-border/60">
               <h3 className="text-[16px] font-black text-primary">

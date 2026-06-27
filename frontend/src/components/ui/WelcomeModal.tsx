@@ -179,13 +179,13 @@ const WelcomeModal = React.memo(function WelcomeModal() {
 
         {/* Title */}
         <h2 id="welcome-modal-title" className="text-[19px] sm:text-[21px] font-black text-primary leading-snug tracking-tight mb-3">
-          동탄 아파트 가치분석 포털<br />
+          데이터 기반 주거·일터 통합 포털<br />
           <span className="text-[#c44d00] dark:text-[#ea6100] font-black">D-VIEW</span>에 오신 것을 환영합니다
         </h2>
 
         {/* Description */}
         <p id="welcome-modal-desc" className="text-[13px] sm:text-[14px] text-secondary leading-relaxed break-keep mb-6">
-          D-VIEW는 동탄 179개 아파트 단지의 실거래 트렌드, 안심 통학 학군 스코어, 그리고 입주민 현장 촬영 임장기를 제공하는 하이퍼로컬 부동산 분석 플랫폼입니다.
+          D-VIEW는 동탄역 179개 아파트 단지의 실거래 및 안심 학군 분석은 물론, 테크노밸리 지식산업센터 입주 매칭과 직주근접 세제 혜택 시뮬레이션을 원스톱으로 지원하는 데이터 플랫폼입니다.
         </p>
 
         {/* Feature List */}
@@ -195,8 +195,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
               <ShieldCheck size={12} className="text-[#c44d00] dark:text-[#ea6100]" />
             </div>
             <div>
-              <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">실시간 실거래 트렌드 진단</h4>
-              <p className="text-[11px] text-tertiary mt-0.5 leading-normal">IQR 시계열 분석을 통해 직거래 및 특수관계인 편차 거래를 자동으로 판정합니다.</p>
+              <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">실시간 주거·오피스 실거래가 분석</h4>
+              <p className="text-[11px] text-tertiary mt-0.5 leading-normal">국토교통부 아파트/오피스 실거래가 API 데이터를 통해 실거래 시세와 공실률 추이를 연동합니다.</p>
             </div>
           </li>
           <li className="flex items-start gap-3">
@@ -204,8 +204,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
               <ShieldCheck size={12} className="text-[#c44d00] dark:text-[#ea6100]" />
             </div>
             <div>
-              <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">초품아 안심 통학 학군 스코어</h4>
-              <p className="text-[11px] text-tertiary mt-0.5 leading-normal">배정 초등학교까지의 실측 도보 거리와 주변 학원가 밀도를 분석해 등급을 산출합니다.</p>
+              <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">KICOX 공공데이터 기반 입주 매칭</h4>
+              <p className="text-[11px] text-tertiary mt-0.5 leading-normal">전국 지식산업센터 현황 및 등록공장대장 데이터를 매핑하여 단지별 스펙과 실시간 입주사 목록을 제공합니다.</p>
             </div>
           </li>
           <li className="flex items-start gap-3">
@@ -213,8 +213,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
               <ShieldCheck size={12} className="text-[#c44d00] dark:text-[#ea6100]" />
             </div>
             <div>
-              <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">3D 매수 심리 시그널 맵</h4>
-              <p className="text-[11px] text-tertiary mt-0.5 leading-normal">단지별 대기 수요와 매수 심리 투표 현황을 3차원 네트워크 맵으로 입체 시각화합니다.</p>
+              <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">직주근접 & 세제 감면 시뮬레이터</h4>
+              <p className="text-[11px] text-tertiary mt-0.5 leading-normal">기업 이전에 따른 세금 감면액과 임직원 배후 주거지의 도보 인프라 편의성을 정량 스코어링합니다.</p>
             </div>
           </li>
         </ul>

@@ -25,6 +25,10 @@
   --color-toss-red: var(--toss-red);
   --color-toss-green: var(--toss-green);
   --color-toss-gray: var(--toss-gray);
+  --color-hs-blue: var(--hs-blue);
+  --color-hs-orange: var(--hs-orange);
+  --color-hs-blue-light: var(--hs-blue-light);
+  --color-hs-orange-light: var(--hs-orange-light);
   --font-sans: var(--font-inter), var(--font-pretendard), system-ui, sans-serif;
   
   --font-size-title-xl: var(--fs-title-xl);
@@ -49,6 +53,13 @@
     --toss-green: #e65100;
     --toss-gray: #d1d6db;
     --border-color: #e5e8eb;
+    
+    /* Hwaseong City BI Colors */
+    --hs-blue: #004696;
+    --hs-orange: #dc6e2d;
+    --hs-blue-light: #e6eef8;
+    --hs-orange-light: #fdf0e9;
+
     --border-radius-xl: 24px;
     --border-radius-lg: 16px;
     --border-radius-md: 12px;
@@ -91,6 +102,13 @@
     --toss-green: #d84315;
     --toss-gray: #374151;
     --border-color: #374151;
+    
+    /* Hwaseong City BI Colors for Dark Mode */
+    --hs-blue: #3d80df;
+    --hs-orange: #ea7f44;
+    --hs-blue-light: #10244c;
+    --hs-orange-light: #3e1f0e;
+
     --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
   }
@@ -392,19 +410,17 @@
 }
 
 .aurora-bg {
-  background: linear-gradient(135deg, #f2f4f6 0%, #e6f3f0 50%, #f2f4f6 100%) !important;
-  background-size: 200% 200% !important;
-  animation: aurora-flow 30s ease-in-out infinite !important;
-  will-change: background-position;
-  transform: translateZ(0);
+  background: #ffffff !important;
+  background-image: radial-gradient(at 0% 0%, rgba(220, 110, 45, 0.05) 0%, transparent 60%), 
+                    radial-gradient(at 50% 0%, rgba(220, 110, 45, 0.03) 0%, transparent 50%) !important;
+  will-change: auto;
 }
 
 .dark .aurora-bg {
-  background: linear-gradient(135deg, #121212 0%, #042820 50%, #121212 100%) !important;
-  background-size: 200% 200% !important;
-  animation: aurora-flow 30s ease-in-out infinite !important;
-  will-change: background-position;
-  transform: translateZ(0);
+  background: #121212 !important;
+  background-image: radial-gradient(at 0% 0%, rgba(220, 110, 45, 0.08) 0%, transparent 60%), 
+                    radial-gradient(at 50% 0%, rgba(220, 110, 45, 0.04) 0%, transparent 50%) !important;
+  will-change: auto;
 }
 
 /* GPU Shimmer content-visibility optimization */
@@ -465,4 +481,9 @@
 }
 .animate-emoji-pop {
   animation: emoji-pop 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* Force override body transform to prevent it from becoming a containing block for fixed overlays */
+body {
+  transform: none !important;
 }
