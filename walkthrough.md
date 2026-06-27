@@ -1,4 +1,4 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 757)
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
 
@@ -114,6 +114,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Spelling Typo Fix & remove as any in MortgageCalculator (Phase 756)**:
   - [components/consumer/MortgageCalculator.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/MortgageCalculator.tsx) 내에서 가구 유형 매핑 중 `'newlyweds'`(신혼부부)의 typo인 `'newweds'`가 쓰이던 결함을 교정했습니다.
   - 가구 타입 매핑 배열을 `as const`로 단정하고 set시 부여되던 `type.id as any` 캐스팅을 제거하여 타입 컴파일 무결성을 확보했습니다.
+- **Explicit Any Type Refactoring in AuthContext, Redis service, and Repositories (Phase 757)**:
+  - [contexts/AuthContext.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/contexts/AuthContext.tsx) 내 `__E2E_MOCK_AUTH__`용 `E2EMockAuth` 인터페이스를 정의하고, `currentUser: any` 타입을 `User | null` 정형 타입으로 구체화하고 `(window as any)` 캐스팅을 제거했습니다.
+  - [redis.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/redis.ts) 내 `pipeline(): any` 메소드의 반환 타입을 신설된 `ResilientPipeline` 인터페이스 타입으로 변환하여 explicit `any`를 박멸했습니다.
+  - [comment.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/comment.repository.ts) 내 `cachedAdminDb: any` 및 `getAdminDb(): Promise<any>` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, `throttle<any>`를 `throttle<admin.firestore.QuerySnapshot>` 형태로 구체화했습니다.
+  - [post.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/post.repository.ts) 내 `RecentLoungeItem` 인터페이스의 `[key: string]: any;` 시그니처를 `[key: string]: unknown;`로 격상하고, `ProcessablePost` 및 `ProcessableComment` DTO용 타입 정의를 통해 dynamic payload의 explicit any 구조를 완전 제거했습니다.
+  - [MortgageCalculator.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/MortgageCalculator.tsx)의 `HOUSEHOLD_TYPES` 배열 및 map 가이드를 컴포넌트 외부로 선언/구조화하여 TSX 파싱 이슈를 해결하고, newlyweds 가구 타입의 `as any` 캐스팅을 배제했습니다.
 
 ---
 
