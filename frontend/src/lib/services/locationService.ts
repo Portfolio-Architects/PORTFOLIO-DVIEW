@@ -118,11 +118,12 @@ async function fetchCSVWithRetry(url: string, options: RequestInit = {}, retries
       }
       
       logger.warn('locationService.fetchCSVWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} returned status ${response.status}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearTimeout(id);
-      const isTimeout = err?.name === 'AbortError';
+      const errorObj = err as Record<string, unknown>;
+      const isTimeout = errorObj?.name === 'AbortError';
       logger.warn('locationService.fetchCSVWithRetry', `Google Sheets fetch attempt ${i + 1}/${retries} ${isTimeout ? 'TIMED OUT' : 'FAILED'}`, {
-        error: err?.message || String(err)
+        error: String(errorObj?.message || err)
       });
     }
     

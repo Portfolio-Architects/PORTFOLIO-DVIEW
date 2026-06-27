@@ -17,17 +17,18 @@ const ReportSpecsSchema = z.object({
   parkingRatio: z.string().default(''),
 }).passthrough();
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import type * as admin from 'firebase-admin';
 
 // Module-level cache for dynamic firebaseAdmin import
-let cachedAdminDb: any = null;
+let cachedAdminDb: admin.firestore.Firestore | null = null;
 let isAdminDbLoaded = false;
 
-async function getAdminDb(): Promise<any> {
+async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
   if (typeof window === 'undefined') {
     if (isAdminDbLoaded) return cachedAdminDb;
     try {
       const { adminDb } = await import('@/lib/firebaseAdmin');
-      cachedAdminDb = adminDb || null;
+      cachedAdminDb = (adminDb as admin.firestore.Firestore) || null;
     } catch (err) {
       logger.warn('ReportRepository.getAdminDb', 'Failed to dynamically import @/lib/firebaseAdmin', {}, err as Error);
       cachedAdminDb = null;
@@ -91,14 +92,14 @@ const FieldReportDataSchema = z.object({
   dong: z.string().default('오산동 (동탄역)'),
   apartmentName: z.string(),
   sections: ReportSectionsSchema.optional(),
-  premiumScores: z.any().optional(),
-  metrics: z.any().optional(),
+  premiumScores: z.unknown().optional(),
+  metrics: z.unknown().optional(),
   premiumContent: z.string().optional(),
   author: z.string().default('데이터 랩스'),
   likes: z.number().default(0),
   commentCount: z.number().default(0),
   viewCount: z.number().default(0),
-  images: z.array(z.any()).default([]),
+  images: z.array(z.unknown()).default([]),
   scoutingDate: z.string().default('')
 }).passthrough();
 
@@ -178,14 +179,14 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
 }
 
 export async function getFullReport(reportId: string): Promise<FieldReportData | null> {
-  let rawReport: Record<string, any> | null = null;
+  let rawReport: Record<string, unknown> | null = null;
 
   if (typeof window === 'undefined') {
     try {
       const adminDb = await getAdminDb();
       if (adminDb) {
         const docRef = adminDb.collection('scoutingReports').doc(reportId);
-        const docSnap = await throttle<any>(() => docRef.get());
+        const docSnap = await throttle<admin.firestore.DocumentSnapshot>(() => docRef.get());
         if (!docSnap.exists) return null;
 
         const data = docSnap.data();
@@ -242,10 +243,10 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     return {
       ...rawReport,
       ...parsed.data
-    } as FieldReportData;
+    } as unknown as FieldReportData;
   } else {
     logger.warn('ReportRepository.getFullReport', 'Zod validation failed, using raw fallback', { reportId }, parsed.error);
-    return rawReport as FieldReportData;
+    return rawReport as unknown as FieldReportData;
   }
 }
 
@@ -254,13 +255,13 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
  * Used to resolve stub reports when the user clicks an apartment that isn't in the top 30 recent reports.
  */
 export async function getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
-  let rawReport: Record<string, any> | null = null;
+  let rawReport: Record<string, unknown> | null = null;
 
   if (typeof window === 'undefined') {
     try {
       const adminDb = await getAdminDb();
       if (adminDb) {
-        const querySnapshot = await throttle<any>(() => adminDb.collection('scoutingReports')
+        const querySnapshot = await throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection('scoutingReports')
           .where('apartmentName', '==', apartmentName)
           .limit(1)
           .get());
@@ -321,10 +322,10 @@ export async function getFullReportByApartmentName(apartmentName: string): Promi
     return {
       ...rawReport,
       ...parsed.data
-    } as FieldReportData;
+    } as unknown as FieldReportData;
   } else {
     logger.warn('ReportRepository.getFullReportByApartmentName', 'Zod validation failed, using raw fallback', { apartmentName }, parsed.error);
-    return rawReport as FieldReportData;
+    return rawReport as unknown as FieldReportData;
   }
 }
 

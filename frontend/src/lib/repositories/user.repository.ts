@@ -12,14 +12,15 @@ import { getRandomDefaultAvatar } from '@/lib/types/user.types';
 import { userProfileConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import type * as admin from 'firebase-admin';
 
-let cachedAdminDb: any = null;
+let cachedAdminDb: admin.firestore.Firestore | null = null;
 
-async function getAdminDb() {
+async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
   if (cachedAdminDb) return cachedAdminDb;
   try {
     const { adminDb } = await import('@/lib/firebaseAdmin');
-    cachedAdminDb = adminDb;
+    cachedAdminDb = (adminDb as admin.firestore.Firestore) || null;
     return cachedAdminDb;
   } catch (error) {
     logger.error('UserRepository', 'Failed to import adminDb', {}, error);
@@ -35,7 +36,7 @@ const UserProfileSchema = z.object({
   verificationLevel: z.enum(['none', 'self_declared', 'registry_verified']).default('none'),
   uploaderPoints: z.number().default(0),
   uploaderTier: z.string().default('초보 임장러'),
-  createdAt: z.any().optional(),
+  createdAt: z.unknown().optional(),
 }).passthrough();
 
 /**
@@ -45,20 +46,21 @@ const UserProfileSchema = z.object({
  * @returns The user's profile
  */
 export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
-  let docData: UserProfile | Record<string, any> | null = null;
+  let docData: UserProfile | Record<string, unknown> | null = null;
 
   if (typeof window === 'undefined') {
     try {
       const adminDb = await getAdminDb();
       if (adminDb) {
         const userRef = adminDb.collection('users').doc(uid);
-        const userSnap = await throttle<any>(() => userRef.get());
+        const userSnap = await throttle<admin.firestore.DocumentSnapshot>(() => userRef.get());
         if (userSnap.exists) {
-          docData = userSnap.data() as Record<string, any>;
+          const data = userSnap.data() as Record<string, unknown>;
+          docData = data;
           if (docData && !docData.photoURL) {
             const randomAvatar = getRandomDefaultAvatar();
             // Non-blocking background update with catch block
-            userRef.update({ photoURL: randomAvatar }).catch((err: any) => {
+            userRef.update({ photoURL: randomAvatar }).catch((err: unknown) => {
               logger.error('UserRepository.getOrCreateProfile', 'Failed to update photoURL in adminDb asynchronously', { uid }, err);
             });
             docData.photoURL = randomAvatar;
@@ -72,7 +74,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
             uploaderPoints: 0,
             uploaderTier: '초보 임장러',
           };
-          await throttle<any>(() => userRef.set(newProfile));
+          await throttle<admin.firestore.WriteResult>(() => userRef.set(newProfile));
           logger.info('UserRepository.getOrCreateProfile', 'New user profile created via Admin DB', { uid, nickname: newProfile.nickname });
           docData = newProfile;
         }

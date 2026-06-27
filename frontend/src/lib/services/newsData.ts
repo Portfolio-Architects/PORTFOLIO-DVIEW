@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
 import { logger } from '@/lib/services/logger';
+import type * as admin from 'firebase-admin';
 
 const parser = new Parser();
 
@@ -47,7 +48,7 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
     // Google News RSS Search Query for "동탄 부동산"
     const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
     
-    let rawItems: any[] = [];
+    let rawItems: unknown[] = [];
     try {
       const response = await fetchWithTimeout(feedUrl, 3000);
       if (response.ok) {
@@ -61,7 +62,7 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
           
           try {
             const $ = cheerio.load(xmlText, { xmlMode: true });
-            const items: any[] = [];
+            const items: { title: string; link: string; pubDate: string }[] = [];
             $('item').each((_, el) => {
               const $el = $(el);
               items.push({
@@ -98,9 +99,10 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
         link = parsedItem.data.link;
         pubDate = parsedItem.data.pubDate;
       } else {
-        title = item.title || '';
-        link = item.link || '';
-        pubDate = item.pubDate || '';
+        const fallbackItem = (item && typeof item === 'object') ? (item as Record<string, unknown>) : {};
+        title = String(fallbackItem.title || '');
+        link = String(fallbackItem.link || '');
+        pubDate = String(fallbackItem.pubDate || '');
       }
 
       let publisher = 'NEWS';
@@ -214,7 +216,7 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
     const timeoutMs = isDev ? 1000 : 5000;
 
     const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-      let timeoutId: any;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
       const timeoutPromise = new Promise<T>((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
       });
@@ -237,9 +239,9 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
       withTimeout(dongQuery.get(), timeoutMs)
     ]);
 
-    const getTopN = (snapshot: any, limitVal = 100) => {
+    const getTopN = (snapshot: admin.firestore.QuerySnapshot, limitVal = 100) => {
       const validItems: NoticeData[] = [];
-      snapshot.docs.forEach((doc: any) => {
+      snapshot.docs.forEach((doc: admin.firestore.QueryDocumentSnapshot) => {
         try {
           const data = doc.data();
           if (data && typeof data === 'object') {
