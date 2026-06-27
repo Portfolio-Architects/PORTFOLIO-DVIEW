@@ -22,7 +22,7 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Linked transaction data dynamically through memoized 건물명 matching.
   - Added Toss-style loading shimmer (Skeleton UI) for the transaction table during fetch periods, with static recent transactions behaving as a visual fallback if no matches are found.
 
-### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 755)
+### 4. Type Safety & Infrastructure Refactoring (Phase 729 - 756)
 - **Explore Client & Global Types Optimization (Phase 729)**:
   - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 파일 내부의 `Window` 인터페이스에 `requestIdleCallback` 및 `cancelIdleCallback` 옵셔널 메서드 선언을 추가하여 브라우저 API 호출 시 발생하던 전역 `as any` 캐스팅을 구조적으로 제거했습니다.
   - [ExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/explore/ExploreClient.tsx) 파일 내의 `window as any` 캐스팅 기반 브라우저 유휴 콜백 호출 구문들을 타입 안전한 옵셔널 체이닝 형태(`window.requestIdleCallback?.(...)`, `window.cancelIdleCallback?.(...)`)로 전환했습니다.
@@ -111,6 +111,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [components/consumer/AptFitFinder.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptFitFinder.tsx) 내에서 사용되던 좌표 스코어 탐색용 임시 변수 `locScore: any` 타입을 `Record<string, any> | null` 정형 타입으로 구체화했습니다.
   - [components/consumer/AIRecommendations.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AIRecommendations.tsx) 내에서 `getEffectiveMetrics` 함수가 항상 필수 지표들을 완벽히 갖춘 `ObjectiveMetrics` 타입을 반환하도록 보완하고, `calculateQuizScore` 의 `m: any` 인자 타입을 `ObjectiveMetrics` 타입으로 격상하여 `undefined` 잠재에러(TS18048)를 해소했습니다.
   - [components/consumer/PropertyTaxCalculator.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/PropertyTaxCalculator.tsx) 내 PieChart Tooltip formatter of `value: any` 인자 타입을 `value: unknown` 타입으로 격상하여 explicit any를 완전히 제거했습니다.
+- **Spelling Typo Fix & remove as any in MortgageCalculator (Phase 756)**:
+  - [components/consumer/MortgageCalculator.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/MortgageCalculator.tsx) 내에서 가구 유형 매핑 중 `'newlyweds'`(신혼부부)의 typo인 `'newweds'`가 쓰이던 결함을 교정했습니다.
+  - 가구 타입 매핑 배열을 `as const`로 단정하고 set시 부여되던 `type.id as any` 캐스팅을 제거하여 타입 컴파일 무결성을 확보했습니다.
 
 ---
 
