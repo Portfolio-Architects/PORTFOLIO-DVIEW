@@ -1124,7 +1124,7 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
 
   let text = `📢 [DVIEW] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약 📊\n`;
   text += `🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"\n`;
-  text += `👉 지금 매수해도 안전할까요? 호구 방지 가치분석 결과:\n\n`;
+  text += `👉 안심하고 거주할 수 있는 환경일까요? 주거 안심 가치분석 결과:\n\n`;
   text += `💸 최근 실거래가: ${priceStr}${dropStr}\n`;
   text += `📊 실거래 전세가율: ${ratio.toFixed(1)}%\n`;
   text += `📈 내재가치 평가: ${valuationLabel}\n`;
