@@ -1,4 +1,4 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 759)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 760)
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
 
@@ -128,6 +128,9 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [dashboardData.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/services/dashboardData.ts) 내 Zod 스키마들에서 `z.any()` 타입 검증을 모두 제거하고 각각의 데이터에 적합한 구체적인 Zod 스키마(`PremiumScoresSchema`, `FieldReportImageSchema`, `ObjectiveMetricsSchema`, `DongApartmentSchema`, `KPIDataSchema`, `AptTxSummarySchema`, `Recent7DaysVolumeSchema`, `RecentTransactionSchema`)로 리팩토링했습니다.
   - 파일 최상단에 `declare global`을 선언하여 캐시를 위한 `_initialPageDataCache` 및 `_activeFreshDataPromise`에 형식을 바인딩하여 `globalThis as any` 캐스팅을 완전히 걷어냈습니다.
   - `pipelineResults` 및 타이머 `timeoutId` 변수들을 각각 `unknown[]` 및 `ReturnType<typeof setTimeout> | undefined` 형식으로 안전하게 타이핑하였고, JSON parsing read fallback 부분의 generic parameters를 Union Type 및 정형 레코드로 구체화했습니다.
+- **Explicit Any Type Refactoring in ApartmentModal Component (Phase 760)**:
+  - [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx) 내 `ApartmentModalProps` (인터페이스 속성)에서 `txSummary?: any`로 임의 선언되어 있던 것을 `import('@/lib/types/transaction').AptTxSummary` 정형 타입으로 구체화했습니다.
+  - 전월세 가치 분석 및 가중 전세가율 연산 lambda 헬퍼 함수 `getJeonseEq` 내의 `(t: any)` 매개변수 타입을 `EnrichedTransaction` 정형 타입으로 변환하여 컴포넌트 내부의 implicit/explicit any를 완벽히 소거했습니다.
 
 ---
 
