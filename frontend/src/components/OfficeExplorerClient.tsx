@@ -109,6 +109,21 @@ export default function OfficeExplorerClient() {
   
   const isResizingRef = useRef(false);
   const animationFrameIdRef = useRef<number | null>(null);
+  const resizeListenersRef = useRef<{
+    mousemove: ((e: MouseEvent) => void) | null;
+    mouseup: (() => void) | null;
+  }>({ mousemove: null, mouseup: null });
+
+  useEffect(() => {
+    return () => {
+      const { mousemove, mouseup } = resizeListenersRef.current;
+      if (mousemove) document.removeEventListener('mousemove', mousemove);
+      if (mouseup) document.removeEventListener('mouseup', mouseup);
+      if (animationFrameIdRef.current) {
+        window.cancelAnimationFrame(animationFrameIdRef.current);
+      }
+    };
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -137,8 +152,10 @@ export default function OfficeExplorerClient() {
       document.body.style.userSelect = '';
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      resizeListenersRef.current = { mousemove: null, mouseup: null };
     };
 
+    resizeListenersRef.current = { mousemove: handleMouseMove, mouseup: handleMouseUp };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
