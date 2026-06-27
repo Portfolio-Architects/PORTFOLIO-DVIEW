@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 764)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 765)
+
 
 
 
@@ -152,6 +153,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - [MacroTrendChart.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/MacroTrendChart.tsx) 내 Recharts 툴팁에 쓰이는 `payload` 속성 타입을 `unknown`으로 선언하고, 차트에 유입되는 `lineData: any[]` 배열을 `MacroTrendPoint[]` 정형 인터페이스 구조로 구체화했습니다. 또한 모바일 터치 이벤트 핸들러 `onTouchMove`의 `e: any` 변수를 `e: unknown`으로 변경하고 타입 캐스팅(`e as { activePayload?: unknown[] }`)을 적용해 `any` 사용을 배제했습니다.
   - [LoungeTalkWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/macro/LoungeTalkWidget.tsx) 내 props 구조체와 실시간 토크 피드 map loop 콜백의 `(post: any)` 파라미터를 구체 명세인 `LoungeTalkPostItem` 인터페이스로 격상해 타입 안정성을 확보했습니다.
   - [PushSubscriptionModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/pwa/PushSubscriptionModal.tsx) 내 알림 신청 예외 처리 catch 블록의 `catch (err: any)`를 `catch (err: unknown)`으로 대체하고, 에러 메시지를 꺼내오는 로직에 타입 가딩을 보완하여 explicit `any`를 완전히 걷어냈습니다.
+- **Explicit Any Type Refactoring in Reports, Tuners, and Tooltips (Phase 765)**:
+  - [EngineeringReportClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/EngineeringReportClient.tsx) 내 `ReportMetadata` 인터페이스에 `export` 지시어를 추가하여 외부 모듈 참조가 가능하도록 개방했습니다.
+  - [ReportClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ReportClient.tsx) 내 중복 정의되어 컴파일러 에러(TS2719)를 유발하던 로컬 `ReportMetadata` 인터페이스를 제거하고 `EngineeringReportClient` 로부터 공유 인터페이스를 임포트하여 타입 충돌을 완벽히 해결했습니다.
+  - [Tooltip.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ui/Tooltip.tsx) 내 children 태그 자연 포커스 유무 판별 헬퍼인 `isFocusableElement` 의 매개변수 타입을 `unknown` 으로 마이그레이션하여, Recharts의 동적 JSXElementConstructor 타입 주입 시 발생하던 시그니처 불일치(TS2345)를 차단했습니다.
+  - [ValuationTuner.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/admin/ValuationTuner.tsx) 내 보정치 반영 및 초기화 관련 DB 처리 비동기 catch 블록의 `catch (e: any)` 구문 2곳을 `catch (e: unknown)` 으로 격상하고, 에러 인스턴스 가딩을 적용해 문자열 출력 안전성을 확보했습니다.
+
 
 
 
