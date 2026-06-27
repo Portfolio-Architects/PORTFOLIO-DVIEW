@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 763)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 764)
+
 
 
 
@@ -147,6 +148,11 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - `useSWR`을 이용해 아파트 개별 실거래 내역을 가져오는 데이터 스토어 fetcher의 제네릭 매개변수를 `useSWR<AptTransactionRecord[]>`로 수정하고, 실거래 등락 비중 연산용 임시 맵 `aptAreaGroups`의 구조를 `Record<string, RecentTransaction[]>` 정형 타입으로 선언하여 dynamic any 배열 캐스팅을 배제했습니다.
   - 공지사항/행정고시 데이터 페칭용 `useSWR` 반환 타입 제네릭 명세를 `<{ notices: LocalNoticeItem[]; lastUpdated?: string }>`로 구성하여 notices 배열의 타입 세이프티를 확보하고, filter 및 map loop의 콜백 파라미터 `(n: any)`를 `(n: LocalNoticeItem)` 및 구조화된 타입들로 강제 타이핑하여 타입 오류 가능성을 완전히 불식시켰습니다.
   - 일자별 신고가 타임라인 렌더링에 사용되는 `floor` 필드를 `typeof tx.floor === 'string' ? (parseInt(tx.floor, 10) || 0) : tx.floor` 로 안전하게 파싱하여 `number` 타입으로 정밀 변환했고, optional로 정의된 `tx.delta` 에 대해 `(tx.priceVal - (tx.delta || 0))` 과 같이 폴백을 제공하여 컴파일러의 undefined 방지 경고를 해결했습니다.
+- **Explicit Any Type Refactoring in Charts, Widgets, and PWAModals (Phase 764)**:
+  - [MacroTrendChart.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/MacroTrendChart.tsx) 내 Recharts 툴팁에 쓰이는 `payload` 속성 타입을 `unknown`으로 선언하고, 차트에 유입되는 `lineData: any[]` 배열을 `MacroTrendPoint[]` 정형 인터페이스 구조로 구체화했습니다. 또한 모바일 터치 이벤트 핸들러 `onTouchMove`의 `e: any` 변수를 `e: unknown`으로 변경하고 타입 캐스팅(`e as { activePayload?: unknown[] }`)을 적용해 `any` 사용을 배제했습니다.
+  - [LoungeTalkWidget.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/macro/LoungeTalkWidget.tsx) 내 props 구조체와 실시간 토크 피드 map loop 콜백의 `(post: any)` 파라미터를 구체 명세인 `LoungeTalkPostItem` 인터페이스로 격상해 타입 안정성을 확보했습니다.
+  - [PushSubscriptionModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/pwa/PushSubscriptionModal.tsx) 내 알림 신청 예외 처리 catch 블록의 `catch (err: any)`를 `catch (err: unknown)`으로 대체하고, 에러 메시지를 꺼내오는 로직에 타입 가딩을 보완하여 explicit `any`를 완전히 걷어냈습니다.
+
 
 
 
