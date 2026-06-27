@@ -12,12 +12,22 @@ try {
   const baseBrainDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain';
   if (fs.existsSync(baseBrainDir)) {
     const dirs = fs.readdirSync(baseBrainDir)
-      .map(name => ({ name, path: path.join(baseBrainDir, name) }))
-      .filter(item => fs.statSync(item.path).isDirectory() && !item.name.startsWith('.'))
-      .map(item => ({ ...item, mtime: fs.statSync(item.path).mtime.getTime() }))
+      .map(name => {
+        const dirPath = path.join(baseBrainDir, name);
+        const taskPath = path.join(dirPath, 'task.md');
+        let mtime = 0;
+        if (fs.existsSync(taskPath)) {
+          mtime = fs.statSync(taskPath).mtime.getTime();
+        } else if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
+          mtime = fs.statSync(dirPath).mtime.getTime();
+        }
+        return { name, path: dirPath, mtime };
+      })
+      .filter(item => fs.existsSync(item.path) && fs.statSync(item.path).isDirectory() && !item.name.startsWith('.'))
       .sort((a, b) => b.mtime - a.mtime);
     if (dirs.length > 0) {
       BRAIN_DIR = dirs[0].path;
+      console.log(`🔍 Resolved active BRAIN_DIR: ${BRAIN_DIR}`);
     }
   }
 } catch (e) {

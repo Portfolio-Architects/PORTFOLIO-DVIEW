@@ -158,6 +158,7 @@ function getHistory() {
 // 3. Save Loop History
 function saveHistory(history) {
   try {
+    fs.mkdirSync(path.dirname(HISTORY_JSON_PATH), { recursive: true });
     fs.writeFileSync(HISTORY_JSON_PATH, JSON.stringify(history, null, 2), 'utf8');
   } catch (err) {
     log(colors.red, `❌ Failed to save loop history: ${err.message}`);
