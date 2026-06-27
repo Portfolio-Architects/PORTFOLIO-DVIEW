@@ -109,10 +109,10 @@ function SegmentedControlInner<T extends string | number>({
   );
 }
 
-const SegmentedControl = React.memo(SegmentedControlInner) as <T extends string | number>(
+const SegmentedControl = React.memo(SegmentedControlInner) as (<T extends string | number>(
   props: SegmentedControlProps<T>
-) => React.ReactElement;
+) => React.ReactElement) & { displayName?: string };
 
-(SegmentedControl as any).displayName = 'SegmentedControl';
+SegmentedControl.displayName = 'SegmentedControl';
 
 export default SegmentedControl;

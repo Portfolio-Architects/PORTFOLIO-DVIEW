@@ -3,9 +3,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
+interface TooltipChildrenProps {
+  onMouseEnter?: React.MouseEventHandler;
+  onMouseLeave?: React.MouseEventHandler;
+  onFocus?: React.FocusEventHandler;
+  onBlur?: React.FocusEventHandler;
+  onTouchStart?: React.TouchEventHandler;
+  'aria-describedby'?: string;
+  tabIndex?: number;
+  ref?: React.Ref<unknown>;
+}
+
 interface TooltipProps {
   content: React.ReactNode;
-  children: React.ReactElement<any>;
+  children: React.ReactElement<TooltipChildrenProps>;
   delay?: number; // delay in ms (default: 300ms)
   className?: string;
 }
@@ -13,7 +24,7 @@ interface TooltipProps {
 export const Tooltip = React.memo(function Tooltip({ content, children, delay = 300, className = '' }: TooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, placement: 'top' });
-  const triggerRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -118,16 +129,15 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
     };
   }, []);
 
-  // Clone child to inject event listeners securely without losing existing refs
-  const childRef = (children as any).ref || null;
+  const childRef = (children as React.ReactElement & { ref?: React.Ref<unknown> }).ref || null;
   const setRefs = (node: HTMLElement | null) => {
-    (triggerRef as any).current = node;
+    triggerRef.current = node;
     if (childRef) {
       if (typeof childRef === 'function') {
         childRef(node);
       } else if (childRef && 'current' in childRef) {
         // eslint-disable-next-line react-hooks/immutability
-        childRef.current = node;
+        (childRef as React.MutableRefObject<HTMLElement | null>).current = node;
       }
     }
   };

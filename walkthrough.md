@@ -1,4 +1,4 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 766)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 769)
 
 
 
@@ -164,19 +164,44 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - 퀴즈 응답 저장용 로컬 상태 `quizAnswers` 의 제네릭 선언인 `useState<any>(null)`을 `useState<QuizAnswers | null>(null)`로 격상해 타입 안정성을 확보했습니다.
   - 단지 비교용 wins 가중 헬퍼 함수 `compare` 의 매개변수 `(val1: any, val2: any)`의 타입을 `string | number | undefined | null` 로 변경하고 안전하게 문자열 형변환 및 파싱하도록 처리했습니다.
   - SEO용 JSON-LD 객체 수집기인 `elements` 배열 내 `Record<string, any>[]` 캐스팅을 `Record<string, unknown>[]`으로 격상하여 explicit `any` 타입을 완벽히 걷어냈습니다.
-
-
-
-
-
+- **Explicit Any Type Refactoring in React Hooks & Shared Types (Phase 767)**:
+  - [transaction.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/types/transaction.ts) 내에 `LocationScoreItem`, `RecentTransaction`, `Recent7DaysVolume` 인터페이스 정의를 통합하여 중복 타입을 제거하고 공유할 수 있도록 구조화했습니다.
+  - [AptCompareModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/consumer/AptCompareModal.tsx) 내의 중복 로컬 `LocationScoreItem` 정의를 지우고 shared types로부터 임포트했습니다.
+  - [useApartmentDetails.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/hooks/useApartmentDetails.ts) 내 `locationScores` 파라미터의 `Record<string, any>`를 `Record<string, LocationScoreItem>`로 격상하고, `EMPTY_ARRAY` 및 records dynamic mapping 콜백 매개변수의 explicit `any`를 `RawTransactionRecord[]` 및 `RawTransactionRecord`로 완전히 정형화했습니다.
+  - [useDashboardData.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/hooks/useDashboardData.ts) 내 `EMPTY_ARRAY` 타입을 `never[]`로 바꾸고 `quizAnswers` state 타입을 `QuizAnswers | null`로 지정했습니다.
+  - [useDashboardMeta.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/hooks/useDashboardMeta.ts) 내 `DashboardInitialDataLocal` 의 `recent7DaysVolume` 및 `recentTransactions` 에 대한 explicit `any` 타입을 각각 `Recent7DaysVolume` 및 `RecentTransaction[]`로 격상했습니다.
+  - [useStaticData.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/hooks/useStaticData.ts) 내 Firestore 트랜잭션 역직렬화 및 병합용 함수들의 `any` 타입들을 Zod 기반 `FirestoreTransaction[]` 및 `RecentTransaction[]`로 격상하고, SWR 및 `useLocationScores` 반환 타입을 dynamic `any` 없이 완전히 안전한 형태로 리팩토링했습니다.
+- **Explicit Any Type Refactoring in Core Repositories & Services (Phase 768)**:
+  - [report.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/report.repository.ts) 내에 `cachedAdminDb` 및 `getAdminDb` 반환 타입을 `admin.firestore.Firestore | null`로 리팩토링하고, Zod 스펙 내의 `any()`를 `unknown()`으로 마이그레이션했습니다. 또한, `getFullReport` 및 `getFullReportByApartmentName` 비동기 조회 함수 내의 `throttle` 제네릭 인자를 Admin 타입으로 바인딩하여 explicit `any`를 완벽히 제거했습니다.
+  - [user.repository.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/repositories/user.repository.ts) 내에 `cachedAdminDb`와 `getAdminDb`를 Firestore 타입으로 리팩토링하고 `UserProfileSchema` 내 Zod `any()`를 `unknown()`으로 마이그레이션했습니다. `getOrCreateProfile` 에서 `docData` 선언의 `Record<string, any>`를 `Record<string, unknown>`으로 변경하고 비동기 DB 작업 catch 절의 `err: any` 및 `throttle` 제네릭 인자를 타입 안전하게 보완했습니다.
+  - [locationService.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/services/locationService.ts) 내 `fetchCSVWithRetry` 함수 비동기 fetch catch 절의 `err: any`를 `unknown`으로 변경하고 명시적 타입 캐스팅을 구현해 dynamic any 형식을 제거했습니다.
+  - [newsData.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/lib/services/newsData.ts) 내 RSS 피드 파싱을 위한 `rawItems` 배열을 `unknown[]`로 격상하고 map 콜백 내부에서 fallback 파싱 시 dynamic property 엑세스를 가드했습니다. 또한 `withTimeout` 타이머 timeoutId의 타입을 `ReturnType<typeof setTimeout> | undefined`로 선언하고 `getTopN` 헬퍼의 `snapshot` 및 `doc` 매개변수 타입을 `QuerySnapshot` 및 `QueryDocumentSnapshot` 정형 타입으로 구체화했습니다.
+- **Explicit Any Type Refactoring in RegionAccordion & Global Types (Phase 769)**:
+  - [RegionAccordion.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/curation/RegionAccordion.tsx) 내 `GroupedCategory` 인터페이스에 `recentTxCount?: number` 옵셔널 속성을 추가하고, map 루프 및 JSX 렌더링 내의 `(g as any).recentTxCount` 및 `(group as any).recentTxCount` 캐스팅을 전면 제거하여 type-safe하게 속성에 직접 접근하도록 개선했습니다.
+  - [global.d.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/types/global.d.ts) 내 `Window` 인터페이스 선언에서 레거시 explicit `any` 타입으로 남겨져있던 `daum` 속성을 `unknown` 타입으로 리팩토링했습니다.
+- **Explicit Any Type Refactoring in Global Definitions, PWA Provider, Redis, and Services (Phase 770)**:
+  - `Window` 인터페이스에 `NProgress` 타입을 구조화하여 추가함으로써 `window.NProgress`에 할당된 explicit `as any` 형변환을 제거했습니다.
+  - `Navigator` 인터페이스에 iOS PWA 여부를 묻는 `standalone` 프로퍼티 선언을 확장하여 `as any` 캐스팅 없이 바로 직접 접근할 수 있도록 개편했습니다.
+  - 모듈 스크립트가 아닌 환경에서도 `globalThis`에 `_cachedFileReader`가 원활히 호환될 수 있도록 전역 변수 `declare var _cachedFileReader`를 추가하고, ESLint `no-var` 룰 무시 주석(`// eslint-disable-next-line no-var`)을 달아 린트 오경보를 완벽히 격리했습니다.
+  - `(window as any).NProgress` 및 `(window.navigator as any).standalone`에서 explicit `as any` 캐스팅을 전면 제거하여 정적 타입 안전성을 대폭 끌어올렸습니다.
+  - `@upstash/redis`의 `set`이 갖는 옵션 타입인 `SetCommandOptions`를 명시적으로 임포트하여 `MemoryCacheFallback.set`, `ResilientPipeline.set`, `ResilientRedisWrapper.set`에 적용했습니다. 이를 통해 `this.client.set(key, value as any, options as any)` 형태의 임시 `as any` 단언 캐스팅을 완벽히 제거했습니다.
+  - 전역 스크립트 영역에서 바인딩되는 `globalThis._cachedFileReader`를 사용할 수 있도록 `(globalThis as any)._cachedFileReader` 캐스팅을 지우고 `globalThis._cachedFileReader`로 전환하여 dynamic any 의존성을 제거했습니다.
+  - Zod safeParse 실패 시 로깅을 위해 호출하던 `parsed.error.format() as any`를 모두 `as unknown`으로 전환하여 dynamic any 단언 없이 정적 분석 도구의 위생 검사를 완벽히 극복했습니다.
+- **Explicit Any Type Refactoring in Common UI Components (Phase 771)**:
+  - `Window` 인터페이스에 `gc?: () => void` 를 확장 선언하여 `ErrorBoundary.tsx` 내에서 `(window as any).gc`로 검사하고 호출하던 GC 트리거 로직의 explicit `as any` 캐스팅을 완전히 소거했습니다.
+  - `ErrorBoundary.tsx` 내 `componentDidCatch`의 `errorInfo: ErrorInfo` 매개변수가 전송되는 `errorInfo as any` 캐스팅을 `as unknown`으로 리팩토링했습니다.
+  - `SegmentedControl.tsx` 내에서 `React.memo`로 감싸진 제네릭 컴포넌트의 반환 형식에 인터섹션 타입(`& { displayName?: string }`)을 부여함으로써, `displayName` 설정 시 사용되던 `(SegmentedControl as any).displayName` 캐스팅을 배제했습니다.
+  - `Tooltip.tsx` 내의 `children` prop 제네릭 파라미터로 선언되었던 `any`를 `TooltipChildrenProps` 인터페이스 정의로 대체하여 `children.props`에 대한 타입 안전성을 수립했습니다.
+  - `Tooltip.tsx` 내 `triggerRef`를 `useRef<HTMLElement | null>(null)` 가변 Ref 객체로 변환하여 `triggerRef.current = node` 할당 시 적용되던 `(triggerRef as any).current = node` 캐스팅을 완전히 박멸했습니다.
+  - `children`에서 ref 속성을 우회 및 전달하는 `(children as any).ref`를 `(children as React.ReactElement & { ref?: React.Ref<unknown> }).ref` 형태로 정형화하여 explicit `any` 캐스팅 구조를 제거했습니다.
 
 ---
 
-## 🟢 Verification Results
+## 🟢 Verification Results (Phase 771)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:
 - **TypeScript compilation check**: `tsc --noEmit` - **PASSED** (0 compilation errors).
-- **ESLint code hygiene check**: **PASSED** (0 lints/errors).
+- **ESLint code hygiene check**: **PASSED** (0 lints/errors, with `eslint-disable-next-line no-var` guard).
 - **E2E Playwright tests**: **PASSED** (6 E2E integration test suites successfully completed).
 - **Firestore cost projection check**: **PASSED** (₩4/month projection).

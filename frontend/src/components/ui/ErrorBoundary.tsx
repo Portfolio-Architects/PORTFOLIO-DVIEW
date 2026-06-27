@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('ErrorBoundary', `[ErrorBoundary:${this.props.name || 'Global'}] Caught error`, { errorInfo: errorInfo as any }, error);
+    logger.error('ErrorBoundary', `[ErrorBoundary:${this.props.name || 'Global'}] Caught error`, { errorInfo: errorInfo as unknown }, error);
   }
 
   private handleReset = () => {
@@ -61,9 +61,8 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null, showDetails: false }, () => {
       try {
         // Force GC references if any custom variables exist
-        const anyWindow = window as any;
-        if (anyWindow.gc) {
-          anyWindow.gc();
+        if (window.gc) {
+          window.gc();
         }
       } catch (e) {
         // Ignored
