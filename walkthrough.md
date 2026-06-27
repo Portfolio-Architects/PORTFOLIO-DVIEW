@@ -1,4 +1,4 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 760)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 761)
 
 We have successfully rebranded DVIEW into a **100% Civic Public Interest Platform** and repositioned the TechnoValley Fit-Finder as the secondary tab. We also integrated real-time transaction data from the Ministry of Land, Infrastructure and Transport (MOLIT) OpenAPI, complete with a Toss-style loading shimmer and mock fallback safety mechanism.
 
@@ -131,6 +131,10 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Explicit Any Type Refactoring in ApartmentModal Component (Phase 760)**:
   - [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx) 내 `ApartmentModalProps` (인터페이스 속성)에서 `txSummary?: any`로 임의 선언되어 있던 것을 `import('@/lib/types/transaction').AptTxSummary` 정형 타입으로 구체화했습니다.
   - 전월세 가치 분석 및 가중 전세가율 연산 lambda 헬퍼 함수 `getJeonseEq` 내의 `(t: any)` 매개변수 타입을 `EnrichedTransaction` 정형 타입으로 변환하여 컴포넌트 내부의 implicit/explicit any를 완벽히 소거했습니다.
+- **Explicit Any Type Refactoring in Curation and Explore Components (Phase 761)**:
+  - [ChopoomaCuration.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ChopoomaCuration.tsx) 내 props 명세의 `locationScores: Record<string, any>`를 `Record<string, { distanceToElementary?: number; [key: string]: unknown }>` 정형 타입으로 변환하여 형식 안전성을 다졌습니다.
+  - [DashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/DashboardClient.tsx) 내의 empty fallback 상수인 `EMPTY_OBJECT` 및 `EMPTY_ARRAY`를 각각 bottom type인 `Record<string, never>` 및 `never[]`로 안전하게 리팩토링하여 type narrowing 및 assignability를 만족시켰습니다. 또한 거래 필터링 lambda 매개변수 `tx: any`를 `{ txKey?: string }` 구조적 타입 가드로 전환했습니다.
+  - [TossApartmentExploreClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/TossApartmentExploreClient.tsx) 내 Zod 명세 기반 props validation 스키마 내의 `z.any()` 구문들을 `z.unknown()`으로 마이그레이션하여 dynamic any 타입을 완전히 제거했습니다.
 
 ---
 
