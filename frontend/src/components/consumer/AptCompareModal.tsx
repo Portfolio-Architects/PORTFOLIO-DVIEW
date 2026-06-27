@@ -16,6 +16,18 @@ import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.sche
 import { BUILD_VERSION } from '@/lib/build-version';
 import { logger } from '@/lib/services/logger';
 
+interface LocationScoreItem {
+  distanceToSubway?: number;
+  distanceToElementary?: number;
+  distanceToMiddle?: number;
+  distanceToHigh?: number;
+  distanceToStarbucks?: number;
+  distanceToOliveYoung?: number;
+  distanceToIndeokwon?: number;
+  distanceToTram?: number;
+  [key: string]: unknown;
+}
+
 interface AptCompareModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,7 +37,7 @@ interface AptCompareModalProps {
   nameMapping: Record<string, string>;
   fieldReportsMap: Map<string, FieldReportData>;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
-  locationScores?: Record<string, any>;
+  locationScores?: Record<string, LocationScoreItem>;
 }
 
 interface TxDataPoint {
@@ -40,7 +52,7 @@ interface TxDataPoint {
 function getEffectiveMetrics(
   apt: DongApartment | null | undefined,
   report: FieldReportData | undefined,
-  locationScores?: Record<string, any>,
+  locationScores?: Record<string, LocationScoreItem>,
   nameMapping?: Record<string, string>
 ) {
   if (!apt || typeof apt !== 'object') {
@@ -92,7 +104,7 @@ function getEffectiveMetrics(
   const parkingPerHousehold = 1.25; // default fallback
 
   // Find exact coordinate scores if locationScores is provided
-  let locScore: Record<string, any> | null = null;
+  let locScore: LocationScoreItem | null = null;
   if (locationScores) {
     const matchKey = findTxKey(apt.name, locationScores, nameMapping || {});
     if (matchKey) {
@@ -259,7 +271,12 @@ const AptCompareModal = React.memo(function AptCompareModal({
   }, []);
 
   // Quiz integration states
-  const [quizAnswers, setQuizAnswers] = useState<any>(null);
+  interface QuizAnswers {
+    transit: string;
+    family: string;
+    lifestyle: string;
+  }
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers | null>(null);
 
   // Input refs for clicking outside
   const containerRef = useRef<HTMLDivElement>(null);
@@ -648,9 +665,9 @@ const AptCompareModal = React.memo(function AptCompareModal({
   const wins = useMemo(() => {
     if (!metrics1 || !metrics2) return {} as Record<string, boolean | null>;
 
-    const compare = (val1: any, val2: any, lowerIsBetter = false) => {
-      const v1 = typeof val1 === 'number' ? val1 : parseFloat(val1);
-      const v2 = typeof val2 === 'number' ? val2 : parseFloat(val2);
+    const compare = (val1: string | number | undefined | null, val2: string | number | undefined | null, lowerIsBetter = false) => {
+      const v1 = typeof val1 === 'number' ? val1 : parseFloat(String(val1 || ''));
+      const v2 = typeof val2 === 'number' ? val2 : parseFloat(String(val2 || ''));
       if (isNaN(v1) && isNaN(v2)) return null;
       if (isNaN(v1)) return false;
       if (isNaN(v2)) return true;
@@ -1072,7 +1089,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
   const jsonLd = useMemo(() => {
     if (!isOpen) return null;
     
-    const elements: Array<Record<string, any>> = [];
+    const elements: Array<Record<string, unknown>> = [];
     if (apt1 && metrics1) {
       elements.push({
         "@type": "Place",
