@@ -88,11 +88,11 @@ interface TossApartmentExploreClientProps {
 }
 
 const TossApartmentExploreClientPropsSchema = z.object({
-  sheetApartments: z.record(z.string(), z.array(z.any())),
-  txSummaryData: z.record(z.string(), z.any()),
+  sheetApartments: z.record(z.string(), z.array(z.unknown())),
+  txSummaryData: z.record(z.string(), z.unknown()),
   nameMapping: z.record(z.string(), z.string()),
   favoriteCounts: z.record(z.string(), z.number()),
-  typeMap: z.record(z.string(), z.any()),
+  typeMap: z.record(z.string(), z.unknown()),
 });
 
 const TossApartmentExploreClient = React.memo(function TossApartmentExploreClient({

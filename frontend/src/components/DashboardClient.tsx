@@ -247,9 +247,9 @@ import { isValidNickname } from '@/lib/services/nickname.service';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-const EMPTY_OBJECT: Record<string, any> = {};
+const EMPTY_OBJECT: Record<string, never> = {};
 const EMPTY_SET = new Set<string>();
-const EMPTY_ARRAY: any[] = [];
+const EMPTY_ARRAY: never[] = [];
 
 const DashboardClient = React.memo(function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
   const router = useRouter();
@@ -346,7 +346,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
       }
     }
 
-    return recentTransactions.filter((tx: any) => {
+    return recentTransactions.filter((tx: { txKey?: string }) => {
       if (!tx || !tx.txKey) return false;
       const normTxKey = normalizeAptName(tx.txKey);
       return targetTxKeys.has(normTxKey);

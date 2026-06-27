@@ -12,7 +12,7 @@ interface ChopoomaCurationProps {
   txSummaryData: Record<string, AptTxSummary>;
   nameMapping: Record<string, string>;
   publicRentalSet: Set<string>;
-  locationScores: Record<string, any>;
+  locationScores: Record<string, { distanceToElementary?: number; [key: string]: unknown }>;
   onSelectApt: (name: string) => void;
 }
 
