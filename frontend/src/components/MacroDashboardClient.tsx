@@ -110,6 +110,43 @@ interface LocalNoticeItem {
   source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
+interface RecentTransaction {
+  aptName: string;
+  txKey: string;
+  date: string;
+  contractDate: string;
+  priceVal: number;
+  priceEok: string;
+  area: number;
+  areaPyeong: number;
+  floor: number | string;
+  dealType: string;
+  isNewHigh?: boolean;
+  prevPriceVal?: number;
+  delta?: number;
+  deltaPercent?: number;
+  dateLabel?: string;
+}
+
+interface AptTransactionRecord {
+  dong: string;
+  aptName: string;
+  area: number;
+  areaPyeong: number;
+  contractYm: string;
+  contractDay: string;
+  price: number;
+  priceEok: string;
+  deposit?: number;
+  monthlyRent?: number;
+  floor: number;
+  buildYear: number;
+  dealType: string;
+  reqGb?: string;
+  rnuYn?: string;
+  cancelDate?: string;
+}
+
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
@@ -134,7 +171,7 @@ interface MacroDashboardProps {
     trendColor: string;
     badge: string;
   };
-  recentTransactions?: any[];
+  recentTransactions?: RecentTransaction[];
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
@@ -460,17 +497,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return Object.values(sheetApartments).flat().map(a => a.name).sort();
   }, [sheetApartments, timelineDongFilter]);
   const { data: globalVotesData } = useSWR('/api/apartments/vote?aptName=global', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
-  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
+  const { data: noticesData, error: noticesError, mutate: mutateNotices } = useSWR<{ notices: LocalNoticeItem[]; lastUpdated?: string }>('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
   const { locationScores } = useLocationScores();
   const { data: postsData } = useSWR('/api/posts?limit=50', fetcher, { revalidateOnFocus: false, dedupingInterval: 180000 });
   const noticesLoading = !noticesData && !noticesError;
 
-
-
   const railNotices = useMemo(() => {
     if (!noticesData?.notices) return [];
     const keywords = ['철도', '교통', 'gtx', '트램', '인동선', 'srt', '지하철', '복합환승', '대중교통', '철도교통', '동탄인덕원', '노선', '열차', '정거장', '서해선', '1호선', '신수원선'];
-    return noticesData.notices.filter((n: any) => {
+    return noticesData.notices.filter((n: LocalNoticeItem) => {
       if (n.source === 'rail') return true;
       const titleLower = (n.title || '').toLowerCase();
       return keywords.some(kw => titleLower.includes(kw));
@@ -479,7 +514,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const filteredRailNotices = useMemo(() => {
     if (gapRankingDong === "전체") return railNotices;
-    return railNotices.filter((n: any) => {
+    return railNotices.filter((n: LocalNoticeItem) => {
       const deptMatch = (n.dept || '').includes(gapRankingDong.replace("동", ""));
       const titleMatch = (n.title || '').includes(gapRankingDong);
       return deptMatch || titleMatch;
@@ -487,35 +522,35 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [railNotices, gapRankingDong]);
 
   const railStrategyNotices = useMemo(() => {
-    return railNotices.filter((n: any) => 
+    return railNotices.filter((n: LocalNoticeItem) => 
       (n.dept || '').includes('철도') || (n.dept || '').includes('전략')
     );
   }, [railNotices]);
 
   const tramNotices = useMemo(() => {
-    return railNotices.filter((n: any) => 
+    return railNotices.filter((n: LocalNoticeItem) => 
       (n.dept || '').includes('트램') || (n.dept || '').includes('추진단')
     );
   }, [railNotices]);
 
   const nextCultureEvent = useMemo(() => {
     if (!noticesData?.notices) return null;
-    const cultureNotices = noticesData.notices.filter((n: any) => n.source === 'culture');
+    const cultureNotices = noticesData.notices.filter((n: LocalNoticeItem) => n.source === 'culture');
     if (cultureNotices.length === 0) return null;
     
     const today = new Date('2026-06-07');
     today.setHours(0, 0, 0, 0);
     
     const upcoming = cultureNotices
-      .map((n: any) => {
+      .map((n: LocalNoticeItem) => {
         const target = new Date(n.date);
         target.setHours(0, 0, 0, 0);
         const diff = target.getTime() - today.getTime();
         const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
         return { notice: n, diffDays };
       })
-      .filter((item: any) => item.diffDays >= 0)
-      .sort((a: any, b: any) => a.diffDays - b.diffDays);
+      .filter((item: { notice: LocalNoticeItem; diffDays: number }) => item.diffDays >= 0)
+      .sort((a: { notice: LocalNoticeItem; diffDays: number }, b: { notice: LocalNoticeItem; diffDays: number }) => a.diffDays - b.diffDays);
       
     return upcoming[0] || null;
   }, [noticesData]);
@@ -723,7 +758,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return `/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`;
   }, [mounted, txKey]);
 
-  const { data: aptRealTxDataData, isValidating: isAptTxLoading } = useSWR<any[]>(
+  const { data: aptRealTxDataData, isValidating: isAptTxLoading } = useSWR<AptTransactionRecord[]>(
     fetchUrl,
     async (url) => {
       const res = await fetch(url);
@@ -790,7 +825,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     let downCount = 0;
     let sameCount = 0;
 
-    const aptAreaGroups: Record<string, any[]> = {};
+    const aptAreaGroups: Record<string, RecentTransaction[]> = {};
     recentTransactions.forEach((tx) => {
       const groupKey = `${tx.txKey}-${Math.floor(tx.area)}`;
       if (!aptAreaGroups[groupKey]) {
@@ -1573,11 +1608,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           priceVal: tx.priceVal,
           areaPyeong: tx.areaPyeong,
           area: tx.area,
-          floor: tx.floor,
+          floor: typeof tx.floor === 'string' ? (parseInt(tx.floor, 10) || 0) : tx.floor,
           type: tx.isNewHigh ? "high" : "normal",
           delta: tx.delta || 0,
           deltaPercent: tx.deltaPercent || 0,
-          prevPriceVal: tx.prevPriceVal || (tx.priceVal - tx.delta),
+          prevPriceVal: tx.prevPriceVal || (tx.priceVal - (tx.delta || 0)),
           areaLabelM2: labelM2,
           areaLabelPyeong: labelPyeong,
         });
