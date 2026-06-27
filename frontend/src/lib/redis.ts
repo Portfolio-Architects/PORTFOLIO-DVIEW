@@ -1,11 +1,11 @@
-import { Redis } from "@upstash/redis";
+import { Redis, SetCommandOptions } from "@upstash/redis";
 import { z } from "zod";
 import { logger } from "@/lib/services/logger";
 import { serverLruCache } from "@/lib/utils/server/lruCache";
 
 export interface ResilientPipeline {
   get(key: string): this;
-  set(key: string, value: unknown, options?: { ex?: number; px?: number }): this;
+  set(key: string, value: unknown, options?: SetCommandOptions): this;
   hgetall(key: string): this;
   hset(key: string, value: Record<string, unknown>): this;
   hmset(key: string, value: Record<string, unknown>): this;
@@ -28,7 +28,7 @@ class MemoryCacheFallback {
     return item.value as T;
   }
 
-  async set(key: string, value: unknown, options?: { ex?: number; px?: number }): Promise<string> {
+  async set(key: string, value: unknown, options?: SetCommandOptions): Promise<string> {
     let ttlMs = 24 * 60 * 60 * 1000; // default 1 day TTL
     if (options?.ex) ttlMs = options.ex * 1000;
     if (options?.px) ttlMs = options.px;
@@ -137,7 +137,7 @@ export class ResilientRedisWrapper {
   async set(
     key: string, 
     value: unknown, 
-    options?: { ex?: number; px?: number; nx?: boolean; xx?: boolean }
+    options?: SetCommandOptions
   ): Promise<string | null> {
     try {
       serverLruCache.delete(key);
@@ -148,7 +148,7 @@ export class ResilientRedisWrapper {
 
     if (!this.client) return this.fallback.set(key, value, options);
     try {
-      const res = await withTimeout(this.client.set(key, value as any, options as any));
+      const res = await withTimeout(this.client.set(key, value, options));
       serverLruCache.set(key, value, 10000);
       return res as string | null;
     } catch (e: unknown) {
@@ -290,7 +290,7 @@ export class ResilientRedisWrapper {
         commands.push(() => this.get(key));
         return mockPipeline;
       },
-      set: (key: string, value: unknown, options?: { ex?: number; px?: number }) => {
+      set: (key: string, value: unknown, options?: SetCommandOptions) => {
         commands.push(() => this.set(key, value, options));
         return mockPipeline;
       },

@@ -77,7 +77,7 @@ function NProgressCleaner() {
   useEffect(() => {
     const cleanNProgress = () => {
       try {
-        const globalNProgress = (window as any).NProgress;
+        const globalNProgress = window.NProgress;
         if (globalNProgress) {
           globalNProgress.done();
         }
@@ -177,7 +177,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     // iOS detection and manual installation guide eligibility
     const ua = window.navigator.userAgent.toLowerCase();
     const isIphone = ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod');
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
     if (isIphone) {
       setIsIOS(true);

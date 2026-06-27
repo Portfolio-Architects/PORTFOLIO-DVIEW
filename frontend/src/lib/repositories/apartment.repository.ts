@@ -41,11 +41,11 @@ export async function fetchApartmentNames(): Promise<string[]> {
       // Server-side: read directly from the static file to avoid relative URL fetch failures
       try {
         // Isolate dynamic import caching inside the server-only block using globalThis to prevent bundling issues
-        if (!(globalThis as any)._cachedFileReader) {
+        if (!globalThis._cachedFileReader) {
           const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
-          (globalThis as any)._cachedFileReader = readJsonFileCached;
+          globalThis._cachedFileReader = readJsonFileCached;
         }
-        const readJsonFileCached = (globalThis as any)._cachedFileReader;
+        const readJsonFileCached = globalThis._cachedFileReader;
 
         if (readJsonFileCached) {
           const rawResult = await readJsonFileCached('public/data/apartments-by-dong.json', {});

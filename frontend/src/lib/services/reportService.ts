@@ -117,7 +117,7 @@ export async function createScoutingReport(
 ) {
   const validated = ScoutingReportInputSchema.safeParse(reportData);
   if (!validated.success) {
-    logger.error('ReportService.createScoutingReport', 'Validation failed', { errors: validated.error.format() as any });
+    logger.error('ReportService.createScoutingReport', 'Validation failed', { errors: validated.error.format() as unknown });
     throw new Error(`검증 실패: ${validated.error.issues[0]?.message}`);
   }
 
@@ -143,7 +143,7 @@ export async function updateScoutingReport(
 ) {
   const validated = ScoutingReportInputSchema.partial().safeParse(updateData);
   if (!validated.success) {
-    logger.error('ReportService.updateScoutingReport', 'Validation failed', { errors: validated.error.format() as any });
+    logger.error('ReportService.updateScoutingReport', 'Validation failed', { errors: validated.error.format() as unknown });
     throw new Error(`검증 실패: ${validated.error.issues[0]?.message}`);
   }
 
@@ -179,7 +179,7 @@ export async function createFieldReport(
   });
   if (!validated.success) {
     const errorMsg = validated.error.issues[0]?.message || '입력값 검증에 실패했습니다.';
-    logger.error('ReportService.createFieldReport', 'Validation failed', { errors: validated.error.format() as any });
+    logger.error('ReportService.createFieldReport', 'Validation failed', { errors: validated.error.format() as unknown });
     throw new Error(errorMsg);
   }
 

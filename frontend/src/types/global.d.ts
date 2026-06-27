@@ -43,11 +43,21 @@ interface KakaoSDK {
 interface Window {
   Kakao?: KakaoSDK;
   daum?: unknown;
+  NProgress?: {
+    done: () => void;
+    [key: string]: unknown;
+  };
   requestIdleCallback?: (callback: (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void, options?: { timeout: number }) => number;
   cancelIdleCallback?: (id: number) => void;
+}
+
+interface Navigator {
+  standalone?: boolean;
 }
 
 interface CanvasRenderingContext2D {
   letterSpacing?: string;
 }
 
+// eslint-disable-next-line no-var
+declare var _cachedFileReader: (<T>(filePath: string, fallbackValue: T) => Promise<T>) | undefined;

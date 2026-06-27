@@ -42,7 +42,7 @@ export async function createPost(
     });
     if (!validated.success) {
       const errorMsg = validated.error.issues[0]?.message || '입력값 검증에 실패했습니다.';
-      logger.error('PostService.createPost', 'Validation failed', { errors: validated.error.format() as any });
+      logger.error('PostService.createPost', 'Validation failed', { errors: validated.error.format() as unknown });
       throw new Error(errorMsg);
     }
 
@@ -124,7 +124,7 @@ export async function syncManagerPostToScoutingReport(
       providedApartments,
     });
     if (!validated.success) {
-      logger.warn('PostService.syncManagerPostToScoutingReport', 'Input validation failed, skipping sync', { errors: validated.error.format() as any });
+      logger.warn('PostService.syncManagerPostToScoutingReport', 'Input validation failed, skipping sync', { errors: validated.error.format() as unknown });
       return;
     }
 

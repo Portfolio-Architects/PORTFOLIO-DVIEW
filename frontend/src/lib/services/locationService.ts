@@ -199,7 +199,7 @@ async function loadApartments(forceRefresh = false): Promise<ApartmentPOI[]> {
     if (parsed.success) {
       result.push(parsed.data);
     } else {
-      logger.warn('locationService.loadApartments', 'Skipped invalid apartment POI', { name, errorInfo: parsed.error.format() as any });
+      logger.warn('locationService.loadApartments', 'Skipped invalid apartment POI', { name, errorInfo: parsed.error.format() as unknown });
     }
   }
   return result;
@@ -218,7 +218,7 @@ async function loadSchools(forceRefresh = false): Promise<SchoolPOI[]> {
       if (parsed.success) {
         result.push(parsed.data);
       } else {
-        logger.warn('locationService.loadSchools', 'Skipped invalid school POI', { name, errorInfo: parsed.error.format() as any });
+        logger.warn('locationService.loadSchools', 'Skipped invalid school POI', { name, errorInfo: parsed.error.format() as unknown });
       }
     }
   }
@@ -238,7 +238,7 @@ async function loadStations(forceRefresh = false): Promise<StationPOI[]> {
       if (parsed.success) {
         result.push(parsed.data);
       } else {
-        logger.warn('locationService.loadStations', 'Skipped invalid station POI', { name: cols[0], errorInfo: parsed.error.format() as any });
+        logger.warn('locationService.loadStations', 'Skipped invalid station POI', { name: cols[0], errorInfo: parsed.error.format() as unknown });
       }
     }
   }
@@ -259,7 +259,7 @@ async function loadAcademies(forceRefresh = false): Promise<AcademyPOI[]> {
       if (parsed.success) {
         result.push(parsed.data);
       } else {
-        logger.warn('locationService.loadAcademies', 'Skipped invalid academy POI', { name: cols[0], errorInfo: parsed.error.format() as any });
+        logger.warn('locationService.loadAcademies', 'Skipped invalid academy POI', { name: cols[0], errorInfo: parsed.error.format() as unknown });
       }
     }
   }
@@ -301,7 +301,7 @@ async function loadRestaurants(forceRefresh = false): Promise<RestaurantPOI[]> {
       if (parsed.success) {
         result.push(parsed.data);
       } else {
-        logger.warn('locationService.loadRestaurants', 'Skipped invalid restaurant POI', { name: rawName, errorInfo: parsed.error.format() as any });
+        logger.warn('locationService.loadRestaurants', 'Skipped invalid restaurant POI', { name: rawName, errorInfo: parsed.error.format() as unknown });
       }
     }
   }
@@ -344,7 +344,7 @@ async function loadSboyds(forceRefresh = false): Promise<RestaurantPOI[]> {
       if (parsed.success) {
         result.push(parsed.data);
       } else {
-        logger.warn('locationService.loadSboyds', 'Skipped invalid sboyd POI', { name, errorInfo: parsed.error.format() as any });
+        logger.warn('locationService.loadSboyds', 'Skipped invalid sboyd POI', { name, errorInfo: parsed.error.format() as unknown });
       }
     }
   }
