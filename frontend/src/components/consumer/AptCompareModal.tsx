@@ -15,18 +15,7 @@ import { usePWA } from '@/components/pwa/PWAProvider';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { logger } from '@/lib/services/logger';
-
-interface LocationScoreItem {
-  distanceToSubway?: number;
-  distanceToElementary?: number;
-  distanceToMiddle?: number;
-  distanceToHigh?: number;
-  distanceToStarbucks?: number;
-  distanceToOliveYoung?: number;
-  distanceToIndeokwon?: number;
-  distanceToTram?: number;
-  [key: string]: unknown;
-}
+import type { LocationScoreItem } from '@/lib/types/transaction';
 
 interface AptCompareModalProps {
   isOpen: boolean;

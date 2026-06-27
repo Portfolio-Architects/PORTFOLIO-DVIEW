@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useSWR, { preload } from 'swr';
 import { User } from 'firebase/auth';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary, LocationScoreItem } from '@/lib/types/transaction';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
@@ -51,11 +51,13 @@ interface RawTransactionRecord {
   cancelDate?: string;
   reqGb?: string;
   rnuYn?: string;
+  isOutlier?: boolean;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : []);
 
-const EMPTY_ARRAY: any[] = [];
+const EMPTY_ARRAY: RawTransactionRecord[] = [];
+const EMPTY_TX_ARRAY: TransactionRecord[] = [];
 
 export interface UseApartmentDetailsReturn {
   txSummaryData: Record<string, AptTxSummary>;
@@ -75,7 +77,7 @@ export function useApartmentDetails(
   nameMapping: Record<string, string> | undefined,
   user: User | null,
   txSummaryData: Record<string, AptTxSummary> = {},
-  locationScores: Record<string, any> = {}
+  locationScores: Record<string, LocationScoreItem> = {}
 ): UseApartmentDetailsReturn {
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
@@ -163,9 +165,9 @@ export function useApartmentDetails(
   const isTxLoading = isRecentLoading && !recentRecords; // 최근 데이터가 왔거나 이미 캐시가 있으면 로딩 해제
 
   const modalTransactions = useMemo(() => {
-    if (!records || records.length === 0) return EMPTY_ARRAY;
+    if (!records || records.length === 0) return EMPTY_TX_ARRAY;
 
-    return records.map((r: any, i) => {
+    return records.map((r: RawTransactionRecord, i) => {
       if (!r || typeof r !== 'object') {
         return {
           no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
@@ -267,14 +269,14 @@ export function useApartmentDetails(
     const normalizedName = normalizeAptName(raw.apartmentName);
     let fallback = apartmentsMap.get(normalizedName) || null;
     if (!fallback) {
-      fallback = flatApartments.find(a => isSameApartment(a.name, raw.apartmentName, nameMapping, a.dong, raw.dong)) as any;
+      fallback = flatApartments.find(a => isSameApartment(a.name, raw.apartmentName, nameMapping, a.dong, raw.dong)) || null;
     }
     
     // Find location scores dynamically from public/data/location-scores.json
     const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping, false, raw.dong);
-    const locScore = matchKey ? locationScores[matchKey] : {};
+    const locScore = (matchKey ? locationScores[matchKey] : {}) as LocationScoreItem;
 
-    const mergedMetrics = { ...fallback, ...locScore };
+    const mergedMetrics = { ...(fallback || {}), ...locScore } as Record<string, unknown>;
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {

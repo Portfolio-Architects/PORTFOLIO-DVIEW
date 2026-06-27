@@ -58,3 +58,41 @@ export interface DongtanMacroTrendPoint {
   '동탄 아파트 전체': number;
   '동탄 아파트 전세 평균': number;
 }
+
+export interface LocationScoreItem {
+  distanceToSubway?: number;
+  distanceToElementary?: number;
+  distanceToMiddle?: number;
+  distanceToHigh?: number;
+  distanceToStarbucks?: number;
+  distanceToOliveYoung?: number;
+  distanceToIndeokwon?: number;
+  distanceToTram?: number;
+  [key: string]: unknown;
+}
+
+export interface RecentTransaction {
+  aptName: string;
+  txKey: string;
+  date: string;
+  contractDate: string;
+  priceVal: number;
+  priceEok: string;
+  area: number;
+  areaPyeong: number;
+  floor: number | string;
+  dealType: string;
+  isNewHigh?: boolean;
+  prevPriceVal?: number;
+  delta?: number;
+  deltaPercent?: number;
+  dateLabel?: string;
+}
+
+export interface Recent7DaysVolume {
+  currentCount: number;
+  prevCount: number;
+  trendText: string;
+  trendColor: string;
+  badge: string;
+}

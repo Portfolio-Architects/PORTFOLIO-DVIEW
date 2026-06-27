@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
-import type { AptTxSummary, DongtanMacroTrendPoint } from '@/lib/types/transaction';
+import type { AptTxSummary, DongtanMacroTrendPoint, RecentTransaction, Recent7DaysVolume, LocationScoreItem } from '@/lib/types/transaction';
 import { z } from 'zod';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { logger } from '@/lib/services/logger';
@@ -20,6 +20,8 @@ const FirestoreTransactionSchema = z.object({
   floor: z.number().catch(0),
   contractDate: z.string().optional(),
 });
+
+export type FirestoreTransaction = z.infer<typeof FirestoreTransactionSchema>;
 
 const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(async (r) => {
   if (!r.ok) {
@@ -95,7 +97,7 @@ function updateSaleAveragesWithNewTx(target: AptTxSummary, price: number, txDate
 // 4. 정적 요약본 + Firestore 신규 거래 메모리 병합 헬퍼 (얕은 복사 & 부분 복제)
 function mergeTransactions(
   staticSummary: Record<string, AptTxSummary>,
-  newTxs: any[]
+  newTxs: FirestoreTransaction[]
 ): Record<string, AptTxSummary> {
   if (!newTxs || newTxs.length === 0) return staticSummary;
   
@@ -188,10 +190,10 @@ function mergeTransactions(
 
 // 4-2. 정적 최근 거래 플랫 리스트 + Firestore 신규 거래 메모리 병합 헬퍼
 function mergeRecentTransactions(
-  staticRecent: any[],
-  newTxs: any[],
+  staticRecent: RecentTransaction[],
+  newTxs: FirestoreTransaction[],
   targetAptKeys?: Set<string>
-): any[] {
+): RecentTransaction[] {
   if (!newTxs || newTxs.length === 0) return staticRecent;
   
   const merged = [...staticRecent];
@@ -250,7 +252,7 @@ function mergeRecentTransactions(
 }
 
 // 5. Firestore 최근 7일 거래 조회 fetcher
-const fetchRecentTxsFromFirestore = async () => {
+const fetchRecentTxsFromFirestore = async (): Promise<FirestoreTransaction[]> => {
   if (!db) return [];
   try {
     const now = new Date();
@@ -266,9 +268,9 @@ const fetchRecentTxsFromFirestore = async () => {
     );
 
     const snap = await getDocs(q);
-    const txs: any[] = [];
+    const txs: FirestoreTransaction[] = [];
     snap.forEach(doc => {
-      txs.push(doc.data());
+      txs.push(doc.data() as FirestoreTransaction);
     });
     return txs;
   } catch (err) {
@@ -280,8 +282,8 @@ const fetchRecentTxsFromFirestore = async () => {
 export function useTxData(
   initialMacroTrend?: DongtanMacroTrendPoint[],
   initialTxSummary?: Record<string, AptTxSummary>,
-  initialRecent7DaysVolume?: any,
-  initialRecentTransactions?: any[]
+  initialRecent7DaysVolume?: Recent7DaysVolume,
+  initialRecentTransactions?: RecentTransaction[]
 ) {
   const [shouldFetch, setShouldFetch] = useState(false);
   
@@ -325,7 +327,7 @@ export function useTxData(
   });
 
   // 1-2. 최근 전체 실거래 플랫 리스트 페칭 (recent-transactions.json)
-  const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<any[]>(
+  const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<RecentTransaction[]>(
     shouldFetch ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
     fetcher,
     {
@@ -338,7 +340,7 @@ export function useTxData(
   );
 
   // 2. Firestore 실시간 최근 7일 거래 페칭
-  const { data: recentFirestoreTxs, error: firestoreError } = useSWR<any[]>(
+  const { data: recentFirestoreTxs, error: firestoreError } = useSWR<FirestoreTransaction[]>(
     shouldFetch ? 'recent-firestore-txs' : null,
     fetchRecentTxsFromFirestore,
     {
@@ -427,14 +429,14 @@ export function useTxData(
   
   if (summaryError) {
     const errorMsg = (summaryError && typeof summaryError === 'object' && 'message' in summaryError)
-      ? (summaryError as any).message
+      ? (summaryError as Error).message
       : String(summaryError);
     
-    const errorDebug: Record<string, any> = {};
+    const errorDebug: Record<string, unknown> = {};
     if (summaryError && typeof summaryError === 'object') {
       try {
         Object.getOwnPropertyNames(summaryError).forEach(key => {
-          const val = (summaryError as any)[key];
+          const val = (summaryError as Record<string, unknown>)[key];
           errorDebug[key] = (val && typeof val === 'object') ? String(val) : val;
         });
       } catch (e) {}
@@ -444,7 +446,7 @@ export function useTxData(
       errorMsg, 
       errorDebug,
       isErrorInstance: String(summaryError instanceof Error)
-    }, summaryError as any);
+    }, summaryError as Error);
   }
 
   return {
@@ -481,7 +483,7 @@ export function useLocationScores() {
     };
   }, []);
 
-  const { data, error, isLoading } = useSWR<Record<string, any>>(shouldFetch ? `/data/location-scores.json?v=${BUILD_VERSION}` : null, fetcher, {
+  const { data, error, isLoading } = useSWR<Record<string, LocationScoreItem>>(shouldFetch ? `/data/location-scores.json?v=${BUILD_VERSION}` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     revalidateOnReconnect: false,

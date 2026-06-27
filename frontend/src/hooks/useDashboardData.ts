@@ -5,8 +5,11 @@ import type { FieldReportData } from '@/lib/types/report.types';
 import type { UserReview } from '@/lib/types/review.types';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
+import { z } from 'zod';
 
-const EMPTY_ARRAY: any[] = [];
+export type QuizAnswers = z.infer<typeof QuizAnswerSchema>;
+
+const EMPTY_ARRAY: never[] = [];
 
 /**
  * React hook providing reactive dashboard data via useSyncExternalStore.
@@ -45,7 +48,7 @@ export function useDashboardData() {
 
   // Load viewed apartments history and lifestyle quiz answers from local cache
   const [viewedApts, setViewedApts] = useState<string[]>([]);
-  const [quizAnswers, setQuizAnswers] = useState<any>(null);
+  const [quizAnswers, setQuizAnswers] = useState<QuizAnswers | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

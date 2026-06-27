@@ -4,7 +4,7 @@ import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartment
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { KPIData } from '@/lib/types/dashboard.types';
 import type { FieldReportData } from '@/lib/types/report.types';
-import type { DongtanMacroTrendPoint, AptTxSummary } from '@/lib/types/transaction';
+import type { DongtanMacroTrendPoint, AptTxSummary, Recent7DaysVolume, RecentTransaction } from '@/lib/types/transaction';
 import { z } from 'zod';
 
 const TypeMapEntrySchema = z.object({
@@ -38,8 +38,8 @@ export interface DashboardInitialDataLocal {
   fieldReports?: FieldReportData[];
   macroTrend?: DongtanMacroTrendPoint[];
   txSummary?: Record<string, AptTxSummary>;
-  recent7DaysVolume?: any;
-  recentTransactions?: any[];
+  recent7DaysVolume?: Recent7DaysVolume;
+  recentTransactions?: RecentTransaction[];
 }
 
 export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLocal) {
