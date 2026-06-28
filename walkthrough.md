@@ -1,4 +1,6 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 782)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 784)
+
+
 
 
 
@@ -219,9 +221,17 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **TechnoValley Donut Chart Center Text Scaling (Phase 782)**:
   - Reduced the font size of the donut chart center labels inside [TechnoValleyDashboard.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/macro/TechnoValleyDashboard.tsx) by 50% (from `text-[28px] sm:text-[32px]` to `text-[14px] sm:text-[16px]`). This improves the aesthetic layout of the "Total Companies" and active category percentage display inside the donut inner radius.
 
+- **TechnoValley Sub-Tab Section Deletion (Phase 783)**:
+  - Completely removed the horizontal sub-tab bar (`밸리 소개 & 현황`, `오피스 핏파인더`, `공동 임차 매칭`, `세제 혜택 시뮬레이션`) and their respective large page layout components from [TechnoValleyClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/technovalley/TechnoValleyClient.tsx) as requested (Option A).
+  - Cleaned up all unused hooks, state variables, imports, and recommended calculations/modals associated with these sub-tabs to ensure code hygiene and zero compiler/linter warnings.
+
+- **TechnoValley Precision Instrument Category Classification Fix (Phase 784)**:
+  - Fixed a classification bug in [route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/technovalley/industry-distribution/route.ts) where sheet-loaded fallback companies with the category `'정밀기기 및 기타'` matched `indName.includes('정밀')` and were incorrectly classified as `'바이오·헬스케어'`.
+  - Added an exclusion guard `(indName.includes('정밀') && indName !== '정밀기기 및 기타')` to redirect these records to the appropriate `'정밀기기 및 기타'` category. This aligns the donut chart value/percentage with the actual company lists shown in the accordion sections.
+
 ---
 
-## 🟢 Verification Results (Phase 782)
+## 🟢 Verification Results (Phase 784)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:

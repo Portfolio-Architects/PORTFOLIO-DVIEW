@@ -421,7 +421,7 @@ export async function GET(request: NextRequest) {
         if (matchedCompanies['반도체·첨단제조'].length < 2500) {
           matchedCompanies['반도체·첨단제조'].push({ name: cmpNm, address: addr });
         }
-      } else if (indName === '바이오·헬스케어' || indName.includes('의료') || indName.includes('의약') || indName.includes('정밀') || indName.includes('바이오') || indName.includes('진단') || cmpNm.includes('바이오') || cmpNm.includes('제약') || cmpNm.includes('우정바이오') || cmpNm.includes('아산제약') || cmpNm.includes('씨티씨바이오')) {
+      } else if (indName === '바이오·헬스케어' || indName.includes('의료') || indName.includes('의약') || (indName.includes('정밀') && indName !== '정밀기기 및 기타') || indName.includes('바이오') || indName.includes('진단') || cmpNm.includes('바이오') || cmpNm.includes('제약') || cmpNm.includes('우정바이오') || cmpNm.includes('아산제약') || cmpNm.includes('씨티씨바이오')) {
         bioCount++;
         if (matchedCompanies['바이오·헬스케어'].length < 2500) {
           matchedCompanies['바이오·헬스케어'].push({ name: cmpNm, address: addr });
