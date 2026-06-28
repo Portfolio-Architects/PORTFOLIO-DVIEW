@@ -446,18 +446,18 @@ export async function GET(request: NextRequest) {
 
     const calculatedData = [
       {
-        name: 'IT·소프트웨어',
-        value: parseFloat(((itCount / total) * 100).toFixed(1)),
-        color: '#ea580c',
-        count: itCount,
-        companies: getFinalCompanies('IT·소프트웨어')
-      },
-      {
         name: '반도체·첨단제조',
         value: parseFloat(((semiCount / total) * 100).toFixed(1)),
         color: '#9a3412',
         count: semiCount,
         companies: getFinalCompanies('반도체·첨단제조')
+      },
+      {
+        name: 'IT·소프트웨어',
+        value: parseFloat(((itCount / total) * 100).toFixed(1)),
+        color: '#ea580c',
+        count: itCount,
+        companies: getFinalCompanies('IT·소프트웨어')
       },
       {
         name: '바이오·헬스케어',
