@@ -84,6 +84,17 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
+  // 🔧 If it's a local development request, bypass service worker caching completely to enable live hot-reloads
+  if (
+    url.hostname === 'localhost' || 
+    url.hostname === '127.0.0.1' || 
+    url.hostname.startsWith('192.168.') ||
+    url.port === '3000' ||
+    url.port === '5000'
+  ) {
+    return; // Pass-through directly to the network
+  }
+
   // Skip non-GET requests or cross-origin (unless specific APIs)
   if (req.method !== 'GET') return;
 

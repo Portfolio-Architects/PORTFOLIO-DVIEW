@@ -14,7 +14,7 @@ import {
   CartesianGrid, 
   Tooltip 
 } from 'recharts';
-import { Building2, Percent, Coins, Users, Sparkles, ChevronRight } from 'lucide-react';
+import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CircularProgressProps {
   percent: number;
@@ -59,11 +59,11 @@ function CircularProgress({ percent, color }: CircularProgressProps) {
 
 // 1. Donut Chart Data
 const DONUT_DATA = [
-  { name: 'IT·소프트웨어', value: 35.2, color: '#ea580c', companies: ['유라코퍼레이션 R&D', '에프엠솔루션', '투피플커넥트', '제이앤제이 테크'] },
-  { name: '반도체·첨단제조', value: 28.4, color: '#9a3412', companies: ['원익IPS (본사)', 'ASML 코리아', '동진쎄미켐 R&D', '에스앤에스텍'] },
-  { name: '바이오·헬스케어', value: 14.8, color: '#f59e0b', companies: ['한미약품 연구센터', '녹십자웰빙', '아쁘레쑤', '메디포스트'] },
-  { name: '지식기반 서비스', value: 12.1, color: '#fdba74', companies: ['한국디지털인증', '특허법인 지산', '영천동 종합건축사', '기술보증기금 동탄'] },
-  { name: '정밀기기 및 기타', value: 9.5, color: '#e7e5e4', companies: ['신도리코 R&D', '더브라이트', '레노텍', '은빛무지개'] }
+  { name: 'IT·소프트웨어', value: 35.2, color: '#ea580c', count: 681, companies: ['한국아이티에스 - 자사빌딩', '에프엠솔루션 - 금강펜테리움 IX타워', '위즈코리아 - SH타임스퀘어', '제이앤제이 테크 - SH타임스퀘어'] },
+  { name: '반도체·첨단제조', value: 28.4, color: '#9a3412', count: 549, companies: ['에이에스엠코리아 - 자사빌딩', '케이씨텍 - 자사빌딩', '서플러스글로벌 - 자사빌딩', '에스앤에스텍 - 금강펜테리움 IX타워'] },
+  { name: '바이오·헬스케어', value: 14.8, color: '#f59e0b', count: 286, companies: ['우정바이오 - 자사빌딩', '한미약품 연구센터 - 자사연구소', '서린바이오 - 서린바이오 글로벌센터', '녹십자웰빙 - 금강펜테리움 IX타워'] },
+  { name: '지식기반 서비스', value: 12.1, color: '#fdba74', count: 234, companies: ['기술보증기금 동탄 - SH타임스퀘어', '한국디지털인증 - 금강펜테리움 IX타워', '특허법인 지산 - 금강펜테리움 IX타워', '영천동 종합건축사 - 현대실리콘앨리'] },
+  { name: '정밀기기 및 기타', value: 9.5, color: '#e7e5e4', count: 183, companies: ['신도리코 R&D - 자사빌딩', '더브라이트 - 현대실리콘앨리', '레노텍 - SH타임스퀘어', '은빛무지개 - 금강펜테리움 IX타워'] }
 ];
 
 // 2. Trend Line Chart Data
@@ -80,11 +80,91 @@ export default function TechnoValleyDashboard() {
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
 
-  const { data: responseData } = useSWR('/api/technovalley/industry-distribution', (url: string) => fetch(url).then(res => res.json()), {
+  // Accordion portfolio states
+  const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
+    'IT·소프트웨어': true,
+    '반도체·첨단제조': false,
+    '바이오·헬스케어': false,
+    '지식기반 서비스': false,
+    '정밀기기 및 기타': false
+  });
+
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({
+    'IT·소프트웨어': 12,
+    '반도체·첨단제조': 12,
+    '바이오·헬스케어': 12,
+    '지식기반 서비스': 12,
+    '정밀기기 및 기타': 12
+  });
+
+  const handleToggleSector = (name: string) => {
+    setExpandedSectors(prev => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
+
+  const handleExpandAll = () => {
+    setExpandedSectors({
+      'IT·소프트웨어': true,
+      '반도체·첨단제조': true,
+      '바이오·헬스케어': true,
+      '지식기반 서비스': true,
+      '정밀기기 및 기타': true
+    });
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedSectors({
+      'IT·소프트웨어': false,
+      '반도체·첨단제조': false,
+      '바이오·헬스케어': false,
+      '지식기반 서비스': false,
+      '정밀기기 및 기타': false
+    });
+  };
+
+  const handleShowMore = (name: string) => {
+    setVisibleCounts(prev => ({
+      ...prev,
+      [name]: prev[name] + 24
+    }));
+  };
+
+  const handleResetLimit = (name: string) => {
+    setVisibleCounts(prev => ({
+      ...prev,
+      [name]: 12
+    }));
+  };
+
+  const { data: responseData, mutate } = useSWR('/api/technovalley/industry-distribution', (url: string) => fetch(url).then(res => res.json()), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });
+
+  const handleSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    setSyncSuccess(false);
+    try {
+      const res = await fetch('/api/technovalley/industry-distribution?refresh=true');
+      const json = await res.json();
+      if (json.success) {
+        await mutate(json, false);
+        setSyncSuccess(true);
+        setTimeout(() => setSyncSuccess(false), 3000);
+      }
+    } catch (e) {
+      console.error('Failed to sync Google Sheets:', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const donutData = useMemo(() => {
     if (responseData?.success && Array.isArray(responseData.data)) {
@@ -128,15 +208,43 @@ export default function TechnoValleyDashboard() {
       <div className="lg:col-span-6 flex flex-col gap-6">
         
         {/* Donut Chart Card */}
-        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between flex-1 min-h-[385px]">
+        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-[390px] shrink-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
-              입주 및 예정 기업 업종 분포
+              테크노밸리 입주 기업 업종 분포
             </h3>
-            <span className="text-[10px] font-black bg-hs-orange-light text-hs-orange px-2.5 py-1 rounded-full uppercase tracking-wide">
-              업종 대분류 기준
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSync}
+                disabled={isSyncing}
+                className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide transition-all flex items-center gap-1.5 ${
+                  syncSuccess 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' 
+                    : 'bg-hs-orange-light text-hs-orange hover:bg-hs-orange/20 border border-hs-orange/10'
+                }`}
+              >
+                {isSyncing ? (
+                  <>
+                    <svg className="animate-spin h-3 w-3 text-hs-orange" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    동기화 중...
+                  </>
+                ) : syncSuccess ? (
+                  '동기화 완료 ✓'
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3 text-hs-orange" />
+                    구글 시트 동기화
+                  </>
+                )}
+              </button>
+              <span className="text-[10px] font-black bg-neutral-100 dark:bg-zinc-800 text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wide">
+                업종 대분류 기준
+              </span>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 flex-1 min-h-[280px]">
@@ -230,25 +338,17 @@ export default function TechnoValleyDashboard() {
                       {/* Representative Companies List with premium styled cards */}
                       <div className="flex flex-col gap-2.5">
                         <span className="text-[11px] text-tertiary font-bold tracking-wider uppercase pl-1">대표 입주 기업</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          {selectedItem.companies.map((co: string, cIdx: number) => (
+                        <div className="flex flex-col gap-2">
+                          {selectedItem.companies.slice(0, 4).map((co: string, cIdx: number) => (
                             <div 
                               key={cIdx} 
-                              className="bg-surface border border-border/60 dark:border-border/30 px-3 py-2.5 rounded-2xl shadow-sm text-center text-[11.5px] sm:text-[12.5px] font-black text-primary hover:border-hs-orange/40 hover:text-hs-orange transition-all"
+                              className="bg-surface border border-border/60 dark:border-border/30 px-4 py-2.5 rounded-2xl shadow-sm text-[12px] sm:text-[13px] font-black text-primary hover:border-hs-orange/40 hover:text-hs-orange transition-all text-left truncate"
                             >
                               {co}
                             </div>
                           ))}
                         </div>
                       </div>
-
-                      {/* Back button */}
-                      <button 
-                        onClick={() => setActiveCategory(null)}
-                        className="mt-2 text-[11px] sm:text-[12px] font-black text-[#dc6e2d] hover:text-[#b45309] bg-hs-orange-light px-3.5 py-2 rounded-xl border border-[#dc6e2d]/10 hover:border-[#dc6e2d]/30 transition-all flex items-center justify-center gap-1 self-start cursor-pointer"
-                      >
-                        <span>← 전체 업종 목록</span>
-                      </button>
                     </div>
                   );
                 })()

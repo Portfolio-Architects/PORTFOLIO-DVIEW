@@ -1,24 +1,239 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/services/logger';
+import { fetchCsv } from '@/lib/services/googleSheets';
 
-// Curated Fallback / High-Fidelity Cured Dataset
+// Curated Fallback / High-Fidelity Cured Dataset with Center Suffixes (100% Geolocated to Yeongcheon-dong, No Revenue)
 const FALLBACK_DATA = [
-  { name: 'IT·소프트웨어', value: 35.2, color: '#ea580c', companies: ['유라코퍼레이션 R&D', '에프엠솔루션', '투피플커넥트', '제이앤제이 테크'] },
-  { name: '반도체·첨단제조', value: 28.4, color: '#9a3412', companies: ['원익IPS (본사)', 'ASML 코리아', '동진쎄미켐 R&D', '에스앤에스텍'] },
-  { name: '바이오·헬스케어', value: 14.8, color: '#f59e0b', companies: ['한미약품 연구센터', '녹십자웰빙', '아쁘레쑤', '메디포스트'] },
-  { name: '지식기반 서비스', value: 12.1, color: '#fdba74', companies: ['한국디지털인증', '특허법인 지산', '영천동 종합건축사', '기술보증기금 동탄'] },
-  { name: '정밀기기 및 기타', value: 9.5, color: '#e7e5e4', companies: ['신도리코 R&D', '더브라이트', '레노텍', '은빛무지개'] }
+  { name: 'IT·소프트웨어', value: 35.2, color: '#ea580c', companies: ['한국아이티에스 - 자사빌딩', '에프엠솔루션 - 금강펜테리움 IX타워', '위즈코리아 - SH타임스퀘어', '제이앤제이 테크 - SH타임스퀘어'] },
+  { name: '반도체·첨단제조', value: 28.4, color: '#9a3412', companies: ['에이에스엠코리아 - 자사빌딩', '케이씨텍 - 자사빌딩', '서플러스글로벌 - 자사빌딩', '에스앤에스텍 - 금강펜테리움 IX타워'] },
+  { name: '바이오·헬스케어', value: 14.8, color: '#f59e0b', companies: ['우정바이오 - 자사빌딩', '한미약품 연구센터 - 자사연구소', '서린바이오 - 서린바이오 글로벌센터', '녹십자웰빙 - 금강펜테리움 IX타워'] },
+  { name: '지식기반 서비스', value: 12.1, color: '#fdba74', companies: ['기술보증기금 동탄 - SH타임스퀘어', '한국디지털인증 - 금강펜테리움 IX타워', '특허법인 지산 - 금강펜테리움 IX타워', '영천동 종합건축사 - 현대실리콘앨리'] },
+  { name: '정밀기기 및 기타', value: 9.5, color: '#e7e5e4', companies: ['신도리코 R&D - 자사빌딩', '더브라이트 - 현대실리콘앨리', '레노텍 - SH타임스퀘어', '은빛무지개 - 금강펜테리움 IX타워'] }
 ];
 
+// Major geolocated anchor tenants physically located in Yeongcheon-dong (Techno Valley)
+// but whose NPS/Industrial Complex registered head offices are elsewhere.
+const ANCHOR_COMPANIES: Record<string, string[]> = {
+  'IT·소프트웨어': [
+    '한국아이티에스 - 경기도 화성시 동탄대로22길 17, 자사빌딩',
+    '위즈코리아 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어',
+    '제이앤제이 테크 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어'
+  ],
+  '반도체·첨단제조': [
+    '도쿄일렉트론코리아 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워',
+    '어플라이드 머티리얼즈 코리아 - 경기도 화성시 동탄기흥로 614-26, 자사빌딩',
+    '에이에스엠코리아 - 경기도 화성시 동탄기흥로 635, 자사빌딩',
+    '케이씨텍 - 경기도 화성시 동탄기흥로 642, 자사빌딩',
+    '서플러스글로벌 - 경기도 화성시 동탄대로22길 32, 자사빌딩',
+    '에스앤에스텍 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워'
+  ],
+  '바이오·헬스케어': [
+    '우정바이오 - 경기도 화성시 동탄기흥로 593-8, 우정바이오 신약클러스터',
+    '한미약품 연구센터 - 경기도 화성시 동탄대로22길 125, 한미약품 연구센터',
+    '서린바이오 - 경기도 화성시 동탄대로21길 15, 서린바이오 글로벌센터',
+    '녹십자웰빙 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워'
+  ],
+  '지식기반 서비스': [
+    '기술보증기금 동탄 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어',
+    '특허법인 지산 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워'
+  ],
+  '정밀기기 및 기타': [
+    '신도리코 R&D - 경기도 화성시 동탄기흥로 568, 자사빌딩'
+  ]
+};
+
+function cleanCompanyName(name: string): string {
+  return name.replace(/\(주\)|주식회사/g, '').trim();
+}
+
+function extractCenterFromAddress(address: string): string {
+  if (!address) return '';
+  
+  if (address.includes('금강펜테리움 IX') || address.includes('금강펜테리움IX') || address.includes('금강IX')) {
+    return '금강펜테리움 IX타워';
+  }
+  if (address.includes('실리콘앨리') || address.includes('현대실리콘앨리')) {
+    return '현대실리콘앨리';
+  }
+  if (address.includes('타임스퀘어') || address.includes('SH타임') || address.includes('SH 타임')) {
+    return 'SH타임스퀘어';
+  }
+  if (address.includes('더퍼스트타워')) {
+    if (address.includes('더퍼스트타워3') || address.includes('더퍼스트타워 3')) {
+      return '더퍼스트타워 3차';
+    }
+    if (address.includes('더퍼스트타워2') || address.includes('더퍼스트타워 2')) {
+      return '더퍼스트타워 2차';
+    }
+    return '더퍼스트타워';
+  }
+  if (address.includes('동탄비즈타워')) {
+    return '동탄비즈타워';
+  }
+  if (address.includes('메가비즈타워')) {
+    return '동탄메가비즈타워';
+  }
+  if (address.includes('테라타워')) {
+    return '동탄테라타워';
+  }
+  if (address.includes('IT타워') || address.includes('아이티타워')) {
+    return '동탄IT타워';
+  }
+  if (address.includes('에이팩시티')) {
+    return '동탄에이팩시티';
+  }
+  if (address.includes('SK V1') || address.includes('SKV1')) {
+    return '동탄 SK V1';
+  }
+  
+  return '';
+}
+
+function simplifyAddress(address: string): string {
+  if (!address) return '자사빌딩';
+  
+  // Remove province and city prefixes
+  let clean = address
+    .replace(/^경기도\s+화성시\s+동탄구\s+/, '')
+    .replace(/^경기도\s+화성시\s+/, '')
+    .replace(/^서울특별시\s+서대문구\s+/, '')
+    .trim();
+    
+  // Strip parentheses like (영천동) or (동탄구 영천동)
+  clean = clean.replace(/\(.*?\)/g, '').trim();
+
+  // Split by comma to separate road and building details
+  const parts = clean.split(',');
+  const roadPart = parts[0].trim();
+  let roadName = roadPart.replace(/\s+/g, ' ');
+  
+  // If there's a prominent center name in parts[1], wrap it in parentheses for clarity
+  const buildingName = parts[1] ? parts[1].trim() : '';
+  const isFamousCenter = ['금강', '실리콘앨리', '타임스퀘어', '더퍼스트타워', '비즈타워', '메가비즈타워', '테라타워', 'IT타워', '에이팩시티', 'SK V1', '서린바이오', '우정바이오', '한미약품', '연구센터'].some(c => buildingName.includes(c));
+  
+  if (isFamousCenter) {
+    const center = extractCenterFromAddress(buildingName);
+    return `${roadName} (${center || buildingName})`;
+  }
+  
+  return roadName;
+}
+
+function formatCompanyWithCenter(name: string, address: string): string {
+  const cleanName = cleanCompanyName(name);
+  
+  // Filter out any known non-Techno Valley centers
+  if (address.includes('동탄케이티') || address.includes('동탄KT') || address.includes('KT동탄') || address.includes('케이티')) {
+    return 'EXCLUDE';
+  }
+  
+  const simpleCenter = extractCenterFromAddress(address);
+  if (simpleCenter) {
+    return `${cleanName} - ${simpleCenter}`;
+  }
+  
+  // If it's a known anchor tenant that doesn't have center in address, tag as - 자사빌딩 or address
+  const knownAnchors = ['에이에스엠코리아', '케이씨텍', '서플러스글로벌', '우정바이오', '아산제약', '신도리코 R&D', '신도리코', '한국아이티에스'];
+  if (knownAnchors.some(anchor => cleanName.includes(anchor))) {
+    return `${cleanName} - 자사빌딩`;
+  }
+  
+  return cleanName;
+}
+
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const refresh = searchParams.get('refresh') === 'true';
+
   const serviceKey = process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_API_KEY || '';
   
+  // Initialize dynamic anchors with code hardcoded constants first
+  let dynamicAnchors: Record<string, string[]> = { ...ANCHOR_COMPANIES };
+  let sheetLoaded = false;
+  const tabNames = ['테크노밸리_입주기업', '테크노밸리_앵커기업', '테크노밸리 앵커기업', 'TECHNOVALLEY_COMPANIES'];
+  let sheetRows: string[][] = [];
+
+  // Attempt to fetch from Google Sheets
+  for (const tab of tabNames) {
+    try {
+      const rows = await fetchCsv(tab, refresh);
+      if (rows && rows.length > 1) {
+        sheetRows = rows;
+        sheetLoaded = true;
+        break;
+      }
+    } catch (err) {
+      logger.warn('GET /api/technovalley/industry-distribution', `Google Sheet tab check failed for: ${tab}`, {}, err);
+    }
+  }
+
+  // Parse Google Sheet rows if successfully loaded
+  if (sheetLoaded && sheetRows.length > 1) {
+    const header = sheetRows[0].map(h => h.trim());
+    const catIdx = header.findIndex(h => h.includes('구분') || h.includes('분류') || h.includes('Category'));
+    const nameIdx = header.findIndex(h => h.includes('회사명') || h.includes('기업명') || h.includes('상호') || h.includes('Name'));
+    const bldIdx = header.findIndex(h => h.includes('주소') || h.includes('입주건물') || h.includes('건물명') || h.includes('건물') || h.includes('Building'));
+
+    const cIdx = catIdx !== -1 ? catIdx : 0;
+    const nIdx = nameIdx !== -1 ? nameIdx : 1;
+    const bIdx = bldIdx !== -1 ? bldIdx : 2;
+
+    const tempAnchors: Record<string, string[]> = {
+      'IT·소프트웨어': [],
+      '반도체·첨단제조': [],
+      '바이오·헬스케어': [],
+      '지식기반 서비스': [],
+      '정밀기기 및 기타': []
+    };
+
+    let validRowsCount = 0;
+    for (let i = 1; i < sheetRows.length; i++) {
+      const row = sheetRows[i];
+      if (row.length > Math.max(cIdx, nIdx, bIdx)) {
+        const rawCat = row[cIdx]?.trim() || '';
+        const rawName = row[nIdx]?.trim() || '';
+        const rawBld = row[bIdx]?.trim() || '자사빌딩';
+
+        if (rawName && rawCat) {
+          let mappedCat = '정밀기기 및 기타';
+          if (rawCat.includes('IT') || rawCat.includes('소프트웨어') || rawCat.includes('정보통신') || rawCat.includes('개발')) {
+            mappedCat = 'IT·소프트웨어';
+          } else if (rawCat.includes('반도체') || rawCat.includes('첨단제조') || rawCat.includes('제조') || rawCat.includes('기계')) {
+            mappedCat = '반도체·첨단제조';
+          } else if (rawCat.includes('바이오') || rawCat.includes('헬스케어') || rawCat.includes('의료') || rawCat.includes('제약')) {
+            mappedCat = '바이오·헬스케어';
+          } else if (rawCat.includes('지식') || rawCat.includes('서비스') || rawCat.includes('기금') || rawCat.includes('특허')) {
+            mappedCat = '지식기반 서비스';
+          }
+
+          tempAnchors[mappedCat].push(`${rawName} - ${rawBld}`);
+          validRowsCount++;
+        }
+      }
+    }
+    if (validRowsCount > 0) {
+      dynamicAnchors = tempAnchors;
+      logger.info('GET /api/technovalley/industry-distribution', `Successfully parsed ${validRowsCount} companies from Google Sheet.`);
+    }
+  }
+
   if (!serviceKey) {
+    const finalFallback = FALLBACK_DATA.map(item => {
+      const cat = item.name;
+      if (sheetLoaded && dynamicAnchors[cat]) {
+        const merged = [...dynamicAnchors[cat]].slice(0, 4);
+        return { ...item, companies: merged };
+      }
+      return item;
+    });
+
     return NextResponse.json({
       success: true,
       source: 'curated-cache',
-      data: FALLBACK_DATA,
-      message: '공공데이터 API 인증키가 설정되지 않아 로컬 고증 캐시 데이터를 반환했습니다.'
+      data: finalFallback,
+      message: '공공데이터 API 인증키가 설정되지 않아 로컬 고증 캐시 및 구글 시트 데이터를 반환했습니다.'
     }, {
       status: 200,
       headers: {
@@ -28,30 +243,109 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Fetch from KICOX Registered Factory OpenAPI on odcloud
-    // Filter address by LIKE '영천동'
-    const key = encodeURIComponent('cond[공장주소::LIKE]');
-    const value = encodeURIComponent('영천동');
-    const url = `https://api.odcloud.kr/api/15106170/v1/uddi:c5988948-73f2-41dd-af38-c0f1cee398b1?page=1&perPage=300&${key}=${value}&serviceKey=${serviceKey}`;
+    // 1. Fetch from National Pension Service registered workplaces (June 2026 dataset)
+    const npsKey = encodeURIComponent('cond[사업장지번상세주소::LIKE]');
+    const npsVal = encodeURIComponent('영천동');
+    const npsUrl = `https://api.odcloud.kr/api/15083277/v1/uddi:b2243a59-a261-4dc6-a4f3-cfcbc478d231?page=1&perPage=300&${npsKey}=${npsVal}&serviceKey=${serviceKey}`;
 
-    logger.info('GET /api/technovalley/industry-distribution', 'Fetching from odcloud registered factory API');
+    // 2. Fetch from Hwaseong Industrial Complex tenant list (20231231 dataset)
+    const hsKey = encodeURIComponent('cond[공장대표주소(지번 및 도로명주소)::LIKE]');
+    const hsVal = encodeURIComponent('영천동');
+    const hsUrl = `https://api.odcloud.kr/api/15126632/v1/uddi:899f7837-7171-42a5-9dcf-a7a3aea971dd?page=1&perPage=150&${hsKey}=${hsVal}&serviceKey=${serviceKey}`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      next: { revalidate: 3600 }
+    logger.info('GET /api/technovalley/industry-distribution', 'Fetching from both NPS and HSCity OpenAPI endpoints');
+
+    const [npsRes, hsRes] = await Promise.all([
+      fetch(npsUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        next: { revalidate: 3600 }
+      }),
+      fetch(hsUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        next: { revalidate: 3600 }
+      })
+    ]);
+
+    let npsItems: any[] = [];
+    let hsItems: any[] = [];
+
+    try {
+      if (npsRes.ok) {
+        const json = await npsRes.json();
+        npsItems = json?.data || [];
+      } else {
+        logger.warn('GET /api/technovalley/industry-distribution', 'NPS API response not OK', { status: npsRes.status });
+      }
+    } catch (e) {
+      logger.error('GET /api/technovalley/industry-distribution', 'Failed to parse NPS API response', {}, e);
+    }
+
+    try {
+      if (hsRes.ok) {
+        const json = await hsRes.json();
+        hsItems = json?.data || [];
+      } else {
+        logger.warn('GET /api/technovalley/industry-distribution', 'HSCity API response not OK', { status: hsRes.status });
+      }
+    } catch (e) {
+      logger.error('GET /api/technovalley/industry-distribution', 'Failed to parse HSCity API response', {}, e);
+    }
+
+    const normalizedCompanies: { name: string; address: string; indName: string }[] = [];
+
+    // Normalize NPS data fields
+    npsItems.forEach((item: any) => {
+      const name = (item['사업장명'] || '').trim();
+      const address = (item['사업장지번상세주소'] || item['사업장도로명상세주소'] || '').trim();
+      const indName = (item['사업장업종코드명'] || '').toString();
+      if (name && address) {
+        normalizedCompanies.push({ name, address, indName });
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`API response status error: ${response.status}`);
-    }
+    // Normalize HSCity Industrial Complex data fields
+    hsItems.forEach((item: any) => {
+      const name = (item['회사명'] || '').trim();
+      const address = (item['공장대표주소(지번 및 도로명주소)'] || '').trim();
+      const indName = (item['업종명'] || '').toString();
+      if (name && address) {
+        normalizedCompanies.push({ name, address, indName });
+      }
+    });
 
-    const json = await response.json();
-    const items = json?.data || [];
+    // Merge Google Sheet companies and API companies with strict deduplication by clean company name
+    const seenNames = new Set<string>();
+    const deduplicatedCompanies: typeof normalizedCompanies = [];
 
-    if (!Array.isArray(items) || items.length === 0) {
-      throw new Error('API returned empty or invalid item list');
-    }
+    // 1. Prioritize Google Sheets records
+    Object.entries(dynamicAnchors).forEach(([cat, list]) => {
+      list.forEach(entry => {
+        const parts = entry.split(' - ');
+        const name = parts[0];
+        const addr = parts.slice(1).join(' - ') || '자사빌딩';
+        const cleanName = cleanCompanyName(name);
+
+        if (cleanName && !seenNames.has(cleanName)) {
+          seenNames.add(cleanName);
+          deduplicatedCompanies.push({
+            name: name,
+            address: addr,
+            indName: cat // Map category name directly to classify loop
+          });
+        }
+      });
+    });
+
+    // 2. Append API companies if not already loaded from Google Sheets
+    normalizedCompanies.forEach(c => {
+      const cleanName = cleanCompanyName(c.name);
+      if (cleanName && !seenNames.has(cleanName)) {
+        seenNames.add(cleanName);
+        deduplicatedCompanies.push(c);
+      }
+    });
 
     let itCount = 0;
     let semiCount = 0;
@@ -59,7 +353,7 @@ export async function GET(request: NextRequest) {
     let serviceCount = 0;
     let otherCount = 0;
 
-    const matchedCompanies: Record<string, string[]> = {
+    const matchedCompanies: Record<string, { name: string; address: string }[]> = {
       'IT·소프트웨어': [],
       '반도체·첨단제조': [],
       '바이오·헬스케어': [],
@@ -67,26 +361,42 @@ export async function GET(request: NextRequest) {
       '정밀기기 및 기타': []
     };
 
-    items.forEach((item: any) => {
-      const cmpNm = item['회사명'] || '미지명 기업';
-      const indutyCd = String(item['대표업종'] || '');
+    deduplicatedCompanies.forEach((c) => {
+      const cmpNm = c.name;
+      const addr = c.address;
+      const indName = c.indName;
 
-      // Map KSIC divisions
-      if (indutyCd.startsWith('58') || indutyCd.startsWith('61') || indutyCd.startsWith('62') || indutyCd.startsWith('63') || cmpNm.includes('솔루션') || cmpNm.includes('소프트')) {
+      // Skip non-Techno Valley centers
+      if (addr.includes('동탄케이티') || addr.includes('동탄KT') || addr.includes('KT동탄') || addr.includes('케이티')) {
+        return;
+      }
+
+      // Map categories based on industry code name, sheet category, or company name
+      if (indName === 'IT·소프트웨어' || indName.includes('소프트웨어') || indName.includes('정보') || indName.includes('통신') || indName.includes('출판') || indName.includes('프로그래밍') || indName.includes('IT') || indName.includes('개발')) {
         itCount++;
-        if (matchedCompanies['IT·소프트웨어'].length < 4) matchedCompanies['IT·소프트웨어'].push(cmpNm);
-      } else if (indutyCd.startsWith('26') || indutyCd.startsWith('27') || indutyCd.startsWith('28') || indutyCd.startsWith('29') || cmpNm.includes('테크') || cmpNm.includes('정밀')) {
+        if (matchedCompanies['IT·소프트웨어'].length < 150) {
+          matchedCompanies['IT·소프트웨어'].push({ name: cmpNm, address: addr });
+        }
+      } else if (indName === '반도체·첨단제조' || indName.includes('반도체') || indName.includes('웨이퍼') || indName.includes('전자부품') || indName.includes('기계') || indName.includes('제조') || indName.includes('장비') || cmpNm.includes('테크') || cmpNm.includes('정밀') || cmpNm.includes('세미') || cmpNm.includes('반도체') || cmpNm.includes('에이이에스엠') || cmpNm.includes('케이씨텍') || cmpNm.includes('어플라이드') || cmpNm.includes('도쿄일렉')) {
         semiCount++;
-        if (matchedCompanies['반도체·첨단제조'].length < 4) matchedCompanies['반도체·첨단제조'].push(cmpNm);
-      } else if (indutyCd.startsWith('20') || indutyCd.startsWith('21') || indutyCd.startsWith('70') || cmpNm.includes('바이오') || cmpNm.includes('케어')) {
+        if (matchedCompanies['반도체·첨단제조'].length < 150) {
+          matchedCompanies['반도체·첨단제조'].push({ name: cmpNm, address: addr });
+        }
+      } else if (indName === '바이오·헬스케어' || indName.includes('의료') || indName.includes('의약') || indName.includes('정밀') || indName.includes('바이오') || indName.includes('진단') || cmpNm.includes('바이오') || cmpNm.includes('제약') || cmpNm.includes('우정바이오') || cmpNm.includes('아산제약') || cmpNm.includes('씨티씨바이오')) {
         bioCount++;
-        if (matchedCompanies['바이오·헬스케어'].length < 4) matchedCompanies['바이오·헬스케어'].push(cmpNm);
-      } else if (indutyCd.startsWith('71') || indutyCd.startsWith('72') || indutyCd.startsWith('74') || indutyCd.startsWith('75') || cmpNm.includes('에스') || cmpNm.includes('코리아')) {
+        if (matchedCompanies['바이오·헬스케어'].length < 150) {
+          matchedCompanies['바이오·헬스케어'].push({ name: cmpNm, address: addr });
+        }
+      } else if (indName === '지식기반 서비스' || indName.includes('연구') || indName.includes('전문') || indName.includes('과학') || indName.includes('기술') || indName.includes('서비스') || indName.includes('컨설팅') || cmpNm.includes('에스') || cmpNm.includes('코리아')) {
         serviceCount++;
-        if (matchedCompanies['지식기반 서비스'].length < 4) matchedCompanies['지식기반 서비스'].push(cmpNm);
+        if (matchedCompanies['지식기반 서비스'].length < 150) {
+          matchedCompanies['지식기반 서비스'].push({ name: cmpNm, address: addr });
+        }
       } else {
         otherCount++;
-        if (matchedCompanies['정밀기기 및 기타'].length < 4) matchedCompanies['정밀기기 및 기타'].push(cmpNm);
+        if (matchedCompanies['정밀기기 및 기타'].length < 150) {
+          matchedCompanies['정밀기기 및 기타'].push({ name: cmpNm, address: addr });
+        }
       }
     });
 
@@ -95,52 +405,98 @@ export async function GET(request: NextRequest) {
       throw new Error('No items matched after classification');
     }
 
+    const getFinalCompanies = (cat: string) => {
+      const liveList = matchedCompanies[cat];
+      const anchors = dynamicAnchors[cat] || [];
+      
+      const uniqueLiveList: typeof liveList = [];
+      const seen = new Set<string>();
+      
+      const simplifiedAnchors = anchors.map(a => {
+        const parts = a.split(' - ');
+        const name = parts[0];
+        const addr = parts.slice(1).join(' - ') || '자사빌딩';
+        return `${name} - ${simplifyAddress(addr)}`;
+      });
+      
+      simplifiedAnchors.forEach(a => {
+        const cleanName = cleanCompanyName(a.split(' - ')[0]);
+        seen.add(cleanName);
+      });
+      
+      liveList.forEach(c => {
+        const cleanName = cleanCompanyName(c.name);
+        if (!seen.has(cleanName)) {
+          seen.add(cleanName);
+          uniqueLiveList.push(c);
+        }
+      });
+      
+      const formattedLive = uniqueLiveList
+        .map(c => {
+          const cleanName = cleanCompanyName(c.name);
+          const simpleAddr = simplifyAddress(c.address);
+          return `${cleanName} - ${simpleAddr}`;
+        })
+        .filter((c): c is string => c !== null);
+      
+      const merged = [...simplifiedAnchors, ...formattedLive];
+      return merged.slice(0, 150);
+    };
+
     const calculatedData = [
       {
         name: 'IT·소프트웨어',
         value: parseFloat(((itCount / total) * 100).toFixed(1)),
         color: '#ea580c',
-        companies: matchedCompanies['IT·소프트웨어'].length > 0 ? matchedCompanies['IT·소프트웨어'] : FALLBACK_DATA[0].companies
+        count: itCount,
+        companies: getFinalCompanies('IT·소프트웨어')
       },
       {
         name: '반도체·첨단제조',
         value: parseFloat(((semiCount / total) * 100).toFixed(1)),
         color: '#9a3412',
-        companies: matchedCompanies['반도체·첨단제조'].length > 0 ? matchedCompanies['반도체·첨단제조'] : FALLBACK_DATA[1].companies
+        count: semiCount,
+        companies: getFinalCompanies('반도체·첨단제조')
       },
       {
         name: '바이오·헬스케어',
         value: parseFloat(((bioCount / total) * 100).toFixed(1)),
         color: '#f59e0b',
-        companies: matchedCompanies['바이오·헬스케어'].length > 0 ? matchedCompanies['바이오·헬스케어'] : FALLBACK_DATA[2].companies
+        count: bioCount,
+        companies: getFinalCompanies('바이오·헬스케어')
       },
       {
         name: '지식기반 서비스',
         value: parseFloat(((serviceCount / total) * 100).toFixed(1)),
         color: '#fdba74',
-        companies: matchedCompanies['지식기반 서비스'].length > 0 ? matchedCompanies['지식기반 서비스'] : FALLBACK_DATA[3].companies
+        count: serviceCount,
+        companies: getFinalCompanies('지식기반 서비스')
       },
       {
         name: '정밀기기 및 기타',
         value: parseFloat(((otherCount / total) * 100).toFixed(1)),
         color: '#e7e5e4',
-        companies: matchedCompanies['정밀기기 및 기타'].length > 0 ? matchedCompanies['정밀기기 및 기타'] : FALLBACK_DATA[4].companies
+        count: otherCount,
+        companies: getFinalCompanies('정밀기기 및 기타')
       }
     ];
 
-    logger.info('GET /api/technovalley/industry-distribution', 'Fetched and parsed successfully from live API', { total });
+    logger.info('GET /api/technovalley/industry-distribution', 'Fetched and parsed successfully from Google Sheets + APIs', { total });
 
     return NextResponse.json({
       success: true,
       source: 'live-api',
       data: calculatedData,
-      message: '공공데이터포털 실시간 API 데이터 동기화 완료'
+      message: '국민연금, 화성시 입주기업 및 구글 스프레드시트 융합 연동 성공',
+      googleSheetSync: 'active',
+      totalCount: total
     }, {
       status: 200
     });
 
   } catch (err) {
-    logger.error('GET /api/technovalley/industry-distribution', 'Failed to fetch live API, using fallback data', {}, err);
+    logger.error('GET /api/technovalley/industry-distribution', 'Failed to fetch live APIs, using fallback data', {}, err);
     return NextResponse.json({
       success: true,
       source: 'curated-cache',

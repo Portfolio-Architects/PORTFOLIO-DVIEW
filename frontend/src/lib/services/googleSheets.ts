@@ -70,23 +70,25 @@ if (!globalThis._sheetsMemoryCache) {
 
 const SHEETS_CACHE_TTL = 3600; // 1 hour
 
-async function fetchCsv(sheetName: string): Promise<string[][]> {
+export async function fetchCsv(sheetName: string, bypassCache: boolean = false): Promise<string[][]> {
   const cacheKey = `DTDLS:cache:sheets:${sheetName}`;
   const now = Date.now();
   const LOCAL_CACHE_DIR = path.resolve(process.cwd(), 'scratch/sheets-cache');
   const localCachePath = path.join(LOCAL_CACHE_DIR, `${sheetName}.json`);
 
   // 1. Check in-memory cache first
-  const memCached = sheetsMemoryCache[cacheKey];
-  if (memCached) {
-    const isStale = (now - memCached.timestamp) > SHEETS_CACHE_TTL * 1000;
-    if (!isStale) {
-      return memCached.data as string[][];
+  if (!bypassCache) {
+    const memCached = sheetsMemoryCache[cacheKey];
+    if (memCached) {
+      const isStale = (now - memCached.timestamp) > SHEETS_CACHE_TTL * 1000;
+      if (!isStale) {
+        return memCached.data as string[][];
+      }
     }
   }
 
   // 2. Check Redis cache
-  if (redis) {
+  if (!bypassCache && redis) {
     try {
       const cached = await redis.get<{ data: string[][]; timestamp: number }>(cacheKey);
       if (cached) {
@@ -120,7 +122,7 @@ async function fetchCsv(sheetName: string): Promise<string[][]> {
 
   // 3. Live fetch with resilient fallback on failure
   try {
-    const freshData = await fetchCsvFromGoogle(sheetName);
+    const freshData = await fetchCsvFromGoogle(sheetName, bypassCache);
     sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: now };
 
     // Write to local file cache
@@ -222,10 +224,10 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
   throw new Error(`Google Sheets fetch failed after ${retries} attempts`);
 }
 
-async function fetchCsvFromGoogle(sheetName: string): Promise<string[][]> {
+async function fetchCsvFromGoogle(sheetName: string, bypassCache: boolean = false): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1&_t=${Date.now()}`;
   try {
-    const res = await fetchWithRetry(csvUrl, { next: { revalidate: 3600 } });
+    const res = await fetchWithRetry(csvUrl, { next: { revalidate: bypassCache ? 0 : 3600 } });
     const text = await res.text();
     return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
   } catch (e: unknown) {
