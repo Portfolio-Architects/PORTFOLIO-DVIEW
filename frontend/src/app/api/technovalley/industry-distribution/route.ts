@@ -105,7 +105,7 @@ function simplifyAddress(address: string): string {
   // Split by comma to separate road and building details
   const parts = clean.split(',');
   const roadPart = parts[0].trim();
-  let roadName = roadPart.replace(/\s+/g, ' ');
+  const roadName = roadPart.replace(/\s+/g, ' ');
   
   // If there's a prominent center name in parts[1], wrap it in parentheses for clarity
   const buildingName = parts[1] ? parts[1].trim() : '';

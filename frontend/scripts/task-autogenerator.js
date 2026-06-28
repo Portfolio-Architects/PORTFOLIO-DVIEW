@@ -23,7 +23,7 @@ try {
         }
         return { name, path: dirPath, mtime };
       })
-      .filter(item => fs.existsSync(item.path) && fs.statSync(item.path).isDirectory() && !item.name.startsWith('.'))
+      .filter(item => fs.existsSync(item.path) && fs.statSync(item.path).isDirectory() && !item.name.startsWith('.') && fs.existsSync(path.join(item.path, 'task.md')))
       .sort((a, b) => b.mtime - a.mtime);
     if (dirs.length > 0) {
       BRAIN_DIR = dirs[0].path;
