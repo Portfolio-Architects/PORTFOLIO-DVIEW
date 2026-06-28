@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 780)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 781)
+
 
 
 
@@ -211,9 +212,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Designed and implemented a custom CSS shimmer skeleton `<div className="w-[168px] h-[168px] sm:w-[228px] sm:h-[228px] rounded-full border-[30px] border-border/10 animate-pulse" />` matching the exact dimensions and inner/outer radius of the industry donut chart.
   - Built an animated bar skeleton representation for the macro line chart fallback to ensure layout stability during the client mounting phase.
 
+- **LoungeDetailClient Input and Textarea Web Accessibility Optimizations (Phase 781)**:
+  - Added descriptive `aria-label` tags to the comment writing input (`aria-label="댓글 작성 입력"`), post editing title input (`aria-label="게시글 수정 제목"`), and post editing textarea (`aria-label="게시글 수정 내용"`) in [LoungeDetailClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeDetailClient.tsx). This hardens form accessibility against Axe-core violations when interacting with post edit and comment composing screens.
+
 ---
 
-## 🟢 Verification Results (Phase 780)
+## 🟢 Verification Results (Phase 781)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:

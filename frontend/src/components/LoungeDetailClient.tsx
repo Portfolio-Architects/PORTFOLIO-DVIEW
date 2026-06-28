@@ -108,6 +108,7 @@ const CommentInput = memo(({ user, isSending, onSubmit }: CommentInputProps) => 
             }
           }}
           placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
+          aria-label="댓글 작성 입력"
           className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#c44d00]/20 focus:border-[#c44d00] dark:focus:ring-[#ea6100]/20 dark:focus:border-[#ea6100] transition-all duration-300"
         />
         <button
@@ -855,6 +856,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[16px] font-bold outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300"
                 placeholder="제목"
+                aria-label="게시글 수정 제목"
               />
               <textarea
                 ref={textareaRef}
@@ -863,6 +865,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                 rows={12}
                 className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300 resize-none whitespace-pre-wrap"
                 placeholder="내용"
+                aria-label="게시글 수정 내용"
               />
               <div className="flex items-center justify-between mt-2">
                 <div>
