@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 784)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 785)
+
 
 
 
@@ -229,9 +230,13 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Fixed a classification bug in [route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/technovalley/industry-distribution/route.ts) where sheet-loaded fallback companies with the category `'정밀기기 및 기타'` matched `indName.includes('정밀')` and were incorrectly classified as `'바이오·헬스케어'`.
   - Added an exclusion guard `(indName.includes('정밀') && indName !== '정밀기기 및 기타')` to redirect these records to the appropriate `'정밀기기 및 기타'` category. This aligns the donut chart value/percentage with the actual company lists shown in the accordion sections.
 
+- **TechnoValley Google Sheet Single Source of Truth (SSOT) Transition (Phase 785)**:
+  - Transitioned the industry-distribution endpoint in [route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/technovalley/industry-distribution/route.ts) to utilize the Google Sheet as the Single Source of Truth (SSOT).
+  - Bypassed NPS/HSCity OpenAPI queries, eliminating regional noise (e.g. companies fetched by "영천동" keyword located in Seoul Seodaemun-gu or Jecheon) and ensuring total counts/percentages in the donut chart precisely reflect the curated Google Sheet data.
+
 ---
 
-## 🟢 Verification Results (Phase 784)
+## 🟢 Verification Results (Phase 785)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:

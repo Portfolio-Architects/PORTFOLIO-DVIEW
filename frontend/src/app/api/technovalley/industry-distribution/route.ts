@@ -258,21 +258,14 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (!serviceKey) {
-    const finalFallback = FALLBACK_DATA.map(item => {
-      const cat = item.name;
-      if (sheetLoaded && dynamicAnchors[cat]) {
-        const merged = [...dynamicAnchors[cat]].slice(0, 4);
-        return { ...item, companies: merged };
-      }
-      return item;
-    });
-
+  if (!sheetLoaded) {
+    logger.warn('GET /api/technovalley/industry-distribution', 'Google Sheet failed to load, returning curated FALLBACK_DATA.');
     return NextResponse.json({
       success: true,
       source: 'curated-cache',
-      data: finalFallback,
-      message: '공공데이터 API 인증키가 설정되지 않아 로컬 고증 캐시 및 구글 시트 데이터를 반환했습니다.'
+      data: FALLBACK_DATA,
+      message: '구글 스프레드시트 로드 실패로 로컬 고증 캐시 데이터를 반환했습니다.',
+      googleSheetSync: 'failed'
     }, {
       status: 200,
       headers: {
@@ -282,83 +275,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Fetch from National Pension Service registered workplaces (June 2026 dataset)
-    const npsKey = encodeURIComponent('cond[사업장지번상세주소::LIKE]');
-    const npsVal = encodeURIComponent('영천동');
-    const npsUrl = `https://api.odcloud.kr/api/15083277/v1/uddi:b2243a59-a261-4dc6-a4f3-cfcbc478d231?page=1&perPage=300&${npsKey}=${npsVal}&serviceKey=${serviceKey}`;
-
-    // 2. Fetch from Hwaseong Industrial Complex tenant list (20231231 dataset)
-    const hsKey = encodeURIComponent('cond[공장대표주소(지번 및 도로명주소)::LIKE]');
-    const hsVal = encodeURIComponent('영천동');
-    const hsUrl = `https://api.odcloud.kr/api/15126632/v1/uddi:899f7837-7171-42a5-9dcf-a7a3aea971dd?page=1&perPage=150&${hsKey}=${hsVal}&serviceKey=${serviceKey}`;
-
-    logger.info('GET /api/technovalley/industry-distribution', 'Fetching from both NPS and HSCity OpenAPI endpoints');
-
-    const [npsRes, hsRes] = await Promise.all([
-      fetch(npsUrl, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        next: { revalidate: 86400 }
-      }),
-      fetch(hsUrl, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        next: { revalidate: 86400 }
-      })
-    ]);
-
-    let npsItems: any[] = [];
-    let hsItems: any[] = [];
-
-    try {
-      if (npsRes.ok) {
-        const json = await npsRes.json();
-        npsItems = json?.data || [];
-      } else {
-        logger.warn('GET /api/technovalley/industry-distribution', 'NPS API response not OK', { status: npsRes.status });
-      }
-    } catch (e) {
-      logger.error('GET /api/technovalley/industry-distribution', 'Failed to parse NPS API response', {}, e);
-    }
-
-    try {
-      if (hsRes.ok) {
-        const json = await hsRes.json();
-        hsItems = json?.data || [];
-      } else {
-        logger.warn('GET /api/technovalley/industry-distribution', 'HSCity API response not OK', { status: hsRes.status });
-      }
-    } catch (e) {
-      logger.error('GET /api/technovalley/industry-distribution', 'Failed to parse HSCity API response', {}, e);
-    }
-
-    const normalizedCompanies: { name: string; address: string; indName: string }[] = [];
-
-    // Normalize NPS data fields
-    npsItems.forEach((item: any) => {
-      const name = (item['사업장명'] || '').trim();
-      const address = (item['사업장지번상세주소'] || item['사업장도로명상세주소'] || '').trim();
-      const indName = (item['사업장업종코드명'] || '').toString();
-      if (name && address) {
-        normalizedCompanies.push({ name, address, indName });
-      }
-    });
-
-    // Normalize HSCity Industrial Complex data fields
-    hsItems.forEach((item: any) => {
-      const name = (item['회사명'] || '').trim();
-      const address = (item['공장대표주소(지번 및 도로명주소)'] || '').trim();
-      const indName = (item['업종명'] || '').toString();
-      if (name && address) {
-        normalizedCompanies.push({ name, address, indName });
-      }
-    });
-
-    // Merge Google Sheet companies and API companies with strict deduplication by clean company name
     const seenNames = new Set<string>();
-    const deduplicatedCompanies: typeof normalizedCompanies = [];
+    const deduplicatedCompanies: { name: string; address: string; indName: string }[] = [];
 
-    // 1. Prioritize Google Sheets records
+    // Populate deduplicatedCompanies solely from the parsed Google Sheet data (Single Source of Truth)
     Object.entries(dynamicAnchors).forEach(([cat, list]) => {
       list.forEach(entry => {
         const parts = entry.split(' - ');
@@ -371,19 +291,10 @@ export async function GET(request: NextRequest) {
           deduplicatedCompanies.push({
             name: name,
             address: addr,
-            indName: cat // Map category name directly to classify loop
+            indName: cat
           });
         }
       });
-    });
-
-    // 2. Append API companies if not already loaded from Google Sheets
-    normalizedCompanies.forEach(c => {
-      const cleanName = cleanCompanyName(c.name);
-      if (cleanName && !seenNames.has(cleanName)) {
-        seenNames.add(cleanName);
-        deduplicatedCompanies.push(c);
-      }
     });
 
     let itCount = 0;
@@ -528,13 +439,13 @@ export async function GET(request: NextRequest) {
       }
     ];
 
-    logger.info('GET /api/technovalley/industry-distribution', 'Fetched and parsed successfully from Google Sheets + APIs', { total });
+    logger.info('GET /api/technovalley/industry-distribution', 'Fetched and parsed successfully from Google Sheets (SSOT)', { total });
 
     return NextResponse.json({
       success: true,
-      source: 'live-api',
+      source: 'google-sheet-ssot',
       data: calculatedData,
-      message: '국민연금, 화성시 입주기업 및 구글 스프레드시트 융합 연동 성공',
+      message: '구글 스프레드시트 싱글소스(SSOT) 동기화 성공',
       googleSheetSync: 'active',
       totalCount: total
     }, {
