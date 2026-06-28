@@ -664,7 +664,9 @@ export default function TechnoValleyDashboard() {
                       </p>
                     ) : (
                       <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 pr-1.5 overscroll-y-contain ${
+                          visibleCount > 12 ? 'max-h-[380px] overflow-y-auto custom-scrollbar' : ''
+                        }`}>
                           {visibleCompanies.map((co: string, idx: number) => (
                             <div
                               key={idx}
