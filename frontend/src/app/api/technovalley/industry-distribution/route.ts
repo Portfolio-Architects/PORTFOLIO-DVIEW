@@ -412,14 +412,14 @@ export async function GET(request: NextRequest) {
       const uniqueLiveList: typeof liveList = [];
       const seen = new Set<string>();
       
-      const simplifiedAnchors = anchors.map(a => {
+      const fullAddressAnchors = anchors.map(a => {
         const parts = a.split(' - ');
         const name = parts[0];
         const addr = parts.slice(1).join(' - ') || '자사빌딩';
-        return `${name} - ${simplifyAddress(addr)}`;
+        return `${name} - ${addr.trim()}`;
       });
       
-      simplifiedAnchors.forEach(a => {
+      fullAddressAnchors.forEach(a => {
         const cleanName = cleanCompanyName(a.split(' - ')[0]);
         seen.add(cleanName);
       });
@@ -435,12 +435,11 @@ export async function GET(request: NextRequest) {
       const formattedLive = uniqueLiveList
         .map(c => {
           const cleanName = cleanCompanyName(c.name);
-          const simpleAddr = simplifyAddress(c.address);
-          return `${cleanName} - ${simpleAddr}`;
+          return `${cleanName} - ${(c.address || '자사빌딩').trim()}`;
         })
         .filter((c): c is string => c !== null);
       
-      const merged = [...simplifiedAnchors, ...formattedLive];
+      const merged = [...fullAddressAnchors, ...formattedLive];
       return merged.slice(0, 150);
     };
 
