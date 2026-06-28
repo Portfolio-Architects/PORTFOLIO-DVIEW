@@ -4,11 +4,11 @@ import { fetchCsv } from '@/lib/services/googleSheets';
 
 // Curated Fallback / High-Fidelity Cured Dataset with Center Suffixes (100% Geolocated to Yeongcheon-dong, No Revenue)
 const FALLBACK_DATA = [
-  { name: 'IT·소프트웨어', value: 35.2, color: '#ea580c', companies: ['한국아이티에스 - 자사빌딩', '에프엠솔루션 - 금강펜테리움 IX타워', '위즈코리아 - SH타임스퀘어', '제이앤제이 테크 - SH타임스퀘어'] },
-  { name: '반도체·첨단제조', value: 28.4, color: '#9a3412', companies: ['에이에스엠코리아 - 자사빌딩', '케이씨텍 - 자사빌딩', '서플러스글로벌 - 자사빌딩', '에스앤에스텍 - 금강펜테리움 IX타워'] },
-  { name: '바이오·헬스케어', value: 14.8, color: '#f59e0b', companies: ['우정바이오 - 자사빌딩', '한미약품 연구센터 - 자사연구소', '서린바이오 - 서린바이오 글로벌센터', '녹십자웰빙 - 금강펜테리움 IX타워'] },
-  { name: '지식기반 서비스', value: 12.1, color: '#fdba74', companies: ['기술보증기금 동탄 - SH타임스퀘어', '한국디지털인증 - 금강펜테리움 IX타워', '특허법인 지산 - 금강펜테리움 IX타워', '영천동 종합건축사 - 현대실리콘앨리'] },
-  { name: '정밀기기 및 기타', value: 9.5, color: '#e7e5e4', companies: ['신도리코 R&D - 자사빌딩', '더브라이트 - 현대실리콘앨리', '레노텍 - SH타임스퀘어', '은빛무지개 - 금강펜테리움 IX타워'] }
+  { name: 'IT·소프트웨어', value: 35.2, color: '#ea580c', count: 681, companies: ['한국아이티에스 - 자사빌딩', '에프엠솔루션 - 금강펜테리움 IX타워', '위즈코리아 - SH타임스퀘어', '제이앤제이 테크 - SH타임스퀘어'] },
+  { name: '반도체·첨단제조', value: 28.4, color: '#9a3412', count: 549, companies: ['에이에스엠코리아 - 자사빌딩', '케이씨텍 - 자사빌딩', '서플러스글로벌 - 자사빌딩', '에스앤에스텍 - 금강펜테리움 IX타워'] },
+  { name: '바이오·헬스케어', value: 14.8, color: '#f59e0b', count: 286, companies: ['우정바이오 - 자사빌딩', '한미약품 연구센터 - 자사연구소', '서린바이오 - 서린바이오 글로벌센터', '녹십자웰빙 - 금강펜테리움 IX타워'] },
+  { name: '지식기반 서비스', value: 12.1, color: '#fdba74', count: 234, companies: ['기술보증기금 동탄 - SH타임스퀘어', '한국디지털인증 - 금강펜테리움 IX타워', '특허법인 지산 - 금강펜테리움 IX타워', '영천동 종합건축사 - 현대실리콘앨리'] },
+  { name: '정밀기기 및 기타', value: 9.5, color: '#e7e5e4', count: 183, companies: ['신도리코 R&D - 자사빌딩', '더브라이트 - 현대실리콘앨리', '레노텍 - SH타임스퀘어', '은빛무지개 - 금강펜테리움 IX타워'] }
 ];
 
 // Major geolocated anchor tenants physically located in Yeongcheon-dong (Techno Valley)
@@ -44,6 +44,45 @@ const ANCHOR_COMPANIES: Record<string, string[]> = {
 
 function cleanCompanyName(name: string): string {
   return name.replace(/\(주\)|주식회사/g, '').trim();
+}
+
+function getCompanyScore(name: string): number {
+  const clean = name.replace(/\(주\)|주식회사/g, '').trim().toLowerCase();
+  
+  // 1. Semiconductor & Electronics Leaders (High Market Cap / Revenue / Global Brand)
+  if (clean.includes('어플라이드') || clean.includes('applied materials')) return 1000;
+  if (clean.includes('도쿄일렉') || clean.includes('tokyo electron')) return 980;
+  if (clean.includes('한미약품') || clean.includes('hanmi')) return 960;
+  if (clean.includes('asm') || clean.includes('에이에스엠')) return 940;
+  if (clean.includes('신도리코')) return 900;
+  if (clean.includes('케이씨텍') || clean.includes('kc tech')) return 880;
+  if (clean.includes('에스앤에스텍') || clean.includes('s&s')) return 860;
+  
+  // 2. Global Subsidiaries / Well-known public brands / Institutions
+  if (clean.includes('기술보증기금')) return 840;
+  if (clean.includes('서린바이오')) return 820;
+  if (clean.includes('녹십자')) return 800;
+  if (clean.includes('우정바이오')) return 780;
+  if (clean.includes('서플러스글로벌')) return 760;
+  
+  // 3. Anchor IT/Tech companies
+  if (clean.includes('한국아이티에스')) return 700;
+  if (clean.includes('위즈코리아')) return 680;
+  if (clean.includes('제이앤제이')) return 660;
+  if (clean.includes('특허법인 지산')) return 640;
+  if (clean.includes('에너시스')) return 600;
+
+  // 4. Global subsidiary keywords
+  if (clean.includes('코리아') || clean.includes('korea') || clean.includes('인터내셔널') || clean.includes('global') || clean.includes('글로벌')) {
+    return 300;
+  }
+  
+  // 5. General value keywords
+  if (clean.includes('화학') || clean.includes('정밀') || clean.includes('머티리얼즈') || clean.includes('반도체') || clean.includes('제약') || clean.includes('바이오') || clean.includes('엔지니어링') || clean.includes('테크') || clean.includes('솔루션') || clean.includes('시스템')) {
+    return 100;
+  }
+  
+  return 0;
 }
 
 function extractCenterFromAddress(address: string): string {
@@ -237,7 +276,7 @@ export async function GET(request: NextRequest) {
     }, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+        'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600'
       }
     });
   }
@@ -259,12 +298,12 @@ export async function GET(request: NextRequest) {
       fetch(npsUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
-        next: { revalidate: 3600 }
+        next: { revalidate: 86400 }
       }),
       fetch(hsUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
-        next: { revalidate: 3600 }
+        next: { revalidate: 86400 }
       })
     ]);
 
@@ -374,27 +413,27 @@ export async function GET(request: NextRequest) {
       // Map categories based on industry code name, sheet category, or company name
       if (indName === 'IT·소프트웨어' || indName.includes('소프트웨어') || indName.includes('정보') || indName.includes('통신') || indName.includes('출판') || indName.includes('프로그래밍') || indName.includes('IT') || indName.includes('개발')) {
         itCount++;
-        if (matchedCompanies['IT·소프트웨어'].length < 150) {
+        if (matchedCompanies['IT·소프트웨어'].length < 2500) {
           matchedCompanies['IT·소프트웨어'].push({ name: cmpNm, address: addr });
         }
       } else if (indName === '반도체·첨단제조' || indName.includes('반도체') || indName.includes('웨이퍼') || indName.includes('전자부품') || indName.includes('기계') || indName.includes('제조') || indName.includes('장비') || cmpNm.includes('테크') || cmpNm.includes('정밀') || cmpNm.includes('세미') || cmpNm.includes('반도체') || cmpNm.includes('에이이에스엠') || cmpNm.includes('케이씨텍') || cmpNm.includes('어플라이드') || cmpNm.includes('도쿄일렉')) {
         semiCount++;
-        if (matchedCompanies['반도체·첨단제조'].length < 150) {
+        if (matchedCompanies['반도체·첨단제조'].length < 2500) {
           matchedCompanies['반도체·첨단제조'].push({ name: cmpNm, address: addr });
         }
       } else if (indName === '바이오·헬스케어' || indName.includes('의료') || indName.includes('의약') || indName.includes('정밀') || indName.includes('바이오') || indName.includes('진단') || cmpNm.includes('바이오') || cmpNm.includes('제약') || cmpNm.includes('우정바이오') || cmpNm.includes('아산제약') || cmpNm.includes('씨티씨바이오')) {
         bioCount++;
-        if (matchedCompanies['바이오·헬스케어'].length < 150) {
+        if (matchedCompanies['바이오·헬스케어'].length < 2500) {
           matchedCompanies['바이오·헬스케어'].push({ name: cmpNm, address: addr });
         }
       } else if (indName === '지식기반 서비스' || indName.includes('연구') || indName.includes('전문') || indName.includes('과학') || indName.includes('기술') || indName.includes('서비스') || indName.includes('컨설팅') || cmpNm.includes('에스') || cmpNm.includes('코리아')) {
         serviceCount++;
-        if (matchedCompanies['지식기반 서비스'].length < 150) {
+        if (matchedCompanies['지식기반 서비스'].length < 2500) {
           matchedCompanies['지식기반 서비스'].push({ name: cmpNm, address: addr });
         }
       } else {
         otherCount++;
-        if (matchedCompanies['정밀기기 및 기타'].length < 150) {
+        if (matchedCompanies['정밀기기 및 기타'].length < 2500) {
           matchedCompanies['정밀기기 및 기타'].push({ name: cmpNm, address: addr });
         }
       }
@@ -440,7 +479,15 @@ export async function GET(request: NextRequest) {
         .filter((c): c is string => c !== null);
       
       const merged = [...fullAddressAnchors, ...formattedLive];
-      return merged.slice(0, 150);
+      
+      // Sort based on score representing: 1. Brand awareness, 2. Market cap, 3. Revenue
+      merged.sort((a, b) => {
+        const nameA = a.split(' - ')[0];
+        const nameB = b.split(' - ')[0];
+        return getCompanyScore(nameB) - getCompanyScore(nameA);
+      });
+
+      return merged.slice(0, 2500);
     };
 
     const calculatedData = [

@@ -850,7 +850,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
             <div className="hidden md:flex shrink-0 items-center gap-3" aria-label="메인 메뉴">
               
               {/* Box 1: 테크노 랩 내비 */}
-              <nav className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
+              <nav aria-label="테크노 랩 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
                 <Link
                   href="/"
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
@@ -877,7 +877,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
               </nav>
 
               {/* Box 2: 라운지 */}
-              <nav className="flex items-center bg-body p-1.5 rounded-[18px] border border-border/40">
+              <nav aria-label="라운지 메뉴" className="flex items-center bg-body p-1.5 rounded-[18px] border border-border/40">
                 <button
                   onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
@@ -892,7 +892,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
               </nav>
 
               {/* Box 3: 아파트 내비 */}
-              <nav className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
+              <nav aria-label="아파트 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
                 <button
                   onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${

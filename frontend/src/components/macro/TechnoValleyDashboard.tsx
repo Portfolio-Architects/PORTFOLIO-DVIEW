@@ -81,8 +81,6 @@ export default function TechnoValleyDashboard() {
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncSuccess, setSyncSuccess] = useState(false);
 
   // Accordion portfolio states
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
@@ -155,24 +153,6 @@ export default function TechnoValleyDashboard() {
     dedupingInterval: 300000
   });
 
-  const handleSync = async () => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    setSyncSuccess(false);
-    try {
-      const res = await fetch('/api/technovalley/industry-distribution?refresh=true');
-      const json = await res.json();
-      if (json.success) {
-        await mutate(json, false);
-        setSyncSuccess(true);
-        setTimeout(() => setSyncSuccess(false), 3000);
-      }
-    } catch (e) {
-      console.error('Failed to sync Google Sheets:', e);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const donutData = useMemo(() => {
     if (responseData?.success && Array.isArray(responseData.data)) {
@@ -199,6 +179,15 @@ export default function TechnoValleyDashboard() {
     const bioVal = donutData.find((d: any) => d.name === '바이오·헬스케어')?.value || 0;
     return parseFloat((itVal + semiVal + bioVal).toFixed(1));
   }, [donutData]);
+
+  const totalCompanyCount = useMemo(() => {
+    return donutData.reduce((acc: number, item: any) => acc + (item.count || 0), 0);
+  }, [donutData]);
+
+  const activeItem = useMemo(() => {
+    if (!activeCategory) return null;
+    return donutData.find((d: any) => d.name === activeCategory) || null;
+  }, [donutData, activeCategory]);
   
   // Toggles for line display
   const [activeLines, setActiveLines] = useState<Record<string, boolean>>({
@@ -235,32 +224,6 @@ export default function TechnoValleyDashboard() {
               테크노밸리 입주 기업 업종 분포
             </h3>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleSync}
-                disabled={isSyncing}
-                className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide transition-all flex items-center gap-1.5 ${
-                  syncSuccess 
-                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' 
-                    : 'bg-hs-orange-light text-hs-orange hover:bg-hs-orange/20 border border-hs-orange/10'
-                }`}
-              >
-                {isSyncing ? (
-                  <>
-                    <svg className="animate-spin h-3 w-3 text-hs-orange" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    동기화 중...
-                  </>
-                ) : syncSuccess ? (
-                  '동기화 완료 ✓'
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3 text-hs-orange" />
-                    구글 시트 동기화
-                  </>
-                )}
-              </button>
               <span className="text-[10px] font-black bg-neutral-100 dark:bg-zinc-800 text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wide">
                 업종 대분류 기준
               </span>
@@ -300,9 +263,29 @@ export default function TechnoValleyDashboard() {
               </ResponsiveContainer>
               
               {/* Center text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none mt-1">
-                <span className="text-[12.5px] sm:text-[14px] text-tertiary font-bold tracking-tight">첨단·IT 비율</span>
-                <span className="text-[28px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">{techRatio}%</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none mt-1 select-none">
+                {activeItem ? (
+                  <>
+                    <span className="text-[12px] sm:text-[13.5px] text-tertiary font-bold tracking-tight px-3 truncate max-w-[150px]">
+                      {activeItem.name}
+                    </span>
+                    <span className="text-[28px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">
+                      {activeItem.value}%
+                    </span>
+                    <span className="text-[11.5px] sm:text-[13px] text-secondary font-extrabold mt-0.5 bg-neutral-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-full">
+                      {activeItem.count ? `${activeItem.count.toLocaleString()}개` : ''}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[12.5px] sm:text-[14px] text-tertiary font-bold tracking-tight">
+                      총 기업 수
+                    </span>
+                    <span className="text-[28px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">
+                      {totalCompanyCount.toLocaleString()}개
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 

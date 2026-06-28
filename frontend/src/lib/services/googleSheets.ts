@@ -68,7 +68,7 @@ if (!globalThis._sheetsMemoryCache) {
   globalThis._sheetsMemoryCache = sheetsMemoryCache;
 }
 
-const SHEETS_CACHE_TTL = 3600; // 1 hour
+const SHEETS_CACHE_TTL = 86400; // 24 hours
 
 export async function fetchCsv(sheetName: string, bypassCache: boolean = false): Promise<string[][]> {
   const cacheKey = `DTDLS:cache:sheets:${sheetName}`;
