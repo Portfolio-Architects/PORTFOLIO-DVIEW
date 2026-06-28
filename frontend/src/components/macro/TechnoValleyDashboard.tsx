@@ -592,6 +592,121 @@ export default function TechnoValleyDashboard() {
 
       </div>
 
+      {/* 업종 구분별 기업 리스트 아코디언 (Full Width) */}
+      <div className="lg:col-span-12 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-border/40">
+          <div>
+            <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-hs-orange" />
+              업종 구분별 기업 리스트
+            </h3>
+            <p className="text-[11px] text-tertiary font-bold mt-0.5">
+              각 업종 카테고리를 클릭하여 입주 기업 전체 목록을 확인하실 수 있습니다.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={handleExpandAll}
+              className="text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-border bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-secondary transition-all"
+            >
+              전체 펼치기
+            </button>
+            <button
+              onClick={handleCollapseAll}
+              className="text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-border bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-secondary transition-all"
+            >
+              전체 접기
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {donutData.map((sector: any) => {
+            const isExpanded = !!expandedSectors[sector.name];
+            const visibleCount = visibleCounts[sector.name] || 12;
+            const companies = sector.companies || [];
+            const visibleCompanies = companies.slice(0, visibleCount);
+            const hasMore = companies.length > visibleCount;
+
+            return (
+              <div 
+                key={sector.name} 
+                className="border border-border/60 rounded-2xl overflow-hidden bg-body/20 dark:bg-zinc-900/10 transition-all"
+              >
+                {/* Accordion Header */}
+                <button
+                  onClick={() => handleToggleSector(sector.name)}
+                  className="w-full flex items-center justify-between p-4 bg-surface hover:bg-body/30 dark:hover:bg-zinc-800/20 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span 
+                      className="w-2 h-2 rounded-full shrink-0" 
+                      style={{ backgroundColor: sector.color }} 
+                    />
+                    <span className="text-[13.5px] font-black text-primary">{sector.name}</span>
+                    <span className="text-[11px] font-extrabold text-secondary bg-body dark:bg-zinc-800 px-2 py-0.5 rounded-full">
+                      {companies.length}개 기업
+                    </span>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp size={16} className="text-secondary" />
+                  ) : (
+                    <ChevronDown size={16} className="text-secondary" />
+                  )}
+                </button>
+
+                {/* Accordion Content */}
+                {isExpanded && (
+                  <div className="p-4 bg-surface/50 border-t border-border/40 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {companies.length === 0 ? (
+                      <p className="text-[12px] text-tertiary text-center py-6">
+                        등록된 기업 정보가 없습니다.
+                      </p>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                          {visibleCompanies.map((co: string, idx: number) => (
+                            <div
+                              key={idx}
+                              className="bg-surface border border-border/55 px-4 py-2.5 rounded-xl text-[12px] sm:text-[13px] font-black text-primary hover:border-hs-orange/30 hover:text-hs-orange transition-all truncate text-left"
+                              title={co}
+                            >
+                              {co}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Pagination Buttons */}
+                        {(hasMore || visibleCount > 12) && (
+                          <div className="flex items-center justify-center gap-2 mt-4 pt-3 border-t border-border/30">
+                            {hasMore && (
+                              <button
+                                onClick={() => handleShowMore(sector.name)}
+                                className="text-[11px] font-black text-hs-orange bg-hs-orange-light px-4 py-2 rounded-xl border border-hs-orange/10 hover:bg-hs-orange/10 transition-all"
+                              >
+                                더보기 ({companies.length - visibleCount}개 남음)
+                              </button>
+                            )}
+                            {visibleCount > 12 && (
+                              <button
+                                onClick={() => handleResetLimit(sector.name)}
+                                className="text-[11px] font-black text-secondary bg-body px-4 py-2 rounded-xl border border-border hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-all"
+                              >
+                                목록 접기
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   );
 }
