@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 786)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 787)
+
 
 
 
@@ -241,9 +242,17 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Calculated **Average Rent** and **Average Vacancy Rate** dynamically from the latest `TREND_DATA` monthly values, showing comparison percentages and color-coded green/red direction badges for quarters.
   - Enhanced visuals with Premium HSL colors, responsive grids, and subtle scale-up micro-interactions on hover.
 
+- **KPI Cards Icon-to-Submetrics Optimization (Phase 787)**:
+  - Removed the square icon badges from the right side of the 2x2 KPI Cards Grid in [TechnoValleyDashboard.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/macro/TechnoValleyDashboard.tsx).
+  - Injected structured columns of dynamic secondary metrics separated by a vertical border divider:
+    - **Total Companies**: `앵커 기업 15개사` and `첨단 비중 {techRatio}%` (dynamic).
+    - **Average Rent**: `최고 시세 3.68만` and `최저 시세 3.50만` (dynamic from trend range).
+    - **Average Vacancy Rate**: `SH타임 {sh}%` and `실리콘앨리 {silicon}%` (dynamic from latest trend values).
+    - **Activity Index**: `종합 S등급 (우수)` and `집적도 92% (상)`.
+
 ---
 
-## 🟢 Verification Results (Phase 786)
+## 🟢 Verification Results (Phase 787)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:

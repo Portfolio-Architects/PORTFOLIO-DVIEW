@@ -85,6 +85,7 @@ export default function TechnoValleyDashboard() {
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const latestTrend = TREND_DATA[TREND_DATA.length - 1];
   
 
   // Accordion portfolio states
@@ -415,8 +416,9 @@ export default function TechnoValleyDashboard() {
                 </span>
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-[#ea580c] shrink-0 ml-1">
-              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">앵커 기업 15개사</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">첨단 비중 {techRatio}%</span>
             </div>
           </div>
 
@@ -435,8 +437,9 @@ export default function TechnoValleyDashboard() {
                 </span>
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-amber-500 shrink-0 ml-1">
-              <Coins className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">최고 시세 3.68만</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">최저 시세 3.50만</span>
             </div>
           </div>
 
@@ -455,8 +458,9 @@ export default function TechnoValleyDashboard() {
                 </span>
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-emerald-500 shrink-0 ml-1">
-              <Percent className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">SH타임 {latestTrend['SH타임']}%</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">실리콘앨리 {latestTrend['실리콘앨리']}%</span>
             </div>
           </div>
 
@@ -471,8 +475,9 @@ export default function TechnoValleyDashboard() {
                 </span>
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-violet-500 shrink-0 ml-1">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">종합 S등급 (우수)</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">집적도 92% (상)</span>
             </div>
           </div>
 
