@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 778)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 779)
+
 
 
 
@@ -199,9 +200,14 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **Web Accessibility & Navigation Landmarks (Phase 778)**:
   - Added unique `aria-label` attributes to the three adjacent `<nav>` elements in the header of both [DashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/DashboardClient.tsx) and [LoungeHeader.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeHeader.tsx). This successfully resolves the Axe-core `landmark-unique` accessibility violation.
 
+- **ApartmentModal Skeleton Height Realignment & 5-Minute Scheduler Policy (Phase 779)**:
+  - Aligned all dynamic loading skeletons (`CommentSkeleton`, `JeonseSafetySkeleton`, `EducationAnalysisSkeleton`, `InfraAnalysisSkeleton`, `ScoutingReportDetailSkeleton`, and `AdvancedValuationSkeleton`) in [ApartmentModal.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/ApartmentModal.tsx) to match the exact estimated heights of their lazy-rendered containers (`LazyRender`). This prevents Cumulative Layout Shifts (CLS) and dynamic collapses during chunk loading.
+  - Corrected `TransactionChartSkeleton` height to `h-[470px] md:h-[530px]` to tightly match the actual dimensions of the rendered chart section.
+  - Updated the auto-improvement loop policy and Dual Watchdog settings in [AGENT.md](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/AGENT.md) to run on a **5-minute interval** (`CronExpression="*/5 * * * *"`) as requested by the user, replacing the previous 15-minute standard.
+
 ---
 
-## 🟢 Verification Results (Phase 778)
+## 🟢 Verification Results (Phase 779)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:
@@ -210,4 +216,5 @@ All pipeline checks completed successfully:
 - **E2E Playwright tests**: **PASSED** (6 E2E integration test suites successfully completed).
 - **Axe-Core Accessibility Check**: **PASSED** (0 accessibility violations found on checked pages).
 - **Firestore cost projection check**: **PASSED** (₩4/month projection).
+
 

@@ -23,51 +23,51 @@ import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 
 const CommentSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4">
+  <div className="w-full flex flex-col gap-4 mt-4 h-[250px]">
     <div className="h-6 rounded-xl w-32 mb-2 animate-shimmer" />
     <div className="flex gap-3">
       <div className="flex-1 h-12 rounded-xl animate-shimmer" />
       <div className="w-16 h-12 rounded-xl animate-shimmer" />
     </div>
-    <div className="w-full h-24 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const JeonseSafetySkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4">
+  <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full h-36 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const EducationAnalysisSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4">
+  <div className="w-full flex flex-col gap-4 mt-4 h-[350px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full h-40 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const InfraAnalysisSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4">
+  <div className="w-full flex flex-col gap-4 mt-4 h-[350px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="h-32 rounded-2xl border border-border/40 animate-shimmer" />
-      <div className="h-32 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+      <div className="rounded-2xl border border-border/40 animate-shimmer" />
+      <div className="rounded-2xl border border-border/40 animate-shimmer hidden md:block" />
     </div>
   </div>
 );
 
 const ScoutingReportDetailSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4">
+  <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full h-36 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
 const AdvancedValuationSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4">
+  <div className="w-full flex flex-col gap-4 mt-4 h-[400px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full h-48 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
   </div>
 );
 
@@ -89,7 +89,7 @@ const TransactionTableSkeleton = () => (
 );
 
 const TransactionChartSkeleton = () => (
-  <div className="w-full h-[549px] md:h-[578px] flex flex-col gap-6 p-6 border border-border/40 rounded-2xl">
+  <div className="w-full h-[470px] md:h-[530px] flex flex-col gap-6 p-6 border border-border/40 rounded-2xl">
     <div className="flex justify-between items-center">
       <div className="h-6 w-32 rounded bg-neutral-250 dark:bg-zinc-800 animate-shimmer" />
       <div className="flex gap-2">
