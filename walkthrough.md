@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 781)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 782)
+
 
 
 
@@ -215,9 +216,12 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
 - **LoungeDetailClient Input and Textarea Web Accessibility Optimizations (Phase 781)**:
   - Added descriptive `aria-label` tags to the comment writing input (`aria-label="댓글 작성 입력"`), post editing title input (`aria-label="게시글 수정 제목"`), and post editing textarea (`aria-label="게시글 수정 내용"`) in [LoungeDetailClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/LoungeDetailClient.tsx). This hardens form accessibility against Axe-core violations when interacting with post edit and comment composing screens.
 
+- **TechnoValley Donut Chart Center Text Scaling (Phase 782)**:
+  - Reduced the font size of the donut chart center labels inside [TechnoValleyDashboard.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/macro/TechnoValleyDashboard.tsx) by 50% (from `text-[28px] sm:text-[32px]` to `text-[14px] sm:text-[16px]`). This improves the aesthetic layout of the "Total Companies" and active category percentage display inside the donut inner radius.
+
 ---
 
-## 🟢 Verification Results (Phase 781)
+## 🟢 Verification Results (Phase 782)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:

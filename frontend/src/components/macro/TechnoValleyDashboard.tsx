@@ -278,7 +278,7 @@ export default function TechnoValleyDashboard() {
                     <span className="text-[12px] sm:text-[13.5px] text-tertiary font-bold tracking-tight px-3 truncate max-w-[150px]">
                       {activeItem.name}
                     </span>
-                    <span className="text-[28px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
                       {activeItem.value}%
                     </span>
                     <span className="text-[11.5px] sm:text-[13px] text-secondary font-extrabold mt-0.5 bg-neutral-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-full">
@@ -290,7 +290,7 @@ export default function TechnoValleyDashboard() {
                     <span className="text-[12.5px] sm:text-[14px] text-tertiary font-bold tracking-tight">
                       총 기업 수
                     </span>
-                    <span className="text-[28px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
                       {totalCompanyCount.toLocaleString()}개
                     </span>
                   </>
