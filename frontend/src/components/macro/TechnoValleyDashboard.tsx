@@ -133,6 +133,14 @@ export default function TechnoValleyDashboard() {
       ...prev,
       [name]: prev[name] + 24
     }));
+    
+    // Smoothly scroll to center on the expanded accordion element
+    setTimeout(() => {
+      const element = document.getElementById(`sector-card-${name.replace(/\s+/g, '')}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 80);
   };
 
   const handleResetLimit = (name: string) => {
@@ -631,6 +639,7 @@ export default function TechnoValleyDashboard() {
             return (
               <div 
                 key={sector.name} 
+                id={`sector-card-${sector.name.replace(/\s+/g, '')}`}
                 className="border border-border/60 rounded-2xl overflow-hidden bg-body/20 dark:bg-zinc-900/10 transition-all"
               >
                 {/* Accordion Header */}
