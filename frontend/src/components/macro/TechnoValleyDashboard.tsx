@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import useSWR from 'swr';
 import { 
   PieChart, 
@@ -77,6 +77,11 @@ const TREND_DATA = [
 ];
 
 export default function TechnoValleyDashboard() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -233,34 +238,38 @@ export default function TechnoValleyDashboard() {
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 flex-1 min-h-[280px]">
             {/* Donut Chart Container */}
             <div className="w-full sm:w-1/2 h-[250px] sm:h-[280px] relative flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
-                <PieChart>
-                  <Pie
-                    data={donutData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={84}
-                    outerRadius={114}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {donutData.map((entry: any, index: number) => {
-                      const isSelected = activeCategory === entry.name;
-                      return (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.color} 
-                          stroke={isSelected ? '#ffffff' : 'none'}
-                          strokeWidth={isSelected ? 3 : 0}
-                          opacity={activeCategory === null || isSelected ? 1 : 0.6}
-                          style={{ outline: 'none', cursor: 'pointer' }}
-                          onClick={() => setActiveCategory(isSelected ? null : entry.name)}
-                        />
-                      );
-                    })}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                  <PieChart>
+                    <Pie
+                      data={donutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={84}
+                      outerRadius={114}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {donutData.map((entry: any, index: number) => {
+                        const isSelected = activeCategory === entry.name;
+                        return (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.color} 
+                            stroke={isSelected ? '#ffffff' : 'none'}
+                            strokeWidth={isSelected ? 3 : 0}
+                            opacity={activeCategory === null || isSelected ? 1 : 0.6}
+                            style={{ outline: 'none', cursor: 'pointer' }}
+                            onClick={() => setActiveCategory(isSelected ? null : entry.name)}
+                          />
+                        );
+                      })}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-[168px] h-[168px] sm:w-[228px] sm:h-[228px] rounded-full border-[30px] border-border/10 animate-pulse" />
+              )}
               
               {/* Center text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none mt-1 select-none">
@@ -515,82 +524,94 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* Line Chart Area */}
-        <div className="flex-1 w-full h-[390px] relative">
-          <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
-            <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="date" 
-                tickLine={false} 
-                axisLine={false} 
-                tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }} 
-              />
-              <YAxis 
-                tickLine={false} 
-                axisLine={false} 
-                domain={metricMode === 'vacancy' ? [10, 26] : [3.0, 4.0]}
-                tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }}
-                unit={metricMode === 'vacancy' ? '%' : '만'}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#ffffff', 
-                  borderColor: '#e5e8eb', 
-                  borderRadius: '16px', 
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
-                }}
-              />
-              {metricMode === 'vacancy' ? (
-                <>
-                  {activeLines['금강 IX'] && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="금강 IX" 
-                      stroke="#dc6e2d" 
-                      strokeWidth={3} 
-                      dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                      activeDot={{ r: 6 }} 
-                    />
-                  )}
-                  {activeLines['실리콘앨리'] && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="실리콘앨리" 
-                      stroke="#f97316" 
-                      strokeWidth={3} 
-                      dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                      activeDot={{ r: 6 }} 
-                    />
-                  )}
-                  {activeLines['SH타임'] && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="SH타임" 
-                      stroke="#ffb076" 
-                      strokeWidth={3} 
-                      dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                      activeDot={{ r: 6 }} 
-                    />
-                  )}
-                </>
-              ) : (
-                <>
-                  {activeLines['평균임대료'] && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="평균임대료" 
-                      stroke="#dc6e2d" 
-                      strokeWidth={3.5} 
-                      dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                      activeDot={{ r: 6 }} 
-                    />
-                  )}
-                </>
-              )}
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="flex-1 w-full h-[390px] relative flex items-end">
+          {mounted ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+              <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="date" 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }} 
+                />
+                <YAxis 
+                  tickLine={false} 
+                  axisLine={false} 
+                  domain={metricMode === 'vacancy' ? [10, 26] : [3.0, 4.0]}
+                  tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }}
+                  unit={metricMode === 'vacancy' ? '%' : '만'}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#ffffff', 
+                    borderColor: '#e5e8eb', 
+                    borderRadius: '16px', 
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
+                  }}
+                />
+                {metricMode === 'vacancy' ? (
+                  <>
+                    {activeLines['금강 IX'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="금강 IX" 
+                        stroke="#dc6e2d" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
+                    {activeLines['실리콘앨리'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="실리콘앨리" 
+                        stroke="#f97316" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
+                    {activeLines['SH타임'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="SH타임" 
+                        stroke="#ffb076" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {activeLines['평균임대료'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="평균임대료" 
+                        stroke="#dc6e2d" 
+                        strokeWidth={3.5} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
+                  </>
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="w-full h-[350px] border border-border/20 rounded-xl flex items-end justify-between p-4 gap-2 animate-pulse">
+              {[30, 45, 60, 40, 75, 50, 90, 65, 80, 55, 70, 85].map((h, i) => (
+                <div 
+                  key={i} 
+                  style={{ height: `${h}%` }} 
+                  className="flex-1 rounded-t bg-border/20" 
+                />
+              ))}
+            </div>
+          )}
         </div>
 
       </div>

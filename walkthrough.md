@@ -1,4 +1,5 @@
-# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 779)
+# Walkthrough: DVIEW 100% Civic Public Rebranding & TechnoValley Enhancements (Phase 729 - 780)
+
 
 
 
@@ -205,9 +206,14 @@ We have successfully rebranded DVIEW into a **100% Civic Public Interest Platfor
   - Corrected `TransactionChartSkeleton` height to `h-[470px] md:h-[530px]` to tightly match the actual dimensions of the rendered chart section.
   - Updated the auto-improvement loop policy and Dual Watchdog settings in [AGENT.md](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/AGENT.md) to run on a **5-minute interval** (`CronExpression="*/5 * * * *"`) as requested by the user, replacing the previous 15-minute standard.
 
+- **TechnoValleyDashboard Recharts Hydration Warning & Skeleton Loader Optimizations (Phase 780)**:
+  - Added a `mounted` state check inside [TechnoValleyDashboard.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/macro/TechnoValleyDashboard.tsx) to delay rendering of the Recharts `ResponsiveContainer` instances until client hydration is fully complete. This eliminates console warnings regarding negative/zero dimensions during initial page paint.
+  - Designed and implemented a custom CSS shimmer skeleton `<div className="w-[168px] h-[168px] sm:w-[228px] sm:h-[228px] rounded-full border-[30px] border-border/10 animate-pulse" />` matching the exact dimensions and inner/outer radius of the industry donut chart.
+  - Built an animated bar skeleton representation for the macro line chart fallback to ensure layout stability during the client mounting phase.
+
 ---
 
-## 🟢 Verification Results (Phase 779)
+## 🟢 Verification Results (Phase 780)
 
 ### 1. Self-Improvement Audit Pipeline (`npm run audit`)
 All pipeline checks completed successfully:
