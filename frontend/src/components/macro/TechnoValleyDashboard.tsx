@@ -181,6 +181,18 @@ export default function TechnoValleyDashboard() {
     return DONUT_DATA;
   }, [responseData]);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const totalMatchedCount = useMemo(() => {
+    return donutData.reduce((acc: number, sector: any) => {
+      const companies = sector.companies || [];
+      const matched = searchQuery
+        ? companies.filter((co: string) => co.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+        : companies;
+      return acc + matched.length;
+    }, 0);
+  }, [donutData, searchQuery]);
+
   const techRatio = useMemo(() => {
     const itVal = donutData.find((d: any) => d.name === 'IT·소프트웨어')?.value || 0;
     const semiVal = donutData.find((d: any) => d.name === '반도체·첨단제조')?.value || 0;
@@ -628,20 +640,61 @@ export default function TechnoValleyDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {donutData.map((sector: any) => {
-            const isExpanded = !!expandedSectors[sector.name];
-            const visibleCount = visibleCounts[sector.name] || 12;
-            const companies = sector.companies || [];
-            const visibleCompanies = companies.slice(0, visibleCount);
-            const hasMore = companies.length > visibleCount;
+        {/* Search Bar */}
+        <div className="relative w-full max-w-md my-1">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="기업명 또는 건물명/도로명 검색..."
+            className="w-full bg-body border border-border/80 rounded-xl py-2 pl-9 pr-9 text-[12px] sm:text-[13px] text-primary focus:outline-none focus:border-hs-orange/40 focus:ring-1 focus:ring-hs-orange/30 transition-all font-bold"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="w-3.5 h-3.5 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-tertiary hover:text-primary transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
 
-            return (
-              <div 
-                key={sector.name} 
-                id={`sector-card-${sector.name.replace(/\s+/g, '')}`}
-                className="border border-border/60 rounded-2xl overflow-hidden bg-body/20 dark:bg-zinc-900/10 transition-all"
-              >
+        {searchQuery && totalMatchedCount === 0 ? (
+          <div className="text-center py-12 bg-body/20 rounded-2xl border border-border/40">
+            <p className="text-[12px] sm:text-[13px] font-bold text-tertiary">
+              검색 조건에 맞는 기업이 없습니다.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {donutData.map((sector: any) => {
+              const companies = sector.companies || [];
+              const filteredCompanies = searchQuery
+                ? companies.filter((co: string) => co.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+                : companies;
+
+              if (searchQuery && filteredCompanies.length === 0) {
+                return null;
+              }
+
+              const isExpanded = searchQuery ? true : !!expandedSectors[sector.name];
+              const visibleCount = visibleCounts[sector.name] || 12;
+              const visibleCompanies = searchQuery ? filteredCompanies : filteredCompanies.slice(0, visibleCount);
+              const hasMore = !searchQuery && filteredCompanies.length > visibleCount;
+
+              return (
+                <div 
+                  key={sector.name} 
+                  id={`sector-card-${sector.name.replace(/\s+/g, '')}`}
+                  className="border border-border/60 rounded-2xl overflow-hidden bg-body/20 dark:bg-zinc-900/10 transition-all"
+                >
                 {/* Accordion Header */}
                 <button
                   onClick={() => handleToggleSector(sector.name)}
@@ -654,7 +707,7 @@ export default function TechnoValleyDashboard() {
                     />
                     <span className="text-[13.5px] font-black text-primary">{sector.name}</span>
                     <span className="text-[11px] font-extrabold text-secondary bg-body dark:bg-zinc-800 px-2 py-0.5 rounded-full">
-                      {companies.length}개 기업
+                      {searchQuery ? `${filteredCompanies.length}개 매칭` : `${companies.length}개 기업`}
                     </span>
                   </div>
                   {isExpanded ? (
@@ -688,7 +741,7 @@ export default function TechnoValleyDashboard() {
                         </div>
 
                         {/* Pagination Buttons */}
-                        {(hasMore || visibleCount > 12) && (
+                        {(hasMore || (!searchQuery && visibleCount > 12)) && (
                           <div className="flex items-center justify-center gap-2 mt-4 pt-3 border-t border-border/30">
                             {hasMore && (
                               <button
@@ -698,7 +751,7 @@ export default function TechnoValleyDashboard() {
                                 더보기 ({companies.length - visibleCount}개 남음)
                               </button>
                             )}
-                            {visibleCount > 12 && (
+                            {!searchQuery && visibleCount > 12 && (
                               <button
                                 onClick={() => handleResetLimit(sector.name)}
                                 className="text-[11px] font-black text-secondary bg-body px-4 py-2 rounded-xl border border-border hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-all"
@@ -716,6 +769,7 @@ export default function TechnoValleyDashboard() {
             );
           })}
         </div>
+        )}
       </div>
 
     </div>
