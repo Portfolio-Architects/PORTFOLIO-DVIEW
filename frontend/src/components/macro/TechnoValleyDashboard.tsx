@@ -131,7 +131,7 @@ export default function TechnoValleyDashboard() {
   const handleShowMore = (name: string) => {
     setVisibleCounts(prev => ({
       ...prev,
-      [name]: prev[name] + 24
+      [name]: prev[name] + 50
     }));
     
     // Smoothly scroll to center on the expanded accordion element
