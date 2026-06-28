@@ -189,6 +189,38 @@ export default function TechnoValleyDashboard() {
     return donutData.reduce((acc: number, item: any) => acc + (item.count || 0), 0);
   }, [donutData]);
 
+  const rentKPI = useMemo(() => {
+    const latestTrend = TREND_DATA[TREND_DATA.length - 1];
+    const prevTrend = TREND_DATA[TREND_DATA.length - 2];
+    
+    const latestRent = latestTrend.평균임대료;
+    const prevRent = prevTrend.평균임대료;
+    const changePercent = ((latestRent - prevRent) / prevRent * 100).toFixed(1);
+    const isUp = latestRent >= prevRent;
+    
+    return {
+      value: latestRent,
+      changeText: `${isUp ? '▲' : '▼'} ${Math.abs(parseFloat(changePercent))}%`,
+      isUp
+    };
+  }, []);
+
+  const vacancyKPI = useMemo(() => {
+    const latestTrend = TREND_DATA[TREND_DATA.length - 1];
+    const prevTrend = TREND_DATA[TREND_DATA.length - 2];
+    
+    const latestVacancy = (latestTrend['금강 IX'] + latestTrend['실리콘앨리'] + latestTrend['SH타임']) / 3;
+    const prevVacancy = (prevTrend['금강 IX'] + prevTrend['실리콘앨리'] + prevTrend['SH타임']) / 3;
+    const change = latestVacancy - prevVacancy;
+    const isUp = change >= 0;
+    
+    return {
+      value: parseFloat(latestVacancy.toFixed(1)),
+      changeText: `${isUp ? '▲' : '▼'} ${Math.abs(parseFloat(change.toFixed(2)))}%`,
+      isUp
+    };
+  }, []);
+
   const activeItem = useMemo(() => {
     if (!activeCategory) return null;
     return donutData.find((d: any) => d.name === activeCategory) || null;
@@ -372,40 +404,76 @@ export default function TechnoValleyDashboard() {
         {/* 2x2 KPI Cards Grid */}
         <div className="grid grid-cols-2 gap-4">
           
-          {/* Card 1: Avg Rent */}
-          <div className="bg-surface border border-border/80 p-4.5 rounded-[20px] shadow-sm flex items-center justify-between">
+          {/* Card 1: Total Companies */}
+          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
+            <div className="flex flex-col gap-1 min-w-0">
+              <span className="text-[11px] text-tertiary font-bold">총 입주기업 수</span>
+              <div className="flex items-baseline gap-1 flex-wrap">
+                <span className="text-[16px] font-black text-primary">{totalCompanyCount.toLocaleString()}개사</span>
+                <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] dark:text-[#ea580c] flex items-center gap-0.5 shrink-0">
+                  ▲ 24
+                </span>
+              </div>
+            </div>
+            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-[#ea580c] shrink-0 ml-1">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            </div>
+          </div>
+
+          {/* Card 2: Avg Rent */}
+          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
               <span className="text-[11px] text-tertiary font-bold">평당 평균 임대료</span>
-              <span className="text-[16px] font-black text-primary">3.6 만원</span>
+              <div className="flex items-baseline gap-1 flex-wrap">
+                <span className="text-[16px] font-black text-primary">{rentKPI.value} 만원</span>
+                <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
+                  rentKPI.isUp 
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500' 
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
+                }`}>
+                  {rentKPI.changeText}
+                </span>
+              </div>
             </div>
-            <CircularProgress percent={76} color="#ea580c" /> {/* Dark Orange */}
+            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-amber-500 shrink-0 ml-1">
+              <Coins className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            </div>
           </div>
 
-          {/* Card 2: Tax Benefit */}
-          <div className="bg-surface border border-border/80 p-4.5 rounded-[20px] shadow-sm flex items-center justify-between">
+          {/* Card 3: Avg Vacancy Rate */}
+          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">청년·창업 세제 감면</span>
-              <span className="text-[16px] font-black text-primary">최대 75%</span>
+              <span className="text-[11px] text-tertiary font-bold">평균 공실률</span>
+              <div className="flex items-baseline gap-1 flex-wrap">
+                <span className="text-[16px] font-black text-primary">{vacancyKPI.value}%</span>
+                <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
+                  vacancyKPI.isUp 
+                    ? 'bg-red-500/10 text-red-600 dark:text-red-500' 
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
+                }`}>
+                  {vacancyKPI.changeText}
+                </span>
+              </div>
             </div>
-            <CircularProgress percent={75} color="#dc6e2d" /> {/* BI Orange */}
-          </div>
-
-          {/* Card 3: Match Rate */}
-          <div className="bg-surface border border-border/80 p-4.5 rounded-[20px] shadow-sm flex items-center justify-between">
-            <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">공동임차 매칭 성공</span>
-              <span className="text-[16px] font-black text-primary">85.4%</span>
+            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-emerald-500 shrink-0 ml-1">
+              <Percent className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
-            <CircularProgress percent={85} color="#ffb076" /> {/* Light Orange */}
           </div>
 
           {/* Card 4: Activity Index */}
-          <div className="bg-surface border border-border/80 p-4.5 rounded-[20px] shadow-sm flex items-center justify-between">
+          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
               <span className="text-[11px] text-tertiary font-bold">지산 집적 활성 지수</span>
-              <span className="text-[16px] font-black text-primary">88.5 점</span>
+              <div className="flex items-baseline gap-1 flex-wrap">
+                <span className="text-[16px] font-black text-primary">88.5 점</span>
+                <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-500 flex items-center gap-0.5 shrink-0">
+                  ▲ 3.2
+                </span>
+              </div>
             </div>
-            <CircularProgress percent={88} color="#f97316" /> {/* Medium Orange */}
+            <div className="p-2.5 rounded-xl bg-body/40 dark:bg-zinc-800 text-violet-500 shrink-0 ml-1">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            </div>
           </div>
 
         </div>
