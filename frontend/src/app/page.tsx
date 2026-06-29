@@ -6,7 +6,7 @@ import { safeJsonLd } from '@/lib/utils/structuredData';
 
 function TechnoValleySkeleton() {
   return (
-    <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-16 flex flex-col gap-8">
+    <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 flex flex-col gap-8">
       {/* 2 columns layout skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-6 h-[400px] bg-black/5 dark:bg-surface/5 rounded-3xl" />

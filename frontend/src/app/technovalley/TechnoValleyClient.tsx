@@ -19,7 +19,7 @@ export default function TechnoValleyClient() {
           subtitleLight="데이터 기반 동탄 테크노밸리 첨단 산업 단지 활성화 솔루션"
         />
 
-        <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-16">
+        <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0">
           <TechnoValleyDashboard />
         </div>
       </div>
