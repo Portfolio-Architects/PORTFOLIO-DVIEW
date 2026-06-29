@@ -54,18 +54,46 @@ graph TB
     subgraph API["Next.js Server"]
         Routes["API Routes"]
         Admin["Firebase Admin SDK"]
+        Services["OpenAPI Services (officeTx, energy, factory, law)"]
     end
     subgraph Data["Data Sources"]
         Firestore[("Firestore")]
         GSheet[("Google Sheets")]
+        PublicAPI["Public OpenAPI (MOLIT, KICOX, MOLEG)"]
     end
     UI -->|useDashboardData| Facade
     Facade --> Firestore
     Facade --> Routes
     Routes --> GSheet
     Routes --> Admin
+    Routes --> Services
+    Services --> PublicAPI
     Admin --> Firestore
 ```
+
+### 외부 공공 OpenAPI 연동 내역 (총 10종 Data.go.kr 연동)
+DVIEW의 데이터 신뢰성, AI 공실 추정, 실거래 팩트체크 및 주거 안심 정보 제공을 위해 공공데이터포털(data.go.kr)에 등록 및 승인 완료된 10종의 공공 OpenAPI를 백엔드 아키텍처 레이어에 통합해 연동하고 있습니다.
+
+1. **법제처_국가법령정보 공유서비스**
+   - **역할**: 지방세특례제한법 및 화성시 세금 감면 조례 조문을 쿼리하여 동탄 이전 법인/개인의 세제 혜택 감면 수식을 실시간 동기화.
+2. **한국산업단지공단_공장등록생산정보조회서비스 (팩토리온)**
+   - **역할**: 건물 도로명주소를 기반으로 입주 기업 목록 및 KSIC 주업종분류코드를 융합 분석하여 업종 분포 통계를 생성.
+3. **국토교통부_건축HUB_건물에너지정보 서비스**
+   - **역할**: 빌딩별 월간 전력/에너지 사용량 패턴 데이터를 수집하여 AI 공실률 추이(전력량 기반 공실 분석) 연산의 원천 피드로 활용.
+4. **국토교통부_상업업무용 부동산 매매 실거래가 자료**
+   - **역할**: 동탄 테크노밸리 내 지식산업센터들의 실제 매매/임대 거래 내역을 수집하여 오피스 거래 현황 및 시세 팩트체크에 활용.
+5. **경기도 화성시_산업단지 입주기업 현황**
+   - **역할**: 동탄 테크노밸리 관내에 등록된 공식 입주 기업 데이터셋을 상호 참조(Cross-mapping)하여 순수 동탄 데이터 정제에 활용.
+6. **국민연금공단_국민연금 가입 사업장 내역**
+   - **역할**: 입주 기업별 상주 근무 인원수 정보와 활성 여부를 융합 분석하여 테크노밸리 내 실질 상주 인력 밀도 산출에 기여.
+7. **한국산업단지공단_전국지식산업센터현황 (ODCloud)**
+   - **역할**: 동탄 테크노밸리 내 지식산업센터 건물의 마스터 정보(용지면적, 건축면적, 부대면적, 지식산업센터명)를 수집하여 빌딩별 스펙 매핑.
+8. **한국산업단지공단_전국등록공장현황**
+   - **역할**: 지식산업센터 및 지상 공장으로 등록된 제조/IT 기업의 입주 등록 대장을 필터링하여 지산별 입주사 매핑 정교화.
+9. **국토교통부_아파트 전월세 실거래가 자료**
+   - **역할**: DVIEW의 배후 아파트 단지 주거 안심 정보(전세가율, 전세 안전진단 등) 연산을 위한 실거래 시세 데이터 수집.
+10. **국토교통부_건축HUB_건축물대장정보 서비스**
+    - **역할**: 동탄 관내 아파트 및 상업용 빌딩의 준공년도, 총 세대수, 주차대수 등 하드웨어 마스터 정보를 연동하여 단지 상세 정보 최신화.
 
 ### 디렉토리 구조
 ```
@@ -73,7 +101,7 @@ src/
 ├── app/
 │   ├── api/              # API 엔드포인트
 │   ├── admin/            # 관리자 (대시보드, report)
-│   └── page.tsx          # 메인 페이지
+│   ├── page.tsx          # 메인 페이지
 ├── components/
 │   ├── admin/            # ReportEditorForm 등 관리자 전용
 │   ├── apartment-modal/  # TransactionTable, TransactionChartSection 등 모달 세부 컴포넌트

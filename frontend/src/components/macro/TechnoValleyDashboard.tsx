@@ -257,27 +257,7 @@ export default function TechnoValleyDashboard() {
     return donutData.find((d: any) => d.name === activeCategory) || null;
   }, [donutData, activeCategory]);
   
-  // Toggles for line display
-  const [activeLines, setActiveLines] = useState<Record<string, boolean>>({
-    '금강 IX': true,
-    '실리콘앨리': true,
-    'SH타임': true,
-    '더퍼스트': true,
-    'SK V1': true,
-    '에이팩시티': true,
-    '테라타워': true,
-    'IT타워': true,
-    '메가비즈타워': true,
-    '비즈타워': true,
-    '평균임대료': true
-  });
-
-  const handleToggleLine = (lineName: string) => {
-    setActiveLines(prev => ({
-      ...prev,
-      [lineName]: !prev[lineName]
-    }));
-  };
+  // Lines are automatically displayed based on selectedBuildings dropdown comparison list.
 
   const filteredTrendData = useMemo(() => {
     if (timeframe === 'YTD') return trendData.slice(-2);
@@ -529,11 +509,11 @@ export default function TechnoValleyDashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
           <div className="flex flex-col gap-1">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-hs-orange" />
-              동탄 영천동 테크노밸리 임대료 및 공실률 추이
+              <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
+              {metricMode === 'rent' ? '지식산업센터 평당 임대료 추이' : '지식산업센터 평균 공실률 추이 (AI 추정)'}
             </h3>
             <span className="text-[11px] text-tertiary font-bold">
-              영천동 지식산업센터 모니터링 데이터 분석 (단위: %, 만원/평)
+              {metricMode === 'rent' ? '영천동 주요 지산 모니터링 데이터 (단위: 만원/평)' : '영천동 주요 지산 모니터링 데이터 (단위: %)'}
             </span>
           </div>
 
@@ -633,40 +613,20 @@ export default function TechnoValleyDashboard() {
           </div>
         </div>
 
-        {/* Legend Filters */}
-        <div className="flex flex-wrap gap-2.5 mb-4 border-b border-border/40 pb-3">
+        {/* Legend Indicators */}
+        <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4 border-b border-border/40 pb-3">
           {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
-            <button
-              key={b.id}
-              onClick={() => handleToggleLine(b.id)}
-              className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeLines[b.id]
-                  ? 'bg-hs-orange-light border-border/30 font-black'
-                  : 'bg-body/30 border-transparent text-tertiary'
-              }`}
-              style={{ 
-                color: activeLines[b.id] ? b.color : undefined,
-                borderColor: activeLines[b.id] ? `${b.color}30` : undefined,
-                backgroundColor: activeLines[b.id] ? `${b.color}10` : undefined
-              }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: b.color }} />
-              {b.name}
-            </button>
+            <div key={b.id} className="flex items-center gap-1.5 text-[11px] font-extrabold text-secondary py-1">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
+              <span>{b.name}</span>
+            </div>
           ))}
           
           {metricMode === 'rent' && (
-            <button
-              onClick={() => handleToggleLine('평균임대료')}
-              className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeLines['평균임대료']
-                  ? 'bg-hs-orange-light border-[#737373]/30 text-[#737373]'
-                  : 'bg-body/30 border-transparent text-tertiary'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#737373]" />
-              평균 임대료
-            </button>
+            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#737373] py-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#737373] shrink-0" />
+              <span>평균 임대료</span>
+            </div>
           )}
         </div>
 
@@ -701,50 +661,43 @@ export default function TechnoValleyDashboard() {
                 />
                 {metricMode === 'vacancy' ? (
                   <>
-                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => {
-                      if (!activeLines[b.id]) return null;
-                      return (
-                        <Line 
-                           key={b.id}
-                          type="monotone" 
-                          dataKey={b.id} 
-                          name={b.name}
-                          stroke={b.color} 
-                          strokeWidth={3} 
-                          dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                          activeDot={{ r: 6 }} 
-                        />
-                      );
-                    })}
-                  </>
-                ) : (
-                  <>
-                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => {
-                      if (!activeLines[b.id]) return null;
-                      return (
-                        <Line 
-                          key={b.id}
-                          type="monotone" 
-                          dataKey={b.rentKey} 
-                          name={b.name}
-                          stroke={b.color} 
-                          strokeWidth={3} 
-                          dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                          activeDot={{ r: 6 }} 
-                        />
-                      );
-                    })}
-                    {activeLines['평균임대료'] && (
+                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
                       <Line 
+                        key={b.id}
                         type="monotone" 
-                        dataKey="평균임대료" 
-                        name="평균 임대료"
-                        stroke="#737373" 
-                        strokeWidth={3.5} 
+                        dataKey={b.id} 
+                        name={b.name}
+                        stroke={b.color} 
+                        strokeWidth={3} 
                         dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
                         activeDot={{ r: 6 }} 
                       />
-                    )}
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+                      <Line 
+                        key={b.id}
+                        type="monotone" 
+                        dataKey={b.rentKey} 
+                        name={b.name}
+                        stroke={b.color} 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    ))}
+                    <Line 
+                      type="monotone" 
+                      dataKey="평균임대료" 
+                      name="평균 임대료"
+                      stroke="#737373" 
+                      strokeWidth={2.5} 
+                      strokeDasharray="4 4"
+                      dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
+                      activeDot={{ r: 5 }} 
+                    />
                   </>
                 )}
               </LineChart>
