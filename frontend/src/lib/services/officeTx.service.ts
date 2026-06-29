@@ -10,6 +10,7 @@ export interface OfficeTransaction {
   readonly price: string;
   readonly buildingName: string;
   readonly priceRaw?: number;
+  readonly jibun?: string;
 }
 
 const MOCK_XML_RESPONSE = `
@@ -226,6 +227,7 @@ function parseOfficeXml(xml: string): OfficeTransaction[] {
     const dayRaw = $item.find('일').text().trim();
     const sizeSqM = parseFloat($item.find('전용면적').text().trim() || '0');
     const floor = parseInt($item.find('층').text().trim() || '1', 10);
+    const jibun = $item.find('지번').text().trim() || $item.find('jibun').text().trim();
 
     const month = monthRaw.length === 1 ? `0${monthRaw}` : monthRaw;
     const day = dayRaw.length === 1 ? `0${dayRaw}` : dayRaw;
@@ -240,7 +242,8 @@ function parseOfficeXml(xml: string): OfficeTransaction[] {
       floor,
       price,
       buildingName,
-      priceRaw: priceVal
+      priceRaw: priceVal,
+      jibun
     });
   });
 

@@ -47,12 +47,15 @@ export async function GET(request: NextRequest) {
   try {
     logger.info('GET /api/technovalley/trend', 'Fetching raw transactions from MOLIT API to calculate actual rents...');
 
-    // Fetch transactions in parallel for all target months
+    // Fetch transactions in parallel for all target months across both region codes (41590 and 41597)
     const rawResults = await Promise.all(
       TARGET_MONTHS.map(async (ym) => {
         try {
-          const list = await getOfficeTransactions('41590', ym);
-          return { ym, list };
+          const [list90, list97] = await Promise.all([
+            getOfficeTransactions('41590', ym),
+            getOfficeTransactions('41597', ym)
+          ]);
+          return { ym, list: [...list90, ...list97] };
         } catch (e) {
           logger.error('GET /api/technovalley/trend', `Failed to fetch transactions for ${ym}`, {}, e);
           return { ym, list: [] };
@@ -79,30 +82,60 @@ export async function GET(request: NextRequest) {
       };
 
       txs.forEach((tx) => {
-        if (!tx.buildingName || !tx.priceRaw || !tx.sizeSqM) return;
-        const normName = tx.buildingName.replace(/\s+/g, '').toLowerCase();
+        if (!tx.priceRaw || !tx.sizeSqM) return;
 
         let key: string | null = null;
-        if (normName.includes('금강') && (normName.includes('ix') || normName.includes('펜테리움'))) {
-          key = '금강 IX';
-        } else if (normName.includes('실리콘앨리') || normName.includes('실리콘')) {
-          key = '실리콘앨리';
-        } else if (normName.includes('타임스퀘어') || normName.includes('sh타임')) {
-          key = 'SH타임';
-        } else if (normName.includes('더퍼스트')) {
-          key = '더퍼스트';
-        } else if (normName.includes('skv1') || normName.includes('sk v1')) {
-          key = 'SK V1';
-        } else if (normName.includes('에이팩시티') || normName.includes('에이팩')) {
-          key = '에이팩시티';
-        } else if (normName.includes('테라타워') || normName.includes('테라')) {
-          key = '테라타워';
-        } else if (normName.includes('it타워') || normName.includes('아이티타워') || normName.includes('it 타워')) {
-          key = 'IT타워';
-        } else if (normName.includes('메가비즈타워') || normName.includes('메가비즈')) {
-          key = '메가비즈타워';
-        } else if (normName.includes('비즈타워') && !normName.includes('메가비즈')) {
-          key = '비즈타워';
+
+        // 1. Match by buildingName if present
+        if (tx.buildingName) {
+          const normName = tx.buildingName.replace(/\s+/g, '').toLowerCase();
+          if (normName.includes('금강') && (normName.includes('ix') || normName.includes('펜테리움'))) {
+            key = '금강 IX';
+          } else if (normName.includes('실리콘앨리') || normName.includes('실리콘')) {
+            key = '실리콘앨리';
+          } else if (normName.includes('타임스퀘어') || normName.includes('sh타임')) {
+            key = 'SH타임';
+          } else if (normName.includes('더퍼스트')) {
+            key = '더퍼스트';
+          } else if (normName.includes('skv1') || normName.includes('sk v1')) {
+            key = 'SK V1';
+          } else if (normName.includes('에이팩시티') || normName.includes('에이팩')) {
+            key = '에이팩시티';
+          } else if (normName.includes('테라타워') || normName.includes('테라')) {
+            key = '테라타워';
+          } else if (normName.includes('it타워') || normName.includes('아이티타워') || normName.includes('it 타워')) {
+            key = 'IT타워';
+          } else if (normName.includes('메가비즈타워') || normName.includes('메가비즈')) {
+            key = '메가비즈타워';
+          } else if (normName.includes('비즈타워') && !normName.includes('메가비즈')) {
+            key = '비즈타워';
+          }
+        }
+
+        // 2. Fallback: Match by Jibun (lot number) if name didn't match or is empty (extremely common in MOLIT data)
+        if (!key && tx.jibun) {
+          const j = tx.jibun.trim();
+          if (j.includes('844')) {
+            key = '금강 IX';
+          } else if (j.includes('823')) {
+            key = '실리콘앨리';
+          } else if (j.includes('853')) {
+            key = 'SH타임';
+          } else if (j.includes('835')) {
+            key = '더퍼스트';
+          } else if (j.includes('836')) {
+            key = 'SK V1';
+          } else if (j.includes('838')) {
+            key = '에이팩시티';
+          } else if (j.includes('824')) {
+            key = '테라타워';
+          } else if (j.includes('826')) {
+            key = 'IT타워';
+          } else if (j.includes('852')) {
+            key = '메가비즈타워';
+          } else if (j.includes('851')) {
+            key = '비즈타워';
+          }
         }
 
         if (key) {
