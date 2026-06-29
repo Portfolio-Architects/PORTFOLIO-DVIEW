@@ -10,6 +10,7 @@ import {
   Building
 } from 'lucide-react';
 import PageHeroHeader from '@/components/PageHeroHeader';
+import CoLeasingBoard from '@/components/macro/CoLeasingBoard';
 
 interface OfficeTransaction {
   readonly date: string;
@@ -190,7 +191,11 @@ export default function OfficeExplorerClient() {
         subtitleLight="수도권 최대 규모 산업 클러스터 활성화를 위한 원스톱 오피스 솔루션"
       />
 
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col gap-8">
+        
+        {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
+        <CoLeasingBoard />
+
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-[500px]">
           
           {/* Sidebar 필터 영역 */}

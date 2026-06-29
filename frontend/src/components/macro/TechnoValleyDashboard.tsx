@@ -15,6 +15,7 @@ import {
   Tooltip 
 } from 'recharts';
 import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import RelocationTaxSimulator from '@/components/macro/RelocationTaxSimulator';
 
 interface CircularProgressProps {
   percent: number;
@@ -959,6 +960,11 @@ export default function TechnoValleyDashboard() {
           })}
         </div>
         )}
+      </div>
+
+      {/* 과밀억제권역 기업 동탄 이전 세제 시뮬레이터 (Full Width) */}
+      <div className="lg:col-span-12 mt-6">
+        <RelocationTaxSimulator />
       </div>
 
     </div>
