@@ -896,15 +896,39 @@ export default function TechnoValleyDashboard() {
                         <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 pr-1.5 overscroll-y-contain ${
                           visibleCount > 12 ? 'max-h-[380px] overflow-y-auto custom-scrollbar' : ''
                         }`}>
-                          {visibleCompanies.map((co: string, idx: number) => (
-                            <div
-                              key={idx}
-                              className="bg-surface border border-border/55 px-4 py-2.5 rounded-xl text-[12px] sm:text-[13px] font-black text-primary hover:border-hs-orange/30 hover:text-hs-orange transition-all truncate text-left"
-                              title={co}
-                            >
-                              {co}
-                            </div>
-                          ))}
+                          {visibleCompanies.map((co: string, idx: number) => {
+                            const [companyName, companyAddr] = co.split(' - ');
+                            const firstLetter = companyName ? companyName.charAt(0) : '';
+
+                            return (
+                              <div
+                                key={idx}
+                                className="bg-surface border border-border/55 p-3 rounded-[16px] hover:border-hs-orange/30 hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0"
+                              >
+                                {/* Company Icon (Dynamic Letter Avatar with Gradient) */}
+                                <div 
+                                  className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-[12.5px] font-black text-white select-none shadow-sm"
+                                  style={{ 
+                                    background: `linear-gradient(135deg, ${sector.color}dd, ${sector.color})`
+                                  }}
+                                >
+                                  {firstLetter}
+                                </div>
+                                
+                                {/* Company Info */}
+                                <div className="flex flex-col min-w-0 flex-1 justify-center">
+                                  <span className="text-[12.5px] font-black text-primary truncate leading-tight" title={companyName}>
+                                    {companyName}
+                                  </span>
+                                  {companyAddr && (
+                                    <span className="text-[10px] text-tertiary font-bold truncate mt-1 leading-none" title={companyAddr}>
+                                      {companyAddr}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
 
                         {/* Pagination Buttons */}
