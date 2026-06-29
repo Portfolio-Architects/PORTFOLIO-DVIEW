@@ -71,7 +71,7 @@ function DashboardSkeleton() {
   );
 }
 
-async function DashboardDataLoader() {
+async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
   const allApts = Object.entries(txSummary).map(([name, sum]) => {
@@ -137,12 +137,23 @@ async function DashboardDataLoader() {
           </section>
         )}
       </div>
-      <DashboardClient initialDashboardData={initialData} />
+      <DashboardClient initialDashboardData={initialData} initialTab={initialTab} />
     </>
   );
 }
 
-export default async function OverviewPage() {
+export default async function OverviewPage(props: {
+  searchParams?: Promise<{ tab?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const tab = searchParams?.tab;
+
+  let initialTab: 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley' = 'overview';
+  if (tab === 'office') initialTab = 'office';
+  else if (tab === 'lounge') initialTab = 'lounge';
+  else if (tab === 'imjang') initialTab = 'imjang';
+  else if (tab === 'technovalley') initialTab = 'technovalley';
+
   const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const jsonLd = getMainPageSchema(baseUrl);
@@ -156,7 +167,7 @@ export default async function OverviewPage() {
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
       <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardDataLoader />
+        <DashboardDataLoader initialTab={initialTab} />
       </Suspense>
     </>
   );

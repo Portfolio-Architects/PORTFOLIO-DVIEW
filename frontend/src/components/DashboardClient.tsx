@@ -221,7 +221,15 @@ const EMPTY_OBJECT: Record<string, never> = {};
 const EMPTY_SET = new Set<string>();
 const EMPTY_ARRAY: never[] = [];
 
-const DashboardClient = React.memo(function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
+const DashboardClient = React.memo(function DashboardClient({ 
+  initialDashboardData, 
+  preselectedAptName,
+  initialTab = 'overview'
+}: { 
+  initialDashboardData?: DashboardInitialDataLocal, 
+  preselectedAptName?: string,
+  initialTab?: 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'
+}) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
   const fieldReports = initialDashboardData?.fieldReports || [];
@@ -341,7 +349,7 @@ const DashboardClient = React.memo(function DashboardClient({ initialDashboardDa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'>(initialTab);
   const [isPending, startTransition] = useTransition();
 
   // Tab highlight logic removed since boxes are separated now

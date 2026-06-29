@@ -47,7 +47,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 </Link>
 
                 <Link
-                  href="/overview#office"
+                  href="/overview?tab=office"
                   onClick={() => {
                     if (onTabChange) onTabChange('office');
                   }}

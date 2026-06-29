@@ -79,53 +79,22 @@ const ExploreListSkeleton = () => (
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 flex flex-col relative">
-            {/* Table Header Skeleton (Desktop Only) */}
-            <div className="hidden md:flex sticky top-[68px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none shadow-sm">
-              <div className="w-[36px] shrink-0" />
-              <div className="w-[40px] text-center shrink-0">순위</div>
-              <div className="flex-1 min-w-[120px] ml-2 text-left">단지명</div>
-              <div className="w-[105px] text-right pr-2 shrink-0 hidden xl:block">연식</div>
-              <div className="w-[100px] text-right pr-2 shrink-0">매매가</div>
-              <div className="w-[85px] text-right pr-2 shrink-0">평당가</div>
-              <div className="w-[110px] text-right pr-2 shrink-0 hidden lg:block">전세가</div>
-              <div className="w-[80px] text-right pr-2 shrink-0 hidden xl:block">세대수</div>
-              <div className="w-[100px] text-right pr-2 shrink-0 hidden xl:block">거래량</div>
-            </div>
-
-            {/* Table Body Skeleton: 15 items with precise height (66px for desktop, 64px for mobile) */}
-            <div className="w-full flex-1 pt-1.5">
-              <div className="flex flex-col w-full">
+          <div className="flex-1 min-h-0 flex flex-col relative py-4">
+            {/* Table Body Skeleton: 15 items with precise layout */}
+            <div className="w-full flex-1 pt-0">
+              <div className="flex flex-col gap-3 w-full animate-pulse">
                 {[...Array(15)].map((_, i) => (
-                  <div key={i} className="w-full flex flex-col px-0 md:px-4 py-0.5 md:py-1">
-                    {/* Desktop item skeleton */}
-                    <div className="hidden md:flex items-center md:px-4 h-[66px] border border-neutral-100/70 dark:border-zinc-900/40 rounded-2xl bg-white dark:bg-zinc-950">
-                      <div className="w-[36px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded" />
-                      <div className="w-[40px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded mx-auto" />
-                      <div className="flex-1 min-w-[120px] ml-2 h-5 bg-black/5 dark:bg-surface/5 rounded" />
-                      <div className="w-[105px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded ml-2 hidden xl:block" />
-                      <div className="w-[100px] shrink-0 h-5 bg-black/5 dark:bg-surface/5 rounded ml-2" />
-                      <div className="w-[85px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded ml-2" />
-                      <div className="w-[110px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded ml-2 hidden lg:block" />
-                      <div className="w-[80px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded ml-2 hidden xl:block" />
-                      <div className="w-[100px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded ml-2 hidden xl:block" />
+                  <div key={i} className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/85 rounded-2xl bg-surface">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="w-12 h-12 rounded-xl bg-black/5 dark:bg-surface/5 shrink-0" />
+                      <div className="flex flex-col min-w-0 flex-1 gap-2">
+                        <div className="w-48 h-5 bg-black/5 dark:bg-surface/5 rounded-lg" />
+                        <div className="w-3/4 h-3.5 bg-black/5 dark:bg-surface/5 rounded" />
+                      </div>
                     </div>
-                    {/* Mobile item skeleton */}
-                    <div className="flex md:hidden items-center justify-between px-4 h-[64px] border-b border-neutral-100/40 dark:border-zinc-900/10 bg-white dark:bg-zinc-950">
-                      <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
-                        <div className="w-[20px] h-[20px] rounded-full bg-black/5 dark:bg-surface/5 shrink-0" />
-                        <div className="flex flex-col flex-1 min-w-0 gap-1.5">
-                          <div className="w-1/2 h-4 bg-black/5 dark:bg-surface/5 rounded" />
-                          <div className="w-3/4 h-3 bg-black/5 dark:bg-surface/5 rounded" />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="flex flex-col items-end gap-1.5">
-                          <div className="w-14 h-4 bg-black/5 dark:bg-surface/5 rounded" />
-                          <div className="w-10 h-3 bg-black/5 dark:bg-surface/5 rounded" />
-                        </div>
-                        <div className="w-[16px] h-[16px] rounded-full bg-black/5 dark:bg-surface/5" />
-                      </div>
+                    <div className="flex md:flex-col items-end justify-between md:justify-center gap-2.5 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 border-dashed shrink-0 pl-0 md:pl-6 md:w-36">
+                      <div className="w-24 h-5 bg-black/5 dark:bg-surface/5 rounded-lg" />
+                      <div className="w-20 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
                     </div>
                   </div>
                 ))}

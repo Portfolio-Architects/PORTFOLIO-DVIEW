@@ -60,7 +60,9 @@ test.describe('UI/UX Diagnostics Audit', () => {
     await page.waitForTimeout(3000); // Allow full client hydration and router stability
 
     // Click first apartment card (uses the new strict-mode-safe regex and first locator)
-    const aptTitle = page.locator('#explore-list-container span', { hasText: /동탄역\s*(?:롯데캐슬|힐스테이트)/ })
+    const aptTitle = page.locator('#explore-list-container h3', { hasText: /동탄역\s*(?:롯데캐슬|힐스테이트)/ })
+                         .or(page.locator('#explore-list-container h3', { hasText: /동탄역/ }))
+                         .or(page.locator('#explore-list-container span', { hasText: /동탄역\s*(?:롯데캐슬|힐스테이트)/ }))
                          .or(page.locator('#explore-list-container span', { hasText: /동탄역/ }))
                          .first();
     await expect(aptTitle).toBeVisible({ timeout: 30000 });

@@ -1068,38 +1068,48 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             {coLeasingPosts.map((post) => (
               <div
                 key={post.id}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setSelectedCoLease(post);
+                  }
+                }}
+                aria-label={`공동임차 매칭 공고 "${post.title}", 빌딩 ${post.buildingName} 상세 보기`}
                 onClick={() => setSelectedCoLease(post)}
-                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-5 border border-border/60 hover:border-[#c44d00]/30 rounded-2xl bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-sm relative overflow-hidden"
+                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-5 border border-border/60 hover:border-[#c44d00]/30 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/50 rounded-2xl shadow-sm relative overflow-hidden"
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[9.5px] font-extrabold px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-md border border-indigo-500/10">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30">
                         {post.buildingName}
                       </span>
                       {post.isMock && (
-                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-md border border-blue-500/10">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 text-blue-500 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100/50">
                           가상 데이터
                         </span>
                       )}
-                      <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black ${
+                      <span className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide ${
                         post.status === 'applied' 
-                          ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-500/10'
-                          : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 border border-orange-500/10'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-100/50 dark:border-emerald-900/20'
+                          : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 border border-orange-100/50 dark:border-orange-900/20'
                       }`}>
                         {post.status === 'applied' ? '신청 완료' : '모집 중'}
                       </span>
                     </div>
-                    <h4 className="text-[13.5px] font-black text-primary mt-1.5 leading-snug">{post.title}</h4>
-                    <p className="text-[11px] text-tertiary mt-1 font-bold">
+                    <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 mt-2">
+                      {post.title}
+                    </h3>
+                    <p className="text-[13px] sm:text-[13.5px] text-secondary font-medium leading-relaxed mt-1">
                       업종: {post.sector} • 공간: {post.spaceType}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-1 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border border-dashed shrink-0">
-                  <span className="text-[10px] text-tertiary font-bold">분담 비용</span>
-                  <span className="text-[13.5px] font-black text-[#ea6100]">
+                <div className="flex sm:flex-col items-end sm:items-center justify-between sm:justify-center gap-1.5 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/40 border-dashed shrink-0 pl-0 sm:pl-6 sm:w-28 sm:h-20">
+                  <span className="text-[10px] text-tertiary font-extrabold tracking-wider uppercase">분담 비용</span>
+                  <span className="text-[15.5px] sm:text-[16.5px] font-black text-[#ea6100] tracking-tight text-right sm:text-center">
                     {post.deposit} / {post.rent}만 원
                   </span>
                 </div>
@@ -1174,7 +1184,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.location.href = `/overview#office`;
+                        window.location.href = `/overview?tab=office`;
                       }}
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
                       title="클릭 시 테크노 랩 사무실 탐색으로 이동"

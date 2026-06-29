@@ -880,10 +880,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col relative">
-          <div className="w-full bg-white dark:bg-zinc-950 border border-neutral-100 dark:border-zinc-900/40 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col relative py-4">
+          <div className="w-full flex flex-col">
             {/* Table Header */}
-            <div className="hidden md:flex sticky top-0 z-20 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm items-center px-6 py-4 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none">
+            <div className="hidden">
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
@@ -958,7 +958,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </div>
           ) : (
             <div id="explore-list-container" className="w-full flex-1 pt-0">
-              <div className="flex flex-col w-full">
+              <div className="flex flex-col gap-3 w-full">
                 {sortedApts.slice(0, visibleCount).map((item, index) => (
                   <React.Fragment key={item.apt.name}>
                     <AptRow 

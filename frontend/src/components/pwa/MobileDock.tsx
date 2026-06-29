@@ -45,7 +45,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
     href: string;
   }> = [
     { id: 'technovalley', label: '테크노 랩', icon: LayoutDashboard, href: '/' },
-    { id: 'office', label: '사무실 탐색', icon: Building2, href: '/overview#office' },
+    { id: 'office', label: '사무실 탐색', icon: Building2, href: '/overview?tab=office' },
     { id: 'lounge', label: '동탄 라운지', icon: MessageSquare, href: '/lounge' },
     { id: 'overview', label: '아파트 랩', icon: Building2, href: '/overview' },
     { id: 'imjang', label: '아파트 탐색', icon: Home, href: '/explore' },
