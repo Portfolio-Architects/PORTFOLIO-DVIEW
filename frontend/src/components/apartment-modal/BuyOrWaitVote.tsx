@@ -38,6 +38,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   const isSubmittingRef = useRef(false);
   const mountedRef = useRef(true);
   const cooldownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const triggerConfetti = (type: 'buy' | 'wait') => {
     const emojisList = type === 'buy' 
@@ -67,8 +68,12 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     setReactions((prev) => [...prev, ...newReactions]);
     
     // Auto-clean reactions after animation completes to free memory
-    setTimeout(() => {
-      setReactions((prev) => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
+    if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
+    reactionTimeoutRef.current = setTimeout(() => {
+      if (mountedRef.current) {
+        setReactions((prev) => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
+      }
+      reactionTimeoutRef.current = null;
     }, 600);
   };
 
@@ -79,6 +84,9 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
       mountedRef.current = false;
       if (cooldownTimeoutRef.current) {
         clearTimeout(cooldownTimeoutRef.current);
+      }
+      if (reactionTimeoutRef.current) {
+        clearTimeout(reactionTimeoutRef.current);
       }
     };
   }, []);
