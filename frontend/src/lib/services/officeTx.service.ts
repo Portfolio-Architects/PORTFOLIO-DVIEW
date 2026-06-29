@@ -9,6 +9,7 @@ export interface OfficeTransaction {
   readonly floor: number;
   readonly price: string;
   readonly buildingName: string;
+  readonly priceRaw?: number;
 }
 
 const MOCK_XML_RESPONSE = `
@@ -219,6 +220,7 @@ function parseOfficeXml(xml: string): OfficeTransaction[] {
     const type = ($item.find('구분').text().trim() || '매매') as '매매' | '임대';
     const priceRaw = $item.find('거래금액').text().trim();
     const depositRaw = $item.find('보증금액').text().trim();
+    const priceVal = parseInt(priceRaw.replace(/,/g, ''), 10) || 0;
     const year = $item.find('년').text().trim();
     const monthRaw = $item.find('월').text().trim();
     const dayRaw = $item.find('일').text().trim();
@@ -237,7 +239,8 @@ function parseOfficeXml(xml: string): OfficeTransaction[] {
       sizeSqM,
       floor,
       price,
-      buildingName
+      buildingName,
+      priceRaw: priceVal
     });
   });
 
@@ -249,16 +252,13 @@ function parseOfficeXml(xml: string): OfficeTransaction[] {
  * Falls back to mock XML if KEY is missing or server is unreachable.
  */
 export async function getOfficeTransactions(lawdCd: string = '41590', dealYmd: string = '202605'): Promise<OfficeTransaction[]> {
-  const key = process.env.PUBLIC_DATA_PORTAL_KEY;
-  if (!key) {
-    logger.info('OfficeTxService.getOfficeTransactions', 'PUBLIC_DATA_PORTAL_KEY not configured, using mock fallback.', { lawdCd, dealYmd });
-    return parseOfficeXml(MOCK_XML_RESPONSE);
-  }
+  const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
 
-  const endpoint = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcNrgTrade';
+  const endpoint = 'https://apis.data.go.kr/1613000/RTMSDataSvcNrgTrade/getRTMSDataSvcNrgTrade';
   const url = `${endpoint}?serviceKey=${encodeURIComponent(key)}&LAWD_CD=${lawdCd}&DEAL_YMD=${dealYmd}`;
 
   try {
+    logger.info('OfficeTxService.getOfficeTransactions', 'Calling MOLIT API', { lawdCd, dealYmd });
     const response = await axios.get(url, { 
       timeout: 8000,
       headers: { 'Accept': 'application/xml' }
@@ -266,16 +266,16 @@ export async function getOfficeTransactions(lawdCd: string = '41590', dealYmd: s
 
     if (response.status === 200 && response.data && typeof response.data === 'string') {
       const xml = response.data;
-      if (xml.includes('SERVICE KEY IS INVALID') || xml.includes('LIMITED NUMBER OF SERVICE')) {
-        logger.warn('OfficeTxService.getOfficeTransactions', 'Public API key issues, falling back to mock.', { xmlSnippet: xml.substring(0, 200) });
+      if (xml.includes('SERVICE KEY IS INVALID') || xml.includes('LIMITED NUMBER OF SERVICE') || xml.includes('SERVICE_KEY_IS_NOT_REGISTERED_ERROR')) {
+        logger.warn('OfficeTxService.getOfficeTransactions', 'Public API key issue detected, falling back to mock.', { xmlSnippet: xml.substring(0, 200) });
         return parseOfficeXml(MOCK_XML_RESPONSE);
       }
       return parseOfficeXml(xml);
     }
-    logger.warn('OfficeTxService.getOfficeTransactions', 'Invalid API response format, falling back.', { status: response.status });
+    logger.warn('OfficeTxService.getOfficeTransactions', 'Invalid API response format, falling back to mock.', { status: response.status });
     return parseOfficeXml(MOCK_XML_RESPONSE);
   } catch (err) {
-    logger.error('OfficeTxService.getOfficeTransactions', 'Error during Public API request, falling back.', { error: err });
+    logger.error('OfficeTxService.getOfficeTransactions', 'Error during Public API request, falling back to mock.', { error: err instanceof Error ? err.message : String(err) });
     return parseOfficeXml(MOCK_XML_RESPONSE);
   }
 }

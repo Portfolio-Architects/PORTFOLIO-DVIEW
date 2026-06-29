@@ -68,12 +68,12 @@ const DONUT_DATA = [
 
 // 2. Trend Line Chart Data
 const TREND_DATA = [
-  { date: '25.01', '금강 IX': 24.5, '실리콘앨리': 20.1, 'SH타임': 14.2, '평균임대료': 3.5 },
-  { date: '25.05', '금강 IX': 23.8, '실리콘앨리': 19.8, 'SH타임': 13.9, '평균임대료': 3.55 },
-  { date: '25.09', '금강 IX': 22.1, '실리콘앨리': 19.2, 'SH타임': 13.5, '평균임대료': 3.6 },
-  { date: '25.11', '금강 IX': 20.4, '실리콘앨리': 18.9, 'SH타임': 12.8, '평균임대료': 3.6 },
-  { date: '26.01', '금강 IX': 19.2, '실리콘앨리': 18.7, 'SH타임': 12.4, '평균임대료': 3.65 },
-  { date: '26.05', '금강 IX': 18.2, '실리콘앨리': 18.5, 'SH타임': 12.1, '평균임대료': 3.68 }
+  { date: '25.01', '금강 IX': 24.5, '실리콘앨리': 20.1, 'SH타임': 14.2, '금강IX_임대료': 3.70, '실리콘앨리_임대료': 3.50, 'SH타임_임대료': 3.30, '평균임대료': 3.50 },
+  { date: '25.05', '금강 IX': 23.8, '실리콘앨리': 19.8, 'SH타임': 13.9, '금강IX_임대료': 3.72, '실리콘앨리_임대료': 3.55, 'SH타임_임대료': 3.35, '평균임대료': 3.55 },
+  { date: '25.09', '금강 IX': 22.1, '실리콘앨리': 19.2, 'SH타임': 13.5, '금강IX_임대료': 3.78, '실리콘앨리_임대료': 3.60, 'SH타임_임대료': 3.42, '평균임대료': 3.60 },
+  { date: '25.11', '금강 IX': 20.4, '실리콘앨리': 18.9, 'SH타임': 12.8, '금강IX_임대료': 3.80, '실리콘앨리_임대료': 3.60, 'SH타임_임대료': 3.40, '평균임대료': 3.60 },
+  { date: '26.01', '금강 IX': 19.2, '실리콘앨리': 18.7, 'SH타임': 12.4, '금강IX_임대료': 3.85, '실리콘앨리_임대료': 3.65, 'SH타임_임대료': 3.45, '평균임대료': 3.65 },
+  { date: '26.05', '금강 IX': 18.2, '실리콘앨리': 18.5, 'SH타임': 12.1, '금강IX_임대료': 3.88, '실리콘앨리_임대료': 3.68, 'SH타임_임대료': 3.48, '평균임대료': 3.68 }
 ];
 
 export default function TechnoValleyDashboard() {
@@ -82,11 +82,9 @@ export default function TechnoValleyDashboard() {
     setMounted(true);
   }, []);
 
-  const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
+  const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('rent');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const latestTrend = TREND_DATA[TREND_DATA.length - 1];
-  
 
   // Accordion portfolio states
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
@@ -154,11 +152,15 @@ export default function TechnoValleyDashboard() {
     }));
   };
 
-  const { data: responseData, mutate } = useSWR('/api/technovalley/industry-distribution', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: responseData } = useSWR('/api/technovalley/industry-distribution', (url: string) => fetch(url).then(res => res.json()), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });
 
+  const { data: trendResponse } = useSWR('/api/technovalley/trend', (url: string) => fetch(url).then(res => res.json()), {
+    revalidateOnFocus: false,
+    dedupingInterval: 300000
+  });
 
   const donutData = useMemo(() => {
     if (responseData?.success && Array.isArray(responseData.data)) {
@@ -166,6 +168,17 @@ export default function TechnoValleyDashboard() {
     }
     return DONUT_DATA;
   }, [responseData]);
+
+  const trendData = useMemo(() => {
+    if (trendResponse?.success && Array.isArray(trendResponse.data)) {
+      return trendResponse.data;
+    }
+    return TREND_DATA;
+  }, [trendResponse]);
+
+  const latestTrend = useMemo(() => {
+    return trendData[trendData.length - 1] || TREND_DATA[TREND_DATA.length - 1];
+  }, [trendData]);
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -191,11 +204,11 @@ export default function TechnoValleyDashboard() {
   }, [donutData]);
 
   const rentKPI = useMemo(() => {
-    const latestTrend = TREND_DATA[TREND_DATA.length - 1];
-    const prevTrend = TREND_DATA[TREND_DATA.length - 2];
+    const latest = trendData[trendData.length - 1] || TREND_DATA[TREND_DATA.length - 1];
+    const prev = trendData[trendData.length - 2] || TREND_DATA[TREND_DATA.length - 2];
     
-    const latestRent = latestTrend.평균임대료;
-    const prevRent = prevTrend.평균임대료;
+    const latestRent = latest.평균임대료;
+    const prevRent = prev.평균임대료;
     const changePercent = ((latestRent - prevRent) / prevRent * 100).toFixed(1);
     const isUp = latestRent >= prevRent;
     
@@ -204,14 +217,14 @@ export default function TechnoValleyDashboard() {
       changeText: `${isUp ? '▲' : '▼'} ${Math.abs(parseFloat(changePercent))}%`,
       isUp
     };
-  }, []);
+  }, [trendData]);
 
   const vacancyKPI = useMemo(() => {
-    const latestTrend = TREND_DATA[TREND_DATA.length - 1];
-    const prevTrend = TREND_DATA[TREND_DATA.length - 2];
+    const latest = trendData[trendData.length - 1] || TREND_DATA[TREND_DATA.length - 1];
+    const prev = trendData[trendData.length - 2] || TREND_DATA[TREND_DATA.length - 2];
     
-    const latestVacancy = (latestTrend['금강 IX'] + latestTrend['실리콘앨리'] + latestTrend['SH타임']) / 3;
-    const prevVacancy = (prevTrend['금강 IX'] + prevTrend['실리콘앨리'] + prevTrend['SH타임']) / 3;
+    const latestVacancy = (latest['금강 IX'] + latest['실리콘앨리'] + latest['SH타임']) / 3;
+    const prevVacancy = (prev['금강 IX'] + prev['실리콘앨리'] + prev['SH타임']) / 3;
     const change = latestVacancy - prevVacancy;
     const isUp = change >= 0;
     
@@ -220,7 +233,7 @@ export default function TechnoValleyDashboard() {
       changeText: `${isUp ? '▲' : '▼'} ${Math.abs(parseFloat(change.toFixed(2)))}%`,
       isUp
     };
-  }, []);
+  }, [trendData]);
 
   const activeItem = useMemo(() => {
     if (!activeCategory) return null;
@@ -243,10 +256,10 @@ export default function TechnoValleyDashboard() {
   };
 
   const filteredTrendData = useMemo(() => {
-    if (timeframe === 'YTD') return TREND_DATA.slice(-2);
-    if (timeframe === '1Y') return TREND_DATA.slice(-4);
-    return TREND_DATA;
-  }, [timeframe]);
+    if (timeframe === 'YTD') return trendData.slice(-2);
+    if (timeframe === '1Y') return trendData.slice(-4);
+    return trendData;
+  }, [trendData, timeframe]);
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
@@ -493,7 +506,7 @@ export default function TechnoValleyDashboard() {
           <div className="flex flex-col gap-1">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
-              동탄 영천동 테크노밸리 공실률 및 임대료 추이
+              동탄 영천동 테크노밸리 임대료 및 공실률 추이
             </h3>
             <span className="text-[11px] text-tertiary font-bold">
               영천동 지식산업센터 모니터링 데이터 분석 (단위: %, 만원/평)
@@ -504,16 +517,6 @@ export default function TechnoValleyDashboard() {
           <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between">
             <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
               <button
-                onClick={() => setMetricMode('vacancy')}
-                className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
-                  metricMode === 'vacancy' 
-                    ? 'bg-surface text-primary shadow-sm' 
-                    : 'text-tertiary hover:text-secondary'
-                }`}
-              >
-                공실률 (%)
-              </button>
-              <button
                 onClick={() => setMetricMode('rent')}
                 className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
                   metricMode === 'rent' 
@@ -522,6 +525,16 @@ export default function TechnoValleyDashboard() {
                 }`}
               >
                 임대료 (평당)
+              </button>
+              <button
+                onClick={() => setMetricMode('vacancy')}
+                className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
+                  metricMode === 'vacancy' 
+                    ? 'bg-surface text-primary shadow-sm' 
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                공실률 (개발 중)
               </button>
             </div>
 
@@ -582,22 +595,73 @@ export default function TechnoValleyDashboard() {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => handleToggleLine('평균임대료')}
-              className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeLines['평균임대료']
-                  ? 'bg-hs-orange-light border-[#dc6e2d]/30 text-[#dc6e2d]'
-                  : 'bg-body/30 border-transparent text-tertiary'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#dc6e2d]" />
-              전체 평당 평균임대료 (만원)
-            </button>
+            <>
+              <button
+                onClick={() => handleToggleLine('금강 IX')}
+                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeLines['금강 IX']
+                    ? 'bg-hs-orange-light border-[#dc6e2d]/30 text-[#dc6e2d]'
+                    : 'bg-body/30 border-transparent text-tertiary'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#dc6e2d]" />
+                금강 IX타워
+              </button>
+              <button
+                onClick={() => handleToggleLine('실리콘앨리')}
+                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeLines['실리콘앨리']
+                    ? 'bg-hs-orange-light border-[#f97316]/30 text-[#f97316]'
+                    : 'bg-body/30 border-transparent text-tertiary'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]" />
+                현대 실리콘앨리
+              </button>
+              <button
+                onClick={() => handleToggleLine('SH타임')}
+                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeLines['SH타임']
+                    ? 'bg-hs-orange-light border-[#ffb076]/30 text-[#ffb076]'
+                    : 'bg-body/30 border-transparent text-tertiary'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ffb076]" />
+                SH타임스퀘어
+              </button>
+              <button
+                onClick={() => handleToggleLine('평균임대료')}
+                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeLines['평균임대료']
+                    ? 'bg-hs-orange-light border-[#737373]/30 text-[#737373]'
+                    : 'bg-body/30 border-transparent text-tertiary'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#737373]" />
+                평균 임대료
+              </button>
+            </>
           )}
         </div>
 
         {/* Line Chart Area */}
         <div className="flex-1 w-full h-[390px] relative flex items-end">
+          {metricMode === 'vacancy' && (
+            <div className="absolute inset-0 bg-surface/60 backdrop-blur-[1.5px] z-10 flex flex-col items-center justify-center p-4 text-center">
+              <div className="bg-surface border border-border/80 p-5 rounded-2xl shadow-lg max-w-sm">
+                <span className="inline-block px-2.5 py-0.5 bg-hs-orange/10 text-hs-orange text-[9.5px] font-black rounded-full mb-2">
+                  DEVELOPMENT
+                </span>
+                <p className="text-[12.5px] font-black text-primary mb-1">
+                  지식산업센터별 공실 데이터 연동 중
+                </p>
+                <p className="text-[10px] text-tertiary font-bold leading-normal">
+                  현재 영천동 지식산업센터별 공실 수집 체계 및 백엔드 API 모듈이 개발 중입니다. (아래 그래프는 시뮬레이션 데이터입니다)
+                </p>
+              </div>
+            </div>
+          )}
+
           {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
               <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -660,11 +724,45 @@ export default function TechnoValleyDashboard() {
                   </>
                 ) : (
                   <>
+                    {activeLines['금강 IX'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="금강IX_임대료" 
+                        name="금강 IX타워"
+                        stroke="#dc6e2d" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
+                    {activeLines['실리콘앨리'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="실리콘앨리_임대료" 
+                        name="현대 실리콘앨리"
+                        stroke="#f97316" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
+                    {activeLines['SH타임'] && (
+                      <Line 
+                        type="monotone" 
+                        dataKey="SH타임_임대료" 
+                        name="SH타임스퀘어"
+                        stroke="#ffb076" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        activeDot={{ r: 6 }} 
+                      />
+                    )}
                     {activeLines['평균임대료'] && (
                       <Line 
                         type="monotone" 
                         dataKey="평균임대료" 
-                        stroke="#dc6e2d" 
+                        name="평균 임대료"
+                        stroke="#737373" 
                         strokeWidth={3.5} 
                         dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
                         activeDot={{ r: 6 }} 
