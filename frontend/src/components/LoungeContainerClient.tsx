@@ -411,11 +411,11 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 p-5 border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-[#c44d00]/30 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 rounded-2xl shadow-sm relative overflow-hidden"
+                      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 p-5 border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-[#c44d00]/30 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 outline-none focus:ring-2 focus:ring-[#c44d00]/50 rounded-2xl shadow-sm relative overflow-hidden"
                     >
                       <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${cat.bgClass}`}>
+                          <span className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide ${cat.bgClass}`}>
                             {cat.label}
                           </span>
                           <span className="text-[11.5px] font-extrabold text-secondary tracking-tight">
@@ -425,7 +425,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                             {formatDate(item.pubDate)}
                           </span>
                         </div>
-                        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+                        <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
                           {item.title}
                         </h3>
                       </div>

@@ -1032,27 +1032,29 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       )}
       {/* Topic Selector for 커뮤니티 (모든 이야기) */}
       {currentTab === '모든 이야기' && (
-        <div className="flex bg-body/60 p-1.5 rounded-[18px] border border-border/40 shadow-sm mb-4 backdrop-blur-md w-full max-w-[280px]">
-          <button
-            onClick={() => setCommunityTopic('soho')}
-            className={`flex-1 py-2 text-center rounded-[12px] text-[11.5px] font-black transition-all duration-300 cursor-pointer ${
-              communityTopic === 'soho'
-                ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/10'
-                : 'text-tertiary hover:text-secondary'
-            }`}
-          >
-            공동임차 매칭
-          </button>
-          <button
-            onClick={() => setCommunityTopic('apartment')}
-            className={`flex-1 py-2 text-center rounded-[12px] text-[11.5px] font-black transition-all duration-300 cursor-pointer ${
-              communityTopic === 'apartment'
-                ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/10'
-                : 'text-tertiary hover:text-secondary'
-            }`}
-          >
-            아파트 이야기
-          </button>
+        <div className="flex justify-center mb-6 mt-1 animate-in fade-in slide-in-from-top-1 duration-300">
+          <div className="flex bg-body/60 p-1 rounded-full border border-border/40 shadow-sm backdrop-blur-md">
+            <button
+              onClick={() => setCommunityTopic('soho')}
+              className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                communityTopic === 'soho'
+                  ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                  : 'text-tertiary hover:text-secondary'
+              }`}
+            >
+              공동임차 매칭
+            </button>
+            <button
+              onClick={() => setCommunityTopic('apartment')}
+              className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                communityTopic === 'apartment'
+                  ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                  : 'text-tertiary hover:text-secondary'
+              }`}
+            >
+              아파트 이야기
+            </button>
+          </div>
         </div>
       )}
 
