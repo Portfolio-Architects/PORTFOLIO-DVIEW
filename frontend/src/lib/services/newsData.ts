@@ -213,7 +213,7 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
     dongQuery = dongQuery.limit(400);
 
     const isDev = process.env.NODE_ENV === 'development';
-    const timeoutMs = isDev ? 1000 : 5000;
+    const timeoutMs = isDev ? 10000 : 5000;
 
     const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
