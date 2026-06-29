@@ -96,7 +96,7 @@ export default function TechnoValleyDashboard() {
     setMounted(true);
   }, []);
 
-  const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('rent');
+  const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   
@@ -510,10 +510,10 @@ export default function TechnoValleyDashboard() {
           <div className="flex flex-col gap-1">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
-              {metricMode === 'rent' ? '지식산업센터 평당 임대료 추이' : '지식산업센터 평균 공실률 추이 (AI 추정)'}
+              {metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}
             </h3>
             <span className="text-[11px] text-tertiary font-bold">
-              {metricMode === 'rent' ? '영천동 주요 지산 모니터링 데이터 (단위: 만원/평)' : '영천동 주요 지산 모니터링 데이터 (단위: %)'}
+              {metricMode === 'rent' ? '(단위: 만원/평)' : '(단위: %)'}
             </span>
           </div>
 
@@ -574,16 +574,6 @@ export default function TechnoValleyDashboard() {
 
             <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
               <button
-                onClick={() => setMetricMode('rent')}
-                className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
-                  metricMode === 'rent' 
-                    ? 'bg-surface text-primary shadow-sm' 
-                    : 'text-tertiary hover:text-secondary'
-                }`}
-              >
-                임대료 (평당)
-              </button>
-              <button
                 onClick={() => setMetricMode('vacancy')}
                 className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
                   metricMode === 'vacancy' 
@@ -592,6 +582,16 @@ export default function TechnoValleyDashboard() {
                 }`}
               >
                 공실률 (개발 중)
+              </button>
+              <button
+                onClick={() => setMetricMode('rent')}
+                className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
+                  metricMode === 'rent' 
+                    ? 'bg-surface text-primary shadow-sm' 
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                임대료 (평당)
               </button>
             </div>
 
