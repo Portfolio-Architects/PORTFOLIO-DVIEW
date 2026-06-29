@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Building2, Users, Calendar, Coins, Sparkles, Filter, Plus, ArrowRight, Check, Send } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Building2, Users, Calendar, Coins, Sparkles, Filter, Plus, ArrowRight, Check, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface CoLeasePost {
-  id: number;
+export interface CoLeasePost {
+  id: string | number;
   title: string;
   buildingName: string;
   sector: string;
@@ -14,9 +15,10 @@ interface CoLeasePost {
   inclusions: string[];
   status: 'available' | 'applied' | 'matched';
   description: string;
+  isMock?: boolean;
 }
 
-const INITIAL_POSTS: CoLeasePost[] = [
+export const INITIAL_POSTS: CoLeasePost[] = [
   {
     id: 1,
     title: '금강 IX타워 실평 20평 분할 쉐어 메이트 구합니다.',
@@ -27,7 +29,8 @@ const INITIAL_POSTS: CoLeasePost[] = [
     rent: 45,
     inclusions: ['회의실 공유', '인터넷 무상제공', '무료 주차 1대 지원'],
     status: 'available',
-    description: '전체 40평 오피스 중 창가 쪽 20평 구역을 독립적으로 사용하실 파트너사를 찾습니다. 디자인이나 개발 관련 업종이면 서로 협업 시너지도 기대할 수 있습니다. 탕비실과 대회의실은 공동 사용 조건입니다.'
+    description: '전체 40평 오피스 중 창가 쪽 20평 구역을 독립적으로 사용하실 파트너사를 찾습니다. 디자인이나 개발 관련 업종이면 서로 협업 시너지도 기대할 수 있습니다. 탕비실과 대회의실은 공동 사용 조건입니다.',
+    isMock: true
   },
   {
     id: 2,
@@ -39,7 +42,8 @@ const INITIAL_POSTS: CoLeasePost[] = [
     rent: 18,
     inclusions: ['조용한 업무 환경', '커피 머신 무상 제공', '1개월 단기 가능'],
     status: 'available',
-    description: '조용히 글을 쓰거나 개인 그래픽 작업을 하시는 프리랜서 작가분을 모집합니다. 공간이 예쁘고 조용합니다. 기본 사무집기(모니터 거치대 등)는 세팅되어 있으니 노트북만 들고 오시면 됩니다.'
+    description: '조용히 글을 쓰거나 개인 그래픽 작업을 하시는 프리랜서 작가분을 모집합니다. 공간이 예쁘고 조용합니다. 기본 사무집기(모니터 거치대 등)는 세팅되어 있으니 노트북만 들고 오시면 됩니다.',
+    isMock: true
   },
   {
     id: 3,
@@ -51,7 +55,8 @@ const INITIAL_POSTS: CoLeasePost[] = [
     rent: 65,
     inclusions: ['드라이브인 직통 하역 가능', '지게차 공동 사용', '하중 평당 4톤 설계'],
     status: 'available',
-    description: '도어투도어가 가능한 드라이브인 호실입니다. 저희가 기계설비 구역을 사용하고 있어, 남는 적재 공간 25평가량을 물류창고나 하역 작업장으로 쉐어해서 사용하실 하드웨어 제조업체를 찾습니다.'
+    description: '도어투도어가 가능한 드라이브인 호실입니다. 저희가 기계설비 구역을 사용하고 있어, 남는 적재 공간 25평가량을 물류창고나 하역 작업장으로 쉐어해서 사용하실 하드웨어 제조업체를 찾습니다.',
+    isMock: true
   },
   {
     id: 4,
@@ -63,7 +68,8 @@ const INITIAL_POSTS: CoLeasePost[] = [
     rent: 30,
     inclusions: ['계약 택배 수거 연계', '촬영 스튜디오 쉐어', '냉난방 완비'],
     status: 'available',
-    description: '쇼핑몰 하시는 분 환영합니다. 택배 수거 계약이 되어 있어 저렴하게 물류 처리가 가능하고, 호실 내에 촬영 스튜디오 스크린과 조명 장비가 있어 예약제로 무료 쉐어해서 사용할 수 있습니다.'
+    description: '쇼핑몰 하시는 분 환영합니다. 택배 수거 계약이 되어 있어 저렴하게 물류 처리가 가능하고, 호실 내에 촬영 스튜디오 스크린과 조명 장비가 있어 예약제로 무료 쉐어해서 사용할 수 있습니다.',
+    isMock: true
   }
 ];
 
@@ -81,6 +87,11 @@ export default function CoLeasingBoard() {
   const [posts, setPosts] = useState<CoLeasePost[]>(INITIAL_POSTS);
   const [selectedBuilding, setSelectedBuilding] = useState<string>('전체 빌딩');
   const [maxRent, setMaxRent] = useState<number>(100); // 100만원 이하 필터 기본값
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Modals state
   const [activeDetailPost, setActiveDetailPost] = useState<CoLeasePost | null>(null);
@@ -112,6 +123,21 @@ export default function CoLeasingBoard() {
       return matchBuilding && matchRent;
     });
   }, [posts, selectedBuilding, maxRent]);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const POSTS_PER_PAGE = 3;
+  
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const paginatedPosts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return filteredPosts.slice(start, start + POSTS_PER_PAGE);
+  }, [filteredPosts, currentPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedBuilding, maxRent]);
 
   const handleApplySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +206,8 @@ export default function CoLeasingBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 animate-in fade-in duration-300">
       
       {/* ═══ TOP: Co-Leasing KPIs ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -276,75 +303,128 @@ export default function CoLeasingBoard() {
           <p className="text-[13px] font-bold text-tertiary">조건에 일치하는 공동임차 구인 건이 없습니다.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredPosts.map(post => {
-            const isApplied = post.status === 'applied';
-            return (
-              <div
-                key={post.id}
-                onClick={() => setActiveDetailPost(post)}
-                className="bg-surface border border-border/80 p-5 rounded-[24px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300 cursor-pointer min-h-[220px]"
-              >
-                {/* Card Top */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-start gap-2">
-                    <span className="inline-block px-2.5 py-0.5 bg-body text-tertiary text-[9.5px] font-black rounded-full border border-border/40">
-                      {post.buildingName}
-                    </span>
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {paginatedPosts.map(post => {
+              const isApplied = post.status === 'applied';
+              return (
+                <div
+                  key={post.id}
+                  onClick={() => setActiveDetailPost(post)}
+                  className="bg-surface border border-border/80 p-5 rounded-[24px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300 cursor-pointer min-h-[220px]"
+                >
+                  {/* Card Top */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="inline-block px-2.5 py-0.5 bg-body text-tertiary text-[9.5px] font-black rounded-full border border-border/40">
+                          {post.buildingName}
+                        </span>
+                        {post.isMock && (
+                          <span className="inline-block px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9.5px] font-black border border-blue-500/20">
+                            가상 데이터
+                          </span>
+                        )}
+                      </div>
+                      
+                      {isApplied ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-[#00a37b] text-[9.5px] font-black flex items-center gap-0.5">
+                          <Check size={11} />
+                          신청 완료
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] text-[9.5px] font-black">
+                          모집 중
+                        </span>
+                      )}
+                    </div>
                     
-                    {isApplied ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-[#00a37b] text-[9.5px] font-black flex items-center gap-0.5">
-                        <Check size={11} />
-                        신청 완료
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] text-[9.5px] font-black">
-                        모집 중
-                      </span>
-                    )}
+                    <h4 className="text-[13.5px] font-black text-primary leading-snug tracking-tight">
+                      {post.title}
+                    </h4>
+                    
+                    <p className="text-[11px] text-tertiary font-bold truncate">
+                      {post.sector} • {post.spaceType}
+                    </p>
                   </div>
-                  
-                  <h4 className="text-[13.5px] font-black text-primary leading-snug tracking-tight">
-                    {post.title}
-                  </h4>
-                  
-                  <p className="text-[11px] text-tertiary font-bold truncate">
-                    {post.sector} • {post.spaceType}
-                  </p>
-                </div>
 
-                {/* Card Inclusions */}
-                <div className="flex flex-wrap gap-1 my-3">
-                  {post.inclusions.slice(0, 3).map((inc, i) => (
-                    <span key={i} className="text-[9.5px] font-extrabold px-2 py-0.5 rounded-lg bg-body text-secondary border border-border/20">
-                      {inc}
-                    </span>
-                  ))}
-                </div>
+                  {/* Card Inclusions */}
+                  <div className="flex flex-wrap gap-1 my-3">
+                    {post.inclusions.slice(0, 3).map((inc, i) => (
+                      <span key={i} className="text-[9.5px] font-extrabold px-2 py-0.5 rounded-lg bg-body text-secondary border border-border/20">
+                        {inc}
+                      </span>
+                    ))}
+                  </div>
 
-                {/* Card Bottom */}
-                <div className="flex justify-between items-center pt-3 border-t border-border/30 mt-1">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[10px] text-tertiary font-extrabold">분담:</span>
-                    <span className="text-[13px] font-black text-primary">
-                      {post.deposit} / {post.rent}만 원
+                  {/* Card Bottom */}
+                  <div className="flex justify-between items-center pt-3 border-t border-border/30 mt-1">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[10px] text-tertiary font-extrabold">분담:</span>
+                      <span className="text-[13px] font-black text-primary">
+                        {post.deposit} / {post.rent}만 원
+                      </span>
+                    </div>
+                    
+                    <span className="text-[10px] font-black text-hs-orange flex items-center gap-0.5 hover:underline">
+                      상세보기
+                      <ArrowRight size={11} />
                     </span>
                   </div>
-                  
-                  <span className="text-[10px] font-black text-hs-orange flex items-center gap-0.5 hover:underline">
-                    상세보기
-                    <ArrowRight size={11} />
-                  </span>
-                </div>
 
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ═══ PAGINATION CONTROLS ═══ */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface/50 border border-border/60 p-4 rounded-[22px] shadow-sm">
+              <span className="text-[11px] text-tertiary font-bold">
+                총 <span className="text-primary font-black">{filteredPosts.length}</span>개 중 {(currentPage - 1) * POSTS_PER_PAGE + 1}-{Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} 표시
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-border rounded-xl bg-body text-secondary hover:bg-neutral-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  aria-label="이전 페이지"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                  <button
+                    key={pageNum}
+                    onClick={(e) => { e.stopPropagation(); setCurrentPage(pageNum); }}
+                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-[12px] font-black transition-all cursor-pointer ${
+                      currentPage === pageNum
+                        ? 'bg-hs-orange text-white shadow-md shadow-hs-orange/20'
+                        : 'border border-border bg-body text-secondary hover:bg-neutral-100 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-border rounded-xl bg-body text-secondary hover:bg-neutral-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  aria-label="다음 페이지"
+                >
+                  <ChevronRight size={14} />
+                </button>
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
       )}
+      </div>
 
       {/* ═══ DETAIL & APPLY MODAL ═══ */}
-      {activeDetailPost && (
+      {mounted && activeDetailPost && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-surface border border-border rounded-3xl w-full max-w-lg p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
@@ -495,13 +575,14 @@ export default function CoLeasingBoard() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ═══ CREATE POST AD MODAL ═══ */}
-      {isCreateModalOpen && (
+      {mounted && isCreateModalOpen && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+          <div className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
               onClick={() => setIsCreateModalOpen(false)}
@@ -637,7 +718,8 @@ export default function CoLeasingBoard() {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

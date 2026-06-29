@@ -368,12 +368,16 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
       const adminDb = await getAdminDb();
       if (!adminDb) return null;
       
-      const [postsSnap, commentsSnap] = await Promise.all([
+      const [postsSnap, commentsSnap, storiesSnap] = await Promise.all([
         throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection('posts')
           .orderBy('createdAt', 'desc')
           .limit(limitCount)
           .get()),
         throttle<admin.firestore.QuerySnapshot>(() => adminDb.collectionGroup('comments')
+          .orderBy('createdAt', 'desc')
+          .limit(100)
+          .get()),
+        throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection('lounge_apt_stories')
           .orderBy('createdAt', 'desc')
           .limit(100)
           .get())
@@ -384,11 +388,12 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
         ref: d.ref as unknown as ProcessableComment["ref"],
         ...d.data()
       }));
+      const rawStories = storiesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       
-      return processCombinedPosts(rawPosts, rawComments, limitCount);
+      return processCombinedPosts(rawPosts, rawComments, rawStories, limitCount);
     },
     clientQuery: async () => {
-      const [postsSnap, commentsSnap] = await Promise.all([
+      const [postsSnap, commentsSnap, storiesSnap] = await Promise.all([
         throttle(() => getDocs(query(
           collection(db, 'posts').withConverter(postConverter),
           orderBy('createdAt', 'desc'),
@@ -396,6 +401,11 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
         ))),
         throttle(() => getDocs(query(
           collectionGroup(db, 'comments'),
+          orderBy('createdAt', 'desc'),
+          limit(100)
+        ))),
+        throttle(() => getDocs(query(
+          collection(db, 'lounge_apt_stories'),
           orderBy('createdAt', 'desc'),
           limit(100)
         )))
@@ -406,8 +416,9 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
         ref: d.ref as unknown as ProcessableComment["ref"],
         ...d.data()
       }));
+      const rawStories = storiesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       
-      return processCombinedPosts(rawPosts, rawComments, limitCount);
+      return processCombinedPosts(rawPosts, rawComments, rawStories, limitCount);
     }
   });
 
@@ -417,6 +428,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
 async function processCombinedPosts(
   rawPosts: ProcessablePost[],
   rawComments: ProcessableComment[],
+  rawStories: any[],
   limitCount: number
 ): Promise<RecentLoungeItem[]> {
   // Filter comments to only include those under field_reports
@@ -530,7 +542,29 @@ async function processCombinedPosts(
     };
   });
 
-  return [...postsList, ...commentsList]
+  const storiesList = rawStories.map(s => {
+    const createdAtMillis = parseTimestampToMillis(s.createdAt, 0);
+    const dateStr = createdAtMillis ? new Date(createdAtMillis).toLocaleDateString('ko-KR') : '방금 전';
+    const apartmentName = s.apartmentName || '알 수 없는 단지';
+
+    return {
+      id: `apt-story-${s.id}`,
+      title: `[${apartmentName}] ${s.text || ''}`,
+      summary: s.text || '',
+      imageUrl: null,
+      category: '아파트 이야기',
+      author: s.authorName || '익명',
+      meta: `${dateStr} · 아파트 이야기`,
+      views: 0,
+      likes: 0,
+      commentCount: 0,
+      createdAt: createdAtMillis || null,
+      authorUid: s.authorUid || null,
+      apartmentName
+    };
+  });
+
+  return [...postsList, ...commentsList, ...storiesList]
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
     .slice(0, limitCount);
 }

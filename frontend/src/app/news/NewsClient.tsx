@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useSWR from 'swr';
 import dynamic from 'next/dynamic';
 
@@ -68,6 +68,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
   const [visibleNewsCount, setVisibleNewsCount] = useState(12);
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(12);
+  const [activeNewsSubTab, setActiveNewsSubTab] = useState<'industry' | 'realestate'>('industry');
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -112,6 +113,16 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
 
   const newsList: NewsItem[] = newsRes?.data || [];
   const noticesList: NoticeItem[] = noticesRes?.notices || [];
+
+  const filteredNewsList = useMemo(() => {
+    return newsList.filter((item: NewsItem) => {
+      const isIndustry = item.category === 'COMMERCIAL' || 
+        /(?:테크노밸리|지산|지식산업센터|기업|반도체|삼성전자|공장|산업|일자리|창업|스타트업|사무실|오피스|상가|상권|임대|공실|세제|과밀|이전|공동임차|소호|SOHO|금강|실리콘앨리|에이팩|skv1)/i.test(item.title) || 
+        /(지산|오피스|반도체|삼성전자|현대|SK)/i.test(item.sub);
+      
+      return activeNewsSubTab === 'industry' ? isIndustry : !isIndustry;
+    });
+  }, [newsList, activeNewsSubTab]);
 
   // Auto-open notice modal when noticeId query param is present
   useEffect(() => {
@@ -299,56 +310,94 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                 Array.from({ length: 5 }).map((_, idx) => (
                   <div key={idx} className="w-full h-[90px] bg-surface/60 border border-border/40 rounded-2xl animate-pulse" />
                 ))
-              ) : newsList.length === 0 ? (
-                <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
-                  등록된 동탄 부동산 뉴스가 없습니다.
-                </div>
               ) : (
                 <>
-                  {newsList.slice(0, visibleNewsCount).map((item) => {
-                    const cat = getNewsCategoryDetails(item.category);
-                    return (
-                      <a
-                        key={item.id}
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm"
+                  {/* News Sub-Tabs */}
+                  <div className="flex justify-center mb-6 mt-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                    <div className="flex bg-body/60 p-1 rounded-full border border-border/40 shadow-sm backdrop-blur-md">
+                      <button
+                        onClick={() => {
+                          setActiveNewsSubTab('industry');
+                          setVisibleNewsCount(12);
+                        }}
+                        className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
+                          activeNewsSubTab === 'industry'
+                            ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            : 'text-tertiary hover:text-secondary'
+                        }`}
                       >
-                        <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${cat.bgClass}`}>
-                              {cat.label}
-                            </span>
-                            <span className="text-[11.5px] font-extrabold text-secondary tracking-tight">
-                              {item.sub}
-                            </span>
-                            <span className="text-[11px] text-tertiary font-medium">
-                              {formatDate(item.pubDate)}
-                            </span>
-                          </div>
-                          <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
-                            {item.title}
-                          </h3>
-                        </div>
-                        <div className="flex items-center text-tertiary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] shrink-0 self-end md:self-center">
-                          <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
-                        </div>
-                      </a>
-                    );
-                  })}
-                  
-                  {newsList.length > visibleNewsCount && (
-                    <button
-                      onClick={() => setVisibleNewsCount(prev => prev + 12)}
-                      className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-surface/60 border border-border/60 hover:bg-body/60 dark:hover:bg-body/40 rounded-2xl hover:border-emerald-500/20 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
-                    >
-                      <span>더보기</span>
-                      <span className="text-[11px] font-bold text-tertiary">
-                        ({visibleNewsCount} / {newsList.length})
-                      </span>
-                      <ChevronDown size={14} className="text-secondary" />
-                    </button>
+                        테크노밸리 & 산업
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveNewsSubTab('realestate');
+                          setVisibleNewsCount(12);
+                        }}
+                        className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
+                          activeNewsSubTab === 'realestate'
+                            ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            : 'text-tertiary hover:text-secondary'
+                        }`}
+                      >
+                        부동산 & 정책
+                      </button>
+                    </div>
+                  </div>
+
+                  {filteredNewsList.length === 0 ? (
+                    <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
+                      {activeNewsSubTab === 'industry' 
+                        ? '등록된 동탄 테크노밸리 및 산업 관련 뉴스가 없습니다.' 
+                        : '등록된 동탄 부동산 뉴스가 없습니다.'}
+                    </div>
+                  ) : (
+                    <>
+                      {filteredNewsList.slice(0, visibleNewsCount).map((item) => {
+                        const cat = getNewsCategoryDetails(item.category);
+                        return (
+                          <a
+                            key={item.id}
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm"
+                          >
+                            <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${cat.bgClass}`}>
+                                  {cat.label}
+                                </span>
+                                <span className="text-[11.5px] font-extrabold text-secondary tracking-tight">
+                                  {item.sub}
+                                </span>
+                                <span className="text-[11px] text-tertiary font-medium">
+                                  {formatDate(item.pubDate)}
+                                </span>
+                              </div>
+                              <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+                                {item.title}
+                              </h3>
+                            </div>
+                            <div className="flex items-center text-tertiary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] shrink-0 self-end md:self-center">
+                              <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
+                            </div>
+                          </a>
+                        );
+                      })}
+                      
+                      {filteredNewsList.length > visibleNewsCount && (
+                        <button
+                          onClick={() => setVisibleNewsCount(prev => prev + 12)}
+                          className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-surface/60 border border-border/60 hover:bg-body/60 dark:hover:bg-body/40 rounded-2xl hover:border-emerald-500/20 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
+                        >
+                          <span>더보기</span>
+                          <span className="text-[11px] font-bold text-tertiary">
+                            ({visibleNewsCount} / {filteredNewsList.length})
+                          </span>
+                          <ChevronDown size={14} className="text-secondary" />
+                        </button>
+                      )}
+                    </>
                   )}
                 </>
               )}

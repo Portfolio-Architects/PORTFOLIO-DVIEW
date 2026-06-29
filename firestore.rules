@@ -56,6 +56,11 @@ service cloud.firestore {
       allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
     }
 
+    // Co-Lease Posts: Public read/write for demo/portfolio purposes
+    match /coLeasePosts/{postId} {
+      allow read, write: if true;
+    }
+
     // Default rule for all other collections: Read public, restrict writes to admins
     match /{document=**} {
       allow read: if true;

@@ -202,6 +202,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
   const [visibleNewsCount, setVisibleNewsCount] = useState(12);
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(12);
+  const [activeNewsSubTab, setActiveNewsSubTab] = useState<'industry' | 'realestate'>('industry');
 
   // Client-side fetch fallback when initial data is not passed (e.g. when rendered on the main page)
   const { data: clientNoticesData } = useSWR<{ notices: NoticeItem[]; lastUpdated?: string }>('/api/local-notices', (url: string) => fetch(url).then(res => res.json()), {
@@ -231,6 +232,16 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
     }
     return initialNews || [];
   }, [clientNewsData, initialNews]);
+
+  const filteredNews = useMemo(() => {
+    return news.filter((item: NewsItem) => {
+      const isIndustry = item.category === 'COMMERCIAL' || 
+        /(?:테크노밸리|지산|지식산업센터|기업|반도체|삼성전자|공장|산업|일자리|창업|스타트업|사무실|오피스|상가|상권|임대|공실|세제|과밀|이전|공동임차|소호|SOHO|금강|실리콘앨리|에이팩|skv1)/i.test(item.title) || 
+        /(지산|오피스|반도체|삼성전자|현대|SK)/i.test(item.sub);
+      
+      return activeNewsSubTab === 'industry' ? isIndustry : !isIndustry;
+    });
+  }, [news, activeNewsSubTab]);
 
   // Auto-open notice modal when noticeId query param is present
   useEffect(() => {
@@ -286,14 +297,41 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
       <PageHeroHeader 
         title="D-VIEW 라운지"
         subtitleStrong="동탄 지역 부동산 커뮤니티"
-        subtitleLight="현장 임장기, 부동산 뉴스, 우리 동네 이야기"
+        subtitleLight={
+          <span className="flex items-center gap-1 flex-wrap">
+            <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
+            <span 
+              onClick={() => window.location.href = '/'}
+              className="hover:text-primary hover:underline hover:decoration-dashed transition-colors cursor-pointer"
+              title="아파트 랩 메인 지도로 이동"
+            >
+              현장 임장기
+            </span>
+            <span className="text-[#d1d6db] mx-1">·</span>
+            <button 
+              onClick={() => handleTabClick('news')}
+              className="hover:text-primary hover:underline hover:decoration-dashed transition-colors cursor-pointer bg-transparent border-none p-0 font-normal text-tertiary text-[13px] sm:text-[14.5px] leading-snug cursor-pointer"
+              title="실시간 뉴스 탭으로 이동"
+            >
+              부동산 뉴스
+            </button>
+            <span className="text-[#d1d6db] mx-1">·</span>
+            <button 
+              onClick={() => handleTabClick('talk')}
+              className="hover:text-primary hover:underline hover:decoration-dashed transition-colors cursor-pointer bg-transparent border-none p-0 font-normal text-tertiary text-[13px] sm:text-[14.5px] leading-snug cursor-pointer"
+              title="이웃 소통 탭으로 이동"
+            >
+              우리 동네 이야기
+            </button>
+          </span>
+        }
       />
 
-      <div className="max-w-[1000px] mx-auto w-full px-4 sm:px-6 pt-6 pb-16">
+      <div className="max-w-[1100px] mx-auto w-full px-4 sm:px-6 pt-6 pb-16">
         {/* Segmented Tab control */}
         <div className="flex bg-body/80 p-1.5 rounded-[20px] w-full max-w-[480px] border border-border/40 mx-auto mb-8 shadow-sm backdrop-blur-md">
           {[
-            { id: 'talk', label: '이웃 소통', icon: MessageSquare },
+            { id: 'talk', label: '커뮤니티', icon: MessageSquare },
             { id: 'news', label: '실시간 뉴스', icon: Newspaper },
             { id: 'notices', label: '행정 고시공고', icon: Megaphone }
           ].map(tab => {
@@ -325,13 +363,47 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
 
         {activeTab === 'news' && (
           <div className="flex flex-col gap-2.5">
-            {news.length === 0 ? (
+            {/* News Sub-Tabs */}
+            <div className="flex justify-center mb-6 mt-1 animate-in fade-in slide-in-from-top-1 duration-300">
+              <div className="flex bg-body/60 p-1 rounded-full border border-border/40 shadow-sm backdrop-blur-md">
+                <button
+                  onClick={() => {
+                    setActiveNewsSubTab('industry');
+                    setVisibleNewsCount(12);
+                  }}
+                  className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
+                    activeNewsSubTab === 'industry'
+                      ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                      : 'text-tertiary hover:text-secondary'
+                  }`}
+                >
+                  테크노밸리 & 산업
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveNewsSubTab('realestate');
+                    setVisibleNewsCount(12);
+                  }}
+                  className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
+                    activeNewsSubTab === 'realestate'
+                      ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                      : 'text-tertiary hover:text-secondary'
+                  }`}
+                >
+                  부동산 & 정책
+                </button>
+              </div>
+            </div>
+
+            {filteredNews.length === 0 ? (
               <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
-                등록된 동탄 부동산 뉴스가 없습니다.
+                {activeNewsSubTab === 'industry' 
+                  ? '등록된 동탄 테크노밸리 및 산업 관련 뉴스가 없습니다.' 
+                  : '등록된 동탄 부동산 뉴스가 없습니다.'}
               </div>
             ) : (
               <>
-                {news.slice(0, visibleNewsCount).map((item: NewsItem) => {
+                {filteredNews.slice(0, visibleNewsCount).map((item: NewsItem) => {
                   const cat = getNewsCategoryDetails(item.category);
                   return (
                     <a
@@ -339,7 +411,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm"
+                      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 p-5 border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-[#c44d00]/30 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 rounded-2xl shadow-sm relative overflow-hidden"
                     >
                       <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -364,14 +436,14 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                   );
                 })}
                 
-                {news.length > visibleNewsCount && (
+                {filteredNews.length > visibleNewsCount && (
                   <button
                     onClick={() => setVisibleNewsCount(prev => prev + 12)}
                     className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-surface/60 border border-border/60 hover:bg-body/60 dark:hover:bg-body/40 rounded-2xl hover:border-emerald-500/20 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
                   >
                     <span>더보기</span>
                     <span className="text-[11px] font-bold text-tertiary">
-                      ({visibleNewsCount} / {news.length})
+                      ({visibleNewsCount} / {filteredNews.length})
                     </span>
                     <ChevronDown size={14} className="text-secondary" />
                   </button>
@@ -382,75 +454,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
         )}
 
         {activeTab === 'notices' && (
-          <div className="flex flex-col gap-2.5">
-            {notices.length === 0 ? (
-              <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
-                등록된 동탄 구정 소식이 없습니다.
-              </div>
-            ) : (
-              <>
-                {notices.slice(0, visibleNoticesCount).map((item: NoticeItem) => {
-                  const src = getNoticeSourceDetails(item.source);
-                  const Icon = src.icon;
-                  const hasDetails = !!item.content;
-                  return (
-                    <button
-                      type="button"
-                      key={item.id}
-                      onClick={() => {
-                        if (hasDetails) {
-                          setSelectedNotice(item);
-                        } else {
-                          window.open(item.url, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                      aria-label={`행정고시공고: ${item.title}, 부서: ${item.dept}, 날짜: ${item.date} 상세 보기`}
-                      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent cursor-pointer shadow-sm"
-                    >
-                      <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${src.bgClass}`}>
-                            <Icon size={11} />
-                            {src.label}
-                          </span>
-                          <span className="text-[11.5px] font-extrabold text-secondary tracking-tight">
-                            {item.dept}
-                          </span>
-                          <span className="text-[11px] text-tertiary font-medium">
-                            {item.date}
-                          </span>
-                          {hasDetails && (
-                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-[#ea6100] border border-teal-500/10 animate-pulse">
-                              AI 분석 완료
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
-                          {item.title}
-                        </h3>
-                      </div>
-                      <div className="flex items-center text-tertiary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] shrink-0 self-end md:self-center">
-                        <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
-                      </div>
-                    </button>
-                  );
-                })}
-                
-                {notices.length > visibleNoticesCount && (
-                  <button
-                    onClick={() => setVisibleNoticesCount(prev => prev + 12)}
-                    className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-surface/60 border border-border/60 hover:bg-body/60 dark:hover:bg-body/40 rounded-2xl hover:border-emerald-500/20 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
-                  >
-                    <span>더보기</span>
-                    <span className="text-[11px] font-bold text-tertiary">
-                      ({visibleNoticesCount} / {notices.length})
-                    </span>
-                    <ChevronDown size={14} className="text-secondary" />
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+          <LoungeFeedClient initialPosts={initialPosts} currentTab="동탄구 소식" />
         )}
       </div>
 

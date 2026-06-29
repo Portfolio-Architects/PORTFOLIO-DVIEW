@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
-import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X, Sparkles, Home, Briefcase } from 'lucide-react';
+import { MessageSquare, Eye, Heart, Loader2, ChevronDown, ChevronUp, Share2, ExternalLink, X, Sparkles, Home, Briefcase, ArrowRight } from 'lucide-react';
+import { INITIAL_POSTS as coLeasingPosts, CoLeasePost } from '@/components/macro/CoLeasingBoard';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import useSWRInfinite from 'swr/infinite';
@@ -216,7 +217,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       revalidateFirstPage: false,
       persistSize: true,
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: true,
       revalidateOnReconnect: false,
       dedupingInterval: 180000
     }
@@ -324,6 +325,8 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(20);
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<string | null>(null);
+  const [selectedCoLease, setSelectedCoLease] = useState<CoLeasePost | null>(null);
+  const [communityTopic, setCommunityTopic] = useState<'apartment' | 'soho'>('soho');
 
   const [activeSubCategory, setActiveSubCategory] = useState<'all' | 'city' | 'rail' | 'town' | 'culture'>('all');
   const [activeDongFilter, setActiveDongFilter] = useState<string>('all');
@@ -587,6 +590,11 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     const targetCategories = CATEGORY_MAP[currentTab] || [currentTab];
     return posts.filter((p) => targetCategories.includes(p.category || '기타'));
   }, [posts, currentTab]);
+
+  const postsToRender = useMemo(() => {
+    if (currentTab === '모든 이야기' && communityTopic === 'soho') return [];
+    return filteredPosts;
+  }, [filteredPosts, currentTab, communityTopic]);
 
   const autoFetchCountRef = useRef(0);
 
@@ -1015,98 +1023,107 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           dangerouslySetInnerHTML={{ __html: loungeJsonLd }}
         />
       )}
-      {/* 실시간 아파트 이야기 한줄평 Widget */}
-      {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && (
-        <AptStoriesWidget />
-      )}
-
-      {/* 실시간 인기 토크 Widget */}
-      {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && hotPosts.length > 0 && (
-        <div className="bg-surface border border-border/60 rounded-3xl p-5 mb-2 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
-            </span>
-            <span className="text-[13.5px] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
-              🔥 실시간 동탄 핫이슈 단지 토크
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {hotPosts.map((post) => (
-              <button
-                key={post.id}
-                type="button"
-                aria-label={`${post.category} 카테고리 게시글 "${post.title}", 작성자 ${post.author || '매니저'} 상세 보기`}
-                onClick={() => { window.location.hash = `post=${post.id}`; }}
-                className="flex items-start gap-3 p-3.5 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/20 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-md text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
-              >
-                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/30 group-hover:bg-[#c44d00] transition-colors">
-                  <Sparkles size={14} className="text-[#c44d00] dark:text-[#ea6100] group-hover:text-white transition-colors" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-[#c44d00] dark:text-[#ea6100] rounded-md">
-                      {post.category}
-                    </span>
-                    <span className="text-[11px] font-semibold text-tertiary font-sans">
-                      {post.author || '매니저'}
-                    </span>
-
-                    {/* Bridge Tags */}
-                    {post.apartmentName && (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.location.href = `/#apt=${encodeURIComponent(post.apartmentName || '')}`;
-                        }}
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-[#e8f8f0] text-[#00a06c] dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer"
-                      >
-                        <Home size={8} />
-                        <span>🏠 아파트 랩</span>
-                      </span>
-                    )}
-
-                    {isTechnoRelated(post.title, post.summary) && (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.location.href = `/overview#office`;
-                        }}
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
-                      >
-                        <Briefcase size={8} />
-                        <span>💼 테크노 랩</span>
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="text-[13.5px] sm:text-[14px] font-bold text-primary truncate group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors">
-                    {post.title}
-                  </h4>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] text-tertiary">
-                    <span className="flex items-center gap-0.5"><Eye size={11}/> {post.views}</span>
-                    <span className="flex items-center gap-0.5 text-rose-500"><Heart size={11} className="fill-current"/> {post.likes}</span>
-                    <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400"><MessageSquare size={11}/> {post.commentCount || 0}</span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+      {/* Topic Selector for 커뮤니티 (모든 이야기) */}
+      {currentTab === '모든 이야기' && (
+        <div className="flex bg-body/60 p-1.5 rounded-[18px] border border-border/40 shadow-sm mb-4 backdrop-blur-md w-full max-w-[280px]">
+          <button
+            onClick={() => setCommunityTopic('soho')}
+            className={`flex-1 py-2 text-center rounded-[12px] text-[11.5px] font-black transition-all duration-300 cursor-pointer ${
+              communityTopic === 'soho'
+                ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/10'
+                : 'text-tertiary hover:text-secondary'
+            }`}
+          >
+            공동임차 매칭
+          </button>
+          <button
+            onClick={() => setCommunityTopic('apartment')}
+            className={`flex-1 py-2 text-center rounded-[12px] text-[11.5px] font-black transition-all duration-300 cursor-pointer ${
+              communityTopic === 'apartment'
+                ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/10'
+                : 'text-tertiary hover:text-secondary'
+            }`}
+          >
+            아파트 이야기
+          </button>
         </div>
       )}
 
-      {filteredPosts.length === 0 && !hasMore && (
+      {/* SOHO Co-Leasing Feed */}
+      {currentTab === '모든 이야기' && communityTopic === 'soho' && (
+        coLeasingPosts.length === 0 ? (
+          <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
+            <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
+            <p className="text-[15px] font-bold text-secondary">아직 등록된 공동임차 매칭 공고가 없습니다</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 w-full">
+            {coLeasingPosts.map((post) => (
+              <div
+                key={post.id}
+                onClick={() => setSelectedCoLease(post)}
+                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-5 border border-border/60 hover:border-[#c44d00]/30 rounded-2xl bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-sm relative overflow-hidden"
+              >
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[9.5px] font-extrabold px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-md border border-indigo-500/10">
+                        {post.buildingName}
+                      </span>
+                      {post.isMock && (
+                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-500 rounded-md border border-blue-500/10">
+                          가상 데이터
+                        </span>
+                      )}
+                      <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black ${
+                        post.status === 'applied' 
+                          ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-500/10'
+                          : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 border border-orange-500/10'
+                      }`}>
+                        {post.status === 'applied' ? '신청 완료' : '모집 중'}
+                      </span>
+                    </div>
+                    <h4 className="text-[13.5px] font-black text-primary mt-1.5 leading-snug">{post.title}</h4>
+                    <p className="text-[11px] text-tertiary mt-1 font-bold">
+                      업종: {post.sector} • 공간: {post.spaceType}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-1 mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border border-dashed shrink-0">
+                  <span className="text-[10px] text-tertiary font-bold">분담 비용</span>
+                  <span className="text-[13.5px] font-black text-[#ea6100]">
+                    {post.deposit} / {post.rent}만 원
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {postsToRender.length === 0 && !hasMore && communityTopic !== 'soho' && (
         <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
           <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
           <p className="text-[15px] font-bold text-secondary">아직 &apos;{currentTab}&apos; 관련 글이 없습니다</p>
         </div>
       )}
 
-      {filteredPosts.map((news, index) => {
+      {postsToRender.map((news, index) => {
         return (
           <Fragment key={news.id}>
-            <button 
-              type="button"
+            <div 
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  if (news.category === '아파트 이야기' && news.apartmentName) {
+                    window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
+                  } else {
+                    window.location.hash = `post=${news.id}`;
+                  }
+                }
+              }}
               aria-label={`${news.category === '임장기' ? '동탄 임장/분석' : news.category === '부동산 기초' ? '부동산 고민상담' : news.category === '정책자금 대출' ? '동탄 청약/대출' : news.category === '인프라' ? '동탄 교통/상권' : (news.category || '기타')} 카테고리 게시글 "${news.title}", 작성자 ${news.author || '익명'} 상세 보기`}
               onClick={() => {
                 if (news.category === '아파트 이야기' && news.apartmentName) {
@@ -1115,7 +1132,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   window.location.hash = `post=${news.id}`;
                 }
               }} 
-              className="flex gap-4 p-5 rounded-2xl border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 hover:shadow-[0_12px_24px_rgba(0,130,98,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+              className="flex gap-4 p-5 border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-[#c44d00]/30 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/50 rounded-2xl shadow-sm relative overflow-hidden"
             >
               {/* Left Content Area */}
               <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -1199,15 +1216,95 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   />
                 </div>
               )}
-            </button>
+                        </div>
             </Fragment>
         );
       })}
 
-      {hasMore && (
+      {hasMore && !(currentTab === '모든 이야기' && communityTopic === 'soho') && (
         <div ref={observerTarget} className="py-8 flex justify-center text-tertiary">
           {isLoadingMore ? <Loader2 className="animate-spin w-6 h-6" /> : "스크롤하여 더 보기"}
         </div>
+      )}
+
+      {/* Co-Leasing Detail Modal */}
+      {selectedCoLease && (
+        <LoungeModalBackdrop onClose={() => setSelectedCoLease(null)}>
+          <div className="bg-surface border border-border/80 rounded-3xl w-full max-w-lg shadow-2xl relative overflow-hidden">
+            {/* Header */}
+            <div className="p-5 sm:p-6 border-b border-border/40 flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                <span className="text-[11px] font-black text-indigo-600 bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-400 px-2 py-0.5 rounded w-fit">
+                  {selectedCoLease.buildingName} • 공동임차 구인
+                </span>
+                <h2 className="text-[16px] sm:text-[18px] font-black text-primary leading-snug tracking-tight">
+                  {selectedCoLease.title}
+                </h2>
+              </div>
+              <button 
+                onClick={() => setSelectedCoLease(null)}
+                className="text-tertiary hover:text-primary p-1 bg-body rounded-full transition-colors flex items-center justify-center shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 sm:p-6 flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4 bg-body/60 p-4 rounded-xl border border-border/40">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-tertiary font-bold">희망 보증금</span>
+                  <span className="text-[14px] font-black text-primary">{selectedCoLease.deposit}만 원</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-tertiary font-bold">희망 월세</span>
+                  <span className="text-[14px] font-black text-[#ea6100]">{selectedCoLease.rent}만 원</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-tertiary font-bold">모집 분야</span>
+                  <span className="text-[12px] font-bold text-secondary truncate">{selectedCoLease.sector}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-tertiary font-bold">임차 공간</span>
+                  <span className="text-[12px] font-bold text-secondary truncate">{selectedCoLease.spaceType}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[12px] font-black text-secondary">제공 혜택 및 포함 사항</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedCoLease.inclusions.map((inc, i) => (
+                    <span key={i} className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl bg-body text-secondary border border-border/40">
+                      ✓ {inc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-[12px] font-black text-secondary">공유 제안 설명</span>
+                <p className="text-[12.5px] text-secondary font-medium leading-relaxed bg-body/30 p-4 rounded-xl border border-border/20">
+                  {selectedCoLease.description}
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-3 border-t border-border/40 mt-2">
+                <button
+                  onClick={() => setSelectedCoLease(null)}
+                  className="flex-1 py-3 border border-border rounded-xl text-[12px] font-bold text-secondary bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+                >
+                  닫기
+                </button>
+                <Link
+                  href="/overview?tab=office"
+                  className="flex-1 py-3 bg-[#ea6100] hover:bg-[#ff8f00] text-white text-[12.5px] font-black rounded-xl transition-all shadow-md text-center active:scale-[0.98] flex items-center justify-center gap-1"
+                >
+                  상세 제안서 탐색 <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </LoungeModalBackdrop>
       )}
 
       {/* Post Detail Modal */}
