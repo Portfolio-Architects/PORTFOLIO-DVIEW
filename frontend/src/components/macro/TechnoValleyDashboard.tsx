@@ -14,7 +14,7 @@ import {
   CartesianGrid, 
   Tooltip 
 } from 'recharts';
-import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import RelocationTaxSimulator from '@/components/macro/RelocationTaxSimulator';
 
 interface CircularProgressProps {
@@ -99,6 +99,7 @@ export default function TechnoValleyDashboard() {
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', 'SH타임']);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -463,7 +464,16 @@ export default function TechnoValleyDashboard() {
           {/* Card 3: Avg Vacancy Rate */}
           <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">평균 공실률 (AI 추정)</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-tertiary font-bold">평균 공실률 (AI 추정)</span>
+                <button 
+                  onClick={() => setShowHelpModal(true)}
+                  className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
+                  title="AI 추정 메커니즘 도움말"
+                >
+                  <HelpCircle className="w-3 h-3" />
+                </button>
+              </div>
               <div className="flex items-baseline gap-1 flex-wrap">
                 <span className="text-[16px] font-black text-primary">{vacancyKPI.value}%</span>
                 <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
@@ -510,7 +520,16 @@ export default function TechnoValleyDashboard() {
           <div className="flex flex-col gap-1">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
-              {metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}
+              <span>{metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}</span>
+              {metricMode === 'vacancy' && (
+                <button 
+                  onClick={() => setShowHelpModal(true)}
+                  className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer animate-pulse"
+                  title="AI 추정 메커니즘 도움말"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+              )}
             </h3>
             <span className="text-[11px] text-tertiary font-bold">
               {metricMode === 'rent' ? '(단위: 만원/평)' : '(단위: %)'}
@@ -716,15 +735,24 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {metricMode === 'vacancy' && (
-          <div className="mt-4 p-3 bg-hs-orange/5 border border-hs-orange/10 rounded-2xl flex items-start gap-2.5">
-            <span className="inline-block p-1 bg-hs-orange/10 text-hs-orange rounded-lg shrink-0 mt-0.5">
-              <Sparkles size={14} className="animate-pulse" />
-            </span>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] font-black text-primary">AI 프록시(Proxy) 기반 공실률 추정 모델</span>
-              <span className="text-[10px] text-tertiary font-bold leading-normal">
-                국가건물에너지 통합정보서비스(전기 사용 패턴 70%) 및 국토교통부 전월세 실거래 신고 빈도/회전율(30%)을 융합해 실시간 예측한 건물별 공실률 추정치입니다. (비율이 낮을수록 활성화 상태)
-              </span>
+          <div className="mt-4 p-4 bg-hs-orange/5 border border-hs-orange/10 rounded-2xl flex flex-col gap-3">
+            <div className="flex items-center gap-1.5 pb-2 border-b border-hs-orange/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-hs-orange" />
+              <span className="text-[11.5px] font-black text-primary">AI 프록시(Proxy) 기반 공실률 추정 모델</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10.5px]">
+              <div className="flex flex-col gap-1">
+                <span className="font-extrabold text-[#ea580c]">⚡ 국가건물에너지 통합정보 (70%)</span>
+                <span className="text-tertiary font-bold leading-normal">
+                  월별 건물 전기 사용량의 계약 전력 대비 실제 소비율 및 가동 임계치를 상시 추적합니다.
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 border-t sm:border-t-0 sm:border-l border-border/40 pt-2.5 sm:pt-0 sm:pl-3">
+                <span className="font-extrabold text-blue-600 dark:text-toss-blue">🔄 국토교통부 전월세 실거래 (30%)</span>
+                <span className="text-tertiary font-bold leading-normal">
+                  상업업무용 부동산 임대차 신고 빈도 및 매물 소화 속도(Absorption Rate)를 감산 적용합니다.
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -919,6 +947,56 @@ export default function TechnoValleyDashboard() {
       <div className="lg:col-span-12 mt-6">
         <RelocationTaxSimulator />
       </div>
+
+      {/* AI 공실률 추정 도움말 모달 */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-surface/95 border border-border/80 rounded-[32px] shadow-2xl p-8 md:p-10 max-w-xl w-full relative animate-in fade-in zoom-in-95 duration-200">
+            <h4 className="text-[19px] font-black text-primary mb-4 flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-hs-orange" />
+              AI 공실률 추정 메커니즘
+            </h4>
+            
+            <div className="flex flex-col gap-4 text-[13.5px] text-secondary leading-relaxed font-semibold">
+              <p className="leading-relaxed font-medium">
+                DVIEW의 공실률은 실시간 파악이 어려운 오피스 빌딩 특성을 고려해 
+                공공 데이터를 기반으로 유기적 예측을 수행하는 <strong>하이브리드 AI 추정 모델</strong>을 사용합니다.
+              </p>
+              
+              <div className="p-5 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-2.5 shadow-sm">
+                <div className="flex justify-between items-center text-[13.5px]">
+                  <span className="font-black text-[#ea580c]">⚡ 건물 에너지 사용량</span>
+                  <span className="font-extrabold text-primary">70% (주지표)</span>
+                </div>
+                <p className="text-[11.5px] text-tertiary leading-relaxed font-normal">
+                  국가건물에너지사용량 API의 월별 전기 소비량을 활용하여, 계약 전력 대비 실제 소비율 및 가동실 점유 임계치를 분석합니다.
+                </p>
+              </div>
+
+              <div className="p-5 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-2.5 shadow-sm">
+                <div className="flex justify-between items-center text-[13.5px]">
+                  <span className="font-black text-blue-600 dark:text-toss-blue">🔄 임대차 실거래 속도</span>
+                  <span className="font-extrabold text-primary">30% (부지표)</span>
+                </div>
+                <p className="text-[11.5px] text-tertiary leading-relaxed font-normal">
+                  국토교통부 상업업무용 임대차 계약 회전 빈도와 소화 일수(Absorption Rate)를 가중 적용하여 정체 기간을 감산 반영합니다.
+                </p>
+              </div>
+
+              <p className="text-[11.5px] text-tertiary mt-2 bg-neutral-100 dark:bg-zinc-800 p-3 rounded-xl border border-border/40 text-center font-normal">
+                ※ 매월 공공데이터 활성화 주기에 맞춰 자동으로 실시간 갱신됩니다.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowHelpModal(false)}
+              className="mt-6 w-full py-3 bg-primary text-surface font-extrabold text-[12.5px] rounded-xl hover:bg-primary/95 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

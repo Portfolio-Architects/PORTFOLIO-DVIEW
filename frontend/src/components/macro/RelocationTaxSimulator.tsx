@@ -90,30 +90,42 @@ export default function RelocationTaxSimulator() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-300">
+    <div className="bg-surface border border-border/80 p-6 sm:p-8 rounded-[32px] shadow-sm flex flex-col gap-6 animate-in fade-in duration-300 hover:shadow-md transition-all">
       
-      {/* ═══ LEFT PANEL: Input Form (lg:col-span-6) ═══ */}
-      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between">
-        <div className="flex flex-col gap-6">
-          
-          {/* Header */}
-          <div className="flex flex-col gap-1 border-b border-border/40 pb-4">
-            <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
-              이전 조건 및 자산 정보 입력
-            </h3>
-            <span className="text-[11px] text-tertiary font-bold">
-              현재 법인 소재지와 예상 자산 규모를 입력하시면 세제 혜택이 실시간으로 연산됩니다.
-            </span>
-          </div>
+      {/* Unified Main Header */}
+      <div className="flex flex-col gap-1 border-b border-border/40 pb-5">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-hs-orange animate-pulse" />
+          <h3 className="text-[16px] font-black text-primary tracking-tight">
+            동탄 테크노밸리 이전 세제 혜택 시뮬레이터
+          </h3>
+          <span className="text-[9.5px] font-extrabold text-[#00a37b] dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full select-none shrink-0">
+            실시간 연산
+          </span>
+        </div>
+        <p className="text-[11.5px] text-tertiary font-bold mt-0.5 leading-normal">
+          현재 법인 소재지와 예상 자산 규모에 기반해 법적 세제 감면 총액을 실시간으로 분석합니다.
+        </p>
+      </div>
 
+      {/* Grid containing Inputs & Outputs with Divider */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:divide-x lg:divide-border/40">
+        
+        {/* ═══ LEFT COLUMN: Input Form (Step 1) ═══ */}
+        <div className="flex flex-col gap-5">
+          {/* Step 1 Title */}
+          <div className="text-[13px] font-black text-primary flex items-center gap-2 mb-1">
+            <span className="w-5 h-5 rounded-full bg-hs-orange/10 text-hs-orange flex items-center justify-center text-[10px] font-black">1</span>
+            <span>이전 조건 및 자산 정보 입력</span>
+          </div>
+ 
           {/* Input 1: Location Toggle */}
-          <div className="flex flex-col gap-2">
-            <div className="text-[12px] font-black text-secondary flex items-center gap-1">
+          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
+            <div className="text-[11.5px] font-black text-secondary flex items-center gap-1">
               <span>기존 법인(사업자) 소재지</span>
               <div className="group relative cursor-pointer">
                 <HelpCircle size={13} className="text-tertiary" />
-                <div className="absolute left-0 bottom-full mb-1 w-[280px] p-2 bg-neutral-900 text-white text-[9.5px] rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-20 leading-normal font-bold">
+                <div className="absolute left-0 bottom-full mb-1.5 w-[280px] p-2.5 bg-neutral-900 text-white text-[10px] rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-20 leading-normal font-bold">
                   서울 및 수도권 주요 도시(과밀억제권역)에서 이전하는 법인은 법인세/소득세 감면 대상이 됩니다.
                 </div>
               </div>
@@ -122,7 +134,7 @@ export default function RelocationTaxSimulator() {
               <button
                 type="button"
                 onClick={() => setExistingLocation('overconcentrated')}
-                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all ${
+                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all cursor-pointer ${
                   existingLocation === 'overconcentrated'
                     ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary'
@@ -133,7 +145,7 @@ export default function RelocationTaxSimulator() {
               <button
                 type="button"
                 onClick={() => setExistingLocation('other')}
-                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all ${
+                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all cursor-pointer ${
                   existingLocation === 'other'
                     ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary'
@@ -143,12 +155,14 @@ export default function RelocationTaxSimulator() {
               </button>
             </div>
           </div>
-
+ 
           {/* Input 2: Corp Tax Slider */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-[12px] font-black">
+          <div className={`p-4 bg-body/40 border rounded-2xl flex flex-col gap-3 transition-all shadow-sm ${
+            existingLocation !== 'overconcentrated' ? 'border-border/20 opacity-60' : 'border-border/40'
+          }`}>
+            <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연평균 법인세 (또는 사업소득세)</span>
-              <span className="text-hs-orange">{formatKoreanPrice(annualCorpTax)}</span>
+              <span className="text-hs-orange text-[13px] font-black">{formatKoreanPrice(annualCorpTax)}</span>
             </div>
             <input
               type="range"
@@ -160,18 +174,23 @@ export default function RelocationTaxSimulator() {
               disabled={existingLocation !== 'overconcentrated'}
               className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange disabled:opacity-40"
             />
-            {existingLocation !== 'overconcentrated' && (
-              <span className="text-[9.5px] text-tertiary font-bold">
-                * 과밀억제권역 외 이전 시 법인세 감면 혜택은 대상 외이므로 계산에서 제외됩니다.
+            {existingLocation !== 'overconcentrated' ? (
+              <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
+                <span>※</span>
+                <span>과밀억제권역 외 이전 시 법인세 감면 혜택은 대상 외이므로 계산에서 제외됩니다.</span>
+              </span>
+            ) : (
+              <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1 opacity-0 pointer-events-none">
+                <span>&nbsp;</span>
               </span>
             )}
           </div>
-
+ 
           {/* Input 3: Jisan Purchase Price */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-[12px] font-black">
+          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
+            <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">동탄 지식산업센터 매입(취득) 가격</span>
-              <span className="text-hs-orange">{formatKoreanPrice(purchasePrice)}</span>
+              <span className="text-hs-orange text-[13px] font-black">{formatKoreanPrice(purchasePrice)}</span>
             </div>
             <input
               type="range"
@@ -182,16 +201,17 @@ export default function RelocationTaxSimulator() {
               onChange={(e) => setPurchasePrice(Number(e.target.value))}
               className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
             />
-            <span className="text-[9.5px] text-tertiary font-bold">
-              * 매매(취득)가 기준으로 35% 취득세 지방세 감면이 계산됩니다. (기본 취득세율 4.6% 기준)
+            <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
+              <span>※</span>
+              <span>매매(취득)가 기준으로 35% 취득세 지방세 감면이 계산됩니다. (기본 취득세율 4.6% 기준)</span>
             </span>
           </div>
-
+ 
           {/* Input 4: Property Tax Slider */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-[12px] font-black">
+          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
+            <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연간 예상 재산세 납부액</span>
-              <span className="text-hs-orange">{formatKoreanPrice(annualPropTax)}</span>
+              <span className="text-hs-orange text-[13px] font-black">{formatKoreanPrice(annualPropTax)}</span>
             </div>
             <input
               type="range"
@@ -202,87 +222,81 @@ export default function RelocationTaxSimulator() {
               onChange={(e) => setAnnualPropTax(Number(e.target.value))}
               className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
             />
-            <span className="text-[9.5px] text-tertiary font-bold">
-              * 지식산업센터 최초 취득 직접 사용 시, 5년간 재산세의 35%가 감면됩니다.
+            <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
+              <span>※</span>
+              <span>지식산업센터 최초 취득 직접 사용 시, 5년간 재산세의 35%가 감면됩니다.</span>
             </span>
           </div>
-
         </div>
-      </div>
-
-      {/* ═══ RIGHT PANEL: Results Infographic (lg:col-span-6) ═══ */}
-      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[500px]">
-        
-        {/* Result Header */}
-        <div className="flex flex-col gap-1 border-b border-border/40 pb-4 mb-4">
-          <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00a37b]" />
-            예상 절세 혜택 분석 결과
-          </h3>
-          <span className="text-[11px] text-tertiary font-bold">
-            동탄 테크노밸리 이전 시 기업이 받을 수 있는 법적 세제 감면 총액입니다.
-          </span>
-        </div>
-
-        {/* Big Score Board */}
-        <div className="bg-body/60 dark:bg-zinc-900/30 p-6 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center my-2 select-none">
-          <span className="text-[10px] text-tertiary font-extrabold uppercase tracking-widest bg-emerald-500/10 text-[#00a37b] dark:text-emerald-400 px-2.5 py-0.5 rounded-full mb-2">
-            6개년 총 절세 추정치
-          </span>
-          <span className="text-[26px] sm:text-[30px] font-black text-primary tracking-tight">
-            {formatKoreanPrice(totalSavings)}
-          </span>
-          <span className="text-[10.5px] text-tertiary font-bold mt-1.5">
-            지방세특례제한법 및 조례 감면 비율이 실시간 합산 적용되었습니다.
-          </span>
-        </div>
-
-        {/* Breakdown Items */}
-        <div className="flex flex-col gap-3 my-4">
-          
-          {/* Corp Tax Savings */}
-          <div className="flex items-center justify-between p-3 bg-surface border border-border/60 rounded-xl">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
-              <div className="flex flex-col">
-                <span className="text-[12.5px] font-black text-primary">법인세 / 소득세 감면 (6개년)</span>
-                <span className="text-[10px] text-tertiary font-bold mt-0.5">이전 후 최초 4년 100%, 이후 2년 50%</span>
+ 
+        {/* ═══ RIGHT COLUMN: Results Infographic (Step 2) ═══ */}
+        <div className="lg:pl-10 flex flex-col justify-between min-h-[500px]">
+          <div>
+            {/* Step 2 Title */}
+            <div className="text-[13px] font-black text-primary flex items-center gap-2 mb-4">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-[#00a37b] flex items-center justify-center text-[10px] font-black">2</span>
+              <span>예상 절세 혜택 분석 결과</span>
+            </div>
+ 
+            {/* Big Score Board */}
+            <div className="bg-body/80 p-6 sm:p-7 rounded-3xl border border-border/80 flex flex-col items-center justify-center text-center my-2 select-none">
+              <span className="text-[10.5px] text-tertiary font-extrabold uppercase tracking-wider mb-2">
+                6개년 총 절세 추정치
+              </span>
+              <span className="text-[28px] sm:text-[34px] font-black text-primary tracking-tight leading-none my-1">
+                {formatKoreanPrice(totalSavings)}
+              </span>
+              <span className="text-[11.5px] text-tertiary font-bold mt-2.5 leading-relaxed">
+                지방세특례제한법 및 조례 감면 비율이 실시간 합산 적용되었습니다.
+              </span>
+            </div>
+ 
+            {/* Breakdown Items */}
+            <div className="flex flex-col gap-3 my-4">
+              
+              {/* Corp Tax Savings */}
+              <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-black text-primary">법인세 / 소득세 감면 (6개년)</span>
+                    <span className="text-[10.5px] text-tertiary font-bold mt-0.5">이전 후 최초 4년 100%, 이후 2년 50%</span>
+                  </div>
+                </div>
+                <span className="text-[14.5px] font-black text-primary shrink-0 pl-2">
+                  {formatKoreanPrice(corpTaxSavings)}
+                </span>
+              </div>
+ 
+              {/* Acquisition Tax Savings */}
+              <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00a37b]" />
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-black text-primary">취득세 감면 (최초 1회)</span>
+                    <span className="text-[10.5px] text-tertiary font-bold mt-0.5">분양 취득 사업용 직접 사용 시 35% 감면</span>
+                  </div>
+                </div>
+                <span className="text-[14.5px] font-black text-primary shrink-0 pl-2">
+                  {formatKoreanPrice(acquisitionTaxSavings)}
+                </span>
+              </div>
+ 
+              {/* Property Tax Savings */}
+              <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" />
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-black text-primary">재산세 감면 (5개년 누적)</span>
+                    <span className="text-[10.5px] text-tertiary font-bold mt-0.5">최초 취득 사용 시 5년간 35% 감면</span>
+                  </div>
+                </div>
+                <span className="text-[14.5px] font-black text-primary shrink-0 pl-2">
+                  {formatKoreanPrice(propTaxSavings)}
+                </span>
               </div>
             </div>
-            <span className="text-[13.5px] font-black text-primary shrink-0 pl-2">
-              {formatKoreanPrice(corpTaxSavings)}
-            </span>
           </div>
-
-          {/* Acquisition Tax Savings */}
-          <div className="flex items-center justify-between p-3 bg-surface border border-border/60 rounded-xl">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-2 h-2 rounded-full bg-[#00a37b]" />
-              <div className="flex flex-col">
-                <span className="text-[12.5px] font-black text-primary">취득세 감면 (최초 1회)</span>
-                <span className="text-[10px] text-tertiary font-bold mt-0.5">분양 취득 사업용 직접 사용 시 35% 감면</span>
-              </div>
-            </div>
-            <span className="text-[13.5px] font-black text-primary shrink-0 pl-2">
-              {formatKoreanPrice(acquisitionTaxSavings)}
-            </span>
-          </div>
-
-          {/* Property Tax Savings */}
-          <div className="flex items-center justify-between p-3 bg-surface border border-border/60 rounded-xl">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
-              <div className="flex flex-col">
-                <span className="text-[12.5px] font-black text-primary">재산세 감면 (5개년 누적)</span>
-                <span className="text-[10px] text-tertiary font-bold mt-0.5">최초 취득 사용 시 5년간 35% 감면</span>
-              </div>
-            </div>
-            <span className="text-[13.5px] font-black text-primary shrink-0 pl-2">
-              {formatKoreanPrice(propTaxSavings)}
-            </span>
-          </div>
-
-        </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/40">
@@ -313,8 +327,8 @@ export default function RelocationTaxSimulator() {
             <span>세무 컨설팅 매칭</span>
           </button>
         </div>
-
       </div>
+    </div>
 
       {/* ═══ CONSULTING REQUEST MODAL ═══ */}
       {isModalOpen && (
