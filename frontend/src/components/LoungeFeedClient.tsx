@@ -867,17 +867,24 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 const displayUrlLabel = isLecture ? '화성시 통합예약 이동' : '원문 고시공고 이동';
                 
                 return (
-                  <button
+                  <div
                     key={notice.id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     aria-label={`${isLecture ? '강좌' : '소식'}: ${displayTitle}, ${displayDept} ${notice.date} 상세 보기`}
                     onClick={() => {
                       window.location.hash = `notice=${notice.id}`;
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        window.location.hash = `notice=${notice.id}`;
+                      }
+                    }}
                     className={`flex flex-col gap-4 p-5 rounded-3xl border transition-all cursor-pointer w-full group relative overflow-hidden text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent ${
                       isLecture 
                         ? 'border-teal-100/80 dark:border-teal-900/30 bg-gradient-to-br from-teal-500/5 to-emerald-500/5 dark:from-teal-950/10 dark:to-emerald-950/10 hover:border-teal-300 dark:hover:border-teal-700/50 hover:shadow-[0_12px_24px_rgba(20,184,166,0.06)]' 
-                        : 'border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-teal-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)]'
+                        : 'border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-emerald-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)]'
                     }`}
                   >
                     {/* Decorative Blob */}
@@ -943,7 +950,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                         </button>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               }
 
