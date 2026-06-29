@@ -35,7 +35,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
   // Focus and Escape key management
   useEffect(() => {
     if (showCustomA2HSModal && mounted) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (closeButtonRef.current) {
           closeButtonRef.current.focus();
         }
@@ -48,6 +48,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
       };
       window.addEventListener('keydown', handleEscape);
       return () => {
+        clearTimeout(timer);
         window.removeEventListener('keydown', handleEscape);
       };
     }

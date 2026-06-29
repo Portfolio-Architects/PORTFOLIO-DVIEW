@@ -43,7 +43,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
   // Focus and Escape key management
   useEffect(() => {
     if (isOpen && mounted) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (closeButtonRef.current) {
           closeButtonRef.current.focus();
         }
@@ -56,6 +56,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
       };
       window.addEventListener('keydown', handleEscape);
       return () => {
+        clearTimeout(timer);
         window.removeEventListener('keydown', handleEscape);
       };
     }
