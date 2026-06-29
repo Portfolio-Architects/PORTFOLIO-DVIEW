@@ -482,7 +482,7 @@ export default function TechnoValleyDashboard() {
           {/* Card 3: Avg Vacancy Rate */}
           <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">평균 공실률</span>
+              <span className="text-[11px] text-tertiary font-bold">평균 공실률 (AI 추정)</span>
               <div className="flex items-baseline gap-1 flex-wrap">
                 <span className="text-[16px] font-black text-primary">{vacancyKPI.value}%</span>
                 <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
@@ -670,23 +670,7 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* Line Chart Area */}
-        <div className="flex-1 w-full h-[390px] relative flex items-end">
-          {metricMode === 'vacancy' && (
-            <div className="absolute inset-0 bg-surface/60 backdrop-blur-[1.5px] z-10 flex flex-col items-center justify-center p-4 text-center">
-              <div className="bg-surface border border-border/80 p-5 rounded-2xl shadow-lg max-w-sm">
-                <span className="inline-block px-2.5 py-0.5 bg-hs-orange/10 text-hs-orange text-[9.5px] font-black rounded-full mb-2">
-                  DEVELOPMENT
-                </span>
-                <p className="text-[12.5px] font-black text-primary mb-1">
-                  지식산업센터별 공실 데이터 연동 중
-                </p>
-                <p className="text-[10px] text-tertiary font-bold leading-normal">
-                  현재 영천동 지식산업센터별 공실 수집 체계 및 백엔드 API 모듈이 개발 중입니다. (아래 그래프는 시뮬레이션 데이터입니다)
-                </p>
-              </div>
-            </div>
-          )}
-
+        <div className="flex-1 w-full h-[320px] relative flex items-end">
           {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
               <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -720,7 +704,7 @@ export default function TechnoValleyDashboard() {
                       if (!activeLines[b.id]) return null;
                       return (
                         <Line 
-                          key={b.id}
+                           key={b.id}
                           type="monotone" 
                           dataKey={b.id} 
                           name={b.name}
@@ -776,6 +760,20 @@ export default function TechnoValleyDashboard() {
             </div>
           )}
         </div>
+
+        {metricMode === 'vacancy' && (
+          <div className="mt-4 p-3 bg-hs-orange/5 border border-hs-orange/10 rounded-2xl flex items-start gap-2.5">
+            <span className="inline-block p-1 bg-hs-orange/10 text-hs-orange rounded-lg shrink-0 mt-0.5">
+              <Sparkles size={14} className="animate-pulse" />
+            </span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-black text-primary">AI 프록시(Proxy) 기반 공실률 추정 모델</span>
+              <span className="text-[10px] text-tertiary font-bold leading-normal">
+                국가건물에너지 통합정보서비스(전기 사용 패턴 70%) 및 국토교통부 전월세 실거래 신고 빈도/회전율(30%)을 융합해 실시간 예측한 건물별 공실률 추정치입니다. (비율이 낮을수록 활성화 상태)
+              </span>
+            </div>
+          </div>
+        )}
 
       </div>
 

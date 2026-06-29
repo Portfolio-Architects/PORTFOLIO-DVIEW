@@ -1,0 +1,414 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import { Coins, HelpCircle, Check, Copy, Share2, PhoneCall, Sparkles } from 'lucide-react';
+
+export default function RelocationTaxSimulator() {
+  // 1. Inputs
+  const [existingLocation, setExistingLocation] = useState<'overconcentrated' | 'other'>('overconcentrated');
+  const [annualCorpTax, setAnnualCorpTax] = useState<number>(8000); // 단위: 만원 (기본 8,000만원)
+  const [purchasePrice, setPurchasePrice] = useState<number>(60000); // 단위: 만원 (기본 6억원)
+  const [annualPropTax, setAnnualPropTax] = useState<number>(200); // 단위: 만원 (기본 200만원)
+
+  // Form states for consulting modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // 2. Calculation Logic
+  // 법인세 감면: 수도권 과밀억제권역에서 이전 시 4년간 100%, 이후 2년간 50% 감면 (합산 5년치 수준의 절세액)
+  const corpTaxSavings = useMemo(() => {
+    if (existingLocation !== 'overconcentrated') return 0;
+    return annualCorpTax * 5; // (annualCorpTax * 4 * 100%) + (annualCorpTax * 2 * 50%) = annualCorpTax * 5
+  }, [existingLocation, annualCorpTax]);
+
+  // 취득세 감면: 지식산업센터 최초 분양 취득 시 취득세(기본 4.6%)의 35% 감면 (지방세특례제한법 제58조의2)
+  const acquisitionTaxSavings = useMemo(() => {
+    const standardAcqTaxRate = 0.046; // 4.6%
+    const standardAcqTax = purchasePrice * standardAcqTaxRate;
+    return Math.round(standardAcqTax * 0.35); // 35% 감면액
+  }, [purchasePrice]);
+
+  // 재산세 감면: 지식산업센터 취득 후 직접 사용 시 재산세의 35%를 5년간 감면
+  const propTaxSavings = useMemo(() => {
+    return Math.round(annualPropTax * 0.35 * 5); // 35% * 5개년
+  }, [annualPropTax]);
+
+  // 총 합산 절세 혜택
+  const totalSavings = useMemo(() => {
+    return corpTaxSavings + acquisitionTaxSavings + propTaxSavings;
+  }, [corpTaxSavings, acquisitionTaxSavings, propTaxSavings]);
+
+  // 가격 포맷팅 (원 단위 한글)
+  const formatKoreanPrice = (valueManWon: number) => {
+    if (valueManWon === 0) return '0원';
+    const eok = Math.floor(valueManWon / 10000);
+    const remainder = Math.round(valueManWon % 10000);
+    
+    if (eok === 0) return `${remainder.toLocaleString()}만 원`;
+    if (remainder === 0) return `${eok}억 원`;
+    return `${eok}억 ${remainder.toLocaleString()}만 원`;
+  };
+
+  const handleCopy = () => {
+    const text = `[D-VIEW 동탄 지산 세제 혜택 시뮬레이션 결과]\n` +
+      `- 이전 조건: ${existingLocation === 'overconcentrated' ? '수도권 과밀억제권역 ➡️ 동탄 테크노밸리' : '기타 지역 ➡️ 동탄 테크노밸리'}\n` +
+      `- 연간 법인세: ${formatKoreanPrice(annualCorpTax)}\n` +
+      `- 지산 매입가: ${formatKoreanPrice(purchasePrice)}\n` +
+      `----------------------------------------\n` +
+      `💡 총 절세 혜택 규모: ${formatKoreanPrice(totalSavings)}\n` +
+      `  - 법인세/소득세 감면 (6개년): ${formatKoreanPrice(corpTaxSavings)}\n` +
+      `  - 취득세 감면 (최초 1회): ${formatKoreanPrice(acquisitionTaxSavings)}\n` +
+      `  - 재산세 감면 (5개년 누적): ${formatKoreanPrice(propTaxSavings)}\n` +
+      `* 본 결과는 시뮬레이션 추정치이며, 상세 내역은 D-VIEW 전문 세무 컨설팅을 통해 확인하실 수 있습니다.`;
+
+    try {
+      navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const handleConsultingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyName || !contactName || !phoneNumber) return;
+    setIsSubmitted(true);
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setIsModalOpen(false);
+      // Reset form
+      setCompanyName('');
+      setContactName('');
+      setPhoneNumber('');
+      alert('전문 세무 컨설팅 매칭이 완료되었습니다. 24시간 이내 연락처로 상담사가 배정되어 안내해 드리겠습니다.');
+    }, 1500);
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-300">
+      
+      {/* ═══ LEFT PANEL: Input Form (lg:col-span-6) ═══ */}
+      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between">
+        <div className="flex flex-col gap-6">
+          
+          {/* Header */}
+          <div className="flex flex-col gap-1 border-b border-border/40 pb-4">
+            <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
+              이전 조건 및 자산 정보 입력
+            </h3>
+            <span className="text-[11px] text-tertiary font-bold">
+              현재 법인 소재지와 예상 자산 규모를 입력하시면 세제 혜택이 실시간으로 연산됩니다.
+            </span>
+          </div>
+
+          {/* Input 1: Location Toggle */}
+          <div className="flex flex-col gap-2">
+            <div className="text-[12px] font-black text-secondary flex items-center gap-1">
+              <span>기존 법인(사업자) 소재지</span>
+              <div className="group relative cursor-pointer">
+                <HelpCircle size={13} className="text-tertiary" />
+                <div className="absolute left-0 bottom-full mb-1 w-[280px] p-2 bg-neutral-900 text-white text-[9.5px] rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-20 leading-normal font-bold">
+                  서울 및 수도권 주요 도시(과밀억제권역)에서 이전하는 법인은 법인세/소득세 감면 대상이 됩니다.
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 bg-body/80 p-1 border border-border/40 rounded-xl shadow-inner">
+              <button
+                type="button"
+                onClick={() => setExistingLocation('overconcentrated')}
+                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all ${
+                  existingLocation === 'overconcentrated'
+                    ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                수도권 과밀억제권역 (서울/인천 등)
+              </button>
+              <button
+                type="button"
+                onClick={() => setExistingLocation('other')}
+                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all ${
+                  existingLocation === 'other'
+                    ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                기타 지역 (성장관리권역/수도권 외)
+              </button>
+            </div>
+          </div>
+
+          {/* Input 2: Corp Tax Slider */}
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-[12px] font-black">
+              <span className="text-secondary">연평균 법인세 (또는 사업소득세)</span>
+              <span className="text-hs-orange">{formatKoreanPrice(annualCorpTax)}</span>
+            </div>
+            <input
+              type="range"
+              min="500"
+              max="50000"
+              step="500"
+              value={annualCorpTax}
+              onChange={(e) => setAnnualCorpTax(Number(e.target.value))}
+              disabled={existingLocation !== 'overconcentrated'}
+              className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange disabled:opacity-40"
+            />
+            {existingLocation !== 'overconcentrated' && (
+              <span className="text-[9.5px] text-tertiary font-bold">
+                * 과밀억제권역 외 이전 시 법인세 감면 혜택은 대상 외이므로 계산에서 제외됩니다.
+              </span>
+            )}
+          </div>
+
+          {/* Input 3: Jisan Purchase Price */}
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-[12px] font-black">
+              <span className="text-secondary">동탄 지식산업센터 매입(취득) 가격</span>
+              <span className="text-hs-orange">{formatKoreanPrice(purchasePrice)}</span>
+            </div>
+            <input
+              type="range"
+              min="10000"
+              max="500000"
+              step="5000"
+              value={purchasePrice}
+              onChange={(e) => setPurchasePrice(Number(e.target.value))}
+              className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
+            />
+            <span className="text-[9.5px] text-tertiary font-bold">
+              * 매매(취득)가 기준으로 35% 취득세 지방세 감면이 계산됩니다. (기본 취득세율 4.6% 기준)
+            </span>
+          </div>
+
+          {/* Input 4: Property Tax Slider */}
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-[12px] font-black">
+              <span className="text-secondary">연간 예상 재산세 납부액</span>
+              <span className="text-hs-orange">{formatKoreanPrice(annualPropTax)}</span>
+            </div>
+            <input
+              type="range"
+              min="20"
+              max="3000"
+              step="20"
+              value={annualPropTax}
+              onChange={(e) => setAnnualPropTax(Number(e.target.value))}
+              className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
+            />
+            <span className="text-[9.5px] text-tertiary font-bold">
+              * 지식산업센터 최초 취득 직접 사용 시, 5년간 재산세의 35%가 감면됩니다.
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ═══ RIGHT PANEL: Results Infographic (lg:col-span-6) ═══ */}
+      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[500px]">
+        
+        {/* Result Header */}
+        <div className="flex flex-col gap-1 border-b border-border/40 pb-4 mb-4">
+          <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00a37b]" />
+            예상 절세 혜택 분석 결과
+          </h3>
+          <span className="text-[11px] text-tertiary font-bold">
+            동탄 테크노밸리 이전 시 기업이 받을 수 있는 법적 세제 감면 총액입니다.
+          </span>
+        </div>
+
+        {/* Big Score Board */}
+        <div className="bg-body/60 dark:bg-zinc-900/30 p-6 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center my-2 select-none">
+          <span className="text-[10px] text-tertiary font-extrabold uppercase tracking-widest bg-emerald-500/10 text-[#00a37b] dark:text-emerald-400 px-2.5 py-0.5 rounded-full mb-2">
+            6개년 총 절세 추정치
+          </span>
+          <span className="text-[26px] sm:text-[30px] font-black text-primary tracking-tight">
+            {formatKoreanPrice(totalSavings)}
+          </span>
+          <span className="text-[10.5px] text-tertiary font-bold mt-1.5">
+            지방세특례제한법 및 조례 감면 비율이 실시간 합산 적용되었습니다.
+          </span>
+        </div>
+
+        {/* Breakdown Items */}
+        <div className="flex flex-col gap-3 my-4">
+          
+          {/* Corp Tax Savings */}
+          <div className="flex items-center justify-between p-3 bg-surface border border-border/60 rounded-xl">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
+              <div className="flex flex-col">
+                <span className="text-[12.5px] font-black text-primary">법인세 / 소득세 감면 (6개년)</span>
+                <span className="text-[10px] text-tertiary font-bold mt-0.5">이전 후 최초 4년 100%, 이후 2년 50%</span>
+              </div>
+            </div>
+            <span className="text-[13.5px] font-black text-primary shrink-0 pl-2">
+              {formatKoreanPrice(corpTaxSavings)}
+            </span>
+          </div>
+
+          {/* Acquisition Tax Savings */}
+          <div className="flex items-center justify-between p-3 bg-surface border border-border/60 rounded-xl">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-[#00a37b]" />
+              <div className="flex flex-col">
+                <span className="text-[12.5px] font-black text-primary">취득세 감면 (최초 1회)</span>
+                <span className="text-[10px] text-tertiary font-bold mt-0.5">분양 취득 사업용 직접 사용 시 35% 감면</span>
+              </div>
+            </div>
+            <span className="text-[13.5px] font-black text-primary shrink-0 pl-2">
+              {formatKoreanPrice(acquisitionTaxSavings)}
+            </span>
+          </div>
+
+          {/* Property Tax Savings */}
+          <div className="flex items-center justify-between p-3 bg-surface border border-border/60 rounded-xl">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+              <div className="flex flex-col">
+                <span className="text-[12.5px] font-black text-primary">재산세 감면 (5개년 누적)</span>
+                <span className="text-[10px] text-tertiary font-bold mt-0.5">최초 취득 사용 시 5년간 35% 감면</span>
+              </div>
+            </div>
+            <span className="text-[13.5px] font-black text-primary shrink-0 pl-2">
+              {formatKoreanPrice(propTaxSavings)}
+            </span>
+          </div>
+
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/40">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-border/80 bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
+          >
+            {isCopied ? (
+              <>
+                <Check size={15} className="text-emerald-500" />
+                <span>복사 완료!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={15} />
+                <span>결과 텍스트 복사</span>
+              </>
+            )}
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-hs-orange hover:bg-hs-orange/95 text-white text-[12px] font-black cursor-pointer transition-all active:scale-[0.98] shadow-sm"
+          >
+            <PhoneCall size={15} />
+            <span>세무 컨설팅 매칭</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* ═══ CONSULTING REQUEST MODAL ═══ */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div 
+            className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 duration-200"
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-tertiary hover:text-primary transition-all p-1 text-[18px] cursor-pointer font-bold"
+              aria-label="모달 닫기"
+            >
+              &times;
+            </button>
+
+            <div className="flex flex-col gap-4">
+              
+              {/* Modal Header */}
+              <div className="flex items-center gap-2 pb-2 border-b border-border/40">
+                <span className="p-1.5 bg-hs-orange/10 text-hs-orange rounded-xl">
+                  <Sparkles size={18} />
+                </span>
+                <div className="flex flex-col">
+                  <h4 className="text-[14px] font-black text-primary">전문 세무 컨설팅 신청</h4>
+                  <span className="text-[10px] text-tertiary font-bold">동탄 테크노밸리 법인 전문 세무사를 매칭해 드립니다.</span>
+                </div>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleConsultingSubmit} className="flex flex-col gap-4">
+                
+                {/* Input: Company Name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11.5px] font-bold text-secondary">법인(또는 기업)명</label>
+                  <input
+                    type="text"
+                    required
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="예: (주)디뷰소프트"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
+                  />
+                </div>
+
+                {/* Input: Contact Name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11.5px] font-bold text-secondary">신청자 성함 (직급)</label>
+                  <input
+                    type="text"
+                    required
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="예: 홍길동 대표"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
+                  />
+                </div>
+
+                {/* Input: Phone Number */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11.5px] font-bold text-secondary">연락처 (휴대전화 번호)</label>
+                  <input
+                    type="text"
+                    required
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="예: 010-1234-5678"
+                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
+                  />
+                </div>
+
+                {/* Info Text */}
+                <span className="text-[9.5px] text-tertiary leading-normal font-bold">
+                  * 제출 시 동탄 테크노밸리 지산 이전 전담 세무 세션(Acquisition & Tax Relief) 담당 파트너사에 연락처 정보가 제공되며, 24시간 이내 연락을 드립니다.
+                </span>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitted}
+                  className="w-full mt-2 py-3 bg-hs-orange hover:bg-hs-orange/95 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white text-[12px] font-black rounded-xl transition-all shadow-sm cursor-pointer"
+                >
+                  {isSubmitted ? '신청 정보 전송 중...' : '컨설팅 매칭 신청하기'}
+                </button>
+
+              </form>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
