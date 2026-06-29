@@ -112,7 +112,7 @@ export default function AptStoriesWidget() {
   }
 
   return (
-    <div className="w-full bg-gradient-to-br from-[#eafaf1] to-emerald-500/5 dark:from-[#05281f] dark:to-emerald-500/10 border border-emerald-500/15 rounded-3xl p-5 mb-4 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+    <div className="w-full bg-surface border border-border/60 rounded-3xl p-5 mb-4 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
       {jsonLd && (
         <script
           type="application/ld+json"

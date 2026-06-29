@@ -108,9 +108,8 @@ export async function GET(req: NextRequest) {
       .orderBy('createdAt', 'desc')
       .limit(limitVal);
 
-    // Bypass Firestore COLLECTION_GROUP_DESC index error by removing orderBy/startAfter.
-    // Query a fixed limit, then filter and sort in-memory.
-    const commentQ = adminDb.collectionGroup('comments')
+    // Fetch lounge_apt_stories directly to sync with the top widget stories
+    const storyQ = adminDb.collection('lounge_apt_stories')
       .limit(200);
 
     if (lastCreatedAtStr) {
@@ -122,9 +121,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const [postSnapshot, commentSnapshot] = await Promise.all([
+    const [postSnapshot, storySnapshot] = await Promise.all([
       q.get(),
-      commentQ.get()
+      storyQ.get()
     ]);
     
     const postsList: CombinedPostItem[] = [];
@@ -161,78 +160,37 @@ export async function GET(req: NextRequest) {
     });
 
     const commentsList: CombinedPostItem[] = [];
-    const parentIdsToResolve = new Set<string>();
-    commentSnapshot.docs.forEach(doc => {
-      const parentRef = doc.ref.parent.parent;
-      if (parentRef && parentRef.parent.id === 'field_reports') {
-        parentIdsToResolve.add(parentRef.id);
-      }
-    });
-
-    const parentMap = new Map<string, string>();
-    if (parentIdsToResolve.size > 0) {
-      try {
-        const parentIdsArray = Array.from(parentIdsToResolve);
-        const parentSnaps = await Promise.all(
-          parentIdsArray.map(id => adminDb.collection('field_reports').doc(id).get())
-        );
-        const missingIds: string[] = [];
-        parentSnaps.forEach((snap, idx) => {
-          if (snap.exists) {
-            parentMap.set(snap.id, snap.data()?.apartmentName || '알 수 없는 단지');
-          } else {
-            missingIds.push(parentIdsArray[idx]);
-          }
-        });
-        if (missingIds.length > 0) {
-          const scoutingSnaps = await Promise.all(
-            missingIds.map(id => adminDb.collection('scoutingReports').doc(id).get())
-          );
-          scoutingSnaps.forEach(snap => {
-            if (snap.exists) {
-              parentMap.set(snap.id, snap.data()?.apartmentName || '알 수 없는 단지');
-            }
-          });
-        }
-      } catch (err) {
-        logger.error('PostsAPI.GET', 'Error resolving parent field reports', {}, err as Error);
-      }
-    }
-
     const lastCreatedAtMs = lastCreatedAtStr ? parseInt(lastCreatedAtStr, 10) : NaN;
 
-    commentSnapshot.docs.forEach(doc => {
+    storySnapshot.docs.forEach(doc => {
       try {
-        const parentRef = doc.ref.parent.parent;
-        if (parentRef && parentRef.parent.id === 'field_reports') {
-          const data = doc.data();
-          const apartmentName = parentMap.get(parentRef.id) || '알 수 없는 단지';
-          const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
-          
-          // In-memory pagination filtering
-          if (!isNaN(lastCreatedAtMs) && createdAtMs >= lastCreatedAtMs) {
-            return;
-          }
-
-          const dateStr = new Date(createdAtMs).toLocaleDateString('ko-KR');
-
-          commentsList.push({
-            id: `comment-${doc.id}`,
-            title: `[${apartmentName}] ${data.text || ''}`,
-            category: '아파트 이야기',
-            author: data.authorName || '익명',
-            imageUrl: null,
-            likes: 0,
-            views: 0,
-            commentCount: 0,
-            createdAt: createdAtMs,
-            meta: `${dateStr} · 아파트 이야기`,
-            summary: data.text || '',
-            apartmentName
-          });
+        const data = doc.data();
+        const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
+        
+        // In-memory pagination filtering
+        if (!isNaN(lastCreatedAtMs) && createdAtMs >= lastCreatedAtMs) {
+          return;
         }
+
+        const dateStr = new Date(createdAtMs).toLocaleDateString('ko-KR');
+        const apartmentName = data.apartmentName || '알 수 없는 단지';
+
+        commentsList.push({
+          id: `apt-story-${doc.id}`,
+          title: `[${apartmentName}] ${data.text || ''}`,
+          category: '아파트 이야기',
+          author: data.authorName || '익명',
+          imageUrl: null,
+          likes: 0,
+          views: 0,
+          commentCount: 0,
+          createdAt: createdAtMs,
+          meta: `${dateStr} · 아파트 이야기`,
+          summary: data.text || '',
+          apartmentName
+        });
       } catch (itemErr) {
-        logger.error('PostsAPI.GET', `Error processing comment doc ${doc.id}`, {}, itemErr as Error);
+        logger.error('PostsAPI.GET', `Error processing story doc ${doc.id}`, {}, itemErr as Error);
       }
     });
 

@@ -175,7 +175,28 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   const searchParamsHook = useSearchParams();
   const pathname = usePathname();
   
-  const activeTab = searchParamsHook.get('tab') || 'talk';
+  // Localize activeTab state to prevent Next.js server page transitions and Suspense skeletal flickering
+  const [activeTab, setActiveTabState] = useState<'talk' | 'news' | 'notices'>('talk');
+
+  // Sync tab state when search parameters change (back navigation, initial mount etc.)
+  useEffect(() => {
+    const tabParam = searchParamsHook?.get('tab');
+    if (tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
+      setActiveTabState(tabParam);
+    } else {
+      setActiveTabState('talk');
+    }
+  }, [searchParamsHook]);
+
+  const handleTabClick = (tabId: 'talk' | 'news' | 'notices') => {
+    setActiveTabState(tabId);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tabId);
+      window.history.replaceState(null, '', url.pathname + url.search);
+    }
+  };
+
   const noticeId = searchParamsHook.get('notice');
 
   const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
@@ -280,7 +301,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
             return (
               <button
                 key={tab.id}
-                onClick={() => router.push(`${pathname}?tab=${tab.id}`, { scroll: false })}
+                onClick={() => handleTabClick(tab.id as 'talk' | 'news' | 'notices')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                   isActive 
                     ? 'bg-surface text-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'

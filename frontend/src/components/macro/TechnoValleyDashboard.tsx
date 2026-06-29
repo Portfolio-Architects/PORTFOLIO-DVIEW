@@ -421,32 +421,33 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* 2x2 KPI Cards Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* 2x2 KPI Cards Grid */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           
           {/* Card 1: Total Companies */}
-          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
+          <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">총 입주기업 수</span>
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">총 입주기업 수</span>
               <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[16px] font-black text-primary">{totalCompanyCount.toLocaleString()}개사</span>
-                <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] dark:text-[#ea580c] flex items-center gap-0.5 shrink-0">
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">{totalCompanyCount.toLocaleString()}개사</span>
+                <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] dark:text-[#ea580c] flex items-center gap-0.5 shrink-0">
                   ▲ 24
                 </span>
               </div>
             </div>
-            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">앵커 기업 15개사</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">첨단 비중 {techRatio}%</span>
+            <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">앵커 15개사</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">첨단 {techRatio}%</span>
             </div>
           </div>
 
           {/* Card 2: Avg Rent */}
-          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
+          <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">평당 평균 임대료</span>
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">평당 평균 임대료</span>
               <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[16px] font-black text-primary">{rentKPI.value} 만원</span>
-                <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">{rentKPI.value} 만원</span>
+                <span className={`text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                   rentKPI.isUp 
                     ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500' 
                     : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
@@ -455,17 +456,17 @@ export default function TechnoValleyDashboard() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">최고 시세 3.68만</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">최저 시세 3.50만</span>
+            <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">최고 3.68만</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">최저 3.50만</span>
             </div>
           </div>
 
           {/* Card 3: Avg Vacancy Rate */}
-          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
+          <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
               <div className="flex items-center gap-1">
-                <span className="text-[11px] text-tertiary font-bold">평균 공실률 (AI 추정)</span>
+                <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">평균 공실률 (AI)</span>
                 <button 
                   onClick={() => setShowHelpModal(true)}
                   className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
@@ -475,8 +476,8 @@ export default function TechnoValleyDashboard() {
                 </button>
               </div>
               <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[16px] font-black text-primary">{vacancyKPI.value}%</span>
-                <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">{vacancyKPI.value}%</span>
+                <span className={`text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                   vacancyKPI.isUp 
                     ? 'bg-red-500/10 text-red-600 dark:text-red-500' 
                     : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
@@ -485,26 +486,26 @@ export default function TechnoValleyDashboard() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">SH타임 {latestTrend['SH타임']}%</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">실리콘앨리 {latestTrend['실리콘앨리']}%</span>
+            <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">SH {latestTrend['SH타임']}%</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">앨리 {latestTrend['실리콘앨리']}%</span>
             </div>
           </div>
 
           {/* Card 4: Activity Index */}
-          <div className="bg-surface border border-border/80 p-4 sm:p-4.5 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
+          <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[11px] text-tertiary font-bold">지산 집적 활성 지수</span>
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">지산 활성 지수</span>
               <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[16px] font-black text-primary">88.5 점</span>
-                <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-500 flex items-center gap-0.5 shrink-0">
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">88.5 점</span>
+                <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-500 flex items-center gap-0.5 shrink-0">
                   ▲ 3.2
                 </span>
               </div>
             </div>
-            <div className="flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">종합 S등급 (우수)</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">집적도 92% (상)</span>
+            <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">종합 S등급</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">집적도 92%</span>
             </div>
           </div>
 

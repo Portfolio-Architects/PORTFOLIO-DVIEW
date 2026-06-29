@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
-import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X, Sparkles } from 'lucide-react';
+import { MessageSquare, Eye, Heart, Loader2, ChevronDown, Share2, ExternalLink, X, Sparkles, Home, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import useSWRInfinite from 'swr/infinite';
@@ -161,6 +161,12 @@ const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
   if (!previousPageData) return null; // Safe guard
   const lastPost = previousPageData[previousPageData.length - 1];
   return `/api/posts?limit=20&lastCreatedAt=${lastPost.createdAt}`;
+};
+
+const isTechnoRelated = (title: string, content?: string) => {
+  const keywords = ['테크노밸리', '지식산업센터', '공동임차', '사무실', '세금', '감면', '오피스', '소재지', '법인세', '취득세', '재산세', '절세'];
+  const text = `${title} ${content || ''}`;
+  return keywords.some(k => text.includes(k));
 };
 
 const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
@@ -1016,7 +1022,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
       {/* 실시간 인기 토크 Widget */}
       {currentTab !== '동탄 부동산 뉴스' && currentTab !== '동탄구 소식' && hotPosts.length > 0 && (
-        <div className="bg-gradient-to-br from-[#e8f8f5] to-emerald-500/5 dark:from-[#082f27] dark:to-emerald-500/10 border border-emerald-500/15 rounded-3xl p-5 mb-2 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+        <div className="bg-surface border border-border/60 rounded-3xl p-5 mb-2 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
           <div className="flex items-center gap-2 mb-3">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -1039,13 +1045,40 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   <Sparkles size={14} className="text-[#c44d00] dark:text-[#ea6100] group-hover:text-white transition-colors" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
+                  <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-[#c44d00] dark:text-[#ea6100] rounded-md">
                       {post.category}
                     </span>
                     <span className="text-[11px] font-semibold text-tertiary font-sans">
                       {post.author || '매니저'}
                     </span>
+
+                    {/* Bridge Tags */}
+                    {post.apartmentName && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/#apt=${encodeURIComponent(post.apartmentName || '')}`;
+                        }}
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-[#e8f8f0] text-[#00a06c] dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer"
+                      >
+                        <Home size={8} />
+                        <span>🏠 아파트 랩</span>
+                      </span>
+                    )}
+
+                    {isTechnoRelated(post.title, post.summary) && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/overview#office`;
+                        }}
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                      >
+                        <Briefcase size={8} />
+                        <span>💼 테크노 랩</span>
+                      </span>
+                    )}
                   </div>
                   <h4 className="text-[13.5px] sm:text-[14px] font-bold text-primary truncate group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors">
                     {post.title}
@@ -1097,6 +1130,35 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   </span>
                   <span className="text-[12px] font-bold text-secondary font-sans">{news.author || '익명'}</span>
                   <span className="text-[11px] text-tertiary font-medium">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
+
+                  {/* Bridge Tags */}
+                  {news.apartmentName && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/#apt=${encodeURIComponent(news.apartmentName || '')}`;
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#e8f8f0] text-[#00a06c] dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer"
+                      title="클릭 시 아파트 랩 실거래 지도로 이동"
+                    >
+                      <Home size={10} />
+                      <span>🏠 아파트 랩 연동 ({news.apartmentName})</span>
+                    </span>
+                  )}
+
+                  {isTechnoRelated(news.title, news.summary) && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/overview#office`;
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                      title="클릭 시 테크노 랩 사무실 탐색으로 이동"
+                    >
+                      <Briefcase size={10} />
+                      <span>💼 테크노 랩 연동</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Title & Comment Count */}

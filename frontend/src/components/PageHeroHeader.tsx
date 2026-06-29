@@ -108,9 +108,8 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
             </div>
 
             {/* Subtitle */}
-            <div className="flex flex-col justify-end mb-0 sm:mb-0">
+            <div className="flex flex-col justify-end mb-0 sm:mb-0 pl-3 border-l-2 border-[#ea6100]">
               <div className="flex w-full">
-                <div className="w-[2px] rounded-full mr-4 shrink-0 bg-[#ea6100]" />
                 <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2">
                   <strong className="text-primary text-[14px] sm:text-[16px] whitespace-nowrap">
                     {subtitleStrong}
