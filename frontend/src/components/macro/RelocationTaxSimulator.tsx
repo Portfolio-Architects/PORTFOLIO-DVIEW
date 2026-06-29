@@ -1,11 +1,22 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Coins, HelpCircle, Check, Copy, Share2, PhoneCall, Sparkles } from 'lucide-react';
 
 export default function RelocationTaxSimulator() {
   // 1. Inputs
   const [existingLocation, setExistingLocation] = useState<'overconcentrated' | 'other'>('overconcentrated');
+
+  // Timer refs to prevent memory leaks in async handlers on unmount
+  const consultingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (consultingTimeoutRef.current) clearTimeout(consultingTimeoutRef.current);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
   const [annualCorpTax, setAnnualCorpTax] = useState<number>(8000); // 단위: 만원 (기본 8,000만원)
   const [purchasePrice, setPurchasePrice] = useState<number>(60000); // 단위: 만원 (기본 6억원)
   const [annualPropTax, setAnnualPropTax] = useState<number>(200); // 단위: 만원 (기본 200만원)
@@ -68,7 +79,11 @@ export default function RelocationTaxSimulator() {
     try {
       navigator.clipboard.writeText(text);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => {
+        setIsCopied(false);
+        copyTimeoutRef.current = null;
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
@@ -78,7 +93,8 @@ export default function RelocationTaxSimulator() {
     e.preventDefault();
     if (!companyName || !contactName || !phoneNumber) return;
     setIsSubmitted(true);
-    setTimeout(() => {
+    if (consultingTimeoutRef.current) clearTimeout(consultingTimeoutRef.current);
+    consultingTimeoutRef.current = setTimeout(() => {
       setIsSubmitted(false);
       setIsModalOpen(false);
       // Reset form
@@ -86,6 +102,7 @@ export default function RelocationTaxSimulator() {
       setContactName('');
       setPhoneNumber('');
       alert('전문 세무 컨설팅 매칭이 완료되었습니다. 24시간 이내 연락처로 상담사가 배정되어 안내해 드리겠습니다.');
+      consultingTimeoutRef.current = null;
     }, 1500);
   };
 

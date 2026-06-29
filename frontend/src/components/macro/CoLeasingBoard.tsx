@@ -89,8 +89,16 @@ export default function CoLeasingBoard() {
   const [maxRent, setMaxRent] = useState<number>(100); // 100만원 이하 필터 기본값
   const [mounted, setMounted] = useState(false);
 
+  // Timer refs to prevent memory leaks in async handlers on unmount
+  const applyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const createTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     setMounted(true);
+    return () => {
+      if (applyTimeoutRef.current) clearTimeout(applyTimeoutRef.current);
+      if (createTimeoutRef.current) clearTimeout(createTimeoutRef.current);
+    };
   }, []);
 
   // Modals state
@@ -144,7 +152,8 @@ export default function CoLeasingBoard() {
     if (!applicantName || !applicantPhone || !activeDetailPost) return;
 
     setIsApplying(true);
-    setTimeout(() => {
+    if (applyTimeoutRef.current) clearTimeout(applyTimeoutRef.current);
+    applyTimeoutRef.current = setTimeout(() => {
       // Update state to mark this post as applied
       setPosts(prev => prev.map(p => {
         if (p.id === activeDetailPost.id) {
@@ -162,6 +171,7 @@ export default function CoLeasingBoard() {
       setApplicantNote('');
 
       alert('공동임차 쉐어 신청이 성공적으로 접수되었습니다! 매칭 제안자에게 승인 요청 알림이 전송되었습니다.');
+      applyTimeoutRef.current = null;
     }, 1200);
   };
 
@@ -170,7 +180,8 @@ export default function CoLeasingBoard() {
     if (!newTitle || !newSector || !newSpaceType || !newDescription) return;
 
     setIsCreating(true);
-    setTimeout(() => {
+    if (createTimeoutRef.current) clearTimeout(createTimeoutRef.current);
+    createTimeoutRef.current = setTimeout(() => {
       const parsedInclusions = newInclusionsText
         ? newInclusionsText.split(',').map(s => s.trim()).filter(s => s.length > 0)
         : ['사무 공간 공유'];
@@ -202,6 +213,7 @@ export default function CoLeasingBoard() {
       setNewDescription('');
 
       alert('공동임차 구인 피드가 등록되었습니다! 지산 쉐어 매칭 보드에 즉시 활성화됩니다.');
+      createTimeoutRef.current = null;
     }, 1200);
   };
 
