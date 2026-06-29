@@ -76,6 +76,19 @@ const TREND_DATA = [
   { date: '26.05', '금강 IX': 18.2, '실리콘앨리': 18.5, 'SH타임': 12.1, '금강IX_임대료': 3.88, '실리콘앨리_임대료': 3.68, 'SH타임_임대료': 3.48, '평균임대료': 3.68 }
 ];
 
+const AVAILABLE_BUILDINGS = [
+  { id: '금강 IX', name: '금강 IX타워', color: '#dc6e2d', rentKey: '금강IX_임대료' },
+  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#f97316', rentKey: '실리콘앨리_임대료' },
+  { id: 'SH타임', name: 'SH타임스퀘어', color: '#ffb076', rentKey: 'SH타임_임대료' },
+  { id: '더퍼스트', name: '더퍼스트타워', color: '#a855f7', rentKey: '더퍼스트_임대료' },
+  { id: 'SK V1', name: '동탄 SK V1', color: '#ec4899', rentKey: 'SKV1_임대료' },
+  { id: '에이팩시티', name: '동탄 에이팩시티', color: '#10b981', rentKey: '에이팩시티_임대료' },
+  { id: '테라타워', name: '동탄 테라타워', color: '#06b6d4', rentKey: '테라타워_임대료' },
+  { id: 'IT타워', name: '동탄 IT타워', color: '#3b82f6', rentKey: 'IT타워_임대료' },
+  { id: '메가비즈타워', name: '동탄 메가비즈타워', color: '#14b8a6', rentKey: '메가비즈타워_임대료' },
+  { id: '비즈타워', name: '동탄 비즈타워', color: '#84cc16', rentKey: '비즈타워_임대료' }
+];
+
 export default function TechnoValleyDashboard() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -85,6 +98,9 @@ export default function TechnoValleyDashboard() {
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('rent');
   const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  
+  const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', 'SH타임']);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Accordion portfolio states
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
@@ -245,6 +261,13 @@ export default function TechnoValleyDashboard() {
     '금강 IX': true,
     '실리콘앨리': true,
     'SH타임': true,
+    '더퍼스트': true,
+    'SK V1': true,
+    '에이팩시티': true,
+    '테라타워': true,
+    'IT타워': true,
+    '메가비즈타워': true,
+    '비즈타워': true,
     '평균임대료': true
   });
 
@@ -513,8 +536,61 @@ export default function TechnoValleyDashboard() {
             </span>
           </div>
 
-          {/* Mode toggle & Timeframe */}
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between">
+          {/* Mode toggle & Timeframe & Dropdown */}
+          <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
+            {/* Custom Building Selector Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="px-2.5 py-1.5 rounded-lg border border-border/80 bg-body/80 text-[10.5px] font-extrabold flex items-center gap-1 cursor-pointer transition-all hover:bg-neutral-100 dark:hover:bg-zinc-800 text-secondary"
+              >
+                <span>단지 비교 ({selectedBuildings.length}개)</span>
+                <ChevronDown className="w-3 h-3 text-tertiary" />
+              </button>
+              
+              {showDropdown && (
+                <div className="absolute right-0 top-full mt-2 bg-surface border border-border/80 rounded-2xl shadow-xl p-3 z-30 min-w-[200px] flex flex-col gap-1.5">
+                  <div className="text-[10px] text-tertiary font-bold px-1 border-b border-border/40 pb-1.5 mb-1 flex justify-between items-center">
+                    <span>비교 대상 지식산업센터</span>
+                    <button 
+                      onClick={() => setSelectedBuildings(['금강 IX', '실리콘앨리', 'SH타임'])}
+                      className="text-[9px] text-[#ea580c] hover:underline cursor-pointer"
+                    >
+                      초기화
+                    </button>
+                  </div>
+                  <div className="max-h-[220px] overflow-y-auto flex flex-col gap-1 pr-1 scrollbar-thin">
+                    {AVAILABLE_BUILDINGS.map(b => {
+                      const isChecked = selectedBuildings.includes(b.id);
+                      return (
+                        <label 
+                          key={b.id} 
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-body cursor-pointer transition-all select-none text-[11px] font-bold text-secondary"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              if (isChecked) {
+                                if (selectedBuildings.length > 1) {
+                                  setSelectedBuildings(selectedBuildings.filter(id => id !== b.id));
+                                }
+                              } else {
+                                setSelectedBuildings([...selectedBuildings, b.id]);
+                              }
+                            }}
+                            className="w-3.5 h-3.5 rounded text-hs-orange focus:ring-hs-orange border-border/80"
+                          />
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: b.color }} />
+                          <span>{b.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
               <button
                 onClick={() => setMetricMode('rent')}
@@ -558,89 +634,38 @@ export default function TechnoValleyDashboard() {
 
         {/* Legend Filters */}
         <div className="flex flex-wrap gap-2.5 mb-4 border-b border-border/40 pb-3">
-          {metricMode === 'vacancy' ? (
-            <>
-              <button
-                onClick={() => handleToggleLine('금강 IX')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['금강 IX']
-                    ? 'bg-hs-orange-light border-[#dc6e2d]/30 text-[#dc6e2d]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#dc6e2d]" />
-                금강 IX타워
-              </button>
-              <button
-                onClick={() => handleToggleLine('실리콘앨리')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['실리콘앨리']
-                    ? 'bg-hs-orange-light border-[#f97316]/30 text-[#f97316]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]" />
-                현대 실리콘앨리
-              </button>
-              <button
-                onClick={() => handleToggleLine('SH타임')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['SH타임']
-                    ? 'bg-hs-orange-light border-[#ffb076]/30 text-[#ffb076]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ffb076]" />
-                SH타임스퀘어
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => handleToggleLine('금강 IX')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['금강 IX']
-                    ? 'bg-hs-orange-light border-[#dc6e2d]/30 text-[#dc6e2d]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#dc6e2d]" />
-                금강 IX타워
-              </button>
-              <button
-                onClick={() => handleToggleLine('실리콘앨리')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['실리콘앨리']
-                    ? 'bg-hs-orange-light border-[#f97316]/30 text-[#f97316]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]" />
-                현대 실리콘앨리
-              </button>
-              <button
-                onClick={() => handleToggleLine('SH타임')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['SH타임']
-                    ? 'bg-hs-orange-light border-[#ffb076]/30 text-[#ffb076]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ffb076]" />
-                SH타임스퀘어
-              </button>
-              <button
-                onClick={() => handleToggleLine('평균임대료')}
-                className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeLines['평균임대료']
-                    ? 'bg-hs-orange-light border-[#737373]/30 text-[#737373]'
-                    : 'bg-body/30 border-transparent text-tertiary'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#737373]" />
-                평균 임대료
-              </button>
-            </>
+          {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+            <button
+              key={b.id}
+              onClick={() => handleToggleLine(b.id)}
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeLines[b.id]
+                  ? 'bg-hs-orange-light border-border/30 font-black'
+                  : 'bg-body/30 border-transparent text-tertiary'
+              }`}
+              style={{ 
+                color: activeLines[b.id] ? b.color : undefined,
+                borderColor: activeLines[b.id] ? `${b.color}30` : undefined,
+                backgroundColor: activeLines[b.id] ? `${b.color}10` : undefined
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: b.color }} />
+              {b.name}
+            </button>
+          ))}
+          
+          {metricMode === 'rent' && (
+            <button
+              onClick={() => handleToggleLine('평균임대료')}
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeLines['평균임대료']
+                  ? 'bg-hs-orange-light border-[#737373]/30 text-[#737373]'
+                  : 'bg-body/30 border-transparent text-tertiary'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#737373]" />
+              평균 임대료
+            </button>
           )}
         </div>
 
@@ -691,72 +716,39 @@ export default function TechnoValleyDashboard() {
                 />
                 {metricMode === 'vacancy' ? (
                   <>
-                    {activeLines['금강 IX'] && (
-                      <Line 
-                        type="monotone" 
-                        dataKey="금강 IX" 
-                        stroke="#dc6e2d" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        activeDot={{ r: 6 }} 
-                      />
-                    )}
-                    {activeLines['실리콘앨리'] && (
-                      <Line 
-                        type="monotone" 
-                        dataKey="실리콘앨리" 
-                        stroke="#f97316" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        activeDot={{ r: 6 }} 
-                      />
-                    )}
-                    {activeLines['SH타임'] && (
-                      <Line 
-                        type="monotone" 
-                        dataKey="SH타임" 
-                        stroke="#ffb076" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        activeDot={{ r: 6 }} 
-                      />
-                    )}
+                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => {
+                      if (!activeLines[b.id]) return null;
+                      return (
+                        <Line 
+                          key={b.id}
+                          type="monotone" 
+                          dataKey={b.id} 
+                          name={b.name}
+                          stroke={b.color} 
+                          strokeWidth={3} 
+                          dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                          activeDot={{ r: 6 }} 
+                        />
+                      );
+                    })}
                   </>
                 ) : (
                   <>
-                    {activeLines['금강 IX'] && (
-                      <Line 
-                        type="monotone" 
-                        dataKey="금강IX_임대료" 
-                        name="금강 IX타워"
-                        stroke="#dc6e2d" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        activeDot={{ r: 6 }} 
-                      />
-                    )}
-                    {activeLines['실리콘앨리'] && (
-                      <Line 
-                        type="monotone" 
-                        dataKey="실리콘앨리_임대료" 
-                        name="현대 실리콘앨리"
-                        stroke="#f97316" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        activeDot={{ r: 6 }} 
-                      />
-                    )}
-                    {activeLines['SH타임'] && (
-                      <Line 
-                        type="monotone" 
-                        dataKey="SH타임_임대료" 
-                        name="SH타임스퀘어"
-                        stroke="#ffb076" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        activeDot={{ r: 6 }} 
-                      />
-                    )}
+                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => {
+                      if (!activeLines[b.id]) return null;
+                      return (
+                        <Line 
+                          key={b.id}
+                          type="monotone" 
+                          dataKey={b.rentKey} 
+                          name={b.name}
+                          stroke={b.color} 
+                          strokeWidth={3} 
+                          dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                          activeDot={{ r: 6 }} 
+                        />
+                      );
+                    })}
                     {activeLines['평균임대료'] && (
                       <Line 
                         type="monotone" 

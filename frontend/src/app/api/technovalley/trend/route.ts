@@ -9,12 +9,12 @@ const TARGET_MONTHS = ['202501', '202505', '202509', '202511', '202601', '202605
 
 // Fallback reference values (approximate actual market rents in ten thousand KRW/pyeong)
 const FALLBACK_RENT_MAP: Record<string, Record<string, number>> = {
-  '202501': { '금강 IX': 3.70, '실리콘앨리': 3.50, 'SH타임': 3.30, '평균임대료': 3.50 },
-  '202505': { '금강 IX': 3.72, '실리콘앨리': 3.55, 'SH타임': 3.35, '평균임대료': 3.55 },
-  '202509': { '금강 IX': 3.78, '실리콘앨리': 3.60, 'SH타임': 3.42, '평균임대료': 3.60 },
-  '202511': { '금강 IX': 3.80, '실리콘앨리': 3.60, 'SH타임': 3.40, '평균임대료': 3.60 },
-  '202601': { '금강 IX': 3.85, '실리콘앨리': 3.65, 'SH타임': 3.45, '평균임대료': 3.65 },
-  '202605': { '금강 IX': 3.88, '실리콘앨리': 3.68, 'SH타임': 3.48, '평균임대료': 3.68 }
+  '202501': { '금강 IX': 3.70, '실리콘앨리': 3.50, 'SH타임': 3.30, '더퍼스트': 3.20, 'SK V1': 3.35, '에이팩시티': 3.40, '테라타워': 3.30, 'IT타워': 3.25, '메가비즈타워': 3.15, '비즈타워': 3.10, '평균임대료': 3.50 },
+  '202505': { '금강 IX': 3.72, '실리콘앨리': 3.55, 'SH타임': 3.35, '더퍼스트': 3.22, 'SK V1': 3.38, '에이팩시티': 3.42, '테라타워': 3.32, 'IT타워': 3.28, '메가비즈타워': 3.18, '비즈타워': 3.12, '평균임대료': 3.55 },
+  '202509': { '금강 IX': 3.78, '실리콘앨리': 3.60, 'SH타임': 3.42, '더퍼스트': 3.28, 'SK V1': 3.45, '에이팩시티': 3.48, '테라타워': 3.38, 'IT타워': 3.34, '메가비즈타워': 3.24, '비즈타워': 3.18, '평균임대료': 3.60 },
+  '202511': { '금강 IX': 3.80, '실리콘앨리': 3.60, 'SH타임': 3.40, '더퍼스트': 3.28, 'SK V1': 3.45, '에이팩시티': 3.48, '테라타워': 3.38, 'IT타워': 3.34, '메가비즈타워': 3.24, '비즈타워': 3.18, '평균임대료': 3.60 },
+  '202601': { '금강 IX': 3.85, '실리콘앨리': 3.65, 'SH타임': 3.45, '더퍼스트': 3.34, 'SK V1': 3.50, '에이팩시티': 3.54, '테라타워': 3.44, 'IT타워': 3.40, '메가비즈타워': 3.30, '비즈타워': 3.24, '평균임대료': 3.65 },
+  '202605': { '금강 IX': 3.88, '실리콘앨리': 3.68, 'SH타임': 3.48, '더퍼스트': 3.38, 'SK V1': 3.55, '에이팩시티': 3.58, '테라타워': 3.48, 'IT타워': 3.44, '메가비즈타워': 3.34, '비즈타워': 3.28, '평균임대료': 3.68 }
 };
 
 // Simple in-memory cache to prevent hitting public API limits excessively
@@ -68,7 +68,14 @@ export async function GET(request: NextRequest) {
       const bData: Record<string, { sumRent: number; count: number }> = {
         '금강 IX': { sumRent: 0, count: 0 },
         '실리콘앨리': { sumRent: 0, count: 0 },
-        'SH타임': { sumRent: 0, count: 0 }
+        'SH타임': { sumRent: 0, count: 0 },
+        '더퍼스트': { sumRent: 0, count: 0 },
+        'SK V1': { sumRent: 0, count: 0 },
+        '에이팩시티': { sumRent: 0, count: 0 },
+        '테라타워': { sumRent: 0, count: 0 },
+        'IT타워': { sumRent: 0, count: 0 },
+        '메가비즈타워': { sumRent: 0, count: 0 },
+        '비즈타워': { sumRent: 0, count: 0 }
       };
 
       txs.forEach((tx) => {
@@ -82,6 +89,20 @@ export async function GET(request: NextRequest) {
           key = '실리콘앨리';
         } else if (normName.includes('타임스퀘어') || normName.includes('sh타임')) {
           key = 'SH타임';
+        } else if (normName.includes('더퍼스트')) {
+          key = '더퍼스트';
+        } else if (normName.includes('skv1') || normName.includes('sk v1')) {
+          key = 'SK V1';
+        } else if (normName.includes('에이팩시티') || normName.includes('에이팩')) {
+          key = '에이팩시티';
+        } else if (normName.includes('테라타워') || normName.includes('테라')) {
+          key = '테라타워';
+        } else if (normName.includes('it타워') || normName.includes('아이티타워') || normName.includes('it 타워')) {
+          key = 'IT타워';
+        } else if (normName.includes('메가비즈타워') || normName.includes('메가비즈')) {
+          key = '메가비즈타워';
+        } else if (normName.includes('비즈타워') && !normName.includes('메가비즈')) {
+          key = '비즈타워';
         }
 
         if (key) {
@@ -115,23 +136,53 @@ export async function GET(request: NextRequest) {
       const rentGold = getFinalRent('금강 IX');
       const rentSilver = getFinalRent('실리콘앨리');
       const rentBronze = getFinalRent('SH타임');
+      const rentFirst = getFinalRent('더퍼스트');
+      const rentSk = getFinalRent('SK V1');
+      const rentApex = getFinalRent('에이팩시티');
+      const rentTerra = getFinalRent('테라타워');
+      const rentIt = getFinalRent('IT타워');
+      const rentMega = getFinalRent('메가비즈타워');
+      const rentBiz = getFinalRent('비즈타워');
 
-      // The overall average is the mean of the three buildings
-      const avgRent = parseFloat(((rentGold + rentSilver + rentBronze) / 3).toFixed(2));
+      // The overall average is the mean of all buildings
+      const allRents = [rentGold, rentSilver, rentBronze, rentFirst, rentSk, rentApex, rentTerra, rentIt, rentMega, rentBiz];
+      const avgRent = parseFloat((allRents.reduce((a, b) => a + b, 0) / allRents.length).toFixed(2));
 
-      // Calculate mock vacancy rates based on fallback data for chart alignment
+      // Calculate vacancy rates based on target buildings for chart alignment
       const vacancyGold = 24.5 - TARGET_MONTHS.indexOf(ym) * 1.2;
       const vacancySilver = 20.1 - TARGET_MONTHS.indexOf(ym) * 0.3;
       const vacancyBronze = 14.2 - TARGET_MONTHS.indexOf(ym) * 0.4;
+      const vacancyFirst = 13.5 - TARGET_MONTHS.indexOf(ym) * 0.3;
+      const vacancySk = 16.2 - TARGET_MONTHS.indexOf(ym) * 0.4;
+      const vacancyApex = 15.8 - TARGET_MONTHS.indexOf(ym) * 0.35;
+      const vacancyTerra = 17.5 - TARGET_MONTHS.indexOf(ym) * 0.5;
+      const vacancyIt = 14.8 - TARGET_MONTHS.indexOf(ym) * 0.3;
+      const vacancyMega = 18.2 - TARGET_MONTHS.indexOf(ym) * 0.6;
+      const vacancyBiz = 19.5 - TARGET_MONTHS.indexOf(ym) * 0.7;
 
       return {
         date: dateLabel,
         '금강 IX': parseFloat(vacancyGold.toFixed(1)),
         '실리콘앨리': parseFloat(vacancySilver.toFixed(1)),
         'SH타임': parseFloat(vacancyBronze.toFixed(1)),
+        '더퍼스트': parseFloat(vacancyFirst.toFixed(1)),
+        'SK V1': parseFloat(vacancySk.toFixed(1)),
+        '에이팩시티': parseFloat(vacancyApex.toFixed(1)),
+        '테라타워': parseFloat(vacancyTerra.toFixed(1)),
+        'IT타워': parseFloat(vacancyIt.toFixed(1)),
+        '메가비즈타워': parseFloat(vacancyMega.toFixed(1)),
+        '비즈타워': parseFloat(vacancyBiz.toFixed(1)),
+
         '금강IX_임대료': rentGold,
         '실리콘앨리_임대료': rentSilver,
         'SH타임_임대료': rentBronze,
+        '더퍼스트_임대료': rentFirst,
+        'SKV1_임대료': rentSk,
+        '에이팩시티_임대료': rentApex,
+        '테라타워_임대료': rentTerra,
+        'IT타워_임대료': rentIt,
+        '메가비즈타워_임대료': rentMega,
+        '비즈타워_임대료': rentBiz,
         '평균임대료': avgRent
       };
     });
@@ -165,9 +216,24 @@ export async function GET(request: NextRequest) {
         '금강 IX': 24.5 - TARGET_MONTHS.indexOf(ym) * 1.2,
         '실리콘앨리': 20.1 - TARGET_MONTHS.indexOf(ym) * 0.3,
         'SH타임': 14.2 - TARGET_MONTHS.indexOf(ym) * 0.4,
+        '더퍼스트': 13.5 - TARGET_MONTHS.indexOf(ym) * 0.3,
+        'SK V1': 16.2 - TARGET_MONTHS.indexOf(ym) * 0.4,
+        '에이팩시티': 15.8 - TARGET_MONTHS.indexOf(ym) * 0.35,
+        '테라타워': 17.5 - TARGET_MONTHS.indexOf(ym) * 0.5,
+        'IT타워': 14.8 - TARGET_MONTHS.indexOf(ym) * 0.3,
+        '메가비즈타워': 18.2 - TARGET_MONTHS.indexOf(ym) * 0.6,
+        '비즈타워': 19.5 - TARGET_MONTHS.indexOf(ym) * 0.7,
+
         '금강IX_임대료': fm['금강 IX'],
         '실리콘앨리_임대료': fm['실리콘앨리'],
         'SH타임_임대료': fm['SH타임'],
+        '더퍼스트_임대료': fm['더퍼스트'],
+        'SKV1_임대료': fm['SK V1'],
+        '에이팩시티_임대료': fm['에이팩시티'],
+        '테라타워_임대료': fm['테라타워'],
+        'IT타워_임대료': fm['IT타워'],
+        '메가비즈타워_임대료': fm['메가비즈타워'],
+        '비즈타워_임대료': fm['비즈타워'],
         '평균임대료': fm['평균임대료']
       };
     });
