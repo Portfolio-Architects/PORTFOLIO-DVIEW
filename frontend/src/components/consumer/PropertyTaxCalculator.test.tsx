@@ -75,7 +75,7 @@ describe('PropertyTaxCalculator', () => {
   });
 
   it('pre-fills owned houses to 2 and area to 85over based on quiz answers', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '12eok',
       family: 'middleHigh',
       transit: 'gtx',
@@ -102,7 +102,7 @@ describe('PropertyTaxCalculator', () => {
   });
 
   it('performs zero-click calculation when initialAptName and quiz answers are present', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '8eok',
       family: 'elementary',
       transit: 'gtx',

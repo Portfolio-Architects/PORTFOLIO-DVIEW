@@ -137,7 +137,7 @@ describe('AptCompareModal', () => {
 
   it('calculates AI Fit Scorecard and renders Winner Badge based on quiz answers', async () => {
     // Set quiz preferences where transit is gtx, family is elementary, lifestyle is nature
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '12eok',
       family: 'elementary',
       transit: 'gtx',

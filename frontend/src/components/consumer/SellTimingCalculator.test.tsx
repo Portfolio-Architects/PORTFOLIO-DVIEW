@@ -141,7 +141,7 @@ describe('SellTimingCalculator Component', () => {
   });
 
   it('pre-fills states based on quiz answers (e.g. investmentStyle=residence)', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '12eok',
       family: 'middleHigh',
       transit: 'gtx',
@@ -166,7 +166,7 @@ describe('SellTimingCalculator Component', () => {
   });
 
   it('triggers auto diagnosis and displays result details', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '12eok',
       family: 'middleHigh',
       transit: 'gtx',

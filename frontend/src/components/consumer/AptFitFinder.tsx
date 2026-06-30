@@ -261,8 +261,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
     if (typeof window === 'undefined') return;
     if (step === 9) {
       try {
-        localCache.set('dview_quiz_answers', answers, 604800); // 7 days TTL
-        window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+        localCache.set('drive_quiz_answers', answers, 604800); // 7 days TTL
+        window.dispatchEvent(new Event('drive_quiz_answers_changed'));
       } catch (e) {
         logger.warn('AptFitFinder', 'LocalStorage save error (quiz answers)', undefined, e);
       }
@@ -295,8 +295,8 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
   const handleReset = () => {
     try {
-      localCache.remove('dview_quiz_answers');
-      window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+      localCache.remove('drive_quiz_answers');
+      window.dispatchEvent(new Event('drive_quiz_answers_changed'));
     } catch (e) {
       logger.warn('AptFitFinder', 'LocalStorage remove error (quiz answers)', undefined, e);
     }

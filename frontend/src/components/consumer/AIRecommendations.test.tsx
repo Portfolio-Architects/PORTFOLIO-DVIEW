@@ -96,7 +96,7 @@ describe('AIRecommendations', () => {
 
   it('renders quiz-based recommendations when quiz answers exist but history is empty', () => {
     // Set mock quiz answers in localStorage (Budget: 5억대)
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '5eok',
       family: 'elementary',
       transit: 'tram',
@@ -156,7 +156,7 @@ describe('AIRecommendations', () => {
   it('renders hybrid recommendations when both viewed history and quiz exist', () => {
     // Set both
     mockLocalStorageStore['dview_viewed_apts'] = JSON.stringify(['동탄역더샵센트럴시티']);
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '8eok',
       family: 'elementary',
       transit: 'gtx',
@@ -184,7 +184,7 @@ describe('AIRecommendations', () => {
     expect(screen.getByText('최근 조회 이력과 라이프스타일 퀴즈 결과를 종합 분석한 단지입니다')).toBeInTheDocument();
   });
 
-  it('updates state dynamically on dview_quiz_answers_changed window event', () => {
+  it('updates state dynamically on drive_quiz_answers_changed window event', () => {
     render(
       <AIRecommendations
         sheetApartments={mockSheetApartments as any}
@@ -203,7 +203,7 @@ describe('AIRecommendations', () => {
 
     // Programmatically simulate quiz complete by setting localStorage and dispatching event
     act(() => {
-      mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+      mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
         budget: '5eok',
         family: 'elementary',
         transit: 'tram',
@@ -212,7 +212,7 @@ describe('AIRecommendations', () => {
         yearBuilt: 'middle',
         investmentStyle: 'gap',
       });
-      window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+      window.dispatchEvent(new Event('drive_quiz_answers_changed'));
     });
 
     // Rerender and expect state update
@@ -221,7 +221,7 @@ describe('AIRecommendations', () => {
 
   it('penalizes high-risk jeonse complexes when user selects gap investment style', () => {
     // Set quiz answers in localStorage with gap investment style
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '8eok',
       family: 'elementary',
       transit: 'gtx',

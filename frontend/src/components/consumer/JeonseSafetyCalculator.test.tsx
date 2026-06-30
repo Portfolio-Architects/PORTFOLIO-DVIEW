@@ -76,7 +76,7 @@ describe('JeonseSafetyCalculator', () => {
 
   it('renders budget warning badge when jeonse amount exceeds quiz budget limit', () => {
     // 5eok matches 63000 (6.3억)
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '5eok',
       family: 'elementary',
       transit: 'gtx',
@@ -101,7 +101,7 @@ describe('JeonseSafetyCalculator', () => {
 
   it('renders budget integration success badge when jeonse amount is within budget limit', () => {
     // 8eok matches 93000 (9.3억)
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '8eok',
       family: 'elementary',
       transit: 'gtx',
@@ -125,7 +125,7 @@ describe('JeonseSafetyCalculator', () => {
   });
 
   it('triggers zero-click simulation when initialAptName and quiz answers exist', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '8eok',
       family: 'elementary',
       transit: 'gtx',

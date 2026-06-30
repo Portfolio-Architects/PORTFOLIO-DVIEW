@@ -55,7 +55,7 @@ export function useDashboardData() {
 
     const loadCachedData = () => {
       const apts = localCache.get('dview_viewed_apts', ViewedAptsSchema, []);
-      const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+      const answers = localCache.get('drive_quiz_answers', QuizAnswerSchema, null);
       setViewedApts(apts);
       setQuizAnswers(answers);
     };
@@ -63,10 +63,10 @@ export function useDashboardData() {
     loadCachedData();
 
     window.addEventListener('dview_viewed_apts_changed', loadCachedData);
-    window.addEventListener('dview_quiz_answers_changed', loadCachedData);
+    window.addEventListener('drive_quiz_answers_changed', loadCachedData);
     return () => {
       window.removeEventListener('dview_viewed_apts_changed', loadCachedData);
-      window.removeEventListener('dview_quiz_answers_changed', loadCachedData);
+      window.removeEventListener('drive_quiz_answers_changed', loadCachedData);
     };
   }, []);
 

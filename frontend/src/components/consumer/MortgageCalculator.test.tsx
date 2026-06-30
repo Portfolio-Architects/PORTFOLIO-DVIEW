@@ -78,7 +78,7 @@ describe('MortgageCalculator', () => {
   });
 
   it('pre-fills household, income, and assets based on quiz answers', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '8eok',
       family: 'baby',
       transit: 'gtx',
@@ -115,7 +115,7 @@ describe('MortgageCalculator', () => {
   });
 
   it('allows skipping straight to results with one-click diagnosis button', () => {
-    mockLocalStorageStore['dview_quiz_answers'] = JSON.stringify({
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
       budget: '5eok',
       family: 'baby',
       transit: 'gtx',

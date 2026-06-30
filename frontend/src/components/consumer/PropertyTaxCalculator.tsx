@@ -156,7 +156,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   useEffect(() => {
     if (isOpen) {
       try {
-        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        const answers = localCache.get('drive_quiz_answers', QuizAnswerSchema, null);
         if (answers) {
           setHasQuizAnswers(true);
           
