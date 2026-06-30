@@ -127,12 +127,12 @@ export const checkKakaoSdkAndFallback = async (
     }
 
     // 이쁘게 정렬된 클립보드 텍스트 구성
-    let text = `📢 [DVIEW] ${title}\n`;
+    let text = `📢 [DRIVE] ${title}\n`;
     if (description) {
       text += `👉 ${description}\n\n`;
     }
     text += `🔗 링크 바로가기: ${shareUrl}\n\n`;
-    text += `#DVIEW #동탄부동산`;
+    text += `#DRIVE #동탄부동산`;
     
     const copied = await copyTextToClipboardDirect(text);
     if (copied) {
@@ -1122,7 +1122,7 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
     ? ` (📉 최고가 대비 -${dropPriceEok.toFixed(1)}억 하락!)`
     : '';
 
-  let text = `📢 [DVIEW] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약 📊\n`;
+  let text = `📢 [DRIVE] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약 📊\n`;
   text += `🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"\n`;
   text += `👉 안심하고 거주할 수 있는 환경일까요? 주거 안심 가치분석 결과:\n\n`;
   text += `💸 최근 실거래가: ${priceStr}${dropStr}\n`;
@@ -1136,7 +1136,7 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
   text += `👀 적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!\n`;
   text += `💡 실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.\n`;
   text += `👉 ${shareUrl}\n\n`;
-  text += `#DVIEW #동탄부동산 #가치분석 #아파트실거래 #학세권 #동탄맘 #신혼부부`;
+  text += `#DRIVE #동탄부동산 #가치분석 #아파트실거래 #학세권 #동탄맘 #신혼부부`;
 
   try {
     if (navigator.clipboard && window.isSecureContext) {

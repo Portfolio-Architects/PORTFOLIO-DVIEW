@@ -17,7 +17,7 @@ describe('localCache Utility', () => {
   });
 
   it('should set and get values without schema and TTL successfully', () => {
-    const data = { name: 'DVIEW', version: 2.0 };
+    const data = { name: 'DRIVE', version: 2.0 };
     localCache.set(TEST_KEY, data);
 
     const result = localCache.get(TEST_KEY, undefined, null);

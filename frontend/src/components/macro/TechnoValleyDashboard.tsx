@@ -273,7 +273,7 @@ export default function TechnoValleyDashboard() {
       <div className="lg:col-span-6 flex flex-col gap-6">
         
         {/* Donut Chart Card */}
-        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-[390px] shrink-0">
+        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[420px] shrink-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
@@ -288,16 +288,16 @@ export default function TechnoValleyDashboard() {
 
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 flex-1 min-h-[280px]">
             {/* Donut Chart Container */}
-            <div className="w-full sm:w-1/2 h-[250px] sm:h-[280px] relative flex items-center justify-center">
+            <div className="w-[200px] h-[200px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
               {mounted ? (
-                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={84}
-                      outerRadius={114}
+                      innerRadius="65%"
+                      outerRadius="90%"
                       paddingAngle={3}
                       dataKey="value"
                     >
@@ -305,13 +305,13 @@ export default function TechnoValleyDashboard() {
                         const isSelected = activeCategory === entry.name;
                         return (
                           <Cell 
-                            key={`cell-${index}`} 
-                            fill={entry.color} 
-                            stroke={isSelected ? '#ffffff' : 'none'}
-                            strokeWidth={isSelected ? 3 : 0}
-                            opacity={activeCategory === null || isSelected ? 1 : 0.6}
-                            style={{ outline: 'none', cursor: 'pointer' }}
-                            onClick={() => setActiveCategory(isSelected ? null : entry.name)}
+                             key={`cell-${index}`} 
+                             fill={entry.color} 
+                             stroke={isSelected ? '#ffffff' : 'none'}
+                             strokeWidth={isSelected ? 3 : 0}
+                             opacity={activeCategory === null || isSelected ? 1 : 0.6}
+                             style={{ outline: 'none', cursor: 'pointer' }}
+                             onClick={() => setActiveCategory(isSelected ? null : entry.name)}
                           />
                         );
                       })}
@@ -319,7 +319,7 @@ export default function TechnoValleyDashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="w-[168px] h-[168px] sm:w-[228px] sm:h-[228px] rounded-full border-[30px] border-border/10 animate-pulse" />
+                <div className="w-[140px] h-[140px] sm:w-[200px] sm:h-[200px] rounded-full border-[24px] border-border/10 animate-pulse" />
               )}
               
               {/* Center text */}
@@ -653,7 +653,7 @@ export default function TechnoValleyDashboard() {
         {/* Line Chart Area */}
         <div className="flex-1 w-full h-[320px] relative flex items-end">
           {mounted ? (
-            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis 
@@ -960,7 +960,7 @@ export default function TechnoValleyDashboard() {
             
             <div className="flex flex-col gap-4 text-[13.5px] text-secondary leading-relaxed font-semibold">
               <p className="leading-relaxed font-medium">
-                DVIEW의 공실률은 실시간 파악이 어려운 오피스 빌딩 특성을 고려해 
+                DRIVE의 공실률은 실시간 파악이 어려운 오피스 빌딩 특성을 고려해 
                 공공 데이터를 기반으로 유기적 예측을 수행하는 <strong>하이브리드 AI 추정 모델</strong>을 사용합니다.
               </p>
               

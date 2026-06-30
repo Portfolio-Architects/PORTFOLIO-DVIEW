@@ -114,7 +114,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
                   <strong className="text-primary text-[14px] sm:text-[16px] whitespace-nowrap">
                     {subtitleStrong}
                   </strong>
-                  <div className="text-tertiary font-normal text-[13px] sm:text-[14.5px] leading-snug break-keep flex items-center flex-wrap gap-1 sm:gap-0 mt-0.5 sm:mt-0">
+                  <div className="text-tertiary font-normal text-[13px] sm:text-[14.5px] leading-snug truncate block w-full max-w-[70vw] sm:max-w-none sm:inline-block mt-0.5 sm:mt-0">
                     {typeof subtitleLight === 'string' ? (
                       <>
                         <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
     const isDev = process.env.NODE_ENV === 'development';
-    const cookieName = isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session';
+    const cookieName = isDev ? 'DRIVE-Session' : '__Secure-DRIVE-Session';
     
     // Cookie Options: HttpOnly, Secure, SameSite=Lax
     const secureFlag = isDev ? '' : '; Secure';
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE() {
   const isDev = process.env.NODE_ENV === 'development';
-  const cookieName = isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session';
+  const cookieName = isDev ? 'DRIVE-Session' : '__Secure-DRIVE-Session';
   const secureFlag = isDev ? '' : '; Secure';
   // Include Max-Age=0 and Expires in the past (1970) for absolute invalidation across all user agents
   const cookieHeader = `${cookieName}=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; SameSite=Lax; HttpOnly${secureFlag}`;

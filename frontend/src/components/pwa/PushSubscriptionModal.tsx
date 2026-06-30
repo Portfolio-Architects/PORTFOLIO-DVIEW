@@ -163,7 +163,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
             <div className="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center gap-2 mb-3 bg-[#fff3e0] dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12px] font-extrabold text-[#c44d00] dark:text-[#ea6100] border border-[#ea6100]/15 w-fit">
               <Sparkles size={13} className="text-emerald-500" />
-              <span>DVIEW 실시간 알림 서비스</span>
+              <span>DRIVE 실시간 알림 서비스</span>
             </div>
             
             <ul className="space-y-3 text-[13px] text-secondary font-bold z-10 relative">
@@ -192,7 +192,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
               </p>
               <div className="mt-3 pt-2.5 border-t border-rose-200/20 dark:border-rose-800/30 text-[11px] text-tertiary font-bold space-y-1">
                 <p>• <strong>안드로이드/Chrome</strong>: 주소창 왼쪽 설정(조절기) 아이콘 클릭 ➔ 권한 ➔ 알림 허용</p>
-                <p>• <strong>아이폰/Safari</strong>: 설정 ➔ 알림 ➔ DVIEW(또는 추가된 홈앱) ➔ 알림 허용</p>
+                <p>• <strong>아이폰/Safari</strong>: 설정 ➔ 알림 ➔ DRIVE(또는 추가된 홈앱) ➔ 알림 허용</p>
               </div>
             </div>
           ) : errorState === 'failed' ? (

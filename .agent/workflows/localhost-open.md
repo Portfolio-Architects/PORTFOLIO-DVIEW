@@ -15,4 +15,4 @@ description: 로컬 개발 서버 실행 및 AGENT.md, 엔지니어링 리포트
    ```
 
 2. **에이전트 가이드(AGENT.md) 오픈**:
-   - `AGENT.md`와 `PORTFOLIO DVIEW - Engineering Report.md`를 아티팩트 디렉토리에 파일로 생성하여, 아티팩트 사이드바(Artifact Sidebar) 탭으로 노출합니다.
+   - `AGENT.md`와 `PORTFOLIO DRIVE - Engineering Report.md`를 아티팩트 디렉토리에 파일로 생성하여, 아티팩트 사이드바(Artifact Sidebar) 탭으로 노출합니다.

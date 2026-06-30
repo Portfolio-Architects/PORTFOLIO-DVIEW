@@ -167,7 +167,7 @@ function saveHistory(history) {
 
 // 4. Run Verification (Audit)
 function runAudit() {
-  log(colors.cyan, '🔄 Running DVIEW Audit Pipeline (npm run audit)...');
+  log(colors.cyan, '🔄 Running DRIVE Audit Pipeline (npm run audit)...');
   try {
     execSync('npm run audit', { 
       cwd: path.join(PROJECT_ROOT, 'frontend'), 
@@ -183,7 +183,7 @@ function runAudit() {
 // 5. Main Execution
 async function main() {
   log(colors.magenta, '\n==================================================');
-  log(colors.magenta, '🤖 DVIEW Auto Self-Improvement Runner Starting');
+  log(colors.magenta, '🤖 DRIVE Auto Self-Improvement Runner Starting');
   log(colors.magenta, '==================================================\n');
 
   // Cool-down delay to allow Next.js dev server HMR/Fast Refresh to settle after code changes

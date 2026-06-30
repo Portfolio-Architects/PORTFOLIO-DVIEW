@@ -8,10 +8,10 @@ export const PdfExportParamsSchema = z.object({
   filename: z.string()
     .min(1, 'filename must be a non-empty string')
     .regex(/\.pdf$/i, 'filename must end with .pdf extension')
-    .catch('DVIEW_Report.pdf'),
+    .catch('DRIVE_Report.pdf'),
 });
 
-export async function exportToPDF(elementId: string, filename: string = 'DVIEW_Report.pdf') {
+export async function exportToPDF(elementId: string, filename: string = 'DRIVE_Report.pdf') {
   // 1. Validate parameters using Zod schema
   const validation = PdfExportParamsSchema.safeParse({ elementId, filename });
   if (!validation.success) {

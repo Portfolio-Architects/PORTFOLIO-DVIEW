@@ -10,9 +10,9 @@ export async function getEngineeringReport() {
   const reportMetadata = { date: '', grade: '', branch: '', status: '' };
   
   try {
-    let filePath = path.join(process.cwd(), '..', 'PORTFOLIO DVIEW - Engineering Report.md');
+    let filePath = path.join(process.cwd(), '..', 'PORTFOLIO DRIVE - Engineering Report.md');
     if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), 'PORTFOLIO DVIEW - Engineering Report.md');
+      filePath = path.join(process.cwd(), 'PORTFOLIO DRIVE - Engineering Report.md');
     }
     if (!fs.existsSync(filePath)) {
       filePath = path.join(process.cwd(), 'src', 'data', 'engineering-report.md');
@@ -32,7 +32,7 @@ export async function getEngineeringReport() {
           if (part.includes('**Branch**:')) reportMetadata.branch = part.replace('**Branch**:', '').trim();
           if (part.includes('**Status**:')) reportMetadata.status = part.replace('**Status**:', '').trim();
         });
-      } else if (line.trim().startsWith('# 📋 PORTFOLIO DVIEW')) {
+      } else if (line.trim().startsWith('# 📋 PORTFOLIO DRIVE')) {
         continue;
       } else {
         contentLines.push(line);

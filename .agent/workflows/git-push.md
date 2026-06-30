@@ -9,7 +9,7 @@ description: DTDLS 프로젝트 코드 변경 후 Git 커밋 & 푸시
 ## Step 1. 문서화 및 정합성 검토 (필수)
 
 1. **엔지니어링 리포트 기록**:
-   - `PORTFOLIO DVIEW - Engineering Report.md` 파일의 **11. Maintenance Policy** 섹션(패치노트) 맨 위에 현재 세션의 패치 및 업데이트 내역을 구체적으로 기록합니다.
+   - `PORTFOLIO DRIVE - Engineering Report.md` 파일의 **11. Maintenance Policy** 섹션(패치노트) 맨 위에 현재 세션의 패치 및 업데이트 내역을 구체적으로 기록합니다.
    
 2. **AGENT.md 검토 및 정합성 검증**:
    - 리포트 수정 내역과 연계하여 `AGENT.md` 파일도 업데이트가 필요한지 검증하고 필요 시 즉시 반영합니다.

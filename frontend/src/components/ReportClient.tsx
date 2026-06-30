@@ -44,7 +44,7 @@ const ReportClient = React.memo(function ReportClient() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('DVIEW_Engineering_Report.pdf');
+      pdf.save('DRIVE_Engineering_Report.pdf');
     } catch (err) {
       logger.error('ReportClient.handleExportPDF', 'PDF Export failed', undefined, err);
       alert('PDF 변환에 실패했습니다.');
