@@ -133,7 +133,10 @@ async function main() {
   const now = new Date();
   const monthsToSync = new Set();
 
-  monthsToSync.add('202606');
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
 
   console.log(`   동기화 대상: ${Array.from(monthsToSync).sort().join(', ')}`);
 

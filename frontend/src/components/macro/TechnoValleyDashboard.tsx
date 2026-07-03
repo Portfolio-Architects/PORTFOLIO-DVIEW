@@ -78,9 +78,9 @@ const TREND_DATA = [
 ];
 
 const AVAILABLE_BUILDINGS = [
-  { id: '금강 IX', name: '금강 IX타워', color: '#dc6e2d', rentKey: '금강IX_임대료' },
-  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#f97316', rentKey: '실리콘앨리_임대료' },
-  { id: 'SH타임', name: 'SH타임스퀘어', color: '#ffb076', rentKey: 'SH타임_임대료' },
+  { id: '금강 IX', name: '금강 IX타워', color: '#ea580c', rentKey: '금강IX_임대료' },
+  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#2563eb', rentKey: '실리콘앨리_임대료' },
+  { id: 'SH타임', name: 'SH타임스퀘어', color: '#0d9488', rentKey: 'SH타임_임대료' },
   { id: '더퍼스트', name: '더퍼스트타워', color: '#a855f7', rentKey: '더퍼스트_임대료' },
   { id: 'SK V1', name: '동탄 SK V1', color: '#ec4899', rentKey: 'SKV1_임대료' },
   { id: '에이팩시티', name: '동탄 에이팩시티', color: '#10b981', rentKey: '에이팩시티_임대료' },
@@ -97,12 +97,13 @@ export default function TechnoValleyDashboard() {
   }, []);
 
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
-  const [timeframe, setTimeframe] = useState<'YTD' | '1Y' | '3Y' | '5Y' | 'ALL'>('ALL');
+  const [timeframe, setTimeframe] = useState<'3M' | '6M' | 'YTD' | '1Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   
-  const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', 'SH타임']);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1']);
+  const REPRESENTATIVE_BUILDINGS = ['금강 IX', '실리콘앨리', 'SH타임'];
 
   // Accordion portfolio states
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
@@ -261,10 +262,63 @@ export default function TechnoValleyDashboard() {
   // Lines are automatically displayed based on selectedBuildings dropdown comparison list.
 
   const filteredTrendData = useMemo(() => {
+    if (timeframe === '3M') return trendData.slice(-2);
+    if (timeframe === '6M') return trendData.slice(-3);
     if (timeframe === 'YTD') return trendData.slice(-2);
-    if (timeframe === '1Y') return trendData.slice(-4);
+    if (timeframe === '1Y') return trendData.slice(-5);
     return trendData;
   }, [trendData, timeframe]);
+
+  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'vacancy' | 'rent' | 'change'; direction: 'asc' | 'desc' }>({ key: 'vacancy', direction: 'asc' });
+
+  const sortedBuildings = useMemo(() => {
+    const list = [...AVAILABLE_BUILDINGS];
+    list.sort((a, b) => {
+      let aVal: any = 0;
+      let bVal: any = 0;
+
+      if (sortConfig.key === 'name') {
+        aVal = a.name;
+        bVal = b.name;
+      } else if (sortConfig.key === 'vacancy') {
+        aVal = latestTrend?.[a.id] || 0;
+        bVal = latestTrend?.[b.id] || 0;
+      } else if (sortConfig.key === 'rent') {
+        aVal = latestTrend?.[a.rentKey] || 0;
+        bVal = latestTrend?.[b.rentKey] || 0;
+      } else if (sortConfig.key === 'change') {
+        const aFirst = trendData[0]?.[a.id] || 0;
+        const aLatest = latestTrend?.[a.id] || 0;
+        aVal = Math.abs(aLatest - aFirst);
+
+        const bFirst = trendData[0]?.[b.id] || 0;
+        const bLatest = latestTrend?.[b.id] || 0;
+        bVal = Math.abs(bLatest - bFirst);
+      }
+
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [latestTrend, trendData, sortConfig]);
+
+  const vacancyRankMap = useMemo(() => {
+    const sorted = [...AVAILABLE_BUILDINGS].sort((a, b) => {
+      const aVal = latestTrend?.[a.id] || 0;
+      const bVal = latestTrend?.[b.id] || 0;
+      return aVal - bVal;
+    });
+    return new Map(sorted.map((b, index) => [b.id, index + 1]));
+  }, [latestTrend]);
+
+  const handleSort = (key: 'name' | 'vacancy' | 'rent' | 'change') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
@@ -517,110 +571,33 @@ export default function TechnoValleyDashboard() {
       <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[570px]">
         
         {/* Chart Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-5 pb-4 border-b border-border/40">
+          {/* Left Panel: Title & Unit Inline */}
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <h3 className="text-[14.5px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ea580c] shrink-0" />
               <span>{metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}</span>
               {metricMode === 'vacancy' && (
                 <button 
                   onClick={() => setShowHelpModal(true)}
-                  className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer animate-pulse"
+                  className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer animate-pulse shrink-0"
                   title="AI 추정 메커니즘 도움말"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                 </button>
               )}
             </h3>
-            <span className="text-[11px] text-tertiary font-bold">
-              {metricMode === 'rent' ? '(단위: 만원/평)' : '(단위: %)'}
-            </span>
           </div>
 
-          {/* Mode toggle & Timeframe & Dropdown */}
-          <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
-            {/* Custom Building Selector Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="px-2.5 py-1.5 rounded-lg border border-border/80 bg-body/80 text-[10.5px] font-extrabold flex items-center gap-1 cursor-pointer transition-all hover:bg-neutral-100 dark:hover:bg-zinc-800 text-secondary"
-              >
-                <span>단지 비교 ({selectedBuildings.length}개)</span>
-                <ChevronDown className="w-3 h-3 text-tertiary" />
-              </button>
-              
-              {showDropdown && (
-                <div className="absolute right-0 top-full mt-2 bg-surface border border-border/80 rounded-2xl shadow-xl p-3 z-30 min-w-[200px] flex flex-col gap-1.5">
-                  <div className="text-[10px] text-tertiary font-bold px-1 border-b border-border/40 pb-1.5 mb-1 flex justify-between items-center">
-                    <span>비교 대상 지식산업센터</span>
-                    <button 
-                      onClick={() => setSelectedBuildings(['금강 IX', '실리콘앨리', 'SH타임'])}
-                      className="text-[9px] text-[#ea580c] hover:underline cursor-pointer"
-                    >
-                      초기화
-                    </button>
-                  </div>
-                  <div className="max-h-[220px] overflow-y-auto flex flex-col gap-1 pr-1 scrollbar-thin">
-                    {AVAILABLE_BUILDINGS.map(b => {
-                      const isChecked = selectedBuildings.includes(b.id);
-                      return (
-                        <label 
-                          key={b.id} 
-                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-body cursor-pointer transition-all select-none text-[11px] font-bold text-secondary"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {
-                              if (isChecked) {
-                                if (selectedBuildings.length > 1) {
-                                  setSelectedBuildings(selectedBuildings.filter(id => id !== b.id));
-                                }
-                              } else {
-                                setSelectedBuildings([...selectedBuildings, b.id]);
-                              }
-                            }}
-                            className="w-3.5 h-3.5 rounded text-hs-orange focus:ring-hs-orange border-border/80"
-                          />
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: b.color }} />
-                          <span>{b.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
+          {/* Right Panel: Sleek unified control bar */}
+          <div className="flex flex-wrap items-center gap-2.5 self-stretch xl:self-auto justify-start xl:justify-end">
+            {/* Timeframe selector */}
             <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
-              <button
-                onClick={() => setMetricMode('vacancy')}
-                className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
-                  metricMode === 'vacancy' 
-                    ? 'bg-surface text-primary shadow-sm' 
-                    : 'text-tertiary hover:text-secondary'
-                }`}
-              >
-                공실률 (개발 중)
-              </button>
-              <button
-                onClick={() => setMetricMode('rent')}
-                className={`px-2.5 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
-                  metricMode === 'rent' 
-                    ? 'bg-surface text-primary shadow-sm' 
-                    : 'text-tertiary hover:text-secondary'
-                }`}
-              >
-                임대료 (평당)
-              </button>
-            </div>
-
-            <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
-              {(['YTD', '1Y', 'ALL'] as const).map(tf => (
+              {(['3M', '6M', 'YTD', '1Y', 'ALL'] as const).map(tf => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-2 py-1 text-[10.5px] font-extrabold rounded-md transition-all ${
+                  className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
                     timeframe === tf 
                       ? 'bg-surface text-primary shadow-sm' 
                       : 'text-tertiary hover:text-secondary'
@@ -630,12 +607,45 @@ export default function TechnoValleyDashboard() {
                 </button>
               ))}
             </div>
+
+            {/* Metric Mode Selector */}
+            <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
+              <button
+                onClick={() => setMetricMode('vacancy')}
+                className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                  metricMode === 'vacancy' 
+                    ? 'bg-surface text-primary shadow-sm' 
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                공실률
+              </button>
+              <button
+                onClick={() => setMetricMode('rent')}
+                className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                  metricMode === 'rent' 
+                    ? 'bg-surface text-primary shadow-sm' 
+                    : 'text-tertiary hover:text-secondary'
+                }`}
+              >
+                임대료
+              </button>
+            </div>
+
+            {/* Detailed Modal Trigger Button */}
+            <button
+              onClick={() => setShowDetailModal(true)}
+              className="h-[26px] px-2.5 rounded-lg border border-[#ea580c]/30 hover:border-[#ea580c]/50 bg-[#ea580c]/5 hover:bg-[#ea580c]/10 text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all text-[#ea580c] shadow-sm active:scale-[0.98] shrink-0"
+            >
+              <span>모두보기</span>
+              <ChevronRight className="w-3 h-3" />
+            </button>
           </div>
         </div>
 
         {/* Legend Indicators */}
         <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4 border-b border-border/40 pb-3">
-          {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+          {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
             <div key={b.id} className="flex items-center gap-1.5 text-[11px] font-extrabold text-secondary py-1">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
               <span>{b.name}</span>
@@ -651,10 +661,10 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* Line Chart Area */}
-        <div className="flex-1 w-full h-[320px] relative flex items-end">
+        <div className="flex-1 w-full relative min-h-[340px]">
           {mounted ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="date" 
@@ -665,7 +675,7 @@ export default function TechnoValleyDashboard() {
                 <YAxis 
                   tickLine={false} 
                   axisLine={false} 
-                  domain={metricMode === 'vacancy' ? [10, 26] : [3.0, 4.0]}
+                  domain={metricMode === 'vacancy' ? [10, 26] : [3.2, 3.9]}
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }}
                   unit={metricMode === 'vacancy' ? '%' : '만'}
                 />
@@ -681,7 +691,7 @@ export default function TechnoValleyDashboard() {
                 />
                 {metricMode === 'vacancy' ? (
                   <>
-                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+                    {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
                       <Line 
                         key={b.id}
                         type="monotone" 
@@ -696,7 +706,7 @@ export default function TechnoValleyDashboard() {
                   </>
                 ) : (
                   <>
-                    {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+                    {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
                       <Line 
                         key={b.id}
                         type="monotone" 
@@ -995,6 +1005,259 @@ export default function TechnoValleyDashboard() {
             >
               닫기
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 전체 단지 상세 비교 모달 */}
+      {showDetailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300">
+          <div className="bg-surface border border-border/80 rounded-[32px] shadow-2xl p-6 md:p-8 max-w-5xl w-full h-[90vh] md:h-[80vh] flex flex-col relative animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex justify-between items-start pb-4 border-b border-border/60 mb-5 shrink-0">
+              <div className="flex flex-col gap-1">
+                <h4 className="text-[17px] font-black text-primary flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-hs-orange" />
+                  동탄테크노밸리 지식산업센터 전체 분석 (10개 단지)
+                </h4>
+                <p className="text-[11px] text-tertiary font-bold">
+                  국가건물에너지사용량 API 추정 공실률 및 국토교통부 실거래 기반 임대료 비교
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-1.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 pr-1 scrollbar-thin">
+              {/* Left Column: Modal Chart (lg:col-span-7) */}
+              <div className="lg:col-span-7 flex flex-col gap-4">
+                <div className="flex justify-between items-center bg-body/80 p-3 rounded-2xl border border-border/40">
+                  {/* Metric Toggle */}
+                  <div className="flex bg-surface p-0.5 border border-border/20 rounded-lg shadow-inner">
+                    <button
+                      onClick={() => setMetricMode('vacancy')}
+                      className={`px-2.5 py-1 text-[10px] font-extrabold rounded-md transition-all ${
+                        metricMode === 'vacancy' 
+                          ? 'bg-primary text-surface shadow-sm' 
+                          : 'text-tertiary hover:text-secondary'
+                      }`}
+                    >
+                      공실률
+                    </button>
+                    <button
+                      onClick={() => setMetricMode('rent')}
+                      className={`px-2.5 py-1 text-[10px] font-extrabold rounded-md transition-all ${
+                        metricMode === 'rent' 
+                          ? 'bg-primary text-surface shadow-sm' 
+                          : 'text-tertiary hover:text-secondary'
+                      }`}
+                    >
+                      임대료
+                    </button>
+                  </div>
+
+                  {/* Timeframe Toggle */}
+                  <div className="flex bg-surface p-0.5 border border-border/20 rounded-lg shadow-inner">
+                    {(['3M', '6M', 'YTD', '1Y', 'ALL'] as const).map(tf => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all ${
+                          timeframe === tf 
+                            ? 'bg-primary text-surface shadow-sm' 
+                            : 'text-tertiary hover:text-secondary'
+                        }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Modal Line Chart */}
+                <div className="w-full h-[250px] relative flex items-end">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="date" 
+                        tickLine={false} 
+                        axisLine={false} 
+                        tick={{ fontSize: 9.5, fontWeight: 700, fill: '#6b7280' }} 
+                      />
+                      <YAxis 
+                        tickLine={false} 
+                        axisLine={false} 
+                        domain={metricMode === 'vacancy' ? [10, 26] : [3.0, 3.9]}
+                        tick={{ fontSize: 9.5, fontWeight: 700, fill: '#6b7280' }}
+                        unit={metricMode === 'vacancy' ? '%' : '만'}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#ffffff', 
+                          borderColor: '#e5e8eb', 
+                          borderRadius: '12px', 
+                          fontSize: '10px',
+                          fontWeight: 700
+                        }}
+                      />
+                      {metricMode === 'vacancy' ? (
+                        <>
+                          {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+                            <Line 
+                              key={b.id}
+                              type="monotone" 
+                              dataKey={b.id} 
+                              name={b.name}
+                              stroke={b.color} 
+                              strokeWidth={2.5} 
+                              dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
+                              activeDot={{ r: 5 }} 
+                            />
+                          ))}
+                        </>
+                      ) : (
+                        <>
+                          {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
+                            <Line 
+                              key={b.id}
+                              type="monotone" 
+                              dataKey={b.rentKey} 
+                              name={b.name}
+                              stroke={b.color} 
+                              strokeWidth={2.5} 
+                              dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
+                              activeDot={{ r: 5 }} 
+                            />
+                          ))}
+                          <Line 
+                            type="monotone" 
+                            dataKey="평균임대료" 
+                            name="평균 임대료"
+                            stroke="#737373" 
+                            strokeWidth={2} 
+                            strokeDasharray="4 4"
+                            dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
+                            activeDot={{ r: 4 }} 
+                          />
+                        </>
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Building Checkboxes */}
+                <div className="flex flex-wrap gap-2 p-3 bg-body/80 border border-border/40 rounded-2xl">
+                  {AVAILABLE_BUILDINGS.map(b => {
+                    const isChecked = selectedBuildings.includes(b.id);
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => {
+                          if (isChecked) {
+                            if (selectedBuildings.length > 1) {
+                              setSelectedBuildings(selectedBuildings.filter(id => id !== b.id));
+                            }
+                          } else {
+                            setSelectedBuildings([...selectedBuildings, b.id]);
+                          }
+                        }}
+                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-extrabold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isChecked 
+                            ? 'bg-surface text-primary border-primary shadow-sm' 
+                            : 'bg-transparent text-tertiary border-border/60 hover:border-border'
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
+                        <span>{b.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Column: Building Table (lg:col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                <div className="overflow-x-auto border border-border/60 rounded-2xl bg-body/50">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-body border-b border-border/60 text-[10px] font-black text-tertiary select-none">
+                        <th className="py-2.5 px-3 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
+                          단지명 <span className={sortConfig.key === 'name' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                        </th>
+                        <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('vacancy')}>
+                          공실률 <span className={sortConfig.key === 'vacancy' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'vacancy' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                        </th>
+                        <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('rent')}>
+                          임대료 <span className={sortConfig.key === 'rent' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'rent' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                        </th>
+                        <th className="py-2.5 px-3 text-center cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('change')}>
+                          개선폭 <span className={sortConfig.key === 'change' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'change' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40 text-[11px] font-bold text-secondary">
+                      {sortedBuildings.map(b => {
+                        const firstVal = trendData[0]?.[b.id] || 0;
+                        const latestVal = latestTrend?.[b.id] || 0;
+                        const latestRent = latestTrend?.[b.rentKey] || 0;
+                        const change = latestVal - firstVal;
+                        const rank = vacancyRankMap.get(b.id) || 10;
+                        
+                        let rankBadge = '';
+                        if (rank === 1) rankBadge = '🥇';
+                        else if (rank === 2) rankBadge = '🥈';
+                        else if (rank === 3) rankBadge = '🥉';
+                        else rankBadge = `${rank}`;
+
+                        let vacancyColor = '';
+                        if (latestVal < 15) vacancyColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded';
+                        else if (latestVal < 20) vacancyColor = 'text-blue-600 dark:text-toss-blue bg-blue-50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded';
+                        else vacancyColor = 'text-[#ea580c] bg-[#ea580c]/5 px-1.5 py-0.5 rounded';
+
+                        return (
+                          <tr key={b.id} className="hover:bg-body/80 transition-all">
+                            <td className="py-2.5 px-3 flex items-center gap-2">
+                              <span className="w-5 h-5 flex items-center justify-center text-[10px] font-black rounded-full bg-neutral-100 dark:bg-zinc-800 text-tertiary">
+                                {rankBadge}
+                              </span>
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
+                              <span className="truncate max-w-[100px]" title={b.name}>{b.name}</span>
+                            </td>
+                            <td className="py-2.5 px-3 text-right">
+                              <span className={vacancyColor}>{latestVal}%</span>
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-extrabold text-primary">
+                              {latestRent}만
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 font-extrabold">
+                                개선 {Math.abs(change).toFixed(1)}%p
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-4 border-t border-border/60 mt-5 shrink-0">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full py-3 bg-primary text-surface font-black text-[12.5px] rounded-xl hover:bg-primary/95 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </div>
       )}
