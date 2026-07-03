@@ -1,10 +1,9 @@
 import Parser from 'rss-parser';
 import * as cheerio from 'cheerio';
 import { z } from 'zod';
-import { adminDb as db } from '@/lib/firebaseAdmin';
-import { redis } from '@/lib/redis';
 import { logger } from '@/lib/services/logger';
-import type * as admin from 'firebase-admin';
+import { googleNewsItemSchema, noticeSchema } from '@/lib/validation/facade.schemas';
+import * as NewsRepo from '@/lib/repositories/news.repository';
 
 const parser = new Parser();
 
@@ -27,12 +26,6 @@ async function fetchWithTimeout(url: string, timeoutMs: number = 3000): Promise<
     throw err;
   }
 }
-
-const googleNewsItemSchema = z.object({
-  title: z.string().optional().default(''),
-  link: z.string().url().optional().default(''),
-  pubDate: z.string().optional().default(''),
-});
 
 export interface NewsItem {
   id: number;
@@ -154,17 +147,6 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
   }
 }
 
-const noticeSchema = z.object({
-  id: z.string(),
-  title: z.string().optional(),
-  url: z.string().optional(),
-  dept: z.string().optional(),
-  date: z.string(),
-  isDongtan: z.boolean(),
-  source: z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture']).optional(),
-  createdAt: z.string().optional(),
-});
-
 export type NoticeData = z.infer<typeof noticeSchema>;
 
 export interface LocalNoticesResult {
@@ -174,104 +156,16 @@ export interface LocalNoticesResult {
 
 export async function getLocalNotices(filterDongtan: boolean = true): Promise<LocalNoticesResult> {
   try {
-    if (!db) {
-      logger.warn('newsData.getLocalNotices', 'Firebase Admin DB not initialized. Returning empty notices.');
-      return { notices: [], lastUpdated: null };
-    }
-    const localDb = db;
-
     const cacheKey = `DTDLS:cache:localNotices:filterDongtan:${filterDongtan}`;
-    if (redis) {
-      try {
-        const cached = await redis.get<LocalNoticesResult>(cacheKey);
-        if (cached) {
-          return cached;
-        }
-      } catch (err) {
-        logger.warn('newsData.getLocalNotices', 'Redis localNotices read error', { cacheKey }, err as Error);
-      }
+    
+    // Attempt cache load via Repo
+    const cached = await NewsRepo.getCachedNotices(cacheKey);
+    if (cached) {
+      return cached;
     }
 
-    let cityQuery = localDb.collection('local_notices').where('source', 'in', ['gosi', 'bbs']);
-    let railQuery = localDb.collection('local_notices').where('source', '==', 'rail');
-    let cultureQuery = localDb.collection('local_notices').where('source', '==', 'culture');
-
-    if (filterDongtan) {
-      cityQuery = cityQuery.where('isDongtan', '==', true);
-      railQuery = railQuery.where('isDongtan', '==', true);
-      cultureQuery = cultureQuery.where('isDongtan', '==', true);
-    }
-
-    cityQuery = cityQuery.limit(150);
-    railQuery = railQuery.limit(150);
-    cultureQuery = cultureQuery.limit(150);
-
-    let dongQuery = localDb.collection('local_notices').where('source', '==', 'dong');
-    if (filterDongtan) {
-      dongQuery = dongQuery.where('isDongtan', '==', true);
-    }
-    dongQuery = dongQuery.limit(400);
-
-    const isDev = process.env.NODE_ENV === 'development';
-    const timeoutMs = isDev ? 10000 : 5000;
-
-    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
-      let timeoutId: ReturnType<typeof setTimeout> | undefined;
-      const timeoutPromise = new Promise<T>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Firebase timeout')), ms);
-      });
-      return Promise.race([
-        promise.then((val) => {
-          clearTimeout(timeoutId);
-          return val;
-        }).catch((err) => {
-          clearTimeout(timeoutId);
-          throw err;
-        }),
-        timeoutPromise
-      ]);
-    };
-
-    const [citySnapshot, railSnapshot, cultureSnapshot, dongSnapshot] = await Promise.all([
-      withTimeout(cityQuery.get(), timeoutMs),
-      withTimeout(railQuery.get(), timeoutMs),
-      withTimeout(cultureQuery.get(), timeoutMs),
-      withTimeout(dongQuery.get(), timeoutMs)
-    ]);
-
-    const getTopN = (snapshot: admin.firestore.QuerySnapshot, limitVal = 100) => {
-      const validItems: NoticeData[] = [];
-      snapshot.docs.forEach((doc: admin.firestore.QueryDocumentSnapshot) => {
-        try {
-          const data = doc.data();
-          if (data && typeof data === 'object') {
-            if (data.url) {
-              data.url = data.url.trim();
-            }
-            const rawNotice = { ...data, id: doc.id };
-            const parsed = noticeSchema.safeParse(rawNotice);
-            if (parsed.success) {
-              validItems.push(parsed.data);
-            }
-          }
-        } catch (itemErr) {
-          logger.error('newsData.getLocalNotices', `Error parsing doc ${doc.id}`, {}, itemErr as Error);
-        }
-      });
-      return validItems
-        .sort((a: NoticeData, b: NoticeData) => {
-          const dateCompare = b.date.localeCompare(a.date);
-          if (dateCompare !== 0) return dateCompare;
-          return b.id.localeCompare(a.id);
-        })
-        .slice(0, limitVal);
-    };
-
-    const cityItems = getTopN(citySnapshot, 100);
-    const railItems = getTopN(railSnapshot, 100);
-    const cultureItems = getTopN(cultureSnapshot, 100);
-    const dongItems = getTopN(dongSnapshot, 300);
-
+    // Load raw lists from Firestore via Repo
+    const { cityItems, railItems, cultureItems, dongItems } = await NewsRepo.fetchRawLocalNotices(filterDongtan);
     const allItems = [...cityItems, ...railItems, ...cultureItems, ...dongItems];
 
     if (allItems.length === 0) {
@@ -335,10 +229,9 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
     });
 
     const responseData = { notices, lastUpdated };
-
-    if (redis) {
-      redis.set(cacheKey, responseData, { ex: 3600 }).catch(e => logger.warn('newsData.getLocalNotices', 'Redis localNotices write error', { cacheKey }, e as Error));
-    }
+    
+    // Save cache via Repo
+    await NewsRepo.setCachedNotices(cacheKey, responseData);
 
     return responseData;
   } catch (error) {
@@ -346,3 +239,4 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
     return { notices: [], lastUpdated: null };
   }
 }
+

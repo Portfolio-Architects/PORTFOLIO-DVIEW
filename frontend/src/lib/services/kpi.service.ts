@@ -5,32 +5,8 @@
  */
 
 import type { KPIData } from '@/lib/types/dashboard.types';
-import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-
-// ── Zod Schemas ─────────────────────────────────────
-
-export const KPIDataSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  subtitle: z.string(),
-  badgeText: z.string().optional(),
-  badgeStyle: z.string().optional(),
-  mainValue: z.any(), // Can be ReactNode
-  subValue: z.any(),  // Can be ReactNode
-  description: z.any(), // Can be ReactNode
-  icon: z.any(),      // Can be string or ElementType
-  gradientBackground: z.string().default(''),
-  borderColor: z.string().default(''),
-  titleColor: z.string().default(''),
-});
-
-export const FakePriceDataSchema = z.object({
-  subtitle: z.string(),
-  price: z.string(),
-  up: z.string(),
-  prev: z.string(),
-});
+import { KPIDataSchema, FakePriceDataSchema } from '@/lib/validation/facade.schemas';
 
 /** Simulated KPI price data for cycling display */
 const FAKE_PRICE_DATA = [

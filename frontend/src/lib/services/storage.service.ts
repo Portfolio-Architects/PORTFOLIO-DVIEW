@@ -3,10 +3,9 @@
  * @description Centralized service for image compression and Firebase Storage operations.
  * Architecture Layer: Service (directly interacts with Firebase Storage and utils)
  */
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '@/lib/firebaseConfig';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { logger } from '@/lib/services/logger';
+import * as StorageRepo from '@/lib/repositories/storage.repository';
 
 /**
  * Compresses an image file, uploads it to Firebase Storage under a designated folder path,
@@ -20,12 +19,11 @@ export async function uploadImage(file: File, folderPath: string): Promise<strin
   try {
     const ext = file.name.split('.').pop() || 'jpg';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
-    const storageRef = ref(storage, `${folderPath}/${uniqueName}`);
+    const filePath = `${folderPath}/${uniqueName}`;
 
     // Compress client image before upload
     const compressed = await compressImage(file);
-    const snapshot = await uploadBytes(storageRef, compressed);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const downloadURL = await StorageRepo.uploadRawBytes(filePath, compressed);
 
     logger.info('StorageService.uploadImage', 'Image compressed and uploaded successfully', { folderPath, uniqueName });
     return downloadURL;
@@ -42,11 +40,11 @@ export async function uploadImage(file: File, folderPath: string): Promise<strin
  */
 export async function deleteImage(downloadURL: string): Promise<void> {
   try {
-    const fileRef = ref(storage, downloadURL);
-    await deleteObject(fileRef);
+    await StorageRepo.deleteRawObject(downloadURL);
     logger.info('StorageService.deleteImage', 'Image deleted from Firebase Storage', { downloadURL });
   } catch (error) {
     logger.error('StorageService.deleteImage', 'Failed to delete image from Firebase Storage', { downloadURL }, error);
     // Silent catch: do not throw to block main document deletions
   }
 }
+

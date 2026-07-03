@@ -110,6 +110,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private reviewRepo = ReviewRepo;
   private userRepo = UserRepo;
   private apartmentRepo = ApartmentRepo;
+  private postService = PostService.postService;
+  private reportService = ReportService.reportService;
 
   constructor(deps?: {
     postRepo?: typeof PostRepo;
@@ -118,6 +120,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     reviewRepo?: typeof ReviewRepo;
     userRepo?: typeof UserRepo;
     apartmentRepo?: typeof ApartmentRepo;
+    postService?: PostService.PostService;
+    reportService?: ReportService.ReportService;
   }) {
     if (deps) {
       if (deps.postRepo) this.postRepo = deps.postRepo;
@@ -126,6 +130,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       if (deps.reviewRepo) this.reviewRepo = deps.reviewRepo;
       if (deps.userRepo) this.userRepo = deps.userRepo;
       if (deps.apartmentRepo) this.apartmentRepo = deps.apartmentRepo;
+      if (deps.postService) this.postService = deps.postService;
+      if (deps.reportService) this.reportService = deps.reportService;
     }
     // Only init Firestore listeners on the client side
     if (typeof window !== 'undefined') {
@@ -188,7 +194,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) {
     try {
-      await PostService.createPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
+      await this.postService.createPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
     } catch (e: unknown) {
       logger.error('DashboardFacade.addPost', 'Post creation failed', { title }, e);
       throw e;
@@ -198,7 +204,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     try {
-      await ReportService.createFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
+      await this.reportService.createFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
     } catch (e: unknown) {
       logger.error('DashboardFacade.addFieldReport', 'Field report creation failed', { apartmentName }, e);
       throw e;

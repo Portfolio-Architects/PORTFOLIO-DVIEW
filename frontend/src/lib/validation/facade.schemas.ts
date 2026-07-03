@@ -1,12 +1,162 @@
 import { z } from 'zod';
-import { KPIDataSchema } from '@/lib/services/kpi.service';
 import { PremiumScoresSchema } from '@/lib/utils/scoring';
+
 
 // Isomorphic Zod custom guard for File type to prevent ReferenceError in Node SSR
 export const IsomorphicFileSchema = z.custom<any>((val) => {
   if (typeof File === 'undefined') return true;
   return val instanceof File;
 }, 'Must be a valid File object').optional();
+
+// Location Service POI Schemas
+export const POISchema = z.object({
+  name: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  address: z.string().optional(),
+});
+
+export const SchoolPOISchema = POISchema.extend({
+  type: z.string(),
+});
+
+export const StationPOISchema = POISchema.extend({
+  line: z.string(),
+});
+
+export const AcademyPOISchema = POISchema.extend({
+  category: z.string(),
+});
+
+export const RestaurantPOISchema = POISchema.extend({
+  category: z.string(),
+});
+
+export const ApartmentPOISchema = POISchema.extend({
+  householdCount: z.number().optional(),
+  yearBuilt: z.string().optional(),
+  far: z.number().optional(),
+  bcr: z.number().optional(),
+  parkingCount: z.number().optional(),
+  brand: z.string().optional(),
+});
+
+export const SheetApartmentSchema = z.object({
+  ticker: z.string().optional(),
+  name: z.string(),
+  dong: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  householdCount: z.number().optional(),
+  yearBuilt: z.string().optional(),
+  far: z.number().optional(),
+  bcr: z.number().optional(),
+  parkingCount: z.number().optional(),
+  parkingPerHousehold: z.number().optional(),
+  brand: z.string().optional(),
+  maxFloor: z.number().optional(),
+  minFloor: z.number().optional(),
+  txKey: z.string().optional(),
+  isPublicRental: z.boolean().optional(),
+  starbucksName: z.string().optional(),
+  starbucksAddress: z.string().optional(),
+  starbucksCoordinates: z.string().optional(),
+  distanceToStarbucks: z.number().optional(),
+  mcdonaldsName: z.string().optional(),
+  mcdonaldsAddress: z.string().optional(),
+  mcdonaldsCoordinates: z.string().optional(),
+  distanceToMcDonalds: z.number().optional(),
+  oliveYoungName: z.string().optional(),
+  oliveYoungAddress: z.string().optional(),
+  oliveYoungCoordinates: z.string().optional(),
+  distanceToOliveYoung: z.number().optional(),
+  daisoName: z.string().optional(),
+  daisoAddress: z.string().optional(),
+  daisoCoordinates: z.string().optional(),
+  distanceToDaiso: z.number().optional(),
+  supermarketName: z.string().optional(),
+  supermarketAddress: z.string().optional(),
+  supermarketCoordinates: z.string().optional(),
+  distanceToSupermarket: z.number().optional(),
+});
+
+export const NicknameSchema = z
+  .string()
+  .transform((val) => val.trim())
+  .refine(
+    (val) => {
+      const len = [...val].length;
+      return len >= 2 && len <= 10;
+    },
+    {
+      message: 'Nickname must be between 2 and 10 characters long.',
+    }
+  )
+  .refine(
+    (val) => /^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ_]+$/.test(val),
+    {
+      message: 'Nickname can only contain alphanumeric characters, Korean characters, and underscores.',
+    }
+  );
+
+// KPI Simulation Schemas
+export const KPIDataSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  subtitle: z.string(),
+  badgeText: z.string().optional(),
+  badgeStyle: z.string().optional(),
+  mainValue: z.any(),
+  subValue: z.any(),
+  description: z.any(),
+  icon: z.any(),
+  gradientBackground: z.string().default(''),
+  borderColor: z.string().default(''),
+  titleColor: z.string().default(''),
+});
+
+export const FakePriceDataSchema = z.object({
+  subtitle: z.string(),
+  price: z.string(),
+  up: z.string(),
+  prev: z.string(),
+});
+
+export const SearchConsoleStatusSchema = z.object({
+  success: z.boolean(),
+  isMock: z.boolean(),
+  siteUrl: z.string().url(),
+  indexStatus: z.object({
+    totalIndexed: z.number().int().nonnegative(),
+    notIndexed: z.number().int().nonnegative(),
+    crawledNotIndexed: z.number().int().nonnegative(),
+    discoveredNotIndexed: z.number().int().nonnegative(),
+    errors: z.number().int().nonnegative(),
+  }),
+  searchMetrics: z.object({
+    clicks: z.number().int().nonnegative(),
+    impressions: z.number().int().nonnegative(),
+    ctr: z.number().nonnegative(),
+    averagePosition: z.number().nonnegative(),
+  }),
+});
+
+export const googleNewsItemSchema = z.object({
+  title: z.string().optional().default(''),
+  link: z.string().url().optional().default(''),
+  pubDate: z.string().optional().default(''),
+});
+
+export const noticeSchema = z.object({
+  id: z.string(),
+  title: z.string().optional(),
+  url: z.string().optional(),
+  dept: z.string().optional(),
+  date: z.string(),
+  isDongtan: z.boolean(),
+  source: z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture']).optional(),
+  createdAt: z.string().optional(),
+});
 
 // Report Service Validation Schemas
 export const ImageMetaSchema = z.object({
