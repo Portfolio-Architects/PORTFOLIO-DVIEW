@@ -9,14 +9,9 @@ import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
-
-const ReportSpecsSchema = z.object({
-  builtYear: z.string().default(''),
-  scale: z.string().default(''),
-  farBuild: z.string().default(''),
-  parkingRatio: z.string().default(''),
-}).passthrough();
 import { throttle } from '@/lib/utils/firestoreThrottle';
+import { FieldReportDataSchema } from '@/lib/validation/facade.schemas';
+import { executeIsomorphicQuery } from './isomorphicHelper';
 import type * as admin from 'firebase-admin';
 
 // Module-level cache for dynamic firebaseAdmin import
@@ -38,70 +33,7 @@ async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
   }
   return null;
 }
-const ReportInfraSchema = z.object({
-  gateText: z.string().default(''),
-  gateImgs: z.array(z.string()).optional(),
-  gateRating: z.number().optional(),
-  landscapeText: z.string().default(''),
-  landscapeImgs: z.array(z.string()).optional(),
-  landscapeRating: z.number().optional(),
-  parkingText: z.string().default(''),
-  parkingImgs: z.array(z.string()).optional(),
-  parkingRating: z.number().optional(),
-  maintenanceText: z.string().default(''),
-  maintenanceImgs: z.array(z.string()).optional(),
-  maintenanceRating: z.number().optional(),
-}).passthrough();
 
-const ReportEcosystemSchema = z.object({
-  communityText: z.string().default(''),
-  communityImgs: z.array(z.string()).optional(),
-  communityRating: z.number().optional(),
-  schoolText: z.string().default(''),
-  schoolImgs: z.array(z.string()).optional(),
-  schoolRating: z.number().optional(),
-  commerceText: z.string().default(''),
-  commerceImgs: z.array(z.string()).optional(),
-  commerceRating: z.number().optional(),
-}).passthrough();
-
-const ReportLocationSchema = z.object({
-  trafficText: z.string().default(''),
-  trafficRating: z.number().optional(),
-  developmentText: z.string().default(''),
-  developmentRating: z.number().optional(),
-}).passthrough();
-
-const ReportAssessmentSchema = z.object({
-  alphaDriver: z.string().default(''),
-  systemicRisk: z.string().default(''),
-  synthesis: z.string().default(''),
-  probability: z.string().default(''),
-  autoGrade: z.string().optional(),
-}).passthrough();
-
-const ReportSectionsSchema = z.object({
-  specs: ReportSpecsSchema.optional(),
-  infra: ReportInfraSchema.optional(),
-  ecosystem: ReportEcosystemSchema.optional(),
-  location: ReportLocationSchema.optional(),
-  assessment: ReportAssessmentSchema.optional(),
-}).passthrough();
-
-const FieldReportDataSchema = z.object({
-  dong: z.string().default('오산동 (동탄역)'),
-  apartmentName: z.string(),
-  sections: ReportSectionsSchema.optional(),
-  premiumScores: z.unknown().optional(),
-  metrics: z.unknown().optional(),
-  premiumContent: z.string().optional(),
-  author: z.string().default('데이터 랩스'),
-  likes: z.number().default(0),
-  commentCount: z.number().default(0),
-  viewCount: z.number().default(0),
-  images: z.array(z.unknown()).default([]),
-  scoutingDate: z.string().default('')
-}).passthrough();
 
 
 /**
@@ -371,4 +303,108 @@ export async function incrementReportView(reportId: string, title: string = '알
     }
   })();
 }
+
+/**
+ * Fetches recent scouting reports isomorphically.
+ */
+export async function fetchRecentScoutingReports(limitCount: number = 30): Promise<any[]> {
+  const cacheKey = `DTDLS:cache:fieldReports:${limitCount}`;
+  
+  const result = await executeIsomorphicQuery<any[]>({
+    cacheKey,
+    cacheEx: 120,
+    serverQuery: async () => {
+      const adminDb = await getAdminDb();
+      if (!adminDb) return null;
+      
+      const snap = await throttle<admin.firestore.QuerySnapshot>(() => adminDb.collection('scoutingReports')
+        .orderBy('createdAt', 'desc')
+        .limit(limitCount)
+        .get());
+        
+      return snap.docs.map(docSnap => {
+        const data = docSnap.data();
+        const createdAtStr = formatTimestamp(data.createdAt, '방금 전');
+        const rawTimestamp = parseTimestampToMillis(data.createdAt, 0);
+        return {
+          id: docSnap.id,
+          dong: (data.dong as string) || '오산동 (동탄역)',
+          apartmentName: data.apartmentName as string,
+          premiumScores: data.premiumScores,
+          premiumContent: data.premiumContent as string | undefined,
+          pros: (data.premiumContent as string) || '포장 싹 뺀 진짜 동네 아파트 리뷰',
+          cons: '',
+          rating: 5,
+          author: '데이터 랩스',
+          likes: (data.likes as number) || 0,
+          viewCount: (data.viewCount as number) || 0,
+          commentCount: (data.commentCount as number) || 0,
+          imageUrl: (data.thumbnailUrl as string | undefined) || (data.imageUrl as string | undefined),
+          images: ((data.images as unknown[]) || []).map(img => {
+            const i = img as Record<string, unknown>;
+            return {
+              url: String(i.url || ''),
+              caption: String(i.caption || ''),
+              locationTag: String(i.locationTag || ''),
+              isPremium: Boolean(i.isPremium || false),
+              capturedAt: i.capturedAt ? String(i.capturedAt) : undefined,
+              uploaderName: i.uploaderName ? String(i.uploaderName) : undefined,
+            };
+          }),
+          metrics: data.metrics,
+          scoutingDate: (data.scoutingDate as string) || '',
+          createdAt: createdAtStr,
+          _rawTimestamp: rawTimestamp
+        };
+      });
+    },
+    clientQuery: async () => {
+      const q = query(
+        collection(db, 'scoutingReports'),
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+      );
+      const snap = await throttle(() => getDocs(q));
+      return snap.docs.map(docSnap => {
+        const data = docSnap.data();
+        const createdAtStr = formatTimestamp(data.createdAt, '방금 전');
+        const rawTimestamp = parseTimestampToMillis(data.createdAt, 0);
+        return {
+          id: docSnap.id,
+          dong: (data.dong as string) || '오산동 (동탄역)',
+          apartmentName: data.apartmentName as string,
+          premiumScores: data.premiumScores,
+          premiumContent: data.premiumContent as string | undefined,
+          pros: (data.premiumContent as string) || '포장 싹 뺀 진짜 동네 아파트 리뷰',
+          cons: '',
+          rating: 5,
+          author: '데이터 랩스',
+          likes: (data.likes as number) || 0,
+          viewCount: (data.viewCount as number) || 0,
+          commentCount: (data.commentCount as number) || 0,
+          imageUrl: (data.thumbnailUrl as string | undefined) || (data.imageUrl as string | undefined),
+          images: ((data.images as unknown[]) || []).map(img => {
+            const i = img as Record<string, unknown>;
+            return {
+              url: String(i.url || ''),
+              caption: String(i.caption || ''),
+              locationTag: String(i.locationTag || ''),
+              isPremium: Boolean(i.isPremium || false),
+              capturedAt: i.capturedAt ? String(i.capturedAt) : undefined,
+              uploaderName: i.uploaderName ? String(i.uploaderName) : undefined,
+            };
+          }),
+          metrics: data.metrics,
+          scoutingDate: (data.scoutingDate as string) || '',
+          createdAt: createdAtStr,
+          _rawTimestamp: rawTimestamp
+        };
+      });
+    },
+    fallbackValue: []
+  });
+
+  return result || [];
+}
+
 

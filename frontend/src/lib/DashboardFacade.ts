@@ -103,7 +103,30 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private cleanupFns: (() => void)[] = [];
   private initialized = false;
 
-  constructor() {
+  // Dependencies
+  private postRepo = PostRepo;
+  private reportRepo = ReportRepo;
+  private commentRepo = CommentRepo;
+  private reviewRepo = ReviewRepo;
+  private userRepo = UserRepo;
+  private apartmentRepo = ApartmentRepo;
+
+  constructor(deps?: {
+    postRepo?: typeof PostRepo;
+    reportRepo?: typeof ReportRepo;
+    commentRepo?: typeof CommentRepo;
+    reviewRepo?: typeof ReviewRepo;
+    userRepo?: typeof UserRepo;
+    apartmentRepo?: typeof ApartmentRepo;
+  }) {
+    if (deps) {
+      if (deps.postRepo) this.postRepo = deps.postRepo;
+      if (deps.reportRepo) this.reportRepo = deps.reportRepo;
+      if (deps.commentRepo) this.commentRepo = deps.commentRepo;
+      if (deps.reviewRepo) this.reviewRepo = deps.reviewRepo;
+      if (deps.userRepo) this.userRepo = deps.userRepo;
+      if (deps.apartmentRepo) this.apartmentRepo = deps.apartmentRepo;
+    }
     // Only init Firestore listeners on the client side
     if (typeof window !== 'undefined') {
       this.init();
@@ -128,27 +151,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     });
     this.cleanupFns.push(stopKPI);
 
-    // Firestore listeners (delegated to repositories)
-    // DISABLED for RSC Migration: These are now fetched Server-Side to reduce client memory footprint.
-    /*
-    const stopPosts = PostRepo.listenToPosts((posts) => {
-      this.stores.newsFeed.set(posts);
-    });
-    this.cleanupFns.push(stopPosts);
-
-    const stopReports = ReportRepo.listenToReports((reports) => {
-      this.stores.fieldReports.set(reports);
-    });
-    this.cleanupFns.push(stopReports);
-
-    const stopReviews = ReviewRepo.listenToReviews((reviews) => {
-      this.stores.userReviews.set(reviews);
-    });
-    this.cleanupFns.push(stopReviews);
-    */
-
     // External API
-    ApartmentRepo.fetchApartmentNames().then((apts) => {
+    this.apartmentRepo.fetchApartmentNames().then((apts) => {
       this.stores.dongtanApartments.set(apts);
     });
   }
@@ -166,11 +170,11 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   getUserReviews(): UserReview[] { return this.stores.userReviews.get(); }
 
   async getFullReport(reportId: string): Promise<FieldReportData | null> {
-    return ReportRepo.getFullReport(reportId);
+    return this.reportRepo.getFullReport(reportId);
   }
 
   async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
-    return ReportRepo.getFullReportByApartmentName(apartmentName);
+    return this.reportRepo.getFullReportByApartmentName(apartmentName);
   }
   getDongtanApartments(): string[] { return this.stores.dongtanApartments.get(); }
 
@@ -203,8 +207,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   async addFieldReportComment(reportId: string, text: string, authorUid: string, apartmentName?: string) {
     try {
-      const profile = await UserRepo.getOrCreateProfile(authorUid);
-      await CommentRepo.addComment(reportId, text, profile.nickname, authorUid, apartmentName);
+      const profile = await this.userRepo.getOrCreateProfile(authorUid);
+      await this.commentRepo.addComment(reportId, text, profile.nickname, authorUid, apartmentName);
     } catch (e: unknown) {
       logger.error('DashboardFacade.addFieldReportComment', 'Comment failed', { reportId }, e);
       throw e;
@@ -212,38 +216,38 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   }
 
   listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
-    return CommentRepo.listenToComments(reportId, callback);
+    return this.commentRepo.listenToComments(reportId, callback);
   }
 
   async getUserProfile(uid: string): Promise<import('@/lib/types/user.types').UserProfile> {
-    return UserRepo.getOrCreateProfile(uid);
+    return this.userRepo.getOrCreateProfile(uid);
   }
 
   async incrementLike(postId: string) {
-    try { await PostRepo.incrementPostLike(postId); }
+    try { await this.postRepo.incrementPostLike(postId); }
     catch (e: unknown) { logger.error('DashboardFacade.incrementLike', 'Like failed', { postId }, e); }
   }
 
   async incrementPostView(postId: string, title?: string) {
-    try { await PostRepo.incrementPostView(postId, title); }
+    try { await this.postRepo.incrementPostView(postId, title); }
     catch (e: unknown) { logger.error('DashboardFacade.incrementPostView', 'View update failed', { postId }, e); }
   }
 
   async incrementFieldReportView(reportId: string, title?: string) {
-    try { await ReportRepo.incrementReportView(reportId, title); }
+    try { await this.reportRepo.incrementReportView(reportId, title); }
     catch (e: unknown) { logger.error('DashboardFacade.incrementFieldReportView', 'View update failed', { reportId }, e); }
   }
 
   async incrementFieldReportLike(reportId: string) {
-    try { await ReportRepo.incrementReportLike(reportId); }
+    try { await this.reportRepo.incrementReportLike(reportId); }
     catch (e: unknown) { logger.error('DashboardFacade.incrementFieldReportLike', 'Like failed', { reportId }, e); }
   }
 
   async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
     try {
-      const profile = await UserRepo.getOrCreateProfile(authorUid);
+      const profile = await this.userRepo.getOrCreateProfile(authorUid);
       const displayName = profile.nickname || '익명';
-      await ReviewRepo.addReview(
+      await this.reviewRepo.addReview(
         apartmentName, rating, content, displayName, authorUid,
         profile.verifiedApartment, profile.verificationLevel, imageFile
       );
@@ -254,17 +258,17 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   }
 
   async incrementReviewLike(reviewId: string) {
-    try { await ReviewRepo.incrementReviewLike(reviewId); }
+    try { await this.reviewRepo.incrementReviewLike(reviewId); }
     catch (e: unknown) { logger.error('DashboardFacade.incrementReviewLike', 'Like failed', { reviewId }, e); }
   }
 
   async deleteReview(reviewId: string) {
-    try { await ReviewRepo.deleteReview(reviewId); }
+    try { await this.reviewRepo.deleteReview(reviewId); }
     catch (e: unknown) { logger.error('DashboardFacade.deleteReview', 'Delete failed', { reviewId }, e); throw e; }
   }
 
   async deletePost(postId: string) {
-    try { await PostRepo.deletePost(postId); }
+    try { await this.postRepo.deletePost(postId); }
     catch (e: unknown) { logger.error('DashboardFacade.deletePost', 'Delete failed', { postId }, e); throw e; }
   }
 
@@ -272,6 +276,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     return checkAdmin(email);
   }
 }
+
 
 // --- Facade ---
 

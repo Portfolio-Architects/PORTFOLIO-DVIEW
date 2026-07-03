@@ -6,8 +6,52 @@
  * Uses /api/apartments-by-dong (Google Sheets) as single source of truth
  * for all apartment lists: 동네리뷰 선택, 입주민 인증, 임장기 작성 등
  */
+import { db } from '@/lib/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import { throttle } from '@/lib/utils/firestoreThrottle';
+import { executeIsomorphicQuery } from './isomorphicHelper';
+import { ApartmentMetaSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
+import type { Redis } from '@upstash/redis';
+import type * as admin from 'firebase-admin';
+
+let cachedRedis: Redis | null = null;
+let isRedisLoaded = false;
+let cachedAdminDb: admin.firestore.Firestore | null = null;
+let isAdminDbLoaded = false;
+
+async function getRedis(): Promise<Redis | null> {
+  if (typeof window === 'undefined') {
+    if (isRedisLoaded) return cachedRedis;
+    try {
+      const { redis } = await import('@/lib/redis');
+      cachedRedis = (redis as unknown as Redis) || null;
+    } catch (err) {
+      logger.warn('ApartmentRepository.getRedis', 'Failed to dynamically import @/lib/redis', {}, err as Error);
+      cachedRedis = null;
+    }
+    isRedisLoaded = true;
+    return cachedRedis;
+  }
+  return null;
+}
+
+async function getAdminDb(): Promise<admin.firestore.Firestore | null> {
+  if (typeof window === 'undefined') {
+    if (isAdminDbLoaded) return cachedAdminDb;
+    try {
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      cachedAdminDb = (adminDb as admin.firestore.Firestore) || null;
+    } catch (err) {
+      logger.warn('ApartmentRepository.getAdminDb', 'Failed to dynamically import @/lib/firebaseAdmin', {}, err as Error);
+      cachedAdminDb = null;
+    }
+    isAdminDbLoaded = true;
+    return cachedAdminDb;
+  }
+  return null;
+}
 
 const ApartmentItemSchema = z.object({
   name: z.string(),
@@ -112,3 +156,43 @@ export async function fetchApartmentNames(): Promise<string[]> {
     return [];
   }
 }
+
+/**
+ * Fetches apartment meta mapping settings/apartmentMeta isomorphically.
+ */
+export async function fetchApartmentMeta(): Promise<z.infer<typeof ApartmentMetaSchema>> {
+  const cacheKey = 'DTDLS:cache:apartmentMeta';
+  
+  const result = await executeIsomorphicQuery<z.infer<typeof ApartmentMetaSchema>>({
+    cacheKey,
+    cacheEx: 300,
+    serverQuery: async () => {
+      const adminDb = await getAdminDb();
+      if (!adminDb) return null;
+      
+      const metaDoc = await throttle<admin.firestore.DocumentSnapshot>(() => adminDb.collection('settings').doc('apartmentMeta').get());
+      if (metaDoc.exists) {
+        return (metaDoc.data() || {}) as z.infer<typeof ApartmentMetaSchema>;
+      }
+      return null;
+    },
+    clientQuery: async () => {
+      const metaRef = doc(db, 'settings', 'apartmentMeta');
+      const metaDoc = await throttle(() => getDoc(metaRef));
+      if (metaDoc.exists()) {
+        return (metaDoc.data() || {}) as z.infer<typeof ApartmentMetaSchema>;
+      }
+      return null;
+    },
+    fallbackValue: {}
+  });
+
+  const parsed = ApartmentMetaSchema.safeParse(result);
+  if (!parsed.success) {
+    logger.warn('ApartmentRepository.fetchApartmentMeta', 'Validation failed, returning raw/fallback data.', undefined, parsed.error);
+    return (result || {}) as z.infer<typeof ApartmentMetaSchema>;
+  }
+
+  return parsed.data;
+}
+
