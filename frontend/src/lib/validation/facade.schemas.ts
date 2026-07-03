@@ -1,13 +1,110 @@
 import { z } from 'zod';
 import { KPIDataSchema } from '@/lib/services/kpi.service';
 import { PremiumScoresSchema } from '@/lib/utils/scoring';
-import { ObjectiveMetricsSchema } from '@/lib/services/reportService';
 
 // Isomorphic Zod custom guard for File type to prevent ReferenceError in Node SSR
 export const IsomorphicFileSchema = z.custom<any>((val) => {
   if (typeof File === 'undefined') return true;
   return val instanceof File;
 }, 'Must be a valid File object').optional();
+
+// Report Service Validation Schemas
+export const ImageMetaSchema = z.object({
+  url: z.string().url('이미지 URL 형식이 올바르지 않습니다.'),
+  caption: z.string().default(''),
+  locationTag: z.string().optional(),
+  isPremium: z.boolean().optional(),
+  capturedAt: z.string().optional(),
+  uploaderName: z.string().optional(),
+});
+
+export const ObjectiveMetricsSchema = z.object({
+  brand: z.string(),
+  householdCount: z.number().int().nonnegative(),
+  far: z.number().nonnegative(),
+  bcr: z.number().nonnegative(),
+  parkingCount: z.number().optional(),
+  parkingPerHousehold: z.number().nonnegative(),
+  yearBuilt: z.number().int(),
+  minFloor: z.number().optional(),
+  maxFloor: z.number().optional(),
+  coordinates: z.string().optional(),
+  distanceToElementary: z.number().nonnegative(),
+  distanceToMiddle: z.number().nonnegative(),
+  distanceToHigh: z.number().nonnegative(),
+  distanceToSubway: z.number().nonnegative(),
+  academyDensity: z.number().nonnegative(),
+  academyCategories: z.record(z.string(), z.number()).optional(),
+  restaurantDensity: z.number().optional(),
+  restaurantCategories: z.record(z.string(), z.number()).optional(),
+  distanceToIndeokwon: z.number().optional(),
+  distanceToTram: z.number().optional(),
+  distanceToStarbucks: z.number().optional(),
+  starbucksName: z.string().optional(),
+  starbucksAddress: z.string().optional(),
+  starbucksCoordinates: z.string().optional(),
+  distanceToMcDonalds: z.number().optional(),
+  mcdonaldsName: z.string().optional(),
+  mcdonaldsAddress: z.string().optional(),
+  mcdonaldsCoordinates: z.string().optional(),
+  distanceToOliveYoung: z.number().optional(),
+  oliveYoungName: z.string().optional(),
+  oliveYoungAddress: z.string().optional(),
+  oliveYoungCoordinates: z.string().optional(),
+  distanceToDaiso: z.number().optional(),
+  daisoName: z.string().optional(),
+  daisoAddress: z.string().optional(),
+  daisoCoordinates: z.string().optional(),
+  distanceToSupermarket: z.number().optional(),
+  supermarketName: z.string().optional(),
+  supermarketAddress: z.string().optional(),
+  supermarketCoordinates: z.string().optional(),
+  distanceToPark: z.number().optional(),
+  nearestSchoolNames: z.object({
+    elementary: z.string().optional(),
+    middle: z.string().optional(),
+    high: z.string().optional(),
+  }).optional(),
+  nearestStationName: z.string().optional(),
+  nearestStationLine: z.string().optional(),
+  nearestStationCoords: z.string().optional(),
+  nearestIndeokwonStationName: z.string().optional(),
+  nearestIndeokwonLine: z.string().optional(),
+  nearestIndeokwonCoords: z.string().optional(),
+  nearestTramStationName: z.string().optional(),
+  nearestTramLine: z.string().optional(),
+  nearestTramCoords: z.string().optional(),
+});
+
+export const AdSlotSchema = z.object({
+  bannerUrl: z.string(),
+  targetLink: z.string(),
+  isActive: z.boolean(),
+});
+
+export const ScoutingReportInputSchema = z.object({
+  dong: z.string().min(1, '동 이름을 입력해주세요.'),
+  apartmentName: z.string().min(1, '아파트 이름을 입력해주세요.'),
+  thumbnailUrl: z.string().url('썸네일 URL 형식이 올바르지 않습니다.'),
+  images: z.array(ImageMetaSchema),
+  metrics: ObjectiveMetricsSchema,
+  premiumContent: z.string().optional(),
+  premiumScores: z.any().optional(),
+  isPremium: z.boolean().default(false),
+  adSlot: AdSlotSchema.optional(),
+  authorUid: z.string().min(1),
+});
+
+export const CreateFieldReportInputSchema = z.object({
+  apartmentName: z.string().min(1, '아파트 이름을 입력해주세요.'),
+  sections: z.any(),
+  premiumScores: z.record(z.string(), z.number()).nullable().optional(),
+  authorUid: z.string().min(1),
+  imageEntries: z.array(z.object({
+    file: z.any(),
+    category: z.string(),
+  })),
+});
 
 export const AddPostInputSchema = z.object({
   title: z.string().min(1, '제목은 필수 입력 사항입니다.'),
@@ -368,6 +465,9 @@ export const FieldReportDataSchema = z.object({
 }).passthrough();
 
 export type InitialPageData = z.infer<typeof InitialPageDataSchema>;
+
+
+
 
 
 

@@ -3,11 +3,10 @@
  * @description Business logic for creating posts (orchestrates profile, upload, persistence).
  * Architecture Layer: Service (orchestration of repositories)
  */
-import { db } from '@/lib/firebaseConfig';
-import { collection, query, where, getDocs, updateDoc, doc, limit, serverTimestamp } from 'firebase/firestore';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
+import * as ReportRepo from '@/lib/repositories/report.repository';
 import { logger } from '@/lib/services/logger';
 import { CreatePostSchema, SyncManagerPostSchema } from '@/lib/validation/facade.schemas';
 
@@ -170,18 +169,7 @@ export async function syncManagerPostToScoutingReport(
 
     if (scoredApts.length > 0) {
       const targetAptName = scoredApts[0].apt;
-      const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', targetAptName), limit(1));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const reportDoc = querySnapshot.docs[0];
-        await updateDoc(doc(db, 'scoutingReports', reportDoc.id), {
-          premiumContent: cleanContent,
-          updatedAt: serverTimestamp()
-        });
-        logger.info('PostService.syncManagerPostToScoutingReport', `Successfully synced post content to scoutingReports for ${targetAptName}`);
-      } else {
-        logger.warn('PostService.syncManagerPostToScoutingReport', `No scoutingReport found for ${targetAptName}`);
-      }
+      await ReportRepo.updatePremiumContentByApartment(targetAptName, cleanContent);
     } else {
       logger.warn('PostService.syncManagerPostToScoutingReport', 'Could not resolve apartment name from title or content');
     }

@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only, no business logic)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
@@ -406,5 +406,81 @@ export async function fetchRecentScoutingReports(limitCount: number = 30): Promi
 
   return result || [];
 }
+
+/**
+ * Saves a new Scouting Report document.
+ */
+export async function saveScoutingReport(reportData: any): Promise<string> {
+  try {
+    const docRef = await throttle(() => addDoc(collection(db, 'scoutingReports'), {
+      ...reportData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }));
+    logger.info('ReportRepository.saveScoutingReport', 'Scouting report created', { id: docRef.id });
+    return docRef.id;
+  } catch (error) {
+    logger.error('ReportRepository.saveScoutingReport', 'Failed to save scouting report', { apartmentName: reportData.apartmentName }, error as Error);
+    throw error;
+  }
+}
+
+/**
+ * Updates an existing Scouting Report document.
+ */
+export async function updateScoutingReport(reportId: string, updateData: any): Promise<void> {
+  try {
+    const docRef = doc(db, 'scoutingReports', reportId);
+    await throttle(() => updateDoc(docRef, {
+      ...updateData,
+      updatedAt: serverTimestamp(),
+    }));
+    logger.info('ReportRepository.updateScoutingReport', 'Scouting report updated', { reportId });
+  } catch (error) {
+    logger.error('ReportRepository.updateScoutingReport', 'Failed to update scouting report', { reportId }, error as Error);
+    throw error;
+  }
+}
+
+/**
+ * Saves a new Field Report (임장기) document.
+ */
+export async function saveFieldReport(fieldReportData: any): Promise<string> {
+  try {
+    const docRef = await throttle(() => addDoc(collection(db, 'field_reports'), {
+      ...fieldReportData,
+      createdAt: serverTimestamp(),
+    }));
+    logger.info('ReportRepository.saveFieldReport', 'Field report created', { id: docRef.id });
+    return docRef.id;
+  } catch (error) {
+    logger.error('ReportRepository.saveFieldReport', 'Failed to save field report', { apartmentName: fieldReportData.apartmentName }, error as Error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the premium content of a scouting report matching an apartment name.
+ */
+export async function updatePremiumContentByApartment(apartmentName: string, premiumContent: string): Promise<void> {
+  try {
+    const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', apartmentName), limit(1));
+    const querySnapshot = await throttle(() => getDocs(q));
+    if (!querySnapshot.empty) {
+      const reportDoc = querySnapshot.docs[0];
+      await throttle(() => updateDoc(doc(db, 'scoutingReports', reportDoc.id), {
+        premiumContent,
+        updatedAt: serverTimestamp()
+      }));
+      logger.info('ReportRepository.updatePremiumContentByApartment', 'Successfully synced premium content', { apartmentName });
+    } else {
+      logger.warn('ReportRepository.updatePremiumContentByApartment', 'No scouting report found to update', { apartmentName });
+    }
+  } catch (error) {
+    logger.error('ReportRepository.updatePremiumContentByApartment', 'Failed to update premium content', { apartmentName }, error as Error);
+    throw error;
+  }
+}
+
 
 
