@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOfficeTransactions } from '@/lib/services/officeTx.service';
 import { getEnergyVacancyEstimation } from '@/lib/services/energy.service';
 import { logger } from '@/lib/services/logger';
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
@@ -161,32 +163,17 @@ export async function GET(request: NextRequest) {
       )
     ]);
 
-    // 10 landmark buildings total units mapping for size-scaled vacancy calculation
-    const BUILDING_TOTAL_UNITS: Record<string, number> = {
-      '금강 IX': 2400,
-      '실리콘앨리': 2100,
-      'SH타임': 350,
-      '더퍼스트': 500,
-      'SK V1': 780,
-      '에이팩시티': 620,
-      '테라타워': 830,
-      'IT타워': 330,
-      '메가비즈타워': 290,
-      '비즈타워': 280
-    };
+    // Load building metadata dynamically from JSON database
+    const jisanDbPath = path.join(process.cwd(), 'src/lib/data/yeongcheon_jisan_units.json');
+    const jisanDb = JSON.parse(fs.readFileSync(jisanDbPath, 'utf8'));
 
-    const BASELINE_VACANCY_2411: Record<string, number> = {
-      '금강 IX': 21.8,
-      '실리콘앨리': 29.8,
-      'SH타임': 12.5,
-      '더퍼스트': 8.7,
-      'SK V1': 13.2,
-      '에이팩시티': 7.2,
-      '테라타워': 16.2,
-      'IT타워': 7.2,
-      '메가비즈타워': 15.2,
-      '비즈타워': 15.6
-    };
+    const BUILDING_TOTAL_UNITS: Record<string, number> = {};
+    const BASELINE_VACANCY_2411: Record<string, number> = {};
+
+    jisanDb.forEach((b: any) => {
+      BUILDING_TOTAL_UNITS[b.id] = b.totalUnits;
+      BASELINE_VACANCY_2411[b.id] = b.baselineVacancy;
+    });
 
     // Tracking stateful vacancy across timeline months sequentially
     const currentVacancy = { ...BASELINE_VACANCY_2411 };

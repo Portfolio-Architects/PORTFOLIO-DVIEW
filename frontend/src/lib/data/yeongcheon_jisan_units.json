@@ -1,0 +1,146 @@
+[
+  {
+    "id": "금강 IX",
+    "name": "금강펜테리움 IX타워",
+    "jibun": "823-6",
+    "totalUnits": 2701,
+    "gfa": 287343,
+    "baselineVacancy": 21.8
+  },
+  {
+    "id": "실리콘앨리",
+    "name": "현대 실리콘앨리 동탄",
+    "jibun": "844-1",
+    "totalUnits": 2470,
+    "gfa": 238615,
+    "baselineVacancy": 29.8
+  },
+  {
+    "id": "SH타임",
+    "name": "동탄 SH타임스퀘어",
+    "jibun": "741-2",
+    "totalUnits": 369,
+    "gfa": 42358,
+    "baselineVacancy": 12.5
+  },
+  {
+    "id": "더퍼스트",
+    "name": "동탄 더퍼스트타워",
+    "jibun": "656-11",
+    "totalUnits": 460,
+    "gfa": 58490,
+    "baselineVacancy": 8.7
+  },
+  {
+    "id": "SK V1",
+    "name": "동탄 SK V1 center",
+    "jibun": "853-1",
+    "totalUnits": 776,
+    "gfa": 89300,
+    "baselineVacancy": 13.2
+  },
+  {
+    "id": "에이팩시티",
+    "name": "에이팩시티",
+    "jibun": "823",
+    "totalUnits": 618,
+    "gfa": 72000,
+    "baselineVacancy": 7.2
+  },
+  {
+    "id": "테라타워",
+    "name": "동탄 테라타워",
+    "jibun": "823-1",
+    "totalUnits": 824,
+    "gfa": 96200,
+    "baselineVacancy": 16.2
+  },
+  {
+    "id": "IT타워",
+    "name": "동탄 IT타워",
+    "jibun": "823-2",
+    "totalUnits": 320,
+    "gfa": 38900,
+    "baselineVacancy": 7.2
+  },
+  {
+    "id": "메가비즈타워",
+    "name": "동탄 메가비즈타워 A동",
+    "jibun": "823-3",
+    "totalUnits": 168,
+    "gfa": 34200,
+    "baselineVacancy": 15.2
+  },
+  {
+    "id": "비즈타워",
+    "name": "동탄 비즈타워",
+    "jibun": "851-1",
+    "totalUnits": 276,
+    "gfa": 33100,
+    "baselineVacancy": 15.6
+  },
+  {
+    "id": "우미뉴브",
+    "name": "동탄 우미 뉴브",
+    "jibun": "835-1",
+    "totalUnits": 490,
+    "gfa": 49800,
+    "baselineVacancy": 14.5
+  },
+  {
+    "id": "동익미라벨",
+    "name": "동익미라벨타워",
+    "jibun": "824-3",
+    "totalUnits": 375,
+    "gfa": 36800,
+    "baselineVacancy": 13.0
+  },
+  {
+    "id": "엠타워",
+    "name": "동탄 엠타워",
+    "jibun": "836-1",
+    "totalUnits": 430,
+    "gfa": 45000,
+    "baselineVacancy": 12.0
+  },
+  {
+    "id": "골든아이",
+    "name": "골든아이타워",
+    "jibun": "826-1",
+    "totalUnits": 268,
+    "gfa": 29800,
+    "baselineVacancy": 11.2
+  },
+  {
+    "id": "더블유스페이스",
+    "name": "더블유스페이스",
+    "jibun": "844-2",
+    "totalUnits": 412,
+    "gfa": 38200,
+    "baselineVacancy": 15.0
+  },
+  {
+    "id": "G타워",
+    "name": "동탄 G타워",
+    "jibun": "824-2",
+    "totalUnits": 246,
+    "gfa": 27800,
+    "baselineVacancy": 10.5
+  },
+  {
+    "id": "이든앤스페이스",
+    "name": "이든앤스페이스",
+    "jibun": "842-1",
+    "totalUnits": 318,
+    "gfa": 33500,
+    "baselineVacancy": 13.8
+  },
+  {
+    "id": "삼성어반",
+    "name": "삼성어반타워",
+    "jibun": "826-2",
+    "totalUnits": 192,
+    "gfa": 22400,
+    "baselineVacancy": 9.5
+  }
+]
