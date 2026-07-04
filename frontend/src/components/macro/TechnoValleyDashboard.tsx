@@ -775,12 +775,13 @@ export default function TechnoValleyDashboard() {
                   tickLine={false} 
                   axisLine={false} 
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }} 
+                  padding={{ left: 16, right: 16 }}
                 />
                 <YAxis 
                   width={42}
                   tickLine={false} 
                   axisLine={false} 
-                  domain={metricMode === 'vacancy' ? [10, 26] : [3.2, 3.9]}
+                  domain={metricMode === 'vacancy' ? [0, 26] : [3.2, 3.9]}
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }}
                   tickFormatter={(value) => {
                     const num = Number(value);
