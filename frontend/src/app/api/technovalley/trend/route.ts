@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOfficeTransactions } from '@/lib/services/officeTx.service';
+import { getEnergyVacancyEstimation } from '@/lib/services/energy.service';
 import { logger } from '@/lib/services/logger';
 
 export const dynamic = 'force-dynamic';
@@ -100,14 +101,7 @@ const STATIC_HISTORICAL_DATA = [
   }
 ];
 
-const STATIC_2025_2026_VACANCY: Record<string, Record<string, number>> = {
-  '202501': { '금강 IX': 20.5, '실리콘앨리': 26.5, 'SH타임': 12.2, '더퍼스트': 8.5, 'SK V1': 12.8, '에이팩시티': 7.0, '테라타워': 15.5, 'IT타워': 7.0, '메가비즈타워': 14.6, '비즈타워': 15.0 },
-  '202505': { '금강 IX': 19.5, '실리콘앨리': 23.8, 'SH타임': 11.9, '더퍼스트': 8.2, 'SK V1': 12.4, '에이팩시티': 6.8, '테라타워': 14.8, 'IT타워': 6.8, '메가비즈타워': 14.0, '비즈타워': 14.4 },
-  '202509': { '금강 IX': 18.8, '실리콘앨리': 21.2, 'SH타임': 11.6, '더퍼스트': 8.0, 'SK V1': 12.0, '에이팩시티': 6.5, '테라타워': 14.2, 'IT타워': 6.5, '메가비즈타워': 13.5, '비즈타워': 13.8 },
-  '202511': { '금강 IX': 18.2, '실리콘앨리': 19.5, 'SH타임': 11.3, '더퍼스트': 7.7, 'SK V1': 11.6, '에이팩시티': 6.2, '테라타워': 13.6, 'IT타워': 6.2, '메가비즈타워': 13.0, '비즈타워': 13.2 },
-  '202601': { '금강 IX': 17.8, '실리콘앨리': 18.0, 'SH타임': 11.0, '더퍼스트': 7.5, 'SK V1': 11.2, '에이팩시티': 6.0, '테라타워': 13.0, 'IT타워': 6.0, '메가비즈타워': 12.5, '비즈타워': 12.6 },
-  '202605': { '금강 IX': 17.5, '실리콘앨리': 17.2, 'SH타임': 10.8, '더퍼스트': 7.2, 'SK V1': 10.8, '에이팩시티': 5.8, '테라타워': 12.4, 'IT타워': 5.8, '메가비즈타워': 12.0, '비즈타워': 12.0 }
-};
+
 
 // Simple in-memory cache to prevent hitting public API limits excessively
 interface CacheEntry {
@@ -137,23 +131,35 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    logger.info('GET /api/technovalley/trend', 'Fetching raw transactions from MOLIT API to calculate actual rents...');
+    logger.info('GET /api/technovalley/trend', 'Fetching raw transactions and energy vacancy estimations in parallel...');
 
-    // Fetch transactions in parallel for all target months across both region codes (41590 and 41597)
-    const rawResults = await Promise.all(
-      TARGET_MONTHS.map(async (ym) => {
-        try {
-          const [list90, list97] = await Promise.all([
-            getOfficeTransactions('41590', ym),
-            getOfficeTransactions('41597', ym)
-          ]);
-          return { ym, list: [...list90, ...list97] };
-        } catch (e) {
-          logger.error('GET /api/technovalley/trend', `Failed to fetch transactions for ${ym}`, {}, e);
-          return { ym, list: [] };
-        }
-      })
-    );
+    const [rawResults, vacancyResults] = await Promise.all([
+      Promise.all(
+        TARGET_MONTHS.map(async (ym) => {
+          try {
+            const [list90, list97] = await Promise.all([
+              getOfficeTransactions('41590', ym),
+              getOfficeTransactions('41597', ym)
+            ]);
+            return { ym, list: [...list90, ...list97] };
+          } catch (e) {
+            logger.error('GET /api/technovalley/trend', `Failed to fetch transactions for ${ym}`, {}, e);
+            return { ym, list: [] };
+          }
+        })
+      ),
+      Promise.all(
+        TARGET_MONTHS.map(async (ym) => {
+          try {
+            const est = await getEnergyVacancyEstimation('41590', ym);
+            return { ym, est };
+          } catch (e) {
+            logger.error('GET /api/technovalley/trend', `Failed to estimate vacancy for ${ym}`, {}, e);
+            return { ym, est: {} as Record<string, number> };
+          }
+        })
+      )
+    ]);
 
     const calculatedTrend = TARGET_MONTHS.map((ym) => {
       const match = rawResults.find(r => r.ym === ym);
@@ -273,17 +279,18 @@ export async function GET(request: NextRequest) {
       const allRents = [rentGold, rentSilver, rentBronze, rentFirst, rentSk, rentApex, rentTerra, rentIt, rentMega, rentBiz];
       const avgRent = parseFloat((allRents.reduce((a, b) => a + b, 0) / allRents.length).toFixed(2));
 
-      // Calculate vacancy rates based on target buildings for chart alignment
-      const vacancyGold = STATIC_2025_2026_VACANCY[ym]?.['금강 IX'] ?? 18.0;
-      const vacancySilver = STATIC_2025_2026_VACANCY[ym]?.['실리콘앨리'] ?? 18.0;
-      const vacancyBronze = STATIC_2025_2026_VACANCY[ym]?.['SH타임'] ?? 11.0;
-      const vacancyFirst = STATIC_2025_2026_VACANCY[ym]?.['더퍼스트'] ?? 8.0;
-      const vacancySk = STATIC_2025_2026_VACANCY[ym]?.['SK V1'] ?? 11.0;
-      const vacancyApex = STATIC_2025_2026_VACANCY[ym]?.['에이팩시티'] ?? 6.0;
-      const vacancyTerra = STATIC_2025_2026_VACANCY[ym]?.['테라타워'] ?? 13.0;
-      const vacancyIt = STATIC_2025_2026_VACANCY[ym]?.['IT타워'] ?? 6.0;
-      const vacancyMega = STATIC_2025_2026_VACANCY[ym]?.['메가비즈타워'] ?? 13.0;
-      const vacancyBiz = STATIC_2025_2026_VACANCY[ym]?.['비즈타워'] ?? 13.0;
+      // Calculate vacancy rates based on energy estimation
+      const vEst = vacancyResults.find(v => v.ym === ym)?.est || {};
+      const vacancyGold = vEst['금강 IX'] ?? 17.5;
+      const vacancySilver = vEst['실리콘앨리'] ?? 17.2;
+      const vacancyBronze = vEst['SH타임'] ?? 10.8;
+      const vacancyFirst = vEst['더퍼스트'] ?? 7.2;
+      const vacancySk = vEst['SK V1'] ?? 10.8;
+      const vacancyApex = vEst['에이팩시티'] ?? 5.8;
+      const vacancyTerra = vEst['테라타워'] ?? 12.4;
+      const vacancyIt = vEst['IT타워'] ?? 5.8;
+      const vacancyMega = vEst['메가비즈타워'] ?? 12.0;
+      const vacancyBiz = vEst['비즈타워'] ?? 12.0;
 
       return {
         date: dateLabel,
@@ -340,16 +347,16 @@ export async function GET(request: NextRequest) {
       const fm = FALLBACK_RENT_MAP[ym];
       return {
         date: dateLabel,
-        '금강 IX': STATIC_2025_2026_VACANCY[ym]?.['금강 IX'] ?? 18.0,
-        '실리콘앨리': STATIC_2025_2026_VACANCY[ym]?.['실리콘앨리'] ?? 18.0,
-        'SH타임': STATIC_2025_2026_VACANCY[ym]?.['SH타임'] ?? 11.0,
-        '더퍼스트': STATIC_2025_2026_VACANCY[ym]?.['더퍼스트'] ?? 8.0,
-        'SK V1': STATIC_2025_2026_VACANCY[ym]?.['SK V1'] ?? 11.0,
-        '에이팩시티': STATIC_2025_2026_VACANCY[ym]?.['에이팩시티'] ?? 6.0,
-        '테라타워': STATIC_2025_2026_VACANCY[ym]?.['테라타워'] ?? 13.0,
-        'IT타워': STATIC_2025_2026_VACANCY[ym]?.['IT타워'] ?? 6.0,
-        '메가비즈타워': STATIC_2025_2026_VACANCY[ym]?.['메가비즈타워'] ?? 13.0,
-        '비즈타워': STATIC_2025_2026_VACANCY[ym]?.['비즈타워'] ?? 13.0,
+        '금강 IX': 17.5,
+        '실리콘앨리': 17.2,
+        'SH타임': 10.8,
+        '더퍼스트': 7.2,
+        'SK V1': 10.8,
+        '에이팩시티': 5.8,
+        '테라타워': 12.4,
+        'IT타워': 5.8,
+        '메가비즈타워': 12.0,
+        '비즈타워': 12.0,
 
         '금강IX_임대료': fm['금강 IX'],
         '실리콘앨리_임대료': fm['실리콘앨리'],
