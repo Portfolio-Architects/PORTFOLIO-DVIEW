@@ -3,9 +3,8 @@
  * @description Domain logic for estimating vacancy rates based on monthly building energy (electricity) usage.
  * Architecture Layer: Service (Domain logic & Calculations)
  */
-import * as cheerio from 'cheerio';
 import { logger } from './logger';
-import { fetchEnergyXmlFromPublicPortal } from '@/lib/repositories/energy.repository';
+import { fetchEnergyJsonFromPublicPortal } from '@/lib/repositories/energy.repository';
 
 export interface VacancyEstimation {
   readonly [buildingKey: string]: number | null;
@@ -25,37 +24,22 @@ const BUILDING_GFA_MAP: Record<string, number> = {
   '비즈타워': 33100
 };
 
+// Exact parcel parameters (bun, ji) for 10 landmark buildings in Yeongcheon-dong
+const BUILDING_PARCEL_MAP: Record<string, { bun: string; ji: string }> = {
+  '금강 IX': { bun: '0823', ji: '0006' },
+  '실리콘앨리': { bun: '0844', ji: '0001' },
+  'SH타임': { bun: '0741', ji: '0002' },
+  '더퍼스트': { bun: '0656', ji: '0011' },
+  'SK V1': { bun: '0853', ji: '0001' },
+  '에이팩시티': { bun: '0823', ji: '0000' },
+  '테라타워': { bun: '0823', ji: '0001' },
+  'IT타워': { bun: '0823', ji: '0002' },
+  '메가비즈타워': { bun: '0823', ji: '0003' },
+  '비즈타워': { bun: '0823', ji: '0004' }
+};
+
 // Target Standard Monthly Electricity Consumption threshold per ㎡ (kWh) when fully occupied
 const STANDARD_KWH_PER_SQM = 12.5;
-
-/**
- * Normalizes API building names to map to official keys
- */
-function normalizeBuildingKey(rawName: string): string | null {
-  const norm = rawName.replace(/\s+/g, '').toLowerCase();
-  if (norm.includes('금강') && (norm.includes('ix') || norm.includes('펜테리움'))) {
-    return '금강 IX';
-  } else if (norm.includes('실리콘앨리') || norm.includes('실리콘')) {
-    return '실리콘앨리';
-  } else if (norm.includes('타임스퀘어') || norm.includes('sh타임')) {
-    return 'SH타임';
-  } else if (norm.includes('더퍼스트')) {
-    return '더퍼스트';
-  } else if (norm.includes('skv1') || norm.includes('sk v1')) {
-    return 'SK V1';
-  } else if (norm.includes('에이팩시티') || norm.includes('에이팩')) {
-    return '에이팩시티';
-  } else if (norm.includes('테라타워') || norm.includes('테라')) {
-    return '테라타워';
-  } else if (norm.includes('it타워') || norm.includes('아이티타워') || norm.includes('it 타워')) {
-    return 'IT타워';
-  } else if (norm.includes('메가비즈타워') || norm.includes('메가비즈')) {
-    return '메가비즈타워';
-  } else if (norm.includes('비즈타워') && !norm.includes('메가비즈')) {
-    return '비즈타워';
-  }
-  return null;
-}
 
 /**
  * Calculates vacancy rate estimation based on electricity usage
@@ -63,51 +47,52 @@ function normalizeBuildingKey(rawName: string): string | null {
  */
 export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnMm: string = '202605'): Promise<VacancyEstimation | null> {
   try {
-    const xml = await fetchEnergyXmlFromPublicPortal(lawdCd, crtnMm);
-    const $ = cheerio.load(xml, { xmlMode: true });
-    
-    const parsedData: Record<string, number> = {};
-
-    $('item').each((_, elem) => {
-      const $item = $(elem);
-      const useMm = $item.find('useMm').text().trim();
-      
-      // Only parse items corresponding to the requested month (crtnMm)
-      if (useMm && useMm !== crtnMm) {
-        return;
-      }
-      
-      const rawBldNm = $item.find('bldNm').text().trim();
-      const elctQty = parseFloat($item.find('elctUsgQty').text().trim()) || 0;
-      
-      const key = normalizeBuildingKey(rawBldNm);
-      if (key && elctQty > 0) {
-        parsedData[key] = elctQty;
-      }
-    });
-
     const estimation: Record<string, number | null> = {};
 
-    // Apply estimation formula for all 10 core buildings
-    for (const key of Object.keys(BUILDING_GFA_MAP)) {
-      const gfa = BUILDING_GFA_MAP[key];
-      const actualQty = parsedData[key];
+    // Query energy data for all 10 landmark buildings in parallel
+    await Promise.all(
+      Object.keys(BUILDING_GFA_MAP).map(async (key) => {
+        const parcel = BUILDING_PARCEL_MAP[key];
+        const gfa = BUILDING_GFA_MAP[key];
+        
+        if (!parcel) {
+          estimation[key] = null;
+          return;
+        }
 
-      if (!actualQty) {
-        // Strict mapping: No actual energy data = No output
-        estimation[key] = null;
-        continue;
-      }
+        try {
+          // Fetch real electricity data via the JSON OpenAPI
+          const jsonString = await fetchEnergyJsonFromPublicPortal(lawdCd, crtnMm, parcel.bun, parcel.ji);
+          const resData = JSON.parse(jsonString);
+          
+          const items = resData?.response?.body?.items?.item || [];
+          // If public DB has no records for the target month, strictly nullify
+          if (items.length === 0) {
+            estimation[key] = null;
+            return;
+          }
 
-      // Max capacity for GFA
-      const maxCapacityKwh = gfa * STANDARD_KWH_PER_SQM;
-      // Occupancy (Usage) Rate: bounded between 35% and 95%
-      const usageRate = Math.max(0.35, Math.min(0.95, actualQty / maxCapacityKwh));
-      
-      // Vacancy Rate = 100 - (UsageRate * 100)
-      const vacancyRate = 100 - (usageRate * 100);
-      estimation[key] = parseFloat(vacancyRate.toFixed(1));
-    }
+          // useQty stands for the parsed monthly electricity usage (kWh)
+          const actualQty = parseFloat(items[0].useQty) || 0;
+          if (actualQty <= 0) {
+            estimation[key] = null;
+            return;
+          }
+
+          // Max capacity for GFA
+          const maxCapacityKwh = gfa * STANDARD_KWH_PER_SQM;
+          // Occupancy (Usage) Rate: bounded between 35% and 95%
+          const usageRate = Math.max(0.35, Math.min(0.95, actualQty / maxCapacityKwh));
+          
+          // Vacancy Rate = 100 - (UsageRate * 100)
+          const vacancyRate = 100 - (usageRate * 100);
+          estimation[key] = parseFloat(vacancyRate.toFixed(1));
+        } catch (e) {
+          logger.warn('energy.service.getEnergyVacancyEstimation', `Failed to estimate vacancy for ${key}, nullifying`, { month: crtnMm, error: String(e) });
+          estimation[key] = null;
+        }
+      })
+    );
 
     logger.info('energy.service.getEnergyVacancyEstimation', 'Vacancy estimated successfully via electricity usage', { month: crtnMm });
     return estimation;
