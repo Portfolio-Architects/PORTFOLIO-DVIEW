@@ -39,7 +39,7 @@ const BUILDING_PARCEL_MAP: Record<string, { bun: string; ji: string }> = {
 };
 
 // Target Standard Monthly Electricity Consumption threshold per ㎡ (kWh) when fully occupied
-const STANDARD_KWH_PER_SQM = 12.5;
+const STANDARD_KWH_PER_SQM = 0.25;
 
 /**
  * Calculates vacancy rate estimation based on electricity usage
