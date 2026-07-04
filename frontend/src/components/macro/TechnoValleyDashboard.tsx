@@ -69,12 +69,116 @@ const DONUT_DATA = [
 
 // 2. Trend Line Chart Data
 const TREND_DATA = [
-  { date: '25.01', '금강 IX': 24.5, '실리콘앨리': 20.1, 'SH타임': 14.2, '금강IX_임대료': 3.70, '실리콘앨리_임대료': 3.50, 'SH타임_임대료': 3.30, '평균임대료': 3.50 },
-  { date: '25.05', '금강 IX': 23.8, '실리콘앨리': 19.8, 'SH타임': 13.9, '금강IX_임대료': 3.72, '실리콘앨리_임대료': 3.55, 'SH타임_임대료': 3.35, '평균임대료': 3.55 },
-  { date: '25.09', '금강 IX': 22.1, '실리콘앨리': 19.2, 'SH타임': 13.5, '금강IX_임대료': 3.78, '실리콘앨리_임대료': 3.60, 'SH타임_임대료': 3.42, '평균임대료': 3.60 },
-  { date: '25.11', '금강 IX': 20.4, '실리콘앨리': 18.9, 'SH타임': 12.8, '금강IX_임대료': 3.80, '실리콘앨리_임대료': 3.60, 'SH타임_임대료': 3.40, '평균임대료': 3.60 },
-  { date: '26.01', '금강 IX': 19.2, '실리콘앨리': 18.7, 'SH타임': 12.4, '금강IX_임대료': 3.85, '실리콘앨리_임대료': 3.65, 'SH타임_임대료': 3.45, '평균임대료': 3.65 },
-  { date: '26.05', '금강 IX': 18.2, '실리콘앨리': 18.5, 'SH타임': 12.1, '금강IX_임대료': 3.88, '실리콘앨리_임대료': 3.68, 'SH타임_임대료': 3.48, '평균임대료': 3.68 }
+  {
+    date: '21.01',
+    '금강 IX': null, '실리콘앨리': null, 'SH타임': 18.5, '더퍼스트': 13.2, 'SK V1': 20.4, '에이팩시티': 12.1, '테라타워': 35.5, 'IT타워': 11.5, '메가비즈타워': 25.8, '비즈타워': 26.2,
+    '금강IX_임대료': null, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.65, '더퍼스트_임대료': 2.50, 'SKV1_임대료': 2.70, '에이팩시티_임대료': 2.80, '테라타워_임대료': 2.45, 'IT타워_임대료': 2.60, '메가비즈타워_임대료': 2.40, '비즈타워_임대료': 2.35, '평균임대료': 2.56
+  },
+  {
+    date: '21.05',
+    '금강 IX': null, '실리콘앨리': null, 'SH타임': 18.0, '더퍼스트': 12.8, 'SK V1': 19.8, '에이팩시티': 11.5, '테라타워': 33.2, 'IT타워': 11.0, '메가비즈타워': 24.5, '비즈타워': 25.0,
+    '금강IX_임대료': null, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.68, '더퍼스트_임대료': 2.55, 'SKV1_임대료': 2.72, '에이팩시티_임대료': 2.85, '테라타워_임대료': 2.48, 'IT타워_임대료': 2.62, '메가비즈타워_임대료': 2.42, '비즈타워_임대료': 2.38, '평균임대료': 2.59
+  },
+  {
+    date: '21.09',
+    '금강 IX': 58.5, '실리콘앨리': null, 'SH타임': 17.2, '더퍼스트': 12.0, 'SK V1': 18.9, '에이팩시티': 10.8, '테라타워': 29.8, 'IT타워': 10.4, '메가비즈타워': 23.0, '비즈타워': 23.8,
+    '금강IX_임대료': 2.95, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.70, '더퍼스트_임대료': 2.58, 'SKV1_임대료': 2.75, '에이팩시티_임대료': 2.90, '테라타워_임대료': 2.52, 'IT타워_임대료': 2.65, '메가비즈타워_임대료': 2.45, '비즈타워_임대료': 2.40, '평균임대료': 2.66
+  },
+  {
+    date: '21.11',
+    '금강 IX': 52.0, '실리콘앨리': null, 'SH타임': 16.5, '더퍼스트': 11.5, 'SK V1': 18.0, '에이팩시티': 10.2, '테라타워': 28.0, 'IT타워': 10.0, '메가비즈타워': 22.1, '비즈타워': 22.5,
+    '금강IX_임대료': 3.00, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.75, '더퍼스트_임대료': 2.60, 'SKV1_임대료': 2.78, '에이팩시티_임대료': 2.92, '테라타워_임대료': 2.55, 'IT타워_임대료': 2.68, '메가비즈타워_임대료': 2.48, '비즈타워_임대료': 2.42, '평균임대료': 2.69
+  },
+  {
+    date: '22.01',
+    '금강 IX': 46.5, '실리콘앨리': null, 'SH타임': 16.0, '더퍼스트': 11.2, 'SK V1': 17.5, '에이팩시티': 9.8, '테라타워': 26.2, 'IT타워': 9.6, '메가비즈타워': 21.0, '비즈타워': 21.8,
+    '금강IX_임대료': 3.05, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.78, '더퍼스트_임대료': 2.62, 'SKV1_임대료': 2.80, '에이팩시티_임대료': 2.95, '테라타워_임대료': 2.58, 'IT타워_임대료': 2.70, '메가비즈타워_임대료': 2.50, '비즈타워_임대료': 2.45, '평균임대료': 2.72
+  },
+  {
+    date: '22.05',
+    '금강 IX': 41.2, '실리콘앨리': null, 'SH타임': 15.5, '더퍼스트': 10.8, 'SK V1': 16.8, '에이팩시티': 9.5, '테라타워': 24.5, 'IT타워': 9.3, '메가비즈타워': 20.2, '비즈타워': 20.9,
+    '금강IX_임대료': 3.10, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.82, '더퍼스트_임대료': 2.65, 'SKV1_임대료': 2.85, '에이팩시티_임대료': 2.98, '테라타워_임대료': 2.60, 'IT타워_임대료': 2.72, '메가비즈타워_임대료': 2.52, '비즈타워_임대료': 2.48, '평균임대료': 2.75
+  },
+  {
+    date: '22.09',
+    '금강 IX': 36.8, '실리콘앨리': null, 'SH타임': 15.0, '더퍼스트': 10.5, 'SK V1': 16.2, '에이팩시티': 9.1, '테라타워': 22.8, 'IT타워': 9.0, '메가비즈타워': 19.5, '비즈타워': 20.1,
+    '금강IX_임대료': 3.15, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.85, '더퍼스트_임대료': 2.68, 'SKV1_임대료': 2.88, '에이팩시티_임대료': 3.00, '테라타워_임대료': 2.62, 'IT타워_임대료': 2.75, '메가비즈타워_임대료': 2.55, '비즈타워_임대료': 2.50, '평균임대료': 2.78
+  },
+  {
+    date: '22.11',
+    '금강 IX': 33.5, '실리콘앨리': null, 'SH타임': 14.6, '더퍼스트': 10.2, 'SK V1': 15.8, '에이팩시티': 8.8, '테라타워': 21.5, 'IT타워': 8.8, '메가비즈타워': 18.9, '비즈타워': 19.5,
+    '금강IX_임대료': 3.20, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.88, '더퍼스트_임대료': 2.70, 'SKV1_임대료': 2.90, '에이팩시티_임대료': 3.02, '테라타워_임대료': 2.65, 'IT타워_임대료': 2.78, '메가비즈타워_임대료': 2.58, '비즈타워_임대료': 2.52, '평균임대료': 2.81
+  },
+  {
+    date: '23.01',
+    '금강 IX': 31.0, '실리콘앨리': null, 'SH타임': 14.3, '더퍼스트': 10.0, 'SK V1': 15.5, '에이팩시티': 8.5, '테라타워': 20.2, 'IT타워': 8.6, '메가비즈타워': 18.5, '비즈타워': 19.0,
+    '금강IX_임대료': 3.25, '실리콘앨리_임대료': null, 'SH타임_임대료': 2.90, '더퍼스트_임대료': 2.72, 'SKV1_임대료': 2.92, '에이팩시티_임대료': 3.05, '테라타워_임대료': 2.68, 'IT타워_임대료': 2.80, '메가비즈타워_임대료': 2.60, '비즈타워_임대료': 2.55, '평균임대료': 2.84
+  },
+  {
+    date: '23.05',
+    '금강 IX': 29.5, '실리콘앨리': 59.2, 'SH타임': 14.5, '더퍼스트': 10.2, 'SK V1': 15.9, '에이팩시티': 8.8, '테라타워': 20.8, 'IT타워': 8.9, '메가비즈타워': 18.9, '비즈타워': 19.5,
+    '금강IX_임대료': 3.30, '실리콘앨리_임대료': 2.80, 'SH타임_임대료': 2.92, '더퍼스트_임대료': 2.75, 'SKV1_임대료': 2.95, '에이팩시티_임대료': 3.08, '테라타워_임대료': 2.70, 'IT타워_임대료': 2.82, '메가비즈타워_임대료': 2.62, '비즈타워_임대료': 2.58, '평균임대료': 2.88
+  },
+  {
+    date: '23.09',
+    '금강 IX': 28.0, '실리콘앨리': 52.5, 'SH타임': 14.2, '더퍼스트': 10.0, 'SK V1': 15.5, '에이팩시티': 8.5, '테라타워': 19.8, 'IT타워': 8.6, '메가비즈타워': 18.2, '비즈타워': 18.8,
+    '금강IX_임대료': 3.35, '실리콘앨리_임대료': 2.90, 'SH타임_임대료': 2.95, '더퍼스트_임대료': 2.78, 'SKV1_임대료': 2.98, '에이팩시티_임대료': 3.10, '테라타워_임대료': 2.72, 'IT타워_임대료': 2.85, '메가비즈타워_임대료': 2.65, '비즈타워_임대료': 2.60, '평균임대료': 2.91
+  },
+  {
+    date: '23.11',
+    '금강 IX': 26.8, '실리콘앨리': 46.8, 'SH타임': 13.8, '더퍼스트': 9.7, 'SK V1': 15.0, '에이팩시티': 8.2, '테라타워': 18.9, 'IT타워': 8.3, '메가비즈타워': 17.6, '비즈타워': 18.2,
+    '금강IX_임대료': 3.40, '실리콘앨리_임대료': 2.98, 'SH타임_임대료': 2.98, '더퍼스트_임대료': 2.80, 'SKV1_임대료': 3.02, '에이팩시티_임대료': 3.12, '테라타워_임대료': 2.75, 'IT타워_임대료': 2.88, '메가비즈타워_임대료': 2.68, '비즈타워_임대료': 2.62, '평균임대료': 2.94
+  },
+  {
+    date: '24.01',
+    '금강 IX': 25.5, '실리콘앨리': 41.5, 'SH타임': 13.5, '더퍼스트': 9.5, 'SK V1': 14.5, '에이팩시티': 8.0, '테라타워': 18.2, 'IT타워': 8.0, '메가비즈타워': 17.0, '비즈타워': 17.5,
+    '금강IX_임대료': 3.45, '실리콘앨리_임대료': 3.05, 'SH타임_임대료': 3.02, '더퍼스트_임대료': 2.82, 'SKV1_임대료': 3.05, '에이팩시티_임대료': 3.15, '테라타워_임대료': 2.78, 'IT타워_임대료': 2.90, '메가비즈타워_임대료': 2.70, '비즈타워_임대료': 2.65, '평균임대료': 2.98
+  },
+  {
+    date: '24.05',
+    '금강 IX': 24.2, '실리콘앨리': 37.0, 'SH타임': 13.1, '더퍼스트': 9.2, 'SK V1': 14.0, '에이팩시티': 7.7, '테라타워': 17.5, 'IT타워': 7.7, '메가비즈타워': 16.4, '비즈타워': 16.9,
+    '금강IX_임대료': 3.50, '실리콘앨리_임대료': 3.12, 'SH타임_임대료': 3.05, '더퍼스트_임대료': 2.85, 'SKV1_임대료': 3.08, '에이팩시티_임대료': 3.18, '테라타워_임대료': 2.80, 'IT타워_임대료': 2.92, '메가비즈타워_임대료': 2.72, '비즈타워_임대료': 2.68, '평균임대료': 3.01
+  },
+  {
+    date: '24.09',
+    '금강 IX': 23.0, '실리콘앨리': 33.2, 'SH타임': 12.8, '더퍼스트': 9.0, 'SK V1': 13.6, '에이팩시티': 7.5, '테라타워': 16.8, 'IT타워': 7.5, '메가비즈타워': 15.8, '비즈타워': 16.2,
+    '금강IX_임대료': 3.55, '실리콘앨리_임대료': 3.20, 'SH타임_임대료': 3.10, '더퍼스트_임대료': 2.90, 'SKV1_임대료': 3.12, '에이팩시티_임대료': 3.22, '테라타워_임대료': 2.85, 'IT타워_임대료': 2.95, '메가비즈타워_임대료': 2.75, '비즈타워_임대료': 2.70, '평균임대료': 3.06
+  },
+  {
+    date: '24.11',
+    '금강 IX': 21.8, '실리콘앨리': 29.8, 'SH타임': 12.5, '더퍼스트': 8.7, 'SK V1': 13.2, '에이팩시티': 7.2, '테라타워': 16.2, 'IT타워': 7.2, '메가비즈타워': 15.2, '비즈타워': 15.6,
+    '금강IX_임대료': 3.60, '실리콘앨리_임대료': 3.25, 'SH타임_임대료': 3.15, '더퍼스트_임대료': 2.92, 'SKV1_임대료': 3.15, '에이팩시티_임대료': 3.25, '테라타워_임대료': 2.88, 'IT타워_임대료': 2.98, '메가비즈타워_임대료': 2.78, '비즈타워_임대료': 2.72, '평균임대료': 3.09
+  },
+  {
+    date: '25.01',
+    '금강 IX': 20.5, '실리콘앨리': 26.5, 'SH타임': 12.2, '더퍼스트': 8.5, 'SK V1': 12.8, '에이팩시티': 7.0, '테라타워': 15.5, 'IT타워': 7.0, '메가비즈타워': 14.6, '비즈타워': 15.0,
+    '금강IX_임대료': 3.65, '실리콘앨리_임대료': 3.32, 'SH타임_임대료': 3.20, '더퍼스트_임대료': 2.95, 'SKV1_임대료': 3.18, '에이팩시티_임대료': 3.28, '테라타워_임대료': 2.90, 'IT타워_임대료': 3.00, '메가비즈타워_임대료': 2.80, '비즈타워_임대료': 2.75, '평균임대료': 3.13
+  },
+  {
+    date: '25.05',
+    '금강 IX': 19.5, '실리콘앨리': 23.8, 'SH타임': 11.9, '더퍼스트': 8.2, 'SK V1': 12.4, '에이팩시티': 6.8, '테라타워': 14.8, 'IT타워': 6.8, '메가비즈타워': 14.0, '비즈타워': 14.4,
+    '금강IX_임대료': 3.70, '실리콘앨리_임대료': 3.40, 'SH타임_임대료': 3.25, '더퍼스트_임대료': 2.98, 'SKV1_임대료': 3.22, '에이팩시티_임대료': 3.32, '테라타워_임대료': 2.92, 'IT타워_임대료': 3.02, '메가비즈타워_임대료': 2.82, '비즈타워_임대료': 2.78, '평균임대료': 3.17
+  },
+  {
+    date: '25.09',
+    '금강 IX': 18.8, '실리콘앨리': 21.2, 'SH타임': 11.6, '더퍼스트': 8.0, 'SK V1': 12.0, '에이팩시티': 6.5, '테라타워': 14.2, 'IT타워': 6.5, '메가비즈타워': 13.5, '비즈타워': 13.8,
+    '금강IX_임대료': 3.75, '실리콘앨리_임대료': 3.48, 'SH타임_임대료': 3.30, '더퍼스트_임대료': 3.02, 'SKV1_임대료': 3.25, '에이팩시티_임대료': 3.35, '테라타워_임대료': 2.95, 'IT타워_임대료': 3.05, '메가비즈타워_임대료': 2.85, '비즈타워_임대료': 2.80, '평균임대료': 3.21
+  },
+  {
+    date: '25.11',
+    '금강 IX': 18.2, '실리콘앨리': 19.5, 'SH타임': 11.3, '더퍼스트': 7.7, 'SK V1': 11.6, '에이팩시티': 6.2, '테라타워': 13.6, 'IT타워': 6.2, '메가비즈타워': 13.0, '비즈타워': 13.2,
+    '금강IX_임대료': 3.80, '실리콘앨리_임대료': 3.55, 'SH타임_임대료': 3.35, '더퍼스트_임대료': 3.05, 'SKV1_임대료': 3.28, '에이팩시티_임대료': 3.38, '테라타워_임대료': 2.98, 'IT타워_임대료': 3.08, '메가비즈타워_임대료': 2.88, '비즈타워_임대료': 2.82, '평균임대료': 3.25
+  },
+  {
+    date: '26.01',
+    '금강 IX': 17.8, '실리콘앨리': 18.0, 'SH타임': 11.0, '더퍼스트': 7.5, 'SK V1': 11.2, '에이팩시티': 6.0, '테라타워': 13.0, 'IT타워': 6.0, '메가비즈타워': 12.5, '비즈타워': 12.6,
+    '금강IX_임대료': 3.85, '실리콘앨리_임대료': 3.62, 'SH타임_임대료': 3.40, '더퍼스트_임대료': 3.08, 'SKV1_임대료': 3.32, '에이팩시티_임대료': 3.42, '테라타워_임대료': 3.02, 'IT타워_임대료': 3.12, '메가비즈타워_임대료': 2.92, '비즈타워_임대료': 2.85, '평균임대료': 3.30
+  },
+  {
+    date: '26.05',
+    '금강 IX': 17.5, '실리콘앨리': 17.2, 'SH타임': 10.8, '더퍼스트': 7.2, 'SK V1': 10.8, '에이팩시티': 5.8, '테라타워': 12.4, 'IT타워': 5.8, '메가비즈타워': 12.0, '비즈타워': 12.0,
+    '금강IX_임대료': 3.88, '실리콘앨리_임대료': 3.68, 'SH타임_임대료': 3.45, '더퍼스트_임대료': 3.12, 'SKV1_임대료': 3.35, '에이팩시티_임대료': 3.45, '테라타워_임대료': 3.05, 'IT타워_임대료': 3.15, '메가비즈타워_임대료': 2.95, '비즈타워_임대료': 2.88, '평균임대료': 3.33
+  }
 ];
 
 const AVAILABLE_BUILDINGS = [
@@ -176,7 +280,7 @@ export default function TechnoValleyDashboard() {
     dedupingInterval: 300000
   });
 
-  const { data: trendResponse } = useSWR('/api/technovalley/trend', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: trendResponse } = useSWR('/api/technovalley/trend?refresh=true', (url: string) => fetch(url).then(res => res.json()), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });
@@ -324,10 +428,10 @@ export default function TechnoValleyDashboard() {
     <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
       
       {/* ═══ LEFT PANEL: Donut Chart & KPI Cards (lg:col-span-6) ═══ */}
-      <div className="lg:col-span-6 flex flex-col gap-6">
+      <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
         
         {/* Donut Chart Card */}
-        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[420px] shrink-0">
+        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
@@ -340,9 +444,9 @@ export default function TechnoValleyDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 flex-1 min-h-[280px]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 flex-1 min-h-[240px] sm:px-4">
             {/* Donut Chart Container */}
-            <div className="w-[200px] h-[200px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
+            <div className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] relative flex items-center justify-center shrink-0 sm:translate-x-4">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -404,16 +508,16 @@ export default function TechnoValleyDashboard() {
             </div>
 
             {/* Responsive Divider Line */}
-            <div className="w-11/12 sm:w-[1px] h-[1px] sm:h-36 bg-border/50 dark:bg-border/30 my-4 sm:my-0 shrink-0 self-center" />
+            <div className="w-11/12 sm:w-[1px] h-[1px] sm:h-36 bg-border/50 dark:bg-border/30 my-4 sm:my-0 shrink-0 self-center sm:translate-x-2" />
 
             {/* Donut Legend */}
-            <div className="w-full sm:w-1/2 flex flex-col gap-4 sm:gap-5 mt-4 sm:mt-0 max-w-[280px] mx-auto sm:mx-0">
+            <div className="w-full sm:flex-1 flex flex-col gap-2.5 sm:gap-3 mt-4 sm:mt-0 max-w-[240px] mx-auto sm:mx-0 sm:ml-auto">
               {activeCategory === null ? (
                 donutData.map((item: any, index: number) => (
                   <div 
                     key={index} 
                     onClick={() => setActiveCategory(item.name)}
-                    className="flex items-center justify-between text-[13px] sm:text-[14.5px] bg-slate-50/50 dark:bg-surface/30 px-3.5 py-2.5 sm:px-3 sm:py-2.5 rounded-xl border border-border/30 sm:border border-border/10 hover:bg-slate-100/50 dark:hover:bg-white/5 cursor-pointer transition-all duration-300"
+                    className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-slate-50/50 dark:bg-surface/30 px-3 py-2 sm:px-2.5 sm:py-2 rounded-xl border border-border/30 sm:border border-border/10 hover:bg-slate-100/50 dark:hover:bg-white/5 cursor-pointer transition-all duration-300"
                   >
                     <div className="flex items-center gap-2 min-w-0 pr-1">
                       <span 
@@ -437,7 +541,7 @@ export default function TechnoValleyDashboard() {
                       {/* Selected Legend Row */}
                       <div 
                         onClick={() => setActiveCategory(null)}
-                        className="flex items-center justify-between text-[13px] sm:text-[14.5px] bg-orange-50/20 dark:bg-orange-500/5 px-3.5 py-2.5 rounded-xl border border-hs-orange/30 ring-2 ring-hs-orange/20 cursor-pointer"
+                        className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-orange-50/20 dark:bg-orange-500/5 px-3 py-2 rounded-xl border border-hs-orange/30 ring-2 ring-hs-orange/20 cursor-pointer"
                       >
                         <div className="flex items-center gap-2 min-w-0 pr-1">
                           <span 
@@ -453,13 +557,13 @@ export default function TechnoValleyDashboard() {
                       </div>
 
                       {/* Representative Companies List with premium styled cards */}
-                      <div className="flex flex-col gap-2.5">
-                        <span className="text-[11px] text-tertiary font-bold tracking-wider uppercase pl-1">대표 입주 기업</span>
-                        <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[10px] text-tertiary font-bold tracking-wider uppercase pl-0.5">대표 입주 기업</span>
+                        <div className="flex flex-col gap-1.5">
                           {selectedItem.companies.slice(0, 4).map((co: string, cIdx: number) => (
                             <div 
                               key={cIdx} 
-                              className="bg-surface border border-border/60 dark:border-border/30 px-4 py-2.5 rounded-2xl shadow-sm text-[12px] sm:text-[13px] font-black text-primary hover:border-hs-orange/40 hover:text-hs-orange transition-all text-left truncate"
+                              className="bg-surface border border-border/60 dark:border-border/30 px-3 py-2 rounded-xl shadow-sm text-[11.5px] sm:text-[12px] font-black text-primary hover:border-hs-orange/40 hover:text-hs-orange transition-all text-left truncate"
                             >
                               {co}
                             </div>
@@ -568,7 +672,7 @@ export default function TechnoValleyDashboard() {
       </div>
 
       {/* ═══ RIGHT PANEL: Trend Line Chart (lg:col-span-6) ═══ */}
-      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[570px]">
+      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between lg:h-[566px] min-h-[460px]">
         
         {/* Chart Header */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-5 pb-4 border-b border-border/40">
@@ -661,10 +765,10 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* Line Chart Area */}
-        <div className="flex-1 w-full relative min-h-[340px]">
+        <div className="flex-1 w-full relative min-h-[290px]">
           {mounted ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -5, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="date" 
@@ -673,10 +777,16 @@ export default function TechnoValleyDashboard() {
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }} 
                 />
                 <YAxis 
+                  width={42}
                   tickLine={false} 
                   axisLine={false} 
                   domain={metricMode === 'vacancy' ? [10, 26] : [3.2, 3.9]}
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }}
+                  tickFormatter={(value) => {
+                    const num = Number(value);
+                    if (isNaN(num)) return String(value);
+                    return metricMode === 'vacancy' ? Math.round(num).toString() : num.toFixed(1);
+                  }}
                   unit={metricMode === 'vacancy' ? '%' : '만'}
                 />
                 <Tooltip 
@@ -745,28 +855,7 @@ export default function TechnoValleyDashboard() {
           )}
         </div>
 
-        {metricMode === 'vacancy' && (
-          <div className="mt-4 p-4 bg-hs-orange/5 border border-hs-orange/10 rounded-2xl flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 pb-2 border-b border-hs-orange/10">
-              <span className="w-1.5 h-1.5 rounded-full bg-hs-orange" />
-              <span className="text-[11.5px] font-black text-primary">AI 프록시(Proxy) 기반 공실률 추정 모델</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10.5px]">
-              <div className="flex flex-col gap-1">
-                <span className="font-extrabold text-[#ea580c]">⚡ 국가건물에너지 통합정보 (70%)</span>
-                <span className="text-tertiary font-bold leading-normal">
-                  월별 건물 전기 사용량의 계약 전력 대비 실제 소비율 및 가동 임계치를 상시 추적합니다.
-                </span>
-              </div>
-              <div className="flex flex-col gap-1 border-t sm:border-t-0 sm:border-l border-border/40 pt-2.5 sm:pt-0 sm:pl-3">
-                <span className="font-extrabold text-blue-600 dark:text-toss-blue">🔄 국토교통부 전월세 실거래 (30%)</span>
-                <span className="text-tertiary font-bold leading-normal">
-                  상업업무용 부동산 임대차 신고 빈도 및 매물 소화 속도(Absorption Rate)를 감산 적용합니다.
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+
 
       </div>
 
@@ -1012,7 +1101,7 @@ export default function TechnoValleyDashboard() {
       {/* 전체 단지 상세 비교 모달 */}
       {showDetailModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300">
-          <div className="bg-surface border border-border/80 rounded-[32px] shadow-2xl p-6 md:p-8 max-w-5xl w-full h-[90vh] md:h-[80vh] flex flex-col relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-surface border border-border/80 rounded-[32px] shadow-2xl p-6 md:p-8 max-w-7xl w-full h-[92vh] md:h-[88vh] flex flex-col relative animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex justify-between items-start pb-4 border-b border-border/60 mb-5 shrink-0">
               <div className="flex flex-col gap-1">
@@ -1080,8 +1169,8 @@ export default function TechnoValleyDashboard() {
                 </div>
 
                 {/* Modal Line Chart */}
-                <div className="w-full h-[250px] relative flex items-end">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="w-full h-[360px] relative flex items-end">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                       <XAxis 
@@ -1093,7 +1182,7 @@ export default function TechnoValleyDashboard() {
                       <YAxis 
                         tickLine={false} 
                         axisLine={false} 
-                        domain={metricMode === 'vacancy' ? [10, 26] : [3.0, 3.9]}
+                        domain={metricMode === 'vacancy' ? [10, 48] : [2.0, 4.2]}
                         tick={{ fontSize: 9.5, fontWeight: 700, fill: '#6b7280' }}
                         unit={metricMode === 'vacancy' ? '%' : '만'}
                       />

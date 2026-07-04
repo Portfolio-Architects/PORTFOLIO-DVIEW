@@ -605,15 +605,16 @@ const AptFitFinder = React.memo(function AptFitFinder({
         else if ((m.distanceToPark ?? 9999) <= 600) lifestyleAcc += 8;
       } else if (answers.lifestyle === 'shop') {
         if (m.distanceToStarbucks && m.distanceToStarbucks <= 500) lifestyleAcc += 8;
-        if (m.academyDensity + (m.householdCount / 100) >= 30) lifestyleAcc += 7;
+        if (m.academyDensity + ((m.householdCount ?? 0) / 100) >= 30) lifestyleAcc += 7;
       } else if (answers.lifestyle === 'quiet') {
-        if (m.householdCount >= 1000) lifestyleAcc += 5;
+        if ((m.householdCount ?? 0) >= 1000) lifestyleAcc += 5;
         if (m.distanceToSubway >= 800) lifestyleAcc += 10;
       }
 
+      const hc = m.householdCount ?? 0;
       if (answers.scaleBrand === 'mega') {
-        if (m.householdCount >= 1500) lifestyleAcc += 10;
-        else if (m.householdCount >= 1000) lifestyleAcc += 6;
+        if (hc >= 1500) lifestyleAcc += 10;
+        else if (hc >= 1000) lifestyleAcc += 6;
         else lifestyleAcc += 2;
       } else if (answers.scaleBrand === 'brand') {
         const mu = getBrandMultiplier(apt.name);
@@ -621,26 +622,27 @@ const AptFitFinder = React.memo(function AptFitFinder({
         else if (mu >= 1.01) lifestyleAcc += 6;
         else lifestyleAcc += 3;
       } else if (answers.scaleBrand === 'costEffective') {
-        if (m.householdCount >= 700 && m.householdCount < 1500) lifestyleAcc += 10;
+        if (hc >= 700 && hc < 1500) lifestyleAcc += 10;
         else lifestyleAcc += 4;
       }
 
+      const yb = m.yearBuilt ?? 0;
       if (answers.yearBuilt === 'new') {
-        if (m.yearBuilt >= 2021) lifestyleAcc += 10;
-        else if (m.yearBuilt >= 2018) lifestyleAcc += 6;
+        if (yb >= 2021) lifestyleAcc += 10;
+        else if (yb >= 2018) lifestyleAcc += 6;
         else lifestyleAcc += 2;
       } else if (answers.yearBuilt === 'middle') {
-        if (m.yearBuilt >= 2015 && m.yearBuilt < 2021) lifestyleAcc += 10;
+        if (yb >= 2015 && yb < 2021) lifestyleAcc += 10;
         else lifestyleAcc += 4;
       } else if (answers.yearBuilt === 'established') {
-        if (m.yearBuilt < 2015) lifestyleAcc += 10;
-        else if (m.yearBuilt < 2018) lifestyleAcc += 6;
+        if (yb < 2015) lifestyleAcc += 10;
+        else if (yb < 2018) lifestyleAcc += 6;
         else lifestyleAcc += 2;
       }
 
       if (answers.investmentStyle === 'residence') {
         if (m.distanceToStarbucks && m.distanceToStarbucks <= 600) lifestyleAcc += 5;
-        if (m.distanceToElementary <= 300) lifestyleAcc += 5;
+        if (m.distanceToElementary && m.distanceToElementary <= 300) lifestyleAcc += 5;
       } else if (answers.investmentStyle === 'gap') {
         if (jeonseRatio >= 70) lifestyleAcc += 10;
         else if (jeonseRatio >= 64) lifestyleAcc += 6;
