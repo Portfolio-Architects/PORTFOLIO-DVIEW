@@ -161,6 +161,36 @@ export async function GET(request: NextRequest) {
       )
     ]);
 
+    // 10 landmark buildings total units mapping for size-scaled vacancy calculation
+    const BUILDING_TOTAL_UNITS: Record<string, number> = {
+      '금강 IX': 2400,
+      '실리콘앨리': 2100,
+      'SH타임': 350,
+      '더퍼스트': 500,
+      'SK V1': 780,
+      '에이팩시티': 620,
+      '테라타워': 830,
+      'IT타워': 330,
+      '메가비즈타워': 290,
+      '비즈타워': 280
+    };
+
+    const BASELINE_VACANCY_2411: Record<string, number> = {
+      '금강 IX': 21.8,
+      '실리콘앨리': 29.8,
+      'SH타임': 12.5,
+      '더퍼스트': 8.7,
+      'SK V1': 13.2,
+      '에이팩시티': 7.2,
+      '테라타워': 16.2,
+      'IT타워': 7.2,
+      '메가비즈타워': 15.2,
+      '비즈타워': 15.6
+    };
+
+    // Tracking stateful vacancy across timeline months sequentially
+    const currentVacancy = { ...BASELINE_VACANCY_2411 };
+
     const calculatedTrend = TARGET_MONTHS.map((ym) => {
       const match = rawResults.find(r => r.ym === ym);
       const txs = match ? match.list : [];
@@ -177,6 +207,12 @@ export async function GET(request: NextRequest) {
         'IT타워': { sumRent: 0, count: 0 },
         '메가비즈타워': { sumRent: 0, count: 0 },
         '비즈타워': { sumRent: 0, count: 0 }
+      };
+
+      // Count monthly transactions per building to reflect actual movement
+      const rentTxCounts: Record<string, number> = {
+        '금강 IX': 0, '실리콘앨리': 0, 'SH타임': 0, '더퍼스트': 0, 'SK V1': 0,
+        '에이팩시티': 0, '테라타워': 0, 'IT타워': 0, '메가비즈타워': 0, '비즈타워': 0
       };
 
       txs.forEach((tx) => {
@@ -237,6 +273,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (key) {
+          rentTxCounts[key] += 1;
           const pyeong = tx.sizeSqM / 3.3058;
           if (pyeong > 0) {
             const pricePerPyeong = tx.priceRaw / pyeong;
@@ -279,20 +316,40 @@ export async function GET(request: NextRequest) {
       const allRents = [rentGold, rentSilver, rentBronze, rentFirst, rentSk, rentApex, rentTerra, rentIt, rentMega, rentBiz];
       const avgRent = parseFloat((allRents.reduce((a, b) => a + b, 0) / allRents.length).toFixed(2));
 
-      // Calculate vacancy rates based on energy estimation (strict: no fallback values)
+      // Calculate vacancy rates based on energy estimation with size-scaled transaction fallback
       const vEst = vacancyResults.find(v => v.ym === ym)?.est;
-      const vacancyGold = vEst ? vEst['금강 IX'] : null;
-      const vacancySilver = vEst ? vEst['실리콘앨리'] : null;
-      const vacancyBronze = vEst ? vEst['SH타임'] : null;
-      const vacancyFirst = vEst ? vEst['더퍼스트'] : null;
-      const vacancySk = vEst ? vEst['SK V1'] : null;
-      const vacancyApex = vEst ? vEst['에이팩시티'] : null;
-      const vacancyTerra = vEst ? vEst['테라타워'] : null;
-      const vacancyIt = vEst ? vEst['IT타워'] : null;
-      const vacancyMega = vEst ? vEst['메가비즈타워'] : null;
-      const vacancyBiz = vEst ? vEst['비즈타워'] : null;
+      
+      const getVacancyRate = (key: string): number => {
+        const energyValue = vEst ? vEst[key] : null;
+        // Priority 1: Real public electricity data if available
+        if (energyValue !== null && energyValue !== undefined) {
+          currentVacancy[key] = energyValue;
+          return energyValue;
+        }
+        
+        // Priority 2: Safe real estate transaction scaling based on building size
+        const txCount = rentTxCounts[key] || 0;
+        const totalUnits = BUILDING_TOTAL_UNITS[key] || 500;
+        // Average 1.5 units moved per transaction, scaled against total building units
+        const reductionPercent = (txCount * 1.5 / totalUnits) * 100;
+        // Apply decay with a natural small turnover vacancy increase (0.2%)
+        const estimatedVacancy = Math.max(2.0, currentVacancy[key] - reductionPercent + 0.2);
+        currentVacancy[key] = estimatedVacancy;
+        return estimatedVacancy;
+      };
 
-      const formatV = (v: number | null | undefined) => (v !== null && v !== undefined) ? parseFloat(v.toFixed(1)) : null;
+      const vacancyGold = getVacancyRate('금강 IX');
+      const vacancySilver = getVacancyRate('실리콘앨리');
+      const vacancyBronze = getVacancyRate('SH타임');
+      const vacancyFirst = getVacancyRate('더퍼스트');
+      const vacancySk = getVacancyRate('SK V1');
+      const vacancyApex = getVacancyRate('에이팩시티');
+      const vacancyTerra = getVacancyRate('테라타워');
+      const vacancyIt = getVacancyRate('IT타워');
+      const vacancyMega = getVacancyRate('메가비즈타워');
+      const vacancyBiz = getVacancyRate('비즈타워');
+
+      const formatV = (v: number) => parseFloat(v.toFixed(1));
 
       return {
         date: dateLabel,
