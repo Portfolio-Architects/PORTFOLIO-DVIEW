@@ -576,14 +576,32 @@ export default function TechnoValleyDashboard() {
                       <div className="flex flex-col gap-2">
                         <span className="text-[10px] text-tertiary font-bold tracking-wider uppercase pl-0.5">대표 입주 기업</span>
                         <div className="flex flex-col gap-1.5">
-                          {selectedItem.companies.slice(0, 4).map((co: string, cIdx: number) => (
-                            <div 
-                              key={cIdx} 
-                              className="bg-surface border border-border/60 dark:border-border/30 px-3 py-2 rounded-xl shadow-sm text-[11.5px] sm:text-[12px] font-black text-primary hover:border-hs-orange/40 hover:text-hs-orange transition-all text-left truncate"
-                            >
-                              {co}
-                            </div>
-                          ))}
+                          {selectedItem.companies.slice(0, 4).map((co: string, cIdx: number) => {
+                            const [compName, rawAddress] = co.includes(' - ') ? co.split(' - ') : [co, ''];
+                            let cleanedAddress = '';
+                            if (rawAddress) {
+                              const match = rawAddress.match(/(동탄[가-힣0-9]*(?:로|길)\s*\d+(?:-\d+)?)/);
+                              cleanedAddress = match ? match[1] : rawAddress.replace('경기도 화성시', '').split(/[,/]/)[0].trim();
+                            }
+                            return (
+                              <div 
+                                key={cIdx} 
+                                className="bg-surface border border-border/60 dark:border-border/30 px-3 py-2 rounded-xl shadow-sm hover:border-hs-orange/40 transition-all text-left flex items-baseline justify-between gap-2 cursor-pointer group"
+                              >
+                                <span className="text-[12.5px] font-bold text-primary group-hover:text-hs-orange transition-colors truncate max-w-[55%]">
+                                  {compName}
+                                </span>
+                                {cleanedAddress && (
+                                  <span 
+                                    className="text-[10px] text-tertiary font-medium truncate text-right flex-1 pl-2" 
+                                    title={rawAddress}
+                                  >
+                                    {cleanedAddress}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>

@@ -115,17 +115,15 @@ export async function fetchEnergyXmlFromPublicPortal(lawdCd: string = '41590', c
         xml.includes('SERVICE KEY IS INVALID') || 
         xml.includes('LIMITED NUMBER OF SERVICE') || 
         xml.includes('SERVICE_KEY_IS_NOT_REGISTERED_ERROR') ||
-        xml.includes('OpenAPI_ServiceResponse') // Typically stands for error responses
+        xml.includes('OpenAPI_ServiceResponse')
       ) {
-        logger.warn('energy.repository.fetchEnergyXmlFromPublicPortal', 'Public API response warning. Falling back to mock.', { xmlSnippet: xml.substring(0, 150) });
-        return MOCK_ENERGY_XML_RESPONSE;
+        throw new Error('Public building energy API key is invalid or unauthorized');
       }
       return xml;
     }
-    logger.warn('energy.repository.fetchEnergyXmlFromPublicPortal', 'Invalid response format. Falling back to mock.', { status: response.status });
-    return MOCK_ENERGY_XML_RESPONSE;
+    throw new Error(`Invalid API response status: ${response.status}`);
   } catch (err) {
-    logger.error('energy.repository.fetchEnergyXmlFromPublicPortal', 'Error calling building energy public API, falling back to mock.', { error: err instanceof Error ? err.message : String(err) });
-    return MOCK_ENERGY_XML_RESPONSE;
+    logger.error('energy.repository.fetchEnergyXmlFromPublicPortal', 'Failed to fetch actual building energy data', { error: err instanceof Error ? err.message : String(err) });
+    throw err;
   }
 }

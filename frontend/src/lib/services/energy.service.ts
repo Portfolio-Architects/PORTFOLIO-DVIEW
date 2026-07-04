@@ -8,7 +8,7 @@ import { logger } from './logger';
 import { fetchEnergyXmlFromPublicPortal } from '@/lib/repositories/energy.repository';
 
 export interface VacancyEstimation {
-  readonly [buildingKey: string]: number;
+  readonly [buildingKey: string]: number | null;
 }
 
 // 10 landmark buildings metadata: Gross Floor Area (GFA, ㎡)
@@ -61,7 +61,7 @@ function normalizeBuildingKey(rawName: string): string | null {
  * Calculates vacancy rate estimation based on electricity usage
  * Vacancy (%) = 100 - (Actual Electricity Usage / (GFA * Standard Consumption Ratio)) * 100
  */
-export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnMm: string = '202605'): Promise<VacancyEstimation> {
+export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnMm: string = '202605'): Promise<VacancyEstimation | null> {
   try {
     const xml = await fetchEnergyXmlFromPublicPortal(lawdCd, crtnMm);
     const $ = cheerio.load(xml, { xmlMode: true });
@@ -86,7 +86,7 @@ export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnM
       }
     });
 
-    const estimation: Record<string, number> = {};
+    const estimation: Record<string, number | null> = {};
 
     // Apply estimation formula for all 10 core buildings
     for (const key of Object.keys(BUILDING_GFA_MAP)) {
@@ -94,8 +94,8 @@ export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnM
       const actualQty = parsedData[key];
 
       if (!actualQty) {
-        // Fallback reference value if no data found for specific building
-        estimation[key] = 15.0;
+        // Strict mapping: No actual energy data = No output
+        estimation[key] = null;
         continue;
       }
 
@@ -112,19 +112,7 @@ export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnM
     logger.info('energy.service.getEnergyVacancyEstimation', 'Vacancy estimated successfully via electricity usage', { month: crtnMm });
     return estimation;
   } catch (err) {
-    logger.error('energy.service.getEnergyVacancyEstimation', 'Vacancy estimation failed, returning default fallbacks', { month: crtnMm }, err);
-    // Ultimate fallback values
-    return {
-      '금강 IX': 17.5,
-      '실리콘앨리': 17.2,
-      'SH타임': 10.8,
-      '더퍼스트': 7.2,
-      'SK V1': 10.8,
-      '에이팩시티': 5.8,
-      '테라타워': 12.4,
-      'IT타워': 5.8,
-      '메가비즈타워': 12.0,
-      '비즈타워': 12.0
-    };
+    logger.error('energy.service.getEnergyVacancyEstimation', 'Vacancy estimation failed due to API / network errors', { month: crtnMm }, err);
+    return null;
   }
 }

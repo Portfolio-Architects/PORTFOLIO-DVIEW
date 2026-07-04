@@ -279,31 +279,33 @@ export async function GET(request: NextRequest) {
       const allRents = [rentGold, rentSilver, rentBronze, rentFirst, rentSk, rentApex, rentTerra, rentIt, rentMega, rentBiz];
       const avgRent = parseFloat((allRents.reduce((a, b) => a + b, 0) / allRents.length).toFixed(2));
 
-      // Calculate vacancy rates based on energy estimation
-      const vEst = vacancyResults.find(v => v.ym === ym)?.est || {};
-      const vacancyGold = vEst['금강 IX'] ?? 17.5;
-      const vacancySilver = vEst['실리콘앨리'] ?? 17.2;
-      const vacancyBronze = vEst['SH타임'] ?? 10.8;
-      const vacancyFirst = vEst['더퍼스트'] ?? 7.2;
-      const vacancySk = vEst['SK V1'] ?? 10.8;
-      const vacancyApex = vEst['에이팩시티'] ?? 5.8;
-      const vacancyTerra = vEst['테라타워'] ?? 12.4;
-      const vacancyIt = vEst['IT타워'] ?? 5.8;
-      const vacancyMega = vEst['메가비즈타워'] ?? 12.0;
-      const vacancyBiz = vEst['비즈타워'] ?? 12.0;
+      // Calculate vacancy rates based on energy estimation (strict: no fallback values)
+      const vEst = vacancyResults.find(v => v.ym === ym)?.est;
+      const vacancyGold = vEst ? vEst['금강 IX'] : null;
+      const vacancySilver = vEst ? vEst['실리콘앨리'] : null;
+      const vacancyBronze = vEst ? vEst['SH타임'] : null;
+      const vacancyFirst = vEst ? vEst['더퍼스트'] : null;
+      const vacancySk = vEst ? vEst['SK V1'] : null;
+      const vacancyApex = vEst ? vEst['에이팩시티'] : null;
+      const vacancyTerra = vEst ? vEst['테라타워'] : null;
+      const vacancyIt = vEst ? vEst['IT타워'] : null;
+      const vacancyMega = vEst ? vEst['메가비즈타워'] : null;
+      const vacancyBiz = vEst ? vEst['비즈타워'] : null;
+
+      const formatV = (v: number | null | undefined) => (v !== null && v !== undefined) ? parseFloat(v.toFixed(1)) : null;
 
       return {
         date: dateLabel,
-        '금강 IX': parseFloat(vacancyGold.toFixed(1)),
-        '실리콘앨리': parseFloat(vacancySilver.toFixed(1)),
-        'SH타임': parseFloat(vacancyBronze.toFixed(1)),
-        '더퍼스트': parseFloat(vacancyFirst.toFixed(1)),
-        'SK V1': parseFloat(vacancySk.toFixed(1)),
-        '에이팩시티': parseFloat(vacancyApex.toFixed(1)),
-        '테라타워': parseFloat(vacancyTerra.toFixed(1)),
-        'IT타워': parseFloat(vacancyIt.toFixed(1)),
-        '메가비즈타워': parseFloat(vacancyMega.toFixed(1)),
-        '비즈타워': parseFloat(vacancyBiz.toFixed(1)),
+        '금강 IX': formatV(vacancyGold),
+        '실리콘앨리': formatV(vacancySilver),
+        'SH타임': formatV(vacancyBronze),
+        '더퍼스트': formatV(vacancyFirst),
+        'SK V1': formatV(vacancySk),
+        '에이팩시티': formatV(vacancyApex),
+        '테라타워': formatV(vacancyTerra),
+        'IT타워': formatV(vacancyIt),
+        '메가비즈타워': formatV(vacancyMega),
+        '비즈타워': formatV(vacancyBiz),
 
         '금강IX_임대료': rentGold,
         '실리콘앨리_임대료': rentSilver,
@@ -347,16 +349,16 @@ export async function GET(request: NextRequest) {
       const fm = FALLBACK_RENT_MAP[ym];
       return {
         date: dateLabel,
-        '금강 IX': 17.5,
-        '실리콘앨리': 17.2,
-        'SH타임': 10.8,
-        '더퍼스트': 7.2,
-        'SK V1': 10.8,
-        '에이팩시티': 5.8,
-        '테라타워': 12.4,
-        'IT타워': 5.8,
-        '메가비즈타워': 12.0,
-        '비즈타워': 12.0,
+        '금강 IX': null,
+        '실리콘앨리': null,
+        'SH타임': null,
+        '더퍼스트': null,
+        'SK V1': null,
+        '에이팩시티': null,
+        '테라타워': null,
+        'IT타워': null,
+        '메가비즈타워': null,
+        '비즈타워': null,
 
         '금강IX_임대료': fm['금강 IX'],
         '실리콘앨리_임대료': fm['실리콘앨리'],
