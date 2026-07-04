@@ -366,11 +366,27 @@ export default function TechnoValleyDashboard() {
   // Lines are automatically displayed based on selectedBuildings dropdown comparison list.
 
   const filteredTrendData = useMemo(() => {
-    if (timeframe === '3Y') return trendData.slice(-7);
-    if (timeframe === '6M') return trendData.slice(-3);
-    if (timeframe === 'YTD') return trendData.slice(-2);
-    if (timeframe === '1Y') return trendData.slice(-5);
-    return trendData;
+    let sliced = trendData;
+    if (timeframe === '3Y') sliced = trendData.slice(-7);
+    else if (timeframe === '6M') sliced = trendData.slice(-3);
+    else if (timeframe === 'YTD') sliced = trendData.slice(-2);
+    else if (timeframe === '1Y') sliced = trendData.slice(-5);
+    
+    return sliced.map(d => {
+      const buildings = ['금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1', '에이팩시티', '테라타워', 'IT타워', '메가비즈타워', '비즈타워'];
+      const values = buildings
+        .map(b => d[b])
+        .filter((v): v is number => typeof v === 'number' && v !== null);
+      
+      const avgVacancy = values.length > 0 
+        ? parseFloat((values.reduce((sum, val) => sum + val, 0) / values.length).toFixed(1))
+        : null;
+
+      return {
+        ...d,
+        평균공실률: avgVacancy
+      };
+    });
   }, [trendData, timeframe]);
 
   const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'vacancy' | 'rent' | 'change'; direction: 'asc' | 'desc' }>({ key: 'vacancy', direction: 'asc' });
@@ -756,10 +772,15 @@ export default function TechnoValleyDashboard() {
             </div>
           ))}
           
-          {metricMode === 'rent' && (
-            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#737373] py-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#737373] shrink-0" />
+          {metricMode === 'rent' ? (
+            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#8b5cf6] py-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0" />
               <span>평균 임대료</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#8b5cf6] py-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0" />
+              <span>평균 공실률</span>
             </div>
           )}
         </div>
@@ -814,6 +835,16 @@ export default function TechnoValleyDashboard() {
                         activeDot={{ r: 6 }} 
                       />
                     ))}
+                    <Line 
+                      type="monotone" 
+                      dataKey="평균공실률" 
+                      name="평균 공실률"
+                      stroke="#8b5cf6" 
+                      strokeWidth={2.5} 
+                      strokeDasharray="4 4"
+                      dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
+                      activeDot={{ r: 5 }} 
+                    />
                   </>
                 ) : (
                   <>
@@ -833,7 +864,7 @@ export default function TechnoValleyDashboard() {
                       type="monotone" 
                       dataKey="평균임대료" 
                       name="평균 임대료"
-                      stroke="#737373" 
+                      stroke="#8b5cf6" 
                       strokeWidth={2.5} 
                       strokeDasharray="4 4"
                       dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
@@ -1210,6 +1241,16 @@ export default function TechnoValleyDashboard() {
                               activeDot={{ r: 5 }} 
                             />
                           ))}
+                          <Line 
+                            type="monotone" 
+                            dataKey="평균공실률" 
+                            name="평균 공실률"
+                            stroke="#8b5cf6" 
+                            strokeWidth={2} 
+                            strokeDasharray="4 4"
+                            dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
+                            activeDot={{ r: 4 }} 
+                          />
                         </>
                       ) : (
                         <>
@@ -1229,7 +1270,7 @@ export default function TechnoValleyDashboard() {
                             type="monotone" 
                             dataKey="평균임대료" 
                             name="평균 임대료"
-                            stroke="#737373" 
+                            stroke="#8b5cf6" 
                             strokeWidth={2} 
                             strokeDasharray="4 4"
                             dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
