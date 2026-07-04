@@ -741,7 +741,7 @@ export default function TechnoValleyDashboard() {
               onClick={() => setShowDetailModal(true)}
               className="h-[26px] px-2.5 rounded-lg border border-[#ea580c]/30 hover:border-[#ea580c]/50 bg-[#ea580c]/5 hover:bg-[#ea580c]/10 text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all text-[#ea580c] shadow-sm active:scale-[0.98] shrink-0"
             >
-              <span>모두보기</span>
+              <span>상세보기</span>
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
