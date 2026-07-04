@@ -70,6 +70,13 @@ export async function getEnergyVacancyEstimation(lawdCd: string = '41590', crtnM
 
     $('item').each((_, elem) => {
       const $item = $(elem);
+      const useMm = $item.find('useMm').text().trim();
+      
+      // Only parse items corresponding to the requested month (crtnMm)
+      if (useMm && useMm !== crtnMm) {
+        return;
+      }
+      
       const rawBldNm = $item.find('bldNm').text().trim();
       const elctQty = parseFloat($item.find('elctUsgQty').text().trim()) || 0;
       
