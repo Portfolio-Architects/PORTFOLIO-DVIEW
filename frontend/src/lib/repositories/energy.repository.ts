@@ -99,8 +99,8 @@ export const MOCK_ENERGY_XML_RESPONSE = `
 export async function fetchEnergyXmlFromPublicPortal(lawdCd: string = '41590', crtnMm: string = '202605'): Promise<string> {
   const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
   // Building Energy Consumption Information API endpoint
-  const endpoint = 'http://apis.data.go.kr/1613000/BldEnergyService/getBldEnergyUsgInfo';
-  const url = `${endpoint}?serviceKey=${encodeURIComponent(key)}&useAtbArea=${lawdCd}13900&crtnMm=${crtnMm}`;
+  const endpoint = 'https://apis.data.go.kr/1613000/BldEnergyService/getBldEnergyUsgInfo';
+  const url = `${endpoint}?serviceKey=${encodeURIComponent(key)}&sigunguCd=${lawdCd}&bjdongCd=13900&crtnMm=${crtnMm}`;
 
   try {
     logger.info('energy.repository.fetchEnergyXmlFromPublicPortal', 'Calling HUB Building Energy API', { lawdCd, crtnMm });
