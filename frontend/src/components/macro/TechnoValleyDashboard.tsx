@@ -1110,32 +1110,32 @@ export default function TechnoValleyDashboard() {
             
             <div className="flex flex-col gap-4 text-[13.5px] text-secondary leading-relaxed font-semibold">
               <p className="leading-relaxed font-medium">
-                DRIVE의 공실률은 실시간 파악이 어려운 오피스 빌딩 특성을 고려해 
-                공공 데이터를 기반으로 유기적 예측을 수행하는 <strong>하이브리드 AI 추정 모델</strong>을 사용합니다.
+                D-VIEW의 공실률은 실시간 파악이 어려운 지식산업센터의 특성을 고려하여 
+                공공 데이터를 기반으로 다각 추정하는 <strong>하이브리드 AI 연산 모델</strong>을 사용합니다.
               </p>
               
               <div className="p-5 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-2.5 shadow-sm">
                 <div className="flex justify-between items-center text-[13.5px]">
-                  <span className="font-black text-[#ea580c]">⚡ 건물 에너지 사용량</span>
-                  <span className="font-extrabold text-primary">70% (주지표)</span>
+                  <span className="font-black text-[#ea580c]">⚡ 건물 전력 실측 소비량</span>
+                  <span className="font-extrabold text-primary">실측 기반 연산</span>
                 </div>
                 <p className="text-[11.5px] text-tertiary leading-relaxed font-normal">
-                  국가건물에너지사용량 API의 월별 전기 소비량을 활용하여, 계약 전력 대비 실제 소비율 및 가동실 점유 임계치를 분석합니다.
+                  국가건물에너지사용량(전기) API의 검침 전력량을 분석해 실시간 가동 점유율을 추정합니다. 단, 공공데이터 정책상 산업용 전력 제한 규정 등으로 포털에 전력량이 등재되지 않는 단지는 실거래가 기반으로 자동 대체 가동됩니다.
                 </p>
               </div>
 
               <div className="p-5 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-2.5 shadow-sm">
                 <div className="flex justify-between items-center text-[13.5px]">
-                  <span className="font-black text-blue-600 dark:text-toss-blue">🔄 임대차 실거래 속도</span>
-                  <span className="font-extrabold text-primary">30% (부지표)</span>
+                  <span className="font-black text-blue-600 dark:text-toss-blue">🔄 규모 비례형 임대 실거래가 역산</span>
+                  <span className="font-extrabold text-primary">호수 규모 비례 역산</span>
                 </div>
                 <p className="text-[11.5px] text-tertiary leading-relaxed font-normal">
-                  국토교통부 상업업무용 임대차 계약 회전 빈도와 소화 일수(Absorption Rate)를 가중 적용하여 정체 기간을 감산 반영합니다.
+                  국세청 사업자등록 및 세무서 확정일자 연계를 거쳐 공공 DB에 수집되는 국토부 임대차 실거래 계약 건수를 직접 활용합니다. 각 지산 단지별 실제 공식 총 호수를 분모로 적용하여 단지 크기에 부합하는 공실 해소율을 역추산합니다.
                 </p>
               </div>
 
               <p className="text-[11.5px] text-tertiary mt-2 bg-neutral-100 dark:bg-zinc-800 p-3 rounded-xl border border-border/40 text-center font-normal">
-                ※ 매월 공공데이터 활성화 주기에 맞춰 자동으로 실시간 갱신됩니다.
+                ※ 데이터 무결성 정책에 따라 가짜 모사 값을 쓰지 않으며, 전력 실측 및 실거래 계약 변동에 의거하여 실시간 자동 갱신됩니다.
               </p>
             </div>
 
