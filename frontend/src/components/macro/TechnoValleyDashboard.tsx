@@ -372,7 +372,7 @@ export default function TechnoValleyDashboard() {
     else if (timeframe === 'YTD') sliced = trendData.slice(-2);
     else if (timeframe === '1Y') sliced = trendData.slice(-5);
     
-    return sliced.map(d => {
+    return sliced.map((d: any) => {
       const buildings = ['금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1', '에이팩시티', '테라타워', 'IT타워', '메가비즈타워', '비즈타워'];
       const values = buildings
         .map(b => d[b])
