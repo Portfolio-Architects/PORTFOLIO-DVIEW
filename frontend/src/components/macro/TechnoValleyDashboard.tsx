@@ -201,7 +201,7 @@ export default function TechnoValleyDashboard() {
   }, []);
 
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
-  const [timeframe, setTimeframe] = useState<'3M' | '6M' | 'YTD' | '1Y' | 'ALL'>('ALL');
+  const [timeframe, setTimeframe] = useState<'3Y' | '6M' | 'YTD' | '1Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -366,7 +366,7 @@ export default function TechnoValleyDashboard() {
   // Lines are automatically displayed based on selectedBuildings dropdown comparison list.
 
   const filteredTrendData = useMemo(() => {
-    if (timeframe === '3M') return trendData.slice(-2);
+    if (timeframe === '3Y') return trendData.slice(-7);
     if (timeframe === '6M') return trendData.slice(-3);
     if (timeframe === 'YTD') return trendData.slice(-2);
     if (timeframe === '1Y') return trendData.slice(-5);
@@ -697,7 +697,7 @@ export default function TechnoValleyDashboard() {
           <div className="flex flex-wrap items-center gap-2.5 self-stretch xl:self-auto justify-start xl:justify-end">
             {/* Timeframe selector */}
             <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
-              {(['3M', '6M', 'YTD', '1Y', 'ALL'] as const).map(tf => (
+              {(['6M', 'YTD', '1Y', '3Y', 'ALL'] as const).map(tf => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
@@ -1153,7 +1153,7 @@ export default function TechnoValleyDashboard() {
 
                   {/* Timeframe Toggle */}
                   <div className="flex bg-surface p-0.5 border border-border/20 rounded-lg shadow-inner">
-                    {(['3M', '6M', 'YTD', '1Y', 'ALL'] as const).map(tf => (
+                    {(['6M', 'YTD', '1Y', '3Y', 'ALL'] as const).map(tf => (
                       <button
                         key={tf}
                         onClick={() => setTimeframe(tf)}
