@@ -206,8 +206,8 @@ export default function TechnoValleyDashboard() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   
-  const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1']);
-  const REPRESENTATIVE_BUILDINGS = ['금강 IX', '실리콘앨리', 'SH타임'];
+  const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', '테라타워', '더퍼스트', 'SK V1']);
+  const REPRESENTATIVE_BUILDINGS = ['금강 IX', '실리콘앨리', '테라타워'];
 
   // Accordion portfolio states
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
