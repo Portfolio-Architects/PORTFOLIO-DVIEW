@@ -813,6 +813,7 @@ export default function TechnoValleyDashboard() {
                   dataKey="date" 
                   tickLine={false} 
                   axisLine={false} 
+                  interval="preserveStartEnd"
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }} 
                   padding={{ left: 16, right: 16 }}
                 />
@@ -1227,6 +1228,7 @@ export default function TechnoValleyDashboard() {
                         dataKey="date" 
                         tickLine={false} 
                         axisLine={false} 
+                        interval="preserveStartEnd"
                         tick={{ fontSize: 9.5, fontWeight: 700, fill: '#6b7280' }} 
                       />
                       <YAxis 
