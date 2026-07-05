@@ -187,8 +187,8 @@ async function main() {
   log(colors.magenta, '==================================================\n');
 
   // Cool-down delay to allow Next.js dev server HMR/Fast Refresh to settle after code changes
-  log(colors.cyan, '⏳ Waiting 6 seconds for HMR compilation to settle...');
-  await new Promise(resolve => setTimeout(resolve, 6000));
+  log(colors.cyan, '⏳ Waiting 30 seconds for HMR compilation to settle and cooldown...');
+  await new Promise(resolve => setTimeout(resolve, 30000));
 
   const phaseStartTime = Date.now();
   performPreRunCleanups();
