@@ -184,13 +184,13 @@ const TREND_DATA = [
 const AVERAGE_LINE_COLOR = '#845ef7'; // Soft Amethyst Purple (Pastel Cute theme)
 
 const AVAILABLE_BUILDINGS = [
-  { id: '금강 IX', name: '금강 IX타워', color: '#ff6b35', rentKey: '금강IX_임대료', totalUnits: 2701 },
-  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#4c6ef5', rentKey: '실리콘앨리_임대료', totalUnits: 2470 },
-  { id: 'SH타임', name: 'SH타임스퀘어', color: '#0f766e', rentKey: 'SH타임_임대료', totalUnits: 369 },
+  { id: '금강 IX', name: '금강 IX타워', color: '#ea580c', rentKey: '금강IX_임대료', totalUnits: 2701 },
+  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#2563eb', rentKey: '실리콘앨리_임대료', totalUnits: 2470 },
+  { id: 'SH타임', name: 'SH타임스퀘어', color: '#0d9488', rentKey: 'SH타임_임대료', totalUnits: 369 },
   { id: '더퍼스트', name: '더퍼스트타워', color: '#ff85a2', rentKey: '더퍼스트_임대료', totalUnits: 460 },
   { id: 'SK V1', name: '동탄 SK V1', color: '#ff9f43', rentKey: 'SKV1_임대료', totalUnits: 776 },
   { id: '에이팩시티', name: '동탄 에이팩시티', color: '#20c997', rentKey: '에이팩시티_임대료', totalUnits: 618 },
-  { id: '테라타워', name: '동탄 테라타워', color: '#0d9488', rentKey: '테라타워_임대료', totalUnits: 824 }, // Signature Urban Emerald
+  { id: '테라타워', name: '동탄 테라타워', color: '#0f766e', rentKey: '테라타워_임대료', totalUnits: 824 }, // Adjusted from #0d9488 to avoid duplicate with SH Times Square
   { id: 'IT타워', name: '동탄 IT타워', color: '#748ffc', rentKey: 'IT타워_임대료', totalUnits: 320 },
   { id: '메가비즈타워', name: '동탄 메가비즈타워', color: '#da77f2', rentKey: '메가비즈타워_임대료', totalUnits: 168 },
   { id: '비즈타워', name: '동탄 비즈타워', color: '#a9e34b', rentKey: '비즈타워_임대료', totalUnits: 276 }

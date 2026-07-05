@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '@/lib/firebaseConfig';
 import { logger } from '@/lib/services/logger';
-import { collection, query, where, getDocs, doc, updateDoc, getDoc, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc, orderBy, Timestamp, setDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { Camera, Check, X, Loader2, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -108,10 +108,10 @@ const PendingPhotosPage = React.memo(function PendingPhotosPage() {
             uploaderTier = '초보 임장러';
           }
           
-          await updateDoc(userRef, {
+          await setDoc(userRef, {
             uploaderPoints,
             uploaderTier
-          });
+          }, { merge: true });
         }
       }
 
