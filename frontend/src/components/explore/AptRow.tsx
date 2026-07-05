@@ -112,19 +112,7 @@ export const AptRow = memo(({
     }
   };
 
-  const getDescription = () => {
-    const parts = [];
-    if (item.totalPrice > 0) {
-      parts.push(`최근 평균 매매가 ${item.formattedPrice} (평당 ${item.formattedPyeong})`);
-    }
-    if (item.jeonsePrice > 0) {
-      parts.push(`전세 평균 ${item.formattedJeonse} (전세가율 ${item.formattedRatio})`);
-    }
-    if (item.volume3M > 0) {
-      parts.push(`최근 3개월 거래량 ${item.formattedVolume} (회전율 ${item.formattedTurnover || '0%'})`);
-    }
-    return parts.length > 0 ? parts.join(', ') + ' 수준입니다.' : '최근 거래 정보가 부족합니다.';
-  };
+
 
   const renderRightMetric = () => {
     if (currentCategory === 'rank-abs-price' || currentCategory === 'favorites') {
@@ -228,9 +216,26 @@ export const AptRow = memo(({
                 </span>
               )}
             </div>
-            <p className="text-[12px] text-tertiary mt-2 leading-relaxed font-semibold">
-              {getDescription()}
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-2.5 text-[11px] font-bold text-tertiary select-none">
+              {item.totalPrice > 0 && (
+                <span className="bg-neutral-50 dark:bg-zinc-800/40 px-2.5 py-1 rounded-lg border border-border/30 text-secondary">
+                  평당 <strong className="text-secondary font-black">{item.formattedPyeong}</strong> (매매 {item.formattedPrice})
+                </span>
+              )}
+              {item.jeonsePrice > 0 && (
+                <span className="bg-neutral-50 dark:bg-zinc-800/40 px-2.5 py-1 rounded-lg border border-border/30 text-secondary">
+                  전세 <strong className="text-secondary font-black">{item.formattedJeonse}</strong> (가율 {item.formattedRatio})
+                </span>
+              )}
+              {item.volume3M > 0 && (
+                <span className="bg-neutral-50 dark:bg-zinc-800/40 px-2.5 py-1 rounded-lg border border-border/30 text-secondary">
+                  3달 거래량 <strong className="text-secondary font-black">{item.formattedVolume}</strong> (회전율 {item.formattedTurnover || '0%'})
+                </span>
+              )}
+              {item.totalPrice === 0 && item.jeonsePrice === 0 && item.volume3M === 0 && (
+                <span className="text-tertiary">최근 거래 정보가 부족합니다.</span>
+              )}
+            </div>
           </div>
         </div>
 
