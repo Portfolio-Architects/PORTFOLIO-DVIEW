@@ -292,7 +292,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
   useEffect(() => {
     const loadQuizAnswers = () => {
       try {
-        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
+        const answers = localCache.get('drive_quiz_answers', QuizAnswerSchema, null);
         setQuizAnswers(answers);
       } catch (e) {
         logger.warn('AptCompareModal', 'Failed to parse quiz answers', undefined, e);
@@ -301,14 +301,14 @@ const AptCompareModal = React.memo(function AptCompareModal({
     if (isOpen) {
       loadQuizAnswers();
       if (typeof window !== 'undefined') {
-        window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+        window.addEventListener('drive_quiz_answers_changed', loadQuizAnswers);
       }
     } else {
       setQuizAnswers(null);
     }
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
+        window.removeEventListener('drive_quiz_answers_changed', loadQuizAnswers);
       }
     };
   }, [isOpen]);
