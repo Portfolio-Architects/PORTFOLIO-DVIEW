@@ -135,6 +135,9 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
         }, 2000);
       } catch (err) {
         logger.error('LocalEventCuration.handleShare', 'Curation share failed', undefined, err);
+        if (mountedRef.current) {
+          setShareStatus(null);
+        }
       }
     } else {
       try {
@@ -152,6 +155,9 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
         }, 2000);
       } catch (err) {
         logger.error('LocalEventCuration.handleShare', 'Failed to copy link', undefined, err);
+        if (mountedRef.current) {
+          setShareStatus(null);
+        }
       }
     }
   };
